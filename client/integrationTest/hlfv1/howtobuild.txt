@@ -1,0 +1,5 @@
+cryptogen generate --config=./crypto-config.yaml
+export FABRIC_CFG_PATH=$PWD
+configtxgen -profile MyOrdererGenesis -outputBlock ./my-genesis.block
+configtxgen -profile MyChannel -outputCreateChannelTx ./my-channel.tx -channelID mychannel
+configtxgen -profile MyOtherChannel -outputCreateChannelTx ./my-other-channel.tx -channelID myotherchannel

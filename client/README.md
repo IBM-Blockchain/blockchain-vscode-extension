@@ -1,0 +1,2 @@
+## License <a name="license"></a>
+The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE.txt) file.

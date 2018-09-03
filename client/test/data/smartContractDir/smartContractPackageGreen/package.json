@@ -1,0 +1,8 @@
+{
+    "name": "smart-contract-package-green",
+    "version": "00.01.555",
+    "description": "My smart contract",
+    "nest": {
+        "version": "3.2.1"
+    }
+}

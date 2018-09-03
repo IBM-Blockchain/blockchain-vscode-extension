@@ -1,0 +1,18 @@
+{
+	"composer": {
+		"debug": {
+			"logger": "./winstonInjector.js",
+			"config": {
+				"console": {
+					"enabledLevel": "info",
+					"alwaysLevel": "none"
+				},
+				"file": {
+					"filename": "trace_PID.log",
+					"enabledLevel": "error",
+					"alwaysLevel": "error"
+				}
+			}
+		}
+	}
+}
