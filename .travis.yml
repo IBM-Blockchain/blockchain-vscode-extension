@@ -1,0 +1,37 @@
+sudo: false
+
+matrix:
+  include:
+    - os: linux
+      env: TASK=systest
+    - os: linux
+      env: TASK=unit
+    - os: osx
+      env: TASK=unit
+      language: node_js
+      node_js:
+      - "lts/*"
+
+before_install:
+     - if [ $TRAVIS_OS_NAME == "linux" ]; then
+         sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test;
+         sudo apt-get update;
+         sudo apt-get install gcc-4.9 g++-4.9;
+         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9;
+         export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
+         sh -e /etc/init.d/xvfb start;
+         sleep 3;
+        fi
+     - npm install -g yo
+     - npm install -g generator-fabric
+install: |
+      ./.travis/install.sh
+script: |
+      ./.travis/script.sh
+#deploy:
+#     provider: script
+#     script: ./.travis/deploy.sh
+#     skip_cleanup: true
+#     on:
+#       all_branches: true
+cache: false
