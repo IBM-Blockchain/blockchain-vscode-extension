@@ -40,7 +40,8 @@
             "blockchainExplorer.refreshEntry",
             "blockchain.createSmartContractProjectEntry",
             "blockchainAPackageExplorer.refreshEntry",
-            "blockchainAPackageExplorer.packageSmartContractProject"
+            "blockchainAPackageExplorer.packageSmartContractProject",
+            "blockchainExplorer.startFabricRuntime"
         ]
     },
     "main": "./out/src/extension",
@@ -157,6 +158,11 @@
                     "dark": "resources/dark/add.svg"
                 },
                 "category": "Blockchain"
+            },
+            {
+              "command": "blockchainExplorer.startFabricRuntime",
+              "title": "Start Fabric Runtime",
+              "category": "Blockchain"
             }
         ],
         "menus": {
@@ -199,6 +205,10 @@
                 {
                     "command": "blockchainExplorer.addConnectionIdentityEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
+                },
+                {
+                  "command": "blockchainExplorer.startFabricRuntime",
+                  "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
                 }
             ]
         }

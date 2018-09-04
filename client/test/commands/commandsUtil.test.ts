@@ -14,12 +14,15 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { TestUtil } from '../TestUtil';
+import { CommandsUtil } from '../../src/commands/commandsUtil';
+import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
+import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
+
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { TestUtil } from '../TestUtil';
-import { CommandsUtil } from '../../src/commands/commandsUtil';
-
+chai.should();
 chai.use(sinonChai);
 
 describe('Commands Utility Function Tests', () => {
@@ -27,6 +30,7 @@ describe('Commands Utility Function Tests', () => {
     let mySandBox;
     let quickPickStub;
     const connections: Array<any> = [];
+    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
 
     before(async () => {
         await TestUtil.setupTests();
@@ -57,11 +61,16 @@ describe('Commands Utility Function Tests', () => {
 
         await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
 
+        await runtimeRegistry.clear();
+        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric1', developmentMode: false }));
+        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric2', developmentMode: true }));
+
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         mySandBox.restore();
+        await runtimeRegistry.clear();
     });
 
     describe('showConnectionQuickPickBox', () => {
@@ -102,4 +111,19 @@ describe('Commands Utility Function Tests', () => {
             inputStub.should.have.been.calledWith({prompt: 'a question'});
         });
     });
+
+    describe('showRuntimeQuickPickBox', () => {
+        it('should show runtimes in the quickpick box', async () => {
+            quickPickStub.resolves('local_fabric2');
+            const result: string = await CommandsUtil.showRuntimeQuickPickBox('choose a runtime');
+
+            result.should.equal('local_fabric2');
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'choose a runtime'
+            });
+        });
+    });
+
 });
