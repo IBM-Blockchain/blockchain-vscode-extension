@@ -26,6 +26,7 @@ import { VSCodeOutputAdapter } from './logging/VSCodeOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionUtil } from './util/ExtensionUtil';
+import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -46,6 +47,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         } else {
             registerCommands(context);
         }
+
+        await ensureLocalFabricExists();
 
         ExtensionUtil.setExtensionContext(context);
         outputAdapter.log('extension activated');
@@ -90,6 +93,14 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             return vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         }
     }));
+}
+
+export async function ensureLocalFabricExists(): Promise<void> {
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    if (runtimeManager.exists('local_fabric')) {
+        return;
+    }
+    await runtimeManager.add('local_fabric');
 }
 
 function disposeExtension(context: vscode.ExtensionContext): void {
