@@ -34,6 +34,8 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -47,6 +49,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     private connection: IFabricConnection = null;
 
     private connectionRegistryManager: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    private runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
     constructor() {
         FabricConnectionManager.instance().on('connected', async (connection: IFabricConnection) => {
@@ -291,11 +294,19 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 };
             }
 
-            tree.push(new ConnectionTreeItem(this,
-                connection.name,
-                connection,
-                collapsibleState,
-                command));
+            if (connection.managedRuntime) {
+                tree.push(new RuntimeTreeItem(this,
+                    connection.name,
+                    connection,
+                    collapsibleState,
+                    command));
+            } else {
+                tree.push(new ConnectionTreeItem(this,
+                    connection.name,
+                    connection,
+                    collapsibleState,
+                    command));
+            }
         }
 
         tree.sort((connectionA, connectionB) => {

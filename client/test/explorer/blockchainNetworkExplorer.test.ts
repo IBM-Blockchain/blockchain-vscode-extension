@@ -35,6 +35,7 @@ import { InstalledChainCodeVersionTreeItem } from '../../src/explorer/model/Inst
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
+import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
 
 chai.use(sinonChai);
 const should = chai.should();
@@ -388,11 +389,12 @@ describe('BlockchainNetworkExplorer', () => {
                 };
 
                 allChildren.length.should.equal(2);
-                const connectionTreeItem = allChildren[0] as ConnectionTreeItem;
-                connectionTreeItem.label.should.equal('myRuntimeConnection');
-                connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                connectionTreeItem.connection.should.deep.equal(myConnection);
-                connectionTreeItem.command.should.deep.equal(myCommand);
+                allChildren[0].should.be.an.instanceOf(RuntimeTreeItem);
+                const runtimeTreeItem = allChildren[0] as RuntimeTreeItem;
+                runtimeTreeItem.label.should.equal('myRuntimeConnection');
+                runtimeTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                runtimeTreeItem.connection.should.deep.equal(myConnection);
+                runtimeTreeItem.command.should.deep.equal(myCommand);
                 allChildren[1].label.should.equal('Add new connection');
             });
 

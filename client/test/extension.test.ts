@@ -23,6 +23,7 @@ import { DependencyManager } from '../src/dependencies/DependencyManager';
 import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
 import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRegistry';
 import { TestUtil } from './TestUtil';
+import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 
 chai.should();
 chai.use(sinonChai);
@@ -31,6 +32,7 @@ chai.use(sinonChai);
 describe('Extension Tests', () => {
 
     let mySandBox;
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
     before(async () => {
         await TestUtil.setupTests();
@@ -38,10 +40,16 @@ describe('Extension Tests', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
+        if (runtimeManager.exists('local_fabric')) {
+            await runtimeManager.delete('local_fabric');
+        }
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         mySandBox.restore();
+        if (runtimeManager.exists('local_fabric')) {
+            await runtimeManager.delete('local_fabric');
+        }
     });
 
     it('should check all the commands are registered', async () => {
@@ -59,7 +67,8 @@ describe('Extension Tests', () => {
             'blockchainExplorer.deleteConnectionEntry',
             'blockchainExplorer.addConnectionIdentityEntry',
             'blockchain.createSmartContractProjectEntry',
-            'blockchainAPackageExplorer.refreshEntry'
+            'blockchainAPackageExplorer.refreshEntry',
+            'blockchainExplorer.startFabricRuntime'
         ]);
     });
 
@@ -78,6 +87,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchain.createSmartContractProjectEntry',
             'onCommand:blockchainAPackageExplorer.refreshEntry',
             'onCommand:blockchainAPackageExplorer.packageSmartContractProject',
+            'onCommand:blockchainExplorer.startFabricRuntime'
         ]);
     });
 
@@ -181,4 +191,20 @@ describe('Extension Tests', () => {
 
         await vscode.commands.executeCommand('blockchain.refreshEntry').should.be.rejectedWith(`command 'blockchain.refreshEntry' not found`);
     });
+
+    it('should create a new local_fabric if one does not exist', async () => {
+        const addSpy = mySandBox.spy(runtimeManager, 'add');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        addSpy.should.have.been.calledOnceWithExactly('local_fabric');
+    });
+
+    it('should not create a new local_fabric if one already exists', async () => {
+        await runtimeManager.add('local_fabric');
+        const addSpy = mySandBox.spy(runtimeManager, 'add');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        addSpy.should.not.have.been.called;
+    });
+
 });

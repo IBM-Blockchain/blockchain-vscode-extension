@@ -14,6 +14,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
+import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 
 export class CommandsUtil {
 
@@ -59,4 +61,18 @@ export class CommandsUtil {
 
         return vscode.window.showQuickPick(identityNames, quickPickOptions);
     }
+
+    static showRuntimeQuickPickBox(prompt: string): Thenable<string | undefined> {
+        const runtimes: FabricRuntimeRegistryEntry[] = FabricRuntimeRegistry.instance().getAll();
+        const runtimeNames: string[] = runtimes.map((runtime: FabricRuntimeRegistryEntry) => runtime.name);
+
+        const quickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(runtimeNames, quickPickOptions);
+    }
+
 }

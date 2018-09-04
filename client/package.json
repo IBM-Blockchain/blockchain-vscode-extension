@@ -40,7 +40,8 @@
             "blockchainExplorer.refreshEntry",
             "blockchain.createSmartContractProjectEntry",
             "blockchainAPackageExplorer.refreshEntry",
-            "blockchainAPackageExplorer.packageSmartContractProject"
+            "blockchainAPackageExplorer.packageSmartContractProject",
+            "blockchainExplorer.startFabricRuntime"
         ]
     },
     "main": "./out/src/extension",
@@ -157,6 +158,11 @@
                     "dark": "resources/dark/add.svg"
                 },
                 "category": "Blockchain"
+            },
+            {
+              "command": "blockchainExplorer.startFabricRuntime",
+              "title": "Start Fabric Runtime",
+              "category": "Blockchain"
             }
         ],
         "menus": {
@@ -199,6 +205,10 @@
                 {
                     "command": "blockchainExplorer.addConnectionIdentityEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
+                },
+                {
+                  "command": "blockchainExplorer.startFabricRuntime",
+                  "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
                 }
             ]
         }
@@ -274,7 +284,7 @@
                 "new": "./node_modules/grpc/src/node/extension_binary/electron-v2.0-linux-x64-glibc"
             },
             "darwin": {
-                "orginal": "./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown",
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown",
                 "new": "./node_modules/grpc/src/node/extension_binary/electron-v2.0-darwin-x64-unknown"
             }
         }

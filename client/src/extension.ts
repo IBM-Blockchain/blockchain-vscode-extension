@@ -26,6 +26,9 @@ import { VSCodeOutputAdapter } from './logging/VSCodeOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionUtil } from './util/ExtensionUtil';
+import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
+import { RuntimeTreeItem } from './explorer/model/RuntimeTreeItem';
+import { startFabricRuntime } from './commands/startFabricRuntime';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -46,6 +49,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         } else {
             registerCommands(context);
         }
+
+        await ensureLocalFabricExists();
 
         ExtensionUtil.setExtensionContext(context);
         outputAdapter.log('extension activated');
@@ -83,6 +88,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionIdentityEntry', (connection) => addConnectionIdentity(connection)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchain.createSmartContractProjectEntry', createSmartContractProject));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.refreshEntry', () => blockchainPackageExplorerProvider.refresh()));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.startFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => startFabricRuntime(runtimeTreeItem)));
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((e) => {
 
@@ -90,6 +96,14 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             return vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         }
     }));
+}
+
+export async function ensureLocalFabricExists(): Promise<void> {
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    if (runtimeManager.exists('local_fabric')) {
+        return;
+    }
+    await runtimeManager.add('local_fabric');
 }
 
 function disposeExtension(context: vscode.ExtensionContext): void {
