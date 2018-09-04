@@ -19,7 +19,7 @@ import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 
-export async function startFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtimeName: string;
     if (!runtimeTreeItem) {
@@ -33,8 +33,8 @@ export async function startFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Pro
         title: 'Blockchain Extension',
         cancellable: false
     }, async (progress, token) => {
-        progress.report({ message: `Starting Fabric runtime ${runtimeName}` });
+        progress.report({ message: `Stopping Fabric runtime ${runtimeName}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-        await runtime.start(outputAdapter);
+        await runtime.stop(outputAdapter);
     });
 }
