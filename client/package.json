@@ -284,7 +284,7 @@
                 "new": "./node_modules/grpc/src/node/extension_binary/electron-v2.0-linux-x64-glibc"
             },
             "darwin": {
-                "orginal": "./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown",
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown",
                 "new": "./node_modules/grpc/src/node/extension_binary/electron-v2.0-darwin-x64-unknown"
             }
         }
