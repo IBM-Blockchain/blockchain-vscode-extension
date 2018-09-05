@@ -1,45 +1,79 @@
 # IBM Blockchain Extension for VSCode
+<!---Installing instructions
+--->
+<!---Short description of what the extension allows the user to do and key features in bullet points below 
+--->
+The IBM Blockchain extension allows a user to write and test chaincode projects in Visual Studio Code:
+* Generate skeleton chaincode projects
+* Adds a Fabric view to connect and interact with Fabric Blockchain networks
 
-Code, Discover and Test Fabric smart contracts
+<!---Things you can do in the Explorer view once the extension is installed
+--->
+## Start a new Fabric chaincode project
+<!---Short explanation with code-blocks
+--->
+![Start a new Fabric chaincode project](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/smart_Contract_project-2.gif "Start a new Fabric chaincode project")
+<!---Link to docs with further instructions
+--->
+## Edit/ write chaincode files
+<!---Short explanation with code-blocks
+--->
+![Edit chaincode files](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/4%20.edit%20chaincode.png "Edit chaincode files")
+<!---Link to docs with further instructions
+--->
+## Create a package from a chaincode project
+Coming in a later version. See [issue #2](https://github.ibm.com/IBM-Blockchain/fabric-vscode-extension/issues/2) 
+<!---Short explanation with code-blocks
+--->
+<!---Screenshot of UI/Video of prototype click-through 
+--->
+<!---Link to docs with further instructions
+--->
 
-
-## Manual Build and Install
-
-```
-git clone https://github.ibm.com/IBM-Blockchain/fabric-vscode-extension.git
-cd ../client
-npm install
-```
-
-# Travis CI build
-Developers no longer need a manual build, once you have pulled a request from your private Github repository. The build will be automatically performed by Travis.
-A successful build will create an installable VSIX file on the build machine. 
-The public release version number is defined in the Client package.json file. 
-
-## Publish Release
-Below are steps for publishing a release.
-1. Go to https://github.ibm.com/IBM-Blockchain/fabric-vscode-extension
-2. Click Releases tab
-3. Click Draft a new release on the right
-4. Type a Tag version in the Tag version field. e.g. v0.5.7.1
-5. Type a Release title in the Release title field e.g v0.5.7.1
-6. Provide a short description of this release under the Write tab
-7. Uncheck the box for This is a pre-release at the end of this page
-8. Click Publish release button to publish the VSIX file to the VSCode Marketplace
-
-## Check the published release
-1. Go to the VSCode Marketplace: https://marketplace.visualstudio.com/
-2. Type Composer in the search field and hit return key or search button
-3. This will bring you to https://marketplace.visualstudio.com/search?term=Composer&target=VSCode&category=All%20categories&sortBy=Relevance
-
-## Install a new release
-1. Open Visual Studio Code in your desktop
-2. Open the Extensions by View-->Extensions or Ctrl(cmd)+Shift+x 
-3. Search for Composer
-4. The new published version is showing on the list
-5. Click Install button to install it
-6. Update button will be shown if you have already installed the same plugin before.
-
-
+<!---Things you can do in the Fabric view once the extension is installed
+--->
+<!---Introduction to Fabric view
+--->
+## Create and connect to local_fabric runtime
+Coming in a later version. See [issue #10](https://github.ibm.com/IBM-Blockchain/fabric-vscode-extension/issues/10) 
+<!---Short explanation with code-blocks
+--->
+<!---Screenshot of UI/Video of prototype click-through 
+--->
+<!---Link to docs with further instructions
+--->
+## Connect to a specified (remote) Fabric runtime and discover the existing resources
+<!---Short explanation with code-blocks
+--->
+![Connect to a specificed(remote)Fabric runtime and discover the existing resources](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/resources.png "Connect to the network and discover the existing resources")
+<!---Link to docs with further instructions
+--->
+## Install new chaincode
+<!---Short explanation with code-blocks
+--->
+![Install new chaincode](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/install%20chaincode%201.png "Install new chaincode")
+![Install new chaincode](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/install%20chaincode%202.png "Install new chaincode")
+<!---Link to docs with further instructions
+--->
+## Instantiate new chaincode
+<!---Short explanation with code-blocks
+--->
+![Instantiate new chaincode](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/instantiate%20chaincode%201.png
+ "Instantiate new chaincode")
+![Instantiate new chaincode](https://github.com/simran-sohanpal/blockchain-vscode-extension/blob/readmeupdates/client/media/instantiate%20chaincode%202.png "Instantiate new chaincode")
+<!---Link to docs with further instructions
+--->
+## Test new chaincode
+<!---Short explanation with code-blocks
+--->
+<!---Screenshot of UI/Video of prototype click-through 
+--->
+Coming in a later version. See [issue #18](https://github.ibm.com/IBM-Blockchain/fabric-vscode-extension/issues/18)
+<!---Link to docs with further instructions
+--->
+## Commands
+The IBM Blockchain extension provides commands in the Command Palette for working with chaincode files:
+<!---Table of commands with columns: 'command' and 'description'
+--->
 ## License <a name="license"></a>
-The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE) file.
+Hyperledger Project source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE) file. Hyperledger Project documentation files are made available under the Creative Commons Attribution 4.0 International License (CC-BY-4.0), available at http://creativecommons.org/licenses/by/4.0/.
