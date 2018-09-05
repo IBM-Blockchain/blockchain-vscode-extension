@@ -41,7 +41,8 @@
             "blockchain.createSmartContractProjectEntry",
             "blockchainAPackageExplorer.refreshEntry",
             "blockchainAPackageExplorer.packageSmartContractProject",
-            "blockchainExplorer.startFabricRuntime"
+            "blockchainExplorer.startFabricRuntime",
+            "blockchainExplorer.stopFabricRuntime"
         ]
     },
     "main": "./out/src/extension",
@@ -163,6 +164,11 @@
               "command": "blockchainExplorer.startFabricRuntime",
               "title": "Start Fabric Runtime",
               "category": "Blockchain"
+            },
+            {
+              "command": "blockchainExplorer.stopFabricRuntime",
+              "title": "Stop Fabric Runtime",
+              "category": "Blockchain"
             }
         ],
         "menus": {
@@ -208,6 +214,10 @@
                 },
                 {
                   "command": "blockchainExplorer.startFabricRuntime",
+                  "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
+                },
+                {
+                  "command": "blockchainExplorer.stopFabricRuntime",
                   "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
                 }
             ]
