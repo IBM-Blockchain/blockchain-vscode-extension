@@ -10,7 +10,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.19.8",
+    "version": "0.0.1",
     "publisher": "IBM",
     "icon": "media/blockchain_marketplace.png",
     "galleryBanner": {
@@ -272,7 +272,6 @@
         "electron-rebuild": "1.8.2",
         "generator-fabric": "^0.0.2",
         "glob": "7.1.2",
-        "home-dir": "1.0.0",
         "istanbul": "0.4.5",
         "license-check-and-add": "2.3.6",
         "mocha": "5.2.0",
@@ -298,6 +297,7 @@
         "fabric-ca-client": "1.2.1",
         "fabric-client": "1.2.1",
         "fs-extra": "^7.0.0",
+        "home-dir": "1.0.0",
         "strip-ansi": "^4.0.0",
         "vscode-languageclient": "4.4.1"
     },
