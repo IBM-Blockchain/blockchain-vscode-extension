@@ -25,7 +25,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
     if (!runtimeTreeItem) {
         runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Enter a name for the runtime');
     } else {
-        runtimeName = runtimeTreeItem.label;
+        runtimeName = runtimeTreeItem.getName();
     }
     const runtime: FabricRuntime = runtimeManager.get(runtimeName);
     await vscode.window.withProgress({

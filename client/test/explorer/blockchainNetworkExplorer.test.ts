@@ -36,6 +36,8 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 chai.use(sinonChai);
 const should = chai.should();
@@ -368,32 +370,42 @@ describe('BlockchainNetworkExplorer', () => {
             });
 
             it('should display managed runtimes with single identities', async () => {
-                const connections: Array<any> = [];
-
-                const myConnection = {
-                    name: 'myRuntimeConnection',
+                const connections = [{
+                    name: 'myRuntime',
                     managedRuntime: true
-                };
+                }];
 
-                connections.push(myConnection);
+                const runtimes = [{
+                    name: 'myRuntime',
+                    developmentMode: false
+                }];
 
+                // reset the available connections
                 await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
+
+                const mockRuntime = sinon.createStubInstance(FabricRuntime);
+                mockRuntime.getName.returns('myRuntime');
+                mockRuntime.isBusy.returns(false);
+                mockRuntime.isRunning.resolves(true);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
 
                 const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                await new Promise((resolve) => { setTimeout(resolve, 0); });
 
                 const myCommand = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: ['myRuntimeConnection']
+                    arguments: ['myRuntime']
                 };
 
                 allChildren.length.should.equal(2);
                 allChildren[0].should.be.an.instanceOf(RuntimeTreeItem);
                 const runtimeTreeItem = allChildren[0] as RuntimeTreeItem;
-                runtimeTreeItem.label.should.equal('myRuntimeConnection');
+                runtimeTreeItem.label.should.equal('myRuntime  ●');
                 runtimeTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                runtimeTreeItem.connection.should.deep.equal(myConnection);
+                runtimeTreeItem.connection.should.deep.equal(connections[0]);
                 runtimeTreeItem.command.should.deep.equal(myCommand);
                 allChildren[1].label.should.equal('Add new connection');
             });
