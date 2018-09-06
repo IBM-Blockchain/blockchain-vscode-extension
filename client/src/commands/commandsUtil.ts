@@ -16,6 +16,8 @@ import * as vscode from 'vscode';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
+import * as myExtension from '../../src/extension';
+import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
 
 export class CommandsUtil {
 
@@ -73,6 +75,26 @@ export class CommandsUtil {
         };
 
         return vscode.window.showQuickPick(runtimeNames, quickPickOptions);
+    }
+
+    static async showSmartContractPackagesQuickPickBox(prompt: string): Promise<string | undefined> {
+        const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+
+        const projects: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+
+        const quickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        const projectNames = [];
+
+        projects.forEach((project) => {
+            projectNames.push(project.name);
+        });
+
+        return vscode.window.showQuickPick(projectNames, quickPickOptions);
     }
 
 }
