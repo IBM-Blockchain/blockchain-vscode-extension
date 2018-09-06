@@ -29,7 +29,21 @@
         "Other"
     ],
     "activationEvents": [
-        "*"
+        "onView:blockchainExplorer",
+        "onCommand:blockchainExplorer.addConnectionEntry",
+        "onCommand:blockchainExplorer.deleteConnectionEntry",
+        "onCommand:blockchainExplorer.addConnectionIdentityEntry",
+        "onCommand:blockchainExplorer.connectEntry",
+        "onCommand:blockchainExplorer.disconnectEntry",
+        "onCommand:blockchainExplorer.refreshEntry",
+        "onCommand:blockchain.createSmartContractProjectEntry",
+        "onCommand:blockchainAPackageExplorer.refreshEntry",
+        "onCommand:blockchainAPackageExplorer.packageSmartContractProject",
+        "onCommand:blockchainExplorer.startFabricRuntime",
+        "onCommand:blockchainExplorer.stopFabricRuntime",
+        "onCommand:blockchainExplorer.restartFabricRuntime",
+        "onCommand:blockchainExplorer.toggleFabricRuntimeDevMode",
+        "onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry"
     ],
     "actualActivationEvents": {
         "onView": [
@@ -48,7 +62,8 @@
             "blockchainExplorer.startFabricRuntime",
             "blockchainExplorer.stopFabricRuntime",
             "blockchainExplorer.restartFabricRuntime",
-            "blockchainExplorer.toggleFabricRuntimeDevMode"
+            "blockchainExplorer.toggleFabricRuntimeDevMode",
+            "blockchainAPackageExplorer.deleteSmartContractPackageEntry"
         ]
     },
     "main": "./out/src/extension",
@@ -184,6 +199,11 @@
             {
                 "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
                 "title": "Toggle Development Mode",
+                "catergory": "Blockchain"
+            },
+            {
+                "command": "blockchainAPackageExplorer.deleteSmartContractPackage",
+                "title": "Delete Package",
                 "category": "Blockchain"
             }
         ],
@@ -247,6 +267,10 @@
                 {
                     "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-stopped"
+                },
+                {
+                    "command": "blockchainAPackageExplorer.deleteSmartContractPackage",
+                    "when": "view == blockchainAPackageExplorer && viewItem == blockchain-package-item"
                 }
             ]
         }
