@@ -13,6 +13,10 @@
     "version": "0.0.1",
     "publisher": "IBM",
     "icon": "media/blockchain_marketplace.png",
+    "galleryBanner": {
+        "color": "#313131",
+        "theme": "dark"
+    },
     "engines": {
         "vscode": "^1.26.0"
     },
@@ -95,7 +99,7 @@
                 "command": "blockchainExplorer.refreshEntry",
                 "title": "Refresh",
                 "icon": {
-                    "light": "resources/light/refresh.svg",
+                    "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
                 },
                 "category": "Blockchain"
@@ -109,8 +113,8 @@
                 "command": "blockchainExplorer.disconnectEntry",
                 "title": "Disconnect",
                 "icon": {
-                    "light": "resources/light/closr.svg",
-                    "dark": "resources/dark/close.svg"
+                    "light": "resources/light/back_light.svg",
+                    "dark": "resources/dark/back.svg"
                 },
                 "category": "Blockchain"
             },
@@ -118,7 +122,7 @@
                 "command": "blockchainExplorer.addConnectionEntry",
                 "title": "Add Connection",
                 "icon": {
-                    "light": "resources/light/add.svg",
+                    "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
                 "category": "Blockchain"
@@ -147,7 +151,7 @@
                 "command": "blockchainAPackageExplorer.refreshEntry",
                 "title": "Refresh Smart Contract Packages",
                 "icon": {
-                    "light": "resources/light/refresh.svg",
+                    "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
                 },
                 "category": "Blockchain"
@@ -156,7 +160,7 @@
                 "command": "blockchainAPackageExplorer.packageSmartContractProject",
                 "title": "Add Smart Contract Package",
                 "icon": {
-                    "light": "resources/light/add.svg",
+                    "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
                 "category": "Blockchain"
