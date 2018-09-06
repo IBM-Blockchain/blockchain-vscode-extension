@@ -29,21 +29,7 @@
         "Other"
     ],
     "activationEvents": [
-        "onView:blockchainExplorer",
-        "onCommand:blockchainExplorer.addConnectionEntry",
-        "onCommand:blockchainExplorer.deleteConnectionEntry",
-        "onCommand:blockchainExplorer.addConnectionIdentityEntry",
-        "onCommand:blockchainExplorer.connectEntry",
-        "onCommand:blockchainExplorer.disconnectEntry",
-        "onCommand:blockchainExplorer.refreshEntry",
-        "onCommand:blockchain.createSmartContractProjectEntry",
-        "onCommand:blockchainAPackageExplorer.refreshEntry",
-        "onCommand:blockchainAPackageExplorer.packageSmartContractProject",
-        "onCommand:blockchainExplorer.startFabricRuntime",
-        "onCommand:blockchainExplorer.stopFabricRuntime",
-        "onCommand:blockchainExplorer.restartFabricRuntime",
-        "onCommand:blockchainExplorer.toggleFabricRuntimeDevMode",
-        "onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry"
+        "*"
     ],
     "actualActivationEvents": {
         "onView": [

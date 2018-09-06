@@ -30,6 +30,7 @@ import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 
 chai.should();
 chai.use(sinonChai);
+let USER_PACKAGE_DIRECTORY;
 
 describe('DeleteSmartContractPackageCommand', () => {
 
@@ -39,7 +40,7 @@ describe('DeleteSmartContractPackageCommand', () => {
     before(async () => {
 
         // Get the user's current 'smart contract packages' directory location. This will be used later to update the configuration.
-        const USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
+        USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
 
         await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
 
@@ -48,7 +49,7 @@ describe('DeleteSmartContractPackageCommand', () => {
     });
 
     after(async () => {
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     describe('deleteSmartContractPackage', () => {
@@ -146,7 +147,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackage');
 
-            removeSpy.should.have.been.calledOnceWithExactly(TEST_PACKAGE_DIRECTORY + '/ayy');
+            removeSpy.should.have.been.calledOnceWithExactly(TEST_PACKAGE_DIRECTORY + '/DeleteThisDirectory');
 
         });
 

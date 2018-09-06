@@ -68,11 +68,11 @@ describe('Extension Tests', () => {
             'blockchainExplorer.addConnectionIdentityEntry',
             'blockchain.createSmartContractProjectEntry',
             'blockchainAPackageExplorer.refreshEntry',
-            'blockchainAPackageExplorer.deleteSmartContractPackage',
             'blockchainExplorer.startFabricRuntime',
             'blockchainExplorer.stopFabricRuntime',
             'blockchainExplorer.restartFabricRuntime',
-            'blockchainExplorer.toggleFabricRuntimeDevMode'
+            'blockchainExplorer.toggleFabricRuntimeDevMode',
+            'blockchainAPackageExplorer.deleteSmartContractPackage'
         ]);
     });
 
@@ -96,6 +96,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.restartFabricRuntime',
             'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode',
             'onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry'
+
         ]);
     });
 
