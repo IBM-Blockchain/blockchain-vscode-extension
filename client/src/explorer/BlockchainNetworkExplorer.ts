@@ -285,6 +285,8 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             let command: vscode.Command;
             if (connection.identities && connection.identities.length > 1) {
                 collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            } else if (connection.managedRuntime) {
+                collapsibleState = vscode.TreeItemCollapsibleState.None;
             } else {
                 collapsibleState = vscode.TreeItemCollapsibleState.None;
                 command = {

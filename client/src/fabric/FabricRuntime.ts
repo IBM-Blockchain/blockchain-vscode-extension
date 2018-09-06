@@ -20,6 +20,7 @@ import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
+import { EventEmitter } from 'events';
 
 const basicNetworkPath = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath = path.resolve(basicNetworkPath, 'connection.json');
@@ -37,7 +38,7 @@ interface ContainerPorts {
     }>;
   }
 
-export class FabricRuntime {
+export class FabricRuntime extends EventEmitter {
 
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     private docker: Dockerode;
@@ -45,6 +46,7 @@ export class FabricRuntime {
     private busy: boolean = false;
 
     constructor(private runtimeRegistryEntry: FabricRuntimeRegistryEntry) {
+        super();
         this.name = runtimeRegistryEntry.name;
         this.docker = new Dockerode();
     }
@@ -59,26 +61,30 @@ export class FabricRuntime {
 
     public async start(outputAdapter?: OutputAdapter): Promise<void> {
         try {
-            this.busy = true;
-            await this.execute('start.sh', outputAdapter);
+            this.setBusy(true);
+            await this.startInner(outputAdapter);
         } finally {
-            this.busy = false;
+            this.setBusy(false);
         }
     }
 
     public async stop(outputAdapter?: OutputAdapter): Promise<void> {
         try {
-            this.busy = true;
-            await this.execute('stop.sh', outputAdapter);
-            await this.execute('teardown.sh', outputAdapter);
+            this.setBusy(true);
+            await this.stopInner(outputAdapter);
         } finally {
-            this.busy = false;
+            this.setBusy(false);
         }
     }
 
     public async restart(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.stop(outputAdapter);
-        await this.start(outputAdapter);
+        try {
+            this.setBusy(true);
+            await this.stopInner(outputAdapter);
+            await this.startInner(outputAdapter);
+        } finally {
+            this.setBusy(false);
+        }
     }
 
     public async getConnectionProfile(): Promise<object> {
@@ -125,6 +131,20 @@ export class FabricRuntime {
     public async setDevelopmentMode(developmentMode: boolean): Promise<void> {
         this.runtimeRegistryEntry.developmentMode = developmentMode;
         await this.runtimeRegistry.update(this.runtimeRegistryEntry);
+    }
+
+    private setBusy(busy: boolean) {
+        this.busy = busy;
+        this.emit('busy', busy);
+    }
+
+    private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
+        await this.execute('start.sh', outputAdapter);
+    }
+
+    private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
+        await this.execute('stop.sh', outputAdapter);
+        await this.execute('teardown.sh', outputAdapter);
     }
 
     private execute(script: string, outputAdapter?: OutputAdapter): Promise<void> {

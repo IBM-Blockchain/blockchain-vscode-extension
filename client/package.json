@@ -224,15 +224,15 @@
                 },
                 {
                     "command": "blockchainExplorer.startFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-stopped"
                 },
                 {
                     "command": "blockchainExplorer.stopFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
                 },
                 {
                     "command": "blockchainExplorer.restartFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item"
+                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
                 }
             ]
         }

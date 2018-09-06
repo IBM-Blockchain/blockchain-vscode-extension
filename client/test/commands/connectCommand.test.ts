@@ -372,17 +372,21 @@ describe('ConnectCommand', () => {
             await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
             await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
 
+            const mockRuntime = sinon.createStubInstance(FabricRuntime);
+            mockRuntime.getName.returns('myRuntime');
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(true);
+            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
+
             const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            await new Promise((resolve) => { setTimeout(resolve, 0); });
 
             const myConnectionItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
 
             const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
 
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
-
-            const mockRuntime = sinon.createStubInstance(FabricRuntime);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
 
             await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 

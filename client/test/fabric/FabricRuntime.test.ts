@@ -183,6 +183,34 @@ describe('FabricRuntime', () => {
             outputAdapter.error.should.have.been.calledOnceWith('stderr');
         });
 
+        it('should publish busy events before and after handling success', async () => {
+            const eventStub = sinon.stub();
+            const originalSpawn = child_process.spawn;
+            const spawnStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            runtime.on('busy', eventStub);
+            await runtime.start();
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+        });
+
+        it('should publish busy events before and after handling an error', async () => {
+            const eventStub = sinon.stub();
+            const originalSpawn = child_process.spawn;
+            const spawnStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
+            });
+            runtime.on('busy', eventStub);
+            await runtime.start().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "start.sh" return code 1`);
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+        });
+
     });
 
     describe('#stop', () => {
@@ -250,6 +278,40 @@ describe('FabricRuntime', () => {
             outputAdapter.error.should.have.been.calledWith('stderr');
         });
 
+        it('should publish busy events before and after handling success', async () => {
+            const eventStub = sinon.stub();
+            const originalSpawn = child_process.spawn;
+            const spawnStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            spawnStub.withArgs('/bin/sh', [ 'teardown.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            runtime.on('busy', eventStub);
+            await runtime.stop();
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+        });
+
+        it('should publish busy events before and after handling an error', async () => {
+            const eventStub = sinon.stub();
+            const originalSpawn = child_process.spawn;
+            const spawnStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
+            });
+            spawnStub.withArgs('/bin/sh', [ 'teardown.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            runtime.on('busy', eventStub);
+            await runtime.stop().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "stop.sh" return code 1`);
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+        });
+
     });
 
     describe('#restart', () => {
@@ -295,6 +357,46 @@ describe('FabricRuntime', () => {
             outputAdapter.error.should.have.been.calledWith('stderr');
             outputAdapter.log.should.have.been.calledWith('stdout');
             outputAdapter.error.should.have.been.calledWith('stderr');
+        });
+
+        it('should publish busy events before and after handling success', async () => {
+            const eventStub = sinon.stub();
+            const originalSpawn = child_process.spawn;
+            const spawnStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            spawnStub.withArgs('/bin/sh', [ 'teardown.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            runtime.on('busy', eventStub);
+            await runtime.restart();
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+        });
+
+        it('should publish busy events before and after handling an error', async () => {
+            const eventStub = sinon.stub();
+            const originalSpawn = child_process.spawn;
+            const spawnStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
+            });
+            spawnStub.withArgs('/bin/sh', [ 'teardown.sh' ], sinon.match.any).callsFake(() => {
+                return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
+            });
+            runtime.on('busy', eventStub);
+            await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "teardown.sh" return code 1`);
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
         });
 
     });
