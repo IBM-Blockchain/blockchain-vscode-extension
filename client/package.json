@@ -284,7 +284,7 @@
         "decache": "4.4.0",
         "electron": "2.0.7",
         "electron-rebuild": "1.8.2",
-        "generator-fabric": "^0.0.2",
+        "generator-fabric": "^0.0.4",
         "glob": "7.1.2",
         "istanbul": "0.4.5",
         "license-check-and-add": "2.3.6",
