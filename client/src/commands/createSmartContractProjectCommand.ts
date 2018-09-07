@@ -84,28 +84,28 @@ export async function createSmartContractProject(): Promise<void> {
         }
     }
 
-    let chaincodeLanguageOptions: string[];
-    let chaincodeLanguage: string;
-    outputAdapter.log('Getting chaincode languages...');
+    let smartContractLanguageOptions: string[];
+    let smartContractLanguage: string;
+    outputAdapter.log('Getting smart contract languages...');
     try {
-        chaincodeLanguageOptions = await getChaincodeLanguageOptions();
+        smartContractLanguageOptions = await getSmartContractLanguageOptions();
     } catch (error) {
-        console.log('Issue determining available chaincode languages:', error);
-        window.showErrorMessage('Issue determining available chaincode language options');
+        console.log('Issue determining available smart contract languages:', error);
+        window.showErrorMessage('Issue determining available smart contract language options');
         return;
     }
-    const choseChaincodeLanguageQuickPickOptions = {
-        placeHolder: 'Chose chaincode language (Esc to cancel)',
+    const choseSmartContractLanguageQuickPickOptions = {
+        placeHolder: 'Chose smart contract language (Esc to cancel)',
         ignoreFocusOut: true,
         matchOnDetail: true
     };
-    chaincodeLanguage = await window.showQuickPick(chaincodeLanguageOptions, choseChaincodeLanguageQuickPickOptions);
-    if (!chaincodeLanguageOptions.includes(chaincodeLanguage)) {
+    smartContractLanguage = await window.showQuickPick(smartContractLanguageOptions, choseSmartContractLanguageQuickPickOptions);
+    if (!smartContractLanguageOptions.includes(smartContractLanguage)) {
         // User has cancelled the QuickPick box
         return;
     }
-    chaincodeLanguage = chaincodeLanguage.toLowerCase();
-    console.log('chosen chaincode language is:' + chaincodeLanguage);
+    smartContractLanguage = smartContractLanguage.toLowerCase();
+    console.log('chosen contract language is:' + smartContractLanguage);
 
     // Prompt the user for a file system folder
     const openDialogOptions = {
@@ -121,7 +121,7 @@ export async function createSmartContractProject(): Promise<void> {
 
         // Run yo:fabric with default options in folderSelect
         // redirect to stdout as yo fabric prints to stderr
-        const yoFabricCmd: string = `yo fabric:chaincode -- --language="${chaincodeLanguage}" --name="new-smart-contract" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
+        const yoFabricCmd: string = `yo fabric:contract -- --language="${smartContractLanguage}" --name="new-smart-contract" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
         try {
             const yoFabricOut = await CommandUtil.sendCommand(yoFabricCmd, folderSelect[0].fsPath);
             outputAdapter.log(yoFabricOut);
@@ -136,29 +136,29 @@ export async function createSmartContractProject(): Promise<void> {
 
 } // end of createSmartContractProject function
 
-export async function getChaincodeLanguageOptions(): Promise<string[]> {
-    const yoFabricChild: child_process.ChildProcess = await child_process.spawn('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+export async function getSmartContractLanguageOptions(): Promise<string[]> {
+    const yoFabricChild: child_process.ChildProcess = await child_process.spawn('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
     return new Promise<string[]>((resolve, reject) => {
         yoFabricChild.on('exit', (returnCode: number) => {
             const stdout: Buffer = yoFabricChild.stdout.read();
             if (returnCode) {
-                return reject(new Error(`yo fabric: chaincode failed to run with return code ${returnCode}`));
+                return reject(new Error(`yo fabric: contract failed to run with return code ${returnCode}`));
             } else if (stdout) {
-                const chaincodeLanguageArray: string[] = stdout.toString().split('\n');
-                chaincodeLanguageArray.shift();
-                const cleanChaincodeLangaugeArray: string[] = [];
-                for (const language of chaincodeLanguageArray) {
+                const smartContractLanguageArray: string[] = stdout.toString().split('\n');
+                smartContractLanguageArray.shift();
+                const cleanSmartContractLangaugeArray: string[] = [];
+                for (const language of smartContractLanguageArray) {
                     if (language !== '') {
                         // Grab the first word in the string and remove non-word characters
                         const regex: RegExp = /^[^\w]*([\w]+)/g;
                         const regexMatchArray: RegExpMatchArray = regex.exec(language);
-                        cleanChaincodeLangaugeArray.push(regexMatchArray[1]);
+                        cleanSmartContractLangaugeArray.push(regexMatchArray[1]);
                     }
                 }
-                console.log('printing available chaincode languages from yo fabric:chaincode output:', cleanChaincodeLangaugeArray);
-                return resolve(cleanChaincodeLangaugeArray);
+                console.log('printing available contract languages from yo fabric:contract output:', cleanSmartContractLangaugeArray);
+                return resolve(cleanSmartContractLangaugeArray);
             } else {
-                return reject(new Error(`Failed to get output from yo fabric:chaincode`));
+                return reject(new Error(`Failed to get output from yo fabric:contract`));
             }
         });
     });

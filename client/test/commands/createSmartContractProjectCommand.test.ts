@@ -75,8 +75,8 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const chaincodeExists = await fs_extra.pathExists(pathToCheck);
-        chaincodeExists.should.be.true;
+        const smartContractExists = await fs_extra.pathExists(pathToCheck);
+        smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], true);
         errorSpy.should.not.have.been.called;
@@ -126,7 +126,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         const originalSpawn = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
-        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']).callsFake(() => {
+        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo blah && echo "  Go" && echo "  JavaScript" && echo "  TypeScript  [45R"']);
         });
         quickPickStub.onCall(1).returns('Go');
@@ -134,7 +134,7 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
         sendCommandStub.onCall(3).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         errorSpy.should.have.been.calledWith('Issue creating smart contract project');
     });
 
@@ -144,7 +144,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         const originalSpawn = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
-        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']).callsFake(() => {
+        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo blah && echo "  Go" && echo "  JavaScript" && echo "  TypeScript  [45R"']);
         });
         quickPickStub.onCall(0).returns('JavaScript');
@@ -152,18 +152,19 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(undefined);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         openDialogStub.should.have.been.calledOnce;
-        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         errorSpy.should.not.have.been.called;
     });
 
-    it('should create a go chaincode project when the user selects go as the language', async () => {
+    // Go not currently supported as a smart contract language (targetted at Fabric v1.4).
+    it.skip('should create a go smart contract project when the user selects go as the language', async () => {
         sendCommandStub.restore();
 
         const originalSpawn = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
-        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']).callsFake(() => {
+        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo blah && echo "  Go" && echo "  JavaScript" && echo "  TypeScript  [45R"']);
         });
         quickPickStub.onCall(0).returns('Go');
@@ -171,56 +172,56 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const pathToCheck = path.join(uri.fsPath, 'main.go');
-        const chaincodeExists = await fs_extra.pathExists(pathToCheck);
-        chaincodeExists.should.be.true;
-        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+        const smartContractExists = await fs_extra.pathExists(pathToCheck);
+        smartContractExists.should.be.true;
+        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], true);
         errorSpy.should.not.have.been.called;
     }).timeout(20000);
 
-    it('should show an error if determining available chaincode languages fails', async () => {
+    it('should show an error if determining available smart contract languages fails', async () => {
         sendCommandStub.restore();
 
         const originalSpawn = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
-        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']).callsFake(() => {
+        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo stderr >&2 && false']);
         });
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         executeCommandStub.should.have.been.calledOnce;
-        errorSpy.should.have.been.calledWith('Issue determining available chaincode language options');
+        errorSpy.should.have.been.calledWith('Issue determining available smart contract language options');
     }).timeout(20000);
 
-    it('should show an error if determining available chaincode languages returns nothing', async () => {
+    it('should show an error if determining available smart contract languages returns nothing', async () => {
         sendCommandStub.restore();
 
         const originalSpawn = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
-        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']).callsFake(() => {
+        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo stderr >&2 && true']);
         });
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         executeCommandStub.should.have.been.calledOnce;
-        errorSpy.should.have.been.calledWith('Issue determining available chaincode language options');
+        errorSpy.should.have.been.calledWith('Issue determining available smart contract language options');
     }).timeout(20000);
 
-    it('should not do anything if the user cancels chosing a chaincode language', async () => {
+    it('should not do anything if the user cancels chosing a smart contract language', async () => {
         sendCommandStub.restore();
         const originalSpawn = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
-        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']).callsFake(() => {
+        spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo blah && echo "  Go" && echo "  JavaScript" && echo "  TypeScript  [45R"']);
         });
         quickPickStub.resolves(undefined);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:chaincode < /dev/null']);
+        spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         quickPickStub.should.have.been.calledOnce;
         errorSpy.should.not.have.been.called;
         openDialogStub.should.not.have.been.called;
