@@ -23,7 +23,7 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
-import { CommandsUtil } from '../../src/commands/commandsUtil';
+import { UserInputUtil } from '../../src/commands/userInputUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -98,7 +98,7 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should enable development mode and not restart a stopped Fabric runtime specified by selecting it from the quick pick', async () => {
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(false);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(CommandsUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
         quickPickStub.should.have.been.called.calledOnce;
@@ -109,7 +109,7 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should disable development mode and not restart a stopped Fabric runtime specified by selecting it from the quick pick', async () => {
         await runtime.setDevelopmentMode(true);
         sandbox.stub(runtime, 'isRunning').resolves(false);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(CommandsUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
         quickPickStub.should.have.been.called.calledOnce;
@@ -120,7 +120,7 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should enable development mode and restart a running Fabric runtime specified by selecting it from the quick pick', async () => {
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(true);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(CommandsUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
         quickPickStub.should.have.been.called.calledOnce;
@@ -131,7 +131,7 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should disable development mode and restart a running Fabric runtime specified by selecting it from the quick pick', async () => {
         await runtime.setDevelopmentMode(true);
         sandbox.stub(runtime, 'isRunning').resolves(true);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(CommandsUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
         quickPickStub.should.have.been.called.calledOnce;

@@ -48,7 +48,8 @@
             "blockchainExplorer.startFabricRuntime",
             "blockchainExplorer.stopFabricRuntime",
             "blockchainExplorer.restartFabricRuntime",
-            "blockchainExplorer.toggleFabricRuntimeDevMode"
+            "blockchainExplorer.toggleFabricRuntimeDevMode",
+            "blockchainAPackageExplorer.deleteSmartContractPackageEntry"
         ]
     },
     "main": "./out/src/extension",
@@ -185,6 +186,11 @@
                 "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
                 "title": "Toggle Development Mode",
                 "category": "Blockchain"
+            },
+            {
+                "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
+                "title": "Delete Package",
+                "category": "Blockchain"
             }
         ],
         "menus": {
@@ -247,6 +253,10 @@
                 {
                     "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-stopped"
+                },
+                {
+                    "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
+                    "when": "view == blockchainAPackageExplorer && viewItem == blockchain-package-item"
                 }
             ]
         }

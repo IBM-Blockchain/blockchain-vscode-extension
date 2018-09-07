@@ -87,7 +87,7 @@ describe('CreateSmartContractProjectCommand', () => {
         packageJSON.description.should.equal('My Smart Contract');
         packageJSON.author.should.equal('John Doe');
         packageJSON.license.should.equal('Apache-2.0');
-    }).timeout(20000);
+    }).timeout(40000);
 
     it('should show error if npm is not installed', async () => {
         // npm not installed
