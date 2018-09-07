@@ -16,6 +16,7 @@ import { window, Uri, commands } from 'vscode';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as child_process from 'child_process';
+import * as path from 'path';
 
 export async function createSmartContractProject(): Promise<void> {
     console.log('create Smart Contract Project');
@@ -115,15 +116,19 @@ export async function createSmartContractProject(): Promise<void> {
     const folderSelect: Uri[] | undefined = await window.showOpenDialog(openDialogOptions);
     if (folderSelect) {  // undefined if the user cancels the open dialog box
 
+        const folderUri: Uri = folderSelect[0];
+        const folderPath: string = folderUri.fsPath;
+        const folderName: string = path.basename(folderPath);
+
         // Open the returned folder in explorer, in a new window
-        console.log('new smart contract project folder is :' + folderSelect[0].fsPath);
-        await commands.executeCommand('vscode.openFolder', folderSelect[0], true);
+        console.log('new smart contract project folder is :' + folderPath);
+        await commands.executeCommand('vscode.openFolder', folderUri, true);
 
         // Run yo:fabric with default options in folderSelect
         // redirect to stdout as yo fabric prints to stderr
-        const yoFabricCmd: string = `yo fabric:contract -- --language="${smartContractLanguage}" --name="new-smart-contract" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
+        const yoFabricCmd: string = `yo fabric:contract -- --language="${smartContractLanguage}" --name="${folderName}" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
         try {
-            const yoFabricOut = await CommandUtil.sendCommand(yoFabricCmd, folderSelect[0].fsPath);
+            const yoFabricOut = await CommandUtil.sendCommand(yoFabricCmd, folderPath);
             outputAdapter.log(yoFabricOut);
             outputAdapter.log('Successfully generated smart contract project');
         } catch (error) {
