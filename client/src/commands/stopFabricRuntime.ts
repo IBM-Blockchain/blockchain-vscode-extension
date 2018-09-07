@@ -23,7 +23,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtimeName: string;
     if (!runtimeTreeItem) {
-        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Enter a name for the runtime');
+        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Select the Fabric runtime to stop');
     } else {
         runtimeName = runtimeTreeItem.getName();
     }

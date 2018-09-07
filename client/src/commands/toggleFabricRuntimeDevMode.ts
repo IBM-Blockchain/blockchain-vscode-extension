@@ -19,22 +19,29 @@ import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 
-export async function startFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtimeName: string;
     if (!runtimeTreeItem) {
-        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Select the Fabric runtime to start');
+        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Select the Fabric runtime to toggle development mode');
     } else {
         runtimeName = runtimeTreeItem.getName();
     }
     const runtime: FabricRuntime = runtimeManager.get(runtimeName);
+    const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
+    const newDevelopmentMode = !oldDevelopmentMode;
+    await runtime.setDevelopmentMode(newDevelopmentMode);
+    const running: boolean = await runtime.isRunning();
+    if (!running) {
+        return;
+    }
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
     }, async (progress, token) => {
-        progress.report({ message: `Starting Fabric runtime ${runtimeName}` });
+        progress.report({ message: `Restarting Fabric runtime ${runtimeName}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-        await runtime.start(outputAdapter);
+        await runtime.restart(outputAdapter);
     });
 }

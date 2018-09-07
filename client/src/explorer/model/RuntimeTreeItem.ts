@@ -21,6 +21,13 @@ import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 
 export class RuntimeTreeItem extends ConnectionTreeItem {
+
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: any, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command) {
+        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState);
+        await treeItem.updateProperties();
+        return treeItem;
+    }
+
     contextValue = 'blockchain-runtime-item';
 
     private name: string;
@@ -28,15 +35,12 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
+    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, connection, collapsableState, command);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         this.runtime = runtimeManager.get(label);
         this.name = this.runtime.getName();
         this.runtime.on('busy', () => {
-            this.safelyUpdateProperties();
-        });
-        process.nextTick(() => {
             this.safelyUpdateProperties();
         });
     }
@@ -52,6 +56,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
     private async updateProperties() {
         const busy: boolean = this.runtime.isBusy();
         const running: boolean = await this.runtime.isRunning();
+        const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
         let newCommand: vscode.Command = this.command;
         let newContextLabel: string = this.contextValue;
@@ -82,6 +87,9 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
                 arguments: [this]
             };
             newContextLabel = 'blockchain-runtime-item-stopped';
+        }
+        if (developmentMode) {
+            newLabel += '  ∞';
         }
         this.setLabel(newLabel);
         this.setCommand(newCommand);

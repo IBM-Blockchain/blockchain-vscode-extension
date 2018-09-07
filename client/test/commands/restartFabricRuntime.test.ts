@@ -59,18 +59,18 @@ describe('restartFabricRuntime', () => {
         await runtimeManager.clear();
     });
 
-    it('should start a Fabric runtime specified by right clicking the tree', async () => {
-        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+    it('should restart a Fabric runtime specified by right clicking the tree', async () => {
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime', runtimeTreeItem);
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
 
-    it('should start a Fabric runtime specified by selecting it from the quick pick', async () => {
+    it('should restart a Fabric runtime specified by selecting it from the quick pick', async () => {
         const quickPickStub: sinon.SinonStub = sandbox.stub(CommandsUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
-        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime');
         quickPickStub.should.have.been.called.calledOnce;
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
 
 });

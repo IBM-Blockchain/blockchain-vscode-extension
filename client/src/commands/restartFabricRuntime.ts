@@ -23,7 +23,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtimeName: string;
     if (!runtimeTreeItem) {
-        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Enter a name for the runtime');
+        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Select the Fabric runtime to restart');
     } else {
         runtimeName = runtimeTreeItem.getName();
     }

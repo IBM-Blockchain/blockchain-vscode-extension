@@ -297,11 +297,12 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             }
 
             if (connection.managedRuntime) {
-                tree.push(new RuntimeTreeItem(this,
+                const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                     connection.name,
                     connection,
                     collapsibleState,
-                    command));
+                    command);
+                tree.push(treeItem);
             } else {
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,
