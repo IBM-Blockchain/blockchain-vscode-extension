@@ -94,7 +94,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(0).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('npm is required before creating a smart contract project');
-    });
+    }).timeout(20000);
 
     it('should show error is yo is not installed and not wanted', async () => {
         // yo not installed and not wanted
@@ -102,7 +102,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.resolves('no');
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('npm modules: yo and generator-fabric are required before creating a smart contract project');
-    });
+    }).timeout(20000);
 
     it('should show error message if generator-fabric fails to install', async () => {
         // generator-fabric not installed and wanted but fails to install
@@ -112,7 +112,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(2).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('Issue installing generator-fabric module');
-    });
+    }).timeout(20000);
 
     it('should show error message if yo fails to install', async () => {
         // yo not installed and wanted but fails to install
@@ -121,7 +121,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(1).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('Issue installing yo node module');
-    });
+    }).timeout(20000);
 
     it('should show error message if we fail to create a smart contract', async () => {
         // generator-fabric and yo not installed and wanted
@@ -143,7 +143,7 @@ describe('CreateSmartContractProjectCommand', () => {
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         errorSpy.should.have.been.calledWith('Issue creating smart contract project');
-    });
+    }).timeout(20000);
 
     it('should should not do anything if the user cancels the open dialog', async () => {
         // We actually want to execute the command!
@@ -163,7 +163,7 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         errorSpy.should.not.have.been.called;
-    });
+    }).timeout(20000);
 
     // Go not currently supported as a smart contract language (targetted at Fabric v1.4).
     it.skip('should create a go smart contract project when the user selects go as the language', async () => {
@@ -232,6 +232,6 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.should.have.been.calledOnce;
         errorSpy.should.not.have.been.called;
         openDialogStub.should.not.have.been.called;
-    });
+    }).timeout(20000);
 
 }); // end of createFabricCommand tests
