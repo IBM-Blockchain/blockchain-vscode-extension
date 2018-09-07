@@ -16,8 +16,11 @@ import * as vscode from 'vscode';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
+import * as myExtension from '../extension';
+import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
+import { CommandUtil } from '../util/CommandUtil';
 
-export class CommandsUtil {
+export class UserInputUtil {
 
     static showConnectionQuickPickBox(prompt: string): Thenable<string | undefined> {
         const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
@@ -73,6 +76,19 @@ export class CommandsUtil {
         };
 
         return vscode.window.showQuickPick(runtimeNames, quickPickOptions);
+    }
+
+    static async showSmartContractPackagesQuickPickBox(prompt: string): Promise<string | undefined> {
+
+        const packages: string[] = await CommandUtil.getPackages();
+
+        const quickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: true,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(packages, quickPickOptions);
     }
 
 }

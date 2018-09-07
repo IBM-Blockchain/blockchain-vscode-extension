@@ -20,6 +20,8 @@ import stripAnsi = require('strip-ansi');
 import * as childProcessPromise from 'child-process-promise';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { OutputAdapter } from '../logging/OutputAdapter';
+import * as fs from 'fs-extra';
+import * as homeDir from 'home-dir';
 
 const exec = childProcessPromise.exec;
 
@@ -69,4 +71,46 @@ export class CommandUtil {
             });
         });
     }
+
+    public static async getPackages(): Promise<string[]> {
+        console.log('CommandUtils: getPackages');
+        let packageArray: Array<string> = [];
+
+        let packageDir: string = vscode.workspace.getConfiguration().get('fabric.package.directory');
+        console.log('packageDir is:', packageDir);
+
+        if (packageDir.startsWith('~')) {
+            // Remove tilda and replace with home dir
+            packageDir = homeDir(packageDir.replace('~', ''));
+        }
+
+        try {
+            packageArray = await fs.readdir(packageDir);
+            return packageArray;
+        } catch (error) {
+            packageArray = [];
+            if (error.message.includes('no such file or directory')) {
+                try {
+                    console.log('creating smart contract package directory:', packageDir);
+                    await fs.mkdirp(packageDir);
+                    return packageArray;
+                } catch (error) {
+                    console.log('Issue creating smart contract package folder:', error.message);
+                    vscode.window.showErrorMessage('Issue creating smart contract package folder:' + packageDir);
+                    return packageArray;
+                }
+            } else {
+                console.log('Error reading smart contract package folder:', error.message);
+                vscode.window.showErrorMessage('Issue reading smart contract package folder:' + packageDir);
+                return packageArray;
+            }
+
+        }
+
+    }
+
+    public static getPackageDirectory(): string {
+        return vscode.workspace.getConfiguration().get('fabric.package.directory');
+    }
+
 }

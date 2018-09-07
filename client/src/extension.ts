@@ -21,7 +21,7 @@ import { deleteConnection } from './commands/deleteConnectionCommand';
 import { addConnectionIdentity } from './commands/addConnectionIdentityCommand';
 import { connect } from './commands/connectCommand';
 import { createSmartContractProject } from './commands/createSmartContractProjectCommand';
-
+import { deleteSmartContractPackage } from './commands/deleteSmartContractPackageCommand';
 import { VSCodeOutputAdapter } from './logging/VSCodeOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
@@ -92,6 +92,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionIdentityEntry', (connection) => addConnectionIdentity(connection)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchain.createSmartContractProjectEntry', createSmartContractProject));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.refreshEntry', () => blockchainPackageExplorerProvider.refresh()));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.startFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => startFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.stopFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.restartFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));

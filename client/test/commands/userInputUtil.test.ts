@@ -15,24 +15,29 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { CommandsUtil } from '../../src/commands/commandsUtil';
+import { UserInputUtil } from '../../src/commands/userInputUtil';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
+import * as myExtension from '../../src/extension';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as fs_extra from 'fs-extra';
+import { CommandUtil } from '../../src/util/CommandUtil';
 chai.should();
 chai.use(sinonChai);
 
-describe('Commands Utility Function Tests', () => {
+describe('User Input Utility Function Tests', () => {
 
     let mySandBox;
     let quickPickStub;
     const connections: Array<any> = [];
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+    let USER_PACKAGE_DIRECTORY;
 
     before(async () => {
+        USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
         await TestUtil.setupTests();
     });
 
@@ -73,10 +78,14 @@ describe('Commands Utility Function Tests', () => {
         await runtimeRegistry.clear();
     });
 
+    after(async () => {
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+    });
+
     describe('showConnectionQuickPickBox', () => {
         it('should show connections in the quickpick box', async () => {
             quickPickStub.resolves('connectionOne');
-            const result: string = await CommandsUtil.showConnectionQuickPickBox('choose a connection');
+            const result: string = await UserInputUtil.showConnectionQuickPickBox('choose a connection');
 
             result.should.equal('connectionOne');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -91,7 +100,7 @@ describe('Commands Utility Function Tests', () => {
 
         it('should show identity connections in the quickpick box', async () => {
             quickPickStub.resolves('Admin@org1.example.com');
-            const result: string = await CommandsUtil.showIdentityConnectionQuickPickBox('choose a connection', connections[0]);
+            const result: string = await UserInputUtil.showIdentityConnectionQuickPickBox('choose a connection', connections[0]);
 
             result.should.equal('Admin@org1.example.com');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -106,7 +115,7 @@ describe('Commands Utility Function Tests', () => {
         it('should show the input box', async () => {
             const inputStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('my answer');
 
-            const result = await CommandsUtil.showInputBox('a question');
+            const result = await UserInputUtil.showInputBox('a question');
             result.should.equal('my answer');
             inputStub.should.have.been.calledWith({prompt: 'a question'});
         });
@@ -115,7 +124,7 @@ describe('Commands Utility Function Tests', () => {
     describe('showRuntimeQuickPickBox', () => {
         it('should show runtimes in the quickpick box', async () => {
             quickPickStub.resolves('local_fabric2');
-            const result: string = await CommandsUtil.showRuntimeQuickPickBox('choose a runtime');
+            const result: string = await UserInputUtil.showRuntimeQuickPickBox('choose a runtime');
 
             result.should.equal('local_fabric2');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -126,4 +135,20 @@ describe('Commands Utility Function Tests', () => {
         });
     });
 
+    describe('showSmartContractPackagesQuickPickBox', () => {
+
+        it('show quick pick box for smart contract packages', async () => {
+
+            quickPickStub.resolves('smartContractPackageBlue');
+
+            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete');
+
+            result.should.deep.equal('smartContractPackageBlue');
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: true,
+                placeHolder: 'Choose the smart contract package that you want to delete'
+            });
+        });
+    });
 });
