@@ -19,6 +19,12 @@ import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry
 
 export class CommandsUtil {
 
+    static readonly ADD_TO_WORKSPACE = 'Add to workspace';
+    static readonly OPEN_IN_CURRENT_WINDOW = 'Open in current window';
+    static readonly OPEN_IN_NEW_WINDOW = 'Open in new window';
+    static readonly YES = 'yes';
+    static readonly NO = 'no';
+
     static showConnectionQuickPickBox(prompt: string): Thenable<string | undefined> {
         const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -75,4 +81,27 @@ export class CommandsUtil {
         return vscode.window.showQuickPick(runtimeNames, quickPickOptions);
     }
 
+    static showFolderOptions(prompt: string): Thenable<string | undefined> {
+        const options: Array<string> = [this.ADD_TO_WORKSPACE, this.OPEN_IN_NEW_WINDOW, this.OPEN_IN_CURRENT_WINDOW];
+
+        const quickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(options, quickPickOptions);
+    }
+
+    static showQuickPickYesNo(prompt: string): Thenable<string | undefined> {
+        const options: Array<string> = [this.YES, this.NO];
+
+        const quickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(options, quickPickOptions);
+    }
 }
