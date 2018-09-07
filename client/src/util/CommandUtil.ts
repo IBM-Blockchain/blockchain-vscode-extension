@@ -13,6 +13,7 @@
 */
 'use strict';
 
+import * as vscode from 'vscode';
 import * as child_process from 'child_process';
 import stripAnsi = require('strip-ansi');
 
@@ -28,6 +29,17 @@ export class CommandUtil {
     public static async sendCommand(command: string, cwd ?: string): Promise<string> {
         const result: childProcessPromise.childProcessPromise = await exec(command, {cwd: cwd});
         return result.stdout.trim();
+    }
+
+    public static async sendCommandWithProgress(command: string, cwd: string, message: string): Promise<string> {
+        return vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Blockchain Extension',
+            cancellable: false
+        }, async (progress, token): Promise<string> => {
+            progress.report({ message });
+            return this.sendCommand(command, cwd);
+        });
     }
 
     public static async sendCommandWithOutput(command: string, args: Array<string>, cwd?: string, env?: any, outputAdapter?: OutputAdapter): Promise<void> {

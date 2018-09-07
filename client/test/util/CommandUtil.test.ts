@@ -48,6 +48,15 @@ describe('CommandUtil Tests', () => {
         });
     });
 
+    describe('sendCommandWithProgress', () => {
+        it('should send a shell command', async () => {
+            const rootPath = path.dirname(__dirname);
+            const uri: vscode.Uri = vscode.Uri.file(path.join(rootPath, '../../test'));
+            const command = await CommandUtil.sendCommandWithProgress('echo Hyperledgendary', uri.fsPath, 'such progress message');
+            command.should.equal('Hyperledgendary');
+        });
+    });
+
     describe('sendCommandWithOutput', () => {
         it('should send a command and get output', async () => {
             const spawnSpy = mySandBox.spy(child_process, 'spawn');
