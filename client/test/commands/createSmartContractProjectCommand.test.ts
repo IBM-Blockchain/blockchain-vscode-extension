@@ -76,10 +76,17 @@ describe('CreateSmartContractProjectCommand', () => {
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const pathToCheck = path.join(uri.fsPath, 'package.json');
         const smartContractExists = await fs_extra.pathExists(pathToCheck);
+        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], true);
         errorSpy.should.not.have.been.called;
+        packageJSON.name.should.equal(path.basename(uri.fsPath));
+        packageJSON.version.should.equal('0.0.1');
+        packageJSON.description.should.equal('My Smart Contract');
+        packageJSON.author.should.equal('John Doe');
+        packageJSON.license.should.equal('Apache-2.0');
     }).timeout(20000);
 
     it('should show error if npm is not installed', async () => {
