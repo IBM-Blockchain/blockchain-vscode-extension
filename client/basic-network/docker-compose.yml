@@ -78,6 +78,7 @@ services:
       # VSCODE - 7051:7051
       # VSCODE - 7053:7053
       - 7051
+      - 7052
       - 7053
     volumes:
         - /var/run/:/host/var/run/
