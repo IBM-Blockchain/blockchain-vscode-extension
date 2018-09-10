@@ -12,6 +12,14 @@ export MSYS_NO_PATHCONV=1
 
 docker-compose -f docker-compose.yml down
 
+# Download and tag latest development images from Hyperledger Nexus server.
+# Delete these 5 lines once Fabric v1.3 has been shipped!
+for IMAGE in hyperledger/fabric-ca hyperledger/fabric-orderer hyperledger/fabric-peer hyperledger/fabric-tools hyperledger/fabric-ccenv
+do
+    docker pull nexus3.hyperledger.org:10001/${IMAGE}:amd64-1.3.0-stable
+    docker tag nexus3.hyperledger.org:10001/${IMAGE}:amd64-1.3.0-stable ${IMAGE}
+done
+
 docker-compose -f docker-compose.yml up -d ca.example.com orderer.example.com peer0.org1.example.com couchdb
 
 # wait for Hyperledger Fabric to start
