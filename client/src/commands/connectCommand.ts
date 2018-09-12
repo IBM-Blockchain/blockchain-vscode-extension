@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { CommandsUtil } from './commandsUtil';
+import { UserInputUtil } from './userInputUtil';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
@@ -27,7 +27,7 @@ export async function connect(connectionName: string, identityName?: string): Pr
     console.log('connect', connectionName, identityName);
 
     if (!connectionName) {
-        connectionName = await CommandsUtil.showConnectionQuickPickBox('Choose a connection to connect with');
+        connectionName = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with');
         if (!connectionName) {
             return;
         }
@@ -59,7 +59,7 @@ export async function connect(connectionName: string, identityName?: string): Pr
         if (connectionRegistryEntry.identities.length > 1) {
 
             if (!identityName) {
-                identityName = await CommandsUtil.showIdentityConnectionQuickPickBox('Choose an identity to connect with', connectionRegistryEntry);
+                identityName = await UserInputUtil.showIdentityConnectionQuickPickBox('Choose an identity to connect with', connectionRegistryEntry);
                 if (!identityName) {
                     return;
                 }
