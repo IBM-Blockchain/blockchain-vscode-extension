@@ -13,15 +13,13 @@
 */
 import * as vscode from 'vscode';
 import { PackageTreeItem } from './model/PackageTreeItem';
-import * as fs from 'fs-extra';
-import * as path from 'path';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
-import * as homeDir from 'home-dir';
+import { PackageRegistryManager } from './packages/PackageRegistryManager';
+import { PackageRegistryEntry } from './packages/PackageRegistryEntry';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
     public tree: Array<PackageTreeItem> = [];
-    private packageArray: Array<any> = [];
-    private packageDir: string;
+    private packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
@@ -32,35 +30,10 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
     }
 
     async getChildren(): Promise<PackageTreeItem[]> {
-        this.packageDir = this.getPackageDir();
-        console.log('packageDir is:', this.packageDir);
         console.log('BlockchainPackageExplorer: getChildren');
-
-        if (this.packageDir.startsWith('~')) {
-            // Remove tilda and replace with home dir
-            this.packageDir = homeDir(this.packageDir.replace('~', ''));
-        }
-
-        try {
-            this.packageArray = await fs.readdir(this.packageDir);
-        } catch (error) {
-            if (error.message.includes('no such file or directory')) {
-                this.packageArray = [];
-                try {
-                    console.log('creating smart contract package directory:', this.packageDir);
-                    await fs.mkdirp(this.packageDir);
-                } catch (error) {
-                    console.log('Issue creating smart contract package folder:', error.message);
-                    vscode.window.showErrorMessage('Issue creating smart contract package folder:' + this.packageDir);
-                    return;
-                }
-            } else {
-                console.log('Error reading smart contract package folder:', error.message);
-                vscode.window.showErrorMessage('Issue reading smart contract package folder:' + this.packageDir);
-                return;
-            }
-        }
-        this.tree = await this.createPackageTree(this.packageArray as Array<PackageTreeItem>);
+        // Get the packages from the registry manager and create a package tree
+        const packageArray: PackageRegistryEntry[] = await this.packageRegistryManager.getAll();
+        this.tree = await this.createPackageTree(packageArray);
         return this.tree;
     }
 
@@ -69,54 +42,13 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         this._onDidChangeTreeData.fire();
     }
 
-    private async createPackageTree(packageArray: Array<PackageTreeItem>): Promise<Array<PackageTreeItem>> {
-        console.log('createPackageTree', packageArray);
+    private async createPackageTree(packageRegistryEntries: Array<PackageRegistryEntry>): Promise<PackageTreeItem[]> {
+        console.log('BlockchainPackageExplorer: createPackageTree');
         const tree: Array<PackageTreeItem> = [];
-        let packageVersionFile: string;
-        let goPackageArray: string[];
-
-        for (const packageFile of this.packageArray) {
-            let packageTitle: string = packageFile;
-            if (packageTitle.startsWith('.')) {
-                continue;
-            }
-            if (packageTitle === 'go') {
-                // Handle go directory structure: ../package_dir/go/src/
-                const goPackageDir: string = path.join(this.packageDir, packageFile, '/src');
-                try {
-                    goPackageArray = await fs.readdir(goPackageDir);
-                } catch (error) {
-                    console.log('Error reading go smart contract package folder:', error.message);
-                    vscode.window.showInformationMessage('Issue listing go smart contract packages in:' + goPackageDir);
-                    goPackageArray = [];
-                }
-                for (const goPackageFile of goPackageArray) {
-                    tree.push(new PackageTreeItem(this, goPackageFile));
-                }
-            } else {
-                // Grab version from package.json
-                packageVersionFile = path.join(this.packageDir, packageFile, '/package.json');
-                try {
-                    const packageVersionFileContents: Buffer = await fs.readFile(packageVersionFile);
-
-                    const packageVersionObj: any = JSON.parse(packageVersionFileContents.toString('utf8'));
-                    const packageVersion: string = packageVersionObj.version;
-                    console.log('printing packageVersion', packageVersion);
-                    if (packageVersion !== undefined) {
-                        packageTitle = packageFile + ' - v' + packageVersion;
-                    }
-                } catch (error) {
-                    console.log('failed to get smart contract package version', error.message);
-                } finally {
-                    tree.push(new PackageTreeItem(this, packageTitle));
-                }
-            }
+        // Populate the tree with the name of each package registry entry
+        for (const packageRegistryEntry of packageRegistryEntries) {
+            tree.push(new PackageTreeItem(this, packageRegistryEntry.name));
         }
         return tree;
-    }
-
-    private getPackageDir(): string {
-        console.log('getPackageDir');
-        return vscode.workspace.getConfiguration().get('fabric.package.directory');
     }
 }
