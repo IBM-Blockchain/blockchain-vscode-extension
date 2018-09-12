@@ -22,6 +22,7 @@ import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegist
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+
 chai.should();
 chai.use(sinonChai);
 
@@ -62,8 +63,8 @@ describe('Commands Utility Function Tests', () => {
         await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
 
         await runtimeRegistry.clear();
-        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric1', developmentMode: false }));
-        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric2', developmentMode: true }));
+        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({name: 'local_fabric1', developmentMode: false}));
+        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({name: 'local_fabric2', developmentMode: true}));
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
     });
@@ -126,4 +127,67 @@ describe('Commands Utility Function Tests', () => {
         });
     });
 
+    describe('showQuickPickYesNo', () => {
+        it('should show yes in the quickpick box', async () => {
+            quickPickStub.resolves(CommandsUtil.YES);
+            const result = await CommandsUtil.showQuickPickYesNo('Do you want an ice cream?');
+            result.should.equal(CommandsUtil.YES);
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Do you want an ice cream?'
+            });
+        });
+
+        it('should show no in the quickpick box', async () => {
+            quickPickStub.resolves(CommandsUtil.NO);
+            const result = await CommandsUtil.showQuickPickYesNo('Do you want an ice cream?');
+            result.should.equal(CommandsUtil.NO);
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Do you want an ice cream?'
+            });
+        });
+
+        describe('showFolderOptions', () => {
+            it('should show add to workspace in quickpick box', async () => {
+                quickPickStub.resolves(CommandsUtil.ADD_TO_WORKSPACE);
+                const result = await CommandsUtil.showQuickPickYesNo('Choose how to open the project');
+                result.should.equal(CommandsUtil.ADD_TO_WORKSPACE);
+
+                quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Choose how to open the project'
+                });
+            });
+
+            it('should show open in current window in quickpick box', async () => {
+                quickPickStub.resolves(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
+                const result = await CommandsUtil.showQuickPickYesNo('Choose how to open the project');
+                result.should.equal(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
+
+                quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Choose how to open the project'
+                });
+            });
+
+            it('should show open in new window in quickpick box', async () => {
+                quickPickStub.resolves(CommandsUtil.OPEN_IN_NEW_WINDOW);
+                const result = await CommandsUtil.showQuickPickYesNo('Choose how to open the project');
+                result.should.equal(CommandsUtil.OPEN_IN_NEW_WINDOW);
+
+                quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Choose how to open the project'
+                });
+            });
+        });
+    });
 });

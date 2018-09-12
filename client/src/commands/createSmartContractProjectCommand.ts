@@ -12,18 +12,21 @@
  * limitations under the License.
 */
 'use strict';
-import { window, Uri, commands, ProgressLocation } from 'vscode';
+import * as vscode from 'vscode';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as child_process from 'child_process';
 import * as path from 'path';
+import { CommandsUtil } from './commandsUtil';
 
 class GeneratorDependencies {
     needYo: boolean = false;
     needGenFab: boolean = false;
+
     constructor(options?: object) {
         Object.assign(this, options);
     }
+
     missingDependencies(): boolean {
         return this.needYo || this.needGenFab;
     }
@@ -40,13 +43,9 @@ export async function createSmartContractProject(): Promise<void> {
 
     // if yo/generator fabric are missing, ask if we can install them
     if (dependencies.missingDependencies()) {
-        const quickPickOptions = {
-            placeHolder: 'Can this extension install missing npm packages before proceeding?',
-            ignoreFocusOut: true
-        };
-        const installPermission: string = await window.showQuickPick(['yes', 'no'], quickPickOptions);
-        if (installPermission !== 'yes') {
-            window.showErrorMessage('npm modules: yo and generator-fabric are required before creating a smart contract project');
+        const installPermission: string = await CommandsUtil.showQuickPickYesNo('Can this extension install missing npm packages before proceeding?');
+        if (installPermission !== CommandsUtil.YES) {
+            vscode.window.showErrorMessage('npm modules: yo and generator-fabric are required before creating a smart contract project');
             return;
         }
     }
@@ -69,7 +68,7 @@ export async function createSmartContractProject(): Promise<void> {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
         console.log('Issue determining available smart contract languages:', error);
-        window.showErrorMessage('Issue determining available smart contract language options');
+        vscode.window.showErrorMessage('Issue determining available smart contract language options');
         return;
     }
     const choseSmartContractLanguageQuickPickOptions = {
@@ -77,7 +76,7 @@ export async function createSmartContractProject(): Promise<void> {
         ignoreFocusOut: true,
         matchOnDetail: true
     };
-    smartContractLanguage = await window.showQuickPick(smartContractLanguageOptions, choseSmartContractLanguageQuickPickOptions);
+    smartContractLanguage = await vscode.window.showQuickPick(smartContractLanguageOptions, choseSmartContractLanguageQuickPickOptions);
     if (!smartContractLanguageOptions.includes(smartContractLanguage)) {
         // User has cancelled the QuickPick box
         return;
@@ -90,47 +89,53 @@ export async function createSmartContractProject(): Promise<void> {
         canSelectFolders: true,
         openLabel: 'Open'
     };
-    const folderSelect: Uri[] | undefined = await window.showOpenDialog(openDialogOptions);
-    if (folderSelect) {  // undefined if the user cancels the open dialog box
+    const folderSelect: vscode.Uri[] | undefined = await vscode.window.showOpenDialog(openDialogOptions);
+    if (!folderSelect) {  // undefined if the user cancels the open dialog box
+        return;
+    }
 
-        const folderUri: Uri = folderSelect[0];
-        const folderPath: string = folderUri.fsPath;
-        const folderName: string = path.basename(folderPath);
+    const folderUri: vscode.Uri = folderSelect[0];
+    const folderPath: string = folderUri.fsPath;
+    const folderName: string = path.basename(folderPath);
 
-        // Run yo:fabric with default options in folderSelect
-        // redirect to stdout as yo fabric prints to stderr
-        const yoFabricCmd: string = `yo fabric:contract -- --language="${smartContractLanguage}" --name="${folderName}" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
-        try {
-            const yoFabricOut = await CommandUtil.sendCommandWithProgress(yoFabricCmd, folderPath, 'Generating smart contract...');
-            outputAdapter.log(yoFabricOut);
-            outputAdapter.log('Successfully generated smart contract project');
-        } catch (error) {
-            console.log('found issue running yo:fabric command:', error);
-            window.showErrorMessage('Issue creating smart contract project');
-            outputAdapter.log(error);
-            return;
-        }
+    const openMethod: string = await CommandsUtil.showFolderOptions('Choose how to open your new project');
+
+    if (!openMethod) {
+        return;
+    }
+
+    // Run yo:fabric with default options in folderSelect
+    // redirect to stdout as yo fabric prints to stderr
+    const yoFabricCmd: string = `yo fabric:contract -- --language="${smartContractLanguage}" --name="${folderName}" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
+    try {
+        const yoFabricOut = await CommandUtil.sendCommandWithProgress(yoFabricCmd, folderPath, 'Generating smart contract...');
+        outputAdapter.log(yoFabricOut);
+        outputAdapter.log('Successfully generated smart contract project');
 
         // Open the returned folder in explorer, in a new window
         console.log('new smart contract project folder is :' + folderPath);
-        await commands.executeCommand('vscode.openFolder', folderUri, true);
-
-    } // end of if folderSelect
+        await openNewProject(openMethod, folderUri);
+    } catch (error) {
+        console.log('found issue running yo:fabric command:', error);
+        vscode.window.showErrorMessage('Issue creating smart contract project');
+        outputAdapter.log(error);
+        return;
+    }
 
 } // end of createSmartContractProject function
 
-export async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDependencies> {
-    return window.withProgress({
-        location: ProgressLocation.Notification,
+async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDependencies> {
+    return vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress, token): Promise<GeneratorDependencies> => {
-        progress.report({ message: `Checking smart contract generator dependencies...` });
+    }, async (progress): Promise<GeneratorDependencies> => {
+        progress.report({message: `Checking smart contract generator dependencies...`});
         return checkGeneratorDependencies();
     });
 }
 
-export async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
+async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
     let needYo: boolean = false;
     let needGenFab: boolean = false;
 
@@ -151,26 +156,26 @@ export async function checkGeneratorDependencies(): Promise<GeneratorDependencie
             needGenFab = true; // assume generator-fabric isn't installed either
         } else {
             console.log('npm not installed');
-            window.showErrorMessage('npm is required before creating a smart contract project');
+            vscode.window.showErrorMessage('npm is required before creating a smart contract project');
             return null;
         }
     }
 
-    return new GeneratorDependencies({ needYo, needGenFab });
+    return new GeneratorDependencies({needYo, needGenFab});
 }
 
-export async function installGeneratorDependenciesWithProgress(dependencies: GeneratorDependencies): Promise<boolean> {
-    return window.withProgress({
-        location: ProgressLocation.Notification,
+async function installGeneratorDependenciesWithProgress(dependencies: GeneratorDependencies): Promise<boolean> {
+    return vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress, token) => {
-        progress.report({ message: `Installing smart contract generator dependencies...` });
+    }, async (progress) => {
+        progress.report({message: `Installing smart contract generator dependencies...`});
         return installGeneratorDependencies(dependencies);
     });
 }
 
-export async function installGeneratorDependencies(dependencies: GeneratorDependencies): Promise<boolean> {
+async function installGeneratorDependencies(dependencies: GeneratorDependencies): Promise<boolean> {
 
     // Create and show output channel
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -182,7 +187,7 @@ export async function installGeneratorDependencies(dependencies: GeneratorDepend
             const yoInstOut: string = await CommandUtil.sendCommand('npm install -g yo');
             outputAdapter.log(yoInstOut);
         } catch (error) {
-            window.showErrorMessage('Issue installing yo node module');
+            vscode.window.showErrorMessage('Issue installing yo node module');
             outputAdapter.log(error);
             return false;
         }
@@ -194,7 +199,7 @@ export async function installGeneratorDependencies(dependencies: GeneratorDepend
         const genFabInstOut: string = await CommandUtil.sendCommand('npm install -g generator-fabric');
         outputAdapter.log(genFabInstOut);
     } catch (error) {
-        window.showErrorMessage('Issue installing generator-fabric module');
+        vscode.window.showErrorMessage('Issue installing generator-fabric module');
         outputAdapter.log(error);
         return false;
     }
@@ -202,18 +207,18 @@ export async function installGeneratorDependencies(dependencies: GeneratorDepend
 
 }
 
-export async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> {
-    return window.withProgress({
-        location: ProgressLocation.Notification,
+async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> {
+    return vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress, token): Promise<string[]> => {
-        progress.report({ message: `Getting smart contract languages...` });
+    }, async (progress): Promise<string[]> => {
+        progress.report({message: `Getting smart contract languages...`});
         return getSmartContractLanguageOptions();
     });
 }
 
-export async function getSmartContractLanguageOptions(): Promise<string[]> {
+async function getSmartContractLanguageOptions(): Promise<string[]> {
     const yoFabricChild: child_process.ChildProcess = await child_process.spawn('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
     return new Promise<string[]>((resolve, reject) => {
         yoFabricChild.on('exit', (returnCode: number) => {
@@ -239,4 +244,33 @@ export async function getSmartContractLanguageOptions(): Promise<string[]> {
             }
         });
     });
+}
+
+async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
+    if (openMethod === CommandsUtil.ADD_TO_WORKSPACE) {
+        const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
+        vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, {uri: uri});
+    } else {
+        let openNewWindow = true;
+
+        if (openMethod === CommandsUtil.OPEN_IN_CURRENT_WINDOW) {
+            openNewWindow = false;
+            await checkForUnsavedFiles();
+        }
+
+        await vscode.commands.executeCommand('vscode.openFolder', uri, openNewWindow);
+    }
+}
+
+async function checkForUnsavedFiles(): Promise<void> {
+    const unsavedFiles = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
+        return document.isDirty;
+    });
+
+    if (unsavedFiles) {
+        const answer: string = await CommandsUtil.showQuickPickYesNo('Do you want to save any unsaved changes?');
+        if (answer === CommandsUtil.YES) {
+            await vscode.workspace.saveAll(true);
+        }
+    }
 }
