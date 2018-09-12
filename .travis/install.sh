@@ -19,7 +19,9 @@ set -o pipefail
 
 cd ./client
 
-npm install
+npm install --no-optional
+
+npm install --ignore-scripts
 
 npm run compile
 
