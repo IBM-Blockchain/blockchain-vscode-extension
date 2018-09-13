@@ -16,8 +16,10 @@ import * as vscode from 'vscode';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
+import { PackageRegistryManager } from '../explorer/packages/PackageRegistryManager';
+import { PackageRegistryEntry } from '../explorer/packages/PackageRegistryEntry';
 
-export class CommandsUtil {
+export class UserInputUtil {
 
     static readonly ADD_TO_WORKSPACE = 'Add to workspace';
     static readonly OPEN_IN_CURRENT_WINDOW = 'Open in current window';
@@ -79,6 +81,25 @@ export class CommandsUtil {
         };
 
         return vscode.window.showQuickPick(runtimeNames, quickPickOptions);
+    }
+
+    static async showSmartContractPackagesQuickPickBox(prompt: string): Promise<string[] | undefined> {
+        const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
+
+        const packages: PackageRegistryEntry[] = await packageRegistryManager.getAll();
+        const quickPickOptions: vscode.QuickPickOptions = {
+           ignoreFocusOut: false,
+           canPickMany: true,
+           placeHolder: prompt
+       };
+
+        const packageNames = [];
+
+        packages.forEach((_package) => {
+           packageNames.push(_package.name);
+       });
+
+        return vscode.window.showQuickPick(packageNames, quickPickOptions);
     }
 
     static showFolderOptions(prompt: string): Thenable<string | undefined> {

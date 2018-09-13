@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { CommandsUtil } from './commandsUtil';
+import { UserInputUtil } from './UserInputUtil';
 import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
@@ -23,7 +23,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtimeName: string;
     if (!runtimeTreeItem) {
-        runtimeName = await CommandsUtil.showRuntimeQuickPickBox('Select the Fabric runtime to restart');
+        runtimeName = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to restart');
     } else {
         runtimeName = runtimeTreeItem.getName();
     }

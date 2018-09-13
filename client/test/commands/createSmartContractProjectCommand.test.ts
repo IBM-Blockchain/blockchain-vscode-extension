@@ -23,7 +23,7 @@ chai.use(sinonChai);
 import * as fs_extra from 'fs-extra';
 import * as child_process from 'child_process';
 import { CommandUtil } from '../../src/util/CommandUtil';
-import { CommandsUtil } from '../../src/commands/commandsUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
 
 // Defines a Mocha test suite to group tests of similar kind together
@@ -72,7 +72,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.restore();
 
         quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(CommandsUtil.OPEN_IN_NEW_WINDOW);
+        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
@@ -96,7 +96,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.restore();
 
         quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
+        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
@@ -120,8 +120,8 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.restore();
 
         quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
-        quickPickStub.onThirdCall().resolves(CommandsUtil.YES);
+        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+        quickPickStub.onThirdCall().resolves(UserInputUtil.YES);
         openDialogStub.resolves(uriArr);
 
         const saveDialogStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
@@ -150,8 +150,8 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.restore();
 
         quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
-        quickPickStub.onThirdCall().resolves(CommandsUtil.NO);
+        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+        quickPickStub.onThirdCall().resolves(UserInputUtil.NO);
         openDialogStub.resolves(uriArr);
 
         const saveDialogStub = mySandBox.stub(vscode.workspace, 'saveAll');
@@ -184,7 +184,7 @@ describe('CreateSmartContractProjectCommand', () => {
         const updateWorkspaceSpy = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
 
         quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(CommandsUtil.ADD_TO_WORKSPACE);
+        quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('workbench.action.closeFolder');
@@ -212,7 +212,7 @@ describe('CreateSmartContractProjectCommand', () => {
         const updateWorkspaceSpy = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
 
         quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(CommandsUtil.ADD_TO_WORKSPACE);
+        quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
@@ -241,7 +241,7 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should show error is yo is not installed and not wanted', async () => {
         // yo not installed and not wanted
         sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
-        quickPickStub.resolves(CommandsUtil.NO);
+        quickPickStub.resolves(UserInputUtil.NO);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('npm modules: yo and generator-fabric are required before creating a smart contract project');
     }).timeout(20000);
@@ -250,7 +250,7 @@ describe('CreateSmartContractProjectCommand', () => {
         // generator-fabric not installed and wanted but fails to install
         sendCommandStub.onCall(0).resolves();
         sendCommandStub.onCall(1).rejects();
-        quickPickStub.resolves(CommandsUtil.YES);
+        quickPickStub.resolves(UserInputUtil.YES);
         sendCommandStub.onCall(2).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('Issue installing generator-fabric module');
@@ -259,7 +259,7 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should show error message if yo fails to install', async () => {
         // yo not installed and wanted but fails to install
         sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
-        quickPickStub.resolves(CommandsUtil.YES);
+        quickPickStub.resolves(UserInputUtil.YES);
         sendCommandStub.onCall(1).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('Issue installing yo node module');
@@ -279,7 +279,7 @@ describe('CreateSmartContractProjectCommand', () => {
             return originalSpawn('/bin/sh', ['-c', 'echo blah && echo "  Go" && echo "  JavaScript" && echo "  TypeScript  [45R"']);
         });
         quickPickStub.onCall(1).resolves('Go');
-        quickPickStub.onCall(2).resolves(CommandsUtil.OPEN_IN_NEW_WINDOW);
+        quickPickStub.onCall(2).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
         openDialogStub.resolves(uriArr);
         sendCommandStub.onCall(3).rejects();

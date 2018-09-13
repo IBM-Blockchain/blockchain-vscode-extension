@@ -33,6 +33,18 @@ export class PackageRegistry {
         return await this.getEntries();
     }
 
+    public async delete(packageToDelete: string): Promise<void> {
+        const packages: PackageRegistryEntry[] = await this.getAll();
+
+        for (const _package of packages) {
+            if (_package.name === packageToDelete) {
+                console.log('Removing', this.packageDir + '/' + _package.chaincodeLanguage  + '/' + _package.name);
+                const filePath = _package.chaincodeLanguage === 'go' ? _package.chaincodeLanguage + '/src' : _package.chaincodeLanguage;
+                await fs.remove(this.packageDir + '/' + filePath  + '/' + _package.name);
+            }
+        }
+    }
+
     private async getEntries(): Promise<PackageRegistryEntry[]> {
         const packageRegistryEntries: Array<PackageRegistryEntry> = [];
         const languageArray: string[] = await this.getLanguageArray();

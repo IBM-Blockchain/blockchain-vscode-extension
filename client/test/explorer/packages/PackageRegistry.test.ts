@@ -23,21 +23,33 @@ import { TestUtil } from '../../TestUtil';
 import * as fs_extra from 'fs-extra';
 import * as homeDir from 'home-dir';
 import * as tmp from 'tmp';
+import * as fs from 'fs-extra';
 import { PackageRegistry } from '../../../src/explorer/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../../src/explorer/packages/PackageRegistryEntry';
+import { PackageTreeItem } from '../../../src/explorer/model/PackageTreeItem';
 
 chai.use(sinonChai);
 const should = chai.should();
 
 // tslint:disable no-unused-expression
-describe('BlockchainPackageExplorer', () => {
+describe('PackageRegistry', () => {
     let mySandBox;
     let rootPath: string;
     let errorSpy;
     let infoSpy;
 
+    let USER_PACKAGE_DIRECTORY;
+    // Update the user's configuration
+    const TEST_PACKAGE_DIRECTORY = path.join(path.dirname(__dirname), '../../../test/data/smartContractDir');
+
     before(async () => {
+         // Get the user's current 'smart contract packages' directory location. This will be used later to update the configuration.
+        USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
+     });
+    after(async () => {
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     beforeEach(async () => {
@@ -136,5 +148,54 @@ describe('BlockchainPackageExplorer', () => {
         packageRegistryEntries[4].version.should.equal(''); // smartContractPackageYellow
         packageRegistryEntries[4].chaincodeLanguage.should.equal('typescript');
         errorSpy.should.not.have.been.called;
+    });
+
+    it('should delete package', async () => {
+        await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/javascript/DeleteThisDirectory');
+
+        const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+        const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+        const initialLength = initialPackages.length;
+
+        // const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
+
+        const packageToDelete: string = 'DeleteThisDirectory';
+        const packageRegistry: PackageRegistry = PackageRegistry.instance();
+
+        await packageRegistry.delete(packageToDelete);
+        // await packageRegistryManager.delete(packages);
+
+        const newPackages: PackageTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
+
+        const index = newPackages.findIndex((_package) => {
+            return _package.name === 'DeleteThisDirectory';
+        });
+        index.should.equal(-1);
+        newPackages.length.should.equal(initialLength - 1);
+    });
+
+    it('should delete Go packages', async () => {
+        await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/go/src/DeleteThisDirectory');
+        const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+        const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+        const initialLength = initialPackages.length;
+
+        // const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
+
+        const packageToDelete: string = 'DeleteThisDirectory';
+        const packageRegistry: PackageRegistry = PackageRegistry.instance();
+
+        await packageRegistry.delete(packageToDelete);
+        // await packageRegistryManager.delete(packages);
+
+        const newPackages: PackageTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
+
+        const index = newPackages.findIndex((_package) => {
+            return _package.name === 'DeleteThisDirectory';
+        });
+
+        index.should.equal(-1);
+        newPackages.length.should.equal(initialLength - 1);
+
     });
 });

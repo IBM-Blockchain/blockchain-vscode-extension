@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { CommandsUtil } from './commandsUtil';
+import { UserInputUtil } from './UserInputUtil';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 
 export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
@@ -23,20 +23,20 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
     if (connectionItem) {
         connectionName = connectionItem.connection.name;
     } else {
-        connectionName = await CommandsUtil.showConnectionQuickPickBox('Choose a connection to add an identity to');
+        connectionName = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to');
     }
 
     if (!connectionName) {
         return Promise.resolve();
     }
 
-    const certificatePath: string = await CommandsUtil.showInputBox('Enter a file path to the certificate file');
+    const certificatePath: string = await UserInputUtil.showInputBox('Enter a file path to the certificate file');
 
     if (!certificatePath) {
         return Promise.resolve();
     }
 
-    const privateKeyPath: string = await CommandsUtil.showInputBox('Enter a file path to the private key file');
+    const privateKeyPath: string = await UserInputUtil.showInputBox('Enter a file path to the private key file');
 
     if (!privateKeyPath) {
         return Promise.resolve();
