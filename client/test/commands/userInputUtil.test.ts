@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { CommandsUtil } from '../../src/commands/commandsUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 
@@ -77,7 +77,7 @@ describe('Commands Utility Function Tests', () => {
     describe('showConnectionQuickPickBox', () => {
         it('should show connections in the quickpick box', async () => {
             quickPickStub.resolves('connectionOne');
-            const result: string = await CommandsUtil.showConnectionQuickPickBox('choose a connection');
+            const result: string = await UserInputUtil.showConnectionQuickPickBox('choose a connection');
 
             result.should.equal('connectionOne');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -92,7 +92,7 @@ describe('Commands Utility Function Tests', () => {
 
         it('should show identity connections in the quickpick box', async () => {
             quickPickStub.resolves('Admin@org1.example.com');
-            const result: string = await CommandsUtil.showIdentityConnectionQuickPickBox('choose a connection', connections[0]);
+            const result: string = await UserInputUtil.showIdentityConnectionQuickPickBox('choose a connection', connections[0]);
 
             result.should.equal('Admin@org1.example.com');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -107,7 +107,7 @@ describe('Commands Utility Function Tests', () => {
         it('should show the input box', async () => {
             const inputStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('my answer');
 
-            const result = await CommandsUtil.showInputBox('a question');
+            const result = await UserInputUtil.showInputBox('a question');
             result.should.equal('my answer');
             inputStub.should.have.been.calledWith({prompt: 'a question'});
         });
@@ -116,7 +116,7 @@ describe('Commands Utility Function Tests', () => {
     describe('showRuntimeQuickPickBox', () => {
         it('should show runtimes in the quickpick box', async () => {
             quickPickStub.resolves('local_fabric2');
-            const result: string = await CommandsUtil.showRuntimeQuickPickBox('choose a runtime');
+            const result: string = await UserInputUtil.showRuntimeQuickPickBox('choose a runtime');
 
             result.should.equal('local_fabric2');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -129,9 +129,9 @@ describe('Commands Utility Function Tests', () => {
 
     describe('showQuickPickYesNo', () => {
         it('should show yes in the quickpick box', async () => {
-            quickPickStub.resolves(CommandsUtil.YES);
-            const result = await CommandsUtil.showQuickPickYesNo('Do you want an ice cream?');
-            result.should.equal(CommandsUtil.YES);
+            quickPickStub.resolves(UserInputUtil.YES);
+            const result = await UserInputUtil.showQuickPickYesNo('Do you want an ice cream?');
+            result.should.equal(UserInputUtil.YES);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
@@ -141,9 +141,9 @@ describe('Commands Utility Function Tests', () => {
         });
 
         it('should show no in the quickpick box', async () => {
-            quickPickStub.resolves(CommandsUtil.NO);
-            const result = await CommandsUtil.showQuickPickYesNo('Do you want an ice cream?');
-            result.should.equal(CommandsUtil.NO);
+            quickPickStub.resolves(UserInputUtil.NO);
+            const result = await UserInputUtil.showQuickPickYesNo('Do you want an ice cream?');
+            result.should.equal(UserInputUtil.NO);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
@@ -154,9 +154,9 @@ describe('Commands Utility Function Tests', () => {
 
         describe('showFolderOptions', () => {
             it('should show add to workspace in quickpick box', async () => {
-                quickPickStub.resolves(CommandsUtil.ADD_TO_WORKSPACE);
-                const result = await CommandsUtil.showQuickPickYesNo('Choose how to open the project');
-                result.should.equal(CommandsUtil.ADD_TO_WORKSPACE);
+                quickPickStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
+                const result = await UserInputUtil.showQuickPickYesNo('Choose how to open the project');
+                result.should.equal(UserInputUtil.ADD_TO_WORKSPACE);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
                     ignoreFocusOut: true,
@@ -166,9 +166,9 @@ describe('Commands Utility Function Tests', () => {
             });
 
             it('should show open in current window in quickpick box', async () => {
-                quickPickStub.resolves(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
-                const result = await CommandsUtil.showQuickPickYesNo('Choose how to open the project');
-                result.should.equal(CommandsUtil.OPEN_IN_CURRENT_WINDOW);
+                quickPickStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+                const result = await UserInputUtil.showQuickPickYesNo('Choose how to open the project');
+                result.should.equal(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
                     ignoreFocusOut: true,
@@ -178,9 +178,9 @@ describe('Commands Utility Function Tests', () => {
             });
 
             it('should show open in new window in quickpick box', async () => {
-                quickPickStub.resolves(CommandsUtil.OPEN_IN_NEW_WINDOW);
-                const result = await CommandsUtil.showQuickPickYesNo('Choose how to open the project');
-                result.should.equal(CommandsUtil.OPEN_IN_NEW_WINDOW);
+                quickPickStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+                const result = await UserInputUtil.showQuickPickYesNo('Choose how to open the project');
+                result.should.equal(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
                     ignoreFocusOut: true,
@@ -190,4 +190,17 @@ describe('Commands Utility Function Tests', () => {
             });
         });
     });
+
+    describe('showSmartContractPackagesQuickPickBox', () => {
+        it('show quick pick box for smart contract packages', async () => {
+            quickPickStub.resolves('smartContractPackageBlue');
+            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete');
+            result.should.deep.equal('smartContractPackageBlue');
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+               ignoreFocusOut: false,
+               canPickMany: true,
+               placeHolder: 'Choose the smart contract package that you want to delete'
+           });
+       });
+   });
 });

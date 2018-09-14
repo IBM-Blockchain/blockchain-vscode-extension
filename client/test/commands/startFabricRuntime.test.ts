@@ -23,7 +23,7 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
-import { CommandsUtil } from '../../src/commands/commandsUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -66,7 +66,7 @@ describe('startFabricRuntime', () => {
     });
 
     it('should start a Fabric runtime specified by selecting it from the quick pick', async () => {
-        const quickPickStub: sinon.SinonStub = sandbox.stub(CommandsUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         quickPickStub.should.have.been.called.calledOnce;

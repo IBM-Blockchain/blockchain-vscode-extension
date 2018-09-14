@@ -23,4 +23,8 @@ export class PackageRegistryManager {
         return await this.packageRegistry.getAll();
     }
 
+    public async delete(_package: string): Promise<void> {
+        return await this.packageRegistry.delete(_package);
+    }
+
 }

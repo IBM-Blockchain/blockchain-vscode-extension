@@ -71,7 +71,8 @@ describe('Extension Tests', () => {
             'blockchainExplorer.startFabricRuntime',
             'blockchainExplorer.stopFabricRuntime',
             'blockchainExplorer.restartFabricRuntime',
-            'blockchainExplorer.toggleFabricRuntimeDevMode'
+            'blockchainExplorer.toggleFabricRuntimeDevMode',
+            'blockchainAPackageExplorer.deleteSmartContractPackageEntry'
         ]);
     });
 
@@ -93,7 +94,8 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.startFabricRuntime',
             'onCommand:blockchainExplorer.stopFabricRuntime',
             'onCommand:blockchainExplorer.restartFabricRuntime',
-            'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode'
+            'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode',
+            'onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry'
         ]);
     });
 

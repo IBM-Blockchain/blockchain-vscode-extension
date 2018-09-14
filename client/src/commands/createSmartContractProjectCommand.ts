@@ -17,7 +17,7 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as child_process from 'child_process';
 import * as path from 'path';
-import { CommandsUtil } from './commandsUtil';
+import { UserInputUtil } from './UserInputUtil';
 
 class GeneratorDependencies {
     needYo: boolean = false;
@@ -43,8 +43,8 @@ export async function createSmartContractProject(): Promise<void> {
 
     // if yo/generator fabric are missing, ask if we can install them
     if (dependencies.missingDependencies()) {
-        const installPermission: string = await CommandsUtil.showQuickPickYesNo('Can this extension install missing npm packages before proceeding?');
-        if (installPermission !== CommandsUtil.YES) {
+        const installPermission: string = await UserInputUtil.showQuickPickYesNo('Can this extension install missing npm packages before proceeding?');
+        if (installPermission !== UserInputUtil.YES) {
             vscode.window.showErrorMessage('npm modules: yo and generator-fabric are required before creating a smart contract project');
             return;
         }
@@ -98,7 +98,7 @@ export async function createSmartContractProject(): Promise<void> {
     const folderPath: string = folderUri.fsPath;
     const folderName: string = path.basename(folderPath);
 
-    const openMethod: string = await CommandsUtil.showFolderOptions('Choose how to open your new project');
+    const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open your new project');
 
     if (!openMethod) {
         return;
@@ -247,13 +247,13 @@ async function getSmartContractLanguageOptions(): Promise<string[]> {
 }
 
 async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
-    if (openMethod === CommandsUtil.ADD_TO_WORKSPACE) {
+    if (openMethod === UserInputUtil.ADD_TO_WORKSPACE) {
         const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
         vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, {uri: uri});
     } else {
         let openNewWindow = true;
 
-        if (openMethod === CommandsUtil.OPEN_IN_CURRENT_WINDOW) {
+        if (openMethod === UserInputUtil.OPEN_IN_CURRENT_WINDOW) {
             openNewWindow = false;
             await checkForUnsavedFiles();
         }
@@ -268,8 +268,8 @@ async function checkForUnsavedFiles(): Promise<void> {
     });
 
     if (unsavedFiles) {
-        const answer: string = await CommandsUtil.showQuickPickYesNo('Do you want to save any unsaved changes?');
-        if (answer === CommandsUtil.YES) {
+        const answer: string = await UserInputUtil.showQuickPickYesNo('Do you want to save any unsaved changes?');
+        if (answer === UserInputUtil.YES) {
             await vscode.workspace.saveAll(true);
         }
     }

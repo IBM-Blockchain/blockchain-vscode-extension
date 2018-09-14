@@ -18,8 +18,11 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../../TestUtil';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { PackageRegistryManager } from '../../../src/explorer/packages/PackageRegistryManager';
 import { PackageRegistryEntry } from '../../../src/explorer/packages/PackageRegistryEntry';
+import { PackageTreeItem } from '../../../src/explorer/model/PackageTreeItem';
+import * as myExtension from '../../../src/extension';
 
 chai.use(sinonChai);
 const should = chai.should();
@@ -27,16 +30,24 @@ const should = chai.should();
 // tslint:disable no-unused-expression
 describe('PackageRegistryManager', () => {
     let mySandBox;
-    let rootPath: string;
     let errorSpy;
 
+    let USER_PACKAGE_DIRECTORY;
+    // Update the user's configuration
+    const TEST_PACKAGE_DIRECTORY = path.join(path.dirname(__dirname), '../../../test/data/smartContractDir');
+
     before(async () => {
+         // Get the user's current 'smart contract packages' directory location. This will be used later to update the configuration.
+        USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
+     });
+    after(async () => {
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        rootPath = path.dirname(__dirname);
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
     });
 
@@ -46,8 +57,7 @@ describe('PackageRegistryManager', () => {
 
     it('getAll should return all packageRegistryEntries', async () => {
         const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
-        const packagesDir: string = path.join(rootPath, '../../../test/data/smartContractDir');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, true);
 
         const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistryManager.getAll();
         packageRegistryEntries.length.should.equal(5);
@@ -57,6 +67,27 @@ describe('PackageRegistryManager', () => {
         packageRegistryEntries[3].name.should.equal('smartContractPackagePurple');
         packageRegistryEntries[4].name.should.equal('smartContractPackageYellow');
         errorSpy.should.not.have.been.called;
+    });
+
+    it('should delete packages', async () => {
+        await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/javascript/DeleteThisDirectory');
+        const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+        const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+        const initialLength = initialPackages.length;
+
+        const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
+
+        const packageToDelete: string = 'DeleteThisDirectory';
+
+        await packageRegistryManager.delete(packageToDelete);
+
+        const newPackages: PackageTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
+
+        const index = newPackages.findIndex((_package) => {
+            return _package.name === 'DeleteThisDirectory';
+        });
+        index.should.equal(-1);
+        newPackages.length.should.equal(initialLength - 1);
     });
 
 });
