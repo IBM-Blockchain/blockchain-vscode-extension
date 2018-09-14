@@ -13,32 +13,31 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil } from './UserInputUtil';
+import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
-import * as myExtension from '../extension';
-import * as fs from 'fs-extra';
-import * as homeDir from 'home-dir';
-import { CommandUtil } from '../util/CommandUtil';
-import { PackageRegistryManager } from '../explorer/packages/PackageRegistryManager';
-import { PackageRegistryEntry } from '../explorer/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../packages/PackageRegistry';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 
 export async function deleteSmartContractPackage(packageTreeItem: PackageTreeItem): Promise<{} | void> {
     console.log('deleteSmartContractPackage');
-    let packagesToDelete: string[];
+    let packagesToDelete: PackageRegistryEntry[];
     if (packageTreeItem) {
-        packagesToDelete = [packageTreeItem.name];
-     } else {
-        packagesToDelete = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package(s) that you want to delete');
+        packagesToDelete = [packageTreeItem.packageEntry];
+    } else {
+        const chosenPackages: IBlockchainQuickPickItem<PackageRegistryEntry>[] = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package(s) that you want to delete', true) as IBlockchainQuickPickItem<PackageRegistryEntry>[];
+        if (!chosenPackages) {
+            return;
+        }
+
+        packagesToDelete = chosenPackages.map((_package) => {
+            return _package.data;
+        });
     }
 
-    if (packagesToDelete === undefined) {
-        return;
-    }
-
-    const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
+    const packageRegistry: PackageRegistry = PackageRegistry.instance();
 
     for (const _package of packagesToDelete) {
-        await packageRegistryManager.delete(_package);
+        await packageRegistry.delete(_package);
     }
 
     return vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');

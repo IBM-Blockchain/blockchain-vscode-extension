@@ -19,10 +19,12 @@ import { ConnectionTreeItem } from './ConnectionTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
+import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../../fabric/FabricConnectionRegistry';
 
 export class RuntimeTreeItem extends ConnectionTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: any, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command) {
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricConnectionRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command) {
         const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState);
         await treeItem.updateProperties();
         return treeItem;
@@ -45,8 +47,8 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         });
     }
 
-    public getName(): string {
-        return this.name;
+    public getRuntime(): FabricRuntime {
+        return this.runtime;
     }
 
     private safelyUpdateProperties() {
@@ -63,18 +65,19 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         if (busy) {
             // Busy!
             this.enableBusyTicker();
-            const busyStates: string[] = [ '◐', '◓', '◑', '◒' ];
+            const busyStates: string[] = ['◐', '◓', '◑', '◒'];
             newLabel += busyStates[this.busyTicks % 4];
             newCommand = null;
             newContextLabel = 'blockchain-runtime-item-busy';
         } else if (running) {
             // Running!
             this.disableBusyTicker();
+            const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get(this.name);
             newLabel += '●';
             newCommand = {
                 command: 'blockchainExplorer.connectEntry',
                 title: '',
-                arguments: [this.name]
+                arguments: [connection]
             };
             newContextLabel = 'blockchain-runtime-item-started';
         } else {

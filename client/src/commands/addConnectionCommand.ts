@@ -12,8 +12,9 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
 import {UserInputUtil} from './UserInputUtil';
+import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 
 // TODO: make it save where have got up to
 export async function addConnection(): Promise<{} | void> {
@@ -42,15 +43,14 @@ export async function addConnection(): Promise<{} | void> {
         return Promise.resolve();
     }
 
-    const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
-    connections.push({
-        name: connectionName,
-        connectionProfilePath,
-        identities: [{
-            certificatePath,
-            privateKeyPath
-        }]
-    });
+    const fabricConnectionEntry = new FabricConnectionRegistryEntry();
+    fabricConnectionEntry.connectionProfilePath = connectionProfilePath;
+    fabricConnectionEntry.name = connectionName;
+    fabricConnectionEntry.identities = [{
+        certificatePath,
+        privateKeyPath
+    }];
 
-    return vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+    const fabricConnectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    return fabricConnectionRegistry.add(fabricConnectionEntry);
 }

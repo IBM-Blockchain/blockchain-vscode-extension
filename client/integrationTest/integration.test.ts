@@ -22,6 +22,8 @@ import { ChannelTreeItem } from '../src/explorer/model/ChannelTreeItem';
 import { PeerTreeItem } from '../src/explorer/model/PeerTreeItem';
 import { PeersTreeItem } from '../src/explorer/model/PeersTreeItem';
 import { ExtensionUtil } from '../src/util/ExtensionUtil';
+import { FabricConnectionRegistry } from '../src/fabric/FabricConnectionRegistry';
+import { FabricConnectionRegistryEntry } from '../src/fabric/FabricConnectionRegistryEntry';
 
 chai.should();
 chai.use(sinonChai);
@@ -64,7 +66,9 @@ describe('Integration Test', () => {
 
         const showQuickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
 
-        showQuickPickStub.onFirstCall().resolves('myConnection');
+        const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
+
+        showQuickPickStub.onFirstCall().resolves({label: 'myConnection', data: connection});
 
         await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
 

@@ -13,27 +13,30 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { UserInputUtil } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 
 export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let runtimeName: string;
+    let runtime: FabricRuntime;
     if (!runtimeTreeItem) {
-        runtimeName = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to stop');
+        const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to stop');
+        if (!chosenRuntime) {
+            return;
+        }
+
+        runtime = chosenRuntime.data;
     } else {
-        runtimeName = runtimeTreeItem.getName();
+        runtime = runtimeTreeItem.getRuntime();
     }
-    const runtime: FabricRuntime = runtimeManager.get(runtimeName);
+
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress, token) => {
-        progress.report({ message: `Stopping Fabric runtime ${runtimeName}` });
+    }, async (progress) => {
+        progress.report({ message: `Stopping Fabric runtime ${runtime.getName()}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         await runtime.stop(outputAdapter);
     });

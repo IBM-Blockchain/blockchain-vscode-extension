@@ -85,16 +85,16 @@ npm run systest 2>&1 | tee
 
 
 # Kill and remove any started Docker images.
-if [ "${DOCKER_FILE}" != "" ]; then
-    ARCH=$ARCH docker-compose -f ${DOCKER_FILE} kill
-    ARCH=$ARCH docker-compose -f ${DOCKER_FILE} down
-    docker rmi -f $(docker images -aq dev-*) || true
-fi
-
+#if [ "${DOCKER_FILE}" != "" ]; then
+#    ARCH=$ARCH docker-compose -f ${DOCKER_FILE} kill
+#    ARCH=$ARCH docker-compose -f ${DOCKER_FILE} down
+#    docker rmi -f $(docker images -aq dev-*) || true
+#fi
+#
 # Delete any crypto-config material
-cd "${DIR}"
-if [ -d ./hlfv1/crypto-config ]; then
-    rm -rf ./hlfv1/crypto-config
-fi
+#cd "${DIR}"
+#if [ -d ./hlfv1/crypto-config ]; then
+#    rm -rf ./hlfv1/crypto-config
+#fi
 
 

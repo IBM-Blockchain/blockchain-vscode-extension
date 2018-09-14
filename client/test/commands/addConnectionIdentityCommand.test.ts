@@ -21,6 +21,8 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 
 chai.should();
 chai.use(sinonChai);
@@ -34,8 +36,37 @@ describe('AddConnectionIdentityCommand', () => {
     describe('addConnectionIdentity', () => {
         let mySandBox;
 
+        const rootPath = path.dirname(__dirname);
+
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
+
+            // reset the available connections
+            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+
+            const connectionOne: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
+                name: 'myConnectionA',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+                }]
+            });
+
+            const connectionTwo: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
+            });
+
+            await FabricConnectionRegistry.instance().clear();
+            await FabricConnectionRegistry.instance().add(connectionOne);
+            await FabricConnectionRegistry.instance().add(connectionTwo);
         });
 
         afterEach(() => {
@@ -43,34 +74,10 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a connection identity can be added via the command', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
-            let connections: Array<any> = [];
-
-            const rootPath = path.dirname(__dirname);
-
-            connections.push({
-                name: 'myConnectionA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
-
-            connections.push({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('myConnectionB');
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
@@ -78,12 +85,13 @@ describe('AddConnectionIdentityCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
-            connections = vscode.workspace.getConfiguration().get('fabric.connections');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
             connections[1].should.deep.equal({
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
                 identities: [{
                     certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
@@ -96,43 +104,17 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a config can be cancelled before choosing a connection', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
-            let connections: Array<any> = [];
-
-            const rootPath = path.dirname(__dirname);
-
-            connections.push({
-                name: 'myConnectionA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            });
-
-            connections.push({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
-            connections = vscode.workspace.getConfiguration().get('fabric.connections');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
             connections[1].should.deep.equal({
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
                 identities: [{
                     certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
@@ -141,46 +123,23 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a config can be cancelled on certificate path', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
-            let connections: Array<any> = [];
-
-            const rootPath = path.dirname(__dirname);
-
-            connections.push({
-                name: 'myConnectionA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
-
-            connections.push({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('myConnectionB');
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
-            connections = vscode.workspace.getConfiguration().get('fabric.connections');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
             connections[1].should.deep.equal({
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
                 identities: [{
                     certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
@@ -189,34 +148,10 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a config can be cancelled when adding private key', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
-            let connections: Array<any> = [];
-
-            const rootPath = path.dirname(__dirname);
-
-            connections.push({
-                name: 'myConnectionA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
-
-            connections.push({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('myConnectionB');
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
@@ -224,12 +159,13 @@ describe('AddConnectionIdentityCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
-            connections = vscode.workspace.getConfiguration().get('fabric.connections');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
             connections[1].should.deep.equal({
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
                 identities: [{
                     certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
@@ -238,33 +174,6 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should be able to add a identity from the tree', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
-            let connections: Array<any> = [];
-
-            const rootPath = path.dirname(__dirname);
-
-            connections.push({
-                name: 'myConnectionA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            });
-
-            connections.push({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
@@ -278,12 +187,13 @@ describe('AddConnectionIdentityCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry', connectionToAddTo);
 
-            connections = vscode.workspace.getConfiguration().get('fabric.connections');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
             connections[1].should.deep.equal({
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
                 identities: [{
                     certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
@@ -292,59 +202,6 @@ describe('AddConnectionIdentityCommand', () => {
                         certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                         privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
                     }]
-            });
-        });
-
-        it('should show an error if can\'t add the identity', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
-            let connections: Array<any> = [];
-
-            const rootPath = path.dirname(__dirname);
-
-            connections.push({
-                name: 'myConnectionA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            });
-
-            connections.push({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('doesn\t exist');
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
-
-            showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
-
-            const errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
-
-            errorSpy.should.have.been.calledWith('Could not add the identity');
-
-            connections = vscode.workspace.getConfiguration().get('fabric.connections');
-
-            connections.length.should.equal(2);
-            connections[1].should.deep.equal({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
             });
         });
     });

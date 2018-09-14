@@ -26,9 +26,13 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { ConnectionIdentityTreeItem } from '../../src/explorer/model/ConnectionIdentityTreeItem';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
+import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
+import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 chai.should();
 chai.use(sinonChai);
@@ -50,6 +54,61 @@ describe('ConnectCommand', () => {
         beforeEach(async () => {
             fabricClientMock = sinon.createStubInstance(fabricClient);
             mySandBox = sinon.createSandbox();
+
+            const rootPath = path.dirname(__dirname);
+
+            const connectionSingle: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
+                name: 'myConnectionA',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+                }]
+            });
+
+            const connectionMultiple: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
+            });
+
+            connectionMultiple.identities.push({
+                certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+            });
+
+            const connectionRuntime: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
+                name: 'myConnectionC',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                managedRuntime: true,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+                }]
+            });
+
+            await FabricConnectionRegistry.instance().clear();
+            await FabricConnectionRegistry.instance().add(connectionSingle);
+            await FabricConnectionRegistry.instance().add(connectionMultiple);
+            await FabricConnectionRegistry.instance().add(connectionRuntime);
+
+            const runtimeRegistry: FabricRuntimeRegistryEntry = new FabricRuntimeRegistryEntry({
+                name: 'myConnectionC',
+                developmentMode: false
+            });
+            await FabricRuntimeRegistry.instance().clear();
+            await FabricRuntimeRegistry.instance().add(runtimeRegistry);
+
+            const mockRuntime = sinon.createStubInstance(FabricRuntime);
+            mockRuntime.getName.returns('myConnectionC');
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(true);
+            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myConnectionC').returns(mockRuntime);
         });
 
         afterEach(async () => {
@@ -59,21 +118,10 @@ describe('ConnectCommand', () => {
         });
 
         it('should test the a fabric can be connected to from the command', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('myConnection');
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionA',
+                data: FabricConnectionRegistry.instance().get('myConnectionA')
+            });
 
             const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
 
@@ -87,27 +135,15 @@ describe('ConnectCommand', () => {
         });
 
         it('should test the a fabric can be connected to from the command with multiple identities', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                },
-                    {
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-            quickPickStub.onFirstCall().resolves('myConnection');
-            quickPickStub.onSecondCall().resolves('Admin@org1.example.com');
+            quickPickStub.onFirstCall().resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            });
+            quickPickStub.onSecondCall().resolves({
+                label: 'Admin@org1.example.com',
+                data: FabricConnectionRegistry.instance().get('myConnectionB').identities[0]
+            });
 
             const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
 
@@ -121,20 +157,6 @@ describe('ConnectCommand', () => {
         });
 
         it('should test that can cancel on choosing connection', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const refreshSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             const quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
@@ -147,46 +169,17 @@ describe('ConnectCommand', () => {
         });
 
         it('should test that can be cancelled on choose identity', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                },
-                    {
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-            quickPickStub.onFirstCall().resolves('myConnection');
+            quickPickStub.onFirstCall().resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            });
             quickPickStub.onSecondCall().resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
         });
 
         it('should test the a fabric with a single identity can be connected to from the tree', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -204,27 +197,10 @@ describe('ConnectCommand', () => {
         });
 
         it('should test the a fabric with multiple identities can be connected to from the tree', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }, {
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-            const myConnectionItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
+            const myConnectionItem: ConnectionTreeItem = allChildren[1] as ConnectionTreeItem;
             const allIdentityChildren: ConnectionIdentityTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem) as ConnectionIdentityTreeItem[];
             const myIdentityItem: ConnectionIdentityTreeItem = allIdentityChildren[1] as ConnectionIdentityTreeItem;
 
@@ -239,51 +215,12 @@ describe('ConnectCommand', () => {
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
 
-        it('should handle connection not found', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('no connection');
-
-            const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
-
-            errorMessageSpy.should.have.been.calledWith('Could not connect as no connection found');
-        });
-
         it('should handle identity not found', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                },
-                    {
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-            quickPickStub.onFirstCall().resolves('myConnection');
+            quickPickStub.onFirstCall().resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            });
             quickPickStub.onSecondCall().resolves('no identity');
 
             const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
@@ -294,20 +231,6 @@ describe('ConnectCommand', () => {
         });
 
         it('should handle error from conecting', async () => {
-            const rootPath = path.dirname(__dirname);
-
-            const connections = [{
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                }]
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
             const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -316,8 +239,14 @@ describe('ConnectCommand', () => {
             const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').rejects({message: 'some error'});
 
             const quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-            quickPickStub.onFirstCall().resolves('myConnection');
-            quickPickStub.onSecondCall().resolves('Admin@org1.example.com');
+            quickPickStub.onFirstCall().resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            });
+            quickPickStub.onSecondCall().resolves({
+                label: 'Admin@org1.example.com',
+                data: FabricConnectionRegistry.instance().get('myConnectionB').identities[0]
+            });
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry').should.be.rejected;
 
@@ -327,28 +256,14 @@ describe('ConnectCommand', () => {
         });
 
         it('should connect to a managed runtime using a quick pick', async () => {
-            const connections = [{
-                name: 'myRuntime',
-                managedRuntime: true
-            }];
-
-            const runtimes = [{
-                name: 'myRuntime',
-                developmentMode: false
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-            await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('myRuntime');
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionC',
+                data: FabricConnectionRegistry.instance().get('myConnectionC')
+            });
 
             const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
 
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
-
-            const mockRuntime = sinon.createStubInstance(FabricRuntime);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
 
@@ -358,37 +273,19 @@ describe('ConnectCommand', () => {
         });
 
         it('should connect to a managed runtime from the tree', async () => {
-            const connections = [{
-                name: 'myRuntime',
-                managedRuntime: true
-            }];
-
-            const runtimes = [{
-                name: 'myRuntime',
-                developmentMode: false
-            }];
-
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-            await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
-
-            const mockRuntime = sinon.createStubInstance(FabricRuntime);
-            mockRuntime.getName.returns('myRuntime');
-            mockRuntime.isBusy.returns(false);
-            mockRuntime.isRunning.resolves(true);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
-
             const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
 
-            const myConnectionItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
+            const myConnectionItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
 
             const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
 
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
+            await vscode.commands.executeCommand(myConnectionItem.command.command, myConnectionItem.command.arguments[0]);
 
             loadFromConfigStub.should.have.been.called;
 

@@ -23,6 +23,7 @@ export class PackageRegistry {
     public static instance() {
         return PackageRegistry._instance;
     }
+
     private static _instance: PackageRegistry = new PackageRegistry();
     private packageDir: string;
 
@@ -33,16 +34,9 @@ export class PackageRegistry {
         return await this.getEntries();
     }
 
-    public async delete(packageToDelete: string): Promise<void> {
-        const packages: PackageRegistryEntry[] = await this.getAll();
-
-        for (const _package of packages) {
-            if (_package.name === packageToDelete) {
-                console.log('Removing', this.packageDir + '/' + _package.chaincodeLanguage  + '/' + _package.name);
-                const filePath = _package.chaincodeLanguage === 'go' ? _package.chaincodeLanguage + '/src' : _package.chaincodeLanguage;
-                await fs.remove(this.packageDir + '/' + filePath  + '/' + _package.name);
-            }
-        }
+    public async delete(packageEntry: PackageRegistryEntry): Promise<void> {
+        console.log('delete', packageEntry.name);
+        await fs.remove(packageEntry.path);
     }
 
     private async getEntries(): Promise<PackageRegistryEntry[]> {
@@ -79,9 +73,16 @@ export class PackageRegistry {
                 // add each package to the registry
                 const packageRegistryEntry: PackageRegistryEntry = new PackageRegistryEntry();
                 packageRegistryEntry.name = packageSubFile;
-                packageRegistryEntry.path = packageSubDirectory;
+                packageRegistryEntry.path = path.join(packageSubDirectory, packageSubFile);
                 packageRegistryEntry.chaincodeLanguage = packageLanguage;
-                packageRegistryEntry.version = await this.getPackageVersion(packageSubDirectory, packageSubFile);
+                if (packageLanguage !== 'go') {
+                    try {
+                        packageRegistryEntry.version = await this.getPackageVersion(packageSubDirectory, packageSubFile);
+                    } catch (error) {
+                        // error getting package version so go on to next package
+                        continue;
+                    }
+                }
                 packageRegistryEntries.push(packageRegistryEntry);
             }
         }
@@ -133,15 +134,11 @@ export class PackageRegistry {
             const packageVersionObj: any = JSON.parse(packageVersionFileContents.toString('utf8'));
             packageVersion = packageVersionObj.version;
         } catch (error) {
-            // Failed to read package.json file
-            console.log('failed to get smart contract package version', error.message);
-            packageVersion = '';
+
+            vscode.window.showErrorMessage(`Could not read package json file from package ${packageFile}  ${error.message}`);
+            throw error;
         }
-        if (!packageVersion) {
-            // version is missing from package.json
-            // TODO: throw an error to the user and don't continue
-            packageVersion = '';
-        }
+
         return packageVersion;
     }
 

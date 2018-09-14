@@ -27,6 +27,7 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -66,11 +67,22 @@ describe('startFabricRuntime', () => {
     });
 
     it('should start a Fabric runtime specified by selecting it from the quick pick', async () => {
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({
+            label: 'local_fabric',
+            data: FabricRuntimeManager.instance().get('local_fabric')
+        });
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         quickPickStub.should.have.been.called.calledOnce;
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+    });
+
+    it('should handle cancel from choosing runtime', async () => {
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves();
+        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
+        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+        quickPickStub.should.have.been.called.calledOnce;
+        startStub.should.not.have.been.called;
     });
 
 });

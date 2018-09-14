@@ -21,6 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
+import * as fs from 'fs-extra';
 
 chai.use(sinonChai);
 const should = chai.should();
@@ -33,6 +34,42 @@ describe('BlockchainPackageExplorer', () => {
     let blockchainPackageExplorerProvider;
     let infoSpy;
 
+    async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
+        const smartContractDir = path.join(rootPath, '../../test/data/smartContractDir', language, dirName);
+
+        try {
+            await fs.mkdirp(smartContractDir);
+        } catch (error) {
+            console.log(error);
+        }
+
+        if (createValid) {
+            if (language !== 'go/src') {
+                const packageJsonFile = smartContractDir + '/package.json';
+                const content = {
+                    name: `${packageName}`,
+                    version: version,
+                    description: 'My smart contract'
+                };
+                await fs.writeFile(packageJsonFile, JSON.stringify(content));
+            }
+        } else {
+            const textFile = smartContractDir + '/text.txt';
+            const content = 'hello';
+            await fs.writeFile(textFile, content);
+        }
+    }
+
+    async function deleteTestFiles() {
+        try {
+            await fs.remove(path.join(rootPath, '../../test/data/smartContractDir'));
+        } catch (error) {
+            if (!error.message.contains('ENOENT: no such file or directory')) {
+                throw error;
+            }
+        }
+    }
+
     before(async () => {
         await TestUtil.setupTests();
     });
@@ -43,24 +80,29 @@ describe('BlockchainPackageExplorer', () => {
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+
+        await deleteTestFiles();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         mySandBox.restore();
+        await deleteTestFiles();
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
+        await createTestFiles('smartContractPackageGo', 'my-contract', '1.0.0', 'go/src', true);
+        await createTestFiles('smartContractPackageBlue', 'my-contract', '1.0.0', 'javascript', true);
+        await createTestFiles('smartContractPackageGreen', 'my-contract', '1.0.0', 'javascript', true);
+
         const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
 
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-        testPackages.length.should.equal(5);
+        testPackages.length.should.equal(3);
         testPackages[0].label.should.equal('smartContractPackageGo');
         testPackages[1].label.should.equal('smartContractPackageBlue');
         testPackages[2].label.should.equal('smartContractPackageGreen');
-        testPackages[3].label.should.equal('smartContractPackagePurple');
-        testPackages[4].label.should.equal('smartContractPackageYellow');
         errorSpy.should.not.have.been.called;
 
     });
@@ -74,14 +116,16 @@ describe('BlockchainPackageExplorer', () => {
 
     it('should get a tree item in BlockchainPackageExplorer', async () => {
         const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
+
+        await createTestFiles('smartContractPackageBlue', 'my-contract', '1.0.0', 'javascript', true);
+
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
 
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
 
-        const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[1]) as PackageTreeItem;
+        const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
         firstTestPackage.label.should.equal('smartContractPackageBlue');
         firstTestPackage.tooltip.should.equal('smartContractPackageBlue');
         errorSpy.should.not.have.been.called;
     });
-
 });
