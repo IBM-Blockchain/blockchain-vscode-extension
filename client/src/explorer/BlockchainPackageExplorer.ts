@@ -14,12 +14,11 @@
 import * as vscode from 'vscode';
 import { PackageTreeItem } from './model/PackageTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
-import { PackageRegistryManager } from './packages/PackageRegistryManager';
-import { PackageRegistryEntry } from './packages/PackageRegistryEntry';
+import { PackageRegistry } from '../packages/PackageRegistry';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
     public tree: Array<PackageTreeItem> = [];
-    private packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
@@ -32,7 +31,7 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
     async getChildren(): Promise<PackageTreeItem[]> {
         console.log('BlockchainPackageExplorer: getChildren');
         // Get the packages from the registry manager and create a package tree
-        const packageArray: PackageRegistryEntry[] = await this.packageRegistryManager.getAll();
+        const packageArray: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         this.tree = await this.createPackageTree(packageArray);
         return this.tree;
     }
@@ -47,7 +46,7 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         const tree: Array<PackageTreeItem> = [];
         // Populate the tree with the name of each package registry entry
         for (const packageRegistryEntry of packageRegistryEntries) {
-            tree.push(new PackageTreeItem(this, packageRegistryEntry.name));
+            tree.push(new PackageTreeItem(this, packageRegistryEntry.name, packageRegistryEntry));
         }
         return tree;
     }

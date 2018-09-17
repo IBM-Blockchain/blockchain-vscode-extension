@@ -38,6 +38,8 @@ import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 
 chai.use(sinonChai);
 const should = chai.should();
@@ -221,14 +223,14 @@ describe('BlockchainNetworkExplorer', () => {
                 const myCommand = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: ['myConnection']
+                    arguments: [FabricConnectionRegistry.instance().get('myConnection')]
                 };
 
                 allChildren.length.should.equal(2);
                 const connectionTreeItem = allChildren[0] as ConnectionTreeItem;
                 connectionTreeItem.label.should.equal('myConnection');
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                connectionTreeItem.connection.should.deep.equal(myConnection);
+                connectionTreeItem.connection.should.deep.equal(FabricConnectionRegistry.instance().get('myConnection'));
                 connectionTreeItem.command.should.deep.equal(myCommand);
                 allChildren[1].label.should.equal('Add new connection');
             });
@@ -263,20 +265,22 @@ describe('BlockchainNetworkExplorer', () => {
                 const connectionTreeItem = allChildren[0] as ConnectionTreeItem;
                 connectionTreeItem.label.should.equal('myConnection');
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                connectionTreeItem.connection.should.deep.equal(myConnection);
+                connectionTreeItem.connection.should.deep.equal(FabricConnectionRegistry.instance().get('myConnection'));
                 should.not.exist(connectionTreeItem.command);
                 allChildren[1].label.should.equal('Add new connection');
+
+                const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
 
                 const myCommandOne = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: ['myConnection', 'Admin@org1.example.com']
+                    arguments: [connection, connection.identities[0]]
                 };
 
                 const myCommandTwo = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: ['myConnection', 'Admin@org1.example.com']
+                    arguments: [connection, connection.identities[1]]
                 };
 
                 const identityChildren = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
@@ -392,12 +396,16 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren = await blockchainNetworkExplorerProvider.getChildren();
-                await new Promise((resolve) => { setTimeout(resolve, 0); });
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 0);
+                });
+
+                const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myRuntime');
 
                 const myCommand = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: ['myRuntime']
+                    arguments: [connection]
                 };
 
                 allChildren.length.should.equal(2);

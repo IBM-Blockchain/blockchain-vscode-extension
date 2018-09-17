@@ -12,19 +12,21 @@
  * limitations under the License.
 */
 'use strict';
-import { PackageRegistryEntry } from './PackageRegistryEntry';
-import { PackageRegistry } from './PackageRegistry';
+import { FabricRegistryEntry } from '../fabric/FabricRegistryEntry';
 
-export class PackageRegistryManager {
+export class PackageRegistryEntry extends FabricRegistryEntry {
 
-    private packageRegistry: PackageRegistry = PackageRegistry.instance();
+    public name: string;
 
-    public async getAll(): Promise<PackageRegistryEntry[]> {
-        return await this.packageRegistry.getAll();
-    }
+    public path: string;
 
-    public async delete(_package: string): Promise<void> {
-        return await this.packageRegistry.delete(_package);
+    public version: string;
+
+    public chaincodeLanguage: string;
+
+    constructor(fields?: PackageRegistryEntry) {
+        super();
+        Object.assign(this, fields);
     }
 
 }

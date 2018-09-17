@@ -35,6 +35,9 @@ describe('AddConnectionCommand', () => {
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
+            // reset the available connections
+            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+
         });
 
         afterEach(() => {
@@ -42,9 +45,6 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be added', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             const rootPath = path.dirname(__dirname);
@@ -74,9 +74,6 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test another connection can be added', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             const rootPath = path.dirname(__dirname);
@@ -137,9 +134,6 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be cancelled when naming connection', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves();
@@ -158,9 +152,6 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be cancelled when adding profile', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
@@ -180,9 +171,6 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be cancelled when adding certificate', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             const rootPath = path.dirname(__dirname);
@@ -205,9 +193,6 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be cancelled when adding private key', async () => {
-            // reset the available connections
-            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
-
             const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             const rootPath = path.dirname(__dirname);

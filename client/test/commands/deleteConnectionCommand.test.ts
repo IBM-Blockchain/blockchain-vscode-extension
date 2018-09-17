@@ -22,6 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
+import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 
 chai.should();
 chai.use(sinonChai);
@@ -74,7 +75,7 @@ describe('DeleteConnectionCommand', () => {
 
             await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
 
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves('myConnectionB');
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({label: 'myConnectionB', data: FabricConnectionRegistry.instance().get('myConnectionB')});
 
             await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
 

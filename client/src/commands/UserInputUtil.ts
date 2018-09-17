@@ -14,10 +14,17 @@
 'use strict';
 import * as vscode from 'vscode';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
-import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
-import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
-import { PackageRegistryManager } from '../explorer/packages/PackageRegistryManager';
-import { PackageRegistryEntry } from '../explorer/packages/PackageRegistryEntry';
+import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { PackageRegistry } from '../packages/PackageRegistry';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
+import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../fabric/FabricRuntime';
+
+export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
+    data: T;
+}
 
 export class UserInputUtil {
 
@@ -27,85 +34,65 @@ export class UserInputUtil {
     static readonly YES = 'yes';
     static readonly NO = 'no';
 
-    static showConnectionQuickPickBox(prompt: string): Thenable<string | undefined> {
-        const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
+    public static showConnectionQuickPickBox(prompt: string): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
+        const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
 
-        const quickPickOptions = {
+        const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
             placeHolder: prompt
         };
 
-        const connectionNames: Array<string> = [];
-
-        connections.forEach((connection) => {
-            connectionNames.push(connection.name);
+        const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = connections.map((connection: FabricConnectionRegistryEntry) => {
+            return {label: connection.name, data: connection};
         });
 
-        return vscode.window.showQuickPick(connectionNames, quickPickOptions);
+        return vscode.window.showQuickPick(connectionsQuickPickItems, quickPickOptions);
     }
 
-    static showInputBox(question: string): Thenable<string | undefined> {
-        const inputBoxOptions = {
+    public static showInputBox(question: string): Thenable<string | undefined> {
+        const inputBoxOptions: vscode.InputBoxOptions = {
             prompt: question
         };
         return vscode.window.showInputBox(inputBoxOptions);
     }
 
-    static showIdentityConnectionQuickPickBox(prompt: string, connection: any): Thenable<string | undefined> {
+    public static showIdentityConnectionQuickPickBox(prompt: string, connection: FabricConnectionRegistryEntry): Thenable<IBlockchainQuickPickItem<{ certificatePath: string, privateKeyPath: string }> | undefined> {
 
-        const quickPickOptions = {
+        const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
             placeHolder: prompt
         };
 
-        const identityNames: Array<string> = [];
-
-        connection.identities.forEach((identity) => {
-            const parsedCert: any = new ParsedCertificate(identity.certificatePath);
-            identityNames.push(parsedCert.getCommonName());
+        const identityQuickPickItems: Array<IBlockchainQuickPickItem<any>> = connection.identities.map((identity: { certificatePath: string, privateKeyPath: string }) => {
+            const parsedCert: ParsedCertificate = new ParsedCertificate(identity.certificatePath);
+            return {label: parsedCert.getCommonName(), data: identity};
         });
 
-        return vscode.window.showQuickPick(identityNames, quickPickOptions);
+        return vscode.window.showQuickPick(identityQuickPickItems, quickPickOptions);
     }
 
-    static showRuntimeQuickPickBox(prompt: string): Thenable<string | undefined> {
-        const runtimes: FabricRuntimeRegistryEntry[] = FabricRuntimeRegistry.instance().getAll();
-        const runtimeNames: string[] = runtimes.map((runtime: FabricRuntimeRegistryEntry) => runtime.name);
+    public static showRuntimeQuickPickBox(prompt: string): Thenable<IBlockchainQuickPickItem<FabricRuntime> | undefined> {
+        const runtimes: FabricRuntime[] = FabricRuntimeManager.instance().getAll();
 
-        const quickPickOptions = {
+        const runtimeQuickPickItems: Array<IBlockchainQuickPickItem<FabricRuntime>> = runtimes.map((runtime: FabricRuntime) => {
+            return {label: runtime.getName(), data: runtime};
+        });
+
+        const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
             placeHolder: prompt
         };
 
-        return vscode.window.showQuickPick(runtimeNames, quickPickOptions);
+        return vscode.window.showQuickPick(runtimeQuickPickItems, quickPickOptions);
     }
 
-    static async showSmartContractPackagesQuickPickBox(prompt: string): Promise<string[] | undefined> {
-        const packageRegistryManager: PackageRegistryManager = new PackageRegistryManager();
-
-        const packages: PackageRegistryEntry[] = await packageRegistryManager.getAll();
-        const quickPickOptions: vscode.QuickPickOptions = {
-           ignoreFocusOut: false,
-           canPickMany: true,
-           placeHolder: prompt
-       };
-
-        const packageNames = [];
-
-        packages.forEach((_package) => {
-           packageNames.push(_package.name);
-       });
-
-        return vscode.window.showQuickPick(packageNames, quickPickOptions);
-    }
-
-    static showFolderOptions(prompt: string): Thenable<string | undefined> {
+    public static showFolderOptions(prompt: string): Thenable<string | undefined> {
         const options: Array<string> = [this.ADD_TO_WORKSPACE, this.OPEN_IN_NEW_WINDOW, this.OPEN_IN_CURRENT_WINDOW];
 
-        const quickPickOptions = {
+        const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
@@ -114,15 +101,48 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    static showQuickPickYesNo(prompt: string): Thenable<string | undefined> {
+    public static showQuickPickYesNo(prompt: string): Thenable<string | undefined> {
         const options: Array<string> = [this.YES, this.NO];
 
-        const quickPickOptions = {
+        const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
 
         return vscode.window.showQuickPick(options, quickPickOptions);
+    }
+
+    public static showPeerQuickPickBox(prompt: string): Thenable<string | undefined> {
+        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+        const connection = fabricConnectionManager.getConnection();
+        if (!connection) {
+            return Promise.reject('No connection to a blockchain found');
+        }
+        const peerNames: Array<string> = connection.getAllPeerNames();
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(peerNames, quickPickOptions);
+    }
+
+    public static async showSmartContractPackagesQuickPickBox(prompt: string, canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<PackageRegistryEntry>> | IBlockchainQuickPickItem<PackageRegistryEntry> | undefined> {
+        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+        const quickPickItems: IBlockchainQuickPickItem<PackageRegistryEntry>[] = packages.map((_package: PackageRegistryEntry) => {
+            return {label: _package.name, description: _package.version, data: _package};
+        });
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: canPickMany,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 }

@@ -34,7 +34,6 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
@@ -49,7 +48,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     private connection: IFabricConnection = null;
 
     private connectionRegistryManager: FabricConnectionRegistry = FabricConnectionRegistry.instance();
-    private runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
     constructor() {
         FabricConnectionManager.instance().on('connected', async (connection: IFabricConnection) => {
@@ -260,7 +258,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 const command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: [element.connection.name, commonName]
+                    arguments: [element.connection, identity]
                 };
 
                 tree.push(new ConnectionIdentityTreeItem(this, commonName, command));
@@ -280,7 +278,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const allConnections: FabricConnectionRegistryEntry[] = this.connectionRegistryManager.getAll();
 
         for (const connection of allConnections) {
-
             let collapsibleState: vscode.TreeItemCollapsibleState;
             let command: vscode.Command;
             if (connection.identities && connection.identities.length > 1) {
@@ -292,7 +289,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: [connection.name]
+                    arguments: [connection]
                 };
             }
 
@@ -300,8 +297,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                     connection.name,
                     connection,
-                    collapsibleState,
-                    command);
+                    collapsibleState);
                 tree.push(treeItem);
             } else {
                 tree.push(new ConnectionTreeItem(this,

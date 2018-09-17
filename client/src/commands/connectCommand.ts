@@ -13,77 +13,67 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { UserInputUtil } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
-import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 
-export async function connect(connectionName: string, identityName?: string): Promise<void> {
-    console.log('connect', connectionName, identityName);
+export async function connect(connectionRegistryEntry: FabricConnectionRegistryEntry, identity?: { certificatePath: string, privateKeyPath: string }): Promise<void> {
+    console.log('connect', connectionRegistryEntry, identity);
 
-    if (!connectionName) {
-        connectionName = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with');
-        if (!connectionName) {
+    if (!connectionRegistryEntry) {
+        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with');
+        if (!chosenEntry) {
             return;
         }
-    }
 
-    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
-    if (!connectionRegistry.exists(connectionName)) {
-        vscode.window.showErrorMessage('Could not connect as no connection found');
-        return;
+        connectionRegistryEntry = chosenEntry.data;
     }
-    const connectionRegistryEntry: FabricConnectionRegistryEntry = connectionRegistry.get(connectionName);
 
     let connection: IFabricConnection;
     if (connectionRegistryEntry.managedRuntime) {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.get(connectionName);
+        const runtime: FabricRuntime = runtimeManager.get(connectionRegistryEntry.name);
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
 
     } else {
-
         const connectionData = {
             connectionProfilePath: connectionRegistryEntry.connectionProfilePath,
             privateKeyPath: null,
             certificatePath: null
         };
 
-        let foundIdentity: { certificatePath: string, privateKeyPath: string };
         if (connectionRegistryEntry.identities.length > 1) {
 
-            if (!identityName) {
-                identityName = await UserInputUtil.showIdentityConnectionQuickPickBox('Choose an identity to connect with', connectionRegistryEntry);
-                if (!identityName) {
+            if (!identity) {
+                const chosenIdentity: IBlockchainQuickPickItem<any> = await UserInputUtil.showIdentityConnectionQuickPickBox('Choose an identity to connect with', connectionRegistryEntry);
+                if (!chosenIdentity) {
+                    return;
+                }
+
+                identity = connectionRegistryEntry.identities.find(((_identity: { certificatePath: string, privateKeyPath: string }) => {
+                    const parsedCertificate: ParsedCertificate = new ParsedCertificate(_identity.certificatePath);
+                    return parsedCertificate.getCommonName() === chosenIdentity.label;
+                }));
+
+                if (!identity) {
+                    vscode.window.showErrorMessage('Could not connect as no identity found');
                     return;
                 }
             }
-
-            foundIdentity = connectionRegistryEntry.identities.find(((identity: { certificatePath: string, privateKeyPath: string }) => {
-                const parsedCertificate: ParsedCertificate = new ParsedCertificate(identity.certificatePath);
-                return parsedCertificate.getCommonName() === identityName;
-            }));
-
-            if (!foundIdentity) {
-                vscode.window.showErrorMessage('Could not connect as no identity found');
-                return;
-            }
-
         } else {
-            foundIdentity = connectionRegistryEntry.identities[0];
+            identity = connectionRegistryEntry.identities[0];
         }
 
-        connectionData.certificatePath = foundIdentity.certificatePath;
-        connectionData.privateKeyPath = foundIdentity.privateKeyPath;
+        connectionData.certificatePath = identity.certificatePath;
+        connectionData.privateKeyPath = identity.privateKeyPath;
 
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
-
     }
 
     try {

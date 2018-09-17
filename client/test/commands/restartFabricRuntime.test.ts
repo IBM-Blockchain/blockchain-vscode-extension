@@ -66,11 +66,17 @@ describe('restartFabricRuntime', () => {
     });
 
     it('should restart a Fabric runtime specified by selecting it from the quick pick', async () => {
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves('local_fabric');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({label: 'local_fabric', data: FabricRuntimeManager.instance().get('local_fabric')});
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime');
         quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
 
+    it('should handle cancel from choosing runtime', async () => {
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves();
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime');
+        quickPickStub.should.have.been.called.calledOnce;
+    });
 });

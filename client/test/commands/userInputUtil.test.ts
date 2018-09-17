@@ -15,13 +15,19 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from '../../src/commands/UserInputUtil';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 
 chai.should();
 chai.use(sinonChai);
@@ -30,8 +36,14 @@ describe('Commands Utility Function Tests', () => {
 
     let mySandBox;
     let quickPickStub;
-    const connections: Array<any> = [];
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+
+    let connectionEntryOne;
+    let connectionEntryTwo;
+
+    let getConnectionStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -42,29 +54,36 @@ describe('Commands Utility Function Tests', () => {
 
         const rootPath = path.dirname(__dirname);
 
-        connections.push({
-            name: 'myConnectionA',
-            connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-            identities: [{
-                certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-            }]
-        });
+        connectionEntryOne = new FabricConnectionRegistryEntry();
+        connectionEntryOne.name = 'myConnectionA';
+        connectionEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
+        connectionEntryOne.identities = [{
+            certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+        }];
 
-        connections.push({
-            name: 'myConnectionB',
-            connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-            identities: [{
-                certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-            }]
-        });
+        connectionEntryTwo = new FabricConnectionRegistryEntry();
+        connectionEntryTwo.name = 'myConnectionB';
+        connectionEntryTwo.connectionProfilePath = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
+        connectionEntryTwo.identities = [{
+            certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+        }];
 
-        await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+        await connectionRegistry.clear();
+        await connectionRegistry.add(connectionEntryOne);
+        await connectionRegistry.add(connectionEntryTwo);
 
         await runtimeRegistry.clear();
         await runtimeRegistry.add(new FabricRuntimeRegistryEntry({name: 'local_fabric1', developmentMode: false}));
         await runtimeRegistry.add(new FabricRuntimeRegistryEntry({name: 'local_fabric2', developmentMode: true}));
+
+        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+
+        const fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
+        fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
+
+        getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
     });
@@ -76,10 +95,11 @@ describe('Commands Utility Function Tests', () => {
 
     describe('showConnectionQuickPickBox', () => {
         it('should show connections in the quickpick box', async () => {
-            quickPickStub.resolves('connectionOne');
-            const result: string = await UserInputUtil.showConnectionQuickPickBox('choose a connection');
+            quickPickStub.resolves({label: connectionEntryOne.name, data: connectionEntryOne});
+            const result: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('choose a connection');
 
-            result.should.equal('connectionOne');
+            result.label.should.equal('myConnectionA');
+            result.data.should.deep.equal(connectionEntryOne);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -91,10 +111,11 @@ describe('Commands Utility Function Tests', () => {
     describe('showIdentityConnectionQuickPickBox', () => {
 
         it('should show identity connections in the quickpick box', async () => {
-            quickPickStub.resolves('Admin@org1.example.com');
-            const result: string = await UserInputUtil.showIdentityConnectionQuickPickBox('choose a connection', connections[0]);
+            quickPickStub.resolves({label: 'Admin@org1.example.com', data: connectionEntryOne.identities[0]});
+            const result: IBlockchainQuickPickItem<any> = await UserInputUtil.showIdentityConnectionQuickPickBox('choose a connection', connectionEntryOne);
 
-            result.should.equal('Admin@org1.example.com');
+            result.label.should.equal('Admin@org1.example.com');
+            result.data.should.deep.equal(connectionEntryOne.identities[0]);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -115,10 +136,11 @@ describe('Commands Utility Function Tests', () => {
 
     describe('showRuntimeQuickPickBox', () => {
         it('should show runtimes in the quickpick box', async () => {
-            quickPickStub.resolves('local_fabric2');
-            const result: string = await UserInputUtil.showRuntimeQuickPickBox('choose a runtime');
+            quickPickStub.resolves({label: 'local_fabric2', data: runtimeManager.get('local_fabric2')});
+            const result: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('choose a runtime');
 
-            result.should.equal('local_fabric2');
+            result.label.should.equal('local_fabric2');
+            result.data.should.deep.equal(runtimeManager.get('local_fabric2'));
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -189,18 +211,42 @@ describe('Commands Utility Function Tests', () => {
                 });
             });
         });
+
+        describe('showPeerQuickPickBox', () => {
+            it('should show the peer names', async () => {
+                quickPickStub.resolves('myPeerOne');
+                const result = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
+                result.should.equal('myPeerOne');
+            });
+
+            it('should handle no connection', async () => {
+                getConnectionStub.returns();
+                await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(`No connection to a blockchain found`);
+            });
+        });
     });
 
     describe('showSmartContractPackagesQuickPickBox', () => {
         it('show quick pick box for smart contract packages', async () => {
             quickPickStub.resolves('smartContractPackageBlue');
-            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete');
+            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', false);
             result.should.deep.equal('smartContractPackageBlue');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-               ignoreFocusOut: false,
-               canPickMany: true,
-               placeHolder: 'Choose the smart contract package that you want to delete'
-           });
-       });
-   });
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose the smart contract package that you want to delete'
+            });
+        });
+
+        it('show quick pick box for smart contract packages with multiple', async () => {
+            quickPickStub.resolves('smartContractPackageBlue');
+            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true);
+            result.should.deep.equal('smartContractPackageBlue');
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: true,
+                placeHolder: 'Choose the smart contract package that you want to delete'
+            });
+        });
+    });
 });

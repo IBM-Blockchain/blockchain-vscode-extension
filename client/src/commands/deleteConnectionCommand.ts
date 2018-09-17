@@ -12,29 +12,25 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
-import {UserInputUtil} from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 
-export async function deleteConnection(connectionItem: ConnectionTreeItem): Promise<{} | void> {
-    console.log('deleteConnection');
+export async function deleteConnection(connectionTreeItem: ConnectionTreeItem): Promise<{} | void> {
+    console.log('deleteConnection', connectionTreeItem);
 
-    let connectionToDelete: string;
+    let connectionRegistryEntry: FabricConnectionRegistryEntry;
+    if (!connectionTreeItem) {
+        const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to delete');
+        if (!chosenConnection) {
+            return;
+        }
 
-    if (connectionItem) {
-        connectionToDelete = connectionItem.connection.name;
+        connectionRegistryEntry = chosenConnection.data;
     } else {
-        connectionToDelete = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to delete');
+        connectionRegistryEntry = connectionTreeItem.connection;
     }
 
-    const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
-    const index = connections.findIndex((connection) => {
-        return connection.name === connectionToDelete;
-    });
-
-    if (index > -1) {
-        connections.splice(index, 1);
-    }
-
-    return vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+    return FabricConnectionRegistry.instance().delete(connectionRegistryEntry.name);
 }

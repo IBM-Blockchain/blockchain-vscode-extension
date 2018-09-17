@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+// tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as chai from 'chai';
@@ -20,9 +21,10 @@ import * as sinonChai from 'sinon-chai';
 import * as myExtension from '../../src/extension';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
-import * as homeDir from 'home-dir';
-import { BlockchainExplorerProvider } from '../../src/explorer/BlockchainExplorerProvider';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
+import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+
 chai.should();
 chai.use(sinonChai);
 
@@ -40,81 +42,132 @@ describe('DeleteSmartContractPackageCommand', () => {
 
     after(async () => {
         await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+
     });
 
     describe('deleteSmartContractPackage', () => {
         let mySandBox;
 
+        async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
+            const smartContractDir = path.join(TEST_PACKAGE_DIRECTORY, language, dirName);
+
+            try {
+                await fs.mkdirp(smartContractDir);
+            } catch (error) {
+                console.log(error);
+            }
+
+            if (createValid) {
+                if (language !== 'go/src') {
+                    const packageJsonFile = smartContractDir + '/package.json';
+                    const content = {
+                        name: `${packageName}`,
+                        version: version,
+                        description: 'My smart contract'
+                    };
+                    await fs.writeFile(packageJsonFile, JSON.stringify(content));
+                }
+            } else {
+                const textFile = smartContractDir + '/text.txt';
+                const content = 'hello';
+                await fs.writeFile(textFile, content);
+            }
+        }
+
+        async function checkFileDeleted(name: string, version: string, language: string) {
+            await fs.stat(`${TEST_PACKAGE_DIRECTORY}/${language}/${name}`);
+        }
+
+        async function deleteTestFiles() {
+            try {
+                await fs.remove(TEST_PACKAGE_DIRECTORY);
+            } catch (error) {
+                if (!error.message.contains('ENOENT: no such file or directory')) {
+                    throw error;
+                }
+            }
+        }
+
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
+            deleteTestFiles();
         });
 
-        afterEach(() => {
+        afterEach(async () => {
             mySandBox.restore();
+            await deleteTestFiles();
         });
 
         it("should test a 'smart contract package' can be deleted from the command", async () => {
-            // Create a new directory which we will delete in this test
-            await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/javascript/DeleteThisDirectory');
+            await createTestFiles('DeleteThisDirectory', 'delete-this-directory', '1.0.0', 'javascript', true);
+
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-            let packages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-            const initialLength = packages.length;
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves(['DeleteThisDirectory']);
+            const onDidChangeTreeDataSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
+
+            const _packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+            const _package = _packages[0];
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves([{
+                label: 'DeleteThisDirectory',
+                data: _package
+            }]);
             // Execute the delete 'smart contract package' command
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
-            // Get a list of the packages again
-            packages = await blockchainPackageExplorerProvider.getChildren();
-            const index = packages.findIndex((_package) => {
-                return _package.name === 'DeleteThisDirectory';
-            });
-            index.should.equal(-1);
-            packages.length.should.equal(initialLength - 1);
+            onDidChangeTreeDataSpy.should.have.been.called;
+
+            await checkFileDeleted('DeleteThisDirectory', '1.0.0', 'javascript').should.be.rejected;
         });
 
-        it("should test multiple 'smart contract packages' can be deleted from the command", async () => {
-            // Create a new directory which we will delete in this test
-            await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/javascript/DeleteThisDirectory1');
-            await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/javascript/DeleteThisDirectory2');
+        it(`should test multiple 'smart contract packages' can be deleted from the command`, async () => {
+            await createTestFiles('DeleteThisDirectory1', 'delete-this-directory-1', '2.0.0', 'javascript', true);
+            await createTestFiles('DeleteThisDirectory2', 'delete-this-directory-2', '3.0.0', 'javascript', true);
+
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-            let packages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-            const initialLength = packages.length;
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves(['DeleteThisDirectory1', 'DeleteThisDirectory2']);
+            const onDidChangeTreeDataSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
+
+            const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+            const dataOne: PackageRegistryEntry = packages[0];
+            const dataTwo: PackageRegistryEntry = packages[1];
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves([{
+                label: 'DeleteThisDirectory1',
+                data: dataOne
+            }, {
+                label: 'DeleteThisDirectory2',
+                data: dataTwo
+            }]);
 
             // Execute the delete 'smart contract package' command
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
 
-            // Get a list of the packages again
-            packages = await blockchainPackageExplorerProvider.getChildren();
-            const index1 = packages.findIndex((_package) => {
-                return _package.name === 'DeleteThisDirectory1';
-            });
-            const index2 = packages.findIndex((_package) => {
-                return _package.name === 'DeleteThisDirectory1';
-            });
-            index1.should.equal(-1);
-            index2.should.equal(-1);
-            packages.length.should.equal(initialLength - 2);
+            onDidChangeTreeDataSpy.should.have.been.called;
+
+            await checkFileDeleted('DeleteThisDirectory1', '2.0.0', 'javascript').should.be.rejected;
+            await checkFileDeleted('DeleteThisDirectory2', '3.0.0', 'javascript').should.be.rejected;
         });
 
         it("should test a 'smart contract package' can be deleted from tree", async () => {
-            // Create a new directory which we will delete in this test
-            await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/javascript/DeleteThisDirectory');
+            await createTestFiles('DeleteThisDirectory', 'delete-this-directory', '1.0.0', 'javascript', true);
+
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-            const initialLength = initialPackages.length;
+            const onDidChangeTreeDataSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
+
             // This will be the 'DeleteThisDirectory' as its the first package alphabetically
             const packageIndex = initialPackages.findIndex((_package) => {
-                return _package.name === 'DeleteThisDirectory';
+                return _package.name === 'DeleteThisDirectory' && _package.packageEntry.version === '1.0.0' && _package.packageEntry.chaincodeLanguage === 'javascript';
             });
             packageIndex.should.not.equal(-1);
             const packageToDelete = initialPackages[packageIndex];
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', packageToDelete);
-            // Get a list of the packages again
-            const updatedPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-            updatedPackages.length.should.equal(initialLength - 1);
-            updatedPackages.should.not.contain(packageToDelete);
+
+            onDidChangeTreeDataSpy.should.have.been.called;
+
+            await checkFileDeleted('DeleteThisDirectory', '1.0.0', 'javascript').should.be.rejected;
         });
+
         it("should test delete 'smart contract package' can be cancelled", async () => {
+            await createTestFiles('DeleteThisDirectory', 'delete-this-directory', '1.0.0', 'javascript', true);
+
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             const initialLength = initialPackages.length;
@@ -125,22 +178,26 @@ describe('DeleteSmartContractPackageCommand', () => {
             newPackageList.should.deep.equal(initialPackages);
         });
 
-        it("should test a Go 'smart contract package' can be deleted from the command", async () => {
-            // Create a new directory which we will delete in this test
-            await fs.mkdirp(TEST_PACKAGE_DIRECTORY + '/go/src/DeleteThisDirectory');
+        it(`should test a Go 'smart contract package' can be deleted from the command`, async () => {
+            await createTestFiles('DeleteThisDirectory', 'delete-this-directory', '1.0.0', 'go/src', true);
+
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-            let packages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-            const initialLength = packages.length;
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves(['DeleteThisDirectory']);
+            const onDidChangeTreeDataSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
+
+            const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+            allPackages.length.should.equal(1);
+
+            const data: PackageRegistryEntry = allPackages[0];
+
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves([{
+                label: 'DeleteThisDirectory',
+                data: data
+            }]);
             // Execute the delete 'smart contract package' command
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
-            // Get a list of the packages again
-            packages = await blockchainPackageExplorerProvider.getChildren();
-            const index = packages.findIndex((_package) => {
-                return _package.name === 'DeleteThisDirectory';
-            });
-            index.should.equal(-1);
-            packages.length.should.equal(initialLength - 1);
+            onDidChangeTreeDataSpy.should.have.been.called;
+
+            await checkFileDeleted('DeleteThisDirectory', '1.0.0', 'go/src').should.be.rejected;
         });
     });
 });

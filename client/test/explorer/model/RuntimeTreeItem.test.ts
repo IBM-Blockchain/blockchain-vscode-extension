@@ -20,6 +20,7 @@ import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry';
 import { FabricConnectionRegistry } from '../../../src/fabric/FabricConnectionRegistry';
+import { FabricConnectionRegistryEntry } from '../../../src/fabric/FabricConnectionRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 
 import * as chai from 'chai';
@@ -32,6 +33,7 @@ describe('RuntimeTreeItem', () => {
     const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    let connection: FabricConnectionRegistryEntry;
 
     let sandbox: sinon.SinonSandbox;
     let clock: sinon.SinonFakeTimers;
@@ -43,11 +45,16 @@ describe('RuntimeTreeItem', () => {
         await connectionRegistry.clear();
         await runtimeRegistry.clear();
         await runtimeManager.clear();
-        await runtimeManager.add('myRuntime');
+
+        connection = new FabricConnectionRegistryEntry();
+        connection.name = 'myRuntime';
+        connection.managedRuntime = true;
+
         provider = getBlockchainNetworkExplorerProvider();
+        await runtimeManager.add('myRuntime');
         runtime = runtimeManager.get('myRuntime');
         sandbox = sinon.createSandbox();
-        clock = sinon.useFakeTimers({ toFake: ['setInterval', 'clearInterval' ]});
+        clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
     });
 
     afterEach(async () => {
@@ -64,8 +71,15 @@ describe('RuntimeTreeItem', () => {
         it('should have the right properties for a runtime that is not running', async () => {
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
+                name: 'myRuntime',
+                managedRuntime: true,
+                connectionProfilePath: 'myPath',
+                identities: [{certificatePath: 'myCert', privateKeyPath: 'myKey'}]
+            }), vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ○');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
@@ -78,8 +92,11 @@ describe('RuntimeTreeItem', () => {
         it('should have the right properties for a runtime that is busy', async () => {
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
@@ -88,26 +105,33 @@ describe('RuntimeTreeItem', () => {
         it('should animate the label for a runtime that is busy', async () => {
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
-            const states: string[] = [ '◐', '◓', '◑', '◒', '◐' ];
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+            const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`myRuntime  ${state}`);
                 clock.tick(500);
-                await new Promise((resolve) => { setTimeout(resolve, 0); });
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 0);
+                });
             }
         });
 
         it('should have the right properties for a runtime that is running', async () => {
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(true);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ●');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.connectEntry',
                 title: '',
-                arguments: ['myRuntime']
+                arguments: [connection]
             });
             treeItem.contextValue.should.equal('blockchain-runtime-item-started');
         });
@@ -116,8 +140,11 @@ describe('RuntimeTreeItem', () => {
             const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
             isBusyStub.returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ○');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
@@ -127,7 +154,9 @@ describe('RuntimeTreeItem', () => {
             treeItem.contextValue.should.equal('blockchain-runtime-item-stopped');
             isBusyStub.returns(true);
             runtime.emit('busy', true);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
@@ -137,16 +166,23 @@ describe('RuntimeTreeItem', () => {
             const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
             isBusyStub.returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             isBusyStub.returns(true);
             runtime.emit('busy', true);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
-            const states: string[] = [ '◐', '◓', '◑', '◒', '◐' ];
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+            const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`myRuntime  ${state}`);
                 clock.tick(500);
-                await new Promise((resolve) => { setTimeout(resolve, 0); });
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 0);
+                });
             }
         });
 
@@ -154,14 +190,19 @@ describe('RuntimeTreeItem', () => {
             const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
             isBusyStub.returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
             isBusyStub.returns(false);
             runtime.emit('busy', false);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ○');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
@@ -175,8 +216,11 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isDevelopmentMode').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ○  ∞');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
@@ -190,13 +234,15 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isDevelopmentMode').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(true);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
             treeItem.label.should.equal('myRuntime  ●  ∞');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.connectEntry',
                 title: '',
-                arguments: ['myRuntime']
+                arguments: [connection]
             });
             treeItem.contextValue.should.equal('blockchain-runtime-item-started');
         });
@@ -204,20 +250,27 @@ describe('RuntimeTreeItem', () => {
         it('should report errors animating the label for a runtime that is busy', async () => {
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', { name: 'myRuntime', managedRuntime: true }, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
+                name: 'myRuntime',
+                managedRuntime: true,
+                connectionProfilePath: 'myPath',
+                identities: [{certificatePath: 'myCert', privateKeyPath: 'myKey'}]
+            }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const showErrorMessageSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');
-            await new Promise((resolve) => { setTimeout(resolve, 0); });
-            const states: string[] = [ '◐', '◓', '◑', '◒', '◐' ];
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+            const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`myRuntime  ${state}`);
                 clock.tick(500);
-                await new Promise((resolve) => { setTimeout(resolve, 0); });
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 0);
+                });
                 showErrorMessageSpy.should.have.been.calledOnceWithExactly('such error');
                 showErrorMessageSpy.resetHistory();
             }
         });
-
     });
-
 });

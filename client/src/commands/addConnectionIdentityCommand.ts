@@ -12,22 +12,24 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
-import { UserInputUtil } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
+import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 
 export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
+    let connectionRegistryEntry: FabricConnectionRegistryEntry;
     console.log('addConnectionIdentity');
 
-    let connectionName: string;
-    if (connectionItem) {
-        connectionName = connectionItem.connection.name;
-    } else {
-        connectionName = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to');
-    }
+    if (!connectionItem) {
+        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to');
+        if (!chosenEntry) {
+            return;
+        }
 
-    if (!connectionName) {
-        return Promise.resolve();
+        connectionRegistryEntry = chosenEntry.data;
+    } else {
+        connectionRegistryEntry = connectionItem.connection;
     }
 
     const certificatePath: string = await UserInputUtil.showInputBox('Enter a file path to the certificate file');
@@ -42,17 +44,7 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
         return Promise.resolve();
     }
 
-    const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
-    const foundConnection: any = connections.find((connection) => {
-        return connection.name === connectionName;
-    });
+    connectionRegistryEntry.identities.push({certificatePath, privateKeyPath});
 
-    if (!foundConnection) {
-        vscode.window.showErrorMessage('Could not add the identity');
-        return Promise.resolve();
-    }
-
-    foundConnection.identities.push({certificatePath, privateKeyPath});
-
-    return vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+    return FabricConnectionRegistry.instance().update(connectionRegistryEntry);
 }
