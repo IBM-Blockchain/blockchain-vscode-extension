@@ -18,6 +18,7 @@ import { CommandUtil } from '../util/CommandUtil';
 import * as child_process from 'child_process';
 import * as path from 'path';
 import { UserInputUtil } from './UserInputUtil';
+import * as fs from 'fs-extra';
 
 class GeneratorDependencies {
     needYo: boolean = false;
@@ -67,8 +68,7 @@ export async function createSmartContractProject(): Promise<void> {
     try {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
-        console.log('Issue determining available smart contract languages:', error);
-        vscode.window.showErrorMessage('Issue determining available smart contract language options');
+        vscode.window.showErrorMessage('Issue determining available smart contract language options:', error);
         return;
     }
     const choseSmartContractLanguageQuickPickOptions = {
@@ -82,7 +82,6 @@ export async function createSmartContractProject(): Promise<void> {
         return;
     }
     smartContractLanguage = smartContractLanguage.toLowerCase();
-    console.log('chosen contract language is:' + smartContractLanguage);
 
     // Prompt the user for a file system folder
     const openDialogOptions = {
@@ -143,8 +142,25 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
         await CommandUtil.sendCommand('npm view yo version');
         console.log('yo is installed');
         try {
-            await CommandUtil.sendCommand('npm view generator-fabric version');
-            console.log('generator-fabric installed');
+
+            const newestVersion = await CommandUtil.sendCommand('npm view generator-fabric version');
+
+            const parsedJson: any = await getPackageJson();
+
+            let installedVersion = parsedJson.version;
+            installedVersion = installedVersion.substring(installedVersion.indexOf('@') + 1);
+
+            if (installedVersion !== newestVersion) {
+                // The users global installation of generator-fabric is out of date
+                console.log('Updating generator-fabric as it is out of date');
+
+                const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
+                const npmUpdateOut = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + newestVersion, '', 'Updating generator-fabric...');
+                outputAdapter.log(npmUpdateOut);
+                outputAdapter.log('Successfully updated to latest version of generator-fabric');
+            }
+
         } catch (error) {
             needGenFab = true;
             console.log('generator-fabric missing');
@@ -219,31 +235,18 @@ async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> 
 }
 
 async function getSmartContractLanguageOptions(): Promise<string[]> {
-    const yoFabricChild: child_process.ChildProcess = await child_process.spawn('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
-    return new Promise<string[]>((resolve, reject) => {
-        yoFabricChild.on('exit', (returnCode: number) => {
-            const stdout: Buffer = yoFabricChild.stdout.read();
-            if (returnCode) {
-                return reject(new Error(`yo fabric: contract failed to run with return code ${returnCode}`));
-            } else if (stdout) {
-                const smartContractLanguageArray: string[] = stdout.toString().split('\n');
-                smartContractLanguageArray.shift();
-                const cleanSmartContractLangaugeArray: string[] = [];
-                for (const language of smartContractLanguageArray) {
-                    if (language !== '') {
-                        // Grab the first word in the string and remove non-word characters
-                        const regex: RegExp = /^[^\w]*([\w]+)/g;
-                        const regexMatchArray: RegExpMatchArray = regex.exec(language);
-                        cleanSmartContractLangaugeArray.push(regexMatchArray[1]);
-                    }
-                }
-                console.log('printing available contract languages from yo fabric:contract output:', cleanSmartContractLangaugeArray);
-                return resolve(cleanSmartContractLangaugeArray);
-            } else {
-                return reject(new Error(`Failed to get output from yo fabric:contract`));
-            }
-        });
-    });
+    try {
+
+        const parsedJson: any = await getPackageJson();
+        if (parsedJson.contractLanguages === undefined) {
+            return Promise.reject('Contract languages not found in package.json');
+        } else {
+            return Promise.resolve(parsedJson.contractLanguages);
+        }
+    } catch (error) {
+        return Promise.reject(error);
+    }
+
 }
 
 async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
@@ -273,4 +276,11 @@ async function checkForUnsavedFiles(): Promise<void> {
             await vscode.workspace.saveAll(true);
         }
     }
+}
+
+async function getPackageJson(): Promise<any> {
+    const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
+    const packagePath: string = npmPrefix + '/lib/node_modules/generator-fabric/package.json';
+    const packageJson: any = await fs.readJson(packagePath);
+    return packageJson;
 }
