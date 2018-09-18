@@ -20,6 +20,10 @@ import * as child_process from 'child_process';
 import * as path from 'path';
 import { UserInputUtil } from './UserInputUtil';
 import * as fs from 'fs-extra';
+import * as yeoman from 'yeoman-environment';
+import { YeomanAdapter } from '../util/YeomanAdapter';
+import * as util from 'util';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 class GeneratorDependencies {
     needYo: boolean = false;
@@ -101,12 +105,44 @@ export async function createSmartContractProject(): Promise<void> {
         return;
     }
 
-    // Run yo:fabric with default options in folderSelect
-    // redirect to stdout as yo fabric prints to stderr
-    const yoFabricCmd: string = `yo fabric:contract -- --language="${smartContractLanguage}" --name="${folderName}" --version=0.0.1 --description="My Smart Contract" --author="John Doe" --license=Apache-2.0 2>&1`;
     try {
-        const yoFabricOut = await CommandUtil.sendCommandWithProgress(yoFabricCmd, folderPath, 'Generating smart contract...');
-        outputAdapter.log(yoFabricOut);
+        const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
+        const packagePath: string = npmPrefix + '/lib/node_modules/generator-fabric/generators/contract';
+
+        // tslint:disable-next-line
+        let env = yeoman.createEnv([], {}, new YeomanAdapter());
+
+        env.lookup = util.promisify(env.lookup);
+        env.run = util.promisify(env.run);
+        await env.lookup();
+
+        // tslint:disable-next-line
+        let runOptions: any = {
+            destination: folderPath,
+            language: smartContractLanguage,
+            name: folderName,
+            version: '0.0.1',
+            description: 'My Smart Contract',
+            author: 'John Doe',
+            license: 'Apache-2.0'
+        };
+
+        const packageJson: any = ExtensionUtil.getPackageJSON();
+
+        if (packageJson.production === false) {
+            runOptions['skip-install'] = true;
+
+        }
+
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Blockchain Extension',
+            cancellable: false
+        }, async (progress, token): Promise<void> => {
+            progress.report({message: 'Generating smart contract project'});
+            await env.run('fabric:contract', runOptions);
+        });
+
         outputAdapter.log('Successfully generated smart contract project');
 
         Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
@@ -114,7 +150,6 @@ export async function createSmartContractProject(): Promise<void> {
         console.log('new smart contract project folder is :' + folderPath);
         await openNewProject(openMethod, folderUri);
     } catch (error) {
-        console.log('found issue running yo:fabric command:', error);
         vscode.window.showErrorMessage('Issue creating smart contract project');
         outputAdapter.log(error);
         return;
