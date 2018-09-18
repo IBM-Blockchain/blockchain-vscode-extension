@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as homeDir from 'home-dir';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
@@ -57,9 +58,53 @@ export class UserInputUtil {
 
     public static showInputBox(question: string): Thenable<string | undefined> {
         const inputBoxOptions: vscode.InputBoxOptions = {
-            prompt: question
+            prompt: question,
+            ignoreFocusOut: true
         };
+
         return vscode.window.showInputBox(inputBoxOptions);
+    }
+
+    public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<string>| undefined>  {
+        const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
+
+        const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<string>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
+            return {label: workspaceFolderOption.name, data: workspaceFolderOption.uri.path};
+        });
+        const quickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            matchOnDetail: true,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(workspaceQuickPickItems, quickPickOptions);
+    }
+/**
+ * Method to retrieve all the smart contract projects within the active workspace.
+ * @returns {<Array<vscode.WorkspaceFolder>>} An Array of all folders in the current workspace
+ */
+    public static getWorkspaceFolders(): Array<vscode.WorkspaceFolder> {
+        const workspace: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders;
+        if (!workspace) {
+            const message: string = 'Please open the workspace that you want to be packaged.';
+            vscode.window.showErrorMessage(message);
+            throw new Error(message);
+        }
+        return workspace;
+    }
+/**
+ * Method to replace ~ (if in the directory) with the users home directory into the packageDir so as to be compatible with all OS's.
+ * @param {String} packageDir String containing the path of the directory of packaged smart contracts defined in User Settings.
+ * @returns {String} Returns packageDir.
+ *
+ */
+    public static async getBasePackageDir(packageDir: string): Promise<string> {
+
+        if (packageDir.startsWith('~')) {
+            packageDir = await homeDir(packageDir.replace('~', ''));
+        }
+        return packageDir;
     }
 
     public static showIdentityConnectionQuickPickBox(prompt: string, connection: FabricConnectionRegistryEntry): Thenable<IBlockchainQuickPickItem<{ certificatePath: string, privateKeyPath: string }> | undefined> {

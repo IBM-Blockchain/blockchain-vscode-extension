@@ -146,7 +146,10 @@ describe('Commands Utility Function Tests', () => {
 
             const result = await UserInputUtil.showInputBox('a question');
             result.should.equal('my answer');
-            inputStub.should.have.been.calledWith({prompt: 'a question'});
+            inputStub.should.have.been.calledWith({
+                prompt: 'a question',
+                ignoreFocusOut: true
+            });
         });
     });
 
@@ -338,6 +341,72 @@ describe('Commands Utility Function Tests', () => {
                 canPickMany: false,
                 placeHolder: 'Overwrite package.json?'
             });
+        });
+    });
+
+    describe('showWorkspaceQuickPickBox', () => {
+        it('should show the workspace folders', async () => {
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
+                {
+                    name: 'myPath1',
+                    uri: {
+                        path: 'path1'
+                    }
+                },
+                {
+                    name: 'myPath2',
+                    uri: {
+                        path: 'path2'
+                    }
+                }]);
+
+            quickPickStub.resolves({label: 'myPath1', data: 'path1'});
+
+            const result = await UserInputUtil.showWorkspaceQuickPickBox('choose a folder');
+            result.should.deep.equal({label: 'myPath1', data: 'path1'});
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                matchOnDetail: true,
+                placeHolder: 'choose a folder'
+            });
+        });
+    });
+
+    describe('getWorkspaceFolders', () => {
+        it('should get the workspace folders', () => {
+            mySandBox.stub(vscode.workspace, 'workspaceFolders').value(['banana', 'cake']);
+            const result = UserInputUtil.getWorkspaceFolders();
+
+            result.should.deep.equal(['banana', 'cake']);
+        });
+
+        it('should throw an error if no workspace folders', () => {
+            const errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            mySandBox.stub(vscode.workspace, 'workspaceFolders').value();
+            let errorMessage = '';
+            try {
+                UserInputUtil.getWorkspaceFolders();
+            } catch (error) {
+                errorMessage = error.message;
+            }
+            errorSpy.should.have.been.calledWith('Please open the workspace that you want to be packaged.');
+            errorMessage.should.equal('Please open the workspace that you want to be packaged.');
+        });
+    });
+
+    describe('getBasePackageDir', () => {
+        it('should replace ~ with the users home directory', async () => {
+            const packageDirOriginal: string = '~/smartContractDir';
+            const packageDirNew = await UserInputUtil.getBasePackageDir(packageDirOriginal);
+            packageDirNew.should.not.contain('~');
+        });
+
+        it('should not replace if not ~', async () => {
+            const packageDirOriginal: string = '/banana/smartContractDir';
+            const packageDirNew = await UserInputUtil.getBasePackageDir(packageDirOriginal);
+            packageDirNew.should.equal(packageDirOriginal);
         });
     });
 });

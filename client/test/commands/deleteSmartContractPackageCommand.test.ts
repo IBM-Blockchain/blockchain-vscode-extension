@@ -152,7 +152,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             // This will be the 'DeleteThisDirectory' as its the first package alphabetically
             const packageIndex = initialPackages.findIndex((_package) => {
-                return _package.name === 'DeleteThisDirectory' && _package.packageEntry.version === '1.0.0' && _package.packageEntry.chaincodeLanguage === 'javascript';
+                return _package.name === 'delete-this-directory' && _package.packageEntry.version === '1.0.0' && _package.packageEntry.chaincodeLanguage === 'javascript';
             });
             packageIndex.should.not.equal(-1);
             const packageToDelete = initialPackages[packageIndex];

@@ -100,9 +100,9 @@ describe('BlockchainPackageExplorer', () => {
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
-        await createTestFiles('smartContractPackageGo', 'my-contract', '1.0.0', 'go/src', true);
-        await createTestFiles('smartContractPackageBlue', 'my-contract', '1.0.0', 'javascript', true);
-        await createTestFiles('smartContractPackageGreen', 'my-contract', '1.0.0', 'javascript', true);
+        await createTestFiles('smartContractPackageGo', 'package-go', '1.0.0', 'go/src', true);
+        await createTestFiles('smartContractPackageBlue', 'package-blue', '1.0.0', 'javascript', true);
+        await createTestFiles('smartContractPackageGreen', 'package-green', '1.0.0', 'javascript', true);
 
         const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
@@ -111,8 +111,8 @@ describe('BlockchainPackageExplorer', () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
         testPackages.length.should.equal(3);
         testPackages[0].label.should.equal('smartContractPackageGo');
-        testPackages[1].label.should.equal('smartContractPackageBlue');
-        testPackages[2].label.should.equal('smartContractPackageGreen');
+        testPackages[1].label.should.equal('package-blue');
+        testPackages[2].label.should.equal('package-green');
         errorSpy.should.not.have.been.called;
 
     });
@@ -134,8 +134,8 @@ describe('BlockchainPackageExplorer', () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
-        firstTestPackage.label.should.equal('smartContractPackageBlue');
-        firstTestPackage.tooltip.should.equal('smartContractPackageBlue');
+        firstTestPackage.label.should.equal('my-contract');
+        firstTestPackage.tooltip.should.equal('my-contract');
         errorSpy.should.not.have.been.called;
     });
 });
