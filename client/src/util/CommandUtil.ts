@@ -37,7 +37,7 @@ export class CommandUtil {
             title: 'Blockchain Extension',
             cancellable: false
         }, async (progress, token): Promise<string> => {
-            progress.report({ message });
+            progress.report({message});
             return this.sendCommand(command, cwd);
         });
     }

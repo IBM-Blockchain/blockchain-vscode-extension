@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import * as myExtension from '../../src/extension';
-import * as fabricClient from 'fabric-client';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 
 import * as chai from 'chai';
@@ -33,6 +32,7 @@ import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnection
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 
 chai.should();
 chai.use(sinonChai);
@@ -49,11 +49,19 @@ describe('ConnectCommand', () => {
     describe('connect', () => {
 
         let mySandBox: sinon.SinonSandbox;
-        let fabricClientMock: sinon.SinonStubbedInstance<fabricClient>;
+        let mockConnection;
+        let mockRuntimeConnection;
 
         beforeEach(async () => {
-            fabricClientMock = sinon.createStubInstance(fabricClient);
             mySandBox = sinon.createSandbox();
+
+            mockConnection = sinon.createStubInstance(FabricClientConnection);
+            mockConnection.connect.resolves();
+            mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
+            mockRuntimeConnection.connect.resolves();
+
+            mySandBox.stub(FabricConnectionFactory, 'createFabricClientConnection').returns(mockConnection);
+            mySandBox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockRuntimeConnection);
 
             const rootPath = path.dirname(__dirname);
 
@@ -114,7 +122,6 @@ describe('ConnectCommand', () => {
         afterEach(async () => {
             await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
             mySandBox.restore();
-
         });
 
         it('should test the a fabric can be connected to from the command', async () => {
@@ -123,13 +130,9 @@ describe('ConnectCommand', () => {
                 data: FabricConnectionRegistry.instance().get('myConnectionA')
             });
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
-
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
-
-            loadFromConfigStub.should.have.been.called;
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
@@ -145,13 +148,9 @@ describe('ConnectCommand', () => {
                 data: FabricConnectionRegistry.instance().get('myConnectionB').identities[0]
             });
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
-
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
-
-            loadFromConfigStub.should.have.been.called;
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
@@ -185,13 +184,9 @@ describe('ConnectCommand', () => {
 
             const myConnectionItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
-
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
-
-            loadFromConfigStub.should.have.been.called;
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
@@ -204,13 +199,9 @@ describe('ConnectCommand', () => {
             const allIdentityChildren: ConnectionIdentityTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem) as ConnectionIdentityTreeItem[];
             const myIdentityItem: ConnectionIdentityTreeItem = allIdentityChildren[1] as ConnectionIdentityTreeItem;
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
-
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(myIdentityItem.command.command, ...myIdentityItem.command.arguments);
-
-            loadFromConfigStub.should.have.been.called;
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
@@ -236,7 +227,7 @@ describe('ConnectCommand', () => {
 
             const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').rejects({message: 'some error'});
+            mockConnection.connect.rejects({message: 'some error'});
 
             const quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
             quickPickStub.onFirstCall().resolves({
@@ -250,8 +241,6 @@ describe('ConnectCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry').should.be.rejected;
 
-            loadFromConfigStub.should.have.been.called;
-
             errorMessageSpy.should.have.been.calledWith('some error');
         });
 
@@ -261,13 +250,9 @@ describe('ConnectCommand', () => {
                 data: FabricConnectionRegistry.instance().get('myConnectionC')
             });
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
-
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
-
-            loadFromConfigStub.should.have.been.called;
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
         });
@@ -281,13 +266,9 @@ describe('ConnectCommand', () => {
 
             const myConnectionItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
 
-            const loadFromConfigStub = mySandBox.stub(fabricClient, 'loadFromConfig').returns(fabricClientMock);
-
             const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(myConnectionItem.command.command, myConnectionItem.command.arguments[0]);
-
-            loadFromConfigStub.should.have.been.called;
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
         });

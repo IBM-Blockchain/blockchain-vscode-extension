@@ -17,15 +17,26 @@ import {
     Peer, Channel, ChaincodeType
 } from 'fabric-client';
 import * as Client from 'fabric-client';
+import { Gateway, InMemoryWallet, X509WalletMixin } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as path from 'path';
 
+import * as uuid from 'uuid/v4';
+
 export abstract class FabricConnection implements IFabricConnection {
 
-    protected client: Client;
+    private wallet: InMemoryWallet = new InMemoryWallet();
+    private identityName: string = uuid();
+    private gateway: Gateway = new Gateway();
 
-    abstract async connect(): Promise<void>;
+    constructor() {
+        this.wallet = new InMemoryWallet();
+        this.identityName = uuid();
+        this.gateway = new Gateway();
+    }
+
+    public abstract async connect(): Promise<void>;
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
@@ -53,7 +64,7 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin
         const peer: Peer = this.getPeer(peerName);
-        const channelResponse: ChannelQueryResponse = await this.client.queryChannels(peer, true);
+        const channelResponse: ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
 
         const channelNames: Array<string> = [];
         console.log(channelResponse);
@@ -68,7 +79,7 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Peer = this.getPeer(peerName);
-        const chaincodeResponse: ChaincodeQueryResponse = await this.client.queryInstalledChaincodes(peer, true);
+        const chaincodeResponse: ChaincodeQueryResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
         chaincodeResponse.chaincodes.forEach((chaincode) => {
             if (installedChainCodes.has(chaincode.name)) {
                 installedChainCodes.get(chaincode.name).push(chaincode.version);
@@ -115,25 +126,36 @@ export abstract class FabricConnection implements IFabricConnection {
             chaincodeId: packageRegistryEntry.name,
             chaincodeVersion: packageRegistryEntry.version,
             chaincodeType: language,
-            txId: this.client.newTransactionID(true)
+            txId: this.gateway.getClient().newTransactionID(true)
         };
-        await this.client.installChaincode(installRequest);
+        await this.gateway.getClient().installChaincode(installRequest);
+    }
+
+    public disconnect() {
+        this.gateway.disconnect();
     }
 
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
-        this.client = await loadFromConfig(connectionProfile);
-        const mspid: string = this.client.getMspid();
-        this.client.setAdminSigningIdentity(privateKey, certificate, mspid);
+        const client: Client = await loadFromConfig(connectionProfile);
+
+        const mspid: string = client.getMspid();
+
+        await this.wallet.import(this.identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
+
+        await this.gateway.connect(client, {
+            wallet: this.wallet,
+            identity: this.identityName
+        });
     }
 
     private getChannel(channelName: string): Channel {
         console.log('getChannel', channelName);
-        return this.client.getChannel(channelName);
+        return this.gateway.getClient().getChannel(channelName);
     }
 
     private getAllPeers(): Array<Peer> {
         console.log('getAllPeers');
-        return this.client.getPeersForOrg(null);
+        return this.gateway.getClient().getPeersForOrg(null);
     }
 
 }

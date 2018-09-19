@@ -19,6 +19,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
+import { Gateway } from 'fabric-network';
 
 chai.should();
 chai.use(sinonChai);
@@ -29,12 +30,13 @@ describe('FabricConnection', () => {
     class TestFabricConnection extends FabricConnection {
 
         async connect(): Promise<void> {
-            this.client = fabricClientStub;
+            this['gateway'] = fabricGatewayStub;
         }
 
     }
 
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
+    let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
     let fabricConnection: TestFabricConnection;
 
     let mySandBox: sinon.SinonSandbox;
@@ -46,8 +48,11 @@ describe('FabricConnection', () => {
         await fabricConnection.connect();
 
         fabricClientStub = mySandBox.createStubInstance(fabricClient);
+        fabricGatewayStub = mySandBox.createStubInstance(Gateway);
 
         fabricClientStub.getMspid.returns('myMSPId');
+        fabricGatewayStub.getClient.returns(fabricClientStub);
+        fabricGatewayStub.connect.resolves();
     });
 
     afterEach(() => {

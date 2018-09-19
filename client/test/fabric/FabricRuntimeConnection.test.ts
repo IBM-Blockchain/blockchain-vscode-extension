@@ -14,6 +14,8 @@
 
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
+import { Gateway } from 'fabric-network';
 import * as fabricClient from 'fabric-client';
 import * as path from 'path';
 
@@ -21,7 +23,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -32,6 +34,8 @@ describe('FabricRuntimeConnection', () => {
     let fabricRuntimeConnection: FabricRuntimeConnection;
 
     let mySandBox: sinon.SinonSandbox;
+
+    let gatewayStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -97,23 +101,32 @@ describe('FabricRuntimeConnection', () => {
         fabricRuntimeStub.getCertificate.resolves('-----BEGIN CERTIFICATE-----\nMIICGDCCAb+gAwIBAgIQFSxnLAGsu04zrFkAEwzn6zAKBggqhkjOPQQDAjBzMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu\nb3JnMS5leGFtcGxlLmNvbTAeFw0xNzA4MzEwOTE0MzJaFw0yNzA4MjkwOTE0MzJa\nMFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEV1dfmKxsFKWo7o6DNBIaIVebCCPAM9C/\nsLBt4pJRre9pWE987DjXZoZ3glc4+DoPMtTmBRqbPVwYcUvpbYY8p6NNMEswDgYD\nVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgQjmqDc122u64\nugzacBhR0UUE0xqtGy3d26xqVzZeSXwwCgYIKoZIzj0EAwIDRwAwRAIgXMy26AEU\n/GUMPfCMs/nQjQME1ZxBHAYZtKEuRR361JsCIEg9BOZdIoioRivJC+ZUzvJUnkXu\no2HkWiuxLsibGxtE\n-----END CERTIFICATE-----\n');
         fabricRuntimeStub.getPrivateKey.resolves('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
 
-        fabricRuntimeConnection = new FabricRuntimeConnection((fabricRuntimeStub as any) as FabricRuntime);
+        fabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection((fabricRuntimeStub as any) as FabricRuntime) as FabricRuntimeConnection;
 
         fabricClientStub = mySandBox.createStubInstance(fabricClient);
 
         mySandBox.stub(fabricClient, 'loadFromConfig').resolves(fabricClientStub);
 
         fabricClientStub.getMspid.returns('myMSPId');
+
+        gatewayStub = sinon.createStubInstance(Gateway);
+        gatewayStub.connect.resolves();
+        fabricRuntimeConnection['gateway'] = gatewayStub;
     });
 
     afterEach(() => {
         mySandBox.restore();
     });
-
     describe('connect', () => {
         it('should connect to a fabric', async () => {
             await fabricRuntimeConnection.connect();
-            fabricClientStub.setAdminSigningIdentity.should.have.been.calledWith(sinon.match(/-----BEGIN PRIVATE KEY-----/), sinon.match(/-----BEGIN CERTIFICATE-----/), 'myMSPId');
+            gatewayStub.connect.should.have.been.called;
+        });
+
+        it('should connect with an already loaded client connection', async () => {
+            should.exist(FabricConnectionFactory['runtimeConnection']);
+            await fabricRuntimeConnection.connect();
+            gatewayStub.connect.should.have.been.called;
         });
     });
 
