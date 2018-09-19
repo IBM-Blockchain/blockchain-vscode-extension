@@ -4,9 +4,13 @@
     "description": "Explore your Blockchain networks",
     "author": "IBM",
     "keywords": [
-        "distributed ledger technology",
         "blockchain",
-        "DLT"
+        "chaincode",
+        "smart contracts",
+        "distributed ledger technology",
+        "DLT",
+        "Hyperledger Fabric",
+        "IBM Blockchain Platform"
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
