@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as child_process from 'child_process';
@@ -108,6 +109,7 @@ export async function createSmartContractProject(): Promise<void> {
         outputAdapter.log(yoFabricOut);
         outputAdapter.log('Successfully generated smart contract project');
 
+        Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
         // Open the returned folder in explorer, in a new window
         console.log('new smart contract project folder is :' + folderPath);
         await openNewProject(openMethod, folderUri);

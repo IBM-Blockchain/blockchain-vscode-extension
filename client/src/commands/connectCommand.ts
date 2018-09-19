@@ -21,9 +21,12 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
+import { Reporter } from '../util/Reporter';
 
 export async function connect(connectionRegistryEntry: FabricConnectionRegistryEntry, identity?: { certificatePath: string, privateKeyPath: string }): Promise<void> {
     console.log('connect', connectionRegistryEntry, identity);
+
+    let runtimeData: string;
 
     if (!connectionRegistryEntry) {
         const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with');
@@ -41,6 +44,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
         const runtime: FabricRuntime = runtimeManager.get(connectionRegistryEntry.name);
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
 
+        runtimeData = 'managed runtime';
     } else {
         const connectionData = {
             connectionProfilePath: connectionRegistryEntry.connectionProfilePath,
@@ -74,11 +78,14 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
         connectionData.privateKeyPath = identity.privateKeyPath;
 
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
+        runtimeData = 'user runtime';
     }
 
     try {
         await connection.connect();
         FabricConnectionManager.instance().connect(connection);
+
+        Reporter.instance().sendTelemetryEvent('connectCommand', {runtimeData: runtimeData});
     } catch (error) {
         vscode.window.showErrorMessage(error.message);
         throw error;

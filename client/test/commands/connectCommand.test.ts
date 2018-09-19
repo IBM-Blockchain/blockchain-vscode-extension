@@ -33,6 +33,8 @@ import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -271,6 +273,23 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(myConnectionItem.command.command, myConnectionItem.command.arguments[0]);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+        });
+
+        it('should send a telemetry event if the extension is for production', async () => {
+            const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+            const reporterSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionA',
+                data: FabricConnectionRegistry.instance().get('myConnectionA')
+            });
+
+            const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+
+            reporterSpy.should.have.been.calledWith('connectCommand', {runtimeData: 'user runtime'});
+
         });
     });
 });

@@ -14,27 +14,32 @@
 'use strict';
 
 const fs = require('fs');
+const process = require('process');
 
-console.log("rewriting package json");
+console.log('rewriting package json');
 
 const packageJson = JSON.parse(fs.readFileSync('./package.json'));
 
-if(packageJson.activationEvents.length > 1) {
-  throw new Error('Activation events should be * when checked in');
+if(process.argv.includes('publish')){
+    packageJson.production = true;
+} else{
+    if(packageJson.activationEvents.length > 1) {
+        throw new Error('Activation events should be * when checked in');
+    }
+
+    packageJson.activationEvents = [];
+
+    packageJson.actualActivationEvents.onView.forEach((event) => {
+        packageJson.activationEvents.push('onView:' + event);
+    });
+
+    packageJson.actualActivationEvents.onCommand.forEach((event) => {
+        packageJson.activationEvents.push('onCommand:' + event);
+    });
 }
-
-packageJson.activationEvents = [];
-
-packageJson.actualActivationEvents.onView.forEach((event) => {
-  packageJson.activationEvents.push('onView:' + event);
-});
-
-packageJson.actualActivationEvents.onCommand.forEach((event) => {
-  packageJson.activationEvents.push('onCommand:' + event);
-});
 
 const packageJsonString = JSON.stringify(packageJson, null, 4);
 
 fs.writeFileSync('./package.json', packageJsonString, 'utf8');
 
-console.log("finished rewriting package json");
+console.log('finished rewriting package json');

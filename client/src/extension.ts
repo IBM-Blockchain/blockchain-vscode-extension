@@ -14,6 +14,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { Reporter } from './util/Reporter';
 import { BlockchainNetworkExplorerProvider } from './explorer/BlockchainNetworkExplorer';
 import { BlockchainPackageExplorerProvider } from './explorer/BlockchainPackageExplorer';
 import { addConnection } from './commands/addConnectionCommand';
@@ -43,6 +44,13 @@ let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+
+    const packageJson: any = ExtensionUtil.getPackageJSON();
+
+    if (packageJson.production !== true) {
+        await Reporter.instance().dispose();
+    }
+
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log('extension activating');
 
@@ -74,8 +82,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 }
 
-export function deactivate(): void {
+export async function deactivate(): Promise<void> {
     const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+    await Reporter.instance().dispose();
     disposeExtension(context);
 }
 
@@ -111,6 +120,13 @@ export function registerCommands(context: vscode.ExtensionContext): void {
             return vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         }
     }));
+
+    const packageJson = ExtensionUtil.getPackageJSON();
+
+    if (packageJson.production === true) {
+        context.subscriptions.push(Reporter.instance());
+    }
+
 }
 
 export async function ensureLocalFabricExists(): Promise<void> {
