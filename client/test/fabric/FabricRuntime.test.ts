@@ -102,9 +102,9 @@ describe('FabricRuntime', () => {
         };
         mockCAContainer.inspect.resolves(mockCAInspect);
         const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
-        getContainerStub.withArgs('fabric-vscode-runtime1_peer0.org1.example.com_1').returns(mockPeerContainer);
-        getContainerStub.withArgs('fabric-vscode-runtime1_orderer.example.com_1').returns(mockOrdererContainer);
-        getContainerStub.withArgs('fabric-vscode-runtime1_ca.example.com_1').returns(mockCAContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com_1').returns(mockPeerContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com_1').returns(mockOrdererContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com_1').returns(mockCAContainer);
     });
 
     afterEach(async () => {
