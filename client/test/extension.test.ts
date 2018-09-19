@@ -73,6 +73,7 @@ describe('Extension Tests', () => {
             'blockchainExplorer.restartFabricRuntime',
             'blockchainExplorer.toggleFabricRuntimeDevMode',
             'blockchainAPackageExplorer.deleteSmartContractPackageEntry',
+            'blockchainExplorer.installSmartContractEntry'
         ]);
     });
 
@@ -89,6 +90,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.disconnectEntry',
             'onCommand:blockchainExplorer.refreshEntry',
             'onCommand:blockchain.createSmartContractProjectEntry',
+            'onCommand:blockchainExplorer.installSmartContractEntry',
             'onCommand:blockchainAPackageExplorer.refreshEntry',
             'onCommand:blockchainAPackageExplorer.packageSmartContractProject',
             'onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry',

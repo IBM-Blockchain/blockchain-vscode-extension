@@ -13,15 +13,19 @@
 */
 'use strict';
 
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+
 export interface IFabricConnection {
 
     connect(): Promise<void>;
 
     getAllPeerNames(): Array<string>;
 
-    getAllChannelsForPeer(peerName: string): Promise<Array<string>> ;
+    getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
 
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<any>>;
+
+    installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
 }

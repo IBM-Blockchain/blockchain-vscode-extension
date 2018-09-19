@@ -31,6 +31,12 @@ import { FabricRuntime } from '../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { ConnectionTreeItem } from '../src/explorer/model/ConnectionTreeItem';
 import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
+import { UserInputUtil } from '../src/commands/UserInputUtil';
+import * as fs from 'fs-extra';
+import { InstalledChainCodeTreeItem } from '../src/explorer/model/InstalledChainCodeTreeItem';
+import { InstalledChainCodeVersionTreeItem } from '../src/explorer/model/InstalledChaincodeVersionTreeItem';
+import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../src/packages/PackageRegistry';
 
 chai.should();
 chai.use(sinonChai);
@@ -65,18 +71,48 @@ describe('Integration Test', () => {
         mySandBox = sinon.createSandbox();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
         mySandBox.restore();
     });
 
-    it('should connect to a real fabric', async () => {
+    async function createSmartContract() {
+        mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves('JavaScript');
+        mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+
+        const originalExecuteCommand = vscode.commands.executeCommand;
+        const executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        executeCommandStub.callsFake(async function fakeExecuteCommand(command: string) {
+            // Don't open the folder as this causes lots of windows to pop up, and random
+            // test failures.
+            if (command !== 'vscode.openFolder') {
+                return originalExecuteCommand.apply(this, arguments);
+            }
+        });
+
+        // TODO: when we can package we should create the smart contract not in the package directory
+        const smartContractDir: string = path.join(__dirname, '../../integrationTest/smartContractDir');
+        const smartContract: string = path.join(smartContractDir, 'javascript', 'mySmartContract');
+        await fs.mkdirp(smartContract);
+
+        const uri = vscode.Uri.file(smartContract);
+        const uriArr = [uri];
+        const openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
+        openDialogStub.resolves(uriArr);
+
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', smartContractDir, vscode.ConfigurationTarget.Global);
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+    }
+
+    async function createFabricConnection() {
         if (connectionRegistry.exists('myConnection')) {
             await connectionRegistry.delete('myConnection');
         }
 
-        const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+        const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
 
-        const rootPath: string = path.dirname(__dirname);
+        const rootPath = path.dirname(__dirname);
 
         showInputBoxStub.onFirstCall().resolves('myConnection');
         showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
@@ -86,14 +122,29 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
         connectionRegistry.exists('myConnection').should.be.true;
+    }
 
-        const showQuickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick');
+    async function connectToFabric() {
+        const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
 
-        const connection: FabricConnectionRegistryEntry = connectionRegistry.get('myConnection');
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
 
-        showQuickPickStub.onFirstCall().resolves({label: 'myConnection', data: connection});
+    }
 
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+    async function installSmartContract() {
+        mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox').resolves('peer0.org1.example.com');
+        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+        allPackages.length.should.equal(1);
+
+        const packageEntry = allPackages[0];
+        mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({label: 'mySmartContract', data: packageEntry});
+        await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
+    }
+
+    it('should connect to a real fabric', async () => {
+        await createFabricConnection();
+
+        await connectToFabric();
 
         const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
@@ -113,7 +164,7 @@ describe('Integration Test', () => {
         const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myConnection')) as ConnectionTreeItem;
         await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', myConnectionItem);
         connectionRegistry.exists('myConnection').should.be.false;
-    }).timeout(4000);
+    }).timeout(0);
 
     it('should allow you to start, connect to, and stop the local Fabric in non-development mode', async () => {
 
@@ -259,4 +310,30 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
+    it('should create a smart contract and install it on a peer', async () => {
+        await createFabricConnection();
+
+        await connectToFabric();
+
+        await createSmartContract();
+
+        await installSmartContract();
+
+        const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+
+        const channelChildrenOne: Array<PeersTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+        const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
+
+        const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
+
+        installedSmartContracts.length.should.equal(1);
+
+        installedSmartContracts[0].label.should.equal('mySmartContract');
+
+        const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContracts[0]) as Array<InstalledChainCodeVersionTreeItem>;
+
+        versions.length.should.equal(1);
+
+        versions[0].label.should.equal('0.0.1');
+    }).timeout(0);
 });

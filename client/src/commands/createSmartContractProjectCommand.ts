@@ -71,16 +71,13 @@ export async function createSmartContractProject(): Promise<void> {
         vscode.window.showErrorMessage('Issue determining available smart contract language options:', error);
         return;
     }
-    const choseSmartContractLanguageQuickPickOptions = {
-        placeHolder: 'Chose smart contract language (Esc to cancel)',
-        ignoreFocusOut: true,
-        matchOnDetail: true
-    };
-    smartContractLanguage = await vscode.window.showQuickPick(smartContractLanguageOptions, choseSmartContractLanguageQuickPickOptions);
+
+    smartContractLanguage = await UserInputUtil.showSmartContractLanguagesQuickPick('Chose smart contract language (Esc to cancel)', smartContractLanguageOptions);
     if (!smartContractLanguageOptions.includes(smartContractLanguage)) {
         // User has cancelled the QuickPick box
         return;
     }
+
     smartContractLanguage = smartContractLanguage.toLowerCase();
 
     // Prompt the user for a file system folder

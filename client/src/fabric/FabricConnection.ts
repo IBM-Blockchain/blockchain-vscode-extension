@@ -14,10 +14,12 @@
 'use strict';
 import {
     loadFromConfig, ChannelQueryResponse, ChaincodeQueryResponse,
-    Peer, Channel
+    Peer, Channel, ChaincodeType
 } from 'fabric-client';
 import * as Client from 'fabric-client';
 import { IFabricConnection } from './IFabricConnection';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import * as path from 'path';
 
 export abstract class FabricConnection implements IFabricConnection {
 
@@ -25,7 +27,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
     abstract async connect(): Promise<void>;
 
-    getAllPeerNames(): Array<string> {
+    public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
         const allPeers: Array<Peer> = this.getAllPeers();
 
@@ -38,7 +40,7 @@ export abstract class FabricConnection implements IFabricConnection {
         return peerNames;
     }
 
-    getPeer(name: string): Peer {
+    public getPeer(name: string): Peer {
         console.log('getPeer', name);
         const allPeers: Array<Peer> = this.getAllPeers();
 
@@ -47,7 +49,7 @@ export abstract class FabricConnection implements IFabricConnection {
         });
     }
 
-    async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
+    public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
         console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin
         const peer: Peer = this.getPeer(peerName);
@@ -62,7 +64,7 @@ export abstract class FabricConnection implements IFabricConnection {
         return channelNames.sort();
     }
 
-    async getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>> {
+    public async getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>> {
         console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Peer = this.getPeer(peerName);
@@ -78,7 +80,7 @@ export abstract class FabricConnection implements IFabricConnection {
         return installedChainCodes;
     }
 
-    async getInstantiatedChaincode(channelName: string): Promise<Array<any>> {
+    public async getInstantiatedChaincode(channelName: string): Promise<Array<any>> {
         console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];
         const channel: Channel = this.getChannel(channelName);
@@ -89,6 +91,33 @@ export abstract class FabricConnection implements IFabricConnection {
         });
 
         return instantiatedChaincodes;
+    }
+
+    public async installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void> {
+        const peer: Peer = this.getPeer(peerName);
+
+        let language: ChaincodeType;
+        let chaincodePath: string = packageRegistryEntry.path;
+        if (packageRegistryEntry.chaincodeLanguage === 'typescript' || packageRegistryEntry.chaincodeLanguage === 'javascript') {
+            language = 'node';
+        } else if (packageRegistryEntry.chaincodeLanguage === 'go') {
+            process.env.GOPATH = path.dirname(packageRegistryEntry.path);
+            chaincodePath = packageRegistryEntry.path.split(path.sep).pop();
+            // TODO: make actual language be golang
+            language = 'golang';
+        } else {
+            throw new Error(`Smart contract language not supported ${packageRegistryEntry.chaincodeLanguage}`);
+        }
+
+        const installRequest: Client.ChaincodeInstallRequest = {
+            targets: [peer],
+            chaincodePath: chaincodePath,
+            chaincodeId: packageRegistryEntry.name,
+            chaincodeVersion: packageRegistryEntry.version,
+            chaincodeType: language,
+            txId: this.client.newTransactionID(true)
+        };
+        await this.client.installChaincode(installRequest);
     }
 
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {

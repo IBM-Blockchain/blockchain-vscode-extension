@@ -145,4 +145,14 @@ export class UserInputUtil {
 
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
+
+    public static showSmartContractLanguagesQuickPick(prompt: string, languages: Array<string>): Thenable<string | undefined> {
+        const choseSmartContractLanguageQuickPickOptions: vscode.QuickPickOptions = {
+            placeHolder: prompt,
+            ignoreFocusOut: true,
+            matchOnDetail: true
+        };
+
+        return vscode.window.showQuickPick(languages, choseSmartContractLanguageQuickPickOptions);
+    }
 }

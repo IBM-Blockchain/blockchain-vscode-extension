@@ -249,4 +249,19 @@ describe('Commands Utility Function Tests', () => {
             });
         });
     });
+
+    describe('showSmartContractLanguagesQuickPick', () => {
+        it('should show the quick pick box with languages', async () => {
+            quickPickStub.resolves('javascript');
+
+            const result = await UserInputUtil.showSmartContractLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
+            result.should.equal('javascript');
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
+    });
 });
