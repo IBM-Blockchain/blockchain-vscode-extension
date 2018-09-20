@@ -24,23 +24,34 @@ export class VSCodeOutputAdapter implements OutputAdapter {
     private static _instance: VSCodeOutputAdapter = new VSCodeOutputAdapter();
 
     private outputChannel: vscode.OutputChannel;
+    private console: boolean = false;
 
     private constructor() {
         this.outputChannel = vscode.window.createOutputChannel('Blockchain');
     }
 
     log(value: string): void {
+        if (this.console) {
+            console.log(value);
+        }
         this.outputChannel.show();
         this.outputChannel.appendLine(value);
     }
 
     error(value: string): void {
+        if (this.console) {
+            console.error(value);
+        }
         this.outputChannel.show();
         this.outputChannel.appendLine(value);
     }
 
     show() {
         this.outputChannel.show();
+    }
+
+    setConsole(console: boolean) {
+        this.console = console;
     }
 
 }

@@ -67,7 +67,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     }
 
     async refresh(element?: BlockchainTreeItem): Promise<void> {
-        console.log('refresh', element);
         this._onDidChangeTreeData.fire(element);
     }
 

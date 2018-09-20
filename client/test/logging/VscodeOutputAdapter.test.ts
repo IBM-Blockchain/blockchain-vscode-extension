@@ -27,10 +27,12 @@ describe('VSCodeOutputAdapter', () => {
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
+        outputAdapter.setConsole(false);
     });
 
     afterEach(async () => {
         sandbox.restore();
+        outputAdapter.setConsole(false);
     });
 
     describe('#log', () => {
@@ -57,4 +59,27 @@ describe('VSCodeOutputAdapter', () => {
             outputSpy.should.have.been.calledOnce;
         });
     });
+
+    describe('#setConsole', () => {
+        it('should enable console logging', () => {
+            outputAdapter.setConsole(true);
+            const consoleLogSpy: sinon.SinonSpy = sandbox.spy(console, 'log');
+            outputAdapter.log('hello world');
+            consoleLogSpy.should.have.been.called.calledOnceWithExactly('hello world');
+            const consoleErrorSpy: sinon.SinonSpy = sandbox.spy(console, 'error');
+            outputAdapter.error('hello world');
+            consoleErrorSpy.should.have.been.called.calledOnceWithExactly('hello world');
+        });
+
+        it('should disable console logging', () => {
+            outputAdapter.setConsole(false);
+            const consoleLogSpy: sinon.SinonSpy = sandbox.spy(console, 'log');
+            outputAdapter.log('hello world');
+            consoleLogSpy.should.have.not.been.called;
+            const consoleErrorSpy: sinon.SinonSpy = sandbox.spy(console, 'error');
+            outputAdapter.error('hello world');
+            consoleErrorSpy.should.have.not.been.called;
+        });
+    });
+
 });

@@ -88,16 +88,17 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async getConnectionProfile(): Promise<object> {
+        const containerPrefix: string = this.getContainerPrefix();
         const connectionProfile: any = basicNetworkConnectionProfile;
-        const peerPorts: ContainerPorts = await this.getContainerPorts(`fabric-vscode-${this.name}_peer0.org1.example.com_1`);
+        const peerPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_peer0.org1.example.com_1`);
         const peerRequestHost: string = peerPorts['7051/tcp'][0].HostIp;
         const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
         const peerEventHost: string = peerPorts['7053/tcp'][0].HostIp;
         const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
-        const ordererPorts: ContainerPorts = await this.getContainerPorts(`fabric-vscode-${this.name}_orderer.example.com_1`);
+        const ordererPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_orderer.example.com_1`);
         const ordererHost: string = ordererPorts['7050/tcp'][0].HostIp;
         const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
-        const caPorts: ContainerPorts = await this.getContainerPorts(`fabric-vscode-${this.name}_ca.example.com_1`);
+        const caPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_ca.example.com_1`);
         const caHost: string = caPorts['7054/tcp'][0].HostIp;
         const caPort: string = caPorts['7054/tcp'][0].HostPort;
         connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
@@ -116,10 +117,11 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async isRunning(): Promise<boolean> {
+        const containerPrefix: string = this.getContainerPrefix();
         const running: boolean[] = await Promise.all([
-            this.isContainerRunning(`fabric-vscode-${this.name}_peer0.org1.example.com_1`),
-            this.isContainerRunning(`fabric-vscode-${this.name}_orderer.example.com_1`),
-            this.isContainerRunning(`fabric-vscode-${this.name}_ca.example.com_1`)
+            this.isContainerRunning(`${containerPrefix}_peer0.org1.example.com_1`),
+            this.isContainerRunning(`${containerPrefix}_orderer.example.com_1`),
+            this.isContainerRunning(`${containerPrefix}_ca.example.com_1`)
         ]);
         return !running.some((value: boolean) => value === false);
     }
@@ -153,8 +155,7 @@ export class FabricRuntime extends EventEmitter {
         }
 
         const env: any = Object.assign({}, process.env, {
-            COMPOSE_PROJECT_NAME: `fabric-vscode-${this.name}`,
-            FABRIC_RUNTIME_NAME: this.name,
+            COMPOSE_PROJECT_NAME: this.getContainerPrefix(),
             CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net'
         });
 
@@ -175,6 +176,12 @@ export class FabricRuntime extends EventEmitter {
         } catch (error) {
             return false;
         }
+    }
+
+    private getContainerPrefix(): string {
+        // Docker on Linux only supports basic characters for the project name.
+        const sanitizedName: string = this.name.replace(/[^A-Za-z0-9]/, '');
+        return `fabricvscode${sanitizedName}`;
     }
 
 }
