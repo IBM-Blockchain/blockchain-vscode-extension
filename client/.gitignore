@@ -18,3 +18,4 @@ server
 coverage
 .DS_Store
 /test/data/fabricProject
+/test/data/smartContractDir/

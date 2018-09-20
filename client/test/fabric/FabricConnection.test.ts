@@ -13,6 +13,7 @@
 */
 
 import { FabricConnection } from '../../src/fabric/FabricConnection';
+import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -139,6 +140,83 @@ describe('FabricConnection', () => {
                 name: 'cake-network',
                 version: '0.8'
             }]);
+        });
+    });
+
+    describe('installChaincode', () => {
+
+        let peer: fabricClient.Peer;
+        beforeEach(async () => {
+            peer = new fabricClient.Peer('grpc://localhost:1453', {name: 'peer1'});
+            fabricClientStub.getPeersForOrg.returns([peer]);
+            fabricClientStub.installChaincode.resolves();
+            await fabricConnection.connect();
+        });
+
+        it('should install javascript chaincode', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = 'my-smart-contract';
+            packageEntry.chaincodeLanguage = 'javascript';
+            packageEntry.version = '1.0.0';
+            packageEntry.path = 'myPath/mySmartContract';
+
+            await fabricConnection.installChaincode(packageEntry, 'peer1');
+            fabricClientStub.installChaincode.should.have.been.calledWith({
+                targets: [peer],
+                chaincodePath: packageEntry.path,
+                chaincodeId: packageEntry.name,
+                chaincodeVersion: packageEntry.version,
+                chaincodeType: 'node',
+                txId: sinon.match.any
+            });
+        });
+
+        it('should install typescript chaincode', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = 'my-smart-contract';
+            packageEntry.chaincodeLanguage = 'typescript';
+            packageEntry.version = '1.0.0';
+            packageEntry.path = 'myPath/mySmartContract';
+
+            await fabricConnection.installChaincode(packageEntry, 'peer1');
+            fabricClientStub.installChaincode.should.have.been.calledWith({
+                targets: [peer],
+                chaincodePath: packageEntry.path,
+                chaincodeId: packageEntry.name,
+                chaincodeVersion: packageEntry.version,
+                chaincodeType: 'node',
+                txId: sinon.match.any
+            });
+        });
+
+        it('should install go chaincode', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = 'my-smart-contract';
+            packageEntry.chaincodeLanguage = 'go';
+            packageEntry.version = '1.0.0';
+            packageEntry.path = 'myPath/mySmartContract';
+
+            await fabricConnection.installChaincode(packageEntry, 'peer1');
+            fabricClientStub.installChaincode.should.have.been.calledWith({
+                targets: [peer],
+                chaincodePath: 'mySmartContract',
+                chaincodeId: packageEntry.name,
+                chaincodeVersion: packageEntry.version,
+                chaincodeType: 'golang',
+                txId: sinon.match.any
+            });
+
+            process.env.GOPATH.should.equal('myPath');
+        });
+
+        it('should handle invalid language', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = 'my-smart-contract';
+            packageEntry.chaincodeLanguage = 'cake';
+            packageEntry.version = '1.0.0';
+            packageEntry.path = 'myPath/mySmartContract';
+
+            await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(`Smart contract language not supported cake`);
         });
     });
 });

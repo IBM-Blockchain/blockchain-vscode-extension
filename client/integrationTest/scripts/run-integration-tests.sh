@@ -33,11 +33,13 @@ cd "${DIR}"
 # Pull any required Docker images.
 
 DOCKER_FILE=${DIR}/hlfv1/docker-compose.yml
-docker pull hyperledger/fabric-peer:1.2.0
-docker pull hyperledger/fabric-ca:1.2.0
-docker pull hyperledger/fabric-ccenv:1.2.0
-docker pull hyperledger/fabric-orderer:1.2.0
-docker pull hyperledger/fabric-couchdb:0.4.10
+for IMAGE in hyperledger/fabric-ca hyperledger/fabric-orderer hyperledger/fabric-peer hyperledger/fabric-tools hyperledger/fabric-ccenv
+do
+    docker pull nexus3.hyperledger.org:10001/${IMAGE}:amd64-1.3.0-stable
+    docker tag nexus3.hyperledger.org:10001/${IMAGE}:amd64-1.3.0-stable ${IMAGE}
+done
+
+
 if [ -d ./hlfv1/crypto-config ]; then
     rm -rf ./hlfv1/crypto-config
 fi
