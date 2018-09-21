@@ -25,9 +25,8 @@ npm install --ignore-scripts
 
 npm run compile
 
-
 if [ "${TASK}" == "unit" ]; then
-    node ./node_modules/.bin/electron-rebuild -v 2.0
+    npm rebuild grpc --target=2.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
 
     if [ $TRAVIS_OS_NAME == "linux" ]; then
         export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
