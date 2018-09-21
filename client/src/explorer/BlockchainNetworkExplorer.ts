@@ -80,6 +80,9 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     async disconnect(): Promise<void> {
         console.log('disconnect');
+        if (this.connection) {
+            this.connection.disconnect();
+        }
         this.connection = null;
         // This controls which menu buttons appear
         await vscode.commands.executeCommand('setContext', 'blockchain-connected', false);

@@ -13,15 +13,16 @@
 */
 
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricConnectionFactory} from '../../src/fabric/FabricConnectionFactory';
+import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import * as fabricClient from 'fabric-client';
 import * as path from 'path';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import { Gateway } from 'fabric-network';
 
-chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -31,6 +32,8 @@ describe('FabricClientConnection', () => {
     let fabricClientConnection: FabricClientConnection;
 
     let mySandBox: sinon.SinonSandbox;
+
+    let gatewayStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -50,6 +53,10 @@ describe('FabricClientConnection', () => {
         mySandBox.stub(fabricClient, 'loadFromConfig').resolves(fabricClientStub);
 
         fabricClientStub.getMspid.returns('myMSPId');
+
+        gatewayStub = sinon.createStubInstance(Gateway);
+        gatewayStub.connect.resolves();
+        fabricClientConnection['gateway'] = gatewayStub;
     });
 
     afterEach(() => {
@@ -59,7 +66,13 @@ describe('FabricClientConnection', () => {
     describe('connect', () => {
         it('should connect to a fabric', async () => {
             await fabricClientConnection.connect();
-            fabricClientStub.setAdminSigningIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'myMSPId');
+            gatewayStub.connect.should.have.been.called;
+        });
+
+        it('should connect with an already loaded client connection', async () => {
+            should.exist(FabricConnectionFactory['clientConnection']);
+            await fabricClientConnection.connect();
+            gatewayStub.connect.should.have.been.called;
         });
     });
 

@@ -89,21 +89,22 @@ export class DependencyManager {
 
             const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-            outputAdapter.log('Rebuilding native node modules');
-            progress.report({message: 'Rebuilding native node modules'});
-
-            try {
-                await CommandUtil.sendCommandWithOutput('npm', ['rebuild', '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter);
-
-            } catch (error) {
-                outputAdapter.error(`Could not rebuild native dependencies ${error.message}`);
-                vscode.window.showErrorMessage(`Could not rebuild native dependencies ${error.message}`);
-                throw error;
-            }
             outputAdapter.log('Updating native node modules');
             progress.report({message: 'Updating native node modules'});
 
             for (const dependency of this.dependencies) {
+                outputAdapter.log('Rebuilding native node modules');
+                progress.report({message: 'Rebuilding native node modules'});
+
+                try {
+                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter);
+
+                } catch (error) {
+                    outputAdapter.error(`Could not rebuild native dependencies ${error.message}`);
+                    vscode.window.showErrorMessage(`Could not rebuild native dependencies ${error.message}`);
+                    throw error;
+                }
+
                 progress.report({message: `Updating ${dependency.moduleName}`});
                 outputAdapter.log(`Updating ${dependency.moduleName}`);
                 await fs.remove(`${extensionPath}/${dependency.original}`);

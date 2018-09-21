@@ -334,11 +334,13 @@
     "dockerode": "^2.5.5",
     "fs-extra": "^7.0.0",
     "home-dir": "1.0.0",
-    "strip-ansi": "^4.0.0"
+    "strip-ansi": "^4.0.0",
+    "uuid": "^3.3.2"
   },
   "optionalDependencies": {
-    "fabric-ca-client": "1.2.1",
-    "fabric-client": "1.2.1"
+    "fabric-ca-client": "1.3.0-snapshot.59",
+    "fabric-client": "1.3.0-snapshot.58",
+    "fabric-network": "1.3.0-snapshot.27"
   },
   "nativeDependencies": {
     "grpc": {
