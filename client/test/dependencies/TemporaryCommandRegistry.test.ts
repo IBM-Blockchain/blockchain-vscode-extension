@@ -37,7 +37,7 @@ describe('TemporaryCommandRegistry Tests', () => {
         mySandBox = sinon.createSandbox();
 
         if (ExtensionUtil.isActive()) {
-            myExtension.deactivate();
+            await myExtension.deactivate();
         }
     });
 

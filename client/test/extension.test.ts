@@ -24,6 +24,7 @@ import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
 import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRegistry';
 import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
+import { Reporter } from '../src/util/Reporter';
 
 chai.should();
 chai.use(sinonChai);
@@ -199,7 +200,7 @@ describe('Extension Tests', () => {
     });
 
     it('should deactivate extension', async () => {
-        myExtension.deactivate();
+        await myExtension.deactivate();
 
         await vscode.commands.executeCommand('blockchain.refreshEntry').should.be.rejectedWith(`command 'blockchain.refreshEntry' not found`);
     });
@@ -217,6 +218,42 @@ describe('Extension Tests', () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
         addSpy.should.not.have.been.called;
+    });
+
+    it('should check if production flag is false on extension activiation', async () => {
+
+        const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
+        const reporterStub = mySandBox.stub(Reporter.instance(), 'dispose');
+
+        const dependencyManager = DependencyManager.instance();
+        mySandBox.stub(vscode.commands, 'registerCommand');
+        mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
+        const reloadStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+        const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
+        const tempRegistryExecuteStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
+
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+
+        reporterStub.should.have.been.called;
+    });
+
+    it('should check if production flag is true on extension activiation', async () => {
+
+        const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+        const reporterStub = mySandBox.stub(Reporter, 'instance');
+
+        const dependencyManager = DependencyManager.instance();
+        mySandBox.stub(vscode.commands, 'registerCommand');
+        mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
+        const reloadStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+        const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
+        const tempRegistryExecuteStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
+
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+
+        reporterStub.should.have.been.called;
     });
 
 });

@@ -27,7 +27,8 @@ import { CommandUtil } from '../../src/util/CommandUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
-
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 // Defines a Mocha test suite to group tests of similar kind together
 // tslint:disable no-unused-expression
 describe('CreateSmartContractProjectCommand', () => {
@@ -402,5 +403,18 @@ describe('CreateSmartContractProjectCommand', () => {
         const error = 'Contract languages not found in package.json';
         errorSpy.should.have.been.calledWith('Issue determining available smart contract language options:', error);
     });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+        const reporterSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+
+        sendCommandStub.restore();
+
+        quickPickStub.onFirstCall().resolves('TypeScript');
+        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+        openDialogStub.resolves(uriArr);
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        reporterSpy.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
+    }).timeout(40000);
 
 }); // end of createFabricCommand tests
