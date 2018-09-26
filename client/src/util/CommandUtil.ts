@@ -42,15 +42,18 @@ export class CommandUtil {
         });
     }
 
-    public static async sendCommandWithOutput(command: string, args: Array<string>, cwd?: string, env?: any, outputAdapter?: OutputAdapter): Promise<void> {
+    public static async sendCommandWithOutput(command: string, args: Array<string>, cwd?: string, env?: any, outputAdapter?: OutputAdapter, shell: boolean = false): Promise<void> {
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
 
-        const child: child_process.ChildProcess = child_process.spawn(command, args, {
+        const options: any = {
             cwd,
-            env
-        });
+            env,
+            shell
+        };
+
+        const child: child_process.ChildProcess = child_process.spawn(command, args, options);
         child.stdout.on('data', (data) => {
             const str = stripAnsi(data.toString());
             str.replace(/\n$/, '').split('\n').forEach((line) => outputAdapter.log(`${line}`));

@@ -102,6 +102,34 @@ describe('DependencyManager Tests', () => {
             tempCommandRegistryStub.should.have.been.called;
         });
 
+        it('should install the dependencies using npm.cmd script on Windows', async () => {
+            mySandBox.stub(process, 'platform').value('win32');
+
+            const removeStub = mySandBox.stub(fs, 'remove').resolves();
+            const renameStub = mySandBox.stub(fs, 'rename').resolves();
+            const writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
+
+            const tempCommandCreateCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
+            const tempCommandRegistryStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
+
+            const sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager = DependencyManager.instance();
+
+            await dependencyManager.installNativeDependencies();
+
+            dependencyManager['dependencies'].length.should.equal(1);
+            dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
+
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter), sinon.match.truthy);
+            removeStub.should.have.been.called;
+            renameStub.should.have.been.called;
+
+            writeFileStub.should.have.been.called;
+
+            tempCommandCreateCommandsStub.should.have.been.called;
+            tempCommandRegistryStub.should.have.been.called;
+        });
+
         it('should handle errors', async () => {
             const outputAdapterSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'error');
             const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');

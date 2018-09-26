@@ -64,6 +64,16 @@ describe('CommandUtil Tests', () => {
             await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary']);
             spawnSpy.should.have.been.calledOnce;
             spawnSpy.should.have.been.calledWith('echo', ['hyperlegendary']);
+            spawnSpy.getCall(0).args[2].shell.should.equal(false);
+        });
+
+        it('should send a script and get output', async () => {
+            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+
+            await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary'], undefined, undefined, undefined, true);
+            spawnSpy.should.have.been.calledOnce;
+            spawnSpy.should.have.been.calledWith('echo', ['hyperlegendary']);
+            spawnSpy.getCall(0).args[2].shell.should.equal(true);
         });
 
         it('should send a command and get output with cwd set', async () => {
