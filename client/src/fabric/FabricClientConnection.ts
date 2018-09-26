@@ -13,6 +13,8 @@
 */
 'use strict';
 import * as fs from 'fs-extra';
+import * as yaml from 'js-yaml';
+import * as vscode from 'vscode';
 
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnection } from './FabricConnection';
@@ -33,9 +35,19 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     }
 
     async connect(): Promise<void> {
-        console.log('connect');
+        console.log('FabricClientConnection: connect');
         const connectionProfileContents: string = await this.loadFileFromDisk(this.connectionProfilePath);
-        const connectionProfile = JSON.parse(connectionProfileContents);
+        let connectionProfile;
+        if (this.connectionProfilePath.endsWith('.json')) {
+            connectionProfile = JSON.parse(connectionProfileContents);
+        } else if (this.connectionProfilePath.endsWith('.yaml')) {
+            connectionProfile = yaml.safeLoad(connectionProfileContents);
+        } else {
+            console.log('Connection Profile given is not .json/.yaml format:', this.connectionProfilePath);
+            vscode.window.showErrorMessage('Connection profile must be in JSON or yaml format');
+            return;
+        }
+        console.log('printing connectionProfile:', connectionProfile);
         const certificate: string = await this.loadFileFromDisk(this.certificatePath);
         const privateKey: string = await this.loadFileFromDisk(this.privateKeyPath);
         await this.connectInner(connectionProfile, certificate, privateKey);
