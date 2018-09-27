@@ -350,6 +350,10 @@
             "darwin": {
                 "original": "./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown",
                 "new": "./node_modules/grpc/src/node/extension_binary/electron-v2.0-darwin-x64-unknown"
+            },
+            "win32": {
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v57-win32-x64-unknown",
+                "new": "./node_modules/grpc/src/node/extension_binary/electron-v2.0-win32-x64-unknown"
             }
         }
     },
