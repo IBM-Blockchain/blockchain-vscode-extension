@@ -90,6 +90,15 @@ describe('Commands Utility Function Tests', () => {
         const fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
         fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
+        fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerOne').resolves(['channelOne']);
+        fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerTwo').resolves(['channelOne', 'channelTwo']);
+
+        const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+        chaincodeMap.set('biscuit-network', ['0.0.1', '0.0.2']);
+        chaincodeMap.set('cake-network', ['0.0.3']);
+        fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
+        fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
+
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
@@ -184,7 +193,7 @@ describe('Commands Utility Function Tests', () => {
         describe('showFolderOptions', () => {
             it('should show add to workspace in quickpick box', async () => {
                 quickPickStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
-                const result = await UserInputUtil.showQuickPickYesNo('Choose how to open the project');
+                const result = await UserInputUtil.showFolderOptions('Choose how to open the project');
                 result.should.equal(UserInputUtil.ADD_TO_WORKSPACE);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -196,7 +205,7 @@ describe('Commands Utility Function Tests', () => {
 
             it('should show open in current window in quickpick box', async () => {
                 quickPickStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-                const result = await UserInputUtil.showQuickPickYesNo('Choose how to open the project');
+                const result = await UserInputUtil.showFolderOptions('Choose how to open the project');
                 result.should.equal(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -208,7 +217,7 @@ describe('Commands Utility Function Tests', () => {
 
             it('should show open in new window in quickpick box', async () => {
                 quickPickStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-                const result = await UserInputUtil.showQuickPickYesNo('Choose how to open the project');
+                const result = await UserInputUtil.showFolderOptions('Choose how to open the project');
                 result.should.equal(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -269,6 +278,52 @@ describe('Commands Utility Function Tests', () => {
                 ignoreFocusOut: true,
                 matchOnDetail: true
             });
+        });
+    });
+
+    describe('showChannelQuickPickBox', () => {
+        it('should show quick pick box with channels', async () => {
+            quickPickStub.resolves({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
+
+            const result = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
+            result.should.deep.equal({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a channel'
+            });
+        });
+
+        it('should handle no connection', async () => {
+            getConnectionStub.returns();
+            await UserInputUtil.showChannelQuickPickBox('Choose a channel').should.be.rejectedWith(`No connection to a blockchain found`);
+        });
+    });
+
+    describe('showChaincodeAndVersionQuickPick', () => {
+        it('should show the quick pick box with chaincode and version', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: {chaincode: 'biscuit-network', version: '0.0.1'}
+            });
+
+            const result = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne', 'myPeerTwo']);
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: {chaincode: 'biscuit-network', version: '0.0.1'}
+            });
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a chaincode and version'
+            });
+        });
+
+        it('should handle no connection', async () => {
+            getConnectionStub.returns();
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []).should.be.rejectedWith(`No connection to a blockchain found`);
         });
     });
 });

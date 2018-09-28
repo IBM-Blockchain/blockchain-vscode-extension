@@ -37,6 +37,7 @@ import { InstalledChainCodeTreeItem } from '../src/explorer/model/InstalledChain
 import { InstalledChainCodeVersionTreeItem } from '../src/explorer/model/InstalledChaincodeVersionTreeItem';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
+import { ChainCodeTreeItem } from '../src/explorer/model/ChainCodeTreeItem';
 import { TestUtil } from '../test/TestUtil';
 
 chai.should();
@@ -54,7 +55,7 @@ describe('Integration Test', () => {
     let keyPath: string;
     let certPath: string;
 
-    before(async function() {
+    before(async function () {
         this.timeout(600000);
         keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem`);
         certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
@@ -144,8 +145,32 @@ describe('Integration Test', () => {
         allPackages.length.should.equal(1);
 
         const packageEntry = allPackages[0];
-        mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({label: 'mySmartContract', data: packageEntry});
+        mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({
+            label: 'mySmartContract',
+            data: packageEntry
+        });
         await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
+    }
+
+    async function instantiateSmartContract() {
+        mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves('myChannel');
+
+        mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').resolves({
+            label: 'mySmartContact@0.0.1',
+            data: {
+                chaincode: 'mySmartContract',
+                version: '0.0.1'
+            }
+        });
+
+        const inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+        inputBoxStub.onFirstCall().resolves('instantiate');
+        inputBoxStub.onSecondCall().resolves();
+        await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+    }
+
+    function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
     it('should connect to a real fabric', async () => {
@@ -317,7 +342,7 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    it('should create a smart contract and install it on a peer', async () => {
+    it('should create a smart contract, install it on a peer and instantiate', async () => {
         await createFabricConnection();
 
         await connectToFabric();
@@ -326,9 +351,20 @@ describe('Integration Test', () => {
 
         await installSmartContract();
 
-        const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+        await instantiateSmartContract();
 
-        const channelChildrenOne: Array<PeersTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+        let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+
+        let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+
+        // needed as it takes time for the tree to be refreshed
+        let retry = 0;
+        while (channelChildrenOne.length < 2 && retry < 5) {
+            await sleep(2000);
+            allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+            retry++;
+        }
         const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
 
         const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
@@ -342,5 +378,12 @@ describe('Integration Test', () => {
         versions.length.should.equal(1);
 
         versions[0].label.should.equal('0.0.1');
+
+        const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+
+        instantiatedSmartContracts.length.should.equal(1);
+
+        instantiatedSmartContracts[0].label.should.equal('mySmartContract - 0.0.1');
+
     }).timeout(0);
 });

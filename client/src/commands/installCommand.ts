@@ -51,6 +51,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem): Promise
         const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
         await fabricClientConnection.installChaincode(chosenPackage.data, peerName);
         vscode.window.showInformationMessage('Successfully installed smart contract');
+        await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
     } catch (error) {
         vscode.window.showErrorMessage('Error installing smart contract ' + error.message);
         throw error;

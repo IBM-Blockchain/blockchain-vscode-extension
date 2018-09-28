@@ -39,6 +39,8 @@ import { BlockchainTreeItem } from './explorer/model/BlockchainTreeItem';
 import { deleteSmartContractPackage } from './commands/deleteSmartContractPackageCommand';
 import { PeerTreeItem } from './explorer/model/PeerTreeItem';
 import { installSmartContract } from './commands/installCommand';
+import { ChannelTreeItem } from './explorer/model/ChannelTreeItem';
+import { instantiateSmartContract} from './commands/instantiateCommand';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -113,6 +115,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', (runtimeTreeItem?: RuntimeTreeItem) => toggleFabricRuntimeDevMode(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.installSmartContractEntry', (peerTreeItem?: PeerTreeItem) => installSmartContract(peerTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.instantiateSmartContractEntry', (channelTreeItem?: ChannelTreeItem) => instantiateSmartContract(channelTreeItem)));
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((e) => {
 

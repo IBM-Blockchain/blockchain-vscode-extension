@@ -12,12 +12,8 @@
  * limitations under the License.
 */
 'use strict';
-import {
-    loadFromConfig, ChannelQueryResponse, ChaincodeQueryResponse,
-    Peer, Channel, ChaincodeType
-} from 'fabric-client';
 import * as Client from 'fabric-client';
-import { Gateway, InMemoryWallet, X509WalletMixin } from 'fabric-network';
+import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as path from 'path';
@@ -40,7 +36,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
-        const allPeers: Array<Peer> = this.getAllPeers();
+        const allPeers: Array<Client.Peer> = this.getAllPeers();
 
         const peerNames: Array<string> = [];
 
@@ -51,9 +47,9 @@ export abstract class FabricConnection implements IFabricConnection {
         return peerNames;
     }
 
-    public getPeer(name: string): Peer {
+    public getPeer(name: string): Client.Peer {
         console.log('getPeer', name);
-        const allPeers: Array<Peer> = this.getAllPeers();
+        const allPeers: Array<Client.Peer> = this.getAllPeers();
 
         return allPeers.find((peer) => {
             return peer.getName() === name;
@@ -63,8 +59,8 @@ export abstract class FabricConnection implements IFabricConnection {
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
         console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin
-        const peer: Peer = this.getPeer(peerName);
-        const channelResponse: ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
+        const peer: Client.Peer = this.getPeer(peerName);
+        const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
 
         const channelNames: Array<string> = [];
         console.log(channelResponse);
@@ -78,8 +74,8 @@ export abstract class FabricConnection implements IFabricConnection {
     public async getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>> {
         console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
-        const peer: Peer = this.getPeer(peerName);
-        const chaincodeResponse: ChaincodeQueryResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
+        const peer: Client.Peer = this.getPeer(peerName);
+        const chaincodeResponse: Client.ChaincodeQueryResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
         chaincodeResponse.chaincodes.forEach((chaincode) => {
             if (installedChainCodes.has(chaincode.name)) {
                 installedChainCodes.get(chaincode.name).push(chaincode.version);
@@ -94,9 +90,8 @@ export abstract class FabricConnection implements IFabricConnection {
     public async getInstantiatedChaincode(channelName: string): Promise<Array<any>> {
         console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];
-        const channel: Channel = this.getChannel(channelName);
-        // TODO: this needs updating when not using admin
-        const chainCodeResponse: ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null, true);
+        const channel: Client.Channel = this.getChannel(channelName);
+        const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
         chainCodeResponse.chaincodes.forEach((chainCode) => {
             instantiatedChaincodes.push({name: chainCode.name, version: chainCode.version});
         });
@@ -105,9 +100,9 @@ export abstract class FabricConnection implements IFabricConnection {
     }
 
     public async installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void> {
-        const peer: Peer = this.getPeer(peerName);
+        const peer: Client.Peer = this.getPeer(peerName);
 
-        let language: ChaincodeType;
+        let language: Client.ChaincodeType;
         let chaincodePath: string = packageRegistryEntry.path;
         if (packageRegistryEntry.chaincodeLanguage === 'typescript' || packageRegistryEntry.chaincodeLanguage === 'javascript') {
             language = 'node';
@@ -126,9 +121,55 @@ export abstract class FabricConnection implements IFabricConnection {
             chaincodeId: packageRegistryEntry.name,
             chaincodeVersion: packageRegistryEntry.version,
             chaincodeType: language,
-            txId: this.gateway.getClient().newTransactionID(true)
+            txId: this.gateway.getClient().newTransactionID()
         };
         await this.gateway.getClient().installChaincode(installRequest);
+    }
+
+    public async instantiateChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>) {
+
+        const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
+        const instantiateRequest: Client.ChaincodeInstantiateUpgradeRequest = {
+            chaincodeId: name,
+            chaincodeVersion: version,
+            txId: transactionId,
+            fcn: fcn,
+            args: args
+        };
+
+        const network: Network = await this.gateway.getNetwork(channelName);
+        const channel: Client.Channel = network.getChannel();
+
+        const proposalResponseObject: Client.ProposalResponseObject = await channel.sendInstantiateProposal(instantiateRequest);
+
+        const contract: Contract = network.getContract(name);
+
+        contract['_validatePeerResponses'](proposalResponseObject[0]);
+
+        const eventHandler: any = contract['eventHandlerFactory'].createTxEventHandler(transactionId.getTransactionID());
+
+        if (!eventHandler) {
+            throw new Error('Failed to create an event handler');
+        }
+
+        await eventHandler.startListening();
+
+        const transactionRequest: Client.TransactionRequest = {
+            proposalResponses: proposalResponseObject[0],
+            proposal: proposalResponseObject[1],
+            txId: transactionId
+        };
+
+        // Submit the endorsed transaction to the primary orderers.
+        const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
+
+        if (response.status !== 'SUCCESS') {
+            const msg = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
+            eventHandler.cancelListening();
+            throw new Error(msg);
+        }
+
+        eventHandler.cancelListening();
     }
 
     public disconnect() {
@@ -136,7 +177,7 @@ export abstract class FabricConnection implements IFabricConnection {
     }
 
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
-        const client: Client = await loadFromConfig(connectionProfile);
+        const client: Client = await Client.loadFromConfig(connectionProfile);
 
         const mspid: string = client.getMspid();
 
@@ -148,12 +189,12 @@ export abstract class FabricConnection implements IFabricConnection {
         });
     }
 
-    private getChannel(channelName: string): Channel {
+    private getChannel(channelName: string): Client.Channel {
         console.log('getChannel', channelName);
         return this.gateway.getClient().getChannel(channelName);
     }
 
-    private getAllPeers(): Array<Peer> {
+    private getAllPeers(): Array<Client.Peer> {
         console.log('getAllPeers');
         return this.gateway.getClient().getPeersForOrg(null);
     }
