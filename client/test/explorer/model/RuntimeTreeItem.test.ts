@@ -22,6 +22,7 @@ import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry
 import { FabricConnectionRegistry } from '../../../src/fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../../../src/fabric/FabricConnectionRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
+import { TestUtil } from '../../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -39,6 +40,18 @@ describe('RuntimeTreeItem', () => {
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainNetworkExplorerProvider;
     let runtime: FabricRuntime;
+
+    before(async () => {
+        await TestUtil.setupTests();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+
+    });
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();

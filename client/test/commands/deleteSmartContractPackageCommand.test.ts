@@ -29,19 +29,17 @@ chai.should();
 chai.use(sinonChai);
 
 describe('DeleteSmartContractPackageCommand', () => {
-    let USER_PACKAGE_DIRECTORY;
-    // Update the user's configuration
     const TEST_PACKAGE_DIRECTORY = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
 
     before(async () => {
-        // Get the user's current 'smart contract packages' directory location. This will be used later to update the configuration.
-        USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
+        await TestUtil.storePackageDirectoryConfig();
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+
     });
 
     after(async () => {
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await TestUtil.restorePackageDirectoryConfig();
 
     });
 

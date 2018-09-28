@@ -24,6 +24,7 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -39,6 +40,17 @@ describe('startFabricRuntime', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
+
+    before(async () => {
+        await TestUtil.setupTests();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+    });
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();

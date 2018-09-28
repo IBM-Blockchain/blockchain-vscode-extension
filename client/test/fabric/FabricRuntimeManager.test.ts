@@ -22,6 +22,7 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { TestUtil } from '../TestUtil';
 
 chai.should();
 
@@ -31,6 +32,16 @@ describe('FabricRuntimeManager', () => {
     const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+
+    before(async () => {
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+    });
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();

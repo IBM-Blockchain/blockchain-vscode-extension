@@ -56,6 +56,18 @@ describe('BlockchainNetworkExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+    });
+
+    beforeEach(async () => {
+        await vscode.workspace.getConfiguration().update('fabric.runtimes', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
     });
 
     describe('constructor', () => {

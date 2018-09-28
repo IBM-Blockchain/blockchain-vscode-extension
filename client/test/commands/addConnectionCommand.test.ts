@@ -29,6 +29,11 @@ describe('AddConnectionCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests();
+        await TestUtil.storeConnectionsConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
     });
 
     describe('addConnection', () => {

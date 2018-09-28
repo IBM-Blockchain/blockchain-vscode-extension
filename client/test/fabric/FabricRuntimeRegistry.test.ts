@@ -18,12 +18,21 @@ import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import * as chai from 'chai';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { TestUtil } from '../TestUtil';
 
 chai.should();
 
 describe('FabricRuntimeRegistry', () => {
 
     const registry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+
+    before(async () => {
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreRuntimesConfig();
+    });
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();

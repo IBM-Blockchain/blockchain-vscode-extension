@@ -40,7 +40,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         let connectionProfile;
         if (this.connectionProfilePath.endsWith('.json')) {
             connectionProfile = JSON.parse(connectionProfileContents);
-        } else if (this.connectionProfilePath.endsWith('.yaml')) {
+        } else if (this.connectionProfilePath.endsWith('.yaml') || this.connectionProfilePath.endsWith('.yml')) {
             connectionProfile = yaml.safeLoad(connectionProfileContents);
         } else {
             console.log('Connection Profile given is not .json/.yaml format:', this.connectionProfilePath);

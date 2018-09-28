@@ -72,6 +72,16 @@ describe('BlockchainPackageExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests();
+        await TestUtil.storePackageDirectoryConfig();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+
     });
 
     beforeEach(async () => {

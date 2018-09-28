@@ -37,6 +37,7 @@ import { InstalledChainCodeTreeItem } from '../src/explorer/model/InstalledChain
 import { InstalledChainCodeVersionTreeItem } from '../src/explorer/model/InstalledChaincodeVersionTreeItem';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
+import { TestUtil } from '../test/TestUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -59,12 +60,18 @@ describe('Integration Test', () => {
         certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
 
         await ExtensionUtil.activateExtension();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+        await TestUtil.storePackageDirectoryConfig();
 
         VSCodeOutputAdapter.instance().setConsole(true);
     });
 
-    after(() => {
+    after(async () => {
         VSCodeOutputAdapter.instance().setConsole(false);
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restorePackageDirectoryConfig();
     });
 
     beforeEach(() => {

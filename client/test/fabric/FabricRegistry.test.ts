@@ -18,6 +18,7 @@ import { FabricRegistryEntry } from '../../src/fabric/FabricRegistryEntry';
 
 import * as chai from 'chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { TestUtil } from '../TestUtil';
 
 chai.should();
 
@@ -39,6 +40,15 @@ describe('FabricRegistry', () => {
         }
 
     }
+    before(async () => {
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
+    });
 
     let registry: TestFabricRegistry;
 
@@ -46,10 +56,7 @@ describe('FabricRegistry', () => {
         await ExtensionUtil.activateExtension();
         registry = new TestFabricRegistry();
         await vscode.workspace.getConfiguration().update(testFabricRegistryName, [], vscode.ConfigurationTarget.Global);
-    });
-
-    afterEach(async () => {
-        await vscode.workspace.getConfiguration().update(testFabricRegistryName, [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
     });
 
     describe('#getAll', () => {

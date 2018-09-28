@@ -25,6 +25,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { OutputAdapter } from '../../src/logging/OutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { TestUtil } from '../TestUtil';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -53,6 +54,14 @@ describe('FabricRuntime', () => {
         }
 
     }
+
+    before(async () => {
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreRuntimesConfig();
+    });
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();

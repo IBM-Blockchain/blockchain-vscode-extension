@@ -26,4 +26,33 @@ export class TestUtil {
             myExtension.registerCommands(context);
         }
     }
+    static async storePackageDirectoryConfig() {
+        this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get('fabric.package.directory');
+        console.log('Storing user package directory:', this.USER_PACKAGE_DIR_CONFIG);
+    }
+    static async restorePackageDirectoryConfig() {
+        console.log('Restoring user package directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
+    }
+    static async storeConnectionsConfig() {
+        this.USER_CONNECTIONS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.connections');
+        console.log('Storing user connections config:', this.USER_CONNECTIONS_CONFIG);
+    }
+    static async restoreConnectionsConfig() {
+        console.log('Restoring user connections config to settings:', this.USER_CONNECTIONS_CONFIG);
+        await vscode.workspace.getConfiguration().update('fabric.connections', this.USER_CONNECTIONS_CONFIG, vscode.ConfigurationTarget.Global);
+    }
+
+    static async storeRuntimesConfig() {
+        this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get('fabric.runtimes');
+        console.log('Storing user runtimes:', this.USER_RUNTIMES_CONFIG);
+    }
+    static async restoreRuntimesConfig() {
+        console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
+        await vscode.workspace.getConfiguration().update('fabric.runtimes', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
+    }
+
+    private static USER_PACKAGE_DIR_CONFIG;
+    private static USER_CONNECTIONS_CONFIG;
+    private static USER_RUNTIMES_CONFIG;
 }
