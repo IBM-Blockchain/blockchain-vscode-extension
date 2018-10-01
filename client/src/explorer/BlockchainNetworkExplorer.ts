@@ -296,11 +296,15 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             }
 
             if (connection.managedRuntime) {
-                const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                    connection.name,
-                    connection,
-                    collapsibleState);
-                tree.push(treeItem);
+                try {
+                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                        connection.name,
+                        connection,
+                        collapsibleState);
+                    tree.push(treeItem);
+                } catch (error) {
+                    vscode.window.showErrorMessage(`Error populating Blockchain Explorer View: ${error.message}`);
+                }
             } else {
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,

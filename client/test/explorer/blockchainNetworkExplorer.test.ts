@@ -385,6 +385,30 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.have.been.calledWith('some error');
             });
 
+            it('should handle errors populating the tree with runtimeTreeItems', async () => {
+                const connections = [{
+                    name: 'myBrokenRuntime',
+                    managedRuntime: true
+                }];
+
+                const runtimes = [{
+                    name: 'myBrokenRuntime',
+                    developmentMode: false
+                }];
+
+                await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
+
+                mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects({message: 'some error'});
+                const errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+                const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const allChildren = await blockchainNetworkExplorerProvider.getChildren();
+
+                errorSpy.should.have.been.calledWith('Error populating Blockchain Explorer View: some error');
+                allChildren[0].label.should.equal('Add new connection');
+            });
+
             it('should display managed runtimes with single identities', async () => {
                 const connections = [{
                     name: 'myRuntime',

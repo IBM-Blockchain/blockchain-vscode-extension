@@ -42,6 +42,10 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.get(connectionRegistryEntry.name);
+        const running: boolean = await runtime.isRunning();
+        if (!running) {
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', runtime);
+        }
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
 
         runtimeData = 'managed runtime';
