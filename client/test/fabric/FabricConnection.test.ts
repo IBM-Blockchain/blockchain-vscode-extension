@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
 import { Gateway } from 'fabric-network';
+import { Channel } from 'fabric-client';
 
 chai.should();
 chai.use(sinonChai);
@@ -38,6 +39,8 @@ describe('FabricConnection', () => {
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
     let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
     let fabricConnection: TestFabricConnection;
+    let fabricContractStub;
+    let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -48,11 +51,40 @@ describe('FabricConnection', () => {
         await fabricConnection.connect();
 
         fabricClientStub = mySandBox.createStubInstance(fabricClient);
+        fabricClientStub.newTransactionID.returns({
+            getTransactionID: mySandBox.stub().returns('1234')
+        });
+
         fabricGatewayStub = mySandBox.createStubInstance(Gateway);
 
         fabricClientStub.getMspid.returns('myMSPId');
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
+
+        const eventHandlerStub = {
+            startListening: mySandBox.stub(),
+            cancelListening: mySandBox.stub(),
+        };
+
+        fabricContractStub = {
+            _validatePeerResponses: mySandBox.stub(),
+            eventHandlerFactory: {
+                createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
+            }
+        };
+
+        fabricChannelStub = sinon.createStubInstance(Channel);
+        fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
+        fabricChannelStub.sendTransaction.resolves({status: 'SUCCESS'});
+
+        const fabricNetworkStub = {
+            getContract: mySandBox.stub().returns(fabricContractStub),
+            getChannel: mySandBox.stub().returns(fabricChannelStub)
+        };
+
+        fabricGatewayStub.getNetwork.returns(fabricNetworkStub);
+
+        fabricConnection['gateway'] = fabricGatewayStub;
     });
 
     afterEach(() => {
@@ -139,9 +171,9 @@ describe('FabricConnection', () => {
             fabricClientStub.getChannel.returns(channelOne);
 
             await fabricConnection.connect();
-            const instantiatedChainodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel-one');
+            const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel-one');
 
-            instantiatedChainodes.should.deep.equal([{name: 'biscuit-network', version: '0,7'}, {
+            instantiatedChaincodes.should.deep.equal([{name: 'biscuit-network', version: '0,7'}, {
                 name: 'cake-network',
                 version: '0.8'
             }]);
@@ -222,6 +254,30 @@ describe('FabricConnection', () => {
             packageEntry.path = 'myPath/mySmartContract';
 
             await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(`Smart contract language not supported cake`);
+        });
+    });
+
+    describe('instantiateChaincode', () => {
+        it('should instantiate a chaincode', async () => {
+            await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+
+            fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.1',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            });
+        });
+
+        it('should throw an error if cant create event handler', async () => {
+            fabricContractStub.eventHandlerFactory.createTxEventHandler.returns();
+            await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
+        });
+
+        it('should throw an error if cant create event handler', async () => {
+            fabricChannelStub.sendTransaction.returns({status: 'FAILED'});
+            await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
         });
     });
 });

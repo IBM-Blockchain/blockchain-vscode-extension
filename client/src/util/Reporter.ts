@@ -31,7 +31,7 @@ export class Reporter {
         this.telemetryReporter = new TelemetryReporter('IBM.ibm-blockchain', this.getVersion(), this.key);
     }
 
-    public sendTelemetryEvent(eventName, properties): void {
+    public sendTelemetryEvent(eventName, properties?): void {
         const packageJson: any = ExtensionUtil.getPackageJSON();
         if (packageJson.production === true) {
             this.telemetryReporter.sendTelemetryEvent(eventName, properties);

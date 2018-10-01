@@ -47,6 +47,7 @@
             "blockchainExplorer.refreshEntry",
             "blockchain.createSmartContractProjectEntry",
             "blockchainExplorer.installSmartContractEntry",
+            "blockchainExplorer.instantiateSmartContractEntry",
             "blockchainAPackageExplorer.refreshEntry",
             "blockchainAPackageExplorer.packageSmartContractProject",
             "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
@@ -151,6 +152,11 @@
             {
                 "command": "blockchainExplorer.installSmartContractEntry",
                 "title": "Install Smart Contract",
+                "category": "Blockchain"
+            },
+            {
+                "command": "blockchainExplorer.instantiateSmartContractEntry",
+                "title": "Instantiate Smart Contract",
                 "category": "Blockchain"
             },
             {
@@ -270,6 +276,10 @@
                 {
                     "command": "blockchainExplorer.installSmartContractEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "blockchainExplorer.instantiateSmartContractEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-channel-item"
                 }
             ]
         }
@@ -307,7 +317,7 @@
         "chai": "4.1.2",
         "chai-as-promised": "7.1.1",
         "decache": "4.4.0",
-        "generator-fabric": "^0.0.4",
+        "generator-fabric": "^0.0.7",
         "glob": "7.1.2",
         "istanbul": "0.4.5",
         "license-check-and-add": "2.3.6",
