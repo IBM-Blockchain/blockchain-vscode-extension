@@ -40,10 +40,6 @@ describe('Reporter Tests', () => {
         const reporter = Reporter.instance();
 
         const sendSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
-        // const telemetryStub = mySandBox.stub(TelemetryReporter, 'sendTelemetryEvent');
-        // const fakeTelemetryReporter = new TelemetryReporter('', '', '');
-        // const telemetryReporterSpy = mySandBox.spy(fakeTelemetryReporter);
-        // mySandBox.stub(Reporter, 'instance').resolves(fakeTelemetryReporter);
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
 
         await reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
@@ -55,10 +51,6 @@ describe('Reporter Tests', () => {
         const reporter = Reporter.instance();
 
         const sendSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
-        // const telemetryStub = mySandBox.stub(TelemetryReporter, 'sendTelemetryEvent');
-        // const fakeTelemetryReporter = new TelemetryReporter('', '', '');
-        // const telemetryReporterSpy = mySandBox.spy(fakeTelemetryReporter);
-        // mySandBox.stub(Reporter, 'instance').resolves(fakeTelemetryReporter);
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
 
         await reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});

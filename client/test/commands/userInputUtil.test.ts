@@ -324,6 +324,20 @@ describe('Commands Utility Function Tests', () => {
         it('should handle no connection', async () => {
             getConnectionStub.returns();
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []).should.be.rejectedWith(`No connection to a blockchain found`);
+
+        });
+    });
+    describe('showGeneratorOptions', () => {
+        it('should show generator conflict options in quickpick box', async () => {
+            quickPickStub.resolves('Overwrite file');
+            const result = await UserInputUtil.showGeneratorOptions('Overwrite package.json?');
+            result.should.equal('Overwrite file');
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Overwrite package.json?'
+            });
         });
     });
 });

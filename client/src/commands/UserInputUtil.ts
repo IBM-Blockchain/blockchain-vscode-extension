@@ -34,6 +34,10 @@ export class UserInputUtil {
     static readonly OPEN_IN_NEW_WINDOW = 'Open in new window';
     static readonly YES = 'yes';
     static readonly NO = 'no';
+    static readonly OVERWRITE_FILE = 'Overwrite file';
+    static readonly SKIP_FILE = 'Skip file';
+    static readonly FORCE_FILES = 'Force all files to overwrite';
+    static readonly ABORT_GENERATOR = 'Abort generator';
 
     public static showConnectionQuickPickBox(prompt: string): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
@@ -216,5 +220,16 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(languages, choseSmartContractLanguageQuickPickOptions);
+    }
+
+    public static showGeneratorOptions(prompt: string): Thenable<string | undefined> {
+        const options: Array<string> = [this.OVERWRITE_FILE, this.SKIP_FILE, this.FORCE_FILES, this.ABORT_GENERATOR];
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(options, quickPickOptions);
     }
 }

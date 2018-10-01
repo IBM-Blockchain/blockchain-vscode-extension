@@ -29,6 +29,9 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import * as yeoman from 'yeoman-environment';
+import * as util from 'util';
+
 // Defines a Mocha test suite to group tests of similar kind together
 // tslint:disable no-unused-expression
 describe('CreateSmartContractProjectCommand', () => {
@@ -302,7 +305,8 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('yes');
         // npm install works
         sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-        mySandBox.stub(CommandUtil, 'sendCommandWithProgress').rejects();
+        const promisifyStub = mySandBox.stub(util, 'promisify').onCall(0).returns(mySandBox.stub().resolves());
+        promisifyStub.onCall(1).returns(mySandBox.stub().rejects());
         quickPickStub.onCall(1).returns('JavaScript');
         quickPickStub.onCall(2).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
