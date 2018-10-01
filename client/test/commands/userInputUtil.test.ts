@@ -47,6 +47,13 @@ describe('Commands Utility Function Tests', () => {
 
     before(async () => {
         await TestUtil.setupTests();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
     });
 
     beforeEach(async () => {

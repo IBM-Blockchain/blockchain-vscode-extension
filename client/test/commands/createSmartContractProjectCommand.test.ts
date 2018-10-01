@@ -302,7 +302,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('yes');
         // npm install works
         sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-        const sendCommandWithProgressStub = mySandBox.stub(CommandUtil, 'sendCommandWithProgress').rejects();
+        mySandBox.stub(CommandUtil, 'sendCommandWithProgress').rejects();
         quickPickStub.onCall(1).returns('JavaScript');
         quickPickStub.onCall(2).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
@@ -376,19 +376,18 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.should.not.have.been.called;
     }).timeout(20000);
 
-    it('generator-fabric package.json does not exist', async () => {
+    it('should show an error if generator-fabric package.json does not exist', async () => {
         sendCommandStub.onCall(0).resolves();
 
         sendCommandStub.onCall(1).resolves('0.0.7');
         const wrongPath = path.join(path.dirname(__dirname), '../../test/data/nonexistent');
         sendCommandStub.onCall(2).resolves(wrongPath);
-        const sendCommandWithProgressSpy = mySandBox.spy(CommandUtil, 'sendCommandWithProgress');
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('npm modules: yo and generator-fabric are required before creating a smart contract project');
     });
 
-    it('contract languages doesnt exist in generator-fabric package.json', async () => {
+    it('should show an error if contract languages doesnt exist in generator-fabric package.json', async () => {
         sendCommandStub.withArgs('npm config get prefix').resolves(USER_TEST_DATA);
 
         mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.7'});
@@ -397,7 +396,6 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(1).resolves('0.0.7');
 
         sendCommandStub.onCall(2).resolves(USER_TEST_DATA);
-        const sendCommandWithProgressSpy = mySandBox.spy(CommandUtil, 'sendCommandWithProgress');
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const error = 'Contract languages not found in package.json';
@@ -405,7 +403,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should send a telemetry event if the extension is for production', async () => {
-        const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
         const reporterSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
 
         sendCommandStub.restore();

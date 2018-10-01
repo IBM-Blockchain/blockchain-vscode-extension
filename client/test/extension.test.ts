@@ -37,6 +37,13 @@ describe('Extension Tests', () => {
 
     before(async () => {
         await TestUtil.setupTests();
+        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeRuntimesConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreRuntimesConfig();
     });
 
     beforeEach(async () => {
@@ -44,6 +51,7 @@ describe('Extension Tests', () => {
         if (runtimeManager.exists('local_fabric')) {
             await runtimeManager.delete('local_fabric');
         }
+        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
     });
 
     afterEach(async () => {

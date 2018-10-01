@@ -33,18 +33,15 @@ describe('PackageRegistry', () => {
     let errorSpy;
     let infoSpy;
 
-    let USER_PACKAGE_DIRECTORY;
-    // Update the user's configuration
     const TEST_PACKAGE_DIRECTORY = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
 
     before(async () => {
-        // Get the user's current 'smart contract packages' directory location. This will be used later to update the configuration.
-        USER_PACKAGE_DIRECTORY = await vscode.workspace.getConfiguration().get('fabric.package.directory');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
+        await TestUtil.storePackageDirectoryConfig();
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
     after(async () => {
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', USER_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await TestUtil.restorePackageDirectoryConfig();
     });
 
     async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
@@ -266,7 +263,7 @@ describe('PackageRegistry', () => {
         packageRegistryEntries[0].path.should.equal(path.join(packagesDir, packageRegistryEntries[0].chaincodeLanguage, packageRegistryEntries[0].name));
     });
 
-    it('should show erro if no package json in javascript package', async () => {
+    it('should show error if no package json in javascript package', async () => {
         const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
 
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);

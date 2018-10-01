@@ -18,12 +18,21 @@ import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegis
 import * as chai from 'chai';
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { TestUtil } from '../TestUtil';
 
 chai.should();
 
 describe('FabricConnectionRegistry', () => {
 
     const registry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+
+    before(async () => {
+        await TestUtil.storeConnectionsConfig();
+    });
+
+    after(async () => {
+        await TestUtil.restoreConnectionsConfig();
+    });
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();

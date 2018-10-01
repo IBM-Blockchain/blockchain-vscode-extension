@@ -32,6 +32,7 @@ describe('FabricClientConnection', () => {
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
     let fabricClientConnection: FabricClientConnection;
     let fabricClientConnectionYaml: FabricClientConnection;
+    let otherFabricClientConnectionYml: FabricClientConnection;
     let fabricClientConnectionWrong: FabricClientConnection;
     let errorSpy: sinon.SinonSpy;
 
@@ -99,6 +100,20 @@ describe('FabricClientConnection', () => {
             fabricClientConnectionYaml['gateway'] = gatewayStub;
 
             await fabricClientConnectionYaml.connect();
+            gatewayStub.connect.should.have.been.called;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should connect to a fabric with a .yml connection profile', async () => {
+            const otherConnectionYmlData = {
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml'),
+                certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
+                privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
+            };
+            otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
+            otherFabricClientConnectionYml['gateway'] = gatewayStub;
+
+            await otherFabricClientConnectionYml.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
         });
