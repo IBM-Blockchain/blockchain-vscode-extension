@@ -32,7 +32,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem): Promise
             }
         }
 
-        const chosenPeerName: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer to install the chaincode on');
+        const chosenPeerName: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer to install the smart contract on');
         if (!chosenPeerName) {
             return;
         }

@@ -541,7 +541,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedTreeItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 instantiatedTreeItemOne.chaincodes.should.deep.equal([{name: 'biscuit-network', version: '0.7'}]);
                 instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-chaincodes-item');
-                instantiatedTreeItemOne.label.should.equal('Instantiated Chaincodes');
+                instantiatedTreeItemOne.label.should.equal('Instantiated Smart Contracts');
 
                 const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
@@ -557,7 +557,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedTreeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 instantiatedTreeItemTwo.chaincodes.should.deep.equal([{name: 'cake-network', version: '0.10'}]);
                 instantiatedTreeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincodes-item');
-                instantiatedTreeItemTwo.label.should.equal('Instantiated Chaincodes');
+                instantiatedTreeItemTwo.label.should.equal('Instantiated Smart Contracts');
             });
 
             it('should not create anything if no peers', async () => {
@@ -603,7 +603,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedTreeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 instantiatedTreeItemTwo.chaincodes.should.deep.equal([{name: 'cake-network', version: '0.10'}]);
                 instantiatedTreeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincodes-item');
-                instantiatedTreeItemTwo.label.should.equal('Instantiated Chaincodes');
+                instantiatedTreeItemTwo.label.should.equal('Instantiated Smart Contracts');
             });
 
             it('should error if problem with instatiate chaincodes', async () => {
@@ -614,7 +614,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
 
-                errorSpy.should.have.been.calledWith('Error getting instantiated chaincode for channel channelOne some error');
+                errorSpy.should.have.been.calledWith('Error getting instantiated smart contracts for channel channelOne some error');
 
                 allChildren.length.should.equal(2);
 
@@ -753,7 +753,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 peerItems[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
-                errorSpy.should.have.been.calledWith('Error when getting installed chaincodes for peer peerOne some error');
+                errorSpy.should.have.been.calledWith('Error when getting installed smart contracts for peer peerOne some error');
 
                 const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[0]) as Array<InstalledChainCodeTreeItem>;
 

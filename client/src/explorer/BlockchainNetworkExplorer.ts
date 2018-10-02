@@ -111,7 +111,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                     this.tree.push(new PeersTreeItem(this, 'Peers', channelElement.peers));
 
                     if (channelElement.chaincodes.length > 0) {
-                        this.tree.push(new InstantiatedChainCodesTreeItem(this, 'Instantiated Chaincodes', element.chaincodes));
+                        this.tree.push(new InstantiatedChainCodesTreeItem(this, 'Instantiated Smart Contracts', element.chaincodes));
                     }
                 }
 
@@ -191,7 +191,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 tree.push(new PeerTreeItem(this, peer, chaincodes, collapsibleState));
             } catch (error) {
                 tree.push(new PeerTreeItem(this, peer, new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None));
-                vscode.window.showErrorMessage('Error when getting installed chaincodes for peer ' + peer + ' ' + error.message);
+                vscode.window.showErrorMessage('Error when getting installed smart contracts for peer ' + peer + ' ' + error.message);
             }
         }
 
@@ -214,7 +214,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
             } catch (error) {
                 tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.Collapsed));
-                vscode.window.showErrorMessage('Error getting instantiated chaincode for channel ' + channel + ' ' + error.message);
+                vscode.window.showErrorMessage('Error getting instantiated smart contracts for channel ' + channel + ' ' + error.message);
             }
         }
 
