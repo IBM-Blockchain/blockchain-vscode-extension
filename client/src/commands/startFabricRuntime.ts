@@ -18,17 +18,19 @@ import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 
-export async function startFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | FabricRuntime): Promise<void> {
     let runtime: FabricRuntime;
-    if (!runtimeTreeItem) {
+    if (!runtimeToStart) {
         const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to start');
         if (!chosenRuntime) {
            return;
         }
 
         runtime = chosenRuntime.data;
+    } else if (runtimeToStart instanceof RuntimeTreeItem) {
+        runtime = runtimeToStart.getRuntime();
     } else {
-        runtime = runtimeTreeItem.getRuntime();
+        runtime = runtimeToStart;
     }
 
     await vscode.window.withProgress({

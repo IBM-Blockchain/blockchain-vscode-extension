@@ -35,6 +35,7 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -60,6 +61,8 @@ describe('ConnectCommand', () => {
         let mySandBox: sinon.SinonSandbox;
         let mockConnection;
         let mockRuntimeConnection;
+        let mockRuntime;
+        let errorMessageSpy;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -121,11 +124,13 @@ describe('ConnectCommand', () => {
             await FabricRuntimeRegistry.instance().clear();
             await FabricRuntimeRegistry.instance().add(runtimeRegistry);
 
-            const mockRuntime = sinon.createStubInstance(FabricRuntime);
+            mockRuntime = sinon.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns('myConnectionC');
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
             mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myConnectionC').returns(mockRuntime);
+
+            errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         });
 
         afterEach(async () => {
@@ -223,8 +228,6 @@ describe('ConnectCommand', () => {
             });
             quickPickStub.onSecondCall().resolves('no identity');
 
-            const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
 
             errorMessageSpy.should.have.been.calledWith('Could not connect as no identity found');
@@ -233,8 +236,6 @@ describe('ConnectCommand', () => {
         it('should handle error from conecting', async () => {
             const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-
-            const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
             mockConnection.connect.rejects({message: 'some error'});
 
@@ -280,6 +281,22 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(myConnectionItem.command.command, myConnectionItem.command.arguments[0]);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+        });
+
+        it('should start a stopped fabric runtime before connecting', async () => {
+            mockRuntime.isRunning.resolves(false);
+            const showQuickPickStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionC',
+                data: FabricConnectionRegistry.instance().get('myConnectionC')
+            });
+            const connectStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+
+            showQuickPickStub.should.have.been.calledOnce;
+            mockRuntime.start.should.have.been.calledOnce;
+            connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+            errorMessageSpy.should.not.have.been.called;
         });
 
         it('should send a telemetry event if the extension is for production', async () => {
