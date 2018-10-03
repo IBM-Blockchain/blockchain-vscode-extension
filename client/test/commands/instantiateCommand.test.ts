@@ -28,6 +28,7 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -106,9 +107,13 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate the smart contract through the command', async () => {
+            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputSpy = mySandBox.spy(output, 'log');
+
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
+            outputSpy.should.have.been.calledWith("Instantiating with function: 'instantiate' and arguments: 'arg1,arg2,arg3'");
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
