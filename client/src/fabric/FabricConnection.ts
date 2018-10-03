@@ -144,7 +144,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
         const contract: Contract = network.getContract(name);
 
-        contract['_validatePeerResponses'](proposalResponseObject[0]);
+        const responses: any = contract['_validatePeerResponses'](proposalResponseObject[0]);
 
         const eventHandler: any = contract['eventHandlerFactory'].createTxEventHandler(transactionId.getTransactionID());
 
@@ -169,7 +169,16 @@ export abstract class FabricConnection implements IFabricConnection {
             throw new Error(msg);
         }
 
+        await eventHandler.waitForEvents();
+        // return the payload from the invoked chaincode
+        let result: any = null;
+        if (responses && responses.validResponses[0].response.payload.length > 0) {
+            result = responses.validResponses[0].response.payload;
+        }
+
         eventHandler.cancelListening();
+
+        return result;
     }
 
     public disconnect() {
