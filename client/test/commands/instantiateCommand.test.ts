@@ -114,6 +114,7 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
             outputSpy.should.have.been.calledWith("Instantiating with function: 'instantiate' and arguments: 'arg1,arg2,arg3'");
+            executeCommandStub.secondCall.should.have.been.calledWith('blockchainExplorer.refreshEntry');
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
