@@ -104,7 +104,7 @@
         "commands": [
             {
                 "command": "blockchainExplorer.refreshEntry",
-                "title": "Refresh",
+                "title": "Refresh Blockchain Connections",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -113,12 +113,12 @@
             },
             {
                 "command": "blockchainExplorer.connectEntry",
-                "title": "Connect",
+                "title": "Connect To A Blockchain",
                 "category": "Blockchain"
             },
             {
                 "command": "blockchainExplorer.disconnectEntry",
-                "title": "Disconnect",
+                "title": "Disconnect From A Blockchain",
                 "icon": {
                     "light": "resources/light/back_light.svg",
                     "dark": "resources/dark/back.svg"
