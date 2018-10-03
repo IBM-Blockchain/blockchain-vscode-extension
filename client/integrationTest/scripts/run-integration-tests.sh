@@ -82,21 +82,6 @@ docker exec -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.ex
 # Join peer0 from org1 to the channel.
 docker exec -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" peer0.org1.example.com peer channel join -b myotherchannel.block
 
-# Run the system tests.
-npm run systest 2>&1 | tee
 
-
-# Kill and remove any started Docker images.
-if [ "${DOCKER_FILE}" != "" ]; then
-    ARCH=$ARCH docker-compose -f ${DOCKER_FILE} kill
-    ARCH=$ARCH docker-compose -f ${DOCKER_FILE} down
-    docker rmi -f $(docker images -aq dev-*) || true
-fi
-
-# Delete any crypto-config material
-cd "${DIR}"
-if [ -d ./hlfv1/crypto-config ]; then
-    rm -rf ./hlfv1/crypto-config
-fi
 
 

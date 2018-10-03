@@ -72,16 +72,21 @@ export class PackageRegistry {
 
                 // add each package to the registry
                 const packageRegistryEntry: PackageRegistryEntry = new PackageRegistryEntry();
-                packageRegistryEntry.name = packageSubFile;
                 packageRegistryEntry.path = path.join(packageSubDirectory, packageSubFile);
                 packageRegistryEntry.chaincodeLanguage = packageLanguage;
                 if (packageLanguage !== 'go') {
                     try {
-                        packageRegistryEntry.version = await this.getPackageVersion(packageSubDirectory, packageSubFile);
+                        const packageDetails: { name: string, version: string } = await this.getPackageNameAndVersion(packageSubDirectory, packageSubFile);
+                        packageRegistryEntry.name = packageDetails.name;
+                        packageRegistryEntry.version = packageDetails.version;
                     } catch (error) {
                         // error getting package version so go on to next package
                         continue;
                     }
+                } else {
+                    const packageDetails = packageSubFile.split('@');
+                    packageRegistryEntry.name = packageDetails[0];
+                    packageRegistryEntry.version = packageDetails[1];
                 }
                 packageRegistryEntries.push(packageRegistryEntry);
             }
@@ -126,20 +131,21 @@ export class PackageRegistry {
         return vscode.workspace.getConfiguration().get('fabric.package.directory');
     }
 
-    private async getPackageVersion(packagePath: string, packageFile: string): Promise<string> {
+    private async getPackageNameAndVersion(packagePath: string, packageFile: string): Promise<{ name: string, version: string }> {
         const packageVersionFile: string = path.join(packagePath, packageFile, '/package.json');
         let packageVersion: string;
+        let packageName: string;
         try {
             const packageVersionFileContents: Buffer = await fs.readFile(packageVersionFile);
             const packageVersionObj: any = JSON.parse(packageVersionFileContents.toString('utf8'));
             packageVersion = packageVersionObj.version;
+            packageName = packageVersionObj.name;
         } catch (error) {
 
             vscode.window.showErrorMessage(`Could not read package json file from package ${packageFile}  ${error.message}`);
             throw error;
         }
 
-        return packageVersion;
+        return {name: packageName, version: packageVersion};
     }
-
 }

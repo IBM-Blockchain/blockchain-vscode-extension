@@ -167,22 +167,22 @@ describe('PackageRegistry', () => {
 
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
 
-        await createTestFiles('packageOne', 'package-one', '1.0.0', 'javascript', true);
-        await createTestFiles('packageTwo', 'package-two', '1.0.0', 'javascript', true);
+        await createTestFiles('packageOne@1.0.0', 'package-one', '1.0.0', 'javascript', true);
+        await createTestFiles('packageTwo@1.0.0', 'package-two', '1.0.0', 'javascript', true);
 
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
         packages.length.should.equal(2);
 
-        packages[0].name.should.equal('packageOne');
+        packages[0].name.should.equal('package-one');
         packages[0].chaincodeLanguage.should.equal('javascript');
         packages[0].version.should.equal('1.0.0');
-        packages[0].path.should.equal(path.join(packagesDir, packages[0].chaincodeLanguage, packages[0].name));
+        packages[0].path.should.equal(path.join(packagesDir, 'javascript', 'packageOne@1.0.0'));
 
-        packages[1].name.should.equal('packageTwo');
+        packages[1].name.should.equal('package-two');
         packages[1].chaincodeLanguage.should.equal('javascript');
         packages[1].version.should.equal('1.0.0');
-        packages[1].path.should.equal(path.join(packagesDir, packages[1].chaincodeLanguage, packages[1].name));
+        packages[1].path.should.equal(path.join(packagesDir, 'javascript', 'packageTwo@1.0.0'));
     });
 
     it('should be able to read typescript packages', async () => {
@@ -190,22 +190,22 @@ describe('PackageRegistry', () => {
 
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
 
-        await createTestFiles('packageOne', 'package-one', '1.0.0', 'typescript', true);
-        await createTestFiles('packageTwo', 'package-two', '1.0.0', 'typescript', true);
+        await createTestFiles('packageOne@1.0.0', 'package-one', '1.0.0', 'typescript', true);
+        await createTestFiles('packageTwo@1.0.0', 'package-two', '1.0.0', 'typescript', true);
 
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
         packages.length.should.equal(2);
 
-        packages[0].name.should.equal('packageOne');
+        packages[0].name.should.equal('package-one');
         packages[0].chaincodeLanguage.should.equal('typescript');
         packages[0].version.should.equal('1.0.0');
-        packages[0].path.should.equal(path.join(packagesDir, packages[0].chaincodeLanguage, packages[0].name));
+        packages[0].path.should.equal(path.join(packagesDir, 'typescript', 'packageOne@1.0.0'));
 
-        packages[1].name.should.equal('packageTwo');
+        packages[1].name.should.equal('package-two');
         packages[1].chaincodeLanguage.should.equal('typescript');
         packages[1].version.should.equal('1.0.0');
-        packages[1].path.should.equal(path.join(packagesDir, packages[1].chaincodeLanguage, packages[1].name));
+        packages[1].path.should.equal(path.join(packagesDir, 'typescript', 'packageTwo@1.0.0'));
     });
 
     it('should be able to read go packages', async () => {
@@ -239,7 +239,7 @@ describe('PackageRegistry', () => {
         const goPackagesDir: string = path.join(rootPath, '../../test/data/smartContractDir/go/src');
         await fs.mkdirp(goPackagesDir);
 
-        await createTestFiles('myPackage', 'my-package', '1.0.0', 'javascript', true);
+        await createTestFiles('myPackage@1.0.0', 'my-package', '1.0.0', 'javascript', true);
 
         const packagesDirContents: string[] = await fs.readdir(packagesDir);
         const javascriptContents: string[] = await fs.readdir(packagesDir + '/javascript');
@@ -257,10 +257,10 @@ describe('PackageRegistry', () => {
 
         packageRegistryEntries.length.should.equal(1);
 
-        packageRegistryEntries[0].name.should.equal('myPackage');
+        packageRegistryEntries[0].name.should.equal('my-package');
         packageRegistryEntries[0].chaincodeLanguage.should.equal('javascript');
         packageRegistryEntries[0].version.should.equal('1.0.0');
-        packageRegistryEntries[0].path.should.equal(path.join(packagesDir, packageRegistryEntries[0].chaincodeLanguage, packageRegistryEntries[0].name));
+        packageRegistryEntries[0].path.should.equal(path.join(packagesDir, 'javascript', 'myPackage@1.0.0'));
     });
 
     it('should show error if no package json in javascript package', async () => {
@@ -268,7 +268,7 @@ describe('PackageRegistry', () => {
 
         await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
 
-        await createTestFiles('packageOne', 'package-one', '1.0.0', 'javascript', false);
+        await createTestFiles('packageOne@1.0.0', 'package-one', '1.0.0', 'javascript', false);
 
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
@@ -276,7 +276,7 @@ describe('PackageRegistry', () => {
     });
 
     it('should delete package', async () => {
-        await createTestFiles('DeleteThisDirectory', 'delete-this-directory', '1.0.0', 'javascript', true);
+        await createTestFiles('DeleteThisDirectory@1.0.0', 'delete-this-directory', '1.0.0', 'javascript', true);
 
         const packageRegistry: PackageRegistry = PackageRegistry.instance();
 
@@ -286,7 +286,7 @@ describe('PackageRegistry', () => {
 
         await packageRegistry.delete(packageEntry);
 
-        await checkFileDeleted('DeleteThisDirectory', '1.0.0', 'javascript').should.be.rejected;
+        await checkFileDeleted('DeleteThisDirectory@1.0.0', '1.0.0', 'javascript').should.be.rejected;
     });
 
     it('should delete Go packages', async () => {

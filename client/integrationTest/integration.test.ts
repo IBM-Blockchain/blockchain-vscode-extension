@@ -54,8 +54,9 @@ describe('Integration Test', () => {
     let mySandBox: sinon.SinonSandbox;
     let keyPath: string;
     let certPath: string;
+    let testContractDir: string;
 
-    before(async function () {
+    before(async function() {
         this.timeout(600000);
         keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem`);
         certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
@@ -98,12 +99,11 @@ describe('Integration Test', () => {
             }
         });
 
-        // TODO: when we can package we should create the smart contract not in the package directory
-        const smartContractDir: string = path.join(__dirname, '../../integrationTest/smartContractDir');
-        const smartContract: string = path.join(smartContractDir, 'javascript', 'mySmartContract');
-        await fs.mkdirp(smartContract);
+        testContractDir = path.join(__dirname, '../../integrationTest/mySmartContract');
 
-        const uri = vscode.Uri.file(smartContract);
+        const smartContractDir: string = path.join(__dirname, '../../integrationTest/smartContractDir');
+
+        const uri = vscode.Uri.file(testContractDir);
         const uriArr = [uri];
         const openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
         openDialogStub.resolves(uriArr);
@@ -111,6 +111,14 @@ describe('Integration Test', () => {
         await vscode.workspace.getConfiguration().update('fabric.package.directory', smartContractDir, vscode.ConfigurationTarget.Global);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+    }
+
+    async function packageSmartContract() {
+        mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{uri: {path: testContractDir}}]);
+        const findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
+        findFilesStub.withArgs('**/*.js', '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+
+        await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
     }
 
     async function createFabricConnection() {
@@ -342,12 +350,14 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    it('should create a smart contract, install it on a peer and instantiate', async () => {
+    it('should create a smart contract, package, install it on a peer and instantiate', async () => {
         await createFabricConnection();
 
         await connectToFabric();
 
         await createSmartContract();
+
+        await packageSmartContract();
 
         await installSmartContract();
 
