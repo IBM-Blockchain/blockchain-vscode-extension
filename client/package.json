@@ -179,7 +179,8 @@
                 "icon": {
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
-                }
+                },
+                "category": "Blockchain"
             },
             {
                 "command": "blockchainExplorer.startFabricRuntime",
