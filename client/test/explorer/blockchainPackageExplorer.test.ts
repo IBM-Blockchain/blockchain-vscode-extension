@@ -100,7 +100,7 @@ describe('BlockchainPackageExplorer', () => {
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
-        await createTestFiles('smartContractPackageGo', 'package-go', '1.0.0', 'go/src', true);
+        await createTestFiles('smartContractGo@1.0.0', 'package-go', '1.0.0', 'go/src', true);
         await createTestFiles('smartContractPackageBlue', 'package-blue', '1.0.0', 'javascript', true);
         await createTestFiles('smartContractPackageGreen', 'package-green', '1.0.0', 'javascript', true);
 
@@ -110,9 +110,9 @@ describe('BlockchainPackageExplorer', () => {
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
         testPackages.length.should.equal(3);
-        testPackages[0].label.should.equal('smartContractPackageGo');
-        testPackages[1].label.should.equal('package-blue');
-        testPackages[2].label.should.equal('package-green');
+        testPackages[0].label.should.equal('smartContractGo@1.0.0');
+        testPackages[1].label.should.equal('package-blue@1.0.0');
+        testPackages[2].label.should.equal('package-green@1.0.0');
         errorSpy.should.not.have.been.called;
 
     });
@@ -134,8 +134,8 @@ describe('BlockchainPackageExplorer', () => {
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
-        firstTestPackage.label.should.equal('my-contract');
-        firstTestPackage.tooltip.should.equal('my-contract');
+        firstTestPackage.label.should.equal('my-contract@1.0.0');
+        firstTestPackage.tooltip.should.equal('my-contract@1.0.0');
         errorSpy.should.not.have.been.called;
     });
 });
