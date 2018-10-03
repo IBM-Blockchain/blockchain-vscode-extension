@@ -107,7 +107,6 @@ export async function createSmartContractProject(): Promise<void> {
 
     try {
         const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
-        const packagePath: string = npmPrefix + '/lib/node_modules/generator-fabric/generators/contract';
 
         // tslint:disable-next-line
         let env = yeoman.createEnv([], {}, new YeomanAdapter());
@@ -314,7 +313,7 @@ async function checkForUnsavedFiles(): Promise<void> {
 
 async function getPackageJson(): Promise<any> {
     const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
-    const packagePath: string = npmPrefix + '/lib/node_modules/generator-fabric/package.json';
+    const packagePath: string = path.join(npmPrefix, (process.platform === 'win32') ? '' : 'lib', 'node_modules', 'generator-fabric', 'package.json');
     const packageJson: any = await fs.readJson(packagePath);
     return packageJson;
 }
