@@ -22,7 +22,7 @@ import * as fabricClient from 'fabric-client';
 import { Gateway } from 'fabric-network';
 import { Channel } from 'fabric-client';
 
-chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -64,10 +64,19 @@ describe('FabricConnection', () => {
         const eventHandlerStub = {
             startListening: mySandBox.stub(),
             cancelListening: mySandBox.stub(),
+            waitForEvents: mySandBox.stub(),
         };
-
+        const responsesStub = {
+            validResponses: [
+                {
+                    response: {
+                       payload: new Buffer('payload response buffer')
+                    }
+                }
+            ]
+        };
         fabricContractStub = {
-            _validatePeerResponses: mySandBox.stub(),
+            _validatePeerResponses: mySandBox.stub().returns(responsesStub),
             eventHandlerFactory: {
                 createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
             }
@@ -259,8 +268,7 @@ describe('FabricConnection', () => {
 
     describe('instantiateChaincode', () => {
         it('should instantiate a chaincode', async () => {
-            await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
-
+            const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
@@ -268,6 +276,20 @@ describe('FabricConnection', () => {
                 fcn: 'instantiate',
                 args: ['arg1']
             });
+            responsePayload.toString().should.equal('payload response buffer');
+        });
+
+        it('should instantiate a chaincode and can return empty payload response', async () => {
+            fabricContractStub._validatePeerResponses.returns(null);
+            const nullResponsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.1',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            });
+            should.not.exist(nullResponsePayload);
         });
 
         it('should throw an error if cant create event handler', async () => {
@@ -275,7 +297,7 @@ describe('FabricConnection', () => {
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
         });
 
-        it('should throw an error if cant create event handler', async () => {
+        it('should throw an error if submitting the transaction failed', async () => {
             fabricChannelStub.sendTransaction.returns({status: 'FAILED'});
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
         });
