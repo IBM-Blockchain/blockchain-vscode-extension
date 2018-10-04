@@ -46,7 +46,10 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         const tree: Array<PackageTreeItem> = [];
         // Populate the tree with the name of each package registry entry
         for (const packageRegistryEntry of packageRegistryEntries) {
-            tree.push(new PackageTreeItem(this, packageRegistryEntry.name, packageRegistryEntry));
+
+            const nameAndVersion: string = packageRegistryEntry.name + '@' + packageRegistryEntry.version;
+
+            tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
         }
         return tree;
     }
