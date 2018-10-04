@@ -157,7 +157,6 @@ describe('Extension Tests', () => {
         const dependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
-        const reloadStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
         const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
         const tempRegistryExecuteStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
 
@@ -165,7 +164,6 @@ describe('Extension Tests', () => {
         await myExtension.activate(context);
         installStub.should.have.been.called;
         tempRegistryExecuteStub.should.have.been.called;
-        reloadStub.should.have.been.calledWith('workbench.action.reloadWindow');
     });
 
     it('should not install native dependencies if already installed', async () => {
