@@ -419,4 +419,15 @@ describe('CreateSmartContractProjectCommand', () => {
         reporterSpy.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
     }).timeout(40000);
 
+    it('should find the generator-fabric package.json in the correct path on Windows', async () => {
+        sendCommandStub.resolves('0.0.0');
+        sendCommandStub.withArgs('npm view generator-fabric version').resolves('0.0.0');
+        sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
+        mySandBox.stub(process, 'platform').value('win32');
+        const readJsonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        readJsonStub.should.always.have.been.calledWith('PREFIX/node_modules/generator-fabric/package.json');
+    });
+
 }); // end of createFabricCommand tests
