@@ -70,7 +70,7 @@ describe('FabricConnection', () => {
             validResponses: [
                 {
                     response: {
-                       payload: new Buffer('payload response buffer')
+                        payload: new Buffer('payload response buffer')
                     }
                 }
             ]
@@ -84,6 +84,7 @@ describe('FabricConnection', () => {
 
         fabricChannelStub = sinon.createStubInstance(Channel);
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
+        fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
         fabricChannelStub.sendTransaction.resolves({status: 'SUCCESS'});
 
         const fabricNetworkStub = {
@@ -267,11 +268,31 @@ describe('FabricConnection', () => {
     });
 
     describe('instantiateChaincode', () => {
+
+        let getChanincodesStub;
+        beforeEach(() => {
+            getChanincodesStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
+            getChanincodesStub.resolves([]);
+        });
+
         it('should instantiate a chaincode', async () => {
             const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            });
+            responsePayload.toString().should.equal('payload response buffer');
+        });
+
+        it('should upgrade if already instantiated', async () => {
+            getChanincodesStub.withArgs('myChannel').resolves([{name: 'myChaincode'}]);
+            const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.2',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']

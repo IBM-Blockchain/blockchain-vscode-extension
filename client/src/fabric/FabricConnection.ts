@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+
 import * as Client from 'fabric-client';
 import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
@@ -140,7 +141,18 @@ export abstract class FabricConnection implements IFabricConnection {
         const network: Network = await this.gateway.getNetwork(channelName);
         const channel: Client.Channel = network.getChannel();
 
-        const proposalResponseObject: Client.ProposalResponseObject = await channel.sendInstantiateProposal(instantiateRequest);
+        const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
+
+        const foundChaincode: any = instantiatedChaincode.find((chaincode: any) => {
+            return chaincode.name === name;
+        });
+
+        let proposalResponseObject: Client.ProposalResponseObject;
+        if (foundChaincode) {
+            proposalResponseObject = await channel.sendUpgradeProposal(instantiateRequest);
+        } else {
+            proposalResponseObject = await channel.sendInstantiateProposal(instantiateRequest);
+        }
 
         const contract: Contract = network.getContract(name);
 
@@ -186,6 +198,7 @@ export abstract class FabricConnection implements IFabricConnection {
     }
 
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
+
         const client: Client = await Client.loadFromConfig(connectionProfile);
 
         const mspid: string = client.getMspid();
