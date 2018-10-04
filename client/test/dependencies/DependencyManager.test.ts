@@ -80,6 +80,7 @@ describe('DependencyManager Tests', () => {
             const removeStub = mySandBox.stub(fs, 'remove').resolves();
             const renameStub = mySandBox.stub(fs, 'rename').resolves();
             const writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
+            const utimesFileStub = mySandBox.stub(fs, 'utimes').resolves();
 
             const tempCommandCreateCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
             const tempCommandRegistryStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
@@ -97,6 +98,7 @@ describe('DependencyManager Tests', () => {
             renameStub.should.have.been.called;
 
             writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
 
             tempCommandCreateCommandsStub.should.have.been.called;
             tempCommandRegistryStub.should.have.been.called;
@@ -108,6 +110,7 @@ describe('DependencyManager Tests', () => {
             const removeStub = mySandBox.stub(fs, 'remove').resolves();
             const renameStub = mySandBox.stub(fs, 'rename').resolves();
             const writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
+            const utimesFileStub = mySandBox.stub(fs, 'utimes').resolves();
 
             const tempCommandCreateCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
             const tempCommandRegistryStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
@@ -125,6 +128,7 @@ describe('DependencyManager Tests', () => {
             renameStub.should.have.been.called;
 
             writeFileStub.should.have.been.called;
+            utimesFileStub.should.have.been.called;
 
             tempCommandCreateCommandsStub.should.have.been.called;
             tempCommandRegistryStub.should.have.been.called;
