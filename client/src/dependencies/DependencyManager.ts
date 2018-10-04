@@ -49,6 +49,7 @@ export class DependencyManager {
         this.loadDependencies();
         await this.installNativeDependenciesInternal();
         await this.rewritePackageJson();
+        await this.clearExtensionCache();
         await tempCommandRegistry.restoreCommands();
     }
 
@@ -147,6 +148,13 @@ export class DependencyManager {
         });
 
         return this.writePackageJson(packageJson);
+    }
+
+    private async clearExtensionCache(): Promise<void> {
+        const extensionPath: string = ExtensionUtil.getExtensionPath();
+        const extensionsPath: string = path.resolve(extensionPath, '..');
+        const currentDate: Date = new Date();
+        await fs.utimes(extensionsPath, currentDate, currentDate);
     }
 
 }

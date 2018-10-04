@@ -66,7 +66,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
             const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
             await tempCommandRegistry.executeStoredCommands();
-            await vscode.commands.executeCommand('workbench.action.reloadWindow');
         } else {
             registerCommands(context);
         }
