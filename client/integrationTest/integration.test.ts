@@ -14,6 +14,7 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -32,7 +33,6 @@ import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { ConnectionTreeItem } from '../src/explorer/model/ConnectionTreeItem';
 import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
-import * as fs from 'fs-extra';
 import { InstalledChainCodeTreeItem } from '../src/explorer/model/InstalledChainCodeTreeItem';
 import { InstalledChainCodeVersionTreeItem } from '../src/explorer/model/InstalledChaincodeVersionTreeItem';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
@@ -40,7 +40,7 @@ import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { ChainCodeTreeItem } from '../src/explorer/model/ChainCodeTreeItem';
 import { TestUtil } from '../test/TestUtil';
 
-chai.should();
+const should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -55,6 +55,14 @@ describe('Integration Test', () => {
     let keyPath: string;
     let certPath: string;
     let testContractDir: string;
+
+    let getWorkspaceFoldersStub;
+    let findFilesStub;
+    let showPeerQuickPickStub;
+    let showPackagesStub;
+    let showChannelStub;
+    let showChanincodeAndVersionStub;
+    let inputBoxStub;
 
     before(async function() {
         this.timeout(600000);
@@ -78,6 +86,13 @@ describe('Integration Test', () => {
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
+        getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders')
+        findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
+        showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
+        showPackagesStub = mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox');
+        showChannelStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
+        showChanincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
+        inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
     });
 
     afterEach(async () => {
@@ -85,8 +100,8 @@ describe('Integration Test', () => {
         mySandBox.restore();
     });
 
-    async function createSmartContract() {
-        mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves('JavaScript');
+    async function createSmartContract(name, type) {
+        mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves(type);
         mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
         const originalExecuteCommand = vscode.commands.executeCommand;
@@ -99,7 +114,7 @@ describe('Integration Test', () => {
             }
         });
 
-        testContractDir = path.join(__dirname, '../../integrationTest/mySmartContract');
+        testContractDir = path.join(__dirname, '../../integrationTest', name);
 
         const smartContractDir: string = path.join(__dirname, '../../integrationTest/smartContractDir');
 
@@ -114,8 +129,8 @@ describe('Integration Test', () => {
     }
 
     async function packageSmartContract() {
-        mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{uri: {path: testContractDir}}]);
-        const findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
+       getWorkspaceFoldersStub.returns([{uri: {path: testContractDir}}]);
+      
         findFilesStub.withArgs('**/*.js', '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
@@ -126,14 +141,12 @@ describe('Integration Test', () => {
             await connectionRegistry.delete('myConnection');
         }
 
-        const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
-
         const rootPath = path.dirname(__dirname);
 
-        showInputBoxStub.onFirstCall().resolves('myConnection');
-        showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
-        showInputBoxStub.onThirdCall().resolves(certPath);
-        showInputBoxStub.onCall(3).resolves(keyPath);
+        inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
+        inputBoxStub.withArgs('Enter a file path to the connection profile json file').resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
+        inputBoxStub.withArgs('Enter a file path to the certificate file').resolves(certPath);
+        inputBoxStub.withArgs('Enter a file path to the private key file').resolves(keyPath);
 
         await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
@@ -147,38 +160,56 @@ describe('Integration Test', () => {
 
     }
 
-    async function installSmartContract() {
-        mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox').resolves('peer0.org1.example.com');
+    async function installSmartContract(name, version, type) {
+        showPeerQuickPickStub.resolves('peer0.org1.example.com');
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-        allPackages.length.should.equal(1);
 
-        const packageEntry = allPackages[0];
-        mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({
-            label: 'mySmartContract',
-            data: packageEntry
+        const packageToInstall = allPackages.find((packageEntry) => {
+            return packageEntry.version === version && packageEntry.name === name && packageEntry.chaincodeLanguage === type;
+        });
+
+        should.exist(packageToInstall);
+
+        showPackagesStub.resolves({
+            label: name,
+            data: packageToInstall
         });
         await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
     }
 
-    async function instantiateSmartContract() {
-        mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves('myChannel');
+    async function instantiateSmartContract(name, version) {
+        showChannelStub.resolves('myChannel');
 
-        mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').resolves({
-            label: 'mySmartContact@0.0.1',
+        showChanincodeAndVersionStub.resolves({
+            label: `${name}@${version}`,
             data: {
-                chaincode: 'mySmartContract',
-                version: '0.0.1'
+                chaincode: name,
+                version: version
             }
         });
 
-        const inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
-        inputBoxStub.onFirstCall().resolves('instantiate');
-        inputBoxStub.onSecondCall().resolves();
+        inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
+        inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
     }
 
-    function sleep(ms) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
+    async function getRawPackageJson(): Promise<any> {
+        const fileContents: Buffer = await fs.readFile(path.join(testContractDir, 'package.json'));
+        return JSON.parse(fileContents.toString());
+    }
+
+    async function writePackageJson(packageJson: any): Promise<void> {
+        const packageJsonString: string = JSON.stringify(packageJson, null, 4);
+
+        return fs.writeFile(path.join(testContractDir, 'package.json'), packageJsonString, 'utf8');
+    }
+
+    async function updatePackageJsonVersion(version): Promise<void> {
+        const packageJson: any = await getRawPackageJson();
+
+        packageJson.version = version;
+
+        return writePackageJson(packageJson);
     }
 
     it('should connect to a real fabric', async () => {
@@ -355,13 +386,13 @@ describe('Integration Test', () => {
 
         await connectToFabric();
 
-        await createSmartContract();
+        await createSmartContract('mySmartContract', 'JavaScript');
 
         await packageSmartContract();
 
-        await installSmartContract();
+        await installSmartContract('mySmartContract', '0.0.1', 'javascript');
 
-        await instantiateSmartContract();
+        await instantiateSmartContract('mySmartContract', '0.0.1');
 
         let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
@@ -390,5 +421,57 @@ describe('Integration Test', () => {
 
         instantiatedSmartContracts[0].label.should.equal('mySmartContract - 0.0.1');
 
+    }).timeout(0);
+
+    // TODO: put this back in when upgrade is more reliable, the problem is with the 
+    // new event handling stuff it doesn't always unblock even though the upgrade happens
+    xit('should upgrade a smart contract', async () => {
+        await createFabricConnection();
+
+        await connectToFabric();
+
+        await createSmartContract('anotherSmartContract', 'JavaScript');
+
+        await packageSmartContract();
+
+        await installSmartContract('anotherSmartContract', '0.0.1', 'javascript');
+
+        await instantiateSmartContract('anotherSmartContract', '0.0.1');
+
+        await updatePackageJsonVersion('0.0.2');
+
+        await packageSmartContract();
+
+        await installSmartContract('anotherSmartContract', '0.0.2', 'javascript');
+
+        await instantiateSmartContract('anotherSmartContract', '0.0.2');
+
+        let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+
+        let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+
+        allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+        channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+
+        const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
+
+        const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
+
+        installedSmartContracts.length.should.equal(1);
+
+        installedSmartContracts[0].label.should.equal('anotherSmartContract');
+
+        const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContracts[0]) as Array<InstalledChainCodeVersionTreeItem>;
+
+        versions.length.should.equal(2);
+
+        versions[0].label.should.equal('0.0.1');
+        versions[1].label.should.equal('0.0.2');
+
+        const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+
+        instantiatedSmartContracts.length.should.equal(1);
+
+        instantiatedSmartContracts[0].label.should.equal('anotherSmartContract - 0.0.2');
     }).timeout(0);
 });
