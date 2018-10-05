@@ -65,11 +65,11 @@ export class UserInputUtil {
         return vscode.window.showInputBox(inputBoxOptions);
     }
 
-    public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<string>| undefined>  {
+    public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<vscode.WorkspaceFolder>| undefined>  {
         const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
 
-        const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<string>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
-            return {label: workspaceFolderOption.name, data: workspaceFolderOption.uri.path};
+        const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<vscode.WorkspaceFolder>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
+            return {label: workspaceFolderOption.name, data: workspaceFolderOption};
         });
         const quickPickOptions = {
             ignoreFocusOut: true,

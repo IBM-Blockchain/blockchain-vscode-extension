@@ -28,22 +28,24 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
 chai.should();
 chai.use(sinonChai);
 
 describe('Commands Utility Function Tests', () => {
 
-    let mySandBox;
-    let quickPickStub;
+    let mySandBox: sinon.SinonSandbox;
+    let quickPickStub: sinon.SinonStub;
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
 
-    let connectionEntryOne;
-    let connectionEntryTwo;
+    let connectionEntryOne: FabricConnectionRegistryEntry;
+    let connectionEntryTwo: FabricConnectionRegistryEntry;
 
-    let getConnectionStub;
+    let getConnectionStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -59,7 +61,7 @@ describe('Commands Utility Function Tests', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
-        const rootPath = path.dirname(__dirname);
+        const rootPath: string = path.dirname(__dirname);
 
         connectionEntryOne = new FabricConnectionRegistryEntry();
         connectionEntryOne.name = 'myConnectionA';
@@ -87,7 +89,7 @@ describe('Commands Utility Function Tests', () => {
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
-        const fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
+        const fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
         fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerOne').resolves(['channelOne']);
@@ -142,9 +144,9 @@ describe('Commands Utility Function Tests', () => {
 
     describe('showInputBox', () => {
         it('should show the input box', async () => {
-            const inputStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('my answer');
+            const inputStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('my answer');
 
-            const result = await UserInputUtil.showInputBox('a question');
+            const result: string = await UserInputUtil.showInputBox('a question');
             result.should.equal('my answer');
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
@@ -171,7 +173,7 @@ describe('Commands Utility Function Tests', () => {
     describe('showQuickPickYesNo', () => {
         it('should show yes in the quickpick box', async () => {
             quickPickStub.resolves(UserInputUtil.YES);
-            const result = await UserInputUtil.showQuickPickYesNo('Do you want an ice cream?');
+            const result: string = await UserInputUtil.showQuickPickYesNo('Do you want an ice cream?');
             result.should.equal(UserInputUtil.YES);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -183,7 +185,7 @@ describe('Commands Utility Function Tests', () => {
 
         it('should show no in the quickpick box', async () => {
             quickPickStub.resolves(UserInputUtil.NO);
-            const result = await UserInputUtil.showQuickPickYesNo('Do you want an ice cream?');
+            const result: string = await UserInputUtil.showQuickPickYesNo('Do you want an ice cream?');
             result.should.equal(UserInputUtil.NO);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -196,7 +198,7 @@ describe('Commands Utility Function Tests', () => {
         describe('showFolderOptions', () => {
             it('should show add to workspace in quickpick box', async () => {
                 quickPickStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
-                const result = await UserInputUtil.showFolderOptions('Choose how to open the project');
+                const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
                 result.should.equal(UserInputUtil.ADD_TO_WORKSPACE);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -208,7 +210,7 @@ describe('Commands Utility Function Tests', () => {
 
             it('should show open in current window in quickpick box', async () => {
                 quickPickStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-                const result = await UserInputUtil.showFolderOptions('Choose how to open the project');
+                const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
                 result.should.equal(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -220,7 +222,7 @@ describe('Commands Utility Function Tests', () => {
 
             it('should show open in new window in quickpick box', async () => {
                 quickPickStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-                const result = await UserInputUtil.showFolderOptions('Choose how to open the project');
+                const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
                 result.should.equal(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
                 quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -234,12 +236,12 @@ describe('Commands Utility Function Tests', () => {
         describe('showPeerQuickPickBox', () => {
             it('should show the peer names', async () => {
                 quickPickStub.resolves('myPeerOne');
-                const result = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
+                const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
                 result.should.equal('myPeerOne');
             });
 
             it('should handle no connection', async () => {
-                getConnectionStub.returns();
+                getConnectionStub.returns(null);
                 await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(`No connection to a blockchain found`);
             });
         });
@@ -247,9 +249,17 @@ describe('Commands Utility Function Tests', () => {
 
     describe('showSmartContractPackagesQuickPickBox', () => {
         it('show quick pick box for smart contract packages', async () => {
-            quickPickStub.resolves('smartContractPackageBlue');
-            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', false);
-            result.should.deep.equal('smartContractPackageBlue');
+            const newPackage: PackageRegistryEntry = new PackageRegistryEntry();
+            newPackage.chaincodeLanguage = 'javascript';
+            newPackage.name = 'smartContractPackageBlue';
+            newPackage.version = '0.0.1';
+            newPackage.path = 'smartContractPackageBlue';
+
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
+
+            quickPickStub.resolves({label: 'smartContractPackageBlue', data: newPackage});
+            const result: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
+            result.should.deep.equal({label: 'smartContractPackageBlue', data: newPackage});
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -258,9 +268,17 @@ describe('Commands Utility Function Tests', () => {
         });
 
         it('show quick pick box for smart contract packages with multiple', async () => {
-            quickPickStub.resolves('smartContractPackageBlue');
-            const result = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true);
-            result.should.deep.equal('smartContractPackageBlue');
+            const newPackage: PackageRegistryEntry = new PackageRegistryEntry();
+            newPackage.chaincodeLanguage = 'javascript';
+            newPackage.name = 'smartContractPackageBlue';
+            newPackage.version = '0.0.1';
+            newPackage.path = 'smartContractPackageBlue';
+
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
+
+            quickPickStub.resolves([{label: 'smartContractPackageBlue', data: newPackage}]);
+            const result: Array<IBlockchainQuickPickItem<PackageRegistryEntry>> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true) as Array<IBlockchainQuickPickItem<PackageRegistryEntry>>;
+            result.should.deep.equal([{label: 'smartContractPackageBlue', data: newPackage}]);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: true,
@@ -273,7 +291,7 @@ describe('Commands Utility Function Tests', () => {
         it('should show the quick pick box with languages', async () => {
             quickPickStub.resolves('javascript');
 
-            const result = await UserInputUtil.showSmartContractLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
+            const result: string = await UserInputUtil.showSmartContractLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
             result.should.equal('javascript');
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -288,7 +306,7 @@ describe('Commands Utility Function Tests', () => {
         it('should show quick pick box with channels', async () => {
             quickPickStub.resolves({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
 
-            const result = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
             result.should.deep.equal({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -299,7 +317,7 @@ describe('Commands Utility Function Tests', () => {
         });
 
         it('should handle no connection', async () => {
-            getConnectionStub.returns();
+            getConnectionStub.returns(null);
             await UserInputUtil.showChannelQuickPickBox('Choose a channel').should.be.rejectedWith(`No connection to a blockchain found`);
         });
     });
@@ -311,7 +329,7 @@ describe('Commands Utility Function Tests', () => {
                 data: {chaincode: 'biscuit-network', version: '0.0.1'}
             });
 
-            const result = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne', 'myPeerTwo']);
+            const result: IBlockchainQuickPickItem<{ chaincode: string, version: string }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne', 'myPeerTwo']);
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: {chaincode: 'biscuit-network', version: '0.0.1'}
@@ -325,7 +343,7 @@ describe('Commands Utility Function Tests', () => {
         });
 
         it('should handle no connection', async () => {
-            getConnectionStub.returns();
+            getConnectionStub.returns(null);
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []).should.be.rejectedWith(`No connection to a blockchain found`);
 
         });
@@ -333,7 +351,7 @@ describe('Commands Utility Function Tests', () => {
     describe('showGeneratorOptions', () => {
         it('should show generator conflict options in quickpick box', async () => {
             quickPickStub.resolves('Overwrite file');
-            const result = await UserInputUtil.showGeneratorOptions('Overwrite package.json?');
+            const result: string = await UserInputUtil.showGeneratorOptions('Overwrite package.json?');
             result.should.equal('Overwrite file');
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -360,10 +378,24 @@ describe('Commands Utility Function Tests', () => {
                     }
                 }]);
 
-            quickPickStub.resolves({label: 'myPath1', data: 'path1'});
+            quickPickStub.resolves({
+                label: 'myPath1', data: {
+                    name: 'myPath1',
+                    uri: {
+                        path: 'path1'
+                    }
+                }
+            });
 
-            const result = await UserInputUtil.showWorkspaceQuickPickBox('choose a folder');
-            result.should.deep.equal({label: 'myPath1', data: 'path1'});
+            const result: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('choose a folder');
+            result.should.deep.equal({
+                label: 'myPath1', data: {
+                    name: 'myPath1',
+                    uri: {
+                        path: 'path1'
+                    }
+                }
+            });
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
@@ -376,16 +408,26 @@ describe('Commands Utility Function Tests', () => {
 
     describe('getWorkspaceFolders', () => {
         it('should get the workspace folders', () => {
-            mySandBox.stub(vscode.workspace, 'workspaceFolders').value(['banana', 'cake']);
-            const result = UserInputUtil.getWorkspaceFolders();
+            mySandBox.stub(vscode.workspace, 'workspaceFolders').value([{
+                name: 'myPath1',
+                uri: {
+                    path: 'path1'
+                }
+            }]);
+            const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
 
-            result.should.deep.equal(['banana', 'cake']);
+            result.should.deep.equal([{
+                name: 'myPath1',
+                uri: {
+                    path: 'path1'
+                }
+            }]);
         });
 
         it('should throw an error if no workspace folders', () => {
-            const errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-            mySandBox.stub(vscode.workspace, 'workspaceFolders').value();
-            let errorMessage = '';
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            mySandBox.stub(vscode.workspace, 'workspaceFolders').value(null);
+            let errorMessage: string = '';
             try {
                 UserInputUtil.getWorkspaceFolders();
             } catch (error) {
@@ -399,13 +441,13 @@ describe('Commands Utility Function Tests', () => {
     describe('getBasePackageDir', () => {
         it('should replace ~ with the users home directory', async () => {
             const packageDirOriginal: string = '~/smartContractDir';
-            const packageDirNew = await UserInputUtil.getBasePackageDir(packageDirOriginal);
+            const packageDirNew: string = await UserInputUtil.getBasePackageDir(packageDirOriginal);
             packageDirNew.should.not.contain('~');
         });
 
         it('should not replace if not ~', async () => {
             const packageDirOriginal: string = '/banana/smartContractDir';
-            const packageDirNew = await UserInputUtil.getBasePackageDir(packageDirOriginal);
+            const packageDirNew: string = await UserInputUtil.getBasePackageDir(packageDirOriginal);
             packageDirNew.should.equal(packageDirOriginal);
         });
     });

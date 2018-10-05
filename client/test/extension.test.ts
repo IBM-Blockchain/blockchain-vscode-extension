@@ -69,6 +69,8 @@ describe('Extension Tests', () => {
         });
 
         blockchainCommands.should.deep.equal([
+            'blockchainAPackageExplorer.focus',
+            'blockchainExplorer.focus',
             'blockchainExplorer.refreshEntry',
             'blockchainExplorer.connectEntry',
             'blockchainExplorer.disconnectEntry',
