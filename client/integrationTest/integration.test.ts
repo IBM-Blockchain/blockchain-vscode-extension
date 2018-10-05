@@ -86,7 +86,7 @@ describe('Integration Test', () => {
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
-        getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders')
+        getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
         showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         showPackagesStub = mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox');
@@ -129,8 +129,8 @@ describe('Integration Test', () => {
     }
 
     async function packageSmartContract() {
-       getWorkspaceFoldersStub.returns([{uri: {path: testContractDir}}]);
-      
+        getWorkspaceFoldersStub.returns([{uri: {path: testContractDir}}]);
+
         findFilesStub.withArgs('**/*.js', '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
@@ -419,11 +419,11 @@ describe('Integration Test', () => {
 
         instantiatedSmartContracts.length.should.equal(1);
 
-        instantiatedSmartContracts[0].label.should.equal('mySmartContract - 0.0.1');
+        instantiatedSmartContracts[0].label.should.equal('mySmartContract@0.0.1');
 
     }).timeout(0);
 
-    // TODO: put this back in when upgrade is more reliable, the problem is with the 
+    // TODO: put this back in when upgrade is more reliable, the problem is with the
     // new event handling stuff it doesn't always unblock even though the upgrade happens
     xit('should upgrade a smart contract', async () => {
         await createFabricConnection();
@@ -472,6 +472,6 @@ describe('Integration Test', () => {
 
         instantiatedSmartContracts.length.should.equal(1);
 
-        instantiatedSmartContracts[0].label.should.equal('anotherSmartContract - 0.0.2');
+        instantiatedSmartContracts[0].label.should.equal('anotherSmartContract@0.0.2');
     }).timeout(0);
 });

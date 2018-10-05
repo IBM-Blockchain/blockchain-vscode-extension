@@ -287,7 +287,7 @@
         "systest": "node ./node_modules/vscode/bin/test --verbose",
         "licchk": "license-check-and-add",
         "tslint": "tslint",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
+        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/integration.test.ts'",
         "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
         "prepublishOnly": "node ../.travis/rewritePackageJson.js publish"
     },

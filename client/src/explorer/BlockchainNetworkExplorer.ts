@@ -174,7 +174,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: Array<ChainCodeTreeItem> = [];
 
         instantiatedChainCodesElement.chaincodes.forEach((instantiatedChaincode) => {
-            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name + ' - ' + instantiatedChaincode.version));
+            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name + '@' + instantiatedChaincode.version));
         });
 
         return tree;
