@@ -204,6 +204,24 @@
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "blockchainExplorer.startFabricRuntime",
+                    "when": "!isWindows"
+                },
+                {
+                    "command": "blockchainExplorer.stopFabricRuntime",
+                    "when": "!isWindows"
+                },
+                {
+                    "command": "blockchainExplorer.restartFabricRuntime",
+                    "when": "!isWindows"
+                },
+                {
+                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
+                    "when": "!isWindows"
+                }
+            ],
             "view/title": [
                 {
                     "command": "blockchainExplorer.addConnectionEntry",
