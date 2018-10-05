@@ -199,6 +199,12 @@ export class UserInputUtil {
             });
         }
 
+        // If there are no installed smart contract packages
+        if (quickPickItems.length === 0) {
+            vscode.window.showErrorMessage('No smart contracts are installed on peers in this channel. Install a smart contract before instantiating.');
+            return;
+        }
+
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,

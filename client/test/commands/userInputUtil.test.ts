@@ -347,6 +347,17 @@ describe('Commands Utility Function Tests', () => {
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []).should.be.rejectedWith(`No connection to a blockchain found`);
 
         });
+
+        it('should show error if no installed smart contracts ', async () => {
+            const errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            mySandBox.stub(FabricConnectionManager, 'instance').returns({
+                getConnection: mySandBox.stub().resolves()
+            });
+
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []);
+            errorSpy.should.have.been.calledWith('No smart contracts are installed on peers in this channel. Install a smart contract before instantiating.');
+
+        });
     });
     describe('showGeneratorOptions', () => {
         it('should show generator conflict options in quickpick box', async () => {
