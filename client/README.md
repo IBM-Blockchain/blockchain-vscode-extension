@@ -52,7 +52,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/start_new_project_small.gif" width="85%" alt="Start a new Fabric smart contract project">
+![Start a new Fabric smart contract project](client/media/start_new_project_small.gif)
 <!---Link to docs with further instructions
 --->
 
@@ -60,14 +60,13 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/edit_write_files.png" width="85%" alt="Edit smart contract files">
+![Edit smart contract files](client/media/edit_write_files.png)
 <!---Link to docs with further instructions
 --->
 
 ### Package a smart contract project
 
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/package_project.png" width="85%" alt="Create a package from a smart contract project">
-
+![Create a package from a smart contract project](client/media/package_project.png)
 
 <!---Short explanation with code-blocks
 --->
@@ -82,7 +81,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 --->
 ### Connect to local_fabric runtime
 
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/connect_to_local_fabric_runtime_small.gif" width="90%" alt="Connect to local_fabric runtime">
+![Connect to local_fabric runtime](client/media/connect_to_local_fabric_runtime_small.gif)
 
 <!---Short explanation with code-blocks
 --->
@@ -94,25 +93,21 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/discover_resources.png" width="40%" alt="Connect to the network and discover the existing resources">
+![Connect to the network and discover the existing resources](client/media/discover_resources.png)
 <!---Link to docs with further instructions
 --->
 
 ### Install smart contract package
 <!---Short explanation with code-blocks
 --->
-
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/install_smart_contract.png" width="60%" alt="Install new smart contract">
-
+![Install smart contract](client/media/install_smart_contract.png)
 <!---Link to docs with further instructions
 --->
 
 ### Instantiate smart contract package
 <!---Short explanation with code-blocks
 --->
-
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/instantiate_small.gif" width="85%" alt="Instantiate new smart contract">
-
+![Instantiate smart contract](client/media/instantiate_small.gif)
 
 ## Connecting to your own Hyperledger Fabric instance
 
