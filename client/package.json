@@ -1,8 +1,8 @@
 {
-    "name": "ibm-blockchain",
+    "name": "ibm-blockchain-platform",
     "displayName": "IBM Blockchain Platform",
     "description": "End to end extension for developers working with IBM Blockchain Platform. Develop and test every part of a blockchain smart contract on your local machine, and package your projects for deployment into IBP runtimes.",
-    "author": "IBM",
+    "author": "IBMBlockchain",
     "keywords": [
         "blockchain",
         "smart contracts",
@@ -13,7 +13,7 @@
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
     "version": "0.0.1",
-    "publisher": "IBM",
+    "publisher": "IBMBlockchain",
     "icon": "media/blockchain_marketplace.png",
     "galleryBanner": {
         "color": "#313131",
@@ -32,7 +32,7 @@
         "Other"
     ],
     "activationEvents": [
-      "*"
+        "*"
     ],
     "actualActivationEvents": {
         "onView": [
@@ -160,11 +160,6 @@
                 "category": "Blockchain"
             },
             {
-                "command": "blockchainExplorer.testEntry",
-                "title": "Test",
-                "category": "Blockchain"
-            },
-            {
                 "command": "blockchainAPackageExplorer.refreshEntry",
                 "title": "Refresh Smart Contract Packages",
                 "icon": {
@@ -237,10 +232,6 @@
                 }
             ],
             "view/item/context": [
-                {
-                    "command": "blockchainExplorer.testEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
-                },
                 {
                     "command": "blockchainExplorer.deleteConnectionEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"

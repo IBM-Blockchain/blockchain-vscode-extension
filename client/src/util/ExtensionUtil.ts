@@ -43,6 +43,6 @@ export class ExtensionUtil {
     private static extensionContext: vscode.ExtensionContext;
 
     private static getExtension(): vscode.Extension<any> {
-        return vscode.extensions.getExtension('IBM.ibm-blockchain');
+        return vscode.extensions.getExtension('IBMBlockchain.ibm-blockchain-platform');
     }
 }

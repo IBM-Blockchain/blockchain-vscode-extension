@@ -28,7 +28,7 @@ export class Reporter {
     private telemetryReporter: TelemetryReporter;
 
     private constructor() {
-        this.telemetryReporter = new TelemetryReporter('IBM.ibm-blockchain', this.getVersion(), this.key);
+        this.telemetryReporter = new TelemetryReporter('IBMBlockchain.ibm-blockchain-platform', this.getVersion(), this.key);
     }
 
     public sendTelemetryEvent(eventName, properties?): void {
