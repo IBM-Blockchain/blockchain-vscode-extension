@@ -204,6 +204,24 @@
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "blockchainExplorer.startFabricRuntime",
+                    "when": "!isWindows"
+                },
+                {
+                    "command": "blockchainExplorer.stopFabricRuntime",
+                    "when": "!isWindows"
+                },
+                {
+                    "command": "blockchainExplorer.restartFabricRuntime",
+                    "when": "!isWindows"
+                },
+                {
+                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
+                    "when": "!isWindows"
+                }
+            ],
             "view/title": [
                 {
                     "command": "blockchainExplorer.addConnectionEntry",
@@ -287,7 +305,7 @@
         "systest": "node ./node_modules/vscode/bin/test --verbose",
         "licchk": "license-check-and-add",
         "tslint": "tslint",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
+        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/integration.test.ts'",
         "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
         "productionFlag": "node ../.travis/rewritePackageJson.js publish"
     },

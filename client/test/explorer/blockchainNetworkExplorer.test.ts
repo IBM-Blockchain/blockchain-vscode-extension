@@ -812,7 +812,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedChainItemsOne.length.should.equal(1);
                 instantiatedChainItemsOne[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiatedChainItemsOne[0].contextValue.should.equal('blockchain-chaincode-item');
-                instantiatedChainItemsOne[0].label.should.equal('biscuit-network - 0.7');
+                instantiatedChainItemsOne[0].label.should.equal('biscuit-network@0.7');
 
                 const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
@@ -826,7 +826,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedChainItemsTwo.length.should.equal(1);
                 instantiatedChainItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiatedChainItemsTwo[0].contextValue.should.equal('blockchain-chaincode-item');
-                instantiatedChainItemsTwo[0].label.should.equal('cake-network - 0.10');
+                instantiatedChainItemsTwo[0].label.should.equal('cake-network@0.10');
             });
         });
     });
