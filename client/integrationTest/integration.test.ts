@@ -63,6 +63,7 @@ describe('Integration Test', () => {
     let showChannelStub;
     let showChanincodeAndVersionStub;
     let inputBoxStub;
+    let browseEditStub;
 
     before(async function() {
         this.timeout(600000);
@@ -93,6 +94,7 @@ describe('Integration Test', () => {
         showChannelStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
         showChanincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+        browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
     });
 
     afterEach(async () => {
@@ -145,9 +147,9 @@ describe('Integration Test', () => {
         const rootPath = path.dirname(__dirname);
 
         inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
-        inputBoxStub.withArgs('Enter a file path to the connection profile json file').resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
-        inputBoxStub.withArgs('Enter a file path to the certificate file').resolves(certPath);
-        inputBoxStub.withArgs('Enter a file path to the private key file').resolves(keyPath);
+        browseEditStub.withArgs('Enter a file path to the connection profile json file', 'myConnection').resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
+        browseEditStub.withArgs('Enter a file path to the certificate file', 'myConnection').resolves(certPath);
+        browseEditStub.withArgs('Enter a file path to the private key file', 'myConnection').resolves(keyPath);
 
         await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
@@ -156,7 +158,6 @@ describe('Integration Test', () => {
 
     async function connectToFabric() {
         const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
-
         await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
 
     }
