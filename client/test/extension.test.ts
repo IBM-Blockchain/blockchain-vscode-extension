@@ -229,6 +229,27 @@ describe('Extension Tests', () => {
         addSpy.should.not.have.been.called;
     });
 
+    it('should not create a new local_fabric if one does not exist on Windows', async () => {
+        mySandBox.stub(process, 'platform').value('win32');
+        const addSpy = mySandBox.spy(runtimeManager, 'add');
+        const deleteSpy = mySandBox.spy(runtimeManager, 'delete');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        addSpy.should.not.have.been.called;
+        deleteSpy.should.not.have.been.called;
+    });
+
+    it('should delete a local_fabric if one already exists on Windows', async () => {
+        mySandBox.stub(process, 'platform').value('win32');
+        await runtimeManager.add('local_fabric');
+        const addSpy = mySandBox.spy(runtimeManager, 'add');
+        const deleteSpy = mySandBox.spy(runtimeManager, 'delete');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        addSpy.should.not.have.been.called;
+        deleteSpy.should.have.been.calledOnceWithExactly('local_fabric');
+    });
+
     it('should check if production flag is false on extension activiation', async () => {
 
         const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});

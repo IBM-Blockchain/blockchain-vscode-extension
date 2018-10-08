@@ -165,7 +165,7 @@ export class UserInputUtil {
 
     public static showPeerQuickPickBox(prompt: string): Thenable<string | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        const connection = fabricConnectionManager.getConnection();
+        const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
             return Promise.reject('No connection to a blockchain found');
         }

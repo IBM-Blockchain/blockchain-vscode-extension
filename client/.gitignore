@@ -20,3 +20,4 @@ coverage
 /test/data/fabricProject
 /test/data/smartContractDir/
 /integrationTest/smartContractDir/
+/integrationTest/mySmartContract/

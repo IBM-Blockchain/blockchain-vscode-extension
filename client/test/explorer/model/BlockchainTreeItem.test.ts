@@ -26,8 +26,8 @@ describe('BlockchainTreeItem', () => {
 
     class TestBlockchainTreeItem extends BlockchainTreeItem {
 
-        constructor() {
-            super(getBlockchainNetworkExplorerProvider(), 'test label', vscode.TreeItemCollapsibleState.None);
+        constructor(label) {
+            super(getBlockchainNetworkExplorerProvider(), label, vscode.TreeItemCollapsibleState.None);
         }
     }
 
@@ -36,7 +36,6 @@ describe('BlockchainTreeItem', () => {
 
     beforeEach(() => {
         sandbox = sinon.createSandbox();
-        treeItem = new TestBlockchainTreeItem();
     });
 
     afterEach(() => {
@@ -46,8 +45,20 @@ describe('BlockchainTreeItem', () => {
     describe('#tooltip', () => {
 
         it('should have the tooltip', () => {
+            treeItem = new TestBlockchainTreeItem('test label');
             treeItem.tooltip.should.equal('test label');
         });
+
+        it('should display tooltip for local_runtime when not started', async () => {
+            treeItem = new TestBlockchainTreeItem('local_fabric  ○');
+            treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
+        });
+
+        it('should display tooltip for local_runtime when started', async () => {
+            treeItem = new TestBlockchainTreeItem('local_fabric  ●');
+            treeItem.tooltip.should.equal('Connected to local development runtime');
+        });
+
     });
 
     describe('#refresh', () => {
