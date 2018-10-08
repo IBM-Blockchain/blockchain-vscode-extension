@@ -3,7 +3,7 @@
 --->
 <!---Short description of what the extension allows the user to do and key features in bullet points below 
 --->
-The IBM Blockchain Platform extension has been created to assist users in developing, testing, and deploying smart contracts; including connecting to live Hyperledger Fabric environments.
+The IBM Blockchain Platform extension has been created to assist users in developing, testing, and deploying smart contracts; including connecting to Hyperledger Fabric environments.
 
 ## Installation
 
