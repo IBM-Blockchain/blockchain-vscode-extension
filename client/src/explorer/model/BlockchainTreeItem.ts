@@ -29,7 +29,13 @@ export abstract class BlockchainTreeItem extends vscode.TreeItem {
     }
 
     get tooltip(): string {
-        return `${this.label}`;
+        if (this.label === 'local_fabric  ○') {
+            return 'Creates a local development runtime using Hyperledger Fabric Docker images';
+        } else if (this.label === 'local_fabric  ●') {
+            return 'Connected to local development runtime';
+        } else {
+            return `${this.label}`;
+        }
     }
 
     refresh(): void {
