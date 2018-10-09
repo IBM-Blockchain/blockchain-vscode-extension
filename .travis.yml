@@ -28,10 +28,9 @@ install: |
       ./.travis/install.sh
 script: |
       ./.travis/script.sh
-#deploy:
-#     provider: script
-#     script: ./.travis/deploy.sh
-#     skip_cleanup: true
-#     on:
-#       all_branches: true
+deploy:
+    provider: script
+    script: ./.travis/deploy.sh
+    on:
+      all_branches: true
 cache: false
