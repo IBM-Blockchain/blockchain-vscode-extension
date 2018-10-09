@@ -14,9 +14,9 @@
 'use strict';
 import { PackageRegistryEntry } from './PackageRegistryEntry';
 import * as vscode from 'vscode';
-import * as homeDir from 'home-dir';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class PackageRegistry {
 
@@ -100,10 +100,7 @@ export class PackageRegistry {
         this.packageDir = this.getPackageDir();
         console.log('packageDir is:', this.packageDir);
 
-        if (this.packageDir.startsWith('~')) {
-            // Remove tilda and replace with home dir
-            this.packageDir = homeDir(this.packageDir.replace('~', ''));
-        }
+        this.packageDir = await UserInputUtil.getDirPath(this.packageDir);
 
         try {
             packageLanguageArray = await fs.readdir(this.packageDir);

@@ -73,7 +73,7 @@ export async function createSmartContractProject(): Promise<void> {
     try {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
-        vscode.window.showErrorMessage('Issue determining available smart contract language options:', error);
+        vscode.window.showErrorMessage('Issue determining available smart contract language options: ' + error);
         return;
     }
 

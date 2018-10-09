@@ -94,17 +94,17 @@ export class UserInputUtil {
         return workspace;
     }
 /**
- * Method to replace ~ (if in the directory) with the users home directory into the packageDir so as to be compatible with all OS's.
- * @param {String} packageDir String containing the path of the directory of packaged smart contracts defined in User Settings.
- * @returns {String} Returns packageDir.
+ * Method to replace ~ with OS's home directory, of a path
+ * @param {String} dir String containing path
+ * @returns {String} Returns dir.
  *
  */
-    public static async getBasePackageDir(packageDir: string): Promise<string> {
+    public static async getDirPath(dir: string): Promise<string> {
 
-        if (packageDir.startsWith('~')) {
-            packageDir = await homeDir(packageDir.replace('~', ''));
+        if (dir.startsWith('~')) {
+            dir = await homeDir(dir.replace('~', ''));
         }
-        return packageDir;
+        return dir;
     }
 
     public static showIdentityConnectionQuickPickBox(prompt: string, connection: FabricConnectionRegistryEntry): Thenable<IBlockchainQuickPickItem<{ certificatePath: string, privateKeyPath: string }> | undefined> {

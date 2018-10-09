@@ -19,10 +19,10 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
-import * as homeDir from 'home-dir';
 import * as tmp from 'tmp';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 chai.use(sinonChai);
 
@@ -112,7 +112,7 @@ describe('PackageRegistry', () => {
 
     it('should understand the users home directory', async () => {
         const tildaTestDir: string = '~/test_dir';
-        const homeTestDir: string = homeDir('~/test_dir'.replace('~', ''));
+        const homeTestDir: string = await UserInputUtil.getDirPath(tildaTestDir);
         await vscode.workspace.getConfiguration().update('fabric.package.directory', tildaTestDir, true);
 
         const readDirStub = mySandBox.stub(fs, 'readdir');
