@@ -91,15 +91,15 @@ export class FabricRuntime extends EventEmitter {
         const containerPrefix: string = this.getContainerPrefix();
         const connectionProfile: any = basicNetworkConnectionProfile;
         const peerPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_peer0.org1.example.com_1`);
-        const peerRequestHost: string = peerPorts['7051/tcp'][0].HostIp;
+        const peerRequestHost: string = this.fixHost(peerPorts['7051/tcp'][0].HostIp);
         const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
-        const peerEventHost: string = peerPorts['7053/tcp'][0].HostIp;
+        const peerEventHost: string = this.fixHost(peerPorts['7053/tcp'][0].HostIp);
         const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
         const ordererPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_orderer.example.com_1`);
-        const ordererHost: string = ordererPorts['7050/tcp'][0].HostIp;
+        const ordererHost: string = this.fixHost(ordererPorts['7050/tcp'][0].HostIp);
         const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
         const caPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_ca.example.com_1`);
-        const caHost: string = caPorts['7054/tcp'][0].HostIp;
+        const caHost: string = this.fixHost(caPorts['7054/tcp'][0].HostIp);
         const caPort: string = caPorts['7054/tcp'][0].HostPort;
         connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
         connectionProfile.peers['peer0.org1.example.com'].eventUrl = `grpc://${peerEventHost}:${peerEventPort}`;
@@ -141,15 +141,15 @@ export class FabricRuntime extends EventEmitter {
     }
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('start.sh', outputAdapter);
+        await this.execute('start', outputAdapter);
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('stop.sh', outputAdapter);
-        await this.execute('teardown.sh', outputAdapter);
+        await this.execute('stop', outputAdapter);
+        await this.execute('teardown', outputAdapter);
     }
 
-    private execute(script: string, outputAdapter?: OutputAdapter): Promise<void> {
+    private async execute(script: string, outputAdapter?: OutputAdapter): Promise<void> {
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
@@ -159,7 +159,11 @@ export class FabricRuntime extends EventEmitter {
             CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net'
         });
 
-        return CommandUtil.sendCommandWithOutput('/bin/sh', [ script ], basicNetworkPath, env, outputAdapter);
+        if (process.platform === 'win32') {
+            await CommandUtil.sendCommandWithOutput('cmd', [ '/c', `${script}.cmd` ], basicNetworkPath, env, outputAdapter);
+        } else {
+            await CommandUtil.sendCommandWithOutput('/bin/sh', [ `${script}.sh` ], basicNetworkPath, env, outputAdapter);
+        }
     }
 
     private async getContainerPorts(containerID: string): Promise<ContainerPorts> {
@@ -182,6 +186,14 @@ export class FabricRuntime extends EventEmitter {
         // Docker on Linux only supports basic characters for the project name.
         const sanitizedName: string = this.name.replace(/[^A-Za-z0-9]/, '');
         return `fabricvscode${sanitizedName}`;
+    }
+
+    private fixHost(host: string) {
+        // Windows chokes on 0.0.0.0, so replace it with localhost.
+        if (host === '0.0.0.0') {
+            return 'localhost';
+        }
+        return host;
     }
 
 }

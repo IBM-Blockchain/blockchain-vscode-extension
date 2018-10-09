@@ -66,7 +66,7 @@ export class CommandUtil {
             child.on('error', reject);
             child.on('exit', (code) => {
                 if (code) {
-                    return reject(new Error(`Failed to execute command "${command}" with  arguments "${args}" return code ${code}`));
+                    return reject(new Error(`Failed to execute command "${command}" with  arguments "${args.join(', ')}" return code ${code}`));
                 }
                 resolve();
             });

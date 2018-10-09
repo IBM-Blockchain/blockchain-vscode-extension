@@ -122,7 +122,7 @@ describe('CommandUtil Tests', () => {
         it('should send a command and handle error code', async () => {
             const spawnSpy = mySandBox.spy(child_process, 'spawn');
 
-            await CommandUtil.sendCommandWithOutput('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "-c,echo stdout && echo stderr >&2 && false" return code 1`);
+            await CommandUtil.sendCommandWithOutput('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "-c, echo stdout && echo stderr >&2 && false" return code 1`);
             spawnSpy.should.have.been.calledOnce;
             spawnSpy.should.have.been.calledWith('/bin/sh', ['-c', 'echo stdout && echo stderr >&2 && false']);
         });

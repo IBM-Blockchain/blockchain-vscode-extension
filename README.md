@@ -23,10 +23,19 @@ Or visit the [Visual Studio Code Marketplace](https://marketplace.visualstudio.c
 
 You will need the following installed in order to start a local Hyperledger Fabric runtime from within the extension:
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
-
 - [Yeoman (yo) v2.x](http://yeoman.io/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
+
+If you are using Windows, you must also ensure the following:
+- Your version of Windows supports Hyper-V and Docker:
+  - Windows 10 Enterprise, Pro, or Education with 1607 Anniversary Update or later
+- Docker for Windows is configured to use Linux containers (this is the default)
+- You have installed the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
+- You have installed OpenSSL v1.0.2 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
+  - Install the normal version, not the version marked as "light"
+  - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
+  - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
 
 You can check your installed versions by running the following commands from a terminal:
 - `node --version`
@@ -140,10 +149,7 @@ https://hyperledger-fabric.readthedocs.io/en/v1.3.0-rc1/install.html
 
 ## Supported Operating Systems 
 
-Linux and Mac OS are currently the only supported operating systems for use with the extension.
-
-The work to implement Windows support can be tracked in [Issue 72](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/72).
-
+Linux, Mac OS, and Windows are currently the only supported operating systems for use with the extension.
 
 ## Telemetry Reporting
 

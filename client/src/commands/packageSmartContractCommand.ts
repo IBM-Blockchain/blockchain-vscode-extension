@@ -55,7 +55,7 @@ async function createPackageDir(packageDir: string): Promise<void> {
     if (workspaceDir) {
         const dir: string = await getFinalDirectory(packageDir, workspaceDir);
         if (dir) {
-            await createAndPackage(dir, workspaceDir.uri.path);
+            await createAndPackage(dir, workspaceDir.uri.fsPath);
         }
     }
 }
