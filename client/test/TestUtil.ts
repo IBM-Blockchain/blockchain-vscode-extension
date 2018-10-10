@@ -16,6 +16,7 @@
 import { ExtensionUtil } from '../src/util/ExtensionUtil';
 import * as myExtension from '../src/extension';
 import * as vscode from 'vscode';
+import * as fs from 'fs-extra';
 
 export class TestUtil {
     static async setupTests() {
@@ -50,6 +51,16 @@ export class TestUtil {
     static async restoreRuntimesConfig() {
         console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
         await vscode.workspace.getConfiguration().update('fabric.runtimes', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
+    }
+
+    static async deleteTestFiles(deletePath: string) {
+        try {
+            await fs.remove(deletePath);
+        } catch (error) {
+            if (!error.message.contains('ENOENT: no such file or directory')) {
+                throw error;
+            }
+        }
     }
 
     private static USER_PACKAGE_DIR_CONFIG;

@@ -33,7 +33,7 @@ describe('PackageRegistry', () => {
     let errorSpy;
     let infoSpy;
 
-    const TEST_PACKAGE_DIRECTORY = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
 
     before(async () => {
         await TestUtil.setupTests();
@@ -45,7 +45,7 @@ describe('PackageRegistry', () => {
     });
 
     async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
-        const smartContractDir = path.join(TEST_PACKAGE_DIRECTORY, language, dirName);
+        const smartContractDir: string = path.join(TEST_PACKAGE_DIRECTORY, language, dirName);
 
         try {
             await fs.mkdirp(smartContractDir);
@@ -74,28 +74,18 @@ describe('PackageRegistry', () => {
         await fs.stat(`${TEST_PACKAGE_DIRECTORY}/${language}/${name}`);
     }
 
-    async function deleteTestFiles() {
-        try {
-            await fs.remove(TEST_PACKAGE_DIRECTORY);
-        } catch (error) {
-            if (!error.message.contains('ENOENT: no such file or directory')) {
-                throw error;
-            }
-        }
-    }
-
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         rootPath = path.dirname(__dirname);
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
 
-        await deleteTestFiles();
+        await TestUtil.deleteTestFiles(TEST_PACKAGE_DIRECTORY);
     });
 
     afterEach(async () => {
         mySandBox.restore();
-        await deleteTestFiles();
+        await TestUtil.deleteTestFiles(TEST_PACKAGE_DIRECTORY);
     });
 
     it('should create the smart contract package directory if it doesn\'t exist', async () => {

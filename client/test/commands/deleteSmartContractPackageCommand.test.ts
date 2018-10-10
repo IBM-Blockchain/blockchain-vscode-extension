@@ -29,7 +29,7 @@ chai.should();
 chai.use(sinonChai);
 
 describe('DeleteSmartContractPackageCommand', () => {
-    const TEST_PACKAGE_DIRECTORY = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
 
     before(async () => {
         await TestUtil.setupTests();
@@ -76,24 +76,14 @@ describe('DeleteSmartContractPackageCommand', () => {
             await fs.stat(`${TEST_PACKAGE_DIRECTORY}/${language}/${name}`);
         }
 
-        async function deleteTestFiles() {
-            try {
-                await fs.remove(TEST_PACKAGE_DIRECTORY);
-            } catch (error) {
-                if (!error.message.contains('ENOENT: no such file or directory')) {
-                    throw error;
-                }
-            }
-        }
-
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
-            deleteTestFiles();
+            await TestUtil.deleteTestFiles(TEST_PACKAGE_DIRECTORY);
         });
 
         afterEach(async () => {
             mySandBox.restore();
-            await deleteTestFiles();
+            await TestUtil.deleteTestFiles(TEST_PACKAGE_DIRECTORY);
         });
 
         it("should test a 'smart contract package' can be deleted from the command", async () => {
