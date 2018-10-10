@@ -145,8 +145,8 @@ describe('FabricRuntime', () => {
     describe('#start', () => {
 
         it('should execute the start.sh script and handle success for non-development mode (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -158,8 +158,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the start.sh script and handle success for development mode (Linux/MacOS)', async () => {
             runtimeRegistryEntry.developmentMode = true;
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -170,8 +170,8 @@ describe('FabricRuntime', () => {
         });
 
         it('should execute the start.sh script and handle an error (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -181,21 +181,21 @@ describe('FabricRuntime', () => {
         });
 
         it('should execute the start.sh script using a custom output adapter (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
-            const outputAdapter = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.start(outputAdapter);
             outputAdapter.log.should.have.been.calledOnceWith('stdout');
             outputAdapter.error.should.have.been.calledOnceWith('stderr');
         });
 
         it('should publish busy events before and after handling success (Linux/MacOS)', async () => {
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -207,9 +207,9 @@ describe('FabricRuntime', () => {
         });
 
         it('should publish busy events before and after handling an error (Linux/MacOS)', async () => {
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -222,8 +222,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the start.cmd script and handle success for non-development mode (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -236,8 +236,8 @@ describe('FabricRuntime', () => {
         it('should execute the start.cmd script and handle success for development mode (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
             runtimeRegistryEntry.developmentMode = true;
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -249,8 +249,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the start.cmd script and handle an error (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -261,12 +261,12 @@ describe('FabricRuntime', () => {
 
         it('should execute the start.cmd script using a custom output adapter (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
-            const outputAdapter = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.start(outputAdapter);
             outputAdapter.log.should.have.been.calledOnceWith('stdout');
             outputAdapter.error.should.have.been.calledOnceWith('stderr');
@@ -274,9 +274,9 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -289,9 +289,9 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events before and after handling an error (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -307,8 +307,8 @@ describe('FabricRuntime', () => {
     describe('#stop', () => {
 
         it('should execute the stop.sh and teardown.sh scripts and handle success (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -322,8 +322,8 @@ describe('FabricRuntime', () => {
         });
 
         it('should execute the stop.sh and teardown.sh scripts and handle an error from stop.sh (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -336,8 +336,8 @@ describe('FabricRuntime', () => {
         });
 
         it('should execute the stop.sh and teardown.sh scripts and handle an error from teardown.sh (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -351,15 +351,15 @@ describe('FabricRuntime', () => {
         });
 
         it('should execute the stop.sh script using a custom output adapter (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
             spawnStub.withArgs('/bin/sh', [ 'teardown.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
-            const outputAdapter = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.stop(outputAdapter);
             outputAdapter.log.should.have.been.calledTwice;
             outputAdapter.error.should.have.been.calledTwice;
@@ -370,9 +370,9 @@ describe('FabricRuntime', () => {
         });
 
         it('should publish busy events before and after handling success (Linux/MacOS)', async () => {
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -387,9 +387,9 @@ describe('FabricRuntime', () => {
         });
 
         it('should publish busy events before and after handling an error (Linux/MacOS)', async () => {
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -405,8 +405,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the stop.cmd and teardown.cmd scripts and handle success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -421,8 +421,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the stop.cmd and teardown.cmd scripts and handle an error from stop.cmd (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -436,8 +436,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the stop.cmd and teardown.cmd scripts and handle an error from teardown.cmd (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -452,15 +452,15 @@ describe('FabricRuntime', () => {
 
         it('should execute the stop.cmd script using a custom output adapter (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
             spawnStub.withArgs('cmd', [ '/c', 'teardown.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
-            const outputAdapter = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.stop(outputAdapter);
             outputAdapter.log.should.have.been.calledTwice;
             outputAdapter.error.should.have.been.calledTwice;
@@ -472,9 +472,9 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -490,9 +490,9 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events before and after handling an error (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false' ]);
             });
@@ -511,8 +511,8 @@ describe('FabricRuntime', () => {
     describe('#restart', () => {
 
         it('should execute the start.sh, stop.sh and teardown.sh scripts and handle success (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -530,8 +530,8 @@ describe('FabricRuntime', () => {
         });
 
         it('should execute the start.sh, stop.sh and teardown.sh scripts using a custom output adapter (Linux/MacOS)', async () => {
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -541,7 +541,7 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('/bin/sh', [ 'teardown.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
-            const outputAdapter = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
             outputAdapter.log.should.have.been.calledThrice;
             outputAdapter.error.should.have.been.calledThrice;
@@ -554,9 +554,9 @@ describe('FabricRuntime', () => {
         });
 
         it('should publish busy events before and after handling success (Linux/MacOS)', async () => {
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -574,9 +574,9 @@ describe('FabricRuntime', () => {
         });
 
         it('should publish busy events before and after handling an error (Linux/MacOS)', async () => {
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', [ 'start.sh' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -595,8 +595,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the start.cmd, stop.cmd and teardown.cmd scripts and handle success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -615,8 +615,8 @@ describe('FabricRuntime', () => {
 
         it('should execute the start.sh, stop.sh and teardown.sh scripts using a custom output adapter (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -626,7 +626,7 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('cmd', [ '/c', 'teardown.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
-            const outputAdapter = sinon.createStubInstance(TestFabricOutputAdapter);
+            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
             outputAdapter.log.should.have.been.calledThrice;
             outputAdapter.error.should.have.been.calledThrice;
@@ -640,9 +640,9 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });
@@ -661,9 +661,9 @@ describe('FabricRuntime', () => {
 
         it('should publish busy events before and after handling an error (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
-            const eventStub = sinon.stub();
-            const originalSpawn = child_process.spawn;
-            const spawnStub = sandbox.stub(child_process, 'spawn');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const originalSpawn: any = child_process.spawn;
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', [ '/c', 'start.cmd' ], sinon.match.any).callsFake(() => {
                 return originalSpawn('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && true' ]);
             });

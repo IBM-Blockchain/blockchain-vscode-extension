@@ -188,7 +188,7 @@ export class FabricRuntime extends EventEmitter {
         return `fabricvscode${sanitizedName}`;
     }
 
-    private fixHost(host: string) {
+    private fixHost(host: string): string {
         // Windows chokes on 0.0.0.0, so replace it with localhost.
         if (host === '0.0.0.0') {
             return 'localhost';
