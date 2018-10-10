@@ -17,11 +17,7 @@ import * as path from 'path';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export abstract class BlockchainTreeItem extends vscode.TreeItem {
-    // TODO: update the icons
-    iconPath = {
-        light: path.join(__filename, '..', '..', '..', 'client', 'resources', 'light', 'dependency.svg'),
-        dark: path.join(__filename, '..', '..', '..', 'client', 'resources', 'dark', 'dependency.svg')
-    };
+
     contextValue = 'blockchain-tree-item';
 
     constructor(private readonly provider: BlockchainExplorerProvider, public readonly label: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
