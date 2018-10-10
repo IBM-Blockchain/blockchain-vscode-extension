@@ -438,16 +438,16 @@ describe('Commands Utility Function Tests', () => {
         });
     });
 
-    describe('getBasePackageDir', () => {
+    describe('getDirPath', () => {
         it('should replace ~ with the users home directory', async () => {
             const packageDirOriginal: string = '~/smartContractDir';
-            const packageDirNew: string = await UserInputUtil.getBasePackageDir(packageDirOriginal);
+            const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.not.contain('~');
         });
 
         it('should not replace if not ~', async () => {
             const packageDirOriginal: string = '/banana/smartContractDir';
-            const packageDirNew: string = await UserInputUtil.getBasePackageDir(packageDirOriginal);
+            const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.equal(packageDirOriginal);
         });
     });

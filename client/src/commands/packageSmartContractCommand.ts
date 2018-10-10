@@ -32,7 +32,7 @@ export async function packageSmartContract(): Promise<void> {
     }, async (progress) => {
         progress.report({message: `Packaging Smart Contract`});
         try {
-            packageDir = await UserInputUtil.getBasePackageDir(packageDir);
+            packageDir = await UserInputUtil.getDirPath(packageDir);
             await createPackageDir(packageDir);
 
             Reporter.instance().sendTelemetryEvent('packageCommand');

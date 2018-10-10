@@ -403,7 +403,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const error = 'Contract languages not found in package.json';
-        errorSpy.should.have.been.calledWith('Issue determining available smart contract language options:', error);
+        errorSpy.should.have.been.calledWith('Issue determining available smart contract language options: ' + error);
     });
 
     it('should send a telemetry event if the extension is for production', async () => {
