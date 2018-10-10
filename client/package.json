@@ -109,12 +109,12 @@
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
                 },
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.connectEntry",
                 "title": "Connect To A Blockchain",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.disconnectEntry",
@@ -123,7 +123,7 @@
                     "light": "resources/light/back_light.svg",
                     "dark": "resources/dark/back.svg"
                 },
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.addConnectionEntry",
@@ -132,32 +132,32 @@
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.deleteConnectionEntry",
                 "title": "Delete Connection",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.addConnectionIdentityEntry",
                 "title": "Add Identity To Connection",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchain.createSmartContractProjectEntry",
                 "title": "Create Smart Contract Project",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.installSmartContractEntry",
                 "title": "Install Smart Contract",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.instantiateSmartContractEntry",
                 "title": "Instantiate Smart Contract",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainAPackageExplorer.refreshEntry",
@@ -166,7 +166,7 @@
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
                 },
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainAPackageExplorer.packageSmartContractProjectEntry",
@@ -175,32 +175,32 @@
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.startFabricRuntime",
                 "title": "Start Fabric Runtime",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.stopFabricRuntime",
                 "title": "Stop Fabric Runtime",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.restartFabricRuntime",
                 "title": "Restart Fabric Runtime",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
                 "title": "Toggle Development Mode",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
                 "title": "Delete Package",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -392,7 +392,8 @@
             "config/.DS_Store",
             "test/.DS_Store",
             "integrationTest/data",
-            "basic-network"
+            "basic-network",
+            "CHANGELOG.md"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [
