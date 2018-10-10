@@ -87,16 +87,6 @@ describe('packageSmartContract', () => {
         }
     }
 
-    async function deleteTestFiles(deletePath) {
-        try {
-            await fs.remove(deletePath);
-        } catch (error) {
-            if (!error.message.contains('ENOENT: no such file or directory')) {
-                throw error;
-            }
-        }
-    }
-
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storePackageDirectoryConfig();
@@ -110,8 +100,8 @@ describe('packageSmartContract', () => {
     describe('#packageSmartContract', () => {
 
         beforeEach(async () => {
-            await deleteTestFiles(fileDest);
-            await deleteTestFiles(testWorkspace);
+            await TestUtil.deleteTestFiles(fileDest);
+            await TestUtil.deleteTestFiles(testWorkspace);
 
             folders.push(...[
                 {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)},
@@ -130,8 +120,8 @@ describe('packageSmartContract', () => {
         });
 
         afterEach(async () => {
-            await deleteTestFiles(fileDest);
-            await deleteTestFiles(testWorkspace);
+            await TestUtil.deleteTestFiles(fileDest);
+            await TestUtil.deleteTestFiles(testWorkspace);
             mySandBox.restore();
         });
 
@@ -255,7 +245,7 @@ describe('packageSmartContract', () => {
 
             const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
 
-            await deleteTestFiles(path.join(javascriptPath, '/package.json'));
+            await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await fs.writeFile(path.join(javascriptPath, '/package.json'), emptyContent);
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
@@ -278,7 +268,7 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
             const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
-            await deleteTestFiles(path.join(javascriptPath, '/chaincode.js'));
+            await TestUtil.deleteTestFiles(path.join(javascriptPath, '/chaincode.js'));
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
@@ -346,7 +336,7 @@ describe('packageSmartContract', () => {
 
             const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
 
-            await deleteTestFiles(path.join(typescriptPath, '/chaincode.js'));
+            await TestUtil.deleteTestFiles(path.join(typescriptPath, '/chaincode.js'));
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 

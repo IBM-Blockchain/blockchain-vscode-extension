@@ -29,13 +29,14 @@ const should = chai.should();
 // tslint:disable no-unused-expression
 describe('BlockchainPackageExplorer', () => {
     let mySandBox;
-    let rootPath: string;
     let errorSpy;
     let blockchainPackageExplorerProvider;
     let infoSpy;
+    const rootPath: string = path.dirname(__dirname);
+    const testDir: string = path.join(rootPath, '../../test/data/smartContractDir');
 
     async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
-        const smartContractDir = path.join(rootPath, '../../test/data/smartContractDir', language, dirName);
+        const smartContractDir: string = path.join(rootPath, '../../test/data/smartContractDir', language, dirName);
 
         try {
             await fs.mkdirp(smartContractDir);
@@ -60,16 +61,6 @@ describe('BlockchainPackageExplorer', () => {
         }
     }
 
-    async function deleteTestFiles() {
-        try {
-            await fs.remove(path.join(rootPath, '../../test/data/smartContractDir'));
-        } catch (error) {
-            if (!error.message.contains('ENOENT: no such file or directory')) {
-                throw error;
-            }
-        }
-    }
-
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storePackageDirectoryConfig();
@@ -86,17 +77,16 @@ describe('BlockchainPackageExplorer', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        rootPath = path.dirname(__dirname);
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
 
-        await deleteTestFiles();
+        await TestUtil.deleteTestFiles(testDir);
     });
 
     afterEach(async () => {
         mySandBox.restore();
-        await deleteTestFiles();
+        await TestUtil.deleteTestFiles(testDir);
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
