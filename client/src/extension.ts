@@ -70,11 +70,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             registerCommands(context);
         }
 
-        if (process.platform === 'win32') {
-            await ensureLocalFabricDoesNotExist();
-        } else {
-            await ensureLocalFabricExists();
-        }
+        await ensureLocalFabricExists();
 
         ExtensionUtil.setExtensionContext(context);
         outputAdapter.log('extension activated');
@@ -143,14 +139,6 @@ export async function ensureLocalFabricExists(): Promise<void> {
         return;
     }
     await runtimeManager.add('local_fabric');
-}
-
-export async function ensureLocalFabricDoesNotExist(): Promise<void> {
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    if (runtimeManager.exists('local_fabric')) {
-        await runtimeManager.delete('local_fabric');
-    }
-    return;
 }
 
 function disposeExtension(context: vscode.ExtensionContext): void {

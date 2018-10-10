@@ -206,20 +206,16 @@
         "menus": {
             "commandPalette": [
                 {
-                    "command": "blockchainExplorer.startFabricRuntime",
-                    "when": "!isWindows"
+                    "command": "blockchainExplorer.startFabricRuntime"
                 },
                 {
-                    "command": "blockchainExplorer.stopFabricRuntime",
-                    "when": "!isWindows"
+                    "command": "blockchainExplorer.stopFabricRuntime"
                 },
                 {
-                    "command": "blockchainExplorer.restartFabricRuntime",
-                    "when": "!isWindows"
+                    "command": "blockchainExplorer.restartFabricRuntime"
                 },
                 {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "!isWindows"
+                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode"
                 }
             ],
             "view/title": [
