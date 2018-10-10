@@ -51,11 +51,11 @@ export async function packageSmartContract(): Promise<void> {
  * @param {String} packageDir A string containing the path of the directory of packaged smart contracts defined in User Settings.
  */
 async function createPackageDir(packageDir: string): Promise<void> {
-    const workspaceDir: string = await chooseWorkspace();
+    const workspaceDir: vscode.WorkspaceFolder = await chooseWorkspace();
     if (workspaceDir) {
         const dir: string = await getFinalDirectory(packageDir, workspaceDir);
         if (dir) {
-            await createAndPackage(dir, workspaceDir);
+            await createAndPackage(dir, workspaceDir.uri.path);
         }
     }
 }
@@ -65,9 +65,9 @@ async function createPackageDir(packageDir: string): Promise<void> {
  * to have the developer choose which smart contract he wishes to package and get its path. If not, it will automatically get the path of the only smart contract project there is.
  * @returns Returns the path of the workspace to be used in packaging process.
  */
-async function chooseWorkspace(): Promise<string> {
+async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
     let workspaceFolderOptions: Array<vscode.WorkspaceFolder>;
-    let workspaceFolder: string;
+    let workspaceFolder: vscode.WorkspaceFolder;
     try {
         workspaceFolderOptions = await UserInputUtil.getWorkspaceFolders();
     } catch (error) {
@@ -75,13 +75,13 @@ async function chooseWorkspace(): Promise<string> {
         throw new Error(message);
     }
     if (workspaceFolderOptions.length > 1) {
-        const chosenFolder: IBlockchainQuickPickItem<string> = await UserInputUtil.showWorkspaceQuickPickBox('Choose a workspace folder to package');
+        const chosenFolder: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('Choose a workspace folder to package');
         if (!chosenFolder) {
             return;
         }
         workspaceFolder = chosenFolder.data;
     } else {
-        workspaceFolder = workspaceFolderOptions[0].uri.path;
+        workspaceFolder = workspaceFolderOptions[0];
     }
 
     return workspaceFolder;
@@ -94,7 +94,7 @@ async function chooseWorkspace(): Promise<string> {
  * @param {String} workspaceDir Path of the active smart contract to be packaged.
  * @returns {String} Returns the full directory of where the smart contract will be found within the package directory.
  */
-async function getFinalDirectory(packageDir: string, workspaceDir: string): Promise<string> {
+async function getFinalDirectory(packageDir: string, workspaceDir: vscode.WorkspaceFolder): Promise<string> {
     let language: string;
     let properties: any = {};
     language = await getLanguage(workspaceDir);
@@ -103,7 +103,7 @@ async function getFinalDirectory(packageDir: string, workspaceDir: string): Prom
     if (language === '/go/src/') {
         properties = await golangPackageAndVersion();
     } else {
-        properties = await packageJsonNameAndVersion(workspaceDir);
+        properties = await packageJsonNameAndVersion(workspaceDir.uri.path);
     }
 
     if (!properties) {
@@ -136,14 +136,14 @@ async function getFinalDirectory(packageDir: string, workspaceDir: string): Prom
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory.
  */
-async function getLanguage(workspaceDir: string): Promise<string> {
+async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<string> {
     let language: string;
 
-    const jsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles('**/*.js', '**/node_modules/**', 1);
+    const jsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.js'), '**/node_modules/**', 1);
 
-    const tsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles('**/*.ts', '**/node_modules/**', 1);
+    const tsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.ts'), '**/node_modules/**', 1);
 
-    const goFiles: Array<vscode.Uri> = await vscode.workspace.findFiles('**/*.go', '**/node_modules/**', 1);
+    const goFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.go'), '**/node_modules/**', 1);
 
     if (jsFiles.length > 0 && tsFiles.length > 0) {
         language = '/typescript/';
