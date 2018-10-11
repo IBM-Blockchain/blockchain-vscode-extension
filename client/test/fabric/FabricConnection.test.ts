@@ -14,6 +14,7 @@
 
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+import * as path from 'path';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -205,7 +206,7 @@ describe('FabricConnection', () => {
             packageEntry.name = 'my-smart-contract';
             packageEntry.chaincodeLanguage = 'javascript';
             packageEntry.version = '1.0.0';
-            packageEntry.path = 'myPath/mySmartContract';
+            packageEntry.path = path.join('myPath', 'mySmartContract');
 
             await fabricConnection.installChaincode(packageEntry, 'peer1');
             fabricClientStub.installChaincode.should.have.been.calledWith({
@@ -223,7 +224,7 @@ describe('FabricConnection', () => {
             packageEntry.name = 'my-smart-contract';
             packageEntry.chaincodeLanguage = 'typescript';
             packageEntry.version = '1.0.0';
-            packageEntry.path = 'myPath/mySmartContract';
+            packageEntry.path = path.join('myPath', 'mySmartContract');
 
             await fabricConnection.installChaincode(packageEntry, 'peer1');
             fabricClientStub.installChaincode.should.have.been.calledWith({
@@ -241,7 +242,7 @@ describe('FabricConnection', () => {
             packageEntry.name = 'my-smart-contract';
             packageEntry.chaincodeLanguage = 'go';
             packageEntry.version = '1.0.0';
-            packageEntry.path = 'myPath/mySmartContract';
+            packageEntry.path = path.join('myPath', 'mySmartContract');
 
             await fabricConnection.installChaincode(packageEntry, 'peer1');
             fabricClientStub.installChaincode.should.have.been.calledWith({
@@ -261,7 +262,7 @@ describe('FabricConnection', () => {
             packageEntry.name = 'my-smart-contract';
             packageEntry.chaincodeLanguage = 'cake';
             packageEntry.version = '1.0.0';
-            packageEntry.path = 'myPath/mySmartContract';
+            packageEntry.path = path.join('myPath', 'mySmartContract');
 
             await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(`Smart contract language not supported cake`);
         });

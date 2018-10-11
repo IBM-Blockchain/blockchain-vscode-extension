@@ -61,9 +61,11 @@ describe('CommandUtil Tests', () => {
         it('should send a command and get output', async () => {
             const spawnSpy = mySandBox.spy(child_process, 'spawn');
 
-            await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary']);
+            const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
+            const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
+            await CommandUtil.sendCommandWithOutput(cmd, args);
             spawnSpy.should.have.been.calledOnce;
-            spawnSpy.should.have.been.calledWith('echo', ['hyperlegendary']);
+            spawnSpy.should.have.been.calledWith(cmd, args);
             spawnSpy.getCall(0).args[2].shell.should.equal(false);
         });
 
@@ -79,9 +81,11 @@ describe('CommandUtil Tests', () => {
         it('should send a command and get output with cwd set', async () => {
             const spawnSpy = mySandBox.spy(child_process, 'spawn');
 
-            await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary'], ExtensionUtil.getExtensionPath());
+            const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
+            const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
+            await CommandUtil.sendCommandWithOutput(cmd, args, ExtensionUtil.getExtensionPath());
             spawnSpy.should.have.been.calledOnce;
-            spawnSpy.should.have.been.calledWith('echo', ['hyperlegendary']);
+            spawnSpy.should.have.been.calledWith(cmd, args);
             spawnSpy.getCall(0).args[2].cwd.should.equal(ExtensionUtil.getExtensionPath());
         });
 
@@ -92,9 +96,11 @@ describe('CommandUtil Tests', () => {
                 TEST_ENV: 'my env',
             });
 
-            await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary'], null, env);
+            const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
+            const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
+            await CommandUtil.sendCommandWithOutput(cmd, args, null, env);
             spawnSpy.should.have.been.calledOnce;
-            spawnSpy.should.have.been.calledWith('echo', ['hyperlegendary']);
+            spawnSpy.should.have.been.calledWith(cmd, args);
             spawnSpy.getCall(0).args[2].env.TEST_ENV.should.equal('my env');
         });
 
@@ -104,9 +110,11 @@ describe('CommandUtil Tests', () => {
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             const outputSpy = mySandBox.spy(output, 'log');
 
-            await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary'], null, null, output);
+            const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
+            const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
+            await CommandUtil.sendCommandWithOutput(cmd, args, null, null, output, true);
             spawnSpy.should.have.been.calledOnce;
-            spawnSpy.should.have.been.calledWith('echo', ['hyperlegendary']);
+            spawnSpy.should.have.been.calledWith(cmd, args);
 
             outputSpy.should.have.been.calledWith('hyperlegendary');
         });
@@ -121,10 +129,15 @@ describe('CommandUtil Tests', () => {
 
         it('should send a command and handle error code', async () => {
             const spawnSpy = mySandBox.spy(child_process, 'spawn');
-
-            await CommandUtil.sendCommandWithOutput('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "-c, echo stdout && echo stderr >&2 && false" return code 1`);
-            spawnSpy.should.have.been.calledOnce;
-            spawnSpy.should.have.been.calledWith('/bin/sh', ['-c', 'echo stdout && echo stderr >&2 && false']);
+            if (process.platform === 'win32') {
+                await CommandUtil.sendCommandWithOutput('cmd', [ '/c', 'echo stdout && echo stderr >&2 && exit 1']).should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, echo stdout && echo stderr >&2 && exit 1" return code 1`);
+                spawnSpy.should.have.been.calledOnce;
+                spawnSpy.should.have.been.calledWith('cmd', ['/c', 'echo stdout && echo stderr >&2 && exit 1']);
+            } else {
+                await CommandUtil.sendCommandWithOutput('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "-c, echo stdout && echo stderr >&2 && false" return code 1`);
+                spawnSpy.should.have.been.calledOnce;
+                spawnSpy.should.have.been.calledWith('/bin/sh', ['-c', 'echo stdout && echo stderr >&2 && false']);
+            }
         });
     });
 });

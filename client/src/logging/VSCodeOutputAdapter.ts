@@ -24,7 +24,7 @@ export class VSCodeOutputAdapter implements OutputAdapter {
     private static _instance: VSCodeOutputAdapter = new VSCodeOutputAdapter();
 
     private outputChannel: vscode.OutputChannel;
-    private console: boolean = false;
+    private console: boolean = !!process.env.BLOCKCHAIN_VSCODE_CONSOLE_OUTPUT;
 
     private constructor() {
         this.outputChannel = vscode.window.createOutputChannel('Blockchain');
