@@ -58,7 +58,7 @@ export class DependencyManager {
     }
 
     private loadDependencies() {
-        const os: string = process.platform;
+        const os: string = `${process.platform}-${process.arch}`;
         const packageJSON: any = ExtensionUtil.getPackageJSON();
 
         this.dependencies = [];
