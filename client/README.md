@@ -76,7 +76,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-![Edit smart contract files](client/media/2_edit:write_smart_contract_files.png)
+![Edit smart contract files](./media/2_edit:write_smart_contract_files.png)
 <!---Link to docs with further instructions
 --->
 
