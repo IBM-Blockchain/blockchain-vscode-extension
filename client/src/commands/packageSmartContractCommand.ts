@@ -103,7 +103,7 @@ async function getFinalDirectory(packageDir: string, workspaceDir: vscode.Worksp
     if (language === '/go/src/') {
         properties = await golangPackageAndVersion();
     } else {
-        properties = await packageJsonNameAndVersion(workspaceDir.uri.path);
+        properties = await packageJsonNameAndVersion(workspaceDir.uri.fsPath);
     }
 
     if (!properties) {
