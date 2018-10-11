@@ -44,7 +44,7 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   npm run productionFlag
 
   # We now need to do any VS Code publishing config here
-  vsce publish -p ${VSCETOKEN}
+  node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}
 
   # Once all the VS Code publishing is done, we can bump the version on GitHub
 
@@ -56,7 +56,7 @@ if [ "${TRAVIS_TAG}" != "" ]; then
 
   git config user.name "${GH_USER_NAME}"
   git config user.email "${GH_USER_EMAIL}"
-  git checkout -b master
+  git checkout -b master -f
   git reset --hard
   git clean -d -f
 
