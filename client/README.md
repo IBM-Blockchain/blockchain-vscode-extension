@@ -68,7 +68,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-![Start a new Fabric smart contract project](client/media/1_create_a_fabric_smart_contract_project.gif)
+![Start a new Fabric smart contract project](./media/1_create_a_fabric_smart_contract_project.gif)
 <!---Link to docs with further instructions
 --->
 
@@ -76,13 +76,13 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-![Edit smart contract files](blockchain-vscode-extension/client/media/2_edit:write_smart_contract_files.png)
+![Edit smart contract files](./media/2_edit:write_smart_contract_files.png)
 <!---Link to docs with further instructions
 --->
 
 ### Package a smart contract project
 
-![Create a package from a smart contract project](client/media/3_package_a_smart_contract_project.png)
+![Create a package from a smart contract project](./media/3_package_a_smart_contract_project.png)
 
 <!---Short explanation with code-blocks
 --->
@@ -97,7 +97,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 --->
 ### Connect to local_fabric runtime
 
-![Connect to local_fabric runtime](client/media/4_connect_to_a_local_fabric_runtime.gif)
+![Connect to local_fabric runtime](./media/4_connect_to_a_local_fabric_runtime.gif)
 
 <!---Short explanation with code-blocks
 --->
@@ -109,21 +109,21 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-![Connect to the network and discover the existing resources](client/media/5_connect_to_a_specified_fabric_runtime.png)
+![Connect to the network and discover the existing resources](./media/5_connect_to_a_specified_fabric_runtime.png)
 <!---Link to docs with further instructions
 --->
 
 ### Install smart contract package
 <!---Short explanation with code-blocks
 --->
-![Install smart contract](client/media/6_install_smart_contract_package.png)
+![Install smart contract](./media/6_install_smart_contract_package.png)
 <!---Link to docs with further instructions
 --->
 
 ### Instantiate smart contract package
 <!---Short explanation with code-blocks
 --->
-![Instantiate smart contract](client/media/7_instantiate_smart_contract_package.gif)
+![Instantiate smart contract](./media/7_instantiate_smart_contract_package.gif)
 
 ## Connecting to your own Hyperledger Fabric instance
 
