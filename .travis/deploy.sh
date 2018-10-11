@@ -52,8 +52,8 @@ if [ "${TRAVIS_TAG}" != "" ]; then
 
   # Configure the Git repository and clean any untracked and unignored build files.
   npm install -g @alrra/travis-scripts
-  set-up-ssh --key "$encrypted_43285c67a7b0_key" \
-                             --iv "$encrypted_43285c67a7b0_iv" \
+  set-up-ssh --key "$encrypted_5b28f499092f_key" \
+                             --iv "$encrypted_5b28f499092f_iv" \
                              --path-encrypted-key "../.travis/github_deploy_key.enc"
 
   git config user.name "${GH_USER_NAME}"
