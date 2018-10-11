@@ -83,7 +83,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
-<img src="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/client/media/edit_write_files.png" width="85%" alt="Edit smart contract files">
+<img src="https://github.com/niv23/blockchain-vscode-extension/blob/README-updates/client/media/2_edit:write_smart_contract_files.png" width="85%" alt="Edit smart contract files">
 <!---Link to docs with further instructions
 --->
 
