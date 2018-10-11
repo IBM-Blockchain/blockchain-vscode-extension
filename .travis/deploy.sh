@@ -14,7 +14,7 @@
 
 #-- script to auto publish plugin to VSCode marketplace
 # Exit on first error, print all commands.
-set -ev
+set -ex
 set -o pipefail
 
 if [ "${TASK}" != "systest" ]; then
@@ -43,6 +43,8 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   # We will also need to trigger the production flag change.
   npm run productionFlag
 
+  npm run package
+
   # We now need to do any VS Code publishing config here
   node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}
 
@@ -56,8 +58,8 @@ if [ "${TRAVIS_TAG}" != "" ]; then
 
   git config user.name "${GH_USER_NAME}"
   git config user.email "${GH_USER_EMAIL}"
-  git checkout -b master -f
   git reset --hard
+  git checkout -b master -f
   git clean -d -f
 
   npm install semver
