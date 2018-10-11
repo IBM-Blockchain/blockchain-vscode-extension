@@ -145,7 +145,7 @@ Using this extension, you can connect to a pre-configured local instance of Hype
 
 If you want to start and connect to your own Hyperledger Fabric instance, ensure that you are using Hyperledger Fabric v1.3.0 or later by following the Fabric documentation here:
 
-https://hyperledger-fabric.readthedocs.io/en/v1.3.0-rc1/install.html
+https://hyperledger-fabric.readthedocs.io/en/release-1.3/install.html
 
 ## Supported Operating Systems 
 
