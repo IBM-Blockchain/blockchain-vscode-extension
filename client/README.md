@@ -68,6 +68,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
+
 ![Start a new Fabric smart contract project](client/media/start_new_project_small.gif)
 <!---Link to docs with further instructions
 --->
@@ -76,6 +77,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 <!---Short explanation with code-blocks
 --->
 
+
 ![Edit smart contract files](client/media/edit_write_files.png)
 <!---Link to docs with further instructions
 --->
@@ -83,6 +85,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 ### Package a smart contract project
 
 ![Create a package from a smart contract project](client/media/package_project.png)
+
 
 <!---Short explanation with code-blocks
 --->
@@ -116,6 +119,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 ### Install smart contract package
 <!---Short explanation with code-blocks
 --->
+
 ![Install smart contract](client/media/install_smart_contract.png)
 <!---Link to docs with further instructions
 --->
@@ -123,6 +127,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 ### Instantiate smart contract package
 <!---Short explanation with code-blocks
 --->
+
 ![Instantiate smart contract](client/media/instantiate_small.gif)
 
 ## Connecting to your own Hyperledger Fabric instance
