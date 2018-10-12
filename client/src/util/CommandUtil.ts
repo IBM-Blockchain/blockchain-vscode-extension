@@ -56,11 +56,11 @@ export class CommandUtil {
         const child: child_process.ChildProcess = child_process.spawn(command, args, options);
         child.stdout.on('data', (data) => {
             const str = stripAnsi(data.toString());
-            str.replace(/\n$/, '').split('\n').forEach((line) => outputAdapter.log(`${line}`));
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line) => outputAdapter.log(`${line}`));
         });
         child.stderr.on('data', (data) => {
             const str = stripAnsi(data.toString());
-            str.replace(/\n$/, '').split('\n').forEach((line) => outputAdapter.error(`${line}`));
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line) => outputAdapter.error(`${line}`));
         });
         return new Promise<void>((resolve, reject) => {
             child.on('error', reject);

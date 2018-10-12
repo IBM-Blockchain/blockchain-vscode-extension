@@ -116,22 +116,17 @@ export async function createSmartContractProject(): Promise<void> {
         await env.lookup();
 
         // tslint:disable-next-line
-        let runOptions: any = {
-            destination: folderPath,
-            language: smartContractLanguage,
-            name: folderName,
-            version: '0.0.1',
-            description: 'My Smart Contract',
-            author: 'John Doe',
-            license: 'Apache-2.0'
-        };
-
         const packageJson: any = ExtensionUtil.getPackageJSON();
-
-        if (packageJson.production === false) {
-            runOptions['skip-install'] = true;
-
-        }
+        const runOptions: any = {
+            'destination': folderPath,
+            'language': smartContractLanguage,
+            'name': folderName,
+            'version': '0.0.1',
+            'description': 'My Smart Contract',
+            'author': 'John Doe',
+            'license': 'Apache-2.0',
+            'skip-install': !packageJson.production
+        };
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,

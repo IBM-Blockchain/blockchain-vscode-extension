@@ -76,17 +76,18 @@ describe('DependencyManager Tests', () => {
             mySandBox.restore();
         });
 
-        it('should install the dependencies', async () => {
-            const removeStub = mySandBox.stub(fs, 'remove').resolves();
-            const renameStub = mySandBox.stub(fs, 'rename').resolves();
-            const writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
-            const utimesFileStub = mySandBox.stub(fs, 'utimes').resolves();
+        it('should install the dependencies using npm command on Linux/MacOS', async () => {
+            mySandBox.stub(process, 'platform').value('linux');
+            const removeStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
+            const renameStub: sinon.SinonStub = mySandBox.stub(fs, 'rename').resolves();
+            const writeFileStub: sinon.SinonStub = mySandBox.stub(fs, 'writeFile').resolves();
+            const utimesFileStub: sinon.SinonStub = mySandBox.stub(fs, 'utimes').resolves();
 
-            const tempCommandCreateCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
-            const tempCommandRegistryStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
+            const tempCommandCreateCommandsStub: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
+            const tempCommandRegistryStub: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
 
-            const sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
-            const dependencyManager = DependencyManager.instance();
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
 
             await dependencyManager.installNativeDependencies();
 
@@ -107,16 +108,16 @@ describe('DependencyManager Tests', () => {
         it('should install the dependencies using npm.cmd script on Windows', async () => {
             mySandBox.stub(process, 'platform').value('win32');
 
-            const removeStub = mySandBox.stub(fs, 'remove').resolves();
-            const renameStub = mySandBox.stub(fs, 'rename').resolves();
-            const writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
-            const utimesFileStub = mySandBox.stub(fs, 'utimes').resolves();
+            const removeStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
+            const renameStub: sinon.SinonStub = mySandBox.stub(fs, 'rename').resolves();
+            const writeFileStub: sinon.SinonStub = mySandBox.stub(fs, 'writeFile').resolves();
+            const utimesFileStub: sinon.SinonStub = mySandBox.stub(fs, 'utimes').resolves();
 
-            const tempCommandCreateCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
-            const tempCommandRegistryStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
+            const tempCommandCreateCommandsStub: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
+            const tempCommandRegistryStub: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
 
-            const sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
-            const dependencyManager = DependencyManager.instance();
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
 
             await dependencyManager.installNativeDependencies();
 

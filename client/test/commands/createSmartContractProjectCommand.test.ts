@@ -44,7 +44,7 @@ describe('CreateSmartContractProjectCommand', () => {
     let executeCommandStub: sinon.SinonStub;
     let uri: vscode.Uri;
     let uriArr: Array<vscode.Uri>;
-    const USER_TEST_DATA = path.join(path.dirname(__dirname), '../../test/data');
+    const USER_TEST_DATA: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data');
 
     before(async () => {
         await TestUtil.setupTests();
@@ -384,7 +384,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(0).resolves();
 
         sendCommandStub.onCall(1).resolves('0.0.7');
-        const wrongPath = path.join(path.dirname(__dirname), '../../test/data/nonexistent');
+        const wrongPath: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'nonexistent');
         sendCommandStub.onCall(2).resolves(wrongPath);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
@@ -407,8 +407,10 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should send a telemetry event if the extension is for production', async () => {
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
-        const reporterSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+        const getPackageJSONStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
+        getPackageJSONStub.onFirstCall().returns({production: false}); // To disable npm install!
+        getPackageJSONStub.onSecondCall().returns({production: true}); // For the reporter!
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         sendCommandStub.restore();
 
@@ -416,18 +418,29 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        reporterSpy.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
+        reporterStub.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
     }).timeout(40000);
+
+    it('should find the generator-fabric package.json in the correct path on Linux/MacOS', async () => {
+        sendCommandStub.resolves('0.0.0');
+        sendCommandStub.withArgs('npm view generator-fabric version').resolves('0.0.0');
+        sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
+        mySandBox.stub(process, 'platform').value('darwin');
+        const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        readJsonStub.should.always.have.been.calledWith(path.join('PREFIX', 'lib', 'node_modules', 'generator-fabric', 'package.json'));
+    });
 
     it('should find the generator-fabric package.json in the correct path on Windows', async () => {
         sendCommandStub.resolves('0.0.0');
         sendCommandStub.withArgs('npm view generator-fabric version').resolves('0.0.0');
         sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
         mySandBox.stub(process, 'platform').value('win32');
-        const readJsonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
+        const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        readJsonStub.should.always.have.been.calledWith('PREFIX/node_modules/generator-fabric/package.json');
+        readJsonStub.should.always.have.been.calledWith(path.join('PREFIX', 'node_modules', 'generator-fabric', 'package.json'));
     });
 
 }); // end of createFabricCommand tests
