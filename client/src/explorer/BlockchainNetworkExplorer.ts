@@ -111,7 +111,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                     this.tree.push(new PeersTreeItem(this, 'Peers', channelElement.peers));
 
                     if (channelElement.chaincodes.length > 0) {
-                        this.tree.push(new InstantiatedChainCodesTreeItem(this, 'Instantiated Smart Contracts', element.chaincodes));
+                        this.tree.push(new InstantiatedChainCodesTreeItem(this, 'Instantiated Smart Contracts', element.chaincodes, channelElement));
                     }
                 }
 
@@ -172,9 +172,10 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     private async createInstantiatedChaincodeTree(instantiatedChainCodesElement: InstantiatedChainCodesTreeItem): Promise<Array<ChainCodeTreeItem>> {
         console.log('createInstantiatedChaincodeTree', instantiatedChainCodesElement);
         const tree: Array<ChainCodeTreeItem> = [];
+        const channel: ChannelTreeItem = instantiatedChainCodesElement.channel;
 
         instantiatedChainCodesElement.chaincodes.forEach((instantiatedChaincode) => {
-            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name + '@' + instantiatedChaincode.version));
+            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name + '@' + instantiatedChaincode.version, channel));
         });
 
         return tree;
