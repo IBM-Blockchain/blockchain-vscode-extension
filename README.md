@@ -105,7 +105,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 --->
 ### Connect to local_fabric runtime
 
-<img src="/client/media/connect_to_local_fabric_runtime_small.gif" width="90%" alt="Connect to local_fabric runtime" width="85%" alt="Connect to local_fabric runtime">
+<img src="/client/media/connect_to_local_fabric_runtime_small.gif" width="85%" alt="Connect to local_fabric runtime">
 
 <!---Short explanation with code-blocks
 --->
