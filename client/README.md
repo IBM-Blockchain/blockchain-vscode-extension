@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension for VSCode
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Build Status](https://api.travis-ci.org/IBM-Blockchain/blockchain-vscode-extension.svg?branch=master)](https://api.travis-ci.org/IBM-Blockchain/blockchain-vscode-extension)
+[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Build Status](https://travis-ci.org/IBM-Blockchain/blockchain-vscode-extension.svg?branch=master)](https://travis-ci.org/IBM-Blockchain/blockchain-vscode-extension) [![Build status](https://ci.appveyor.com/api/projects/status/pvipa2bkvl4ilita?svg=true)](https://ci.appveyor.com/project/sstone1/blockchain-vscode-extension-gi6xr)
 
 <!---Installing instructions
 --->
