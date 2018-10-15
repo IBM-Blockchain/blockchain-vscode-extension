@@ -15,11 +15,12 @@
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { ChannelTreeItem } from './ChannelTreeItem';
 
 export class InstantiatedChainCodesTreeItem extends BlockchainTreeItem {
     contextValue = 'blockchain-instantiated-chaincodes-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly chaincodes: Array<any>) {
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly chaincodes: Array<any>, public readonly channel: ChannelTreeItem) {
         super(provider, label, vscode.TreeItemCollapsibleState.Collapsed);
     }
 }
