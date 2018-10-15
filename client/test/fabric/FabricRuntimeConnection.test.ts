@@ -37,10 +37,18 @@ describe('FabricRuntimeConnection', () => {
 
     let gatewayStub;
 
+    let rootPath: string;
+
+    const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
+    const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
+    const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
+    const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'msp/signcerts/Admin@org1.example.com-cert.pem');
+    const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
+
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
-        const rootPath = path.dirname(__dirname);
+        rootPath = path.dirname(__dirname);
 
         fabricRuntimeStub = sinon.createStubInstance(FabricRuntime);
         fabricRuntimeStub.getConnectionProfile.resolves({
@@ -100,6 +108,9 @@ describe('FabricRuntimeConnection', () => {
         });
         fabricRuntimeStub.getCertificate.resolves('-----BEGIN CERTIFICATE-----\nMIICGDCCAb+gAwIBAgIQFSxnLAGsu04zrFkAEwzn6zAKBggqhkjOPQQDAjBzMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu\nb3JnMS5leGFtcGxlLmNvbTAeFw0xNzA4MzEwOTE0MzJaFw0yNzA4MjkwOTE0MzJa\nMFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEV1dfmKxsFKWo7o6DNBIaIVebCCPAM9C/\nsLBt4pJRre9pWE987DjXZoZ3glc4+DoPMtTmBRqbPVwYcUvpbYY8p6NNMEswDgYD\nVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgQjmqDc122u64\nugzacBhR0UUE0xqtGy3d26xqVzZeSXwwCgYIKoZIzj0EAwIDRwAwRAIgXMy26AEU\n/GUMPfCMs/nQjQME1ZxBHAYZtKEuRR361JsCIEg9BOZdIoioRivJC+ZUzvJUnkXu\no2HkWiuxLsibGxtE\n-----END CERTIFICATE-----\n');
         fabricRuntimeStub.getPrivateKey.resolves('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
+        fabricRuntimeStub.getConnectionProfilePath.callThrough();
+        fabricRuntimeStub.getCertificatePath.callThrough();
+        fabricRuntimeStub.getPrivateKeyPath.callThrough();
 
         fabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection((fabricRuntimeStub as any) as FabricRuntime) as FabricRuntimeConnection;
 
@@ -127,6 +138,15 @@ describe('FabricRuntimeConnection', () => {
             should.exist(FabricConnectionFactory['runtimeConnection']);
             await fabricRuntimeConnection.connect();
             gatewayStub.connect.should.have.been.called;
+        });
+    });
+    describe('getConnectionDetails', () => {
+        it('should return connection details information for a runtime connection', async () => {
+            await fabricRuntimeConnection.connect();
+            const connectionDetails: any = fabricRuntimeConnection.getConnectionDetails();
+            connectionDetails.connectionProfilePath.should.equal(basicNetworkConnectionProfilePath);
+            connectionDetails.certificatePath.should.equal(basicNetworkAdminCertificatePath);
+            connectionDetails.privateKeyPath.should.equal(basicNetworkAdminPrivateKeyPath);
         });
     });
 
