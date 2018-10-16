@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import Dockerode = require('dockerode');
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
@@ -21,6 +20,7 @@ import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import { EventEmitter } from 'events';
+import { Docker, ContainerPorts } from '../docker/Docker';
 
 const basicNetworkPath = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath = path.resolve(basicNetworkPath, 'connection.json');
@@ -31,24 +31,17 @@ const basicNetworkAdminCertificate = fs.readFileSync(basicNetworkAdminCertificat
 const basicNetworkAdminPrivateKeyPath = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
 const basicNetworkAdminPrivateKey = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
 
-interface ContainerPorts {
-    [portAndProtocol: string]: Array<{
-      HostIp: string;
-      HostPort: string;
-    }>;
-  }
-
 export class FabricRuntime extends EventEmitter {
 
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
-    private docker: Dockerode;
+    private docker: Docker;
     private name: string;
     private busy: boolean = false;
 
     constructor(private runtimeRegistryEntry: FabricRuntimeRegistryEntry) {
         super();
         this.name = runtimeRegistryEntry.name;
-        this.docker = new Dockerode();
+        this.docker = new Docker(this.name);
     }
 
     public getName(): string {
@@ -88,18 +81,18 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async getConnectionProfile(): Promise<object> {
-        const containerPrefix: string = this.getContainerPrefix();
+        const containerPrefix: string = this.docker.getContainerPrefix();
         const connectionProfile: any = basicNetworkConnectionProfile;
-        const peerPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_peer0.org1.example.com_1`);
-        const peerRequestHost: string = this.fixHost(peerPorts['7051/tcp'][0].HostIp);
+        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com_1`);
+        const peerRequestHost: string = Docker.fixHost(peerPorts['7051/tcp'][0].HostIp);
         const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
-        const peerEventHost: string = this.fixHost(peerPorts['7053/tcp'][0].HostIp);
+        const peerEventHost: string = Docker.fixHost(peerPorts['7053/tcp'][0].HostIp);
         const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
-        const ordererPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_orderer.example.com_1`);
-        const ordererHost: string = this.fixHost(ordererPorts['7050/tcp'][0].HostIp);
+        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com_1`);
+        const ordererHost: string = Docker.fixHost(ordererPorts['7050/tcp'][0].HostIp);
         const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
-        const caPorts: ContainerPorts = await this.getContainerPorts(`${containerPrefix}_ca.example.com_1`);
-        const caHost: string = this.fixHost(caPorts['7054/tcp'][0].HostIp);
+        const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com_1`);
+        const caHost: string = Docker.fixHost(caPorts['7054/tcp'][0].HostIp);
         const caPort: string = caPorts['7054/tcp'][0].HostPort;
         connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
         connectionProfile.peers['peer0.org1.example.com'].eventUrl = `grpc://${peerEventHost}:${peerEventPort}`;
@@ -117,11 +110,11 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async isRunning(): Promise<boolean> {
-        const containerPrefix: string = this.getContainerPrefix();
+        const containerPrefix: string = this.docker.getContainerPrefix();
         const running: boolean[] = await Promise.all([
-            this.isContainerRunning(`${containerPrefix}_peer0.org1.example.com_1`),
-            this.isContainerRunning(`${containerPrefix}_orderer.example.com_1`),
-            this.isContainerRunning(`${containerPrefix}_ca.example.com_1`)
+            this.docker.isContainerRunning(`${containerPrefix}_peer0.org1.example.com_1`),
+            this.docker.isContainerRunning(`${containerPrefix}_orderer.example.com_1`),
+            this.docker.isContainerRunning(`${containerPrefix}_ca.example.com_1`)
         ]);
         return !running.some((value: boolean) => value === false);
     }
@@ -155,45 +148,14 @@ export class FabricRuntime extends EventEmitter {
         }
 
         const env: any = Object.assign({}, process.env, {
-            COMPOSE_PROJECT_NAME: this.getContainerPrefix(),
+            COMPOSE_PROJECT_NAME: this.docker.getContainerPrefix(),
             CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net'
         });
 
         if (process.platform === 'win32') {
-            await CommandUtil.sendCommandWithOutput('cmd', [ '/c', `${script}.cmd` ], basicNetworkPath, env, outputAdapter);
+            await CommandUtil.sendCommandWithOutput('cmd', ['/c', `${script}.cmd`], basicNetworkPath, env, outputAdapter);
         } else {
-            await CommandUtil.sendCommandWithOutput('/bin/sh', [ `${script}.sh` ], basicNetworkPath, env, outputAdapter);
+            await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`], basicNetworkPath, env, outputAdapter);
         }
     }
-
-    private async getContainerPorts(containerID: string): Promise<ContainerPorts> {
-        const container: Dockerode.Container = this.docker.getContainer(containerID);
-        const info: Dockerode.ContainerInspectInfo = await container.inspect();
-        return info.NetworkSettings.Ports;
-    }
-
-    private async isContainerRunning(containerID: string): Promise<boolean> {
-        try {
-            const container: Dockerode.Container = this.docker.getContainer(containerID);
-            const info: Dockerode.ContainerInspectInfo = await container.inspect();
-            return info.State.Running;
-        } catch (error) {
-            return false;
-        }
-    }
-
-    private getContainerPrefix(): string {
-        // Docker on Linux only supports basic characters for the project name.
-        const sanitizedName: string = this.name.replace(/[^A-Za-z0-9]/, '');
-        return `fabricvscode${sanitizedName}`;
-    }
-
-    private fixHost(host: string): string {
-        // Windows chokes on 0.0.0.0, so replace it with localhost.
-        if (host === '0.0.0.0') {
-            return 'localhost';
-        }
-        return host;
-    }
-
 }
