@@ -233,55 +233,56 @@ describe('userInputUtil', () => {
             });
         });
 
-        describe('showFolderOptions', () => {
-            it('should show add to workspace in quickpick box', async () => {
-                quickPickStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
-                const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
-                result.should.equal(UserInputUtil.ADD_TO_WORKSPACE);
+    });
 
-                quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Choose how to open the project'
-                });
-            });
+    describe('showFolderOptions', () => {
+        it('should show add to workspace in quickpick box', async () => {
+            quickPickStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
+            result.should.equal(UserInputUtil.ADD_TO_WORKSPACE);
 
-            it('should show open in current window in quickpick box', async () => {
-                quickPickStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-                const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
-                result.should.equal(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-
-                quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Choose how to open the project'
-                });
-            });
-
-            it('should show open in new window in quickpick box', async () => {
-                quickPickStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-                const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
-                result.should.equal(UserInputUtil.OPEN_IN_NEW_WINDOW);
-
-                quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Choose how to open the project'
-                });
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose how to open the project'
             });
         });
 
-        describe('showPeerQuickPickBox', () => {
-            it('should show the peer names', async () => {
-                quickPickStub.resolves('myPeerOne');
-                const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
-                result.should.equal('myPeerOne');
-            });
+        it('should show open in current window in quickpick box', async () => {
+            quickPickStub.resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+            const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
+            result.should.equal(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
-            it('should handle no connection', async () => {
-                getConnectionStub.returns(null);
-                await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(`No connection to a blockchain found`);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose how to open the project'
             });
+        });
+
+        it('should show open in new window in quickpick box', async () => {
+            quickPickStub.resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+            const result: string = await UserInputUtil.showFolderOptions('Choose how to open the project');
+            result.should.equal(UserInputUtil.OPEN_IN_NEW_WINDOW);
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose how to open the project'
+            });
+        });
+    });
+
+    describe('showPeerQuickPickBox', () => {
+        it('should show the peer names', async () => {
+            quickPickStub.resolves('myPeerOne');
+            const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
+            result.should.equal('myPeerOne');
+        });
+
+        it('should handle no connection', async () => {
+            getConnectionStub.returns(null);
+            await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(`No connection to a blockchain found`);
         });
     });
 
@@ -616,4 +617,25 @@ describe('userInputUtil', () => {
             errorStub.should.have.been.calledWith('error opening file');
         });
     });
+
+    describe('showConfirmationWarningMessage', () => {
+        it('should return true if the user clicks yes', async () => {
+            const warningStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showWarningMessage').resolves({ title: 'Yes' });
+            await UserInputUtil.showConfirmationWarningMessage('hello world').should.eventually.be.true;
+            warningStub.should.have.been.calledWithExactly('hello world', { title: 'Yes' }, { title: 'No' });
+        });
+
+        it('should return true if the user clicks no', async () => {
+            const warningStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showWarningMessage').resolves({ title: 'No' });
+            await UserInputUtil.showConfirmationWarningMessage('hello world').should.eventually.be.false;
+            warningStub.should.have.been.calledWithExactly('hello world', { title: 'Yes' }, { title: 'No' });
+        });
+
+        it('should return true if the user dismisses the message', async () => {
+            const warningStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showWarningMessage').resolves();
+            await UserInputUtil.showConfirmationWarningMessage('hello world').should.eventually.be.false;
+            warningStub.should.have.been.calledWithExactly('hello world', { title: 'Yes' }, { title: 'No' });
+        });
+    });
+
 });

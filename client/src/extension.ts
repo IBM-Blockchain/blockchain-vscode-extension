@@ -44,6 +44,7 @@ import { ChannelTreeItem } from './explorer/model/ChannelTreeItem';
 import { instantiateSmartContract} from './commands/instantiateCommand';
 import { editConnectionCommand} from './commands/editConnectionCommand';
 import { ConnectionPropertyTreeItem } from './explorer/model/ConnectionPropertyTreeItem';
+import { teardownFabricRuntime } from './commands/teardownFabricRuntime';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -115,6 +116,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.startFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => startFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.stopFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.restartFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.teardownFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => teardownFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', (runtimeTreeItem?: RuntimeTreeItem) => toggleFabricRuntimeDevMode(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.installSmartContractEntry', (peerTreeItem?: PeerTreeItem) => installSmartContract(peerTreeItem)));

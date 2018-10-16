@@ -52,6 +52,16 @@ export class Docker {
         return info.NetworkSettings.Ports;
     }
 
+    public async doesVolumeExist(volumeID: string): Promise<boolean> {
+        try {
+            const volume: Dockerode.Volume = this.docker.getVolume(volumeID);
+            await volume.inspect();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
     public async isContainerRunning(containerID: string): Promise<boolean> {
         try {
             const container: Dockerode.Container = this.docker.getContainer(containerID);

@@ -70,6 +70,15 @@ export class FabricRuntime extends EventEmitter {
         }
     }
 
+    public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
+        try {
+            this.setBusy(true);
+            await this.teardownInner(outputAdapter);
+        } finally {
+            this.setBusy(false);
+        }
+    }
+
     public async restart(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
@@ -121,12 +130,24 @@ export class FabricRuntime extends EventEmitter {
         return basicNetworkAdminPrivateKeyPath;
     }
 
+    public async isCreated(): Promise<boolean> {
+        const containerPrefix: string = this.docker.getContainerPrefix();
+        const created: boolean[] = await Promise.all([
+            this.docker.doesVolumeExist(`${containerPrefix}_peer0.org1.example.com`),
+            this.docker.doesVolumeExist(`${containerPrefix}_orderer.example.com`),
+            this.docker.doesVolumeExist(`${containerPrefix}_ca.example.com`),
+            this.docker.doesVolumeExist(`${containerPrefix}_couchdb`),
+        ]);
+        return created.some((value: boolean) => value === true);
+    }
+
     public async isRunning(): Promise<boolean> {
         const containerPrefix: string = this.docker.getContainerPrefix();
         const running: boolean[] = await Promise.all([
             this.docker.isContainerRunning(`${containerPrefix}_peer0.org1.example.com_1`),
             this.docker.isContainerRunning(`${containerPrefix}_orderer.example.com_1`),
-            this.docker.isContainerRunning(`${containerPrefix}_ca.example.com_1`)
+            this.docker.isContainerRunning(`${containerPrefix}_ca.example.com_1`),
+            this.docker.isContainerRunning(`${containerPrefix}_couchdb_1`)
         ]);
         return !running.some((value: boolean) => value === false);
     }
@@ -151,6 +172,9 @@ export class FabricRuntime extends EventEmitter {
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('stop', outputAdapter);
+    }
+
+    private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('teardown', outputAdapter);
     }
 
@@ -170,4 +194,5 @@ export class FabricRuntime extends EventEmitter {
             await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`], basicNetworkPath, env, outputAdapter);
         }
     }
+
 }

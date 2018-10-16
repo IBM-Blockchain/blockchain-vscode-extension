@@ -81,7 +81,30 @@ describe('RuntimeTreeItem', () => {
 
     describe('#constructor', () => {
 
+        it('should have the right properties for a runtime that is not created', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(false);
+            sandbox.stub(runtime, 'isBusy').returns(false);
+            sandbox.stub(runtime, 'isRunning').resolves(false);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
+                name: 'myRuntime',
+                managedRuntime: true,
+                connectionProfilePath: 'myPath',
+                identities: [{certificatePath: 'myCert', privateKeyPath: 'myKey'}]
+            }), vscode.TreeItemCollapsibleState.None);
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+            treeItem.label.should.equal('myRuntime  ○');
+            treeItem.command.should.deep.equal({
+                command: 'blockchainExplorer.startFabricRuntime',
+                title: '',
+                arguments: [treeItem]
+            });
+            treeItem.contextValue.should.equal('blockchain-runtime-item-removed');
+        });
+
         it('should have the right properties for a runtime that is not running', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
@@ -103,6 +126,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that is busy', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
 
@@ -116,6 +140,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should animate the label for a runtime that is busy', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
 
@@ -134,6 +159,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that is running', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(true);
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
@@ -150,6 +176,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
             isBusyStub.returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -176,6 +203,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should animate the label for a runtime that becomes busy', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
             isBusyStub.returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -200,6 +228,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that stops being busy', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
             isBusyStub.returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -226,6 +255,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that is not running in development mode', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isDevelopmentMode').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -244,6 +274,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that is running in development mode', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isDevelopmentMode').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(true);
@@ -261,6 +292,7 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should report errors animating the label for a runtime that is busy', async () => {
+            sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'isRunning').resolves(false);
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({

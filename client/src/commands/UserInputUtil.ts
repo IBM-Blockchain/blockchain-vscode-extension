@@ -370,4 +370,13 @@ export class UserInputUtil {
             vscode.window.showErrorMessage(error.message);
         }
     }
+
+    public static async showConfirmationWarningMessage(prompt: string): Promise<boolean> {
+        const reallyDoIt: vscode.MessageItem = await vscode.window.showWarningMessage(prompt, { title: 'Yes' }, { title: 'No' });
+        if (!reallyDoIt) {
+            return false;
+        }
+        return reallyDoIt.title === 'Yes';
+    }
+
 }
