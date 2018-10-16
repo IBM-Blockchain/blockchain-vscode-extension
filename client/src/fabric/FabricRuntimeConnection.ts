@@ -31,4 +31,13 @@ export class FabricRuntimeConnection extends FabricConnection {
         await this.connectInner(connectionProfile, certificate, privateKey);
     }
 
+    getConnectionDetails(): any {
+        const connectionDetails: any = {
+            connectionProfilePath: this.runtime.getConnectionProfilePath(),
+            certificatePath: this.runtime.getCertificatePath(),
+            privateKeyPath: this.runtime.getPrivateKeyPath()
+        };
+        return connectionDetails;
+    }
+
 }

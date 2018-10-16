@@ -35,6 +35,10 @@ describe('FabricConnection', () => {
             this['gateway'] = fabricGatewayStub;
         }
 
+        getConnectionDetails(): any {
+            return;
+        }
+
     }
 
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;

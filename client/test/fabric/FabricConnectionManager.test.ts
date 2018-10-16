@@ -28,6 +28,10 @@ describe('FabricConnectionManager', () => {
             return;
         }
 
+        getConnectionDetails(): any {
+            return;
+        }
+
     }
 
     const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();

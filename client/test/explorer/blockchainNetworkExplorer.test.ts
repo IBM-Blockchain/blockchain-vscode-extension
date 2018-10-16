@@ -49,6 +49,10 @@ class TestFabricConnection extends FabricConnection {
     async connect(): Promise<void> {
         return;
     }
+
+    getConnectionDetails(): any {
+        return;
+    }
 }
 
 // tslint:disable no-unused-expression
