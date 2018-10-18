@@ -14,9 +14,11 @@
 'use strict';
 
 import * as Client from 'fabric-client';
+import { Package } from 'fabric-client';
 import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 
 import * as uuid from 'uuid/v4';
@@ -104,26 +106,10 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public async installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void> {
         const peer: Client.Peer = this.getPeer(peerName);
-
-        let language: Client.ChaincodeType;
-        let chaincodePath: string = packageRegistryEntry.path;
-        if (packageRegistryEntry.chaincodeLanguage === 'typescript' || packageRegistryEntry.chaincodeLanguage === 'javascript') {
-            language = 'node';
-        } else if (packageRegistryEntry.chaincodeLanguage === 'go') {
-            process.env.GOPATH = path.dirname(packageRegistryEntry.path);
-            chaincodePath = packageRegistryEntry.path.split(path.sep).pop();
-            // TODO: make actual language be golang
-            language = 'golang';
-        } else {
-            throw new Error(`Smart contract language not supported ${packageRegistryEntry.chaincodeLanguage}`);
-        }
-
-        const installRequest: Client.ChaincodeInstallRequest = {
+        const pkgBuffer: Buffer = await fs.readFile(packageRegistryEntry.path);
+        const installRequest: Client.ChaincodePackageInstallRequest = {
             targets: [peer],
-            chaincodePath: chaincodePath,
-            chaincodeId: packageRegistryEntry.name,
-            chaincodeVersion: packageRegistryEntry.version,
-            chaincodeType: language,
+            chaincodePackage: pkgBuffer,
             txId: this.gateway.getClient().newTransactionID()
         };
         await this.gateway.getClient().installChaincode(installRequest);

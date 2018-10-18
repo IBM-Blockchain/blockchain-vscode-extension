@@ -29,11 +29,15 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
+import * as path from 'path';
 
 chai.should();
 chai.use(sinonChai);
 
 describe('InstallCommand', () => {
+
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
+
     let mySandBox;
 
     before(async () => {
@@ -69,10 +73,9 @@ describe('InstallCommand', () => {
             showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox').resolves('peerOne');
 
             packageRegistryEntry = new PackageRegistryEntry({
-                name: 'my-smart-contract',
-                chaincodeLanguage: 'javascript',
-                path: 'myPath/myContract',
-                version: '1.0.0'
+                name: 'vscode-pkg-1@0.0.1',
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds'),
+                version: '0.0.1'
             });
 
             showPackageQuickPickStub = mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({

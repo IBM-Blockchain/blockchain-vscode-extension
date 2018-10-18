@@ -21,45 +21,17 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
-import * as fs from 'fs-extra';
 
 chai.use(sinonChai);
-const should = chai.should();
+chai.should();
 
 // tslint:disable no-unused-expression
 describe('BlockchainPackageExplorer', () => {
     let mySandBox;
     let errorSpy;
     let blockchainPackageExplorerProvider;
-    let infoSpy;
     const rootPath: string = path.dirname(__dirname);
-    const testDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-    async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
-        const smartContractDir: string = path.join(rootPath, '../../test/data/smartContractDir', language, dirName);
-
-        try {
-            await fs.mkdirp(smartContractDir);
-        } catch (error) {
-            console.log(error);
-        }
-
-        if (createValid) {
-            if (language !== 'go/src') {
-                const packageJsonFile = smartContractDir + '/package.json';
-                const content = {
-                    name: `${packageName}`,
-                    version: version,
-                    description: 'My smart contract'
-                };
-                await fs.writeFile(packageJsonFile, JSON.stringify(content));
-            }
-        } else {
-            const textFile = smartContractDir + '/text.txt';
-            const content = 'hello';
-            await fs.writeFile(textFile, content);
-        }
-    }
+    const testDir: string = path.join(rootPath, '../../test/data/packageDir');
 
     before(async () => {
         await TestUtil.setupTests();
@@ -78,31 +50,22 @@ describe('BlockchainPackageExplorer', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-        infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-
-        await TestUtil.deleteTestFiles(testDir);
     });
 
     afterEach(async () => {
         mySandBox.restore();
-        await TestUtil.deleteTestFiles(testDir);
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
-        await createTestFiles('smartContractGo@1.0.0', 'package-go', '1.0.0', 'go/src', true);
-        await createTestFiles('smartContractPackageBlue', 'package-blue', '1.0.0', 'javascript', true);
-        await createTestFiles('smartContractPackageGreen', 'package-green', '1.0.0', 'javascript', true);
-
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', testDir, true);
 
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
         testPackages.length.should.equal(3);
-        testPackages[0].label.should.equal('smartContractGo@1.0.0');
-        testPackages[1].label.should.equal('package-blue@1.0.0');
-        testPackages[2].label.should.equal('package-green@1.0.0');
+        testPackages[0].label.should.equal('vscode-pkg-1@0.0.1');
+        testPackages[1].label.should.equal('vscode-pkg-2@0.0.2');
+        testPackages[2].label.should.equal('vscode-pkg-3@1.2.3');
         errorSpy.should.not.have.been.called;
 
     });
@@ -115,17 +78,13 @@ describe('BlockchainPackageExplorer', () => {
     });
 
     it('should get a tree item in BlockchainPackageExplorer', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await createTestFiles('smartContractPackageBlue', 'my-contract', '1.0.0', 'javascript', true);
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', testDir, true);
 
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
-        firstTestPackage.label.should.equal('my-contract@1.0.0');
-        firstTestPackage.tooltip.should.equal('my-contract@1.0.0');
+        firstTestPackage.label.should.equal('vscode-pkg-1@0.0.1');
+        firstTestPackage.tooltip.should.equal('vscode-pkg-1@0.0.1');
         errorSpy.should.not.have.been.called;
     });
 });
