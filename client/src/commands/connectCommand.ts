@@ -82,13 +82,16 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
         connectionData.privateKeyPath = identity.privateKeyPath;
 
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
-        runtimeData = 'user runtime';
     }
 
     try {
         await connection.connect();
         FabricConnectionManager.instance().connect(connection);
 
+        if (!runtimeData) {
+            const isIBP: boolean = connection.isIBPConnection();
+            runtimeData = (isIBP ? 'IBP instance' : 'user runtime');
+        }
         Reporter.instance().sendTelemetryEvent('connectCommand', {runtimeData: runtimeData});
     } catch (error) {
         vscode.window.showErrorMessage(error.message);
