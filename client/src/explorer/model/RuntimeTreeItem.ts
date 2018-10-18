@@ -57,6 +57,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
 
     private async updateProperties() {
         const busy: boolean = this.runtime.isBusy();
+        const created: boolean = await this.runtime.isCreated();
         const running: boolean = await this.runtime.isRunning();
         const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
@@ -89,7 +90,11 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
                 title: '',
                 arguments: [this]
             };
-            newContextLabel = 'blockchain-runtime-item-stopped';
+            if (created) {
+                newContextLabel = 'blockchain-runtime-item-stopped';
+            } else {
+                newContextLabel = 'blockchain-runtime-item-removed';
+            }
         }
         if (developmentMode) {
             newLabel += '  ∞';

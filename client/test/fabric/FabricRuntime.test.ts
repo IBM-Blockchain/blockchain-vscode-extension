@@ -13,8 +13,9 @@
 */
 
 import Dockerode = require('dockerode');
-import { Container } from 'dockerode';
+import { Container, Volume } from 'dockerode';
 import ContainerImpl = require('dockerode/lib/container');
+import VolumeImpl = require('dockerode/lib/volume');
 import * as child_process from 'child_process';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
@@ -41,9 +42,15 @@ describe('FabricRuntime', () => {
     let mockPeerContainer: sinon.SinonStubbedInstance<Container>;
     let mockOrdererContainer: sinon.SinonStubbedInstance<Container>;
     let mockCAContainer: sinon.SinonStubbedInstance<Container>;
+    let mockCouchContainer: sinon.SinonStubbedInstance<Container>;
     let mockPeerInspect: any;
     let mockOrdererInspect: any;
     let mockCAInspect: any;
+    let mockCouchInspect: any;
+    let mockPeerVolume: sinon.SinonStubbedInstance<Volume>;
+    let mockOrdererVolume: sinon.SinonStubbedInstance<Volume>;
+    let mockCAVolume: sinon.SinonStubbedInstance<Volume>;
+    let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
 
     // tslint:disable max-classes-per-file
     class TestFabricOutputAdapter implements OutputAdapter {
@@ -129,10 +136,32 @@ describe('FabricRuntime', () => {
             }
         };
         mockCAContainer.inspect.resolves(mockCAInspect);
+        mockCouchContainer = sinon.createStubInstance(ContainerImpl);
+        mockCouchInspect = {
+            NetworkSettings: {
+                Ports: {
+                    '5984/tcp': [{ HostIp: '127.0.0.1', HostPort: '12349' }]
+                }
+            },
+            State: {
+                Running: true
+            }
+        };
+        mockCouchContainer.inspect.resolves(mockCouchInspect);
         const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
         getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com_1').returns(mockPeerContainer);
         getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com_1').returns(mockOrdererContainer);
         getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com_1').returns(mockCAContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_couchdb_1').returns(mockCouchContainer);
+        mockPeerVolume = sinon.createStubInstance(VolumeImpl);
+        mockOrdererVolume = sinon.createStubInstance(VolumeImpl);
+        mockCAVolume = sinon.createStubInstance(VolumeImpl);
+        mockCouchVolume = sinon.createStubInstance(VolumeImpl);
+        const getVolumeStub: sinon.SinonStub = sandbox.stub(docker, 'getVolume');
+        getVolumeStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerVolume);
+        getVolumeStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererVolume);
+        getVolumeStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAVolume);
+        getVolumeStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchVolume);
     });
 
     afterEach(async () => {
@@ -159,397 +188,195 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#start', () => {
+    ['start', 'stop', 'teardown'].forEach((verb: string) => {
 
-        it('should execute the start.sh script and handle success for non-development mode (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('linux');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            await runtime.start();
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
-            spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
-        });
+        describe(`#${verb}`, () => {
 
-        it('should execute the start.sh script and handle success for development mode (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('linux');
-            runtimeRegistryEntry.developmentMode = true;
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should execute the ${verb}.sh script and handle success for non-development mode (Linux/MacOS)`, async () => {
+                sandbox.stub(process, 'platform').value('linux');
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                await runtime[verb]();
+                spawnStub.should.have.been.calledOnce;
+                spawnStub.should.have.been.calledWith('/bin/sh', [ `${verb}.sh` ], sinon.match.any);
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
             });
-            await runtime.start();
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
-            spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-        });
 
-        it('should execute the start.sh script and handle an error (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('linux');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
+            it(`should execute the ${verb}.sh script and handle success for development mode (Linux/MacOS)`, async () => {
+                sandbox.stub(process, 'platform').value('linux');
+                runtimeRegistryEntry.developmentMode = true;
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                await runtime[verb]();
+                spawnStub.should.have.been.calledOnce;
+                spawnStub.should.have.been.calledWith('/bin/sh', [ `${verb}.sh` ], sinon.match.any);
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
             });
-            await runtime.start().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "start.sh" return code 1`);
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
-        });
 
-        it('should execute the start.sh script using a custom output adapter (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('linux');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should execute the ${verb}.sh script and handle an error (Linux/MacOS)`, async () => {
+                sandbox.stub(process, 'platform').value('linux');
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                    return mockFailureCommand();
+                });
+                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
+                spawnStub.should.have.been.calledOnce;
+                spawnStub.should.have.been.calledWith('/bin/sh', [ `${verb}.sh` ], sinon.match.any);
             });
-            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
-            await runtime.start(outputAdapter);
-            outputAdapter.log.should.have.been.calledOnceWith('stdout');
-            outputAdapter.error.should.have.been.calledOnceWith('stderr');
-        });
 
-        it('should publish busy events before and after handling success (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('linux');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should execute the ${verb}.sh script using a custom output adapter (Linux/MacOS)`, async () => {
+                sandbox.stub(process, 'platform').value('linux');
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
+                await runtime[verb](outputAdapter);
+                outputAdapter.log.should.have.been.calledOnceWith('stdout');
+                outputAdapter.error.should.have.been.calledOnceWith('stderr');
             });
-            runtime.on('busy', eventStub);
-            await runtime.start();
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
 
-        it('should publish busy events before and after handling an error (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('linux');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
+            it(`should publish busy events before and after handling success (Linux/MacOS)`, async () => {
+                sandbox.stub(process, 'platform').value('linux');
+                const eventStub: sinon.SinonStub = sinon.stub();
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                runtime.on('busy', eventStub);
+                await runtime[verb]();
+                eventStub.should.have.been.calledTwice;
+                eventStub.should.have.been.calledWithExactly(true);
+                eventStub.should.have.been.calledWithExactly(false);
             });
-            runtime.on('busy', eventStub);
-            await runtime.start().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "start.sh" return code 1`);
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
 
-        it('should execute the start.cmd script and handle success for non-development mode (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should publish busy events before and after handling an error (Linux/MacOS)`, async () => {
+                sandbox.stub(process, 'platform').value('linux');
+                const eventStub: sinon.SinonStub = sinon.stub();
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                    return mockFailureCommand();
+                });
+                runtime.on('busy', eventStub);
+                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
+                eventStub.should.have.been.calledTwice;
+                eventStub.should.have.been.calledWithExactly(true);
+                eventStub.should.have.been.calledWithExactly(false);
             });
-            await runtime.start();
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
-            spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
-        });
 
-        it('should execute the start.cmd script and handle success for development mode (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            runtimeRegistryEntry.developmentMode = true;
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should execute the ${verb}.cmd script and handle success for non-development mode (Windows)`, async () => {
+                sandbox.stub(process, 'platform').value('win32');
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                await runtime[verb]();
+                spawnStub.should.have.been.calledOnce;
+                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
             });
-            await runtime.start();
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
-            spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-        });
 
-        it('should execute the start.cmd script and handle an error (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
+            it(`should execute the ${verb}.cmd script and handle success for development mode (Windows)`, async () => {
+                sandbox.stub(process, 'platform').value('win32');
+                runtimeRegistryEntry.developmentMode = true;
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                await runtime[verb]();
+                spawnStub.should.have.been.calledOnce;
+                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
             });
-            await runtime.start().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, start.cmd" return code 1`);
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
-        });
 
-        it('should execute the start.cmd script using a custom output adapter (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should execute the ${verb}.cmd script and handle an error (Windows)`, async () => {
+                sandbox.stub(process, 'platform').value('win32');
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                    return mockFailureCommand();
+                });
+                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
+                spawnStub.should.have.been.calledOnce;
+                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
             });
-            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
-            await runtime.start(outputAdapter);
-            outputAdapter.log.should.have.been.calledOnceWith('stdout');
-            outputAdapter.error.should.have.been.calledOnceWith('stderr');
-        });
 
-        it('should publish busy events before and after handling success (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
+            it(`should execute the ${verb}.cmd script using a custom output adapter (Windows)`, async () => {
+                sandbox.stub(process, 'platform').value('win32');
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
+                await runtime[verb](outputAdapter);
+                outputAdapter.log.should.have.been.calledOnceWith('stdout');
+                outputAdapter.error.should.have.been.calledOnceWith('stderr');
             });
-            runtime.on('busy', eventStub);
-            await runtime.start();
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
 
-        it('should publish busy events before and after handling an error (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
+            it(`should publish busy events before and after handling success (Windows)`, async () => {
+                sandbox.stub(process, 'platform').value('win32');
+                const eventStub: sinon.SinonStub = sinon.stub();
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                    return mockSuccessCommand();
+                });
+                runtime.on('busy', eventStub);
+                await runtime[verb]();
+                eventStub.should.have.been.calledTwice;
+                eventStub.should.have.been.calledWithExactly(true);
+                eventStub.should.have.been.calledWithExactly(false);
             });
-            runtime.on('busy', eventStub);
-            await runtime.start().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, start.cmd" return code 1`);
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
-    });
 
-    describe('#stop', () => {
+            it(`should publish busy events before and after handling an error (Windows)`, async () => {
+                sandbox.stub(process, 'platform').value('win32');
+                const eventStub: sinon.SinonStub = sinon.stub();
+                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                    return mockFailureCommand();
+                });
+                runtime.on('busy', eventStub);
+                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
+                eventStub.should.have.been.calledTwice;
+                eventStub.should.have.been.calledWithExactly(true);
+                eventStub.should.have.been.calledWithExactly(false);
+            });
 
-        it('should execute the stop.sh and teardown.sh scripts and handle success (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('darwin');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            await runtime.stop();
-            spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('/bin/sh', ['teardown.sh'], sinon.match.any);
-        });
-
-        it('should execute the stop.sh and teardown.sh scripts and handle an error from stop.sh (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('darwin');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            await runtime.stop().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "stop.sh" return code 1`);
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
-        });
-
-        it('should execute the stop.sh and teardown.sh scripts and handle an error from teardown.sh (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('darwin');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
-            });
-            await runtime.stop().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "teardown.sh" return code 1`);
-            spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('/bin/sh', ['teardown.sh'], sinon.match.any);
-        });
-
-        it('should execute the stop.sh script using a custom output adapter (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('darwin');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
-            await runtime.stop(outputAdapter);
-            outputAdapter.log.should.have.been.calledTwice;
-            outputAdapter.error.should.have.been.calledTwice;
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-        });
-
-        it('should publish busy events before and after handling success (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('darwin');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            runtime.on('busy', eventStub);
-            await runtime.stop();
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
-
-        it('should publish busy events before and after handling an error (Linux/MacOS)', async () => {
-            sandbox.stub(process, 'platform').value('darwin');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            runtime.on('busy', eventStub);
-            await runtime.stop().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "stop.sh" return code 1`);
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
-
-        it('should execute the stop.cmd and teardown.cmd scripts and handle success (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            await runtime.stop();
-            spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'teardown.cmd'], sinon.match.any);
-        });
-
-        it('should execute the stop.cmd and teardown.cmd scripts and handle an error from stop.cmd (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            await runtime.stop().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, stop.cmd" return code 1`);
-            spawnStub.should.have.been.calledOnce;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
-        });
-
-        it('should execute the stop.cmd and teardown.cmd scripts and handle an error from teardown.cmd (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
-            });
-            await runtime.stop().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, teardown.cmd" return code 1`);
-            spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'teardown.cmd'], sinon.match.any);
-        });
-
-        it('should execute the stop.cmd script using a custom output adapter (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
-            await runtime.stop(outputAdapter);
-            outputAdapter.log.should.have.been.calledTwice;
-            outputAdapter.error.should.have.been.calledTwice;
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-        });
-
-        it('should publish busy events before and after handling success (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            runtime.on('busy', eventStub);
-            await runtime.stop();
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
-        });
-
-        it('should publish busy events before and after handling an error (Windows)', async () => {
-            sandbox.stub(process, 'platform').value('win32');
-            const eventStub: sinon.SinonStub = sinon.stub();
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockFailureCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            runtime.on('busy', eventStub);
-            await runtime.stop().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, stop.cmd" return code 1`);
-            eventStub.should.have.been.calledTwice;
-            eventStub.should.have.been.calledWithExactly(true);
-            eventStub.should.have.been.calledWithExactly(false);
         });
     });
 
     describe('#restart', () => {
 
-        it('should execute the start.sh, stop.sh and teardown.sh scripts and handle success (Linux/MacOS)', async () => {
+        it('should execute the start.sh and stop.sh scripts and handle success (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             await runtime.restart();
-            spawnStub.should.have.been.calledThrice;
-            spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('/bin/sh', ['teardown.sh'], sinon.match.any);
+            spawnStub.should.have.been.calledTwice;
+            spawnStub.should.have.been.calledWith('/bin/sh', [ 'start.sh' ], sinon.match.any);
+            spawnStub.should.have.been.calledWith('/bin/sh', [ 'stop.sh' ], sinon.match.any);
         });
 
-        it('should execute the start.sh, stop.sh and teardown.sh scripts using a custom output adapter (Linux/MacOS)', async () => {
+        it('should execute the start.sh and stop.sh scripts using a custom output adapter (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
-            outputAdapter.log.should.have.been.calledThrice;
-            outputAdapter.error.should.have.been.calledThrice;
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
+            outputAdapter.log.should.have.been.calledTwice;
+            outputAdapter.error.should.have.been.calledTwice;
             outputAdapter.log.should.have.been.calledWith('stdout');
             outputAdapter.error.should.have.been.calledWith('stderr');
             outputAdapter.log.should.have.been.calledWith('stdout');
@@ -566,9 +393,6 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
             runtime.on('busy', eventStub);
             await runtime.restart();
             eventStub.should.have.been.calledTwice;
@@ -583,56 +407,44 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('/bin/sh', ['teardown.sh'], sinon.match.any).callsFake(() => {
+            spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
-            await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "teardown.sh" return code 1`);
+            await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "stop.sh" return code 1`);
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
         });
 
-        it('should execute the start.cmd, stop.cmd and teardown.cmd scripts and handle success (Windows)', async () => {
+        it('should execute the start.cmd and stop.cmd scripts and handle success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             await runtime.restart();
-            spawnStub.should.have.been.calledThrice;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'teardown.cmd'], sinon.match.any);
+            spawnStub.should.have.been.calledTwice;
+            spawnStub.should.have.been.calledWith('cmd', [ '/c', 'start.cmd' ], sinon.match.any);
+            spawnStub.should.have.been.calledWith('cmd', [ '/c', 'stop.cmd' ], sinon.match.any);
         });
 
-        it('should execute the start.sh, stop.sh and teardown.sh scripts using a custom output adapter (Windows)', async () => {
+        it('should execute the start.sh and stop.sh scripts using a custom output adapter (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
             const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
-            outputAdapter.log.should.have.been.calledThrice;
-            outputAdapter.error.should.have.been.calledThrice;
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
+            outputAdapter.log.should.have.been.calledTwice;
+            outputAdapter.error.should.have.been.calledTwice;
             outputAdapter.log.should.have.been.calledWith('stdout');
             outputAdapter.error.should.have.been.calledWith('stderr');
             outputAdapter.log.should.have.been.calledWith('stdout');
@@ -649,9 +461,6 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
             runtime.on('busy', eventStub);
             await runtime.restart();
             eventStub.should.have.been.calledTwice;
@@ -666,14 +475,11 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
-                return mockSuccessCommand();
-            });
-            spawnStub.withArgs('cmd', ['/c', 'teardown.cmd'], sinon.match.any).callsFake(() => {
+            spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
-            await runtime.restart().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, teardown.cmd" return code 1`);
+            await runtime.restart().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, stop.cmd" return code 1`);
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
@@ -761,9 +567,45 @@ describe('FabricRuntime', () => {
 
     });
 
+    describe('#isCreated', () => {
+
+        it('should return true if the peer, orderer, and CA exist', async () => {
+            await runtime.isCreated().should.eventually.be.true;
+        });
+
+        it('should return true if the peer does not exist, but everything else does', async () => {
+            mockPeerVolume.inspect.rejects(new Error('blah'));
+            await runtime.isCreated().should.eventually.be.true;
+        });
+
+        it('should return true if the orderer does not exist, but everything else does', async () => {
+            mockOrdererVolume.inspect.rejects(new Error('blah'));
+            await runtime.isCreated().should.eventually.be.true;
+        });
+
+        it('should return true if the CA does not exist, but everything else does', async () => {
+            mockCAVolume.inspect.rejects(new Error('blah'));
+            await runtime.isCreated().should.eventually.be.true;
+        });
+
+        it('should return true if Couch does not exist, but everything else does', async () => {
+            mockCouchVolume.inspect.rejects(new Error('blah'));
+            await runtime.isCreated().should.eventually.be.true;
+        });
+
+        it('should return false if nothing exists', async () => {
+            mockPeerVolume.inspect.rejects(new Error('blah'));
+            mockOrdererVolume.inspect.rejects(new Error('blah'));
+            mockCAVolume.inspect.rejects(new Error('blah'));
+            mockCouchVolume.inspect.rejects(new Error('blah'));
+            await runtime.isCreated().should.eventually.be.false;
+        });
+
+    });
+
     describe('#isRunning', () => {
 
-        it('should return true if the peer, orderer, and CA are running', async () => {
+        it('should return true if the peer, orderer, CA, and Couch are running', async () => {
             await runtime.isRunning().should.eventually.be.true;
         });
 
@@ -794,6 +636,16 @@ describe('FabricRuntime', () => {
 
         it('should return false if the CA is not running', async () => {
             mockCAInspect.State.Running = false;
+            await runtime.isRunning().should.eventually.be.false;
+        });
+
+        it('should return false if Couch does not exist', async () => {
+            mockCouchContainer.inspect.rejects(new Error('blah'));
+            await runtime.isRunning().should.eventually.be.false;
+        });
+
+        it('should return false if Couch is not running', async () => {
+            mockCouchInspect.State.Running = false;
             await runtime.isRunning().should.eventually.be.false;
         });
 

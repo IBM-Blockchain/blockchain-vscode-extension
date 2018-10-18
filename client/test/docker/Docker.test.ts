@@ -13,8 +13,9 @@
 */
 
 import Dockerode = require('dockerode');
-import { Container } from 'dockerode';
+import { Container, Volume } from 'dockerode';
 import ContainerImpl = require('dockerode/lib/container');
+import VolumeImpl = require('dockerode/lib/volume');
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -28,6 +29,7 @@ describe('Docker', () => {
     let sandbox: sinon.SinonSandbox;
     let mockPeerContainer: sinon.SinonStubbedInstance<Container>;
     let mockPeerInspect: any;
+    let mockPeerVolume: sinon.SinonStubbedInstance<Volume>;
 
     let docker: Docker;
 
@@ -48,8 +50,11 @@ describe('Docker', () => {
         };
         mockPeerContainer.inspect.resolves(mockPeerInspect);
 
+        mockPeerVolume = sinon.createStubInstance(VolumeImpl);
+
         const dockerodeStub: sinon.SinonStubbedInstance<Dockerode> = sandbox.createStubInstance(Dockerode);
         dockerodeStub.getContainer.withArgs('fabricvscoderuntime1_peer0.org1.example.com_1').returns(mockPeerContainer);
+        dockerodeStub.getVolume.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerVolume);
 
         docker = new Docker('runtime1');
         docker['docker'] = dockerodeStub;
@@ -59,7 +64,7 @@ describe('Docker', () => {
         sandbox.restore();
     });
 
-    describe('getContainerPrefix', () => {
+    describe('#getContainerPrefix', () => {
         it('should get the containerPrefix and replace any illegal characters', () => {
             const docker2: Docker = new Docker('&&&&Cake&&&Biscuit123&&&');
             const result: string = docker2.getContainerPrefix();
@@ -67,7 +72,7 @@ describe('Docker', () => {
         });
     });
 
-    describe('fixhost', () => {
+    describe('#fixHost', () => {
         it('should fix the hostname if set to 0.0.0.0', () => {
             const result: string = Docker.fixHost('0.0.0.0');
 
@@ -81,12 +86,28 @@ describe('Docker', () => {
         });
     });
 
-    describe('getContainerPorts', () => {
+    describe('#getContainerPorts', () => {
         it('should get the ports for a container', async () => {
             const prefix: string = docker.getContainerPrefix();
             const ports: ContainerPorts = await docker.getContainerPorts(`${prefix}_peer0.org1.example.com_1`);
             ports.should.deep.equal(mockPeerInspect.NetworkSettings.Ports);
         });
+    });
+
+    describe('#doesVolumeExist', () => {
+
+        it('should return true if volume exists', async () => {
+            const prefix: string = docker.getContainerPrefix();
+            mockPeerVolume.inspect.resolves();
+            await docker.doesVolumeExist(`${prefix}_peer0.org1.example.com`).should.eventually.be.true;
+        });
+
+        it('should return false if volume does not exist', async () => {
+            const prefix: string = docker.getContainerPrefix();
+            mockPeerVolume.inspect.rejects(new Error('blah'));
+            await docker.doesVolumeExist(`${prefix}_peer0.org1.example.com`).should.eventually.be.false;
+        });
+
     });
 
     describe('#isContainerRunning', () => {
