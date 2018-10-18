@@ -28,11 +28,16 @@ export abstract class FabricConnection implements IFabricConnection {
     private wallet: InMemoryWallet = new InMemoryWallet();
     private identityName: string = uuid();
     private gateway: Gateway = new Gateway();
+    private networkIdProperty: boolean;
 
     constructor() {
         this.wallet = new InMemoryWallet();
         this.identityName = uuid();
         this.gateway = new Gateway();
+    }
+
+    public isIBPConnection(): boolean {
+        return this.networkIdProperty;
     }
 
     public abstract async connect(): Promise<void>;
@@ -188,6 +193,8 @@ export abstract class FabricConnection implements IFabricConnection {
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
 
         const client: Client = await Client.loadFromConfig(connectionProfile);
+
+        this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
 
         const mspid: string = client.getMspid();
 

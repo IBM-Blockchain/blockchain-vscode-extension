@@ -308,4 +308,17 @@ describe('FabricConnection', () => {
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
         });
     });
+
+    describe('isIBPConnection', () => {
+        it('should return true if connected to an IBP instance', async () => {
+            fabricConnection['networkIdProperty'] = true;
+            const result: boolean = await fabricConnection.isIBPConnection();
+            result.should.equal(true);
+        });
+        it('should return false if not connected to an IBP instance', async () => {
+            fabricConnection['networkIdProperty'] = false;
+            const result: boolean = await fabricConnection.isIBPConnection();
+            result.should.equal(false);
+        });
+    });
 });
