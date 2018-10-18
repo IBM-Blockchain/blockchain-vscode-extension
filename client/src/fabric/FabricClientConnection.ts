@@ -53,6 +53,15 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         await this.connectInner(connectionProfile, certificate, privateKey);
     }
 
+    getConnectionDetails(): any {
+        const connectionDetails: any = {
+            connectionProfilePath: this.connectionProfilePath,
+            certificatePath: this.certificatePath,
+            privateKeyPath: this.privateKeyPath
+        };
+        return connectionDetails;
+    }
+
     private async loadFileFromDisk(path: string): Promise<string> {
         console.log('loadFileFromDisk', path);
         return fs.readFile(path, ENCODING);

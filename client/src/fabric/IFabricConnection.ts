@@ -19,6 +19,8 @@ export interface IFabricConnection {
 
     connect(): Promise<void>;
 
+    getConnectionDetails(): any;
+
     disconnect(): void;
 
     getAllPeerNames(): Array<string>;

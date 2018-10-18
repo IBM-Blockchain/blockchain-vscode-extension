@@ -40,7 +40,7 @@ describe('FabricClientConnection', () => {
 
     let gatewayStub;
 
-    const rootPath = path.dirname(__dirname);
+    const rootPath: string = path.dirname(__dirname);
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -62,7 +62,7 @@ describe('FabricClientConnection', () => {
 
     describe('connect', () => {
         it('should connect to a fabric', async () => {
-            const connectionData = {
+            const connectionData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
                 privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
@@ -76,7 +76,7 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect with an already loaded client connection', async () => {
-            const connectionData = {
+            const connectionData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
                 privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
@@ -91,7 +91,7 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect to a fabric with a .yaml connection profile', async () => {
-            const connectionYamlData = {
+            const connectionYamlData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection.yaml'),
                 certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
                 privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
@@ -105,7 +105,7 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect to a fabric with a .yml connection profile', async () => {
-            const otherConnectionYmlData = {
+            const otherConnectionYmlData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml'),
                 certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
                 privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
@@ -121,7 +121,7 @@ describe('FabricClientConnection', () => {
 
     describe('connection failure', () => {
         it('should show an error if connection profile is not .yaml or .json file', async () => {
-            const connectionWrongData = {
+            const connectionWrongData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection'),
                 certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
                 privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
@@ -130,6 +130,27 @@ describe('FabricClientConnection', () => {
 
             await fabricClientConnectionWrong.connect();
             errorSpy.should.have.been.calledWith('Connection profile must be in JSON or yaml format');
+        });
+    });
+
+    describe('getConnectionDetails', () => {
+        it('should return connection details for a client connection', async () => {
+            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionOne/connection.json');
+            const certificatePath: string = path.join(rootPath, '../../test/data/connectionOne/credentials/certificate');
+            const privateKeyPath: string = path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey');
+            const connectionData: any = {
+                connectionProfilePath: connectionProfilePath,
+                certificatePath: certificatePath,
+                privateKeyPath: privateKeyPath
+            };
+            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
+            fabricClientConnection['gateway'] = gatewayStub;
+
+            const connectionDetails: any = fabricClientConnection.getConnectionDetails();
+            connectionDetails.connectionProfilePath.should.equal(connectionProfilePath);
+            connectionDetails.certificatePath.should.equal(certificatePath);
+            connectionDetails.privateKeyPath.should.equal(privateKeyPath);
+            errorSpy.should.not.have.been.called;
         });
     });
 

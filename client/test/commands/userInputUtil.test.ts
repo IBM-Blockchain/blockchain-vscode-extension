@@ -31,10 +31,10 @@ import { FabricClientConnection } from '../../src/fabric/FabricClientConnection'
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
-chai.should();
 chai.use(sinonChai);
+const should = chai.should();
 
-describe('Commands Utility Function Tests', () => {
+describe('userInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let quickPickStub: sinon.SinonStub;
@@ -47,7 +47,38 @@ describe('Commands Utility Function Tests', () => {
 
     let getConnectionStub: sinon.SinonStub;
 
+    const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
+
+    const mockDocument: any = {
+        getText: () => {
+        return `{
+            "fabric.connections": [
+                {
+                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
+                    "name": "connectionOne",
+                    "identities": [
+                        {
+                            "certificatePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/certificate",
+                            "privateKeyPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/privateKey"
+                        }
+                    ]
+                },
+                {
+                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
+                    "name": "connectionTwo",
+                    "identities": [
+                        {
+                            "certificatePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/certificate",
+                            "privateKeyPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/privateKey"
+                        }
+                    ]
+                }
+            ]
+        }`;
+    }};
+
     before(async () => {
+
         await TestUtil.setupTests();
         await TestUtil.storeConnectionsConfig();
         await TestUtil.storeRuntimesConfig();
@@ -109,6 +140,7 @@ describe('Commands Utility Function Tests', () => {
     afterEach(async () => {
         mySandBox.restore();
         await runtimeRegistry.clear();
+        process.env = env;
     });
 
     describe('showConnectionQuickPickBox', () => {
@@ -123,6 +155,12 @@ describe('Commands Utility Function Tests', () => {
                 canPickMany: false,
                 placeHolder: 'choose a connection'
             });
+        });
+        it('should hide managed runtime if argument passed', async () => {
+            mySandBox.stub(connectionRegistry, 'getAll').returns([connectionEntryOne, {name: 'local_fabric', managedRuntime: true}]);
+            quickPickStub.resolves();
+            await UserInputUtil.showConnectionQuickPickBox('choose a connection', true);
+            quickPickStub.should.have.been.calledWith([{label: connectionEntryOne.name, data: connectionEntryOne}]);
         });
     });
 
@@ -460,6 +498,122 @@ describe('Commands Utility Function Tests', () => {
             const packageDirOriginal: string = '/banana/smartContractDir';
             const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.equal(packageDirOriginal);
+        });
+    });
+
+    describe('browseEdit', () => {
+        it('should finish if user doesnt select browse or edit', async () => {
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            should.not.exist(result);
+        });
+
+        it('should return file path from browse', async () => {
+            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{fsPath: '/some/path'}]);
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            showOpenDialogStub.should.have.been.calledWith({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select'
+            });
+            result.should.equal('/some/path');
+
+        });
+
+        it('should show user settings for windows', async () => {
+            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
+            mySandBox.stub(process, 'platform').value('win32');
+            mySandBox.stub(path, 'join').returns('\\c\\users\\test\\appdata\\Code\\User\\settings.json');
+
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            await UserInputUtil.browseEdit(placeHolder, 'connectionOne');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, {selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0))});
+        });
+
+        it('should show user settings for mac', async () => {
+            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
+            mySandBox.stub(process, 'platform').value('darwin');
+            mySandBox.stub(path, 'join').returns('/users/test/Library/Application Support/Code/User/settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+            process.env.HOME = '/users/test';
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            await UserInputUtil.browseEdit(placeHolder, 'connectionOne');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, {selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0))});
+        });
+
+        it('should show user settings for linux', async () => {
+            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
+            mySandBox.stub(process, 'platform').value('linux');
+            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+            process.env.HOME = '/users/test';
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            await UserInputUtil.browseEdit(placeHolder, 'connectionOne');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, {selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0))});
+        });
+
+        it('should handle any errors', async () => {
+            quickPickStub.rejects({message: 'some error'});
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            errorSpy.should.have.been.calledWith('some error');
+        });
+
+        it('should finish if cancels browse dialog', async () => {
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves();
+            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
+            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+
+            should.not.exist(result);
+        });
+    });
+
+    describe('openUserSettings', () => {
+        it('should catch any errors when opening settings', async () => {
+            mySandBox.stub(process, 'platform').value('freebsd');
+            mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({message: 'error opening file'});
+            const errorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage');
+
+            await UserInputUtil.openUserSettings('connection');
+
+            errorStub.should.have.been.calledWith('error opening file');
         });
     });
 });

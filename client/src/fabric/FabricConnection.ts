@@ -35,6 +35,8 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public abstract async connect(): Promise<void>;
 
+    public abstract getConnectionDetails(): any;
+
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
         const allPeers: Array<Client.Peer> = this.getAllPeers();

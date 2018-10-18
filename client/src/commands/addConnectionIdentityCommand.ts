@@ -12,37 +12,45 @@
  * limitations under the License.
 */
 'use strict';
+import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
+import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
 export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
     let connectionRegistryEntry: FabricConnectionRegistryEntry;
     console.log('addConnectionIdentity');
 
-    if (!connectionItem) {
+    if (connectionItem) {
+        connectionRegistryEntry = connectionItem.connection;
+    } else {
         const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to');
         if (!chosenEntry) {
             return;
         }
 
         connectionRegistryEntry = chosenEntry.data;
-    } else {
-        connectionRegistryEntry = connectionItem.connection;
     }
 
-    const certificatePath: string = await UserInputUtil.showInputBox('Enter a file path to the certificate file');
+    if (!FabricConnectionHelper.isCompleted(connectionRegistryEntry)) {
+        vscode.window.showErrorMessage('Blockchain connection must be completed first!');
+        return;
+    }
 
+    // Get the certificate file path
+    const certificatePath: string = await UserInputUtil.browseEdit('Enter a file path to the certificate file', connectionRegistryEntry.name);
     if (!certificatePath) {
         return Promise.resolve();
     }
 
-    const privateKeyPath: string = await UserInputUtil.showInputBox('Enter a file path to the private key file');
-
+     // Get the private key file path
+    const privateKeyPath: string = await UserInputUtil.browseEdit('Enter a file path to the private key file', connectionRegistryEntry.name);
     if (!privateKeyPath) {
-        return Promise.resolve();
-    }
+         return Promise.resolve();
+     }
 
     connectionRegistryEntry.identities.push({certificatePath, privateKeyPath});
 

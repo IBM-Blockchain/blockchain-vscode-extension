@@ -19,7 +19,8 @@ for /L %%i in (1, 1, %FABRIC_START_TIMEOUT%) do (
     rem This command only works if the peer is up and running
     docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com_1 peer channel list > NUL 2>&1
     if errorlevel 1 (
-        timeout /t 1 /nobreak > NUL
+        rem This is the closest thing that Windows has to the sleep command
+        choice /t 1 /c x /d x /n > NUL
     ) else (
         set i=%%i
         goto :done

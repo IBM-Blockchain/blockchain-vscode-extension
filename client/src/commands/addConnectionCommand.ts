@@ -15,42 +15,53 @@
 import {UserInputUtil} from './UserInputUtil';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
+import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 
-// TODO: make it save where have got up to
 export async function addConnection(): Promise<{} | void> {
     console.log('addConnection');
-    const connectionName: string = await UserInputUtil.showInputBox('Enter a name for the connection');
 
+    const connectionName: string = await UserInputUtil.showInputBox('Enter a name for the connection');
     if (!connectionName) {
         return Promise.resolve();
     }
 
-    const connectionProfilePath: string = await UserInputUtil.showInputBox('Enter a file path to the connection profile json file');
+    // Create the connection immediately
+    const fabricConnectionEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+    fabricConnectionEntry.connectionProfilePath = FabricConnectionHelper.CONNECTION_PROFILE_PATH_DEFAULT;
+    fabricConnectionEntry.name = connectionName;
+    fabricConnectionEntry.identities = [{
+        certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
+        privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+    }];
 
+    const fabricConnectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    await fabricConnectionRegistry.add(fabricConnectionEntry);
+
+    // Get the connection profile json file path
+    const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to the connection profile json file', connectionName);
     if (!connectionProfilePath) {
         return Promise.resolve();
     }
 
-    const certificatePath: string = await UserInputUtil.showInputBox('Enter a file path to the certificate file');
+    fabricConnectionEntry.connectionProfilePath = connectionProfilePath;
+    await fabricConnectionRegistry.update(fabricConnectionEntry);
 
+    // Get the certificate file path
+    const certificatePath: string = await UserInputUtil.browseEdit('Enter a file path to the certificate file', connectionName);
     if (!certificatePath) {
         return Promise.resolve();
     }
 
-    const privateKeyPath: string = await UserInputUtil.showInputBox('Enter a file path to the private key file');
+    fabricConnectionEntry.identities[0].certificatePath = certificatePath;
+    await fabricConnectionRegistry.update(fabricConnectionEntry);
 
+    // Get the private key file path
+    const privateKeyPath: string = await UserInputUtil.browseEdit('Enter a file path to the private key file', connectionName);
     if (!privateKeyPath) {
         return Promise.resolve();
     }
 
-    const fabricConnectionEntry = new FabricConnectionRegistryEntry();
-    fabricConnectionEntry.connectionProfilePath = connectionProfilePath;
-    fabricConnectionEntry.name = connectionName;
-    fabricConnectionEntry.identities = [{
-        certificatePath,
-        privateKeyPath
-    }];
+    fabricConnectionEntry.identities[0].privateKeyPath = privateKeyPath;
+    await fabricConnectionRegistry.update(fabricConnectionEntry);
 
-    const fabricConnectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
-    return fabricConnectionRegistry.add(fabricConnectionEntry);
 }
