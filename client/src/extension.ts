@@ -41,12 +41,13 @@ import { deleteSmartContractPackage } from './commands/deleteSmartContractPackag
 import { PeerTreeItem } from './explorer/model/PeerTreeItem';
 import { installSmartContract } from './commands/installCommand';
 import { ChannelTreeItem } from './explorer/model/ChannelTreeItem';
-import { instantiateSmartContract} from './commands/instantiateCommand';
-import { editConnectionCommand} from './commands/editConnectionCommand';
+import { instantiateSmartContract } from './commands/instantiateCommand';
+import { editConnectionCommand } from './commands/editConnectionCommand';
 import { ConnectionPropertyTreeItem } from './explorer/model/ConnectionPropertyTreeItem';
 import { teardownFabricRuntime } from './commands/teardownFabricRuntime';
 import { exportSmartContractPackage } from './commands/exportSmartContractPackageCommand';
 import { PackageTreeItem } from './explorer/model/PackageTreeItem';
+import { FabricDebugConfigurationProvider } from './debug/FabricDebugConfigurationProvider';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -103,6 +104,10 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     blockchainPackageExplorerProvider = new BlockchainPackageExplorerProvider();
 
     disposeExtension(context);
+
+    const provider: FabricDebugConfigurationProvider = new FabricDebugConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', provider));
+    context.subscriptions.push(provider);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainExplorer', blockchainNetworkExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));

@@ -148,6 +148,10 @@ export class DependencyManager {
             packageJson.activationEvents.push('onCommand:' + event);
         });
 
+        packageJson.actualActivationEvents.other.forEach((event: string) => {
+            packageJson.activationEvents.push(event);
+        });
+
         return this.writePackageJson(packageJson);
     }
 

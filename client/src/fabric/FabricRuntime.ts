@@ -161,6 +161,14 @@ export class FabricRuntime extends EventEmitter {
         await this.runtimeRegistry.update(this.runtimeRegistryEntry);
     }
 
+    public async getChaincodeAddress(): Promise<string> {
+        const prefix: string = this.docker.getContainerPrefix();
+        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${prefix}_peer0.org1.example.com_1`);
+        const peerRequestHost: string = Docker.fixHost(peerPorts['7052/tcp'][0].HostIp);
+        const peerRequestPort: string = peerPorts['7052/tcp'][0].HostPort;
+        return `${peerRequestHost}:${peerRequestPort}`;
+    }
+
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
