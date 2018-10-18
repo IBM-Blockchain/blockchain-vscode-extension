@@ -84,9 +84,7 @@ describe('FabricConnection', () => {
         };
         fabricContractStub = {
             _validatePeerResponses: mySandBox.stub().returns(responsesStub),
-            eventHandlerFactory: {
-                createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
-            }
+            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
         };
 
         fabricChannelStub = sinon.createStubInstance(Channel);
@@ -299,7 +297,7 @@ describe('FabricConnection', () => {
         });
 
         it('should throw an error if cant create event handler', async () => {
-            fabricContractStub.eventHandlerFactory.createTxEventHandler.returns();
+            fabricContractStub._createTxEventHandler.returns();
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
         });
 
