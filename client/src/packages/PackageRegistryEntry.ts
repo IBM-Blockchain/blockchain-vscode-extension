@@ -14,7 +14,6 @@
 'use strict';
 
 import { FabricRegistryEntry } from '../fabric/FabricRegistryEntry';
-import { ChaincodeType } from 'fabric-client';
 
 export class PackageRegistryEntry extends FabricRegistryEntry {
 
