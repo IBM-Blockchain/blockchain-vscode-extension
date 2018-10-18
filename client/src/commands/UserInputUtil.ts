@@ -14,6 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as homeDir from 'home-dir';
+import * as path from 'path';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
@@ -39,8 +40,10 @@ export class UserInputUtil {
     static readonly SKIP_FILE = 'Skip file';
     static readonly FORCE_FILES = 'Force all files to overwrite';
     static readonly ABORT_GENERATOR = 'Abort generator';
+    static readonly BROWSE_LABEL = '📁 Browse';
+    static readonly EDIT_LABEL = '✎ Edit in User Settings';
 
-    public static showConnectionQuickPickBox(prompt: string): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
+    public static showConnectionQuickPickBox(prompt: string, hideManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -49,9 +52,15 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = connections.map((connection: FabricConnectionRegistryEntry) => {
+        let connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = connections.map((connection: FabricConnectionRegistryEntry) => {
             return {label: connection.name, data: connection};
         });
+
+        if (hideManagedRuntime) {
+            connectionsQuickPickItems = connectionsQuickPickItems.filter((connection) => {
+                return connection.label !== 'local_fabric';
+            });
+        }
 
         return vscode.window.showQuickPick(connectionsQuickPickItems, quickPickOptions);
     }
@@ -282,5 +291,83 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(options, quickPickOptions);
+    }
+
+    public static async browseEdit(placeHolder: string, connectionName: string): Promise<string> {
+        const options: string[] = [this.BROWSE_LABEL, this.EDIT_LABEL];
+        try {
+            const result: string = await vscode.window.showQuickPick(options, { placeHolder });
+            if (!result) {
+                return;
+            } else if (result === this.BROWSE_LABEL) {
+                // Browse file and get path
+
+                const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog({
+                    canSelectFiles: true,
+                    canSelectFolders: false,
+                    canSelectMany: false,
+                    openLabel: 'Select'
+                });
+
+                if (!fileBrowser) {
+                    return;
+                }
+
+                return fileBrowser[0].fsPath;
+
+            } else {
+
+                // Edit in user settings
+                await this.openUserSettings(connectionName);
+
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(error.message);
+        }
+
+    }
+
+    public static async openUserSettings(connectionName: string): Promise<void> {
+        let settingsPath: string;
+
+        try {
+            // Get the 'user settings' file path
+            if (process.platform === 'win32') {
+                // Windows
+                settingsPath = path.join(process.env.APPDATA, 'Code' , 'User', 'settings.json');
+            } else if (process.platform === 'darwin') {
+                // Mac
+                settingsPath = path.join(homeDir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json');
+            } else {
+                // Linux
+                settingsPath = path.join(homeDir(), '.config', 'Code', 'User', 'settings.json');
+            }
+
+            // Open the user settings (but don't display yet)
+            const document: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
+            const text: string[] = document.getText().split('\n');
+
+            let startIndex: number;
+
+            // Find the user settings line number
+            for (let x: number = 0; x < text.length; x++) {
+                const searchTerm: string = '"name": "' + connectionName + '",';
+                if (text[x].includes(searchTerm)) {
+                    startIndex = x;
+                    break;
+                }
+            }
+
+            // Define the section to highlight
+            const startLine: number = startIndex - 2;
+            const endLine: number = startIndex + 8;
+
+            // Show the user settings and highlight the connection
+            await vscode.window.showTextDocument(document, {
+                selection: new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(endLine, 0))
+            });
+        } catch (error) {
+            vscode.window.showErrorMessage(error.message);
+        }
     }
 }

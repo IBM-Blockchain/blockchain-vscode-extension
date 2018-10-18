@@ -23,6 +23,9 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 
 chai.should();
 chai.use(sinonChai);
@@ -39,9 +42,9 @@ describe('AddConnectionIdentityCommand', () => {
     });
 
     describe('addConnectionIdentity', () => {
-        let mySandBox;
+        let mySandBox: sinon.SinonSandbox;
 
-        const rootPath = path.dirname(__dirname);
+        const rootPath: string = path.dirname(__dirname);
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -83,10 +86,11 @@ describe('AddConnectionIdentityCommand', () => {
                 label: 'myConnectionB',
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
 
-            showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
@@ -109,6 +113,7 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a config can be cancelled before choosing a connection', async () => {
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
@@ -128,13 +133,14 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a config can be cancelled on certificate path', async () => {
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myConnectionB',
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            showInputBoxStub.onFirstCall().resolves();
+            browseEditStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
@@ -153,14 +159,15 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should test a config can be cancelled when adding private key', async () => {
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myConnectionB',
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
-            showInputBoxStub.onSecondCall().resolves();
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            browseEditStub.onSecondCall().resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
 
@@ -179,16 +186,17 @@ describe('AddConnectionIdentityCommand', () => {
         });
 
         it('should be able to add a identity from the tree', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            showInputBoxStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
-            const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-            const connectionToAddTo = allChildren[1];
+            const connectionToAddTo: BlockchainTreeItem = allChildren[1];
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry', connectionToAddTo);
 
@@ -208,6 +216,29 @@ describe('AddConnectionIdentityCommand', () => {
                         privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
                     }]
             });
+        });
+
+        it('should show an error if connection is not complete', async () => {
+
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
+            const errorMessageSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({
+                label: 'myConnection',
+                data: {
+                    connectionProfilePath: FabricConnectionHelper.CONNECTION_PROFILE_PATH_DEFAULT,
+                    name: 'myConnection',
+                    identities: [
+                        {
+                            certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
+                            privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+                        }
+                    ]
+                }
+            });
+
+            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+
+            errorMessageSpy.should.have.been.calledWith('Blockchain connection must be completed first!');
         });
     });
 });

@@ -33,15 +33,19 @@ import { InstalledChainCodeVersionTreeItem } from './model/InstalledChaincodeVer
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { RuntimeTreeItem } from './model/RuntimeTreeItem';
+import { ConnectionPropertyTreeItem } from './model/ConnectionPropertyTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
     // only for testing so can get the updated tree
     public tree: Array<BlockchainTreeItem> = [];
 
+    // tslint:disable-next-line member-ordering
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
+
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
@@ -100,8 +104,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         try {
 
             if (element) {
-                if (element instanceof ConnectionTreeItem) {
+                if (element instanceof ConnectionTreeItem && FabricConnectionHelper.isCompleted(element.connection)) {
                     this.tree = await this.createConnectionIdentityTree(element as ConnectionTreeItem);
+                }
+                if (element instanceof ConnectionTreeItem && !FabricConnectionHelper.isCompleted(element.connection)) {
+                    this.tree = await this.createConnectionUncompleteTree(element as ConnectionTreeItem);
                 }
 
                 if (element instanceof ChannelTreeItem) {
@@ -145,6 +152,97 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         }
 
         return this.tree;
+    }
+
+    public async createConnectionUncompleteTree(element: ConnectionTreeItem): Promise<ConnectionPropertyTreeItem[]> {
+        console.log('createConnectionUncompleteTree', element);
+
+        let profileLabel: string = 'Connection Profile';
+        let certLabel: string = 'Certificate';
+        let keyLabel: string = 'Private Key';
+
+        profileLabel = ((FabricConnectionHelper.connectionProfilePathComplete(element.connection)) ? '✓ ' : '+ ') + profileLabel;
+        certLabel = ((FabricConnectionHelper.certificatePathComplete(element.connection)) ? '✓ ' : '+ ') + certLabel;
+        keyLabel = ((FabricConnectionHelper.privateKeyPathComplete(element.connection)) ? '✓ ' : '+ ') + keyLabel;
+
+        let command: vscode.Command;
+
+        // tslint:disable-next-line
+        let tree: ConnectionPropertyTreeItem[] = [];
+
+        for (const label of [profileLabel, certLabel, keyLabel]) {
+            console.log('Label is', label);
+            command = {command: 'blockchainExplorer.editConnectionEntry', title: '', arguments: [{label: label, connection: element.connection}]};
+            tree.push(new ConnectionPropertyTreeItem(this, label, element.connection, vscode.TreeItemCollapsibleState.None, command));
+        }
+
+        return tree;
+    }
+
+    private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
+        console.log('createdConnectionTree');
+        const tree: BlockchainTreeItem[] = [];
+
+        const allConnections: FabricConnectionRegistryEntry[] = this.connectionRegistryManager.getAll();
+
+        for (const connection of allConnections) {
+            let collapsibleState: vscode.TreeItemCollapsibleState;
+            let command: vscode.Command;
+            if (connection.identities && connection.identities.length > 1) {
+                collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            } else if (!FabricConnectionHelper.isCompleted(connection)) {
+                collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+            } else if (connection.managedRuntime) {
+                collapsibleState = vscode.TreeItemCollapsibleState.None;
+            } else {
+                collapsibleState = vscode.TreeItemCollapsibleState.None;
+                command = {
+                    command: 'blockchainExplorer.connectEntry',
+                    title: '',
+                    arguments: [connection]
+                };
+            }
+
+            if (connection.managedRuntime) {
+                try {
+                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                        connection.name,
+                        connection,
+                        collapsibleState);
+                    tree.push(treeItem);
+                } catch (error) {
+                    vscode.window.showErrorMessage(`Error populating Blockchain Explorer View: ${error.message}`);
+                }
+            } else if (!FabricConnectionHelper.isCompleted(connection)) {
+                tree.push(new ConnectionTreeItem(this,
+                    connection.name,
+                    connection,
+                    collapsibleState));
+            } else {
+                tree.push(new ConnectionTreeItem(this,
+                    connection.name,
+                    connection,
+                    collapsibleState,
+                    command));
+            }
+        }
+
+        tree.sort((connectionA, connectionB) => {
+            if (connectionA.label > connectionB.label) {
+                return 1;
+            } else if (connectionA.label < connectionB.label) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+
+        tree.push(new AddConnectionTreeItem(this, 'Add new connection', {
+            command: 'blockchainExplorer.addConnectionEntry',
+            title: ''
+        }));
+
+        return tree;
     }
 
     private createInstalledChaincodeVersionTree(chaincodeElement: InstalledChainCodeTreeItem): Promise<Array<InstalledChainCodeVersionTreeItem>> {
@@ -270,65 +368,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 vscode.window.showErrorMessage('Error parsing certificate ' + error.message);
             }
         }
-
-        return tree;
-    }
-
-    private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
-        console.log('createdConnectionTree');
-        const tree: BlockchainTreeItem[] = [];
-
-        const allConnections: FabricConnectionRegistryEntry[] = this.connectionRegistryManager.getAll();
-
-        for (const connection of allConnections) {
-            let collapsibleState: vscode.TreeItemCollapsibleState;
-            let command: vscode.Command;
-            if (connection.identities && connection.identities.length > 1) {
-                collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-            } else if (connection.managedRuntime) {
-                collapsibleState = vscode.TreeItemCollapsibleState.None;
-            } else {
-                collapsibleState = vscode.TreeItemCollapsibleState.None;
-                command = {
-                    command: 'blockchainExplorer.connectEntry',
-                    title: '',
-                    arguments: [connection]
-                };
-            }
-
-            if (connection.managedRuntime) {
-                try {
-                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                        connection.name,
-                        connection,
-                        collapsibleState);
-                    tree.push(treeItem);
-                } catch (error) {
-                    vscode.window.showErrorMessage(`Error populating Blockchain Explorer View: ${error.message}`);
-                }
-            } else {
-                tree.push(new ConnectionTreeItem(this,
-                    connection.name,
-                    connection,
-                    collapsibleState,
-                    command));
-            }
-        }
-
-        tree.sort((connectionA, connectionB) => {
-            if (connectionA.label > connectionB.label) {
-                return 1;
-            } else if (connectionA.label < connectionB.label) {
-                return -1;
-            } else {
-                return 0;
-            }
-        });
-
-        tree.push(new AddConnectionTreeItem(this, 'Add new connection', {
-            command: 'blockchainExplorer.addConnectionEntry',
-            title: ''
-        }));
 
         return tree;
     }

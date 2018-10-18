@@ -20,6 +20,8 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
 import {TestUtil} from '../TestUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
 
 chai.should();
 chai.use(sinonChai);
@@ -49,17 +51,18 @@ describe('AddConnectionCommand', () => {
             mySandBox.restore();
         });
 
-        it('should test a connection can be added', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+        it('should test a completed connection can be added', async () => {
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-            showInputBoxStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
-            showInputBoxStub.onCall(3).resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
+            browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
 
-            const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
@@ -78,17 +81,45 @@ describe('AddConnectionCommand', () => {
             executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
         });
 
-        it('should test another connection can be added', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+        it('should test an uncompleted connection can be added', async () => {
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-            showInputBoxStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
-            showInputBoxStub.onCall(3).resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
 
             const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+
+            const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
+
+            connections.length.should.equal(1);
+            connections[0].should.deep.equal({
+                name: 'myConnection',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                identities: [{
+                    certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
+                    privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+                }]
+            });
+
+            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+        });
+
+        it('should test another connection can be added', async () => {
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            const rootPath: string = path.dirname(__dirname);
+
+            showInputBoxStub.onFirstCall().resolves('myConnection');
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
+            browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
+
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
@@ -105,17 +136,25 @@ describe('AddConnectionCommand', () => {
                 }]
             });
 
-            showInputBoxStub.onCall(4).resolves('myConnection2');
-            showInputBoxStub.onCall(5).resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json'));
-            showInputBoxStub.onCall(6).resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
-            showInputBoxStub.onCall(7).resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
+            showInputBoxStub.onSecondCall().resolves('myConnection2');
+            browseEditStub.onCall(3).resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json'));
+            browseEditStub.onCall(4).resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            browseEditStub.onCall(5).resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
             // execute a command to force the extension activation
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
-            executeCommandSpy.callCount.should.equal(4);
-            executeCommandSpy.getCall(1).should.have.been.calledWith('blockchainExplorer.refreshEntry');
-            executeCommandSpy.getCall(3).should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.callCount.should.equal(10);
+
+            let calledWithValue: string;
+            for (let x = 0; x < 10; x++) {
+                if (x % 5 === 0) {
+                    calledWithValue = 'blockchainExplorer.addConnectionEntry';
+                } else {
+                    calledWithValue = 'blockchainExplorer.refreshEntry';
+                }
+                executeCommandSpy.getCall(x).should.have.been.calledWith(calledWithValue);
+            }
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -139,11 +178,11 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be cancelled when naming connection', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
 
             showInputBoxStub.onFirstCall().resolves();
 
-            const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
@@ -157,66 +196,84 @@ describe('AddConnectionCommand', () => {
         });
 
         it('should test a connection can be cancelled when adding profile', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
-            showInputBoxStub.onSecondCall().resolves();
+            browseEditStub.onSecondCall().resolves();
 
-            const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
-            connections.length.should.equal(0);
+            connections.length.should.equal(1);
+            connections[0].should.deep.equal({
+                name: 'myConnection',
+                connectionProfilePath: FabricConnectionHelper.CONNECTION_PROFILE_PATH_DEFAULT,
+                identities: [{
+                    certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
+                    privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+                }]
+            });
 
-            executeCommandSpy.callCount.should.equal(1);
+            executeCommandSpy.callCount.should.equal(2);
             executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainExplorer.addConnectionEntry');
+
         });
 
         it('should test a connection can be cancelled when adding certificate', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json'));
-            showInputBoxStub.onThirdCall().resolves();
-
-            const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseEditStub.onSecondCall().resolves();
 
             // execute a command to force the extension activation
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
-            connections.length.should.equal(0);
-
-            executeCommandSpy.callCount.should.equal(1);
-            executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainExplorer.addConnectionEntry');
+            connections.length.should.equal(1);
+            connections[0].should.deep.equal({
+                name: 'myConnection',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                identities: [{
+                    certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
+                    privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+                }]
+            });
         });
 
         it('should test a connection can be cancelled when adding private key', async () => {
-            const showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
-            showInputBoxStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json'));
-            showInputBoxStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
-            showInputBoxStub.onCall(3).resolves();
-
-            const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
+            browseEditStub.onThirdCall().resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
-            connections.length.should.equal(0);
-
-            executeCommandSpy.callCount.should.equal(1);
-            executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainExplorer.addConnectionEntry');
+            connections.length.should.equal(1);
+            connections[0].should.deep.equal({
+                name: 'myConnection',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+                }]
+            });
         });
     });
 });

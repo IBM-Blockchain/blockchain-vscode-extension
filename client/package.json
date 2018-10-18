@@ -54,7 +54,8 @@
             "blockchainExplorer.startFabricRuntime",
             "blockchainExplorer.stopFabricRuntime",
             "blockchainExplorer.restartFabricRuntime",
-            "blockchainExplorer.toggleFabricRuntimeDevMode"
+            "blockchainExplorer.toggleFabricRuntimeDevMode",
+            "blockchainExplorer.editConnectionEntry"
         ]
     },
     "main": "./out/src/extension",
@@ -201,6 +202,11 @@
                 "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
                 "title": "Delete Package",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "blockchainExplorer.editConnectionEntry",
+                "title": "Edit Connection",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -285,6 +291,10 @@
                 {
                     "command": "blockchainExplorer.instantiateSmartContractEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-channel-item"
+                },
+                {
+                    "command": "blockchainExplorer.editConnectionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
                 }
             ]
         }
