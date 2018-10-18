@@ -17,14 +17,13 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
+import { ChaincodeType, Package } from 'fabric-client';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
  * This will be used in other files to call the command to package a smart contract project.
  */
 export async function packageSmartContract(): Promise<void> {
-    let packageDir: string = vscode.workspace.getConfiguration().get('fabric.package.directory');
-
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
@@ -32,32 +31,79 @@ export async function packageSmartContract(): Promise<void> {
     }, async (progress) => {
         progress.report({message: `Packaging Smart Contract`});
         try {
-            packageDir = await UserInputUtil.getDirPath(packageDir);
-            await createPackageDir(packageDir);
+
+            // Determine the directory that will contain the packages and ensure it exists.
+            const pkgDir: string = vscode.workspace.getConfiguration().get('fabric.package.directory');
+            const resolvedPkgDir: string = await UserInputUtil.getDirPath(pkgDir);
+            await fs.ensureDir(resolvedPkgDir);
+
+            // Choose the workspace directory.
+            const workspaceDir: vscode.WorkspaceFolder = await chooseWorkspace();
+            if (!workspaceDir) {
+                // User cancelled.
+                return;
+            }
+
+            // Determine the language.
+            const language: ChaincodeType = await getLanguage(workspaceDir);
+
+            // Determine the package name and version.
+            let properties: { workspacePackageName: string, workspacePackageVersion: string };
+            if (language === 'golang') {
+                properties = await golangPackageAndVersion();
+            } else {
+                properties = await packageJsonNameAndVersion(workspaceDir);
+            }
+            if (!properties) {
+                // User cancelled.
+                return;
+            }
+
+            // Determine the filename of the new package.
+            const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.cds`);
+            const pkgFileExists: boolean = await fs.pathExists(pkgFile);
+            if (pkgFileExists) {
+                if (language === 'golang') {
+                    throw new Error('Package with name and version already exists. Please input a different name or version for your Go project.');
+                } else {
+                    throw new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+                }
+            }
+
+            // Determine the path argument.
+            let pkgPath: string = workspaceDir.uri.fsPath;
+            if (language === 'golang') {
+                // Ensure GOPATH is set for Go smart contracts.
+                if (!process.env.GOPATH) {
+                    throw new Error('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+                }
+                // The path is relative to $GOPATH/src for Go smart contracts.
+                const srcPath: string = path.join(process.env.GOPATH, 'src');
+                pkgPath = path.relative(srcPath, pkgPath);
+                if (!pkgPath || pkgPath.startsWith('..') || path.isAbsolute(pkgPath)) {
+                    // Project path is not under GOPATH.
+                    throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+                }
+            }
+
+            // Create the package.
+            const pkg: Package = await Package.fromDirectory({
+                name: properties.workspacePackageName,
+                version: properties.workspacePackageVersion,
+                path: pkgPath,
+                type: language
+            });
+            const pkgBuffer = await pkg.toBuffer();
+            await fs.writeFile(pkgFile, pkgBuffer);
 
             Reporter.instance().sendTelemetryEvent('packageCommand');
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
+            vscode.window.showInformationMessage('Smart Contract packaged: ' + pkgFile);
         } catch (err) {
             vscode.window.showErrorMessage(err.message);
         }
     });
-}
-
-/**
- * This method checks to see whether the smart contract project contains javascript, typescript or golang files to determine the chosen language of this project.
- * It then calls one of two methods, packageJsonNameAndVersion() and golandPackageAndVersion(), and uses the retrieved information to determine the absolute path of the package directory
- * and calls the createAndPackage method with this full directory.
- * @param {String} packageDir A string containing the path of the directory of packaged smart contracts defined in User Settings.
- */
-async function createPackageDir(packageDir: string): Promise<void> {
-    const workspaceDir: vscode.WorkspaceFolder = await chooseWorkspace();
-    if (workspaceDir) {
-        const dir: string = await getFinalDirectory(packageDir, workspaceDir);
-        if (dir) {
-            await createAndPackage(dir, workspaceDir.uri.fsPath);
-        }
-    }
 }
 
 /**
@@ -88,56 +134,13 @@ async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
 }
 
 /**
- * This method uses a glob function to go through all directories and sub-directories in the active workspace to determine what
- * language was used to develop this smart contract.
- * @param {String} packageDir Package directory which is defined in User Settings. This is the directory where smart contracts will be packaged to.
- * @param {String} workspaceDir Path of the active smart contract to be packaged.
- * @returns {String} Returns the full directory of where the smart contract will be found within the package directory.
- */
-async function getFinalDirectory(packageDir: string, workspaceDir: vscode.WorkspaceFolder): Promise<string> {
-    let language: string;
-    let properties: any = {};
-    language = await getLanguage(workspaceDir);
-    let message: string;
-
-    if (language === '/go/src/') {
-        properties = await golangPackageAndVersion();
-    } else {
-        properties = await packageJsonNameAndVersion(workspaceDir.uri.fsPath);
-    }
-
-    if (!properties) {
-        return;
-    }
-    const dir: string = path.join(packageDir, language, properties.workspacePackageName + '@' + properties.workspacePackageVersion);
-    try {
-        // Checking to see if there is an existing package with the same name and version
-        await fs.stat(dir);
-        if (language === '/go/src/') {
-            message = 'Package with name and version already exists. Please input a different name or version for your go project.';
-        } else {
-            message = 'Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.';
-        }
-
-        throw new Error(message);
-
-    } catch (err) {
-        if (err.code === 'ENOENT') { // If the directory does not exist, it will create and package the Smart Contract
-            return dir;
-        } else {
-            throw new Error(err);
-        }
-    }
-}
-
-/**
  * Method to determine the language used in the development of the smart contract project, which will be used to determine the correct directories
  * to package the projects.
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory.
  */
-async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<string> {
-    let language: string;
+async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<ChaincodeType> {
+    let language: ChaincodeType;
 
     const jsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.js'), '**/node_modules/**', 1);
 
@@ -146,17 +149,17 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<string
     const goFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.go'), '**/node_modules/**', 1);
 
     if (jsFiles.length > 0 && tsFiles.length > 0) {
-        language = '/typescript/';
+        language = 'node';
     } else if (tsFiles.length > 0 && jsFiles.length === 0) {
-        const message: string = 'Please ensure you have compiled your typescript files into javascript.';
+        const message: string = 'Please ensure you have compiled your TypeScript files into JavaScript.';
         vscode.window.showErrorMessage(message);
         throw new Error(message);
     } else if (goFiles.length > 0) {
-        language = '/go/src/';
+        language = 'golang';
     } else if (jsFiles.length > 0) {
-        language = '/javascript/';
+        language = 'node';
     } else {
-        const message: string = 'Failed to determine workspace language type, supported languages are javascript, typescript, and go';
+        const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, and Go';
         vscode.window.showErrorMessage(message);
         throw new Error(message);
     }
@@ -169,8 +172,8 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<string
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string, string}An object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method.
  */
-async function packageJsonNameAndVersion(workspaceDir: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
-    const workspacePackage: string = path.join(workspaceDir, '/package.json');
+async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+    const workspacePackage: string = path.join(workspaceDir.uri.fsPath, '/package.json');
     const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
     const workspacePackageObj: any = JSON.parse(workspacePackageContents.toString('utf8'));
     const workspacePackageName: string = workspacePackageObj.name;
@@ -189,40 +192,18 @@ async function packageJsonNameAndVersion(workspaceDir: string): Promise<{ worksp
  * (as golang projects do not contain a package.json file), and returns an object containing both these values.
  * @returns {string, string} Returns an object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method
  */
-async function golangPackageAndVersion(): Promise<{ workspacePackageName: string, workspacePackageVersion: string } | void> {
+async function golangPackageAndVersion(): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
 
-    const workspacePackageName: string = await UserInputUtil.showInputBox('Enter a name for your go package'); // Getting the specified name and package from the user
+    const workspacePackageName: string = await UserInputUtil.showInputBox('Enter a name for your Go package'); // Getting the specified name and package from the user
     if (!workspacePackageName) {
         // User has cancelled the input box
         return;
     }
-    const workspacePackageVersion: string = await UserInputUtil.showInputBox('Enter a version for your go package'); // Getting the specified name and package from the user
+    const workspacePackageVersion: string = await UserInputUtil.showInputBox('Enter a version for your Go package'); // Getting the specified name and package from the user
     if (!workspacePackageVersion) {
         // User has cancelled the input box
         return;
     }
 
     return {workspacePackageName, workspacePackageVersion};
-}
-
-/**
- * Method to create the directory previously determined in the createPackageDir() method. It will check to see if the directory already exists,
- * hence meaning the developer has tried to package the same smart contract, and if the directory does not exist, will create it and all its subdirectories
- * using 'fs.mkdirp() and package the smart contract project using fs.copy().
- * @param {String} dir A string containing the full absolute path of the packaged smart contract.
- * @param {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
- */
-async function createAndPackage(dir: string, workspaceDir: string): Promise<void> {
-    try {
-        await fs.mkdirp(dir);
-        await fs.copy(workspaceDir, dir, {
-            filter: (filePath) => {
-                return !filePath.includes('node_modules');
-            }
-        });
-        vscode.window.showInformationMessage('Smart Contract packaged: ' + dir);
-    } catch (err) {
-        vscode.window.showErrorMessage(err);
-        throw new Error(err);
-    }
 }

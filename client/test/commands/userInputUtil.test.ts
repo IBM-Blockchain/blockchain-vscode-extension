@@ -287,12 +287,12 @@ describe('userInputUtil', () => {
     });
 
     describe('showSmartContractPackagesQuickPickBox', () => {
-        it('show quick pick box for smart contract packages', async () => {
-            const newPackage: PackageRegistryEntry = new PackageRegistryEntry();
-            newPackage.chaincodeLanguage = 'javascript';
-            newPackage.name = 'smartContractPackageBlue';
-            newPackage.version = '0.0.1';
-            newPackage.path = 'smartContractPackageBlue';
+        it('show quick pick box for smart contract packages with a single pick', async () => {
+            const newPackage: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'smartContractPackageBlue',
+                version: '0.0.1',
+                path: 'smartContractPackageBlue@0.0.1.cds'
+            });
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
 
@@ -306,12 +306,12 @@ describe('userInputUtil', () => {
             });
         });
 
-        it('show quick pick box for smart contract packages with multiple', async () => {
-            const newPackage: PackageRegistryEntry = new PackageRegistryEntry();
-            newPackage.chaincodeLanguage = 'javascript';
-            newPackage.name = 'smartContractPackageBlue';
-            newPackage.version = '0.0.1';
-            newPackage.path = 'smartContractPackageBlue';
+        it('show quick pick box for smart contract packages with multiple picks', async () => {
+            const newPackage: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'smartContractPackageBlue',
+                version: '0.0.1',
+                path: 'smartContractPackageBlue@0.0.1.cds'
+            });
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
 

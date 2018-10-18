@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { Package } from 'fabric-client';
 
 chai.should();
 chai.use(sinonChai);
@@ -42,7 +43,7 @@ describe('packageSmartContract', () => {
 
     let findFilesStub: sinon.SinonStub;
 
-    const golangPath: string = path.join(rootPath, '../../test/data/testWorkspace/goProject');
+    const golangPath: string = path.join(rootPath, '../../test/data/testWorkspace/src/goProject');
     const folders: Array<any> = [];
     const languages: Array<string> = [
         '/javascript/',
@@ -51,7 +52,11 @@ describe('packageSmartContract', () => {
     ];
 
     async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean): Promise<void> {
-        const workspaceDir: string = path.join(rootPath, '../../test/data/testWorkspace/' + packageName);
+        let workspaceDir: string = path.join(rootPath, '..', '..', 'test', 'data', 'testWorkspace');
+        if (language === 'golang') {
+            workspaceDir = path.join(workspaceDir, 'src');
+        }
+        workspaceDir = path.join(workspaceDir, packageName);
 
         try {
             await fs.mkdirp(workspaceDir);
@@ -97,6 +102,14 @@ describe('packageSmartContract', () => {
         await TestUtil.restorePackageDirectoryConfig();
     });
 
+    beforeEach(async () => {
+        process.env.GOPATH = testWorkspace;
+    });
+
+    afterEach(async () => {
+        delete process.env.GOPATH;
+    });
+
     describe('#packageSmartContract', () => {
 
         beforeEach(async () => {
@@ -125,93 +138,74 @@ describe('packageSmartContract', () => {
             mySandBox.restore();
         });
 
-        it('should package the javascript project', async () => {
+        it('should package the JavaScript project', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
             const testIndex: number = 0;
-            const language: string = languages[testIndex];
 
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.js')).resolves([vscode.Uri.file('chaincode.js')]);
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            const packageJSONDir: string = path.join(packageDir, '/package.json');
-            const smartContractEntities: string = path.join(packageDir, '/chaincode.js');
-            const smartContractExists: boolean = await fs.pathExists(packageDir);
-            const packageJSONExists: boolean = await fs.pathExists(packageJSONDir);
-            const smartContractContains: boolean = await fs.pathExists(smartContractEntities);
-            const fileContents: string = await fs.readFile(packageJSONDir, 'utf8');
-            const packageJSON: any = JSON.parse(fileContents);
-            smartContractExists.should.equal(true, 'Smart Contract does not exist');
-            packageJSONExists.should.equal(true, 'javascript packageJSON does not exist');
-            smartContractContains.should.equal(true, 'javascript chaincode file does not exist');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
             errorSpy.should.not.have.been.called;
-            packageJSON.name.should.equal('javascriptProject');
-            packageJSON.version.should.equal('0.0.1');
-            packageJSON.description.should.equal('My Smart Contract');
-            packageJSON.author.should.equal('John Doe');
-            packageJSON.license.should.equal('Apache-2.0');
             informationSpy.should.have.been.calledOnce;
         }).timeout(4000);
 
-        it('should package the typescript project', async () => {
+        it('should package the TypeScript project', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
 
             const testIndex: number = 1;
-            const language: string = languages[testIndex];
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.ts'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.ts')]);
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.js'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            const packageJSONDir: string = path.join(packageDir, '/package.json');
-            const smartContractExists: boolean = await fs.pathExists(packageDir);
-            const packageJSONExists: boolean = await fs.pathExists(packageJSONDir);
-            const smartContractEntities: string = path.join(packageDir, '/chaincode.js');
-            const smartContractEntities2: string = path.join(packageDir, '/chaincode.ts');
-            const smartContractContains: boolean = await fs.pathExists(smartContractEntities);
-            const smartContractContains2: boolean = await fs.pathExists(smartContractEntities2);
-            const fileContents: string = await fs.readFile(packageJSONDir, 'utf8');
-            const packageJSON: any = JSON.parse(fileContents);
-
-            smartContractExists.should.equal(true, 'Smart Contract does not exist');
-            packageJSONExists.should.equal(true, 'typescript packageJSON does not exist');
-            smartContractContains.should.equal(true, 'Compiled javascript chaincode file does not exist');
-            smartContractContains2.should.equal(true, 'typescript chaincode file does not exist');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('typescriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/chaincode.ts',
+                'src/package.json'
+            ]);
             errorSpy.should.not.have.been.called;
-            packageJSON.name.should.equal('typescriptProject');
-            packageJSON.version.should.equal('0.0.1');
-            packageJSON.description.should.equal('My Smart Contract');
-            packageJSON.author.should.equal('John Doe');
-            packageJSON.license.should.equal('Apache-2.0');
             informationSpy.should.have.been.calledOnce;
         }).timeout(4000);
 
-        it('should package the golang project', async () => {
+        it('should package the Go project', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
 
             const testIndex: number = 2;
-            const language: string = languages[testIndex];
 
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest + language, 'myProject' + '@0.0.3');
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
@@ -220,21 +214,23 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            const smartContractExists: boolean = await fs.pathExists(packageDir);
-            const smartContractEntities: string = path.join(packageDir, '/chaincode.go');
-            const smartContractContains: boolean = await fs.pathExists(smartContractEntities);
-
-            smartContractExists.should.equal(true, 'Smart Contract does not exist');
-            smartContractContains.should.equal(true, 'golang chaincode file does not exist');
-            informationSpy.should.have.been.calledOnce;
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('myProject');
+            pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('golang');
+            pkg.getFileNames().should.deep.equal([
+                'src/goProject/chaincode.go'
+            ]);
             errorSpy.should.not.have.been.called;
+            informationSpy.should.have.been.calledOnce;
         }).timeout(4000);
 
         it('should throw an error as the package json does not contain a name or version', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
 
             const testIndex: number = 0;
-            const language: string = languages[testIndex];
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
@@ -243,7 +239,7 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.js'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
+            const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
 
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await fs.writeFile(path.join(javascriptPath, '/package.json'), emptyContent);
@@ -260,25 +256,24 @@ describe('packageSmartContract', () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
 
             const testIndex: number = 0;
-            const language: string = languages[testIndex];
 
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
+            const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/chaincode.js'));
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
-            errorSpy.should.have.been.calledWith('Failed to determine workspace language type, supported languages are javascript, typescript, and go');
+            errorSpy.should.have.been.calledWith('Failed to determine workspace language type, supported languages are JavaScript, TypeScript, and Go');
             informationSpy.should.not.have.been.called;
         }).timeout(4000);
 
-        it('should throw an error if the project already exists', async () => {
+        it('should throw an error if the JavaScript project already exists', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
 
             const testIndex: number = 0;
@@ -294,13 +289,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            errorSpy.should.have.been.calledWith('Error: Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+            errorSpy.should.have.been.calledWith('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
         }).timeout(4000);
 
-        it('should throw an error as the go project already exists', async () => {
+        it('should throw an error as the Go project already exists', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
 
-            const testIndex: number = 0;
+            const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.resolves({
                 label: folders[testIndex].name,
@@ -318,14 +313,105 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            errorSpy.should.have.been.calledWith('Error: Package with name and version already exists. Please input a different name or version for your go project.');
+            errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Go project.');
         }).timeout(4000);
 
-        it('should fail packaging the typescript project as there is no compiled chaincode.js file', async () => {
+        it('should throw an error if the GOPATH environment variable is not set', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onCall(3).resolves('0.0.3');
+
+            delete process.env.GOPATH;
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+
+            errorSpy.should.have.been.calledWith('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+        }).timeout(4000);
+
+        it('should throw an error if the GOPATH environment variable is set to the project directory', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onCall(3).resolves('0.0.3');
+
+            process.env.GOPATH = golangPath;
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+
+            errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+        }).timeout(4000);
+
+        it('should throw an error if the project directory is not inside the directory specified by the GOPATH environment variable ', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onCall(3).resolves('0.0.3');
+
+            process.env.GOPATH = javascriptPath;
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+
+            errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+        }).timeout(4000);
+
+        it('should throw an error if the GOPATH environment variable is set to the root directory', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true);
+
+            const testIndex: number = 2;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onCall(3).resolves('0.0.3');
+
+            process.env.GOPATH = path.resolve('/');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+
+            errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+        }).timeout(4000);
+
+        it('should fail packaging the TypeScript project as there is no compiled chaincode.js file', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
 
             const testIndex: number = 1;
-            const language: string = languages[testIndex];
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
@@ -334,7 +420,7 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.ts'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.ts')]);
 
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
+            const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
 
             await TestUtil.deleteTestFiles(path.join(typescriptPath, '/chaincode.js'));
 
@@ -367,13 +453,10 @@ describe('packageSmartContract', () => {
         it('should not show package chooser when only one folder', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
             const testIndex: number = 0;
-            const language: string = languages[testIndex];
 
             folders.splice(1, folders.length - 1);
 
             workspaceFoldersStub.returns(folders);
-
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.js'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
@@ -381,22 +464,17 @@ describe('packageSmartContract', () => {
 
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
-            const packageJSONDir: string = path.join(packageDir, '/package.json');
-            const smartContractEntities: string = path.join(packageDir, '/chaincode.js');
-            const smartContractExists: boolean = await fs.pathExists(packageDir);
-            const packageJSONExists: boolean = await fs.pathExists(packageJSONDir);
-            const smartContractContains: boolean = await fs.pathExists(smartContractEntities);
-            const fileContents: string = await fs.readFile(packageJSONDir, 'utf8');
-            const packageJSON: any = JSON.parse(fileContents);
-            smartContractExists.should.equal(true, 'Smart Contract does not exist');
-            packageJSONExists.should.equal(true, 'javascript packageJSON does not exist');
-            smartContractContains.should.equal(true, 'javascript chaincode file does not exist');
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
             errorSpy.should.not.have.been.called;
-            packageJSON.name.should.equal('javascriptProject');
-            packageJSON.version.should.equal('0.0.1');
-            packageJSON.description.should.equal('My Smart Contract');
-            packageJSON.author.should.equal('John Doe');
-            packageJSON.license.should.equal('Apache-2.0');
             informationSpy.should.have.been.calledOnce;
         }).timeout(4000);
 
@@ -419,13 +497,12 @@ describe('packageSmartContract', () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
 
             const testIndex: number = 0;
-            const language: string = languages[testIndex];
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.resolves();
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.js'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
-            const packageDir: string = path.join(fileDest + language, folders[testIndex].name + '@0.0.1');
+            const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
@@ -438,14 +515,13 @@ describe('packageSmartContract', () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
 
             const testIndex: number = 2;
-            const language: string = languages[testIndex];
 
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest + language, 'myProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
             showInputStub.onFirstCall().resolves();
 
@@ -462,14 +538,13 @@ describe('packageSmartContract', () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
 
             const testIndex: number = 2;
-            const language: string = languages[testIndex];
 
             workspaceFoldersStub.returns(folders);
             showWorkspaceQuickPickStub.onFirstCall().resolves({
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest + language, 'myProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves();

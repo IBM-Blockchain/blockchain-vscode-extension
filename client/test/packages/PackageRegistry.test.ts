@@ -28,268 +28,66 @@ chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('PackageRegistry', () => {
-    let mySandBox;
-    let rootPath: string;
-    let errorSpy;
-    let infoSpy;
 
-    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/smartContractDir');
+    const packageRegistry: PackageRegistry = PackageRegistry.instance();
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir');
+
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storePackageDirectoryConfig();
         await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
+
     after(async () => {
         await TestUtil.restorePackageDirectoryConfig();
     });
 
-    async function createTestFiles(dirName: string, packageName, version: string, language, createValid: boolean): Promise<void> {
-        const smartContractDir: string = path.join(TEST_PACKAGE_DIRECTORY, language, dirName);
-
-        try {
-            await fs.mkdirp(smartContractDir);
-        } catch (error) {
-            console.log(error);
-        }
-
-        if (createValid) {
-            if (language !== 'go/src') {
-                const packageJsonFile = smartContractDir + '/package.json';
-                const content = {
-                    name: `${packageName}`,
-                    version: version,
-                    description: 'My smart contract'
-                };
-                await fs.writeFile(packageJsonFile, JSON.stringify(content));
-            }
-        } else {
-            const textFile = smartContractDir + '/text.txt';
-            const content = 'hello';
-            await fs.writeFile(textFile, content);
-        }
-    }
-
-    async function checkFileDeleted(name: string, version: string, language: string) {
-        await fs.stat(`${TEST_PACKAGE_DIRECTORY}/${language}/${name}`);
-    }
-
-    beforeEach(async () => {
+    beforeEach(() => {
         mySandBox = sinon.createSandbox();
-        rootPath = path.dirname(__dirname);
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-        infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
-
-        await TestUtil.deleteTestFiles(TEST_PACKAGE_DIRECTORY);
     });
 
-    afterEach(async () => {
+    afterEach(() => {
         mySandBox.restore();
-        await TestUtil.deleteTestFiles(TEST_PACKAGE_DIRECTORY);
     });
 
-    it('should create the smart contract package directory if it doesn\'t exist', async () => {
-        const packagesDir: string = tmp.dirSync().name;
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
+    describe('#getAll', () => {
 
-        const packageRegistry: PackageRegistry = PackageRegistry.instance();
-        const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
-        errorSpy.should.not.have.been.called;
-        const smartContactPackageDirExists: boolean = await fs.pathExists(packagesDir);
-        smartContactPackageDirExists.should.be.true;
-        packageRegistryEntries.length.should.equal(0);
+        it('should return all of the entries', async () => {
+            const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
+            packageRegistryEntries.should.deep.equal([
+                {
+                    name: 'vscode-pkg-1',
+                    version: '0.0.1',
+                    path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+                },
+                {
+                    name: 'vscode-pkg-2',
+                    version: '0.0.2',
+                    path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-2@0.0.2.cds')
+                },
+                {
+                    name: 'vscode-pkg-3',
+                    version: '1.2.3',
+                    path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-3@1.2.3.cds')
+                }
+            ]);
+        });
+
     });
 
-    it('should understand the users home directory', async () => {
-        const tildaTestDir: string = '~/test_dir';
-        const homeTestDir: string = await UserInputUtil.getDirPath(tildaTestDir);
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', tildaTestDir, true);
+    describe('#delete', () => {
 
-        const readDirStub = mySandBox.stub(fs, 'readdir');
-        readDirStub.onCall(0).rejects();
-        const packageRegistry: PackageRegistry = PackageRegistry.instance();
-        await packageRegistry.getAll();
-        errorSpy.should.have.been.calledWith('Issue reading smart contract package folder:' + homeTestDir);
-        // Check ~/test_dir isn't created
-        const smartContactPackageDirExists: boolean = await fs.pathExists(tildaTestDir);
-        smartContactPackageDirExists.should.be.false;
+        it('should delete one of the entries', async () => {
+            const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
+            const packageRegistryEntry: PackageRegistryEntry = packageRegistryEntries[0];
+            packageRegistryEntry.name.should.equal('vscode-pkg-1');
+            const removeStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').withArgs(packageRegistryEntry.path).resolves();
+            await packageRegistry.delete(packageRegistryEntry);
+            removeStub.should.have.been.calledOnceWithExactly(packageRegistryEntry.path);
+        });
+
     });
 
-    it('should throw an error if it fails to create the smart contract package directory', async () => {
-        const packagesDir: string = path.join(rootPath, '../test/data/cake');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        const readDirStub = mySandBox.stub(fs, 'readdir');
-        readDirStub.onCall(0).rejects({message: 'no such file or directory'});
-        const mkdirpStub = mySandBox.stub(fs, 'mkdirp');
-        mkdirpStub.onCall(0).rejects();
-        const packageRegistry: PackageRegistry = PackageRegistry.instance();
-        await packageRegistry.getAll();
-        errorSpy.should.have.been.calledWith('Issue creating smart contract package folder:' + packagesDir);
-    });
-
-    it('should ignore . packages', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        await createTestFiles('.ignoreDirectory', 'ignore-directory', '1.0.0', 'javascript', true);
-
-        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        packages.length.should.equal(0);
-    });
-
-    it('should ignore . languages', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        await createTestFiles('ignoreDirectory', 'ignore-directory', '1.0.0', '.ignore', true);
-
-        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        packages.length.should.equal(0);
-    });
-
-    it('should be able to read javascript packages', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        await createTestFiles('packageOne@1.0.0', 'package-one', '1.0.0', 'javascript', true);
-        await createTestFiles('packageTwo@1.0.0', 'package-two', '1.0.0', 'javascript', true);
-
-        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        packages.length.should.equal(2);
-
-        packages[0].name.should.equal('package-one');
-        packages[0].chaincodeLanguage.should.equal('javascript');
-        packages[0].version.should.equal('1.0.0');
-        packages[0].path.should.equal(path.join(packagesDir, 'javascript', 'packageOne@1.0.0'));
-
-        packages[1].name.should.equal('package-two');
-        packages[1].chaincodeLanguage.should.equal('javascript');
-        packages[1].version.should.equal('1.0.0');
-        packages[1].path.should.equal(path.join(packagesDir, 'javascript', 'packageTwo@1.0.0'));
-    });
-
-    it('should be able to read typescript packages', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        await createTestFiles('packageOne@1.0.0', 'package-one', '1.0.0', 'typescript', true);
-        await createTestFiles('packageTwo@1.0.0', 'package-two', '1.0.0', 'typescript', true);
-
-        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        packages.length.should.equal(2);
-
-        packages[0].name.should.equal('package-one');
-        packages[0].chaincodeLanguage.should.equal('typescript');
-        packages[0].version.should.equal('1.0.0');
-        packages[0].path.should.equal(path.join(packagesDir, 'typescript', 'packageOne@1.0.0'));
-
-        packages[1].name.should.equal('package-two');
-        packages[1].chaincodeLanguage.should.equal('typescript');
-        packages[1].version.should.equal('1.0.0');
-        packages[1].path.should.equal(path.join(packagesDir, 'typescript', 'packageTwo@1.0.0'));
-    });
-
-    it('should be able to read go packages', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        await createTestFiles('packageOne', 'package-one', '1.0.0', 'go/src', true);
-        await createTestFiles('packageTwo', 'package-two', '1.0.0', 'go/src', true);
-
-        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        packages.length.should.equal(2);
-
-        packages[0].name.should.equal('packageOne');
-        packages[0].chaincodeLanguage.should.equal('go');
-        // TODO: put this back in once got proper packaging
-        // packages[0].version.should.equal('1.0.0');
-        packages[0].path.should.equal(path.join(packagesDir, packages[0].chaincodeLanguage, 'src', packages[0].name));
-
-        packages[1].name.should.equal('packageTwo');
-        packages[1].chaincodeLanguage.should.equal('go');
-        // TODO: put this back in once got proper packaging
-        //  packages[1].version.should.equal('1.0.0');
-        packages[1].path.should.equal(path.join(packagesDir, packages[1].chaincodeLanguage, 'src', packages[1].name));
-    });
-
-    it('should show a message if it fails to read a go smart contract package directory', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        const goPackagesDir: string = path.join(rootPath, '../../test/data/smartContractDir/go/src');
-        await fs.mkdirp(goPackagesDir);
-
-        await createTestFiles('myPackage@1.0.0', 'my-package', '1.0.0', 'javascript', true);
-
-        const packagesDirContents: string[] = await fs.readdir(packagesDir);
-        const javascriptContents: string[] = await fs.readdir(packagesDir + '/javascript');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        const readDirStub = mySandBox.stub(fs, 'readdir');
-        readDirStub.onCall(0).resolves(packagesDirContents);
-        readDirStub.onCall(1).rejects();
-        readDirStub.onCall(2).resolves(javascriptContents);
-
-        const packageRegistry: PackageRegistry = PackageRegistry.instance();
-        const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
-        infoSpy.should.have.been.calledWith('Issue listing smart contract packages in:' + goPackagesDir);
-        errorSpy.should.not.have.been.called;
-
-        packageRegistryEntries.length.should.equal(1);
-
-        packageRegistryEntries[0].name.should.equal('my-package');
-        packageRegistryEntries[0].chaincodeLanguage.should.equal('javascript');
-        packageRegistryEntries[0].version.should.equal('1.0.0');
-        packageRegistryEntries[0].path.should.equal(path.join(packagesDir, 'javascript', 'myPackage@1.0.0'));
-    });
-
-    it('should show error if no package json in javascript package', async () => {
-        const packagesDir: string = path.join(rootPath, '../../test/data/smartContractDir');
-
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packagesDir, true);
-
-        await createTestFiles('packageOne@1.0.0', 'package-one', '1.0.0', 'javascript', false);
-
-        const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        packages.length.should.equal(0);
-    });
-
-    it('should delete package', async () => {
-        await createTestFiles('DeleteThisDirectory@1.0.0', 'delete-this-directory', '1.0.0', 'javascript', true);
-
-        const packageRegistry: PackageRegistry = PackageRegistry.instance();
-
-        const packages: Array<PackageRegistryEntry> = await packageRegistry.getAll();
-
-        const packageEntry: PackageRegistryEntry = packages[0];
-
-        await packageRegistry.delete(packageEntry);
-
-        await checkFileDeleted('DeleteThisDirectory@1.0.0', '1.0.0', 'javascript').should.be.rejected;
-    });
-
-    it('should delete Go packages', async () => {
-        await createTestFiles('DeleteThisDirectory', 'delete-this-directory', '1.0.0', 'go/src', true);
-
-        const packageRegistry: PackageRegistry = PackageRegistry.instance();
-
-        const packageEntries: Array<PackageRegistryEntry> = await packageRegistry.getAll();
-
-        const packageEntry = packageEntries[0];
-
-        await packageRegistry.delete(packageEntry);
-
-        await checkFileDeleted('DeleteThisDirectory', '', 'go/src').should.be.rejected;
-    });
 });

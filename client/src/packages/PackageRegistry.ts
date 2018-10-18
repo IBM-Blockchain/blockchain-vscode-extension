@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import { Package } from 'fabric-client';
 
 export class PackageRegistry {
 
@@ -25,7 +26,6 @@ export class PackageRegistry {
     }
 
     private static _instance: PackageRegistry = new PackageRegistry();
-    private packageDir: string;
 
     private constructor() {
     }
@@ -40,109 +40,43 @@ export class PackageRegistry {
     }
 
     private async getEntries(): Promise<PackageRegistryEntry[]> {
-        const packageRegistryEntries: Array<PackageRegistryEntry> = [];
-        const languageArray: string[] = await this.getLanguageArray();
-        for (const packageLanguage of languageArray) {
-            console.log('printing packageLanguage', packageLanguage);
-            let packageSubDirectory: string;
-            let packageSubArray: string[] = [];
 
-            if (packageLanguage.startsWith('.')) {
-                continue;
-            } else if (packageLanguage === 'go') {
-                // Handle go directory structure: ../package_dir/go/src/
-                packageSubDirectory = path.join(this.packageDir, packageLanguage, '/src');
-            } else {
-                packageSubDirectory = path.join(this.packageDir, packageLanguage);
-            }
+        // Determine the directory that will contain the packages and ensure it exists.
+        const pkgDir: string = vscode.workspace.getConfiguration().get('fabric.package.directory');
+        const resolvedPkgDir: string = await UserInputUtil.getDirPath(pkgDir);
+        await fs.ensureDir(resolvedPkgDir);
 
-            try {
-                // create array of smart contract packages from within the language sub directory
-                packageSubArray = await fs.readdir(packageSubDirectory);
-            } catch (error) {
-                console.log('Error reading smart contract package folder:', error.message);
-                vscode.window.showInformationMessage('Issue listing smart contract packages in:' + packageSubDirectory);
-                // continue to next packageLanguage
+        // Read the list of files and process them.
+        const pkgRegistryEntries: PackageRegistryEntry[] = [];
+        const pkgFileNames: string[] = await fs.readdir(resolvedPkgDir);
+        for (const pkgFileName of pkgFileNames) {
+
+            // Get the full path to the package file.
+            const pkgPath: string = path.join(resolvedPkgDir, pkgFileName);
+
+            // Skip it if it's anything other than a file.
+            // This means we can ignore any "old style" packages.
+            const stat: fs.Stats = await fs.lstat(pkgPath);
+            if (!stat.isFile()) {
                 continue;
             }
-            for (const packageSubFile of packageSubArray) {
-                if (packageSubFile.startsWith('.')) {
-                    continue;
-                }
 
-                // add each package to the registry
-                const packageRegistryEntry: PackageRegistryEntry = new PackageRegistryEntry();
-                packageRegistryEntry.path = path.join(packageSubDirectory, packageSubFile);
-                packageRegistryEntry.chaincodeLanguage = packageLanguage;
-                if (packageLanguage !== 'go') {
-                    try {
-                        const packageDetails: { name: string, version: string } = await this.getPackageNameAndVersion(packageSubDirectory, packageSubFile);
-                        packageRegistryEntry.name = packageDetails.name;
-                        packageRegistryEntry.version = packageDetails.version;
-                    } catch (error) {
-                        // error getting package version so go on to next package
-                        continue;
-                    }
-                } else {
-                    const packageDetails = packageSubFile.split('@');
-                    packageRegistryEntry.name = packageDetails[0];
-                    packageRegistryEntry.version = packageDetails[1];
-                }
-                packageRegistryEntries.push(packageRegistryEntry);
-            }
-        }
-        return packageRegistryEntries;
+            // Load the package file.
+            const pkgBuffer: Buffer = await fs.readFile(pkgPath);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
 
-    }
+            // Create the package registry entry.
+            pkgRegistryEntries.push(new PackageRegistryEntry({
+                name: pkg.getName(),
+                version: pkg.getVersion(),
+                path: pkgPath
+            }));
 
-    private async getLanguageArray(): Promise<string[]> {
-        let packageLanguageArray: string[] = [];
-        this.packageDir = this.getPackageDir();
-        console.log('packageDir is:', this.packageDir);
-
-        this.packageDir = await UserInputUtil.getDirPath(this.packageDir);
-
-        try {
-            packageLanguageArray = await fs.readdir(this.packageDir);
-        } catch (error) {
-            if (error.message.includes('no such file or directory')) {
-                // if the smart contract package directory doesn't exist, create it
-                packageLanguageArray = [];
-                try {
-                    console.log('creating smart contract package directory:', this.packageDir);
-                    await fs.mkdirp(this.packageDir);
-                } catch (error) {
-                    console.log('Issue creating smart contract package folder:', error.message);
-                    vscode.window.showErrorMessage('Issue creating smart contract package folder:' + this.packageDir);
-                }
-            } else {
-                console.log('Error reading smart contract package folder:', error.message);
-                vscode.window.showErrorMessage('Issue reading smart contract package folder:' + this.packageDir);
-            }
-        }
-        return packageLanguageArray;
-    }
-
-    private getPackageDir(): string {
-        console.log('BlockchainPackageExplorer: getPackageDir');
-        return vscode.workspace.getConfiguration().get('fabric.package.directory');
-    }
-
-    private async getPackageNameAndVersion(packagePath: string, packageFile: string): Promise<{ name: string, version: string }> {
-        const packageVersionFile: string = path.join(packagePath, packageFile, '/package.json');
-        let packageVersion: string;
-        let packageName: string;
-        try {
-            const packageVersionFileContents: Buffer = await fs.readFile(packageVersionFile);
-            const packageVersionObj: any = JSON.parse(packageVersionFileContents.toString('utf8'));
-            packageVersion = packageVersionObj.version;
-            packageName = packageVersionObj.name;
-        } catch (error) {
-
-            vscode.window.showErrorMessage(`Could not read package json file from package ${packageFile}  ${error.message}`);
-            throw error;
         }
 
-        return {name: packageName, version: packageVersion};
+        // Return the list of package registry entries.
+        return pkgRegistryEntries;
+
     }
+
 }

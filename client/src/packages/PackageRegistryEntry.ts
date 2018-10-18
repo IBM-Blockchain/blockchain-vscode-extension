@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+
 import { FabricRegistryEntry } from '../fabric/FabricRegistryEntry';
 
 export class PackageRegistryEntry extends FabricRegistryEntry {
@@ -21,8 +22,6 @@ export class PackageRegistryEntry extends FabricRegistryEntry {
     public path: string;
 
     public version: string;
-
-    public chaincodeLanguage: string;
 
     constructor(fields?: PackageRegistryEntry) {
         super();

@@ -29,6 +29,8 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('FabricConnection', () => {
 
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir');
+
     class TestFabricConnection extends FabricConnection {
 
         async connect(): Promise<void> {
@@ -198,6 +200,7 @@ describe('FabricConnection', () => {
     describe('installChaincode', () => {
 
         let peer: fabricClient.Peer;
+
         beforeEach(async () => {
             peer = new fabricClient.Peer('grpc://localhost:1453', {name: 'peer1'});
             fabricClientStub.getPeersForOrg.returns([peer]);
@@ -205,71 +208,48 @@ describe('FabricConnection', () => {
             await fabricConnection.connect();
         });
 
-        it('should install javascript chaincode', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
-            packageEntry.name = 'my-smart-contract';
-            packageEntry.chaincodeLanguage = 'javascript';
-            packageEntry.version = '1.0.0';
-            packageEntry.path = path.join('myPath', 'mySmartContract');
+        it('should install the chaincode package', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'vscode-pkg-1',
+                version: '0.0.1',
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+            });
 
             await fabricConnection.installChaincode(packageEntry, 'peer1');
             fabricClientStub.installChaincode.should.have.been.calledWith({
                 targets: [peer],
-                chaincodePath: packageEntry.path,
-                chaincodeId: packageEntry.name,
-                chaincodeVersion: packageEntry.version,
-                chaincodeType: 'node',
-                txId: sinon.match.any
+                txId: sinon.match.any,
+                chaincodePackage: sinon.match((buffer: Buffer) => {
+                    buffer.should.be.an.instanceOf(Buffer);
+                    buffer.length.should.equal(2719);
+                    return true;
+                })
             });
         });
 
-        it('should install typescript chaincode', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
-            packageEntry.name = 'my-smart-contract';
-            packageEntry.chaincodeLanguage = 'typescript';
-            packageEntry.version = '1.0.0';
-            packageEntry.path = path.join('myPath', 'mySmartContract');
-
-            await fabricConnection.installChaincode(packageEntry, 'peer1');
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
-                chaincodePath: packageEntry.path,
-                chaincodeId: packageEntry.name,
-                chaincodeVersion: packageEntry.version,
-                chaincodeType: 'node',
-                txId: sinon.match.any
-            });
-        });
-
-        it('should install go chaincode', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
-            packageEntry.name = 'my-smart-contract';
-            packageEntry.chaincodeLanguage = 'go';
-            packageEntry.version = '1.0.0';
-            packageEntry.path = path.join('myPath', 'mySmartContract');
-
-            await fabricConnection.installChaincode(packageEntry, 'peer1');
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
-                chaincodePath: 'mySmartContract',
-                chaincodeId: packageEntry.name,
-                chaincodeVersion: packageEntry.version,
-                chaincodeType: 'golang',
-                txId: sinon.match.any
+        it('should handle an error if the chaincode package does not exist', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'vscode-pkg-1',
+                version: '0.0.1',
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds')
             });
 
-            process.env.GOPATH.should.equal('myPath');
+            await fabricConnection.installChaincode(packageEntry, 'peer1')
+                .should.have.been.rejectedWith(/ENOENT/);
         });
 
-        it('should handle invalid language', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
-            packageEntry.name = 'my-smart-contract';
-            packageEntry.chaincodeLanguage = 'cake';
-            packageEntry.version = '1.0.0';
-            packageEntry.path = path.join('myPath', 'mySmartContract');
+        it('should handle an error installing the chaincode package', async () => {
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'vscode-pkg-1',
+                version: '0.0.1',
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+            });
 
-            await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(`Smart contract language not supported cake`);
+            fabricClientStub.installChaincode.rejects(new Error('such error'));
+            await fabricConnection.installChaincode(packageEntry, 'peer1')
+                .should.have.been.rejectedWith(/such error/);
         });
+
     });
 
     describe('instantiateChaincode', () => {

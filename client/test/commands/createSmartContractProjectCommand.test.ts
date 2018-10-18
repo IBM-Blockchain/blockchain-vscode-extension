@@ -42,6 +42,7 @@ describe('CreateSmartContractProjectCommand', () => {
     let quickPickStub: sinon.SinonStub;
     let openDialogStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
+    let updateWorkspaceFoldersStub: sinon.SinonStub;
     let uri: vscode.Uri;
     let uriArr: Array<vscode.Uri>;
     const USER_TEST_DATA: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data');
@@ -59,12 +60,13 @@ describe('CreateSmartContractProjectCommand', () => {
         const originalExecuteCommand = vscode.commands.executeCommand;
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
         executeCommandStub.callsFake(async function fakeExecuteCommand(command: string) {
-            // Don't open the folder as this causes lots of windows to pop up, and random
-            // test failures.
-            if (command !== 'vscode.openFolder') {
+            // Don't open or close the folder as this causes lots of windows to popup, the
+            // window to reload, random test failures, and duplicate test execution.
+            if (command !== 'vscode.openFolder' && command !== 'workbench.action.closeFolder') {
                 return originalExecuteCommand.apply(this, arguments);
             }
         });
+        updateWorkspaceFoldersStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
         // Create a tmp directory for Smart Contract packages, and create a Uri of it
         uri = vscode.Uri.file(tmp.dirSync().name);
         uriArr = [uri];
@@ -188,13 +190,11 @@ describe('CreateSmartContractProjectCommand', () => {
 
         // executeCommandStub.restore();
 
-        const updateWorkspaceSpy = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
-
         quickPickStub.onFirstCall().resolves('TypeScript');
         quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
         openDialogStub.resolves(uriArr);
 
-        await vscode.commands.executeCommand('workbench.action.closeFolder');
+        mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const pathToCheck = path.join(uri.fsPath, 'package.json');
@@ -202,8 +202,8 @@ describe('CreateSmartContractProjectCommand', () => {
         const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
         const packageJSON = JSON.parse(fileContents);
         smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledTwice;
-        updateWorkspaceSpy.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
+        executeCommandStub.should.have.been.calledOnce;
+        updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
         errorSpy.should.not.have.been.called;
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
@@ -216,8 +216,6 @@ describe('CreateSmartContractProjectCommand', () => {
         // We actually want to execute the command!
         sendCommandStub.restore();
 
-        const updateWorkspaceSpy = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
-
         quickPickStub.onFirstCall().resolves('TypeScript');
         quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
         openDialogStub.resolves(uriArr);
@@ -229,7 +227,7 @@ describe('CreateSmartContractProjectCommand', () => {
         const packageJSON = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledOnce;
-        updateWorkspaceSpy.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
+        updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
         errorSpy.should.not.have.been.called;
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');

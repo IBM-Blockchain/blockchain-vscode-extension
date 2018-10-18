@@ -163,12 +163,12 @@ describe('Integration Test', () => {
 
     }
 
-    async function installSmartContract(name, version, type) {
+    async function installSmartContract(name, version) {
         showPeerQuickPickStub.resolves('peer0.org1.example.com');
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
         const packageToInstall = allPackages.find((packageEntry) => {
-            return packageEntry.version === version && packageEntry.name === name && packageEntry.chaincodeLanguage === type;
+            return packageEntry.version === version && packageEntry.name === name;
         });
 
         should.exist(packageToInstall);
@@ -413,7 +413,7 @@ describe('Integration Test', () => {
         // Create a smart contract, package it, install it, and instantiate it.
         await createSmartContract('teardownSmartContract', 'JavaScript');
         await packageSmartContract();
-        await installSmartContract('teardownSmartContract', '0.0.1', 'javascript');
+        await installSmartContract('teardownSmartContract', '0.0.1');
         await instantiateSmartContract('teardownSmartContract', '0.0.1');
 
         // Disconnect from the Fabric runtime.
@@ -486,7 +486,7 @@ describe('Integration Test', () => {
 
         await packageSmartContract();
 
-        await installSmartContract('mySmartContract', '0.0.1', 'javascript');
+        await installSmartContract('mySmartContract', '0.0.1');
 
         await instantiateSmartContract('mySmartContract', '0.0.1');
 
@@ -530,7 +530,7 @@ describe('Integration Test', () => {
 
         await packageSmartContract();
 
-        await installSmartContract('anotherSmartContract', '0.0.1', 'javascript');
+        await installSmartContract('anotherSmartContract', '0.0.1');
 
         await instantiateSmartContract('anotherSmartContract', '0.0.1');
 
@@ -538,7 +538,7 @@ describe('Integration Test', () => {
 
         await packageSmartContract();
 
-        await installSmartContract('anotherSmartContract', '0.0.2', 'javascript');
+        await installSmartContract('anotherSmartContract', '0.0.2');
 
         await instantiateSmartContract('anotherSmartContract', '0.0.2');
 
