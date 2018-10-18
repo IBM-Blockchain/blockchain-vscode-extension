@@ -73,6 +73,7 @@ describe('FabricClientConnection', () => {
             await fabricClientConnection.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
+            fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
         it('should connect with an already loaded client connection', async () => {
@@ -88,6 +89,7 @@ describe('FabricClientConnection', () => {
             await fabricClientConnection.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
+            fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
         it('should connect to a fabric with a .yaml connection profile', async () => {
@@ -102,6 +104,7 @@ describe('FabricClientConnection', () => {
             await fabricClientConnectionYaml.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
+            fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
         it('should connect to a fabric with a .yml connection profile', async () => {
@@ -116,6 +119,24 @@ describe('FabricClientConnection', () => {
             await otherFabricClientConnectionYml.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
+            fabricClientConnection['networkIdProperty'].should.equal(false);
+        });
+
+        it('should detecting connecting to ibp instance', async () => {
+
+            const connectionData: any = {
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+            };
+            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
+            fabricClientConnection['gateway'] = gatewayStub;
+
+            await fabricClientConnection.connect();
+
+            gatewayStub.connect.should.have.been.called;
+            errorSpy.should.not.have.been.called;
+            fabricClientConnection['networkIdProperty'].should.equal(true);
         });
     });
 

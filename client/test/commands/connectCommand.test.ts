@@ -63,7 +63,7 @@ describe('ConnectCommand', () => {
         let mockRuntimeConnection;
         let mockRuntime;
         let errorMessageSpy;
-
+        let createFabricClientConnectionStub: sinon.SinonStub;
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
@@ -72,7 +72,7 @@ describe('ConnectCommand', () => {
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
 
-            mySandBox.stub(FabricConnectionFactory, 'createFabricClientConnection').returns(mockConnection);
+            createFabricClientConnectionStub = mySandBox.stub(FabricConnectionFactory, 'createFabricClientConnection').returns(mockConnection);
             mySandBox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockRuntimeConnection);
 
             const rootPath = path.dirname(__dirname);
@@ -314,6 +314,38 @@ describe('ConnectCommand', () => {
 
             reporterSpy.should.have.been.calledWith('connectCommand', {runtimeData: 'user runtime'});
 
+        });
+
+        it('should send a telemetry event if using IBP', async () => {
+            const extensionUtilStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+            const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+            mockConnection.isIBPConnection.returns(true);
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionA',
+                data: FabricConnectionRegistry.instance().get('myConnectionA')
+            });
+
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+
+            reporterSpy.should.have.been.calledWith('connectCommand', {runtimeData: 'IBP instance'});
+        });
+
+        it('should send a telemetry event if not using IBP', async () => {
+            const extensionUtilStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+            const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+            mockConnection.isIBPConnection.returns(false);
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionA',
+                data: FabricConnectionRegistry.instance().get('myConnectionA')
+            });
+
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+
+            reporterSpy.should.have.been.calledWith('connectCommand', {runtimeData: 'user runtime'});
         });
     });
 });

@@ -3,6 +3,7 @@
   "x-type": "hlfv1",
   "x-commitTimeout": 300,
   "version": "1.0.0",
+  "x-networkId": "somestring",
   "client": {
     "organization": "Org1",
     "connection": {
