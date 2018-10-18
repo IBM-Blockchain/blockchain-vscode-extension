@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
-import { ChaincodeType, Package } from 'fabric-client';
+import { ChaincodeType } from 'fabric-client';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
@@ -86,8 +86,10 @@ export async function packageSmartContract(): Promise<void> {
                 }
             }
 
-            // Create the package.
-            const pkg: Package = await Package.fromDirectory({
+            // Create the package.Need to dynamically load the package class
+            // from the Fabric SDK to avoid early native module loading.
+            const { Package } = await import('fabric-client');
+            const pkg: any = await Package.fromDirectory({
                 name: properties.workspacePackageName,
                 version: properties.workspacePackageVersion,
                 path: pkgPath,

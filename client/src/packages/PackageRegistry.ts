@@ -17,7 +17,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { Package } from 'fabric-client';
 
 export class PackageRegistry {
 
@@ -63,7 +62,11 @@ export class PackageRegistry {
 
             // Load the package file.
             const pkgBuffer: Buffer = await fs.readFile(pkgPath);
-            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+
+            // Parse the package. Need to dynamically load the package class
+            // from the Fabric SDK to avoid early native module loading.
+            const { Package } = await import('fabric-client');
+            const pkg: any = await Package.fromBuffer(pkgBuffer);
 
             // Create the package registry entry.
             pkgRegistryEntries.push(new PackageRegistryEntry({
