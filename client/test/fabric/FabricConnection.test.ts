@@ -22,6 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
 import { Gateway } from 'fabric-network';
 import { Channel } from 'fabric-client';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
 const should = chai.should();
 chai.use(sinonChai);
@@ -259,6 +260,8 @@ describe('FabricConnection', () => {
         });
 
         it('should instantiate a chaincode', async () => {
+            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
             const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
@@ -268,9 +271,12 @@ describe('FabricConnection', () => {
                 args: ['arg1']
             });
             responsePayload.toString().should.equal('payload response buffer');
+            outputSpy.should.have.been.calledWith("Instantiating with function: 'instantiate' and arguments: 'arg1'");
         });
 
         it('should upgrade if already instantiated', async () => {
+            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
             getChanincodesStub.withArgs('myChannel').resolves([{name: 'myChaincode'}]);
             const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
@@ -281,6 +287,7 @@ describe('FabricConnection', () => {
                 args: ['arg1']
             });
             responsePayload.toString().should.equal('payload response buffer');
+            outputSpy.should.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
         });
 
         it('should instantiate a chaincode and can return empty payload response', async () => {

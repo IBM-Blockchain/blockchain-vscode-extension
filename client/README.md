@@ -52,8 +52,9 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Delete Connection | Delete a Hyperledger Fabric instance connection |
 | Delete Package | Delete a smart contract package |
 | Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
+| Edit Connection | Edit connection to a blockchain |
 | Install Smart Contract | Install a smart contract package onto a peer |
-| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Starter Plan and Enterprise plan - Coming soon!*|
+| Instantiate / Upgrade Smart Contract | Instantiate / upgrade an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Starter Plan and Enterprise plan - Coming soon!*|
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
 | Refresh Blockchain Connections | Refresh the Blockchain Connections view |
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |

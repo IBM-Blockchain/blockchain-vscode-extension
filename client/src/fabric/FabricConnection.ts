@@ -14,14 +14,13 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Package } from 'fabric-client';
 import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
-import * as path from 'path';
 
 import * as uuid from 'uuid/v4';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
 export abstract class FabricConnection implements IFabricConnection {
 
@@ -141,9 +140,17 @@ export abstract class FabricConnection implements IFabricConnection {
         });
 
         let proposalResponseObject: Client.ProposalResponseObject;
+
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        let message: string;
+
         if (foundChaincode) {
+            message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
+            outputAdapter.log(message);
             proposalResponseObject = await channel.sendUpgradeProposal(instantiateRequest);
         } else {
+            message = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
+            outputAdapter.log(message);
             proposalResponseObject = await channel.sendInstantiateProposal(instantiateRequest);
         }
 
