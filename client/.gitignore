@@ -21,3 +21,4 @@ coverage
 /test/data/smartContractDir/
 /integrationTest/smartContractDir/
 /integrationTest/mySmartContract/
+/integrationTest/teardownSmartContract/
