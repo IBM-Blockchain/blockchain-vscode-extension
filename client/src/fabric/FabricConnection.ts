@@ -151,7 +151,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
         const responses: any = contract['_validatePeerResponses'](proposalResponseObject[0]);
 
-        const eventHandler: any = contract['eventHandlerFactory'].createTxEventHandler(transactionId.getTransactionID());
+        const eventHandler: any = contract['_createTxEventHandler'](transactionId.getTransactionID());
 
         if (!eventHandler) {
             throw new Error('Failed to create an event handler');
