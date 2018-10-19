@@ -18,7 +18,6 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
 export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem): Promise<void> {
 
@@ -70,17 +69,13 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             cancellable: false
         }, async (progress) => {
 
-            progress.report({message: 'Instantiating Smart Contract'});
+            progress.report({message: 'Instantiating / Upgrading Smart Contract'});
             const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
-
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-            const message: string = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
-            outputAdapter.log(message);
 
             await fabricClientConnection.instantiateChaincode(data.chaincode, data.version, channelName, fcn, args);
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
-            vscode.window.showInformationMessage('Successfully instantiated smart contract');
+            vscode.window.showInformationMessage('Successfully instantiated / upgraded smart contract');
             await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         });
     } catch (error) {

@@ -159,7 +159,7 @@
             },
             {
                 "command": "blockchainExplorer.instantiateSmartContractEntry",
-                "title": "Instantiate Smart Contract",
+                "title": "Instantiate / Upgrade Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
