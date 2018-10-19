@@ -16,9 +16,11 @@ import { PackageTreeItem } from './model/PackageTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { AddPackageTreeItem } from './model/AddPackageTreeItem';
+import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
-    public tree: Array<PackageTreeItem> = [];
+    public tree: Array<BlockchainTreeItem> = [];
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
@@ -28,7 +30,7 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         return element;
     }
 
-    async getChildren(): Promise<PackageTreeItem[]> {
+    async getChildren(): Promise<BlockchainTreeItem[]> {
         console.log('BlockchainPackageExplorer: getChildren');
         // Get the packages from the registry manager and create a package tree
         const packageArray: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
@@ -41,9 +43,9 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
         this._onDidChangeTreeData.fire();
     }
 
-    private async createPackageTree(packageRegistryEntries: Array<PackageRegistryEntry>): Promise<PackageTreeItem[]> {
+    private async createPackageTree(packageRegistryEntries: Array<PackageRegistryEntry>): Promise<BlockchainTreeItem[]> {
         console.log('BlockchainPackageExplorer: createPackageTree');
-        const tree: Array<PackageTreeItem> = [];
+        const tree: Array<BlockchainTreeItem> = [];
         // Populate the tree with the name of each package registry entry
         for (const packageRegistryEntry of packageRegistryEntries) {
 
@@ -51,6 +53,12 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
 
             tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
         }
+
+        tree.push(new AddPackageTreeItem(this, '+ Add new package', {
+            command: 'blockchainAPackageExplorer.packageSmartContractProjectEntry',
+            title: ''
+        }));
+
         return tree;
     }
 }

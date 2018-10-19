@@ -24,6 +24,7 @@ import * as fs from 'fs-extra';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 
 chai.should();
 chai.use(sinonChai);
@@ -99,11 +100,11 @@ describe('DeleteSmartContractPackageCommand', () => {
 
         it("should test a 'smart contract package' can be deleted from tree", async () => {
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-            const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+            const initialPackages: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             const onDidChangeTreeDataSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
 
             // This will be the 'DeleteThisDirectory' as its the first package alphabetically
-            const packageToDelete = initialPackages[0];
+            const packageToDelete: PackageTreeItem = initialPackages[0] as PackageTreeItem;
             const deleteStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'delete').resolves();
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', packageToDelete);
 
@@ -114,11 +115,11 @@ describe('DeleteSmartContractPackageCommand', () => {
 
         it("should test delete 'smart contract package' can be cancelled", async () => {
             const blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-            const initialPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+            const initialPackages: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             const initialLength = initialPackages.length;
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
-            const newPackageList: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+            const newPackageList: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             newPackageList.length.should.equal(initialLength);
             newPackageList.should.deep.equal(initialPackages);
         });

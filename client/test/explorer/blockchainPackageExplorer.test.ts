@@ -62,10 +62,11 @@ describe('BlockchainPackageExplorer', () => {
 
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
-        testPackages.length.should.equal(3);
+        testPackages.length.should.equal(4);
         testPackages[0].label.should.equal('vscode-pkg-1@0.0.1');
         testPackages[1].label.should.equal('vscode-pkg-2@0.0.2');
         testPackages[2].label.should.equal('vscode-pkg-3@1.2.3');
+        testPackages[3].label.should.equal('+ Add new package');
         errorSpy.should.not.have.been.called;
 
     });
