@@ -14,7 +14,7 @@ If you have find any problems or want to make suggestions for future features pl
 
 ## Requirements
 
-You will need the following installed in order to start a local Hyperledger Fabric runtime from within the extension:
+You will need the following installed in order to use the extension:
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Yeoman (yo) v2.x](http://yeoman.io/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)

@@ -104,8 +104,9 @@ export class DependencyManager {
                     await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
-                    outputAdapter.error(`Could not rebuild native dependencies ${error.message}`);
-                    vscode.window.showErrorMessage(`Could not rebuild native dependencies ${error.message}`);
+                    outputAdapter.error(`Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
+                    vscode.window.showErrorMessage(`Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
+
                     throw error;
                 }
 
