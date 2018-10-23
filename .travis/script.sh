@@ -49,6 +49,8 @@ if [ "${TASK}" == "systest" ]; then
 
     export CODE_TESTS_PATH="$(pwd)/out/integrationTest";
     echo $CODE_TESTS_PATH;
+    export CODE_TESTS_WORKSPACE="$(pwd)/integrationTest/data/integrationTest.code-workspace"
+    echo $CODE_TESTS_WORKSPACE;
     npm run systest 2>&1 | tee
     ./integrationTest/scripts/stop-integration-tests.sh;
 else

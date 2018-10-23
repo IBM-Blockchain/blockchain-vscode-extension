@@ -44,6 +44,9 @@ export async function packageSmartContract(): Promise<void> {
                 return;
             }
 
+            // Build the workspace.
+            await buildWorkspace(workspaceDir);
+
             // Determine the language.
             const language: ChaincodeType = await getLanguage(workspaceDir);
 
@@ -208,4 +211,44 @@ async function golangPackageAndVersion(): Promise<{ workspacePackageName: string
     }
 
     return {workspacePackageName, workspacePackageVersion};
+}
+
+async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<void> {
+
+    // Find all of the tasks.
+    const tasks: vscode.Task[] = await vscode.tasks.fetchTasks();
+
+    // Then limit the tasks to build tasks that we can actually use.
+    const buildTasks: vscode.Task[] = tasks.filter((task: vscode.Task) => {
+        if (!task.scope || task.scope === vscode.TaskScope.Global || task.scope === vscode.TaskScope.Workspace) {
+            // We don't want unscoped tasks, global tasks, or workspace tasks.
+            return false;
+        } else if (task.scope.uri.fsPath !== workspaceDir.uri.fsPath) {
+            // We only want tasks for our smart contract project.
+            return false;
+        } else if (task.group !== vscode.TaskGroup.Build) {
+            // We only want build tasks.
+            return false;
+        } else if (task.isBackground) {
+            // We only want foreground tasks (not "npm watch").
+            return false;
+        } else {
+            return true;
+        }
+    });
+
+    // If we have a set of build tasks, then execute the first one.
+    if (buildTasks.length > 0) {
+        const buildTask: vscode.Task = buildTasks[0];
+        const buildTaskExecution: vscode.TaskExecution = await vscode.tasks.executeTask(buildTask);
+        await new Promise((resolve: any): any => {
+            const buildTaskListener: vscode.Disposable = vscode.tasks.onDidEndTask((e: vscode.TaskEndEvent) => {
+                if (e.execution === buildTaskExecution) {
+                    buildTaskListener.dispose();
+                    resolve();
+                }
+            });
+        });
+    }
+
 }

@@ -38,6 +38,7 @@
         "request": "launch",
         "runtimeExecutable": "${execPath}",
         "args": [
+          "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
           "--extensionDevelopmentPath=${workspaceFolder}",
           "--extensionTestsPath=${workspaceFolder}/out/integrationTest"
         ],
@@ -52,6 +53,7 @@
         "request": "launch",
         "runtimeExecutable": "${execPath}",
         "args": [
+            "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
             "--extensionDevelopmentPath=${workspaceFolder}",
             "--extensionTestsPath=${workspaceFolder}/out/integrationTest"
         ],
