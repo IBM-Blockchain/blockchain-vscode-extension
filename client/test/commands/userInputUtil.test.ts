@@ -345,7 +345,7 @@ describe('userInputUtil', () => {
         it('should show quick pick box with channels', async () => {
             quickPickStub.resolves({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
 
-            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
+            const result: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
             result.should.deep.equal({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -368,7 +368,7 @@ describe('userInputUtil', () => {
                 data: {chaincode: 'biscuit-network', version: '0.0.1'}
             });
 
-            const result: IBlockchainQuickPickItem<{ chaincode: string, version: string }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne', 'myPeerTwo']);
+            const result: IBlockchainQuickPickItem<{ chaincode: string, version: string }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne', 'myPeerTwo']));
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: {chaincode: 'biscuit-network', version: '0.0.1'}
@@ -383,7 +383,7 @@ describe('userInputUtil', () => {
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []).should.be.rejectedWith(`No connection to a blockchain found`);
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>()).should.be.rejectedWith(`No connection to a blockchain found`);
 
         });
 
@@ -393,7 +393,7 @@ describe('userInputUtil', () => {
                 getConnection: mySandBox.stub().resolves()
             });
 
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', []);
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>());
             errorSpy.should.have.been.calledWith('No smart contracts are installed on peers in this channel. Install a smart contract before instantiating.');
 
         });

@@ -30,9 +30,10 @@ import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
 import * as path from 'path';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
-chai.should();
 chai.use(sinonChai);
+const should: Chai.Should = chai.should();
 
 describe('InstallCommand', () => {
 
@@ -49,11 +50,11 @@ describe('InstallCommand', () => {
 
         let executeCommandStub;
         let packageRegistryEntry: PackageRegistryEntry;
-        let successSpy;
-        let errorSpy;
-        let getConnectionStub;
-        let showPeerQuickPickStub;
-        let showPackageQuickPickStub;
+        let successStub: sinon.SinonStub;
+        let errorStub: sinon.SinonStub;
+        let getConnectionStub: sinon.SinonStub;
+        let showPeerQuickPickStub: sinon.SinonStub;
+        let showPackageQuickPickStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -83,8 +84,8 @@ describe('InstallCommand', () => {
                 data: packageRegistryEntry
             });
 
-            successSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            successStub = mySandBox.stub(vscode.window, 'showInformationMessage').resolves();
+            errorStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
 
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
 
@@ -107,22 +108,22 @@ describe('InstallCommand', () => {
         it('should install the smart contract through the command', async () => {
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
-            successSpy.should.have.been.calledWith('Successfully installed smart contract');
+            successStub.should.have.been.calledWith('Successfully installed smart contract');
         });
 
         it('should install the smart contract through the command when not connected', async () => {
-            getConnectionStub.onFirstCall().returns();
+            getConnectionStub.onFirstCall().returns(null);
             getConnectionStub.onSecondCall().returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
-            successSpy.should.have.been.calledWith('Successfully installed smart contract');
+            successStub.should.have.been.calledWith('Successfully installed smart contract');
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.returns();
+            getConnectionStub.returns(null);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
@@ -139,12 +140,12 @@ describe('InstallCommand', () => {
         });
 
         it('should handle error from installing smart contract', async () => {
-            fabricClientConnectionMock.installChaincode.rejects({message: 'some error'});
+            fabricClientConnectionMock.installChaincode.throws({message: 'some error'});
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry').should.be.rejectedWith(`some error`);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
-            errorSpy.should.have.been.calledWith('Error installing smart contract some error');
+            errorStub.should.have.been.calledWith('Error installing smart contract: some error');
         });
 
         it('should handle cancel when choosing package', async () => {
@@ -164,7 +165,51 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', peerTreeItem);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
-            successSpy.should.have.been.calledWith('Successfully installed smart contract');
+            successStub.should.have.been.calledWith('Successfully installed smart contract');
+        });
+
+        it('should install when passing in a set of peers', async () => {
+            const logOutputSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne'])) as PackageRegistryEntry;
+            successStub.getCall(0).should.have.been.calledWith('Successfully installed on peer peerOne');
+            logOutputSpy.getCall(0).should.have.been.calledWith('Successfully installed on peer peerOne');
+            successStub.getCall(1).should.have.been.calledWith('Successfully installed smart contract');
+            packageEntry.should.equal(packageRegistryEntry);
+        });
+
+        it('should install for multiple peers', async () => {
+            const logOutputSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne', 'peerTwo'])) as PackageRegistryEntry;
+            successStub.getCall(0).should.have.been.calledWith('Successfully installed on peer peerOne');
+            logOutputSpy.getCall(0).should.have.been.calledWith('Successfully installed on peer peerOne');
+            successStub.getCall(1).should.have.been.calledWith('Successfully installed on peer peerTwo');
+            logOutputSpy.getCall(1).should.have.been.calledWith('Successfully installed on peer peerTwo');
+            successStub.getCall(2).should.have.been.calledWith('Successfully installed smart contract');
+            packageEntry.should.equal(packageRegistryEntry);
+        });
+
+        it('should handle peers failing to install', async () => {
+            const logOutputSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const errorOutputSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'error');
+
+            fabricClientConnectionMock.installChaincode.onFirstCall().resolves();
+            fabricClientConnectionMock.installChaincode.onSecondCall().rejects({message: 'failed to install for some reason'});
+            fabricClientConnectionMock.installChaincode.onThirdCall().resolves();
+
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne', 'peerTwo', 'peerThree'])) as PackageRegistryEntry;
+
+            successStub.getCall(0).should.have.been.calledWith('Successfully installed on peer peerOne');
+            logOutputSpy.getCall(0).should.have.been.calledWith('Successfully installed on peer peerOne');
+
+            errorStub.getCall(0).should.have.been.calledWith('Failed to install on peer peerTwo with reason: failed to install for some reason');
+            errorOutputSpy.getCall(0).should.have.been.calledWith('Failed to install on peer peerTwo with reason: failed to install for some reason');
+
+            successStub.getCall(1).should.have.been.calledWith('Successfully installed on peer peerThree');
+            logOutputSpy.getCall(1).should.have.been.calledWith('Successfully installed on peer peerThree');
+
+            should.not.exist(packageEntry);
         });
     });
 });

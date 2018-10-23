@@ -18,12 +18,13 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 
 export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem): Promise<void> {
 
     let channelName: string;
-    let peers: Array<string>;
-
+    let peers: Set<string>;
+    let packageEntry: PackageRegistryEntry;
     if (!channelTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
@@ -33,7 +34,7 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             }
         }
 
-        const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instaniate the smart contract on');
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instaniate the smart contract on');
         if (!chosenChannel) {
             return;
         }
@@ -42,7 +43,7 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
         peers = chosenChannel.data;
     } else {
         channelName = channelTreeItem.label;
-        peers = channelTreeItem.peers;
+        peers = new Set(channelTreeItem.peers);
     }
 
     try {
@@ -52,6 +53,13 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
         }
 
         const data: { chaincode: string, version: string } = chosenChaincode.data;
+        if (chosenChaincode.label === 'Install + Instantiate new smart contract from package') {
+            packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers) as PackageRegistryEntry;
+            if (!packageEntry) {
+                // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
+                return;
+            }
+        }
 
         const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call?');
 
@@ -71,15 +79,19 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
 
             progress.report({message: 'Instantiating / Upgrading Smart Contract'});
             const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            if (packageEntry) {
+                await fabricClientConnection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
+            } else {
+                await fabricClientConnection.instantiateChaincode(data.chaincode, data.version, channelName, fcn, args);
+            }
 
-            await fabricClientConnection.instantiateChaincode(data.chaincode, data.version, channelName, fcn, args);
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
             vscode.window.showInformationMessage('Successfully instantiated / upgraded smart contract');
             await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         });
     } catch (error) {
-        vscode.window.showErrorMessage('Error instantiating smart contract ' + error.message);
+        vscode.window.showErrorMessage('Error instantiating smart contract: ' + error.message);
         throw error;
     }
 }
