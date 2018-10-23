@@ -237,7 +237,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             }
         });
 
-        tree.push(new AddConnectionTreeItem(this, 'Add new connection', {
+        tree.push(new AddConnectionTreeItem(this, '+ Add new connection', {
             command: 'blockchainExplorer.addConnectionEntry',
             title: ''
         }));
