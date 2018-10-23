@@ -42,6 +42,7 @@ export class UserInputUtil {
     static readonly ABORT_GENERATOR: string = 'Abort generator';
     static readonly BROWSE_LABEL: string = '📁 Browse';
     static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
+    static readonly INSTALL_INSTANTIATE_LABEL: string = 'Install and Instantiate a new smart contract from a package';
 
     public static showConnectionQuickPickBox(prompt: string, hideManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
@@ -189,7 +190,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(peerNames, quickPickOptions);
     }
 
-    public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Array<string>): Promise<IBlockchainQuickPickItem<{ chaincode: string, version: string }> | undefined> {
+    public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ chaincode: string, version: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
@@ -208,8 +209,10 @@ export class UserInputUtil {
             });
         }
 
+        quickPickItems.push({label: this.INSTALL_INSTANTIATE_LABEL, data: {chaincode: '', version: ''}});
+
         // If there are no installed smart contract packages
-        if (quickPickItems.length === 0) {
+        if (quickPickItems.length === 1) {
             vscode.window.showErrorMessage('No smart contracts are installed on peers in this channel. Install a smart contract before instantiating.');
             return;
         }
@@ -223,26 +226,28 @@ export class UserInputUtil {
         return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showChannelQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Array<string>> | undefined> {
+    public static async showChannelQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Set<string>> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
             return Promise.reject('No connection to a blockchain found');
         }
 
-        const quickPickItems: Array<IBlockchainQuickPickItem<Array<string>>> = [];
+        const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = [];
         const peerNames: Array<string> = connection.getAllPeerNames();
         for (const peerName of peerNames) {
             const allChannels: Array<string> = await connection.getAllChannelsForPeer(peerName);
             allChannels.forEach((channel: string) => {
-                const foundItem: IBlockchainQuickPickItem<Array<string>> = quickPickItems.find((item: IBlockchainQuickPickItem<Array<string>>) => {
+                const foundItem: IBlockchainQuickPickItem<Set<string>> = quickPickItems.find((item: IBlockchainQuickPickItem<Set<string>>) => {
                     return channel === item.label;
                 });
 
                 if (foundItem) {
-                    foundItem.data.push(channel);
+                    foundItem.data.add(peerName);
                 } else {
-                    quickPickItems.push({label: channel, data: [peerName]});
+                    const data: Set<string> = new Set<string>();
+                    data.add(peerName);
+                    quickPickItems.push({label: channel, data: data});
                 }
             });
         }
