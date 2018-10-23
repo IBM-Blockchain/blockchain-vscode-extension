@@ -29,7 +29,6 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import * as yeoman from 'yeoman-environment';
 import * as util from 'util';
 
 // Defines a Mocha test suite to group tests of similar kind together

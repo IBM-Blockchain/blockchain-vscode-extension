@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';

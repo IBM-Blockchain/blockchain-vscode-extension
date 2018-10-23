@@ -25,7 +25,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
-                // either the user cancelled or ther was an error so don't carry on
+                // either the user cancelled or there was an error so don't carry on
                 return;
             }
         }

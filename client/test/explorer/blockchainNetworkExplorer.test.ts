@@ -856,6 +856,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedChainItemsOne[0].contextValue.should.equal('blockchain-chaincode-item');
                 instantiatedChainItemsOne[0].label.should.equal('biscuit-network@0.7');
                 instantiatedChainItemsOne[0].channel.should.equal(channelOne);
+                instantiatedChainItemsOne[0].version.should.equal('0.7');
 
                 const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
@@ -871,6 +872,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedChainItemsTwo[0].contextValue.should.equal('blockchain-chaincode-item');
                 instantiatedChainItemsTwo[0].label.should.equal('cake-network@0.10');
                 instantiatedChainItemsTwo[0].channel.should.equal(channelTwo);
+                instantiatedChainItemsTwo[0].version.should.equal('0.10');
             });
         });
     });
