@@ -31,17 +31,17 @@ export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPic
 
 export class UserInputUtil {
 
-    static readonly ADD_TO_WORKSPACE = 'Add to workspace';
-    static readonly OPEN_IN_CURRENT_WINDOW = 'Open in current window';
-    static readonly OPEN_IN_NEW_WINDOW = 'Open in new window';
-    static readonly YES = 'yes';
-    static readonly NO = 'no';
-    static readonly OVERWRITE_FILE = 'Overwrite file';
-    static readonly SKIP_FILE = 'Skip file';
-    static readonly FORCE_FILES = 'Force all files to overwrite';
-    static readonly ABORT_GENERATOR = 'Abort generator';
-    static readonly BROWSE_LABEL = '📁 Browse';
-    static readonly EDIT_LABEL = '✎ Edit in User Settings';
+    static readonly ADD_TO_WORKSPACE: string = 'Add to workspace';
+    static readonly OPEN_IN_CURRENT_WINDOW: string = 'Open in current window';
+    static readonly OPEN_IN_NEW_WINDOW: string = 'Open in new window';
+    static readonly YES: string = 'yes';
+    static readonly NO: string = 'no';
+    static readonly OVERWRITE_FILE: string = 'Overwrite file';
+    static readonly SKIP_FILE: string = 'Skip file';
+    static readonly FORCE_FILES: string = 'Force all files to overwrite';
+    static readonly ABORT_GENERATOR: string = 'Abort generator';
+    static readonly BROWSE_LABEL: string = '📁 Browse';
+    static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
 
     public static showConnectionQuickPickBox(prompt: string, hideManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
@@ -57,7 +57,7 @@ export class UserInputUtil {
         });
 
         if (hideManagedRuntime) {
-            connectionsQuickPickItems = connectionsQuickPickItems.filter((connection) => {
+            connectionsQuickPickItems = connectionsQuickPickItems.filter((connection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry>) => {
                 return connection.label !== 'local_fabric';
             });
         }
@@ -80,7 +80,7 @@ export class UserInputUtil {
         const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<vscode.WorkspaceFolder>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
             return {label: workspaceFolderOption.name, data: workspaceFolderOption};
         });
-        const quickPickOptions = {
+        const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: false,
             matchOnDetail: true,
@@ -202,7 +202,7 @@ export class UserInputUtil {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
             chaincodes.forEach((versions: string[], chaincodeName: string) => {
                 versions.forEach((version: string) => {
-                    const data = {chaincode: chaincodeName, version: version};
+                    const data: {chaincode: string, version: string} = {chaincode: chaincodeName, version: version};
                     quickPickItems.push({label: `${chaincodeName}@${version}`, data: data});
                 });
             });

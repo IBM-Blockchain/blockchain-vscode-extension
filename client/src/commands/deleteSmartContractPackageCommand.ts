@@ -29,7 +29,7 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
             return;
         }
 
-        packagesToDelete = chosenPackages.map((_package) => {
+        packagesToDelete = chosenPackages.map((_package: IBlockchainQuickPickItem<PackageRegistryEntry>) => {
             return _package.data;
         });
     }

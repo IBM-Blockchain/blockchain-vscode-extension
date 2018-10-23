@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 // tslint:disable no-var-requires
 const {Certificate} = require('@fidm/x509');
 
-const ENCODING = 'utf8';
+const ENCODING: string = 'utf8';
 
 export class ParsedCertificate {
 

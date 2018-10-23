@@ -13,7 +13,7 @@
 */
 
 // tslint:disable no-var-requires
-const testRunner = require('vscode/lib/testrunner');
+const testRunner: any = require('vscode/lib/testrunner');
 
 testRunner.configure({
     ui: 'bdd',

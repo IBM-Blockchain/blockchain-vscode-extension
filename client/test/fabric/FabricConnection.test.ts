@@ -24,7 +24,7 @@ import { Gateway } from 'fabric-network';
 import { Channel } from 'fabric-client';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
-const should = chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -47,7 +47,7 @@ describe('FabricConnection', () => {
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
     let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
     let fabricConnection: TestFabricConnection;
-    let fabricContractStub;
+    let fabricContractStub: any;
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
 
     let mySandBox: sinon.SinonSandbox;
@@ -69,12 +69,12 @@ describe('FabricConnection', () => {
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
 
-        const eventHandlerStub = {
+        const eventHandlerStub: any = {
             startListening: mySandBox.stub(),
             cancelListening: mySandBox.stub(),
             waitForEvents: mySandBox.stub(),
         };
-        const responsesStub = {
+        const responsesStub: any = {
             validResponses: [
                 {
                     response: {
@@ -93,7 +93,7 @@ describe('FabricConnection', () => {
         fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
         fabricChannelStub.sendTransaction.resolves({status: 'SUCCESS'});
 
-        const fabricNetworkStub = {
+        const fabricNetworkStub: any = {
             getContract: mySandBox.stub().returns(fabricContractStub),
             getChannel: mySandBox.stub().returns(fabricChannelStub)
         };
@@ -141,8 +141,8 @@ describe('FabricConnection', () => {
 
             fabricClientStub.getPeersForOrg.returns([peerOne]);
 
-            const channelOne = {channel_id: 'channel-one'};
-            const channelTwo = {channel_id: 'channel-two'};
+            const channelOne: {channel_id: string} = {channel_id: 'channel-one'};
+            const channelTwo: {channel_id: string}  = {channel_id: 'channel-two'};
             fabricClientStub.queryChannels.resolves({channels: [channelOne, channelTwo]});
 
             await fabricConnection.connect();
@@ -178,7 +178,7 @@ describe('FabricConnection', () => {
 
     describe('getInstantiatedChaincode', () => {
         it('should get the instantiated chaincode', async () => {
-            const channelOne = {channel_id: 'channel-one', queryInstantiatedChaincodes: mySandBox.stub()};
+            const channelOne: any = {channel_id: 'channel-one', queryInstantiatedChaincodes: mySandBox.stub()};
 
             channelOne.queryInstantiatedChaincodes.resolves({
                 chaincodes: [{name: 'biscuit-network', version: '0,7'}, {name: 'cake-network', version: '0.8'}]
@@ -253,7 +253,7 @@ describe('FabricConnection', () => {
 
     describe('instantiateChaincode', () => {
 
-        let getChanincodesStub;
+        let getChanincodesStub: sinon.SinonStub;
         beforeEach(() => {
             getChanincodesStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
             getChanincodesStub.resolves([]);
@@ -262,7 +262,7 @@ describe('FabricConnection', () => {
         it('should instantiate a chaincode', async () => {
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
-            const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            const responsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
@@ -278,7 +278,7 @@ describe('FabricConnection', () => {
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
             getChanincodesStub.withArgs('myChannel').resolves([{name: 'myChaincode'}]);
-            const responsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            const responsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.2',
@@ -292,7 +292,7 @@ describe('FabricConnection', () => {
 
         it('should instantiate a chaincode and can return empty payload response', async () => {
             fabricContractStub._validatePeerResponses.returns(null);
-            const nullResponsePayload = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            const nullResponsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',

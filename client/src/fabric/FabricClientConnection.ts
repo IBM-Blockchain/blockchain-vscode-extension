@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnection } from './FabricConnection';
 
-const ENCODING = 'utf8';
+const ENCODING: string = 'utf8';
 
 export class FabricClientConnection extends FabricConnection implements IFabricConnection {
 
@@ -37,7 +37,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     async connect(): Promise<void> {
         console.log('FabricClientConnection: connect');
         const connectionProfileContents: string = await this.loadFileFromDisk(this.connectionProfilePath);
-        let connectionProfile;
+        let connectionProfile: any;
         if (this.connectionProfilePath.endsWith('.json')) {
             connectionProfile = JSON.parse(connectionProfileContents);
         } else if (this.connectionProfilePath.endsWith('.yaml') || this.connectionProfilePath.endsWith('.yml')) {

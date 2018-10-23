@@ -57,9 +57,9 @@ describe('CreateSmartContractProjectCommand', () => {
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
         openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
-        const originalExecuteCommand = vscode.commands.executeCommand;
+        const originalExecuteCommand: any = vscode.commands.executeCommand;
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-        executeCommandStub.callsFake(async function fakeExecuteCommand(command: string) {
+        executeCommandStub.callsFake(async function fakeExecuteCommand(command: string): Promise<any> {
             // Don't open or close the folder as this causes lots of windows to popup, the
             // window to reload, random test failures, and duplicate test execution.
             if (command !== 'vscode.openFolder' && command !== 'workbench.action.closeFolder') {
@@ -85,10 +85,10 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
-        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON = JSON.parse(fileContents);
+        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON: any = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], true);
@@ -109,10 +109,10 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
-        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON = JSON.parse(fileContents);
+        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON: any = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], false);
@@ -133,15 +133,15 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onThirdCall().resolves(UserInputUtil.YES);
         openDialogStub.resolves(uriArr);
 
-        const saveDialogStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
+        const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
 
         await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
-        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON = JSON.parse(fileContents);
+        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON: any = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], false);
@@ -163,15 +163,15 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onThirdCall().resolves(UserInputUtil.NO);
         openDialogStub.resolves(uriArr);
 
-        const saveDialogStub = mySandBox.stub(vscode.workspace, 'saveAll');
+        const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll');
 
         await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
-        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON = JSON.parse(fileContents);
+        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON: any = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], false);
@@ -197,10 +197,10 @@ describe('CreateSmartContractProjectCommand', () => {
         mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
-        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON = JSON.parse(fileContents);
+        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON: any = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledOnce;
         updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
@@ -221,10 +221,10 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'package.json');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
-        const fileContents = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON = JSON.parse(fileContents);
+        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+        const packageJSON: any = JSON.parse(fileContents);
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledOnce;
         updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
@@ -266,7 +266,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(0).resolves();
         sendCommandStub.onCall(1).resolves('0.0.8'); // latest version available from 'npm view'
         sendCommandStub.onCall(2).resolves(USER_TEST_DATA); // npm prefix path
-        const sendCommandWithProgressSpy = mySandBox.spy(CommandUtil, 'sendCommandWithProgress');
+        const sendCommandWithProgressSpy: sinon.SinonSpy = mySandBox.spy(CommandUtil, 'sendCommandWithProgress');
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
 
@@ -280,7 +280,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(1).resolves('0.0.7');
         sendCommandStub.onCall(2).resolves(USER_TEST_DATA);
 
-        const outputAdapterSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+        const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
 
@@ -303,7 +303,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('yes');
         // npm install works
         sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-        const promisifyStub = mySandBox.stub(util, 'promisify').onCall(0).returns(mySandBox.stub().resolves());
+        const promisifyStub: sinon.SinonStub = mySandBox.stub(util, 'promisify').onCall(0).returns(mySandBox.stub().resolves());
         promisifyStub.onCall(1).returns(mySandBox.stub().rejects());
         quickPickStub.onCall(1).returns('JavaScript');
         quickPickStub.onCall(2).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
@@ -351,7 +351,7 @@ describe('CreateSmartContractProjectCommand', () => {
     it.skip('should create a go smart contract project when the user selects go as the language', async () => {
         sendCommandStub.restore();
 
-        const originalSpawn = child_process.spawn;
+        const originalSpawn: any = child_process.spawn;
         const spawnStub: sinon.SinonStub = mySandBox.stub(child_process, 'spawn');
         spawnStub.withArgs('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']).callsFake(() => {
             return originalSpawn('/bin/sh', ['-c', 'echo blah && echo "  Go" && echo "  JavaScript" && echo "  TypeScript  [45R"']);
@@ -360,8 +360,8 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const pathToCheck = path.join(uri.fsPath, 'main.go');
-        const smartContractExists = await fs_extra.pathExists(pathToCheck);
+        const pathToCheck: string = path.join(uri.fsPath, 'main.go');
+        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         smartContractExists.should.be.true;
         spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         executeCommandStub.should.have.been.calledTwice;
@@ -400,7 +400,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(2).resolves(USER_TEST_DATA);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const error = 'Contract languages not found in package.json';
+        const error: string = 'Contract languages not found in package.json';
         errorSpy.should.have.been.calledWith('Issue determining available smart contract language options: ' + error);
     });
 

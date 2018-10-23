@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class AddPackageTreeItem extends BlockchainTreeItem {
-    contextValue = 'blockchain-add-package-item';
+    contextValue: string = 'blockchain-add-package-item';
 
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly command: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);

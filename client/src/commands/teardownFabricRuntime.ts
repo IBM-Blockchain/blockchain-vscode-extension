@@ -40,7 +40,7 @@ export async function teardownFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): 
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress, token) => {
+    }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({ message: `Tearing down Fabric runtime ${runtime.getName()}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         await runtime.teardown(outputAdapter);

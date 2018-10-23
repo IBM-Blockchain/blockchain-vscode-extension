@@ -27,7 +27,7 @@ chai.should();
 chai.use(sinonChai);
 
 describe('AddConnectionCommand', () => {
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -90,7 +90,7 @@ describe('AddConnectionCommand', () => {
             showInputBoxStub.onFirstCall().resolves('myConnection');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
 
-            const executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 
@@ -147,7 +147,7 @@ describe('AddConnectionCommand', () => {
             executeCommandSpy.callCount.should.equal(10);
 
             let calledWithValue: string;
-            for (let x = 0; x < 10; x++) {
+            for (let x: number = 0; x < 10; x++) {
                 if (x % 5 === 0) {
                     calledWithValue = 'blockchainExplorer.addConnectionEntry';
                 } else {

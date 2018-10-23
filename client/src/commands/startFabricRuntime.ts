@@ -37,7 +37,7 @@ export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | Fabr
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress) => {
+    }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         await runtime.start(outputAdapter);

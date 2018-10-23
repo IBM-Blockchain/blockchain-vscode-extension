@@ -11,7 +11,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-import * as vscode from 'vscode';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -24,7 +23,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('Yeoman Adapter Tests', () => {
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
@@ -62,13 +61,13 @@ describe('Yeoman Adapter Tests', () => {
     }];
 
     it('should overwrite file', async () => {
-        prompts[0]['when'] = () => true;
+        prompts[0]['when'] = (): boolean => true;
 
         const generatorOptionsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showGeneratorOptions').resolves(UserInputUtil.OVERWRITE_FILE);
 
-        const yeomanAdapter = new YeomanAdapter();
+        const yeomanAdapter: YeomanAdapter = new YeomanAdapter();
 
-        await yeomanAdapter.prompt(prompts, (result) => {
+        await yeomanAdapter.prompt(prompts, (result: string) => {
             generatorOptionsStub.should.have.been.calledWith('Overwrite package.json?');
             result.should.equal('write');
         });
@@ -76,13 +75,13 @@ describe('Yeoman Adapter Tests', () => {
     });
 
     it('should skip file', async () => {
-        prompts[0]['when'] = () => true;
+        prompts[0]['when'] = (): boolean => true;
 
         const generatorOptionsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showGeneratorOptions').resolves(UserInputUtil.SKIP_FILE);
 
-        const yeomanAdapter = new YeomanAdapter();
+        const yeomanAdapter: YeomanAdapter = new YeomanAdapter();
 
-        await yeomanAdapter.prompt(prompts, (result) => {
+        await yeomanAdapter.prompt(prompts, (result: string) => {
             generatorOptionsStub.should.have.been.calledWith('Overwrite package.json?');
             result.should.equal('skip');
         });
@@ -90,13 +89,13 @@ describe('Yeoman Adapter Tests', () => {
     });
 
     it('should force all files to overwrite', async () => {
-        prompts[0]['when'] = () => true;
+        prompts[0]['when'] = (): boolean => true;
 
         const generatorOptionsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showGeneratorOptions').resolves(UserInputUtil.FORCE_FILES);
 
-        const yeomanAdapter = new YeomanAdapter();
+        const yeomanAdapter: YeomanAdapter = new YeomanAdapter();
 
-        await yeomanAdapter.prompt(prompts, (result) => {
+        await yeomanAdapter.prompt(prompts, (result: string) => {
             generatorOptionsStub.should.have.been.calledWith('Overwrite package.json?');
             result.should.equal('force');
         });
@@ -104,42 +103,40 @@ describe('Yeoman Adapter Tests', () => {
     });
 
     it('should abort generation process', async () => {
-        prompts[0]['when'] = () => true;
+        prompts[0]['when'] = (): boolean => true;
 
         const generatorOptionsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showGeneratorOptions').resolves(UserInputUtil.ABORT_GENERATOR);
 
-        const yeomanAdapter = new YeomanAdapter();
+        const yeomanAdapter: YeomanAdapter = new YeomanAdapter();
 
-        await yeomanAdapter.prompt(prompts, (result) => {
+        await yeomanAdapter.prompt(prompts, (result: string) => {
             generatorOptionsStub.should.have.been.calledWith('Overwrite package.json?');
             result.should.equal('abort');
         });
-
     });
 
     it('should stop if no options provided for generator', async () => {
-        prompts[0]['when'] = () => false;
+        prompts[0]['when'] = (): boolean => false;
 
         const generatorOptionsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showGeneratorOptions').resolves(UserInputUtil.OVERWRITE_FILE);
 
-        const yeomanAdapter = new YeomanAdapter();
+        const yeomanAdapter: YeomanAdapter = new YeomanAdapter();
 
-        await yeomanAdapter.prompt(prompts, (result) => {
+        await yeomanAdapter.prompt(prompts, () => {
             generatorOptionsStub.should.not.have.been.called;
         });
 
     });
 
     it('should return if no callback given', async () => {
-        prompts[0]['when'] = () => true;
+        prompts[0]['when'] = (): boolean => true;
 
         const generatorOptionsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showGeneratorOptions').resolves(UserInputUtil.OVERWRITE_FILE);
 
-        const yeomanAdapter = new YeomanAdapter();
+        const yeomanAdapter: YeomanAdapter = new YeomanAdapter();
 
-        const result = await yeomanAdapter.prompt(prompts, null);
+        const result: string = await yeomanAdapter.prompt(prompts, null);
         generatorOptionsStub.should.have.been.calledWith('Overwrite package.json?');
-        result.should.deep.equal({action: 'write'});
+        result.should.deep.equal({ action: 'write' });
     });
-
 });

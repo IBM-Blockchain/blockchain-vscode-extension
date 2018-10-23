@@ -17,7 +17,7 @@ import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class InstalledChainCodeTreeItem extends BlockchainTreeItem {
-    contextValue = 'blockchain-installed-chaincode-item';
+    contextValue: string = 'blockchain-installed-chaincode-item';
 
     constructor(provider: BlockchainExplorerProvider, private readonly name: string, public readonly versions: Array<string>) {
         super(provider, name, vscode.TreeItemCollapsibleState.Collapsed);

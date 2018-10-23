@@ -11,14 +11,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-import * as vscode from 'vscode';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { Reporter } from '../../src/util/Reporter';
-import TelemetryReporter from 'vscode-extension-telemetry';
 
 chai.should();
 chai.use(sinonChai);
@@ -26,7 +24,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('Reporter Tests', () => {
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
@@ -37,9 +35,9 @@ describe('Reporter Tests', () => {
     });
 
     it('should send telemetry event if production release', async () => {
-        const reporter = Reporter.instance();
+        const reporter: Reporter = Reporter.instance();
 
-        const sendSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
+        const sendSpy: sinon.SinonSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
 
         await reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
@@ -48,9 +46,9 @@ describe('Reporter Tests', () => {
     });
 
     it('shouldnt send telemetry event if not a production release', async () => {
-        const reporter = Reporter.instance();
+        const reporter: Reporter = Reporter.instance();
 
-        const sendSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
+        const sendSpy: sinon.SinonSpy = mySandBox.stub(reporter['telemetryReporter'], 'sendTelemetryEvent');
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
 
         await reporter.sendTelemetryEvent('testEvent', {test: 'testdata'});
@@ -59,8 +57,8 @@ describe('Reporter Tests', () => {
     });
 
     it('should dispose the reporter', async () => {
-        const reporter = Reporter.instance();
-        const disposeSpy = mySandBox.stub(reporter['telemetryReporter'], 'dispose');
+        const reporter: Reporter = Reporter.instance();
+        const disposeSpy: sinon.SinonSpy = mySandBox.stub(reporter['telemetryReporter'], 'dispose');
 
         await reporter.dispose();
         disposeSpy.should.have.been.called;

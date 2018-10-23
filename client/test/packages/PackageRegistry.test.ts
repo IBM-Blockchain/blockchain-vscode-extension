@@ -19,10 +19,8 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import * as fs from 'fs-extra';
-import * as tmp from 'tmp';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 chai.use(sinonChai);
 

@@ -22,7 +22,7 @@ export class TemporaryCommandRegistry {
         return this._instance;
     }
 
-    private static _instance = new TemporaryCommandRegistry();
+    private static _instance: TemporaryCommandRegistry = new TemporaryCommandRegistry();
 
     // Used to save/re-execute commands used before the extension has activated (e.g. delayed by dependency downloading).
     private delayedCommandsToExecute: Set<string>;
@@ -31,20 +31,20 @@ export class TemporaryCommandRegistry {
     private constructor() {
     }
 
-    public createTempCommands() {
+    public createTempCommands(): void {
         const commands: Array<any> = ExtensionUtil.getPackageJSON().actualActivationEvents.onCommand;
 
         this.tempCommands = [];
         this.delayedCommandsToExecute = new Set<string>();
 
         // Add temp commands that invoke the real commands after download/install is complete (preventing an error message)
-        commands.forEach((command) => {
+        commands.forEach((command: any) => {
             this.registerTempCommand(command);
         });
     }
 
     public restoreCommands(): void {
-        this.tempCommands.forEach((command) => {
+        this.tempCommands.forEach((command: any) => {
             command.dispose();
         });
         this.tempCommands = [];

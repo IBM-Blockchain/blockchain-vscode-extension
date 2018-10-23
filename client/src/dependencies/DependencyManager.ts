@@ -30,7 +30,7 @@ export class DependencyManager {
         return this._instance;
     }
 
-    private static _instance = new DependencyManager();
+    private static _instance: DependencyManager = new DependencyManager();
 
     private dependencies: Array<Dependency> = [];
 
@@ -57,7 +57,7 @@ export class DependencyManager {
         return path.resolve(ExtensionUtil.getExtensionPath(), 'package.json');
     }
 
-    private loadDependencies() {
+    private loadDependencies(): void {
         const os: string = `${process.platform}-${process.arch}`;
         const packageJSON: any = ExtensionUtil.getPackageJSON();
 
@@ -86,7 +86,7 @@ export class DependencyManager {
             location: vscode.ProgressLocation.Notification,
             title: 'Blockchain Extension',
             cancellable: false
-        }, async (progress) => {
+        }, async (progress: vscode.Progress<{message: string}>) => {
 
             const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
@@ -98,7 +98,7 @@ export class DependencyManager {
                 progress.report({message: 'Rebuilding native node modules'});
 
                 // npm needs to run in a shell on Windows
-                const shell = (process.platform === 'win32') ? true : false;
+                const shell: boolean = (process.platform === 'win32') ? true : false;
 
                 try {
                     await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter, shell);
@@ -140,11 +140,11 @@ export class DependencyManager {
 
         packageJson.activationEvents = [];
 
-        packageJson.actualActivationEvents.onView.forEach((event) => {
+        packageJson.actualActivationEvents.onView.forEach((event: string) => {
             packageJson.activationEvents.push('onView:' + event);
         });
 
-        packageJson.actualActivationEvents.onCommand.forEach((event) => {
+        packageJson.actualActivationEvents.onCommand.forEach((event: string) => {
             packageJson.activationEvents.push('onCommand:' + event);
         });
 

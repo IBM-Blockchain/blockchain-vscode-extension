@@ -21,15 +21,16 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
+import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
 
 chai.use(sinonChai);
 chai.should();
 
 // tslint:disable no-unused-expression
 describe('BlockchainPackageExplorer', () => {
-    let mySandBox;
-    let errorSpy;
-    let blockchainPackageExplorerProvider;
+    let mySandBox: sinon.SinonSandbox;
+    let errorSpy: sinon.SinonSpy;
+    let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
     const rootPath: string = path.dirname(__dirname);
     const testDir: string = path.join(rootPath, '../../test/data/packageDir');
 
@@ -61,7 +62,7 @@ describe('BlockchainPackageExplorer', () => {
         await vscode.workspace.getConfiguration().update('fabric.package.directory', testDir, true);
 
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
         testPackages.length.should.equal(4);
         testPackages[0].label.should.equal('vscode-pkg-1@0.0.1');
         testPackages[1].label.should.equal('vscode-pkg-2@0.0.2');
@@ -71,7 +72,7 @@ describe('BlockchainPackageExplorer', () => {
 
     });
     it('should refresh the smart contract packages view when refresh is called', async () => {
-        const onDidChangeTreeDataSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
+        const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
         onDidChangeTreeDataSpy.should.have.been.called;
@@ -81,7 +82,7 @@ describe('BlockchainPackageExplorer', () => {
     it('should get a tree item in BlockchainPackageExplorer', async () => {
         await vscode.workspace.getConfiguration().update('fabric.package.directory', testDir, true);
 
-        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren();
+        const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
         firstTestPackage.label.should.equal('vscode-pkg-1@0.0.1');

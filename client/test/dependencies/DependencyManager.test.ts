@@ -36,7 +36,7 @@ describe('DependencyManager Tests', () => {
 
     describe('hasNativeDependenciesInstalled', () => {
 
-        let mySandBox;
+        let mySandBox: sinon.SinonSandbox;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -49,7 +49,7 @@ describe('DependencyManager Tests', () => {
         it('should return true if the dependencies are installed', () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({activationEvents: ['myActivationOne', 'myActivationTwo']});
 
-            const dependencyManager = DependencyManager.instance();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
 
             dependencyManager.hasNativeDependenciesInstalled().should.equal(true);
         });
@@ -57,14 +57,14 @@ describe('DependencyManager Tests', () => {
         it('should return false if the dependencies are not installed', () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({activationEvents: ['*']});
 
-            const dependencyManager = DependencyManager.instance();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
 
             dependencyManager.hasNativeDependenciesInstalled().should.equal(false);
         });
     });
 
     describe('installNativeDependencies', () => {
-        let mySandBox;
+        let mySandBox: sinon.SinonSandbox;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -136,13 +136,13 @@ describe('DependencyManager Tests', () => {
         });
 
         it('should handle errors', async () => {
-            const outputAdapterSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'error');
-            const errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-            const sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').rejects({message: 'some error'});
+            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const errorMessageSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').rejects({message: 'some error'});
 
             mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
 
-            const dependencyManager = DependencyManager.instance();
+            const dependencyManager: DependencyManager = DependencyManager.instance();
 
             await dependencyManager.installNativeDependencies().should.have.been.rejectedWith(`some error`);
 

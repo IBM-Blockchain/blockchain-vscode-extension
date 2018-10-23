@@ -22,7 +22,7 @@ import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
 
-export async function exportSmartContractPackage(packageTreeItem?: PackageTreeItem) {
+export async function exportSmartContractPackage(packageTreeItem?: PackageTreeItem): Promise<void> {
     try {
         let packageToExport: PackageRegistryEntry;
         if (packageTreeItem) {
