@@ -348,7 +348,8 @@
         "tslint": "tslint",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/integration.test.ts'",
         "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
-        "productionFlag": "node ../.travis/rewritePackageJson.js publish"
+        "productionFlag": "node ../.travis/rewritePackageJson.js publish",
+        "integrationTests": "./integrationTest/scripts/run-integration-tests.sh && npm run compile"
     },
     "devDependencies": {
         "@types/chai": "4.1.4",
