@@ -151,8 +151,9 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter));
 
-            outputAdapterSpy.should.have.been.calledWith('Could not rebuild native dependencies some error');
-            errorMessageSpy.should.have.been.calledWith('Could not rebuild native dependencies some error');
+            outputAdapterSpy.should.have.been.calledWith('Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
+
+            errorMessageSpy.should.have.been.calledWith('Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
         });
     });
 });
