@@ -28,7 +28,7 @@ export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem
     if (!treeItem) {
         // If called from command palette
 
-        const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to edit', true);
+        const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to edit', false);
         if (!chosenConnection) {
             return;
         }

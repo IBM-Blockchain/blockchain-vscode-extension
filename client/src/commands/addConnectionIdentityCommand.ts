@@ -26,7 +26,7 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
     if (connectionItem) {
         connectionRegistryEntry = connectionItem.connection;
     } else {
-        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to');
+        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to', false);
         if (!chosenEntry) {
             return;
         }

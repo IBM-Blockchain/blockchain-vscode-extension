@@ -72,24 +72,12 @@ export class FabricRuntimeManager {
             await this.runtimeRegistry.add(runtimeRegistryEntry);
             runtimeRegistryAdded = true;
 
-            // Add the Fabric connection to the connection entry.
-            const connectionRegistryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
-            connectionRegistryEntry.name = name;
-            connectionRegistryEntry.managedRuntime = true;
-            await this.connectionRegistry.add(connectionRegistryEntry);
-
             // Add the Fabric runtime to the internal cache.
             const runtime: FabricRuntime = new FabricRuntime(runtimeRegistryEntry);
             this.runtimes.set(name, runtime);
 
         } catch (error) {
-
-            // Clear up any registry entries we may have created.
-            if (runtimeRegistryAdded) {
-                await this.runtimeRegistry.delete(name);
-            }
             throw error;
-
         }
     }
 

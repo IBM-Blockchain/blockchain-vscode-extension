@@ -21,11 +21,7 @@ export class FabricConnectionHelper {
     static readonly PRIVATE_KEY_PATH_DEFAULT: string = '<PATH_TO_PRIVATE_KEY>';
 
     public static isCompleted(instance: any): boolean {
-        if (instance.name !== 'local_fabric') {
-            return this.connectionProfilePathComplete(instance) && this.certificatePathComplete(instance) && this.privateKeyPathComplete(instance);
-        } else {
-            return true;
-        }
+        return this.connectionProfilePathComplete(instance) && this.certificatePathComplete(instance) && this.privateKeyPathComplete(instance);
     }
 
     public static connectionProfilePathComplete(instance: any): boolean {

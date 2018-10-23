@@ -22,7 +22,7 @@ export async function deleteConnection(connectionTreeItem: ConnectionTreeItem): 
 
     let connectionRegistryEntry: FabricConnectionRegistryEntry;
     if (!connectionTreeItem) {
-        const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to delete');
+        const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to delete', false);
         if (!chosenConnection) {
             return;
         }

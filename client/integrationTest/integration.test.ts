@@ -263,8 +263,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.false;
 
         // Connect to the Fabric runtime.
-        const connection: FabricConnectionRegistryEntry = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
@@ -307,8 +306,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.true;
 
         // Connect to the Fabric runtime.
-        const connection: FabricConnectionRegistryEntry = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
@@ -349,8 +347,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.false;
 
         // Connect to the Fabric runtime.
-        let connection: FabricConnectionRegistryEntry = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
@@ -371,8 +368,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.false;
 
         // Connect to the Fabric runtime.
-        connection = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
@@ -407,8 +403,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.false;
 
         // Connect to the Fabric runtime.
-        let connection: FabricConnectionRegistryEntry = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
@@ -435,8 +430,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.false;
 
         // Connect to the Fabric runtime.
-        connection = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
@@ -467,8 +461,7 @@ describe('Integration Test', () => {
         runtime.isDevelopmentMode().should.be.false;
 
         // Connect to the Fabric runtime.
-        connection = connectionRegistry.get('local_fabric');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
 
         // Ensure that the Fabric runtime is showing a single channel.
         channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
