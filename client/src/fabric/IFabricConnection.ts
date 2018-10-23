@@ -19,7 +19,7 @@ export interface IFabricConnection {
 
     connect(): Promise<void>;
 
-    getConnectionDetails(): any;
+    getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
 
     disconnect(): void;
 
