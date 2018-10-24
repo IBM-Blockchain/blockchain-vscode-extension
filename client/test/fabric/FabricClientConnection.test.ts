@@ -159,7 +159,7 @@ describe('FabricClientConnection', () => {
             const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionOne/connection.json');
             const certificatePath: string = path.join(rootPath, '../../test/data/connectionOne/credentials/certificate');
             const privateKeyPath: string = path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey');
-            const connectionData: any = {
+            const connectionData: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = {
                 connectionProfilePath: connectionProfilePath,
                 certificatePath: certificatePath,
                 privateKeyPath: privateKeyPath
@@ -167,7 +167,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = gatewayStub;
 
-            const connectionDetails: any = fabricClientConnection.getConnectionDetails();
+            const connectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = await fabricClientConnection.getConnectionDetails();
             connectionDetails.connectionProfilePath.should.equal(connectionProfilePath);
             connectionDetails.certificatePath.should.equal(certificatePath);
             connectionDetails.privateKeyPath.should.equal(privateKeyPath);

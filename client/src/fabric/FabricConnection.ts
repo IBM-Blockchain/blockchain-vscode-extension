@@ -41,7 +41,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public abstract async connect(): Promise<void>;
 
-    public abstract getConnectionDetails(): any;
+    public abstract async getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');

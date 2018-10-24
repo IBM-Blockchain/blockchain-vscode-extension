@@ -38,7 +38,7 @@ describe('FabricConnection', () => {
             this['gateway'] = fabricGatewayStub;
         }
 
-        getConnectionDetails(): any {
+        async getConnectionDetails(): Promise<any> {
             return;
         }
 

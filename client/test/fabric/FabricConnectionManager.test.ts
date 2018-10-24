@@ -28,7 +28,7 @@ describe('FabricConnectionManager', () => {
             return;
         }
 
-        getConnectionDetails(): any {
+        async getConnectionDetails(): Promise<any> {
             return;
         }
 

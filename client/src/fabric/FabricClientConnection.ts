@@ -53,8 +53,8 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         await this.connectInner(connectionProfile, certificate, privateKey);
     }
 
-    getConnectionDetails(): any {
-        const connectionDetails: any = {
+    async getConnectionDetails(): Promise<{connectionProfilePath: string, certificatePath: string, privateKeyPath: string}> {
+        const connectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = {
             connectionProfilePath: this.connectionProfilePath,
             certificatePath: this.certificatePath,
             privateKeyPath: this.privateKeyPath
