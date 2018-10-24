@@ -40,6 +40,7 @@ import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { ChainCodeTreeItem } from '../src/explorer/model/ChainCodeTreeItem';
 import { TestUtil } from '../test/TestUtil';
 import { InstantiatedChainCodesTreeItem } from '../src/explorer/model/InstantiatedChaincodesTreeItem';
+import { CommandUtil } from '../src/util/CommandUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -77,9 +78,19 @@ describe('Integration Test', () => {
         await TestUtil.storePackageDirectoryConfig();
 
         VSCodeOutputAdapter.instance().setConsole(true);
+
+        vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
+
+        const packageDir: string = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', 'packages');
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', packageDir, vscode.ConfigurationTarget.Global);
+        const exists: boolean = await fs.pathExists(packageDir);
+        if (exists) {
+            await fs.remove(packageDir);
+        }
     });
 
     after(async () => {
+        vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
         VSCodeOutputAdapter.instance().setConsole(false);
         await TestUtil.restoreConnectionsConfig();
         await TestUtil.restoreRuntimesConfig();
@@ -105,30 +116,24 @@ describe('Integration Test', () => {
 
     async function createSmartContract(name: string, type: string): Promise<void> {
         mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves(type);
-        mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+        mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-        const originalExecuteCommand: any = vscode.commands.executeCommand;
-        const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-        executeCommandStub.callsFake(async function fakeExecuteCommand(command: string): Promise<void> {
-            // Don't open the folder as this causes lots of windows to pop up, and random
-            // test failures.
-            if (command !== 'vscode.openFolder') {
-                return originalExecuteCommand.apply(this, arguments);
-            }
-        });
-
-        testContractDir = path.join(__dirname, '../../integrationTest', name);
-
-        const smartContractDir: string = path.join(__dirname, '../../integrationTest/smartContractDir');
+        testContractDir = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', name);
+        const exists: boolean = await fs.pathExists(testContractDir);
+        if (exists) {
+            await fs.remove(testContractDir);
+        }
 
         const uri: vscode.Uri = vscode.Uri.file(testContractDir);
         const uriArr: Array<vscode.Uri> = [uri];
         const openDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog');
         openDialogStub.resolves(uriArr);
 
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', smartContractDir, vscode.ConfigurationTarget.Global);
-
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+
+        if (type === 'JavaScript' || type === 'TypeScript') {
+            await CommandUtil.sendCommandWithOutput('npm', ['install'], testContractDir, undefined, VSCodeOutputAdapter.instance(), false);
+        }
     }
 
     async function packageSmartContract(): Promise<void> {
@@ -477,93 +482,112 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    it('should create a smart contract, package, install it on a peer and instantiate', async () => {
-        await createFabricConnection();
+    ['JavaScript', 'TypeScript'].forEach((language: string) => {
 
-        await connectToFabric();
+        it(`should create a ${language} smart contract, package, install it on a peer and instantiate`, async () => {
+            const smartContractName: string = `my${language}SC`;
 
-        await createSmartContract('mySmartContract', 'JavaScript');
+            await createFabricConnection();
 
-        await packageSmartContract();
+            await connectToFabric();
 
-        await installSmartContract('mySmartContract', '0.0.1');
+            await createSmartContract(smartContractName, language);
 
-        await instantiateSmartContract('mySmartContract', '0.0.1');
+            await packageSmartContract();
 
-        const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-        const channelChildrenOne: Array<PeersTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+            await installSmartContract(smartContractName, '0.0.1');
 
-        const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
+            await instantiateSmartContract(smartContractName, '0.0.1');
 
-        const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
+            let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
-        installedSmartContracts.length.should.equal(1);
+            let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
 
-        installedSmartContracts[0].label.should.equal('mySmartContract');
+            allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
 
-        const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContracts[0]) as Array<InstalledChainCodeVersionTreeItem>;
+            const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
 
-        versions.length.should.equal(1);
+            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
 
-        versions[0].label.should.equal('0.0.1');
+            const installedSmartContract: InstalledChainCodeTreeItem = installedSmartContracts.find((_installedSmartContract: InstalledChainCodeTreeItem) => {
+                return _installedSmartContract.label === smartContractName;
+            });
 
-        const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+            installedSmartContract.should.not.be.null;
 
-        instantiatedSmartContracts.length.should.equal(1);
+            const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContract) as Array<InstalledChainCodeVersionTreeItem>;
 
-        instantiatedSmartContracts[0].label.should.equal('mySmartContract@0.0.1');
+            versions.length.should.equal(1);
 
-    }).timeout(0);
+            versions[0].label.should.equal('0.0.1');
 
-    // TODO: put this back in when upgrade is more reliable, the problem is with the
-    // new event handling stuff it doesn't always unblock even though the upgrade happens
-    xit('should upgrade a smart contract', async () => {
-        await createFabricConnection();
+            const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
 
-        await connectToFabric();
+            const instantiatedSmartContract: ChainCodeTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: ChainCodeTreeItem) => {
+                return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
+            });
 
-        await createSmartContract('anotherSmartContract', 'JavaScript');
+            instantiatedSmartContract.should.not.be.null;
 
-        await packageSmartContract();
+        }).timeout(0);
 
-        await installSmartContract('anotherSmartContract', '0.0.1');
+        it(`should upgrade a ${language} smart contract`, async () => {
+            const smartContractName: string = `my${language}SC2`;
 
-        await instantiateSmartContract('anotherSmartContract', '0.0.1');
+            await createFabricConnection();
 
-        await updatePackageJsonVersion('0.0.2');
+            await connectToFabric();
 
-        await packageSmartContract();
+            await createSmartContract(smartContractName, language);
 
-        await installSmartContract('anotherSmartContract', '0.0.2');
+            await packageSmartContract();
 
-        await instantiateSmartContract('anotherSmartContract', '0.0.2');
+            await installSmartContract(smartContractName, '0.0.1');
 
-        let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            await instantiateSmartContract(smartContractName, '0.0.1');
 
-        let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+            await updatePackageJsonVersion('0.0.2');
 
-        allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-        channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+            await packageSmartContract();
 
-        const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
+            await installSmartContract(smartContractName, '0.0.2');
 
-        const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
+            await instantiateSmartContract(smartContractName, '0.0.2');
 
-        installedSmartContracts.length.should.equal(1);
+            let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
-        installedSmartContracts[0].label.should.equal('anotherSmartContract');
+            let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
 
-        const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContracts[0]) as Array<InstalledChainCodeVersionTreeItem>;
+            allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
 
-        versions.length.should.equal(2);
+            const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
 
-        versions[0].label.should.equal('0.0.1');
-        versions[1].label.should.equal('0.0.2');
+            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
 
-        const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+            const installedSmartContract: InstalledChainCodeTreeItem = installedSmartContracts.find((_installedSmartContract: InstalledChainCodeTreeItem) => {
+                return _installedSmartContract.label === smartContractName;
+            });
 
-        instantiatedSmartContracts.length.should.equal(1);
+            installedSmartContract.should.not.be.null;
 
-        instantiatedSmartContracts[0].label.should.equal('anotherSmartContract@0.0.2');
-    }).timeout(0);
+            const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContract) as Array<InstalledChainCodeVersionTreeItem>;
+
+            versions.length.should.equal(2);
+
+            versions[0].label.should.equal('0.0.1');
+            versions[1].label.should.equal('0.0.2');
+
+            const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+
+            const instantiatedSmartContract: ChainCodeTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: ChainCodeTreeItem) => {
+                return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
+            });
+
+            instantiatedSmartContract.should.not.be.null;
+        }).timeout(0);
+
+    });
+
 });
