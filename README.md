@@ -4,12 +4,14 @@
 
 The IBM Blockchain Platform extension has been created to assist users in developing, testing, and deploying smart contracts; including connecting to Hyperledger Fabric environments.
 
+> ⚠ Please note: this extension is available for early experimentation.  There are many features and improvements to come before the v1.0 release.  Please bear this in mind, and if you find something you'd like to see added, let the team know by raising a GitHub issue or suggestion (see "Contact Us" below).
+
 ## Contact Us
 If you have find any problems or want to make suggestions for future features please create [issues and suggestions on Github](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues)
 
 <!---Installing instructions
 --->
-<!---Short description of what the extension allows the user to do and key features in bullet points below 
+<!---Short description of what the extension allows the user to do and key features in bullet points below
 --->
 
 ## Installation
@@ -95,7 +97,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 
 <!---Short explanation with code-blocks
 --->
-<!---Screenshot of UI/Video of prototype click-through 
+<!---Screenshot of UI/Video of prototype click-through
 --->
 <!---Link to docs with further instructions
 --->
@@ -110,7 +112,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 
 <!---Short explanation with code-blocks
 --->
-<!---Screenshot of UI/Video of prototype click-through 
+<!---Screenshot of UI/Video of prototype click-through
 --->
 <!---Link to docs with further instructions
 --->
@@ -148,7 +150,7 @@ If you want to start and connect to your own Hyperledger Fabric instance, ensure
 
 https://hyperledger-fabric.readthedocs.io/en/release-1.3/install.html
 
-## Supported Operating Systems 
+## Supported Operating Systems
 
 Linux, Mac OS, and Windows are currently the only supported operating systems for use with the extension.
 
