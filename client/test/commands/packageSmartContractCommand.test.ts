@@ -28,12 +28,7 @@ chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('packageSmartContract', () => {
-    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
-    let errorSpy: sinon.SinonSpy;
-    let informationSpy: sinon.SinonSpy;
-    let showInputStub: sinon.SinonStub;
-    let workspaceFoldersStub: sinon.SinonStub;
-    let showWorkspaceQuickPickStub: sinon.SinonStub;
+
     const rootPath: string = path.dirname(__dirname);
     const fileDest: string = path.join(rootPath, '../../test/data/packageContractDir');
     const testWorkspace: string = path.join(rootPath, '../../test/data/testWorkspace');
@@ -41,15 +36,8 @@ describe('packageSmartContract', () => {
     const typescriptPath: string = path.join(rootPath, '../../test/data/testWorkspace/typescriptProject');
     const emptyContent: string = '{}';
 
-    let findFilesStub: sinon.SinonStub;
-
     const golangPath: string = path.join(rootPath, '../../test/data/testWorkspace/src/goProject');
     const folders: Array<any> = [];
-    const languages: Array<string> = [
-        '/javascript/',
-        '/typescript/',
-        '/go/src/'
-    ];
 
     async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean): Promise<void> {
         let workspaceDir: string = path.join(rootPath, '..', '..', 'test', 'data', 'testWorkspace');
@@ -102,41 +90,109 @@ describe('packageSmartContract', () => {
         await TestUtil.restorePackageDirectoryConfig();
     });
 
+    let mySandBox: sinon.SinonSandbox;
+    let errorSpy: sinon.SinonSpy;
+    let informationSpy: sinon.SinonSpy;
+    let showInputStub: sinon.SinonStub;
+    let workspaceFoldersStub: sinon.SinonStub;
+    let showWorkspaceQuickPickStub: sinon.SinonStub;
+    let findFilesStub: sinon.SinonStub;
+    let buildTasks: vscode.Task[];
+    let executeTaskStub: sinon.SinonStub;
+
     beforeEach(async () => {
+        mySandBox = sinon.createSandbox();
+
+        await TestUtil.deleteTestFiles(fileDest);
+        await TestUtil.deleteTestFiles(testWorkspace);
+
+        folders.push(...[
+            {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)},
+            {name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath)},
+            {name: 'goProject', uri: vscode.Uri.file(golangPath)}
+        ]);
+
+        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+        showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+        workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
+        informationSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
+        await vscode.workspace.getConfiguration().update('fabric.package.directory', fileDest, true);
+
+        findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
+
         process.env.GOPATH = testWorkspace;
+
+        // Create a bunch of tasks that should never get executed.
+        const unscopedTask: vscode.Task = new vscode.Task({ type: 'npm' }, 'unscopedTask', 'npm');
+        const globalTask: vscode.Task = new vscode.Task({ type: 'npm' }, vscode.TaskScope.Global, 'globalTask', 'npm');
+        const workspaceTask: vscode.Task = new vscode.Task({ type: 'npm' }, vscode.TaskScope.Workspace, 'workspaceTask', 'npm');
+        const differentUriTask: vscode.Task = new vscode.Task({ type: 'npm' }, { index: 0, name: 'randomProject', uri: vscode.Uri.file('/randomProject') }, 'workspaceTask', 'npm');
+        const testTasks: vscode.Task[] = [
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) }, 'javascriptProject test task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject test task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject test task', 'npm')
+        ].map((task: vscode.Task) => {
+            task.group = vscode.TaskGroup.Test;
+            return task;
+        });
+        const backgroundTasks: vscode.Task[] = [
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) }, 'javascriptProject build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject build task', 'npm')
+        ].map((task: vscode.Task) => {
+            task.group = vscode.TaskGroup.Build;
+            task.isBackground = true;
+            return task;
+        });
+
+        // These are the tasks we do want to execute.
+        buildTasks = [
+            undefined, // no build task for javascript
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject build task', 'npm'),
+        ].map((task: vscode.Task) => {
+            if (!task) {
+                return task;
+            }
+            task.group = vscode.TaskGroup.Build;
+            return task;
+        });
+
+        // Stub the list of tasks VSCode knows about.
+        mySandBox.stub(vscode.tasks, 'fetchTasks').resolves(
+            [ unscopedTask, globalTask, workspaceTask, differentUriTask ]
+                .concat(testTasks, backgroundTasks, buildTasks)
+                .filter((task: vscode.Task) => !!task)
+        );
+
+        // Fake executeTask so that it emits the right event.
+        const onDidEndTaskEventEmitter: vscode.EventEmitter<vscode.TaskEndEvent> = new vscode.EventEmitter<vscode.TaskEndEvent>();
+        const onDidEndTaskEvent: vscode.Event<vscode.TaskEndEvent> = onDidEndTaskEventEmitter.event;
+        mySandBox.stub(vscode.tasks, 'onDidEndTask').value(onDidEndTaskEvent);
+        executeTaskStub = mySandBox.stub(vscode.tasks, 'executeTask').callsFake(async (task: vscode.Task) => {
+            const terminate: sinon.SinonStub = sinon.stub();
+            const testExecution: vscode.TaskExecution = { terminate, task: testTasks[0] };
+            const buildExecution: vscode.TaskExecution = { terminate, task };
+            setTimeout(() => {
+                // Always fire another task completion that isn't the one we're looking for.
+                onDidEndTaskEventEmitter.fire({ execution: testExecution });
+                onDidEndTaskEventEmitter.fire({ execution: buildExecution });
+            }, 1);
+            return buildExecution;
+        });
+
     });
 
     afterEach(async () => {
         delete process.env.GOPATH;
+
+        await TestUtil.deleteTestFiles(fileDest);
+        await TestUtil.deleteTestFiles(testWorkspace);
+        mySandBox.restore();
     });
 
     describe('#packageSmartContract', () => {
-
-        beforeEach(async () => {
-            await TestUtil.deleteTestFiles(fileDest);
-            await TestUtil.deleteTestFiles(testWorkspace);
-
-            folders.push(...[
-                {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)},
-                {name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath)},
-                {name: 'goProject', uri: vscode.Uri.file(golangPath)}
-            ]);
-
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-            showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
-            showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
-            informationSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
-            await vscode.workspace.getConfiguration().update('fabric.package.directory', fileDest, true);
-
-            findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
-        });
-
-        afterEach(async () => {
-            await TestUtil.deleteTestFiles(fileDest);
-            await TestUtil.deleteTestFiles(testWorkspace);
-            mySandBox.restore();
-        });
 
         it('should package the JavaScript project', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -164,6 +220,7 @@ describe('packageSmartContract', () => {
             ]);
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
+            executeTaskStub.should.have.not.been.called;
         }).timeout(4000);
 
         it('should package the TypeScript project', async () => {
@@ -194,6 +251,8 @@ describe('packageSmartContract', () => {
             ]);
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
         }).timeout(4000);
 
         it('should package the Go project', async () => {
@@ -225,6 +284,8 @@ describe('packageSmartContract', () => {
             ]);
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
         }).timeout(4000);
 
         it('should throw an error as the package json does not contain a name or version', async () => {

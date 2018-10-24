@@ -19,6 +19,4 @@ coverage
 .DS_Store
 /test/data/fabricProject
 /test/data/smartContractDir/
-/integrationTest/smartContractDir/
-/integrationTest/mySmartContract/
-/integrationTest/teardownSmartContract/
+/integrationTest/tmp
