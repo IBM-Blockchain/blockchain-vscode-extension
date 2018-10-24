@@ -21,13 +21,13 @@ import * as childProcessPromise from 'child-process-promise';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { OutputAdapter } from '../logging/OutputAdapter';
 
-const exec = childProcessPromise.exec;
+const exec: any = childProcessPromise.exec;
 
 export class CommandUtil {
 
     // Send shell command
-    public static async sendCommand(command: string, cwd ?: string): Promise<string> {
-        const result: childProcessPromise.childProcessPromise = await exec(command, {cwd: cwd});
+    public static async sendCommand(command: string, cwd?: string): Promise<string> {
+        const result: childProcessPromise.childProcessPromise = await exec(command, { cwd: cwd });
         return result.stdout.trim();
     }
 
@@ -36,8 +36,8 @@ export class CommandUtil {
             location: vscode.ProgressLocation.Notification,
             title: 'Blockchain Extension',
             cancellable: false
-        }, async (progress, token): Promise<string> => {
-            progress.report({message});
+        }, async (progress: vscode.Progress<{ message: string }>): Promise<string> => {
+            progress.report({ message });
             return this.sendCommand(command, cwd);
         });
     }
@@ -54,17 +54,18 @@ export class CommandUtil {
         };
 
         const child: child_process.ChildProcess = child_process.spawn(command, args, options);
-        child.stdout.on('data', (data) => {
-            const str = stripAnsi(data.toString());
-            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line) => outputAdapter.log(`${line}`));
+        child.stdout.on('data', (data: string | Buffer) => {
+            const str: string = stripAnsi(data.toString());
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.log(`${line}`));
         });
-        child.stderr.on('data', (data) => {
-            const str = stripAnsi(data.toString());
-            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line) => outputAdapter.error(`${line}`));
+        child.stderr.on('data', (data: string | Buffer) => {
+            const str: string = stripAnsi(data.toString());
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.error(`${line}`));
         });
-        return new Promise<void>((resolve, reject) => {
+
+        return new Promise<void>((resolve: any, reject: any): any => {
             child.on('error', reject);
-            child.on('exit', (code) => {
+            child.on('exit', (code: string) => {
                 if (code) {
                     return reject(new Error(`Failed to execute command "${command}" with  arguments "${args.join(', ')}" return code ${code}`));
                 }

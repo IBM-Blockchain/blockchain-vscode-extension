@@ -86,7 +86,7 @@ describe('FabricRegistry', () => {
         it('should throw if an entry does not exist in the configuration', async () => {
             const testEntries: TestFabricRegistryEntry[] = [{ name: 'foo1', myValue: 'value1' }, { name: 'foo2', myValue: 'value2' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            (() => {
+            ((): any => {
                 registry.get('foo0');
             }).should.throw(/Entry "foo0" in Fabric registry "fabric.runtimes" does not exist/);
         });

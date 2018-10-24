@@ -14,7 +14,7 @@
 'use strict';
 
 import TelemetryReporter from 'vscode-extension-telemetry';
-import {ExtensionUtil} from './ExtensionUtil';
+import { ExtensionUtil } from './ExtensionUtil';
 export class Reporter {
 
     public static instance(): Reporter {
@@ -31,7 +31,7 @@ export class Reporter {
         this.telemetryReporter = new TelemetryReporter('IBMBlockchain.ibm-blockchain-platform', this.getVersion(), this.key);
     }
 
-    public sendTelemetryEvent(eventName, properties?): void {
+    public sendTelemetryEvent(eventName: string, properties?: {[key: string]: string}, measurements?: {[key: string]: number}): void {
         const packageJson: any = ExtensionUtil.getPackageJSON();
         if (packageJson.production === true) {
             this.telemetryReporter.sendTelemetryEvent(eventName, properties);

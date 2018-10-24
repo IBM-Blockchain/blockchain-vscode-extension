@@ -18,7 +18,6 @@ import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
 export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
     let connectionRegistryEntry: FabricConnectionRegistryEntry;

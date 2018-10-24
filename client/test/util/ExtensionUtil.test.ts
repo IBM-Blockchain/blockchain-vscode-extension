@@ -24,7 +24,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('ExtensionUtil Tests', () => {
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();

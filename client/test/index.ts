@@ -17,27 +17,28 @@
 import * as fs from 'fs';
 import * as glob from 'glob';
 import * as paths from 'path';
+import { extensions } from 'vscode';
 
 // tslint:disable no-var-requires
-const istanbul = require('istanbul');
-const Mocha = require('mocha');
-const remapIstanbul = require('remap-istanbul');
+const istanbul: any = require('istanbul');
+const Mocha: any = require('mocha');
+const remapIstanbul: any = require('remap-istanbul');
 
 // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
 // Since we are not running in a tty environment, we just implementt he method statically
-const tty = require('tty');
+const tty: any = require('tty');
 if (!tty.getWindowSize) {
     tty.getWindowSize = (): number[] => {
         return [80, 75];
     };
 }
 
-let mocha = new Mocha({
+let mocha: Mocha = new Mocha({
     ui: 'bdd',
     useColors: true,
 });
 
-function configure(mochaOpts): void {
+function configure(mochaOpts: any): void {
     mocha = new Mocha(mochaOpts);
 }
 
@@ -50,16 +51,16 @@ function _mkDirIfExists(dir: string): void {
 }
 
 function _readCoverOptions(testsRoot: string): ITestRunnerOptions {
-    const coverConfigPath = paths.join(testsRoot, '..', '..', 'coverconfig.json');
+    const coverConfigPath: string = paths.join(testsRoot, '..', '..', 'coverconfig.json');
     let coverConfig: ITestRunnerOptions;
     if (fs.existsSync(coverConfigPath)) {
-        const configContent = fs.readFileSync(coverConfigPath, 'utf-8');
+        const configContent: string = fs.readFileSync(coverConfigPath, 'utf-8');
         coverConfig = JSON.parse(configContent);
     }
     return coverConfig;
 }
 
-function run(testsRoot, clb): any {
+function run(testsRoot: string, clb: any): any {
     // Enable source map support
     require('source-map-support').install();
 
@@ -67,26 +68,26 @@ function run(testsRoot, clb): any {
     const coverOptions: ITestRunnerOptions = _readCoverOptions(testsRoot);
     if (coverOptions && coverOptions.enabled) {
         // Setup coverage pre-test, including post-test hook to report
-        const coverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
+        const coverageRunner: CoverageRunner = new CoverageRunner(coverOptions, testsRoot, clb);
         coverageRunner.setupCoverage();
     }
 
     // Glob test files
-    glob('**/**.test.js', {cwd: testsRoot}, (error, files): any => {
+    glob('**/**.test.js', {cwd: testsRoot}, (error: any, files: Array<string>): any => {
         if (error) {
             return clb(error);
         }
         try {
             // Fill into Mocha
-            files.forEach((f): Mocha => {
+            files.forEach((f: string): Mocha => {
                 console.log(f);
                 return mocha.addFile(paths.join(testsRoot, f));
             });
             // Run the tests
-            let failureCount = 0;
+            let failureCount: number = 0;
 
             mocha.run()
-                .on('fail', (test, err): void => {
+                .on('fail', (): void => {
                     failureCount++;
                 })
                 .on('end', (): void => {
@@ -125,21 +126,21 @@ class CoverageRunner {
 
     public setupCoverage(): void {
         // Set up Code Coverage, hooking require so that instrumented code is returned
-        const self = this;
+        const self: CoverageRunner = this;
         self.instrumenter = new istanbul.Instrumenter({coverageVariable: self.coverageVar});
-        const sourceRoot = paths.join(self.testsRoot, self.options.relativeSourcePath);
+        const sourceRoot: string = paths.join(self.testsRoot, self.options.relativeSourcePath);
 
         // Glob source files
-        const srcFiles = glob.sync('**/*.js', {
+        const srcFiles: Array<string> = glob.sync('**/*.js', {
             cwd: sourceRoot,
             ignore: self.options.ignorePatterns,
         });
 
         // Create a match function - taken from the run-with-cover.js in istanbul.
-        const decache = require('decache');
-        const fileMap = {};
-        srcFiles.forEach((file) => {
-            const fullPath = paths.join(sourceRoot, file);
+        const decache: any = require('decache');
+        const fileMap: any = {};
+        srcFiles.forEach((file: string) => {
+            const fullPath: string = paths.join(sourceRoot, file);
             fileMap[fullPath] = true;
 
             // On Windows, extension is loaded pre-test hooks and this mean we lose
@@ -151,7 +152,7 @@ class CoverageRunner {
             decache(fullPath);
         });
 
-        self.matchFn = (file): boolean => {
+        self.matchFn = (file: string): boolean => {
             return fileMap[file];
         };
         self.matchFn.files = Object.keys(fileMap);
@@ -160,7 +161,7 @@ class CoverageRunner {
         // are required, the instrumented version is pulled in instead. These instrumented versions
         // write to a global coverage variable with hit counts whenever they are accessed
         self.transformer = self.instrumenter.instrumentSync.bind(self.instrumenter);
-        const hookOpts = {verbose: false, extensions: ['.js']};
+        const hookOpts: {verbose: boolean, extensions: Array<string>} = {verbose: false, extensions: ['.js']};
         istanbul.hook.hookRequire(self.matchFn, self.transformer, hookOpts);
 
         // initialize the global variable to stop mocha from complaining about leaks
@@ -168,7 +169,7 @@ class CoverageRunner {
 
         // Hook the process exit event to handle reporting
         // Only report coverage if the process is exiting successfully
-        process.on('exit', (code) => {
+        process.on('exit', () => {
             self.reportCoverage();
         });
     }
@@ -181,7 +182,7 @@ class CoverageRunner {
      * @memberOf CoverageRunner
      */
     public reportCoverage(): void {
-        const self = this;
+        const self: CoverageRunner = this;
         istanbul.hook.unhookRequire();
         let cov: any;
         if (typeof global[self.coverageVar] === 'undefined' || Object.keys(global[self.coverageVar]).length === 0) {
@@ -193,14 +194,14 @@ class CoverageRunner {
 
         // Files that are not touched by code ran by the test runner is manually instrumented, to
         // illustrate the missing coverage.
-        self.matchFn.files.forEach((file) => {
+        self.matchFn.files.forEach((file: string) => {
             if (!cov[file]) {
                 self.transformer(fs.readFileSync(file, 'utf-8'), file);
 
                 // When instrumenting the code, istanbul will give each FunctionDeclaration a value of 1 in coverState.s,
                 // presumably to compensate for function hoisting. We need to reset this, as the function was not hoisted,
                 // as it was never loaded.
-                Object.keys(self.instrumenter.coverState.s).forEach((key) => {
+                Object.keys(self.instrumenter.coverState.s).forEach((key: string) => {
                     self.instrumenter.coverState.s[key] = 0;
                 });
 
@@ -208,17 +209,17 @@ class CoverageRunner {
             }
         });
 
-        const reportingDir = paths.join(self.testsRoot, self.options.relativeCoverageDir);
-        const includePid = self.options.includePid;
-        const pidExt = includePid ? ('-' + process.pid) : '';
-        const coverageFile = paths.resolve(reportingDir, 'coverage' + pidExt + '.json');
+        const reportingDir: string = paths.join(self.testsRoot, self.options.relativeCoverageDir);
+        const includePid: boolean = self.options.includePid;
+        const pidExt: string = includePid ? ('-' + process.pid) : '';
+        const coverageFile: string = paths.resolve(reportingDir, 'coverage' + pidExt + '.json');
 
         _mkDirIfExists(reportingDir); // yes, do this again since some test runners could clean the dir initially created
 
         fs.writeFileSync(coverageFile, JSON.stringify(cov), 'utf8');
 
-        const remappedCollector = remapIstanbul.remap(cov, {
-            warn: (warning) => {
+        const remappedCollector: any = remapIstanbul.remap(cov, {
+            warn: (warning: any): void => {
                 // We expect some warnings as any JS file without a typescript mapping will cause this.
                 // By default, we'll skip printing these to the console as it clutters it up
                 if (self.options.verbose) {
@@ -227,8 +228,8 @@ class CoverageRunner {
             }
         });
 
-        const reporter = new istanbul.Reporter(undefined, reportingDir);
-        const reportTypes = (self.options.reports instanceof Array) ? self.options.reports : ['lcov'];
+        const reporter: any = new istanbul.Reporter(undefined, reportingDir);
+        const reportTypes: Array<string> = (self.options.reports instanceof Array) ? self.options.reports : ['lcov'];
         reporter.addAll(reportTypes);
         reporter.write(remappedCollector, true, () => {
             console.log(`reports written to ${reportingDir}`);

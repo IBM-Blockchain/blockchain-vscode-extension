@@ -24,13 +24,13 @@ import { FabricConnectionRegistry } from '../../fabric/FabricConnectionRegistry'
 
 export class RuntimeTreeItem extends ConnectionTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricConnectionRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command) {
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricConnectionRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
         const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState);
         await treeItem.updateProperties();
         return treeItem;
     }
 
-    contextValue = 'blockchain-runtime-item';
+    contextValue: string = 'blockchain-runtime-item';
 
     private name: string;
     private runtime: FabricRuntime;
@@ -51,11 +51,11 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         return this.runtime;
     }
 
-    private safelyUpdateProperties() {
-        this.updateProperties().catch((error) => vscode.window.showErrorMessage(error.message));
+    private safelyUpdateProperties(): void {
+        this.updateProperties().catch((error: Error) => vscode.window.showErrorMessage(error.message));
     }
 
-    private async updateProperties() {
+    private async updateProperties(): Promise<void> {
         const busy: boolean = this.runtime.isBusy();
         const created: boolean = await this.runtime.isCreated();
         const running: boolean = await this.runtime.isRunning();
@@ -105,21 +105,21 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         this.refresh();
     }
 
-    private setLabel(label: string) {
+    private setLabel(label: string): void {
         // label is readonly so make it less readonly
         (this as any).label = label;
     }
 
-    private setCommand(command: vscode.Command) {
+    private setCommand(command: vscode.Command): void {
         // command is readonly so make it less readonly
         (this as any).command = command;
     }
 
-    private setContextValue(contextValue: string) {
+    private setContextValue(contextValue: string): void {
         this.contextValue = contextValue;
     }
 
-    private enableBusyTicker() {
+    private enableBusyTicker(): void {
         if (!this.busyTicker) {
             this.busyTicker = setInterval(() => {
                 this.busyTicks++;
@@ -129,7 +129,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         }
     }
 
-    private disableBusyTicker() {
+    private disableBusyTicker(): void {
         if (this.busyTicker) {
             clearInterval(this.busyTicker);
             this.busyTicker = null;

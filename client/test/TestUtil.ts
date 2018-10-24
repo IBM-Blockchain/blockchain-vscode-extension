@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 
 export class TestUtil {
-    static async setupTests() {
+    static async setupTests(): Promise<void> {
         if (!ExtensionUtil.isActive()) {
             await ExtensionUtil.activateExtension();
         } else {
@@ -27,33 +27,33 @@ export class TestUtil {
             myExtension.registerCommands(context);
         }
     }
-    static async storePackageDirectoryConfig() {
+    static async storePackageDirectoryConfig(): Promise<void> {
         this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get('fabric.package.directory');
         console.log('Storing user package directory:', this.USER_PACKAGE_DIR_CONFIG);
     }
-    static async restorePackageDirectoryConfig() {
+    static async restorePackageDirectoryConfig(): Promise<void> {
         console.log('Restoring user package directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
         await vscode.workspace.getConfiguration().update('fabric.package.directory', this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
     }
-    static async storeConnectionsConfig() {
+    static async storeConnectionsConfig(): Promise<void> {
         this.USER_CONNECTIONS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.connections');
         console.log('Storing user connections config:', this.USER_CONNECTIONS_CONFIG);
     }
-    static async restoreConnectionsConfig() {
+    static async restoreConnectionsConfig(): Promise<void> {
         console.log('Restoring user connections config to settings:', this.USER_CONNECTIONS_CONFIG);
         await vscode.workspace.getConfiguration().update('fabric.connections', this.USER_CONNECTIONS_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
-    static async storeRuntimesConfig() {
+    static async storeRuntimesConfig(): Promise<void> {
         this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get('fabric.runtimes');
         console.log('Storing user runtimes:', this.USER_RUNTIMES_CONFIG);
     }
-    static async restoreRuntimesConfig() {
+    static async restoreRuntimesConfig(): Promise<void> {
         console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
         await vscode.workspace.getConfiguration().update('fabric.runtimes', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
-    static async deleteTestFiles(deletePath: string) {
+    static async deleteTestFiles(deletePath: string): Promise<void> {
         try {
             await fs.remove(deletePath);
         } catch (error) {
@@ -63,7 +63,7 @@ export class TestUtil {
         }
     }
 
-    private static USER_PACKAGE_DIR_CONFIG;
-    private static USER_CONNECTIONS_CONFIG;
-    private static USER_RUNTIMES_CONFIG;
+    private static USER_PACKAGE_DIR_CONFIG: any;
+    private static USER_CONNECTIONS_CONFIG: any;
+    private static USER_RUNTIMES_CONFIG: any;
 }

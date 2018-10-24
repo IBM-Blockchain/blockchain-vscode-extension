@@ -36,7 +36,7 @@ export abstract class FabricRegistry<T extends FabricRegistryEntry> {
 
     public exists(name: string): boolean {
         const entries: T[] = this.getEntries();
-        return entries.some((item) => item.name === name);
+        return entries.some((item: T) => item.name === name);
     }
 
     public async add(entry: T): Promise<void> {

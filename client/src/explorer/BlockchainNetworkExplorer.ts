@@ -227,7 +227,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             }
         }
 
-        tree.sort((connectionA, connectionB) => {
+        tree.sort((connectionA: ConnectionTreeItem, connectionB: ConnectionTreeItem) => {
             if (connectionA.label > connectionB.label) {
                 return 1;
             } else if (connectionA.label < connectionB.label) {
@@ -249,7 +249,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         console.log('createInstalledChaincodeVersionTree', chaincodeElement);
         const tree: Array<InstalledChainCodeVersionTreeItem> = [];
 
-        chaincodeElement.versions.forEach((version) => {
+        chaincodeElement.versions.forEach((version: string) => {
             tree.push(new InstalledChainCodeVersionTreeItem(this, version));
         });
 
@@ -260,7 +260,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         console.log('createInstalledChaincodeTree', peerElement);
         const tree: Array<InstalledChainCodeTreeItem> = [];
 
-        peerElement.chaincodes.forEach((versions, name) => {
+        peerElement.chaincodes.forEach((versions: Array<string>, name: string) => {
             tree.push(new InstalledChainCodeTreeItem(this, name, versions));
         });
 
@@ -272,7 +272,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: Array<ChainCodeTreeItem> = [];
         const channel: ChannelTreeItem = instantiatedChainCodesElement.channel;
 
-        instantiatedChainCodesElement.chaincodes.forEach((instantiatedChaincode) => {
+        instantiatedChainCodesElement.chaincodes.forEach((instantiatedChaincode: { name: string, version: string}) => {
             tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name + '@' + instantiatedChaincode.version, channel));
         });
 
@@ -286,7 +286,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         for (const peer of peersElement.peers) {
             try {
                 const chaincodes: Map<string, Array<string>> = await this.connection.getInstalledChaincode(peer);
-                const collapsibleState = chaincodes.size > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
+                const collapsibleState: vscode.TreeItemCollapsibleState = chaincodes.size > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
                 tree.push(new PeerTreeItem(this, peer, chaincodes, collapsibleState));
             } catch (error) {
                 tree.push(new PeerTreeItem(this, peer, new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None));
@@ -324,15 +324,15 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         console.log('createChannelMap');
         const allPeerNames: Array<string> = await this.connection.getAllPeerNames();
 
-        const channelMap = new Map<string, Array<string>>();
-        return allPeerNames.reduce((promise: Promise<void>, peerName) => {
+        const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+        return allPeerNames.reduce((promise: Promise<void>, peerName: string) => {
             return promise
                 .then(() => {
                     return this.connection.getAllChannelsForPeer(peerName);
                 })
                 .then((channels: Array<any>) => {
                     channels.forEach((channelName: string) => {
-                        let peers = channelMap.get(channelName);
+                        let peers: Array<string> = channelMap.get(channelName);
                         if (peers) {
                             peers.push(peerName);
                             channelMap.set(channelName, peers);
@@ -356,7 +356,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 const cert: ParsedCertificate = new ParsedCertificate(identity.certificatePath);
                 const commonName: string = cert.getCommonName();
 
-                const command = {
+                const command: vscode.Command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
                     arguments: [element.connection, identity]

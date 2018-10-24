@@ -27,7 +27,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('TemporaryCommandRegistry Tests', () => {
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -46,10 +46,10 @@ describe('TemporaryCommandRegistry Tests', () => {
     });
 
     it('should delay execution of commands until after commands have been restored', async () => {
-        const commandStub = mySandBox.spy(vscode.commands, 'executeCommand');
-        const tempRegistry = TemporaryCommandRegistry.instance();
+        const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        const tempRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
-        const context = ExtensionUtil.getExtensionContext();
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         tempRegistry.createTempCommands();
 
@@ -59,6 +59,6 @@ describe('TemporaryCommandRegistry Tests', () => {
         await myExtension.registerCommands(context);
         await tempRegistry.executeStoredCommands();
 
-        commandStub.should.have.been.calledTwice;
+        commandSpy.should.have.been.calledTwice;
     });
 });

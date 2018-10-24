@@ -24,7 +24,7 @@ export class FabricRuntimeManager {
         return this._instance;
     }
 
-    private static _instance = new FabricRuntimeManager();
+    private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
     private connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();

@@ -26,10 +26,10 @@ describe('ParsedCertificate', () => {
     describe('contructor', () => {
 
         it('should create a parsed certificate', async () => {
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
-            const certPath = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
-            const parsedCertificate = new ParsedCertificate(certPath);
+            const certPath: string = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
+            const parsedCertificate: ParsedCertificate = new ParsedCertificate(certPath);
 
             parsedCertificate.should.be.instanceof(ParsedCertificate);
         });
@@ -37,10 +37,10 @@ describe('ParsedCertificate', () => {
 
     describe('getCommonName', () => {
         it('should get the common name from the cert', async () => {
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
-            const certPath = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
-            const parsedCertificate = new ParsedCertificate(certPath);
+            const certPath: string = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
+            const parsedCertificate: ParsedCertificate = new ParsedCertificate(certPath);
 
             parsedCertificate.getCommonName().should.equal('Admin@org1.example.com');
         });

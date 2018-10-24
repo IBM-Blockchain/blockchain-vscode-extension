@@ -41,7 +41,7 @@ import { ChainCodeTreeItem } from '../src/explorer/model/ChainCodeTreeItem';
 import { TestUtil } from '../test/TestUtil';
 import { InstantiatedChainCodesTreeItem } from '../src/explorer/model/InstantiatedChaincodesTreeItem';
 
-const should = chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -57,16 +57,16 @@ describe('Integration Test', () => {
     let certPath: string;
     let testContractDir: string;
 
-    let getWorkspaceFoldersStub;
-    let findFilesStub;
-    let showPeerQuickPickStub;
-    let showPackagesStub;
-    let showChannelStub;
-    let showChanincodeAndVersionStub;
-    let inputBoxStub;
-    let browseEditStub;
+    let getWorkspaceFoldersStub: sinon.SinonStub;
+    let findFilesStub: sinon.SinonStub;
+    let showPeerQuickPickStub: sinon.SinonStub;
+    let showPackagesStub: sinon.SinonStub;
+    let showChannelStub: sinon.SinonStub;
+    let showChanincodeAndVersionStub: sinon.SinonStub;
+    let inputBoxStub: sinon.SinonStub;
+    let browseEditStub: sinon.SinonStub;
 
-    before(async function() {
+    before(async function(): Promise<void> {
         this.timeout(600000);
         keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem`);
         certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
@@ -103,13 +103,13 @@ describe('Integration Test', () => {
         mySandBox.restore();
     });
 
-    async function createSmartContract(name, type) {
+    async function createSmartContract(name: string, type: string): Promise<void> {
         mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves(type);
         mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
-        const originalExecuteCommand = vscode.commands.executeCommand;
-        const executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-        executeCommandStub.callsFake(async function fakeExecuteCommand(command: string) {
+        const originalExecuteCommand: any = vscode.commands.executeCommand;
+        const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        executeCommandStub.callsFake(async function fakeExecuteCommand(command: string): Promise<void> {
             // Don't open the folder as this causes lots of windows to pop up, and random
             // test failures.
             if (command !== 'vscode.openFolder') {
@@ -121,9 +121,9 @@ describe('Integration Test', () => {
 
         const smartContractDir: string = path.join(__dirname, '../../integrationTest/smartContractDir');
 
-        const uri = vscode.Uri.file(testContractDir);
-        const uriArr = [uri];
-        const openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
+        const uri: vscode.Uri = vscode.Uri.file(testContractDir);
+        const uriArr: Array<vscode.Uri> = [uri];
+        const openDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog');
         openDialogStub.resolves(uriArr);
 
         await vscode.workspace.getConfiguration().update('fabric.package.directory', smartContractDir, vscode.ConfigurationTarget.Global);
@@ -131,21 +131,21 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
     }
 
-    async function packageSmartContract() {
-        const workspaceFolderStub: any =  {name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
+    async function packageSmartContract(): Promise<void> {
+        const workspaceFolderStub: any = {name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
         getWorkspaceFoldersStub.returns([workspaceFolderStub]);
 
-        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolderStub, '**/*.js') , '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolderStub, '**/*.js'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
     }
 
-    async function createFabricConnection() {
+    async function createFabricConnection(): Promise<void> {
         if (connectionRegistry.exists('myConnection')) {
             await connectionRegistry.delete('myConnection');
         }
 
-        const rootPath = path.dirname(__dirname);
+        const rootPath: string = path.dirname(__dirname);
 
         inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
         browseEditStub.withArgs('Enter a file path to the connection profile json file', 'myConnection').resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
@@ -157,17 +157,17 @@ describe('Integration Test', () => {
         connectionRegistry.exists('myConnection').should.be.true;
     }
 
-    async function connectToFabric() {
+    async function connectToFabric(): Promise<void> {
         const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
         await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
 
     }
 
-    async function installSmartContract(name, version) {
+    async function installSmartContract(name: string, version: string): Promise<void> {
         showPeerQuickPickStub.resolves('peer0.org1.example.com');
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
-        const packageToInstall = allPackages.find((packageEntry) => {
+        const packageToInstall: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry): boolean => {
             return packageEntry.version === version && packageEntry.name === name;
         });
 
@@ -180,7 +180,7 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
     }
 
-    async function instantiateSmartContract(name, version) {
+    async function instantiateSmartContract(name: string, version: string): Promise<void> {
         showChannelStub.resolves('myChannel');
 
         showChanincodeAndVersionStub.resolves({
@@ -207,7 +207,7 @@ describe('Integration Test', () => {
         return fs.writeFile(path.join(testContractDir, 'package.json'), packageJsonString, 'utf8');
     }
 
-    async function updatePackageJsonVersion(version): Promise<void> {
+    async function updatePackageJsonVersion(version: string): Promise<void> {
         const packageJson: any = await getRawPackageJson();
 
         packageJson.version = version;
@@ -440,10 +440,10 @@ describe('Integration Test', () => {
 
         // Ensure that the instantiated chaincodes are still instantiated.
         let channelChildren: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        let instantiatedChaincodesParent: InstantiatedChainCodesTreeItem = channelChildren.find((channelChild) => channelChild instanceof InstantiatedChainCodesTreeItem) as InstantiatedChainCodesTreeItem;
+        let instantiatedChaincodesParent: InstantiatedChainCodesTreeItem = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChainCodesTreeItem) as InstantiatedChainCodesTreeItem;
         instantiatedChaincodesParent.should.not.be.undefined;
         const instantiatedChaincodesItems: ChainCodeTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(instantiatedChaincodesParent) as ChainCodeTreeItem[];
-        const teardownSmartContractItem: ChainCodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
+        const teardownSmartContractItem: ChainCodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: ChainCodeTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
         teardownSmartContractItem.should.not.be.undefined;
 
         // Disconnect from the Fabric runtime.
@@ -472,7 +472,7 @@ describe('Integration Test', () => {
 
         // Ensure that there are no instantiated chaincodes.
         channelChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        instantiatedChaincodesParent = channelChildren.find((channelChild) => channelChild instanceof InstantiatedChainCodesTreeItem) as InstantiatedChainCodesTreeItem;
+        instantiatedChaincodesParent = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChainCodesTreeItem) as InstantiatedChainCodesTreeItem;
         should.equal(instantiatedChaincodesParent, undefined);
 
     }).timeout(0);
@@ -490,12 +490,8 @@ describe('Integration Test', () => {
 
         await instantiateSmartContract('mySmartContract', '0.0.1');
 
-        let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-
-        let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
-
-        allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-        channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+        const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+        const channelChildrenOne: Array<PeersTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
 
         const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
 

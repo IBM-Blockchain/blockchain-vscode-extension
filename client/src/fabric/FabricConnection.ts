@@ -49,7 +49,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
         const peerNames: Array<string> = [];
 
-        allPeers.forEach((peer) => {
+        allPeers.forEach((peer: Client.Peer) => {
             peerNames.push(peer.getName());
         });
 
@@ -60,7 +60,7 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getPeer', name);
         const allPeers: Array<Client.Peer> = this.getAllPeers();
 
-        return allPeers.find((peer) => {
+        return allPeers.find((peer: Client.Peer) => {
             return peer.getName() === name;
         });
     }
@@ -73,7 +73,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
         const channelNames: Array<string> = [];
         console.log(channelResponse);
-        channelResponse.channels.forEach((channel) => {
+        channelResponse.channels.forEach((channel: Client.ChannelInfo) => {
             channelNames.push(channel.channel_id);
         });
 
@@ -85,7 +85,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Client.Peer = this.getPeer(peerName);
         const chaincodeResponse: Client.ChaincodeQueryResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
-        chaincodeResponse.chaincodes.forEach((chaincode) => {
+        chaincodeResponse.chaincodes.forEach((chaincode: Client.ChaincodeInfo) => {
             if (installedChainCodes.has(chaincode.name)) {
                 installedChainCodes.get(chaincode.name).push(chaincode.version);
             } else {
@@ -101,7 +101,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const instantiatedChaincodes: Array<any> = [];
         const channel: Client.Channel = this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
-        chainCodeResponse.chaincodes.forEach((chainCode) => {
+        chainCodeResponse.chaincodes.forEach((chainCode: Client.ChaincodeInfo) => {
             instantiatedChaincodes.push({name: chainCode.name, version: chainCode.version});
         });
 
@@ -119,7 +119,7 @@ export abstract class FabricConnection implements IFabricConnection {
         await this.gateway.getClient().installChaincode(installRequest);
     }
 
-    public async instantiateChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>) {
+    public async instantiateChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {
 
         const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
         const instantiateRequest: Client.ChaincodeInstantiateUpgradeRequest = {
@@ -176,7 +176,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
 
         if (response.status !== 'SUCCESS') {
-            const msg = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
+            const msg: string = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
             eventHandler.cancelListening();
             throw new Error(msg);
         }
@@ -193,7 +193,7 @@ export abstract class FabricConnection implements IFabricConnection {
         return result;
     }
 
-    public disconnect() {
+    public disconnect(): void {
         this.gateway.disconnect();
     }
 

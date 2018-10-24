@@ -23,6 +23,7 @@ import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 
 chai.should();
 chai.use(sinonChai);
@@ -40,7 +41,7 @@ describe('DeleteConnectionCommand', () => {
 
     describe('deleteConnection', () => {
 
-        let mySandBox;
+        let mySandBox: sinon.SinonSandbox;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -56,9 +57,9 @@ describe('DeleteConnectionCommand', () => {
 
             let connections: Array<any> = [];
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
-            const myConnectionA = {
+            const myConnectionA: any = {
                 name: 'myConnectionA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 identities: [{
@@ -96,9 +97,9 @@ describe('DeleteConnectionCommand', () => {
 
             let connections: Array<any> = [];
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
-            const myConnectionA = {
+            const myConnectionA: any = {
                 name: 'myConnectionA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 identities: [{
@@ -120,11 +121,11 @@ describe('DeleteConnectionCommand', () => {
 
             await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
 
-            const blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-            const connectionToDelete = allChildren[1];
+            const connectionToDelete: BlockchainTreeItem = allChildren[1];
             await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', connectionToDelete);
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
@@ -139,9 +140,9 @@ describe('DeleteConnectionCommand', () => {
 
             let connections: Array<any> = [];
 
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
 
-            const myConnectionA = {
+            const myConnectionA: any = {
                 name: 'myConnectionA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 identities: [{

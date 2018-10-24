@@ -67,7 +67,7 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             location: vscode.ProgressLocation.Notification,
             title: 'Blockchain Extension',
             cancellable: false
-        }, async (progress) => {
+        }, async (progress: vscode.Progress<{message: string}>) => {
 
             progress.report({message: 'Instantiating / Upgrading Smart Contract'});
             const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();

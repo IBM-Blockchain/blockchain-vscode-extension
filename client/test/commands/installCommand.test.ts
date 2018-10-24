@@ -30,6 +30,8 @@ import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
 import * as path from 'path';
+import { PeersTreeItem } from '../../src/explorer/model/PeersTreeItem';
+import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 
 chai.should();
 chai.use(sinonChai);
@@ -38,22 +40,22 @@ describe('InstallCommand', () => {
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
         await TestUtil.setupTests();
     });
 
     describe('InstallSmartContract', () => {
-        let fabricClientConnectionMock;
+        let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
 
-        let executeCommandStub;
+        let executeCommandStub: sinon.SinonStub;
         let packageRegistryEntry: PackageRegistryEntry;
-        let successSpy;
-        let errorSpy;
-        let getConnectionStub;
-        let showPeerQuickPickStub;
-        let showPackageQuickPickStub;
+        let successSpy: sinon.SinonSpy;
+        let errorSpy: sinon.SinonSpy;
+        let getConnectionStub: sinon.SinonStub;
+        let showPeerQuickPickStub: sinon.SinonStub;
+        let showPackageQuickPickStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -111,7 +113,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install the smart contract through the command when not connected', async () => {
-            getConnectionStub.onFirstCall().returns();
+            getConnectionStub.onFirstCall().returns(null);
             getConnectionStub.onSecondCall().returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
@@ -122,7 +124,7 @@ describe('InstallCommand', () => {
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.returns();
+            getConnectionStub.returns(null);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
@@ -155,11 +157,11 @@ describe('InstallCommand', () => {
         });
 
         it('should install smart contract through the tree', async () => {
-            const myChannel = allChildren[0];
-            const peers = await blockchainNetworkExplorerProvider.getChildren(myChannel);
-            const peersTreeItem = peers[0];
-            const peer = await blockchainNetworkExplorerProvider.getChildren(peersTreeItem);
-            const peerTreeItem = peer[0] as PeerTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+            const peers: Array<PeersTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<PeersTreeItem>;
+            const peersTreeItem: PeersTreeItem = peers[0] as PeersTreeItem;
+            const peer: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersTreeItem) as Array<PeerTreeItem>;
+            const peerTreeItem: PeerTreeItem = peer[0] as PeerTreeItem;
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', peerTreeItem);
 

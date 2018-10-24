@@ -35,7 +35,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress) => {
+    }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({ message: `Stopping Fabric runtime ${runtime.getName()}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         await runtime.stop(outputAdapter);
