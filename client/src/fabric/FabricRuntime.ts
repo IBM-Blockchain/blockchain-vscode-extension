@@ -110,10 +110,6 @@ export class FabricRuntime extends EventEmitter {
         return connectionProfile;
     }
 
-    public getConnectionProfilePath(): string {
-        return basicNetworkConnectionProfilePath;
-    }
-
     public async getCertificate(): Promise<string> {
         return basicNetworkAdminCertificate;
     }

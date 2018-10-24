@@ -52,7 +52,7 @@ class TestFabricConnection extends FabricConnection {
         return;
     }
 
-    getConnectionDetails(): any {
+    async getConnectionDetails(): Promise<any> {
         return;
     }
 }
