@@ -36,4 +36,6 @@ export interface IFabricConnection {
     instantiateChaincode(chaincodeName: string, version: string, channel: string, fcn: string, args: Array<string>): Promise<void>;
 
     isIBPConnection(): boolean;
+
+    getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 }

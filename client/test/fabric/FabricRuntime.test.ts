@@ -279,7 +279,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
-            });
+            }).timeout(4000);
 
             it(`should execute the ${verb}.cmd script and handle success for development mode (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -292,7 +292,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-            });
+            }).timeout(4000);
 
             it(`should execute the ${verb}.cmd script and handle an error (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -302,8 +302,8 @@ describe('FabricRuntime', () => {
                 });
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
-            });
+                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
+            }).timeout(4000);
 
             it(`should execute the ${verb}.cmd script using a custom output adapter (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -315,7 +315,7 @@ describe('FabricRuntime', () => {
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.should.have.been.calledOnceWith('stdout');
                 outputAdapter.error.should.have.been.calledOnceWith('stderr');
-            });
+            }).timeout(4000);
 
             it(`should publish busy events before and after handling success (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -329,7 +329,7 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledTwice;
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
-            });
+            }).timeout(4000);
 
             it(`should publish busy events before and after handling an error (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -343,7 +343,7 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledTwice;
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
-            });
+            }).timeout(4000);
 
         });
     });
@@ -429,9 +429,9 @@ describe('FabricRuntime', () => {
             });
             await runtime.restart();
             spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
-            spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
-        });
+            spawnStub.should.have.been.calledWith('cmd', [ '/c', 'start.cmd' ], sinon.match.any);
+            spawnStub.should.have.been.calledWith('cmd', [ '/c', 'stop.cmd' ], sinon.match.any);
+        }).timeout(4000);
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
@@ -450,7 +450,7 @@ describe('FabricRuntime', () => {
             outputAdapter.error.should.have.been.calledWith('stderr');
             outputAdapter.log.should.have.been.calledWith('stdout');
             outputAdapter.error.should.have.been.calledWith('stderr');
-        });
+        }).timeout(4000);
 
         it('should publish busy events before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
@@ -467,7 +467,7 @@ describe('FabricRuntime', () => {
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
-        });
+        }).timeout(4000);
 
         it('should publish busy events before and after handling an error (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
@@ -484,7 +484,7 @@ describe('FabricRuntime', () => {
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
-        });
+        }).timeout(4000);
     });
 
     describe('#getConnectionProfile', () => {
