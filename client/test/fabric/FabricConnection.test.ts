@@ -38,7 +38,7 @@ describe('FabricConnection', () => {
             this['gateway'] = fabricGatewayStub;
         }
 
-        getConnectionDetails(): any {
+        async getConnectionDetails(): Promise<any> {
             return;
         }
 
@@ -85,7 +85,8 @@ describe('FabricConnection', () => {
         };
         fabricContractStub = {
             _validatePeerResponses: mySandBox.stub().returns(responsesStub),
-            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
+            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub),
+            executeTransaction: mySandBox.stub()
         };
 
         fabricChannelStub = sinon.createStubInstance(Channel);
@@ -325,5 +326,21 @@ describe('FabricConnection', () => {
             const result: boolean = await fabricConnection.isIBPConnection();
             result.should.equal(false);
         });
+    });
+
+    describe('getMetadata', () => {
+
+        it('should return the metadata for an instantiated smart contract', async () => {
+            const fakeMetaData: string = '{"":{"functions":["instantiate","wagonwheeling","transaction2"]},"org.hyperledger.fabric":{"functions":["getMetaData"]}}';
+            const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
+            fabricContractStub.executeTransaction.resolves(fakeMetaDataBuffer);
+
+            const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
+            // tslint:disable-next-line
+            const functionArray: string[] = metadata[""].functions;
+            // tslint:disable-next-line
+            functionArray.should.deep.equal(["instantiate", "wagonwheeling" , "transaction2"]);
+        });
+
     });
 });

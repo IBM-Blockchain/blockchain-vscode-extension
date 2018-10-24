@@ -89,6 +89,9 @@ export async function createSmartContractProject(): Promise<void> {
         canSelectFolders: true,
         openLabel: 'Open'
     };
+
+    // see method comment for details of this workaround
+    await UserInputUtil.delayWorkaround(200);
     const folderSelect: vscode.Uri[] | undefined = await vscode.window.showOpenDialog(openDialogOptions);
     if (!folderSelect) {  // undefined if the user cancels the open dialog box
         return;

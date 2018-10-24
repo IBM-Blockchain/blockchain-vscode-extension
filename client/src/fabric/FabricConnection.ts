@@ -41,7 +41,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public abstract async connect(): Promise<void>;
 
-    public abstract getConnectionDetails(): any;
+    public abstract async getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
@@ -195,6 +195,17 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public disconnect(): void {
         this.gateway.disconnect();
+    }
+
+    public async getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any> {
+        const network: Network = await this.gateway.getNetwork(channel);
+        const smartContract: Contract = network.getContract(instantiatedChaincodeName);
+
+        const metadataBuffer: Buffer = await smartContract.executeTransaction('org.hyperledger.fabric:getMetaData');
+        const metadataObject: any = JSON.parse(metadataBuffer.toString());
+
+        console.log('Metadata object is:', metadataObject);
+        return metadataObject;
     }
 
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {

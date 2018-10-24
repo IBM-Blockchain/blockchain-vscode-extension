@@ -19,7 +19,7 @@ export interface IFabricConnection {
 
     connect(): Promise<void>;
 
-    getConnectionDetails(): any;
+    getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
 
     disconnect(): void;
 
@@ -36,4 +36,6 @@ export interface IFabricConnection {
     instantiateChaincode(chaincodeName: string, version: string, channel: string, fcn: string, args: Array<string>): Promise<void>;
 
     isIBPConnection(): boolean;
+
+    getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 }
