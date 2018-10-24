@@ -9,10 +9,6 @@ The IBM Blockchain Platform extension has been created to assist users in develo
 ## Contact Us
 If you have find any problems or want to make suggestions for future features please create [issues and suggestions on Github](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues)
 
-<!---Installing instructions
---->
-<!---Short description of what the extension allows the user to do and key features in bullet points below
---->
 
 ## Installation
 
@@ -61,6 +57,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Delete Connection | Delete a Hyperledger Fabric instance connection |
 | Delete Package | Delete a smart contract package |
 | Edit Connection | Edit connection to a blockchain |
+| Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
 | Install Smart Contract | Install a smart contract package onto a peer |
 | Instantiate / Upgrade Smart Contract | Instantiate / upgrade an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Starter Plan and Enterprise plan - Coming soon!*|
@@ -69,76 +66,68 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
 | Restart Fabric Runtime | Restart a Hyperledger Fabric instance |
 | Start Fabric Runtime | Start a Hyperledger Fabric instance |
+| Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
 
 ## Smart Contract Development Lifecycle
-<!---Things you can do in the Explorer view once the extension is installed
---->
+_Please note that all operations shown are also possible using the commands in the table above, issued at the VSCode command-prompt._
+
 ### Create a Fabric smart contract project
-<!---Short explanation with code-blocks
---->
+Use the `Create Smart Contract Project` command to start a new project. Select from the available smart contract programming languages. Choose a directory to store the project (or create a new one). A skeleton project will be generated with a very basic smart contract, unit tests, a `package.json` and other useful files.
 
 <img src="/client/media/start_new_project_small.gif" width="85%" alt="Start a new Fabric smart contract project">
-<!---Link to docs with further instructions
---->
+
 
 ### Edit / write smart contract files
-<!---Short explanation with code-blocks
---->
+You'll find the smart contract file in the `lib` directory of a newly generated project.
 
-<img src="/client/media/edit_write_files.png" width="85%" alt="Edit smart contract files" width="85%" alt="Edit smart contract files">
-<!---Link to docs with further instructions
---->
+<img src="/client/media/edit_write_files.png" width="85%" alt="Edit smart contract files">
+
 
 ### Package a smart contract project
+To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages will be added to the `Smart Contract Packages` panel in the explorer view.
+
+Alternatively, navigate to the explorer view (click the IBM Blockchain Platform icon in the left-navigation) then click the `add` icon (this will again package up the project you have open in your workspace).
 
 <img src="/client/media/package_project.png" width="85%" alt="Create a package from a smart contract project">
 
+### Export a smart contract package
+Right-click a package and select the `Export Package` option.  You can select where the package is exported to. Use this to take the packages you have made and deploy them somewhere else.
 
-<!---Short explanation with code-blocks
---->
-<!---Screenshot of UI/Video of prototype click-through
---->
-<!---Link to docs with further instructions
---->
+<img src="/client/media/export_smart_contract_package.png" width="85%" alt="Export a smart contract project">
 
-<!---Things you can do in the Fabric view once the extension is installed
---->
-<!---Introduction to Fabric view
---->
 ### Connect to local_fabric runtime
+The `local_fabric` runtime can be enabled by left-clicking it in the `Blockchain Connections` panel. The first time you enable it, Fabric images will be installed.  
+Left-click to connect to `local_fabric` when it is enabled. Right-click the connection for management options (including start/stop, teardown and toggle dev mode).
 
 <img src="/client/media/connect_to_local_fabric_runtime_small.gif" width="85%" alt="Connect to local_fabric runtime">
 
-<!---Short explanation with code-blocks
---->
-<!---Screenshot of UI/Video of prototype click-through
---->
-<!---Link to docs with further instructions
---->
+### Teardown the local_fabric runtime
+When you start/stop the local_fabric, some data will be maintained. To completely teardown the runtime and start over, right-click `local_fabric` in the `Blockchain Connections` view and choose `Teardown Fabric Runtime` (you must then confirm this action).
+
+<img src="/client/media/teardown_fabric_runtime.gif" width="85%" alt="Teardown the local_fabric runtime">
+
 ### Connect to a specified (remote) Fabric runtime and discover the existing resources
-<!---Short explanation with code-blocks
---->
+Left-click a connection to activate connect to the blockchain runtime it represents. Expand the sections in the navigation tree to explore its resources. When you're done, use the "back" icon in the section's header-bar to disconnect.
 
 <img src="/client/media/discover_resources.png" width="85%" alt="Connect to the network and discover the existing resources">
-<!---Link to docs with further instructions
---->
 
 ### Install smart contract package
-<!---Short explanation with code-blocks
---->
+Smart contract packages are installed on Fabric peers.  Find a peer by connecting to a blockchain network, then right-click and select `Install Smart Contract`.
 
 <img src="/client/media/install_smart_contract.png" width="85%" alt="Install new smart contract">
 
-<!---Link to docs with further instructions
---->
-
 ### Instantiate smart contract package
-<!---Short explanation with code-blocks
---->
+Smart contract packages are instantiated on Fabric channels.  Find a channel by connecting to a blockchain network, then right-click and select `Instantiate Smart Contract`. You will be offered a list of the smart contracts that are installed on peers in the channel.
+
+It is useful to think of installing on peers as the first step and instantiating on a channel as the second step of deploying a smart contract package.
 
 <img src="/client/media/instantiate_small.gif" width="85%" alt="Instantiate new smart contract">
 
+### Edit an existing blockchain connection
+Connections can be edited by right-clicking and selecting `Edit Connection`.  This will open User Settings, with the connection available for editing.
+
+<img src="client/media/edit_connection.gif" width="85%" alt="Edit an existing blockchain connection">
 
 ## Connecting to your own Hyperledger Fabric instance
 
@@ -149,6 +138,8 @@ Using this extension, you can connect to a pre-configured local instance of Hype
 If you want to start and connect to your own Hyperledger Fabric instance, ensure that you are using Hyperledger Fabric v1.3.0 or later by following the Fabric documentation here:
 
 https://hyperledger-fabric.readthedocs.io/en/release-1.3/install.html
+
+<img src="/client/media/add_new_connection.gif" width="85%" alt="Add a new connection">
 
 ## Supported Operating Systems
 
