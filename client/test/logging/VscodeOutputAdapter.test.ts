@@ -38,7 +38,7 @@ describe('VSCodeOutputAdapter', () => {
     describe('#log', () => {
 
         it('should log to the output channel', () => {
-            const outputSpy = sandbox.spy(outputAdapter['outputChannel'], 'appendLine');
+            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter['outputChannel'], 'appendLine');
             outputAdapter.log('hello world');
             outputSpy.should.have.been.calledOnceWithExactly('hello world');
         });
@@ -46,7 +46,7 @@ describe('VSCodeOutputAdapter', () => {
 
     describe('#error', () => {
         it('should log to the output channel', () => {
-            const outputSpy = sandbox.spy(outputAdapter['outputChannel'], 'appendLine');
+            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter['outputChannel'], 'appendLine');
             outputAdapter.error('hello world');
             outputSpy.should.have.been.calledOnceWithExactly('hello world');
         });
@@ -54,7 +54,7 @@ describe('VSCodeOutputAdapter', () => {
 
     describe('#show', () => {
         it('should show the output channel', () => {
-            const outputSpy = sandbox.spy(outputAdapter['outputChannel'], 'show');
+            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter['outputChannel'], 'show');
             outputAdapter.show();
             outputSpy.should.have.been.calledOnce;
         });

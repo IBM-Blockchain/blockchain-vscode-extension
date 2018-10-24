@@ -33,12 +33,12 @@ export class FabricConnectionManager extends EventEmitter {
         return this.connection;
     }
 
-    public connect(connection: IFabricConnection) {
+    public connect(connection: IFabricConnection): void {
         this.connection = connection;
         this.emit('connected', connection);
     }
 
-    public disconnect() {
+    public disconnect(): void {
         this.connection = null;
         this.emit('disconnected');
     }

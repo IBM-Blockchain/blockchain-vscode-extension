@@ -17,7 +17,7 @@ import { FabricRegistry } from './FabricRegistry';
 
 export class FabricConnectionRegistry extends FabricRegistry<FabricConnectionRegistryEntry> {
 
-    public static instance() {
+    public static instance(): FabricConnectionRegistry {
         return FabricConnectionRegistry._instance;
     }
 

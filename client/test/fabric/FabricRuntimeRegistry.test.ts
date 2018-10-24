@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import * as vscode from 'vscode';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 
 import * as chai from 'chai';

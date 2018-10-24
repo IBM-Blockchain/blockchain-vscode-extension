@@ -25,6 +25,7 @@ import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRe
 import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { Reporter } from '../src/util/Reporter';
+import { BlockchainNetworkExplorerProvider } from '../src/explorer/BlockchainNetworkExplorer';
 
 chai.should();
 chai.use(sinonChai);
@@ -32,7 +33,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('Extension Tests', () => {
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
     before(async () => {
@@ -62,9 +63,9 @@ describe('Extension Tests', () => {
     });
 
     it('should check all the commands are registered', async () => {
-        const allCommands = await vscode.commands.getCommands();
+        const allCommands: Array<string> = await vscode.commands.getCommands();
 
-        const blockchainCommands = allCommands.filter((command) => {
+        const blockchainCommands: Array<string> = allCommands.filter((command: string) => {
             return command.startsWith('blockchain');
         });
 
@@ -124,13 +125,13 @@ describe('Extension Tests', () => {
     it('should refresh the tree when a connection is added', async () => {
         await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
 
-        const treeDataProvider = myExtension.getBlockchainNetworkExplorerProvider();
+        const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
-        const treeSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
+        const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
-        const rootPath = path.dirname(__dirname);
+        const rootPath: string = path.dirname(__dirname);
 
-        const myConnection = {
+        const myConnection: any = {
             name: 'myConnection',
             connectionProfilePath: path.join(rootPath, '../test/data/connectionTwo/connection.json'),
             identities: [{
@@ -147,11 +148,11 @@ describe('Extension Tests', () => {
     it('should refresh the tree when a runtime is added', async () => {
         await vscode.workspace.getConfiguration().update('fabric.runtimes', [], vscode.ConfigurationTarget.Global);
 
-        const treeDataProvider = myExtension.getBlockchainNetworkExplorerProvider();
+        const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
-        const treeSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
+        const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
-        const myRuntime = {
+        const myRuntime: any = {
             name: 'myRuntime',
             developmentMode: false
         };
@@ -162,11 +163,11 @@ describe('Extension Tests', () => {
     });
 
     it('should install native dependencies on first activation', async () => {
-        const dependencyManager = DependencyManager.instance();
+        const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
-        const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
-        const tempRegistryExecuteStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
+        const installStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
+        const tempRegistryExecuteStub: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
 
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
@@ -175,10 +176,10 @@ describe('Extension Tests', () => {
     });
 
     it('should not install native dependencies if already installed', async () => {
-        const dependencyManager = DependencyManager.instance();
+        const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(true);
-        const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
+        const installStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
 
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
@@ -186,9 +187,9 @@ describe('Extension Tests', () => {
     });
 
     it('should handle any errors when installing dependencies', async () => {
-        const dependencyManager = DependencyManager.instance();
+        const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const showErrorStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
+        const showErrorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
@@ -200,10 +201,10 @@ describe('Extension Tests', () => {
     });
 
     it('should handle any errors when installing dependencies and show output log', async () => {
-        const dependencyManager = DependencyManager.instance();
+        const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const showErrorStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('open output view');
-        const outputAdapterSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'show');
+        const showErrorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('open output view');
+        const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'show');
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
@@ -223,7 +224,7 @@ describe('Extension Tests', () => {
     });
 
     it('should create a new local_fabric if one does not exist', async () => {
-        const addSpy = mySandBox.spy(runtimeManager, 'add');
+        const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
         addSpy.should.have.been.calledOnceWithExactly('local_fabric');
@@ -231,7 +232,7 @@ describe('Extension Tests', () => {
 
     it('should not create a new local_fabric if one already exists', async () => {
         await runtimeManager.add('local_fabric');
-        const addSpy = mySandBox.spy(runtimeManager, 'add');
+        const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
         addSpy.should.not.have.been.called;
@@ -239,15 +240,14 @@ describe('Extension Tests', () => {
 
     it('should check if production flag is false on extension activiation', async () => {
 
-        const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
-        const reporterStub = mySandBox.stub(Reporter.instance(), 'dispose');
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'dispose');
 
-        const dependencyManager = DependencyManager.instance();
+        const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
-        const reloadStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
-        const tempRegistryExecuteStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
+        mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
+        mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
 
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
@@ -257,20 +257,18 @@ describe('Extension Tests', () => {
 
     it('should check if production flag is true on extension activiation', async () => {
 
-        const extensionUtilStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
-        const reporterStub = mySandBox.stub(Reporter, 'instance');
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
 
-        const dependencyManager = DependencyManager.instance();
+        const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
-        const reloadStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        const installStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
-        const tempRegistryExecuteStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
+        mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
+        mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
 
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
 
         reporterStub.should.have.been.called;
     });
-
 });

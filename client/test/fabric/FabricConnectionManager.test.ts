@@ -18,7 +18,7 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 
-const should = chai.should();
+const should: Chai.Should = chai.should();
 
 describe('FabricConnectionManager', () => {
 
@@ -61,7 +61,7 @@ describe('FabricConnectionManager', () => {
     describe('#connect', () => {
 
         it('should store the connection and emit an event', () => {
-            const listenerStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sinon.stub();
             connectionManager.once('connected', listenerStub);
             connectionManager.connect((mockFabricConnection as any) as FabricConnection);
             connectionManager.getConnection().should.equal(mockFabricConnection);
@@ -73,7 +73,7 @@ describe('FabricConnectionManager', () => {
     describe('#disconnect', () => {
 
         it('should clear the connection and emit an event', () => {
-            const listenerStub = sinon.stub();
+            const listenerStub: sinon.SinonStub = sinon.stub();
             connectionManager.once('disconnected', listenerStub);
             connectionManager.disconnect();
             should.equal(connectionManager.getConnection(), null);

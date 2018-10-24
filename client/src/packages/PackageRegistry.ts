@@ -20,7 +20,7 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class PackageRegistry {
 
-    public static instance() {
+    public static instance(): PackageRegistry {
         return PackageRegistry._instance;
     }
 

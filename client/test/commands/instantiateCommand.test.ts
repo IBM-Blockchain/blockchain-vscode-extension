@@ -28,28 +28,27 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
 
 describe('InstantiateCommand', () => {
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     before(async () => {
         await TestUtil.setupTests();
     });
 
     describe('InstantiateSmartContract', () => {
-        let fabricClientConnectionMock;
+        let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
 
-        let executeCommandStub;
-        let successSpy;
-        let errorSpy;
-        let getConnectionStub;
-        let showChannelQuickPickStub;
-        let showChaincodeAndVersionQuickPick;
-        let showInputBoxStub;
+        let executeCommandStub: sinon.SinonStub;
+        let successSpy: sinon.SinonSpy;
+        let errorSpy: sinon.SinonSpy;
+        let getConnectionStub: sinon.SinonStub;
+        let showChannelQuickPickStub: sinon.SinonStub;
+        let showChaincodeAndVersionQuickPick: sinon.SinonStub;
+        let showInputBoxStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -114,7 +113,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
-            getConnectionStub.onFirstCall().returns();
+            getConnectionStub.onFirstCall().returns(null);
             getConnectionStub.onSecondCall().returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
@@ -125,7 +124,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.returns();
+            getConnectionStub.returns(null);
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
 
@@ -158,7 +157,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate smart contract through the tree', async () => {
-            const myChannel = allChildren[0] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', myChannel);
 

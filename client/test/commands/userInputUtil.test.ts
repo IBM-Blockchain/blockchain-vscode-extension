@@ -32,7 +32,7 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
 chai.use(sinonChai);
-const should = chai.should();
+const should: Chai.Should = chai.should();
 
 describe('userInputUtil', () => {
 
@@ -50,7 +50,7 @@ describe('userInputUtil', () => {
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
     const mockDocument: any = {
-        getText: () => {
+        getText: (): any => {
         return `{
             "fabric.connections": [
                 {
@@ -388,7 +388,7 @@ describe('userInputUtil', () => {
         });
 
         it('should show error if no installed smart contracts ', async () => {
-            const errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             mySandBox.stub(FabricConnectionManager, 'instance').returns({
                 getConnection: mySandBox.stub().resolves()
             });

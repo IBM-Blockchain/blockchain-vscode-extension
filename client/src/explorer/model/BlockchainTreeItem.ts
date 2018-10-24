@@ -18,7 +18,7 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export abstract class BlockchainTreeItem extends vscode.TreeItem {
 
-    contextValue = 'blockchain-tree-item';
+    contextValue: string = 'blockchain-tree-item';
 
     constructor(private readonly provider: BlockchainExplorerProvider, public readonly label: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(label, collapsibleState);

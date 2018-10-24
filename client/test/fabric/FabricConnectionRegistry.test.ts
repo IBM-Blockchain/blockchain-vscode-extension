@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import * as vscode from 'vscode';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 
 import * as chai from 'chai';

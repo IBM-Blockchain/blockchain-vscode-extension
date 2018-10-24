@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class ConnectionIdentityTreeItem extends BlockchainTreeItem {
-    contextValue = 'blockchain-connection-identity-item';
+    contextValue: string = 'blockchain-connection-identity-item';
 
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly command: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);

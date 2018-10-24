@@ -20,7 +20,6 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
-import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
@@ -29,7 +28,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('CommandUtil Tests', () => {
 
-    let mySandBox;
+    let mySandBox: sinon.SinonSandbox;
 
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
@@ -41,25 +40,25 @@ describe('CommandUtil Tests', () => {
 
     describe('sendCommand', () => {
         it('should send a shell command', async () => {
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
             const uri: vscode.Uri = vscode.Uri.file(path.join(rootPath, '../../test'));
-            const command = await CommandUtil.sendCommand('echo Hyperledgendary', uri.fsPath);
+            const command: string = await CommandUtil.sendCommand('echo Hyperledgendary', uri.fsPath);
             command.should.equal('Hyperledgendary');
         });
     });
 
     describe('sendCommandWithProgress', () => {
         it('should send a shell command', async () => {
-            const rootPath = path.dirname(__dirname);
+            const rootPath: string = path.dirname(__dirname);
             const uri: vscode.Uri = vscode.Uri.file(path.join(rootPath, '../../test'));
-            const command = await CommandUtil.sendCommandWithProgress('echo Hyperledgendary', uri.fsPath, 'such progress message');
+            const command: string = await CommandUtil.sendCommandWithProgress('echo Hyperledgendary', uri.fsPath, 'such progress message');
             command.should.equal('Hyperledgendary');
         });
     });
 
     describe('sendCommandWithOutput', () => {
         it('should send a command and get output', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
             const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
             const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
@@ -70,7 +69,7 @@ describe('CommandUtil Tests', () => {
         });
 
         it('should send a script and get output', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
             await CommandUtil.sendCommandWithOutput('echo', ['hyperlegendary'], undefined, undefined, undefined, true);
             spawnSpy.should.have.been.calledOnce;
@@ -79,7 +78,7 @@ describe('CommandUtil Tests', () => {
         });
 
         it('should send a command and get output with cwd set', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
             const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
             const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
@@ -90,7 +89,7 @@ describe('CommandUtil Tests', () => {
         });
 
         it('should send a command and get output with env set', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
             const env: any = Object.assign({}, process.env, {
                 TEST_ENV: 'my env',
@@ -105,10 +104,10 @@ describe('CommandUtil Tests', () => {
         });
 
         it('should send a command and get output with custom output adapter', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-            const outputSpy = mySandBox.spy(output, 'log');
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
 
             const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
             const args: string[] = process.platform === 'win32' ? ['/c', 'echo hyperlegendary'] : ['hyperlegendary'];
@@ -120,7 +119,7 @@ describe('CommandUtil Tests', () => {
         });
 
         it('should send a command and handle error', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
             await CommandUtil.sendCommandWithOutput('bob', ['hyperlegendary']).should.be.rejectedWith(/spawn bob ENOENT/);
             spawnSpy.should.have.been.calledOnce;
@@ -128,7 +127,7 @@ describe('CommandUtil Tests', () => {
         });
 
         it('should send a command and handle error code', async () => {
-            const spawnSpy = mySandBox.spy(child_process, 'spawn');
+            const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
             if (process.platform === 'win32') {
                 await CommandUtil.sendCommandWithOutput('cmd', [ '/c', 'echo stdout && echo stderr >&2 && exit 1']).should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, echo stdout && echo stderr >&2 && exit 1" return code 1`);
                 spawnSpy.should.have.been.calledOnce;

@@ -50,7 +50,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
 
         runtimeData = 'managed runtime';
     } else {
-        const connectionData = {
+        const connectionData: {connectionProfilePath: string, privateKeyPath: string, certificatePath: string} = {
             connectionProfilePath: connectionRegistryEntry.connectionProfilePath,
             privateKeyPath: null,
             certificatePath: null
@@ -64,7 +64,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
                     return;
                 }
 
-                identity = connectionRegistryEntry.identities.find(((_identity: { certificatePath: string, privateKeyPath: string }) => {
+                identity = connectionRegistryEntry.identities.find(((_identity: { certificatePath: string, privateKeyPath: string }): boolean => {
                     const parsedCertificate: ParsedCertificate = new ParsedCertificate(_identity.certificatePath);
                     return parsedCertificate.getCommonName() === chosenIdentity.label;
                 }));

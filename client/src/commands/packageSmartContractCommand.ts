@@ -28,7 +28,7 @@ export async function packageSmartContract(): Promise<void> {
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress) => {
+    }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({message: `Packaging Smart Contract`});
         try {
 
@@ -95,7 +95,7 @@ export async function packageSmartContract(): Promise<void> {
                 path: pkgPath,
                 type: language
             });
-            const pkgBuffer = await pkg.toBuffer();
+            const pkgBuffer: any = await pkg.toBuffer();
             await fs.writeFile(pkgFile, pkgBuffer);
 
             Reporter.instance().sendTelemetryEvent('packageCommand');

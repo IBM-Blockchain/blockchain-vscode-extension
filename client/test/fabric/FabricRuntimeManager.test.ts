@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import * as vscode from 'vscode';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
@@ -92,7 +91,7 @@ describe('FabricRuntimeManager', () => {
     describe('#get', () => {
 
         it('should throw if the specified runtime does not exist', async () => {
-            (() => {
+            ((): any => {
                 runtimeManager.get('runtime0');
             }).should.throw(/Entry "runtime0" in Fabric registry "fabric.runtimes" does not exist/);
         });

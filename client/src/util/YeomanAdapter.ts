@@ -14,9 +14,6 @@
 'use strict';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
-import { CommandUtil } from '../util/CommandUtil';
-import * as util from 'util';
-const currentAnswers = {};
 
 export class YeomanAdapter {
 
@@ -24,8 +21,8 @@ export class YeomanAdapter {
     public aborted: boolean = false;
 
     constructor() {
-        const logger = (...str) => {
-            const msg = str.join('');
+        const logger: any = (...str: Array<string>): any => {
+            const msg: string = str.join('');
             VSCodeOutputAdapter.instance().log(msg);
         };
         this.log = logger;
@@ -42,12 +39,12 @@ export class YeomanAdapter {
             'identical',
             'info',
             'table'
-          ].forEach(function(methodName) {
+          ].forEach(function(methodName: string): void {
             this.log[methodName] = logger;
           }, this);
     }
 
-    async prompt(prompts, cb): Promise<any> {
+    async prompt(prompts: any, cb: any): Promise<any> {
         const result: any = {};
         for (const prompt of prompts) {
             if (prompt.when && !prompt.when()) {

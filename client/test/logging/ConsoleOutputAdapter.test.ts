@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import * as vscode from 'vscode';
 import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 
 import * as chai from 'chai';
@@ -36,7 +35,7 @@ describe('ConsoleOutputAdapter', () => {
     describe('#log', () => {
 
         it('should log to the console', () => {
-            const consoleLogStub = sandbox.stub(console, 'log');
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'log');
             outputAdapter.log('hello world');
             consoleLogStub.should.have.been.calledOnceWithExactly('hello world');
         });
@@ -46,7 +45,7 @@ describe('ConsoleOutputAdapter', () => {
     describe('#error', () => {
 
         it('should log to the console', () => {
-            const consoleErrorStub = sandbox.stub(console, 'error');
+            const consoleErrorStub: sinon.SinonStub = sandbox.stub(console, 'error');
             outputAdapter.error('hello world');
             consoleErrorStub.should.have.been.calledOnceWithExactly('hello world');
         });

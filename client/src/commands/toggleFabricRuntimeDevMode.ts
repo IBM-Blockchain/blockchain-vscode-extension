@@ -32,7 +32,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
     }
 
     const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
-    const newDevelopmentMode = !oldDevelopmentMode;
+    const newDevelopmentMode: boolean = !oldDevelopmentMode;
     await runtime.setDevelopmentMode(newDevelopmentMode);
     const running: boolean = await runtime.isRunning();
     if (!running) {
@@ -42,7 +42,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress, token) => {
+    }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         await runtime.restart(outputAdapter);

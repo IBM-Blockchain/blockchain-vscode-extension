@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
-import * as child_process from 'child_process';
 import * as path from 'path';
 import { UserInputUtil } from './UserInputUtil';
 import * as fs from 'fs-extra';
@@ -86,7 +85,7 @@ export async function createSmartContractProject(): Promise<void> {
     smartContractLanguage = smartContractLanguage.toLowerCase();
 
     // Prompt the user for a file system folder
-    const openDialogOptions = {
+    const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFolders: true,
         openLabel: 'Open'
     };
@@ -132,7 +131,7 @@ export async function createSmartContractProject(): Promise<void> {
             location: vscode.ProgressLocation.Notification,
             title: 'Blockchain Extension',
             cancellable: false
-        }, async (progress, token): Promise<void> => {
+        }, async (progress: vscode.Progress<{message: string}>, token: vscode.CancellationToken): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
             await env.run('fabric:contract', runOptions);
         });
@@ -156,7 +155,7 @@ async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDepend
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress): Promise<GeneratorDependencies> => {
+    }, async (progress: vscode.Progress<{message: string}>): Promise<GeneratorDependencies> => {
         progress.report({message: `Checking smart contract generator dependencies...`});
         return checkGeneratorDependencies();
     });
@@ -171,11 +170,11 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
         console.log('yo is installed');
         try {
 
-            const newestVersion = await CommandUtil.sendCommand('npm view generator-fabric version');
+            const newestVersion: string = await CommandUtil.sendCommand('npm view generator-fabric version');
 
             const parsedJson: any = await getPackageJson();
 
-            let installedVersion = parsedJson.version;
+            let installedVersion: string = parsedJson.version;
             installedVersion = installedVersion.substring(installedVersion.indexOf('@') + 1);
 
             if (installedVersion !== newestVersion) {
@@ -184,7 +183,7 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
 
                 const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-                const npmUpdateOut = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + newestVersion, '', 'Updating generator-fabric...');
+                const npmUpdateOut: string = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + newestVersion, '', 'Updating generator-fabric...');
                 outputAdapter.log(npmUpdateOut);
                 outputAdapter.log('Successfully updated to latest version of generator-fabric');
             }
@@ -213,7 +212,7 @@ async function installGeneratorDependenciesWithProgress(dependencies: GeneratorD
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress) => {
+    }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({message: `Installing smart contract generator dependencies...`});
         return installGeneratorDependencies(dependencies);
     });
@@ -256,7 +255,7 @@ async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> 
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress): Promise<string[]> => {
+    }, async (progress: vscode.Progress<{message: string}>): Promise<string[]> => {
         progress.report({message: `Getting smart contract languages...`});
         return getSmartContractLanguageOptions();
     });
@@ -282,7 +281,7 @@ async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void
         const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
         vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, {uri: uri});
     } else {
-        let openNewWindow = true;
+        let openNewWindow: boolean = true;
 
         if (openMethod === UserInputUtil.OPEN_IN_CURRENT_WINDOW) {
             openNewWindow = false;
@@ -294,7 +293,7 @@ async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void
 }
 
 async function checkForUnsavedFiles(): Promise<void> {
-    const unsavedFiles = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
+    const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
         return document.isDirty;
     });
 

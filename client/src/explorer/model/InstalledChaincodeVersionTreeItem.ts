@@ -17,7 +17,7 @@ import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class InstalledChainCodeVersionTreeItem extends BlockchainTreeItem {
-    contextValue = 'blockchain-installed-chaincode-version-item';
+    contextValue: string = 'blockchain-installed-chaincode-version-item';
 
     constructor(provider: BlockchainExplorerProvider, private readonly version: string) {
         super(provider, version, vscode.TreeItemCollapsibleState.None);

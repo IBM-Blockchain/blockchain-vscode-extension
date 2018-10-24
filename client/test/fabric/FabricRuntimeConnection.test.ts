@@ -23,7 +23,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-const should = chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -35,7 +35,7 @@ describe('FabricRuntimeConnection', () => {
 
     let mySandBox: sinon.SinonSandbox;
 
-    let gatewayStub;
+    let gatewayStub: sinon.SinonStubbedInstance<Gateway>;
 
     let rootPath: string;
 
