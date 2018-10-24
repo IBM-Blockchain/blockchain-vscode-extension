@@ -29,12 +29,16 @@
     },
     "categories": [
         "Programming Languages",
+        "Debug",
         "Other"
     ],
     "activationEvents": [
         "*"
     ],
     "actualActivationEvents": {
+        "other": [
+            "onDebug"
+        ],
         "onView": [
             "blockchainExplorer"
         ],
@@ -332,7 +336,99 @@
                     "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
                 }
             ]
-        }
+        },
+        "debuggers": [
+            {
+                "type": "fabric:node",
+                "label": "Debug a Hyperledger Fabric Smart Contract",
+                "runtime": "node",
+                "configurationAttributes": {
+                    "launch": {
+                        "properties": {
+                            "program": {
+                                "type": "string",
+                                "description": "Absolute path to a text file.",
+                                "default": "${workspaceFolder}/node_modules/bin/fabric-chaincode-node"
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "description": "The current working directory",
+                                "default": "${workspaceFolder}"
+                            },
+                            "args": {
+                                "type": "array",
+                                "description": "The arguments to give to the Fabric runtime",
+                                "default": []
+                            },
+                            "env": {
+                                "type": "object",
+                                "description": "The environment variables to give to the Fabric runtime",
+                                "default": {}
+                            },
+                            "stopOnEntry": {
+                                "type": "boolean",
+                                "description": "Automatically stop program after launch.",
+                                "default": true
+                            },
+                            "sourceMaps": {
+                                "type": "boolean",
+                                "description": "Use JavaScript source maps (if they exist).",
+                                "default": true
+                            },
+                            "outFiles": {
+                                "type": "array",
+                                "description": "If source maps are enabled, these glob patterns specify the generated JavaScript files. If a pattern starts with '!' the files are excluded. If not specified, the generated code is expected in the same directory as its source.",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "default": [
+                                    "${workspaceFolder}/dist/**/*.js"
+                                ]
+                            },
+                            "smartStep": {
+                                "type": "boolean",
+                                "description": "Automatically step through generated code that cannot be mapped back to the original source.",
+                                "default": true
+                            },
+                            "skipFiles": {
+                                "type": "array",
+                                "description": "An array of file or folder names, or glob patterns, to skip when debugging.",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "default": []
+                            },
+                            "trace": {
+                                "type": [
+                                    "boolean",
+                                    "string"
+                                ],
+                                "description": "When 'true', the debugger will log tracing info to a file. When 'verbose', it will also show logs in the console.",
+                                "default": true
+                            }
+                        }
+                    }
+                },
+                "initialConfigurations": [
+                    {
+                        "type": "fabric:node",
+                        "request": "launch",
+                        "name": "Debug Smart Contract"
+                    }
+                ],
+                "configurationSnippets": [
+                    {
+                        "label": "Fabric Debug: Launch",
+                        "description": "A new configuration for 'debugging' a smart contract.",
+                        "body": {
+                            "type": "fabric:node",
+                            "request": "launch",
+                            "name": "Debug Smart Contract"
+                        }
+                    }
+                ]
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

@@ -118,7 +118,8 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.restartFabricRuntime',
             'onCommand:blockchainExplorer.teardownFabricRuntime',
             'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode',
-            'onCommand:blockchainExplorer.editConnectionEntry'
+            'onCommand:blockchainExplorer.editConnectionEntry',
+            'onDebug'
         ]);
     });
 

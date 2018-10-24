@@ -37,7 +37,12 @@ if (process.argv.includes('publish')) {
   packageJson.actualActivationEvents.onCommand.forEach((event) => {
     packageJson.activationEvents.push('onCommand:' + event);
   });
+
+  packageJson.actualActivationEvents.other.forEach((event) => {
+    packageJson.activationEvents.push(event);
+  });
 }
+
 
 const packageJsonString = JSON.stringify(packageJson, null, 4);
 

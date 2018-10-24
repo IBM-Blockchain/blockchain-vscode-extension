@@ -104,6 +104,7 @@ describe('FabricRuntime', () => {
             NetworkSettings: {
                 Ports: {
                     '7051/tcp': [{HostIp: '0.0.0.0', HostPort: '12345'}],
+                    '7052/tcp': [{HostIp: '0.0.0.0', HostPort: '54321'}],
                     '7053/tcp': [{HostIp: '0.0.0.0', HostPort: '12346'}]
                 }
             },
@@ -140,7 +141,7 @@ describe('FabricRuntime', () => {
         mockCouchInspect = {
             NetworkSettings: {
                 Ports: {
-                    '5984/tcp': [{ HostIp: '127.0.0.1', HostPort: '12349' }]
+                    '5984/tcp': [{HostIp: '127.0.0.1', HostPort: '12349'}]
                 }
             },
             State: {
@@ -195,12 +196,12 @@ describe('FabricRuntime', () => {
             it(`should execute the ${verb}.sh script and handle success for non-development mode (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 await runtime[verb]();
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('/bin/sh', [ `${verb}.sh` ], sinon.match.any);
+                spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
             });
 
@@ -208,30 +209,30 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('linux');
                 runtimeRegistryEntry.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 await runtime[verb]();
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('/bin/sh', [ `${verb}.sh` ], sinon.match.any);
+                spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
             });
 
             it(`should execute the ${verb}.sh script and handle an error (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockFailureCommand();
                 });
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('/bin/sh', [ `${verb}.sh` ], sinon.match.any);
+                spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
             });
 
             it(`should execute the ${verb}.sh script using a custom output adapter (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
@@ -244,7 +245,7 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const eventStub: sinon.SinonStub = sinon.stub();
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 runtime.on('busy', eventStub);
@@ -258,7 +259,7 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const eventStub: sinon.SinonStub = sinon.stub();
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [ `${verb}.sh` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockFailureCommand();
                 });
                 runtime.on('busy', eventStub);
@@ -271,12 +272,12 @@ describe('FabricRuntime', () => {
             it(`should execute the ${verb}.cmd script and handle success for non-development mode (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 await runtime[verb]();
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
+                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
             });
 
@@ -284,30 +285,30 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('win32');
                 runtimeRegistryEntry.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 await runtime[verb]();
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
+                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
             });
 
             it(`should execute the ${verb}.cmd script and handle an error (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockFailureCommand();
                 });
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any);
+                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
             });
 
             it(`should execute the ${verb}.cmd script using a custom output adapter (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
@@ -320,7 +321,7 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const eventStub: sinon.SinonStub = sinon.stub();
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
                 runtime.on('busy', eventStub);
@@ -334,7 +335,7 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const eventStub: sinon.SinonStub = sinon.stub();
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', [ '/c', `${verb}.cmd` ], sinon.match.any).callsFake(() => {
+                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockFailureCommand();
                 });
                 runtime.on('busy', eventStub);
@@ -360,8 +361,8 @@ describe('FabricRuntime', () => {
             });
             await runtime.restart();
             spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('/bin/sh', [ 'start.sh' ], sinon.match.any);
-            spawnStub.should.have.been.calledWith('/bin/sh', [ 'stop.sh' ], sinon.match.any);
+            spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
+            spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
         });
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Linux/MacOS)', async () => {
@@ -407,7 +408,7 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            spawnStub.withArgs('/bin/sh', [ 'stop.sh' ], sinon.match.any).callsFake(() => {
+            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
@@ -428,8 +429,8 @@ describe('FabricRuntime', () => {
             });
             await runtime.restart();
             spawnStub.should.have.been.calledTwice;
-            spawnStub.should.have.been.calledWith('cmd', [ '/c', 'start.cmd' ], sinon.match.any);
-            spawnStub.should.have.been.calledWith('cmd', [ '/c', 'stop.cmd' ], sinon.match.any);
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
         });
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Windows)', async () => {
@@ -475,7 +476,7 @@ describe('FabricRuntime', () => {
             spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
                 return mockSuccessCommand();
             });
-            spawnStub.withArgs('cmd', [ '/c', 'stop.cmd' ], sinon.match.any).callsFake(() => {
+            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
@@ -675,6 +676,13 @@ describe('FabricRuntime', () => {
             await runtime.setDevelopmentMode(true);
             const updatedRuntimeRegistryEntry: FabricRuntimeRegistryEntry = await runtimeRegistry.get('runtime1');
             updatedRuntimeRegistryEntry.developmentMode.should.be.true;
+        });
+    });
+
+    describe('#getChaincodeAddress', () => {
+        it('should get the chaincode address', async () => {
+            const result: string = await runtime.getChaincodeAddress();
+            result.should.equal('localhost:54321');
         });
     });
 });
