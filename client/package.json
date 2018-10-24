@@ -399,9 +399,9 @@
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
-        "fabric-ca-client": "1.4.0-snapshot.81",
-        "fabric-client": "1.4.0-snapshot.80",
-        "fabric-network": "1.4.0-snapshot.49"
+        "fabric-ca-client": "1.4.0-snapshot.83",
+        "fabric-client": "1.4.0-snapshot.82",
+        "fabric-network": "1.4.0-snapshot.51"
     },
     "nativeDependencies": {
         "grpc": {
@@ -442,6 +442,7 @@
             "config/.DS_Store",
             "test/.DS_Store",
             "integrationTest/data",
+            "integrationTest/tmp",
             "basic-network",
             "CHANGELOG.md"
         ],
