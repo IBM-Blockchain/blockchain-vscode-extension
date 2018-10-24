@@ -37,6 +37,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
+        let findFilesStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -65,7 +66,9 @@ describe('FabricDebugConfigurationProvider', () => {
             debugConfig.program = 'myProgram';
             debugConfig.cwd = 'myCwd';
             debugConfig.env = { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' };
-            debugConfig.args = ['--peer.address', 'localhost:12345'];
+            debugConfig.args = ['start', '--peer.address', 'localhost:12345'];
+
+            findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
         });
 
         afterEach(() => {
@@ -82,7 +85,23 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
-                args: ['--peer.address', 'localhost:12345']
+                args: ['start', '--peer.address', 'localhost:12345']
+            });
+        });
+
+        it('should add start arg if not in there', async () => {
+
+            debugConfig.args = ['--peer.address', 'localhost:12345'];
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
+                args: ['--peer.address', 'localhost:12345', 'start']
             });
         });
 
@@ -98,7 +117,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
-                args: ['--peer.address', 'localhost:12345']
+                args: ['start', '--peer.address', 'localhost:12345']
             });
         });
 
@@ -114,7 +133,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
                 env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
-                args: ['--peer.address', 'localhost:12345']
+                args: ['start', '--peer.address', 'localhost:12345']
             });
         });
 
@@ -136,7 +155,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:0.0.2' },
-                args: ['--peer.address', 'localhost:12345']
+                args: ['start', '--peer.address', 'localhost:12345']
             });
         });
 
@@ -158,7 +177,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:0.0.2', myProperty: 'myValue' },
-                args: ['--peer.address', 'localhost:12345']
+                args: ['start', '--peer.address', 'localhost:12345']
             });
         });
 
@@ -173,7 +192,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
-                args: ['--peer.address', '127.0.0.1:54321']
+                args: ['start', '--peer.address', '127.0.0.1:54321']
             });
         });
 
@@ -188,7 +207,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
-                args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
+                args: ['--myArgs', 'myValue', 'start',  '--peer.address', '127.0.0.1:54321']
             });
         });
 
@@ -203,7 +222,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
-                args: ['--peer.address', 'localhost:12345']
+                args: ['start', '--peer.address', 'localhost:12345']
             });
         });
 
@@ -234,6 +253,133 @@ describe('FabricDebugConfigurationProvider', () => {
             errorSpy.should.have.been.calledWith('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
             otherErrorSpy.should.have.been.calledWith('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
 
+        });
+
+        it('should debug typescript', async () => {
+            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
+                args: ['start', '--peer.address', 'localhost:12345'],
+                outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')]
+            });
+        });
+
+        it('should use the tsconfig for the configuration', async () => {
+
+            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+
+            const fakeConfig: object = {
+                compilerOptions: {
+                    outDir: 'dist'
+                }
+            };
+
+            mySandbox.stub(fs, 'readFile').resolves(JSON.stringify(fakeConfig));
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
+                args: ['start', '--peer.address', 'localhost:12345'],
+                outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
+                preLaunchTask: 'tsc: build - tsconfig.json'
+            });
+        });
+
+        it('should not update the directory if it is an absolute path', async () => {
+
+            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+
+            const fakeConfig: object = {
+                compilerOptions: {
+                    outDir: path.join(__dirname, 'mypath')
+                }
+            };
+
+            mySandbox.stub(fs, 'readFile').resolves(JSON.stringify(fakeConfig));
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
+                args: ['start', '--peer.address', 'localhost:12345'],
+                outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')],
+                preLaunchTask: 'tsc: build - tsconfig.json'
+            });
+        });
+
+        it('should update path if not absolute path', async () => {
+
+            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+
+            const fakeConfig: object = {
+                compilerOptions: {
+                    outDir: './dist'
+                }
+            };
+
+            mySandbox.stub(fs, 'readFile').resolves(JSON.stringify(fakeConfig));
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
+                args: ['start', '--peer.address', 'localhost:12345'],
+                outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
+                preLaunchTask: 'tsc: build - tsconfig.json'
+            });
+        });
+
+        it('should add to outfile if already set', async () => {
+
+            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+
+            debugConfig.outFiles = ['cake'];
+
+            const fakeConfig: object = {
+                compilerOptions: {
+                    outDir: 'dist'
+                }
+            };
+
+            mySandbox.stub(fs, 'readFile').resolves(JSON.stringify(fakeConfig));
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1' },
+                args: ['start', '--peer.address', 'localhost:12345'],
+                outFiles: ['cake', path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
+                preLaunchTask: 'tsc: build - tsconfig.json'
+            });
         });
     });
 

@@ -49,12 +49,41 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
             config.program = path.join(folder.uri.fsPath, 'node_modules', '.bin', 'fabric-chaincode-node');
         }
 
+        const tsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '**/*.ts'), '**/node_modules/**', 1);
+
+        if (tsFiles.length > 0) {
+            let dir: string = '';
+            const tsConfig: any = await this.loadJSON(folder, 'tsconfig.json');
+            if (tsConfig && tsConfig.compilerOptions && tsConfig.compilerOptions.outDir) {
+                const outDir: string = tsConfig.compilerOptions.outDir;
+                if (!path.isAbsolute(outDir)) {
+                    dir = outDir;
+                    if (dir.indexOf('./') === 0) {
+                        dir = dir.substr(2);
+                    }
+                }
+                config.preLaunchTask = 'tsc: build - tsconfig.json';
+            }
+
+            const outFilesPath: string = path.join(folder.uri.fsPath, dir, '**/*.js');
+
+            if (config.outFiles) {
+                config.outFiles.push(outFilesPath);
+            } else {
+                config.outFiles = [outFilesPath];
+            }
+        }
+
         if (!config.cwd) {
             config.cwd = folder.uri.fsPath;
         }
 
         if (!config.args) {
             config.args = [];
+        }
+
+        if (!config.args.includes('start')) {
+            config.args.push('start');
         }
 
         if (!config.args.includes('--peer.address')) {
@@ -78,10 +107,18 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
     public dispose(): void {
     }
 
+    private async loadJSON(folder: vscode.WorkspaceFolder, file: string): Promise<any> {
+        try {
+            const workspacePackage: string = path.join(folder.uri.fsPath, file);
+            const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
+            return JSON.parse(workspacePackageContents.toString('utf8'));
+        } catch (error) {
+            return;
+        }
+    }
+
     private async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
-        const workspacePackage: string = path.join(folder.uri.fsPath, 'package.json');
-        const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
-        const workspacePackageObj: any = JSON.parse(workspacePackageContents.toString('utf8'));
-        return {name: workspacePackageObj.name, version: workspacePackageObj.version};
+        const packageJson: any = await this.loadJSON(folder, 'package.json');
+        return { name: packageJson.name, version: packageJson.version };
     }
 }
