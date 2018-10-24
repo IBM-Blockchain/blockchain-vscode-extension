@@ -519,13 +519,13 @@ describe('userInputUtil', () => {
             const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
-
             showOpenDialogStub.should.have.been.calledWith({
                 canSelectFiles: true,
                 canSelectFolders: false,
                 canSelectMany: false,
                 openLabel: 'Select'
             });
+
             result.should.equal('/some/path');
 
         });
@@ -638,4 +638,25 @@ describe('userInputUtil', () => {
         });
     });
 
+    describe('delayWorkaround', () => {
+      beforeEach(() => {
+          this.clock = sinon.useFakeTimers();
+      });
+
+      afterEach(() => {
+        this.clock.restore();
+      });
+
+      it('should delay for the specified time', async () => {
+          const isResolved: boolean = false;
+          const stub: sinon.SinonStub = mySandBox.stub();
+          const p: Promise<any> = UserInputUtil.delayWorkaround(2000).then(stub);
+          sinon.assert.notCalled(stub);
+
+          this.clock.tick(2300);
+          await p.should.be.eventually.fulfilled;
+          return sinon.assert.calledOnce(stub);
+      });
+
+    });
 });

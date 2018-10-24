@@ -301,7 +301,8 @@ export class UserInputUtil {
                 return;
             } else if (result === this.BROWSE_LABEL) {
                 // Browse file and get path
-
+                // see method comment for details of this workaround
+                await UserInputUtil.delayWorkaround(200);
                 const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog({
                     canSelectFiles: true,
                     canSelectFolders: false,
@@ -379,4 +380,13 @@ export class UserInputUtil {
         return reallyDoIt.title === 'Yes';
     }
 
+    /** Delay for a set number of ms; this code is added in order to workaround the VSCode issue
+     * https://github.com/Microsoft/vscode/issues/52778
+     *
+     * See comment on this post for discussion.
+     * @param {number} ms milliseconds to pause for
+     */
+    public static delayWorkaround(ms: number): Promise<any> {
+      return new Promise((resolve: any): any => setTimeout(resolve, ms));
+    }
 }
