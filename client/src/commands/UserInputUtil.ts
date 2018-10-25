@@ -302,7 +302,7 @@ export class UserInputUtil {
             } else if (result === this.BROWSE_LABEL) {
                 // Browse file and get path
                 // see method comment for details of this workaround
-                await UserInputUtil.delayWorkaround(200);
+                await UserInputUtil.delayWorkaround(500);
                 const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog({
                     canSelectFiles: true,
                     canSelectFolders: false,
