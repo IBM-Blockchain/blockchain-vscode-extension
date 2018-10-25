@@ -97,7 +97,7 @@ Left-click to connect to `local_fabric` when it is enabled. Right-click the conn
 
 
 ### Teardown the local_fabric runtime
-When you start/stop the local_fabric, some data will be maintained. To completely teardown the runtime and start over, right-click `local_fabric` in the `Blockchain Connections` view and choose `Teardown Fabric Runtime` (you must then confirm this action).
+When you start/stop the local_fabric, all data will be maintained. To completely teardown the runtime and start over, right-click `local_fabric` in the `Blockchain Connections` view and choose `Teardown Fabric Runtime` (you must then confirm this action).
 
 ![Teardown the local_fabric runtime](client/media/teardown_fabric_runtime.gif)
 
@@ -114,7 +114,7 @@ Smart contract packages are installed on Fabric peers.  Find a peer by connectin
 
 
 ### Instantiate smart contract package
-Smart contract packages are instantiated on Fabric channels.  Find a channel by connecting to a blockchain network, then right-click and select `Instantiate Smart Contract`. You will be offered a list of the smart contracts that are installed on peers in the channel.
+Smart contract packages are instantiated on Fabric channels.  Find a channel by connecting to a blockchain network, then right-click and select `Instantiate / Upgrade Smart Contract`. You will be offered a list of the smart contracts that are installed on peers in the channel.
 
 It is useful to think of installing on peers as the first step and instantiating on a channel as the second step of deploying a smart contract package.
 
