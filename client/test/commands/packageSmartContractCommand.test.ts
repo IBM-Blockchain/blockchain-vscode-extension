@@ -30,7 +30,8 @@ chai.use(sinonChai);
 describe('packageSmartContract', () => {
 
     const rootPath: string = path.dirname(__dirname);
-    const fileDest: string = path.join(rootPath, '../../test/data/packageContractDir');
+    const extDir: string = path.join(rootPath, '../../test/data');
+    const fileDest: string = path.join(extDir, 'packages');
     const testWorkspace: string = path.join(rootPath, '../../test/data/testWorkspace');
     const javascriptPath: string = path.join(rootPath, '../../test/data/testWorkspace/javascriptProject');
     const typescriptPath: string = path.join(rootPath, '../../test/data/testWorkspace/typescriptProject');
@@ -82,12 +83,12 @@ describe('packageSmartContract', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storePackageDirectoryConfig();
+        await TestUtil.storeExtensionDirectoryConfig();
         await fs.mkdirp(fileDest);
     });
 
     after(async () => {
-        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
     });
 
     let mySandBox: sinon.SinonSandbox;
@@ -117,7 +118,7 @@ describe('packageSmartContract', () => {
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         informationSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', fileDest, true);
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, true);
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
 

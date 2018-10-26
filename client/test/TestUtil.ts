@@ -27,13 +27,13 @@ export class TestUtil {
             myExtension.registerCommands(context);
         }
     }
-    static async storePackageDirectoryConfig(): Promise<void> {
-        this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get('fabric.package.directory');
-        console.log('Storing user package directory:', this.USER_PACKAGE_DIR_CONFIG);
+    static async storeExtensionDirectoryConfig(): Promise<void> {
+        this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        console.log('Storing user extension directory:', this.USER_PACKAGE_DIR_CONFIG);
     }
-    static async restorePackageDirectoryConfig(): Promise<void> {
-        console.log('Restoring user package directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
+    static async restoreExtensionDirectoryConfig(): Promise<void> {
+        console.log('Restoring user extension directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
     }
     static async storeConnectionsConfig(): Promise<void> {
         this.USER_CONNECTIONS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.connections');

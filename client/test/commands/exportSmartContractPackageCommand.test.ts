@@ -40,12 +40,12 @@ describe('exportSmartContractPackageCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storePackageDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await TestUtil.storeExtensionDirectoryConfig();
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
-        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
     });
 
     let sandbox: sinon.SinonSandbox;
@@ -92,8 +92,6 @@ describe('exportSmartContractPackageCommand', () => {
     });
 
     it('should handle the user cancelling the package quick pick', async () => {
-        const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        const _package: PackageRegistryEntry = _packages[0];
         sandbox.stub(vscode.window, 'showQuickPick').resolves();
         await vscode.commands.executeCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry');
         showSaveDialogStub.should.not.have.been.called;
