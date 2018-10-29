@@ -177,7 +177,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
@@ -197,7 +197,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await testSmartContract();
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -209,7 +209,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await testSmartContract();
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
@@ -219,7 +219,8 @@ describe('testSmartContractCommand', () => {
 
         it('should handle connecting being cancelled', async () => {
             getConnectionStub.returns(null);
-            await testSmartContract();
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             showChannelQuickPickStub.should.not.have.been.called;
         });
@@ -227,7 +228,7 @@ describe('testSmartContractCommand', () => {
         it('should do nothing if the user cancels selecting a channel', async () => {
             showChannelQuickPickStub.resolves();
 
-            await testSmartContract();
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -236,7 +237,7 @@ describe('testSmartContractCommand', () => {
         it('should handle an error in asking for a channel', async () => {
             showChannelQuickPickStub.rejects({message: 'some error'});
 
-            await testSmartContract();
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.not.have.been.called;
             errorSpy.should.have.been.calledWith('some error');
@@ -245,7 +246,7 @@ describe('testSmartContractCommand', () => {
         it('should do nothing if the user cancels selecting an instantiated smart contract', async () => {
             showInstantiatedSmartContractsQuickPickStub.resolves();
 
-            await testSmartContract();
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.not.have.been.called;
@@ -255,14 +256,14 @@ describe('testSmartContractCommand', () => {
         it('should show an error message if the user has no workspaces open', async () => {
             workspaceFoldersStub.resolves([]);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledWith(`Smart contract project ${smartContractName} is not open in workspace`);
         });
 
         it('should show an error message if it fails to determine the workspace folders', async () => {
             workspaceFoldersStub.rejects({message: 'piecarambra!'});
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             findFilesStub.should.not.have.been.called;
             errorSpy.should.have.been.calledWith('Error determining workspace folders: piecarambra!');
         });
@@ -271,14 +272,14 @@ describe('testSmartContractCommand', () => {
             const incorrectBuffer: Buffer = Buffer.from(`{"name": "double_decker"}`);
             readFileStub.resolves(incorrectBuffer);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledWith(`Smart contract project ${smartContractName} is not open in workspace`);
         });
 
         it('should handle errors with running getMetaData by showing an error message to the user', async () => {
             fabricClientConnectionMock.getMetadata.rejects({message: 'some error'});
 
-            await testSmartContract();
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.have.been.called;
@@ -288,7 +289,7 @@ describe('testSmartContractCommand', () => {
         it('should handle errors with creating the template data', async () => {
             mySandBox.stub(ejs, 'renderFile').yields({message: 'some error'}, null);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
             errorSpy.should.have.been.calledWith('Error creating template data: some error');
         });
@@ -297,7 +298,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.NO);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             mySandBox.stub(fs, 'ensureFile').should.not.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -307,7 +308,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(undefined);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             mySandBox.stub(fs, 'ensureFile').should.not.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -317,7 +318,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.YES);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
@@ -342,7 +343,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}-copy1.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.called;
@@ -359,7 +360,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').rejects({message: 'some error'});
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             openTextDocumentStub.should.not.have.been.called;
             errorSpy.should.have.been.calledWith('Error creating test file: some error');
             fsRemoveStub.should.have.been.called;
@@ -372,7 +373,7 @@ describe('testSmartContractCommand', () => {
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
             mockTextEditor.edit.resolves(false);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             mockDocumentSaveSpy.should.not.have.been.called;
@@ -385,7 +386,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -397,7 +398,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'ensureFile').rejects();
             fsRemoveStub.rejects({message: 'some other error'});
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
             errorSpy.should.have.been.calledWith('Error removing test file: some other error');
             fsRemoveStub.should.have.been.called;
@@ -410,7 +411,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
             errorSpy.should.have.been.calledOnceWith('Error editing test file: ' + testUri.fsPath);
             fsRemoveStub.should.have.been.called;
@@ -419,7 +420,7 @@ describe('testSmartContractCommand', () => {
         it('should show an error if the npm install fails', async () => {
             sendCommandStub.onCall(0).rejects({message: 'horrible error'});
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: horrible error');
             sendCommandStub.should.have.been.calledOnce;
         });
@@ -427,7 +428,7 @@ describe('testSmartContractCommand', () => {
         it('should show an error if installing generator-network fails', async () => {
             sendCommandStub.onCall(1).rejects({message: 'other horrible error'});
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: other horrible error');
             sendCommandStub.should.have.been.calledTwice;
         });
@@ -532,7 +533,7 @@ describe('testSmartContractCommand', () => {
             writeFileSyncStub.resolves();
             mySandBox.stub(fs, 'pathExists').resolves(false);
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             writeFileSyncStub.should.have.been.calledWith(testConnectonProfilePath, connectionProfileToString);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
@@ -553,7 +554,7 @@ describe('testSmartContractCommand', () => {
             ensureFileStub.resolves();
             writeFileSyncStub.rejects({message: 'some error'});
 
-            await testSmartContract(instantiatedSmartContract);
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledWith('Error writing runtime connection profile: some error');
         });
 
