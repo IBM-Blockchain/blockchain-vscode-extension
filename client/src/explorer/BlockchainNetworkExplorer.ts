@@ -273,7 +273,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const channel: ChannelTreeItem = instantiatedChainCodesElement.channel;
 
         instantiatedChainCodesElement.chaincodes.forEach((instantiatedChaincode: { name: string, version: string}) => {
-            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name + '@' + instantiatedChaincode.version, channel));
+            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name, channel, instantiatedChaincode.version));
         });
 
         return tree;

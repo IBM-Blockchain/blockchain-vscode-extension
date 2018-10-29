@@ -57,7 +57,7 @@ export class TestUtil {
         try {
             await fs.remove(deletePath);
         } catch (error) {
-            if (!error.message.contains('ENOENT: no such file or directory')) {
+            if (!error.message.includes('ENOENT: no such file or directory')) {
                 throw error;
             }
         }

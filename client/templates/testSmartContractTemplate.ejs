@@ -1,0 +1,17 @@
+const assert = require('assert');
+
+describe('<%=chaincodeLabel%>' , () => {
+
+    before(() => {
+    });
+
+    after(async () => {
+    });
+
+    <% functionNames.forEach((functionName) => { %>
+    it('<%=functionName%>', () => {
+        assert.equal(true, true);
+    });
+    <% }) %>
+
+});

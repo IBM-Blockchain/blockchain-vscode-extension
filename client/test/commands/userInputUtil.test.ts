@@ -46,6 +46,7 @@ describe('userInputUtil', () => {
     let connectionEntryTwo: FabricConnectionRegistryEntry;
 
     let getConnectionStub: sinon.SinonStub;
+    let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -120,7 +121,7 @@ describe('userInputUtil', () => {
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
-        const fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+        fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
         fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerOne').resolves(['channelOne']);
@@ -131,6 +132,7 @@ describe('userInputUtil', () => {
         chaincodeMap.set('cake-network', ['0.0.3']);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
+        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves(chaincodeMap);
 
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
 
@@ -659,4 +661,44 @@ describe('userInputUtil', () => {
       });
 
     });
+
+    describe('showInstantiatedSmartContractsQuickPick', () => {
+
+        it('should show the quick pick box for instantiated smart contracts', async () => {
+            // Fix this resolving instaniated chaincode and the bit below the command
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: {name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1'}
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test', 'channelOne');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: {name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1'}
+            });
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Please chose instantiated smart contract to test'
+            });
+        });
+
+        it('should handle no connection', async () => {
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            getConnectionStub.returns(null);
+            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Chose an instantiated smart contract to test', null);
+            errorSpy.should.have.been.calledWith(`No connection to a blockchain found`);
+
+        });
+
+        it('should handle no instantiated chaincodes in connection', async () => {
+            const infoSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
+            fabricConnectionStub.getInstantiatedChaincode.returns([]);
+            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Chose an instantiated smart contract to test', null);
+            infoSpy.should.have.been.calledWith('No instantiated chaincodes within connection');
+
+        });
+    });
+
 });

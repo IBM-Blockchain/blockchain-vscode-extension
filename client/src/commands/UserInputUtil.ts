@@ -394,4 +394,35 @@ export class UserInputUtil {
     public static delayWorkaround(ms: number): Promise<any> {
       return new Promise((resolve: any): any => setTimeout(resolve, ms));
     }
+
+    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined>  {
+        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+        const connection: IFabricConnection = fabricConnectionManager.getConnection();
+
+        if (!connection) {
+            vscode.window.showErrorMessage('No connection to a blockchain found');
+            return;
+        }
+
+        const instantiatedChaincodes: any[] = await connection.getInstantiatedChaincode(channelName); // returns array of objects
+        if (instantiatedChaincodes.length === 0) {
+            vscode.window.showInformationMessage('No instantiated chaincodes within connection');
+            return;
+        }
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>> = [];
+        for (const chaincode of instantiatedChaincodes) {
+            const data: { name: string, channel: string, version: string } = {name: chaincode.name, channel: channelName, version: chaincode.version};
+            quickPickItems.push({label: `${chaincode.name}@${chaincode.version}`, data: data});
+        }
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
 }
