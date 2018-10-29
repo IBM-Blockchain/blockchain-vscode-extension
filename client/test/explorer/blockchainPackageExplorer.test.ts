@@ -36,13 +36,13 @@ describe('BlockchainPackageExplorer', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storePackageDirectoryConfig();
+        await TestUtil.storeExtensionDirectoryConfig();
         await TestUtil.storeConnectionsConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
         await TestUtil.restoreConnectionsConfig();
         await TestUtil.restoreRuntimesConfig();
 
@@ -59,7 +59,7 @@ describe('BlockchainPackageExplorer', () => {
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', testDir, true);
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', testDir, true);
 
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
@@ -80,7 +80,7 @@ describe('BlockchainPackageExplorer', () => {
     });
 
     it('should get a tree item in BlockchainPackageExplorer', async () => {
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', testDir, true);
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', testDir, true);
 
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
 

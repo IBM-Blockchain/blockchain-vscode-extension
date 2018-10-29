@@ -30,7 +30,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('FabricConnection', () => {
 
-    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir');
+    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');
 
     class TestFabricConnection extends FabricConnection {
 

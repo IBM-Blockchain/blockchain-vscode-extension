@@ -34,12 +34,12 @@ describe('PackageRegistry', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storePackageDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await TestUtil.storeExtensionDirectoryConfig();
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
-        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
     });
 
     beforeEach(() => {
@@ -58,17 +58,17 @@ describe('PackageRegistry', () => {
                 {
                     name: 'vscode-pkg-1',
                     version: '0.0.1',
-                    path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+                    path: path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
                 },
                 {
                     name: 'vscode-pkg-2',
                     version: '0.0.2',
-                    path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-2@0.0.2.cds')
+                    path: path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
                 },
                 {
                     name: 'vscode-pkg-3',
                     version: '1.2.3',
-                    path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-3@1.2.3.cds')
+                    path: path.join(TEST_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
                 }
             ]);
         });

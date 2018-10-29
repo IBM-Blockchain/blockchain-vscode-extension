@@ -75,14 +75,14 @@ describe('Integration Test', () => {
         await ExtensionUtil.activateExtension();
         await TestUtil.storeConnectionsConfig();
         await TestUtil.storeRuntimesConfig();
-        await TestUtil.storePackageDirectoryConfig();
+        await TestUtil.storeExtensionDirectoryConfig();
 
         VSCodeOutputAdapter.instance().setConsole(true);
 
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
 
         const packageDir: string = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', 'packages');
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', packageDir, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', packageDir, vscode.ConfigurationTarget.Global);
         const exists: boolean = await fs.pathExists(packageDir);
         if (exists) {
             await fs.remove(packageDir);
@@ -94,7 +94,7 @@ describe('Integration Test', () => {
         VSCodeOutputAdapter.instance().setConsole(false);
         await TestUtil.restoreConnectionsConfig();
         await TestUtil.restoreRuntimesConfig();
-        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
     });
 
     beforeEach(() => {

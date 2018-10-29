@@ -31,16 +31,16 @@ chai.use(sinonChai);
 
 describe('DeleteSmartContractPackageCommand', () => {
 
-    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
+    const TEST_EXTENSION_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data');
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storePackageDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('fabric.package.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await TestUtil.storeExtensionDirectoryConfig();
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
-        await TestUtil.restorePackageDirectoryConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
     });
 
     describe('deleteSmartContractPackage', () => {

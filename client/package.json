@@ -101,10 +101,10 @@
                     "default": [],
                     "description": "Configurations for managed Blockchain network runtimes"
                 },
-                "fabric.package.directory": {
+                "blockchain.ext.directory": {
                     "type": "string",
-                    "default": "~/.fabric-vscode/packages",
-                    "description": "Configurations for smart contract packages"
+                    "default": "~/.fabric-vscode",
+                    "description": "Configurations for IBM Blockchain extension directory"
                 }
             }
         },
