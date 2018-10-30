@@ -211,12 +211,6 @@ export class UserInputUtil {
 
         quickPickItems.push({label: this.INSTALL_INSTANTIATE_LABEL, data: {chaincode: '', version: ''}});
 
-        // If there are no installed smart contract packages
-        if (quickPickItems.length === 1) {
-            vscode.window.showErrorMessage('No smart contracts are installed on peers in this channel. Install a smart contract before instantiating.');
-            return;
-        }
-
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
