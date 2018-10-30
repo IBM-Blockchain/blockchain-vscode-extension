@@ -389,15 +389,13 @@ describe('userInputUtil', () => {
 
         });
 
-        it('should show error if no installed smart contracts ', async () => {
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        it('should show install and instantiate option if there are no installed smart contracts ', async () => {
             mySandBox.stub(FabricConnectionManager, 'instance').returns({
                 getConnection: mySandBox.stub().resolves()
             });
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>());
-            errorSpy.should.have.been.calledWith('No smart contracts are installed on peers in this channel. Install a smart contract before instantiating.');
-
+            quickPickStub.should.have.been.calledWith([{label: 'Install and Instantiate a new smart contract from a package', data: {chaincode: '', version: ''}}]);
         });
     });
     describe('showGeneratorOptions', () => {
