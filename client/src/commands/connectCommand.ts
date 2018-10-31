@@ -29,7 +29,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
     let runtimeData: string;
 
     if (!connectionRegistryEntry) {
-        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with');
+        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with', true);
         if (!chosenEntry) {
             return;
         }

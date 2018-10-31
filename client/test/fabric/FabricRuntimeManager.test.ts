@@ -155,8 +155,8 @@ describe('FabricRuntimeManager', () => {
                 ],
                 managedRuntime: false
             };
-            await connectionRegistry.add(testConnectionEntry);
-            await runtimeManager.add('runtime1').should.be.rejectedWith(/Entry "runtime1" in Fabric registry "fabric.connections" already exists/);
+            await runtimeManager.add('runtime1');
+            await runtimeManager.add('runtime1').should.be.rejectedWith(/Entry "runtime1" in Fabric registry "fabric.runtimes" already exists/);
         });
 
         it('should add the specified runtime if it does not exist', async () => {
@@ -164,10 +164,6 @@ describe('FabricRuntimeManager', () => {
             runtimeRegistry.get('runtime1').should.deep.equal({
                 name: 'runtime1',
                 developmentMode: false
-            });
-            connectionRegistry.get('runtime1').should.deep.equal({
-                name: 'runtime1',
-                managedRuntime: true
             });
             const runtime: FabricRuntime = runtimeManager.get('runtime1');
             runtime.getName().should.equal('runtime1');

@@ -203,13 +203,13 @@ describe('AddConnectionIdentityCommand', () => {
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
-            connections[1].should.deep.equal({
-                name: 'myConnectionB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+            connections[0].should.deep.equal({
+                name: 'myConnectionA',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 managedRuntime: false,
                 identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
                 },
                     {
                         certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
