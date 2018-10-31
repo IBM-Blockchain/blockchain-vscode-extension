@@ -1,17 +1,78 @@
+/*
+* Use this file for functional testing of your smart contract. 
+* Fill out the arguments and return values for a function and 
+* use a test runner to run these tests locally. 
+* All transactions defined in your smart contract are used here 
+* to generate tests, including those functions that would 
+* normally only be used on instantiate and upgrade operations.
+* This basic test file can also be used as the basis for building 
+* further functional tests to run as part of a continuous 
+* integration pipeline, or for debugging locally deployed smart 
+* contracts by invoking/submitting individual transactions. 
+*/
+
 const assert = require('assert');
+const fabricNetwork = require('fabric-network');
+const yaml = require('js-yaml');
+const fs = require('fs-extra');
 
 describe('<%=chaincodeLabel%>' , () => {
 
-    before(() => {
+    const gateway = new fabricNetwork.Gateway();
+    let connectionProfile;
+    const wallet = new fabricNetwork.InMemoryWallet();
+    const identityName = '<%=chaincodeLabel%>';
+    
+    before(async () => {
+        // For local_fabric connections, this connection profile will become invalid if the local_fabric is stopped or restarted. 
+        // Regenerating this test file will overwrite the connection profile with a valid version
+        const connectionProfilePath = '<%=connectionProfilePath%>';
+        const certificatePath = '<%=certificatePath%>';
+        const privateKeyPath = '<%=privateKeyPath%>';
+
+        const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
+        if (connectionProfilePath.endsWith('.json')) {
+            connectionProfile = JSON.parse(connectionProfileContents);
+        } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
+            connectionProfile = yaml.safeLoad(connectionProfileContents);
+        };
+        const certificate = await fs.readFile(certificatePath, 'utf8');
+        const privateKey = await fs.readFile(privateKeyPath, 'utf8');
+
+        const mspid = connectionProfile.organizations.Org1.mspid;
+        await wallet.import(identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
+
     });
 
-    after(async () => {
+    beforeEach(async () => {
+        await gateway.connect(connectionProfile, {
+            wallet: wallet,
+            identity: identityName
+        });
+    });
+
+    afterEach(async () => {
+        gateway.disconnect();
     });
 
     <% functionNames.forEach((functionName) => { %>
-    it('<%=functionName%>', () => {
-        assert.equal(true, true);
-    });
+    it('<%=functionName%>', async () => {
+        // TODO: Update with parameters of transaction
+        const args = '';
+        const response = await submitTransaction('<%=functionName%>', args); // Returns buffer of transcation return value
+        // TODO: Update with return value of transaction
+        // assert.equal(response.toString(), undefined);
+    }).timeout(10000);
     <% }) %>
+
+    async function submitTransaction(functionName, args) {
+        //Send transaction
+
+        const network = await gateway.getNetwork('<%=channelName%>');
+        const contract = await network.getContract('<%=chaincodeName%>');
+
+        const responseBuffer = await contract.submitTransaction(functionName, args);
+        return responseBuffer;
+    }
 
 });
