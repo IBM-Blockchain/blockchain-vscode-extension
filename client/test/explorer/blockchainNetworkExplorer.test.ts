@@ -517,6 +517,48 @@ describe('BlockchainNetworkExplorer', () => {
                 treeItems.length.should.equal(2);
                 treeItems.indexOf(connectionB).should.equal(-1);
             });
+
+            it('should handle errors thrown when connection fails', async () => {
+                const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
+
+                fabricConnection.getAllPeerNames.returns(['peerOne']);
+                fabricConnection.getAllChannelsForPeer.throws({message: 'cannot connect'});
+                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const oldChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+
+                blockchainNetworkExplorerProvider['connection'] = ((fabricConnection as any) as FabricConnection);
+                const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider, 'disconnect');
+
+                const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+
+                disconnectSpy.should.have.been.called;
+                oldChildren.should.deep.equal(allChildren);
+
+                errorSpy.should.have.been.calledWith('Error creating channel map: cannot connect');
+            });
+
+            it('should error if gRPC cant connect to Fabric', async () => {
+                const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
+
+                fabricConnection.getAllPeerNames.returns(['peerOne']);
+                fabricConnection.getAllChannelsForPeer.throws({message: 'Received http2 header with status: 503'});
+                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const oldChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+
+                blockchainNetworkExplorerProvider['connection'] = ((fabricConnection as any) as FabricConnection);
+                const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider, 'disconnect');
+
+                const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+
+                disconnectSpy.should.have.been.called;
+                oldChildren.should.deep.equal(allChildren);
+
+                errorSpy.should.have.been.calledWith('Cannot connect to Fabric: Received http2 header with status: 503');
+            });
         });
 
         describe('connected tree', () => {
