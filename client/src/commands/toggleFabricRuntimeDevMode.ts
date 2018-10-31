@@ -17,6 +17,7 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
+import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 
 export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     let runtime: FabricRuntime;
@@ -33,18 +34,26 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
 
     const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
     const newDevelopmentMode: boolean = !oldDevelopmentMode;
+
+    if (FabricConnectionManager.instance().getConnection()) {
+        // Disconnect if connected
+        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+    }
+
     await runtime.setDevelopmentMode(newDevelopmentMode);
     const running: boolean = await runtime.isRunning();
-    if (!running) {
-        return;
+    if (running) {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Blockchain Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{message: string}>) => {
+            progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
+            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            await runtime.restart(outputAdapter);
+        });
     }
-    await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Blockchain Extension',
-        cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
-        progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-        await runtime.restart(outputAdapter);
-    });
+
+    vscode.window.showInformationMessage('Successfully toggled development mode');
+
 }
