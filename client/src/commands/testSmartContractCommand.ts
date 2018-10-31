@@ -106,7 +106,6 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
             await fs.writeFileSync(runtimeConnectionProfilePath, connectionProfile);
         } catch (error) {
             vscode.window.showErrorMessage('Error writing runtime connection profile: ' + error.message);
-            await removeDirectory(testCommandDir);
             return;
         }
         connectionProfilePath = runtimeConnectionProfilePath;
@@ -145,35 +144,46 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         dataToWrite = await createDataToWrite(template, templateData);
     } catch (error) {
         vscode.window.showErrorMessage('Error creating template data: ' + error.message);
-        await removeDirectory(testCommandDir);
         return;
     }
 
-    // Create the test file
+    // Determine if test file already exists
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    const testFile: string = path.join(testCommandDir, `${chaincodeLabel}.test.js`);
+    let testFile: string = path.join(testCommandDir, `${chaincodeLabel}.test.js`);
     const testFileExists: boolean = await fs.pathExists(testFile);
+    let overwriteTestFile: string;
     if (testFileExists) {
         // Ask the user if they want to overwrite existing test file
-        const overwriteTestFile: string = await UserInputUtil.showQuickPickYesNo(`Test file for selected smart contract already exists in workspace, overwrite it?`);
-        if (overwriteTestFile === UserInputUtil.NO) {
-            // Don't create test file, user doesn't want to overwrite existing, but tell them where it is:
+        overwriteTestFile = await UserInputUtil.showTestFileOverwriteQuickPick('Test file for selected smart contract already exists in workspace, overwrite it?');
+        if (!overwriteTestFile) {
+            // User cancelled the overwrite options box, so exit
             outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
             return;
         }
-        outputAdapter.log(`Writing to Smart Contract test file: ${testFile}`);
-    } else {
-        // Test file doesn't already exist, so create it
-        try {
-            await fs.ensureFile(testFile);
-        } catch (error) {
-            console.log('Errored creating test file: ' + testFile);
-            vscode.window.showErrorMessage('Error creating test file: ' + error.message);
-            await removeDirectory(testCommandDir);
-            return;
-        }
-        outputAdapter.log(`Created Smart Contract test file: ${testFile}`);
     }
+    if (overwriteTestFile === UserInputUtil.NO) {
+        // Don't create test file, user doesn't want to overwrite existing, but tell them where it is:
+        outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
+        return;
+    } else if (overwriteTestFile === UserInputUtil.GENERATE_NEW_TEST_FILE) {
+        // Generate copy of test file, indicate a copy has been created in the file name
+        let i: number = 1;
+        while (await fs.pathExists(testFile)) {
+            testFile = path.join(testCommandDir, `${chaincodeLabel}-copy${i}.test.js`);
+            i++;
+        }
+    }
+
+    // Create the test file
+    try {
+        await fs.ensureFile(testFile);
+    } catch (error) {
+        console.log('Errored creating test file: ' + testFile);
+        vscode.window.showErrorMessage('Error creating test file: ' + error.message);
+        await removeTestFile(testFile);
+        return;
+    }
+    outputAdapter.log(`Writing to Smart Contract test file: ${testFile}`);
 
    // Open, show and write to test file
     const document: vscode.TextDocument = await vscode.workspace.openTextDocument(testFile);
@@ -190,7 +200,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         });
     if (!textEditorResult) {
         vscode.window.showErrorMessage('Error editing test file: ' + testFile);
-        await removeDirectory(testCommandDir);
+        await removeTestFile(testFile);
         return;
 
     }
@@ -218,14 +228,14 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
     });
 }
 
-async function removeDirectory(dirToRemove: string): Promise<void> {
-    console.log('Something went wrong, so cleaning up and removing test directory:', dirToRemove);
+async function removeTestFile(fileToRemove: string): Promise<void> {
+    console.log('Something went wrong, so cleaning up and removing test file:', fileToRemove);
 
     try {
-        await fs.remove(dirToRemove);
+        await fs.remove(fileToRemove);
     } catch (error) {
         if (!error.message.includes('ENOENT: no such file or directory')) {
-            vscode.window.showErrorMessage('Error removing test command directory: ' + error.message);
+            vscode.window.showErrorMessage('Error removing test file: ' + error.message);
             return;
         }
     }

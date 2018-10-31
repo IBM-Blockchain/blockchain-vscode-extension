@@ -706,4 +706,43 @@ describe('userInputUtil', () => {
         });
     });
 
+    describe('showTestFileOverwriteQuickPick', () => {
+        it('should show yes in the showTestFileOverwriteQuickPick box', async () => {
+            quickPickStub.resolves(UserInputUtil.YES);
+            const result: string = await UserInputUtil.showTestFileOverwriteQuickPick('Would you like a twix?');
+            result.should.equal(UserInputUtil.YES);
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Would you like a twix?'
+            });
+        });
+
+        it('should show no in the showTestFileOverwriteQuickPick box', async () => {
+            quickPickStub.resolves(UserInputUtil.NO);
+            const result: string = await UserInputUtil.showTestFileOverwriteQuickPick('Is it lunchtime yet?');
+            result.should.equal(UserInputUtil.NO);
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Is it lunchtime yet?'
+            });
+        });
+
+        it('should show generate copy in the showTestFileOverwriteQuickPick box', async () => {
+            quickPickStub.resolves(UserInputUtil.GENERATE_NEW_TEST_FILE);
+            const result: string = await UserInputUtil.showTestFileOverwriteQuickPick('What should I do next?');
+            result.should.equal(UserInputUtil.GENERATE_NEW_TEST_FILE);
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'What should I do next?'
+            });
+        });
+
+    });
+
 });
