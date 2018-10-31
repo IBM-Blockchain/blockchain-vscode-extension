@@ -319,26 +319,31 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectedTree(): Promise<Array<ChannelTreeItem>> {
-        console.log('createConnectedTree');
-        const tree: Array<ChannelTreeItem> = [];
+        try {
+            console.log('createConnectedTree');
+            const tree: Array<ChannelTreeItem> = [];
 
-        const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const channels: Array<string> = Array.from(channelMap.keys());
 
-        const channels: Array<string> = Array.from(channelMap.keys());
-
-        for (const channel of channels) {
-            let chaincodes: Array<string>;
-            const peers: Array<string> = channelMap.get(channel);
-            try {
-                chaincodes = await this.connection.getInstantiatedChaincode(channel);
-                tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
-            } catch (error) {
-                tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.Collapsed));
-                vscode.window.showErrorMessage('Error getting instantiated smart contracts for channel ' + channel + ' ' + error.message);
+            for (const channel of channels) {
+                let chaincodes: Array<string>;
+                const peers: Array<string> = channelMap.get(channel);
+                try {
+                    chaincodes = await this.connection.getInstantiatedChaincode(channel);
+                    tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
+                } catch (error) {
+                    tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.Collapsed));
+                    vscode.window.showErrorMessage('Error getting instantiated smart contracts for channel ' + channel + ' ' + error.message);
+                }
             }
-        }
 
-        return tree;
+            return tree;
+        } catch (error) {
+            await this.disconnect(); // This changes the context to be disconnected, so that the appropriate icons are shown
+            this.tree = await this.createConnectionTree(); // If we can't build the connectedTree, we will just rebuild the connectionTree instead (e.g. if connecting to Fabric fails)
+            throw error;
+        }
     }
 
     private async createChannelMap(): Promise<Map<string, Array<string>>> {
@@ -362,9 +367,17 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                             channelMap.set(channelName, peers);
                         }
                     });
+                }).catch((error: Error) => {
+                    if (error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
+                        return Promise.reject(`Cannot connect to Fabric: ${error.message}`);
+                    } else {
+                        return Promise.reject(`Error creating channel map: ${error.message}`);
+                    }
                 });
         }, Promise.resolve()).then(() => {
             return channelMap;
+        }, (error: string) => {
+            throw new Error(error);
         });
     }
 
