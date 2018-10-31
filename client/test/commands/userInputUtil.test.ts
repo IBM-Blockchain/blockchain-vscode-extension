@@ -158,11 +158,18 @@ describe('userInputUtil', () => {
                 placeHolder: 'choose a connection'
             });
         });
-        it('should hide managed runtime if argument passed', async () => {
-            mySandBox.stub(connectionRegistry, 'getAll').returns([connectionEntryOne, {name: 'local_fabric', managedRuntime: true}]);
+
+        it('should show managed runtime if argument passed', async () => {
+            mySandBox.stub(connectionRegistry, 'getAll').returns([connectionEntryOne]);
+
+            const managedRuntime: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            managedRuntime.name = 'local_fabric';
+            managedRuntime.managedRuntime = true;
+
+            mySandBox.stub(FabricRuntimeRegistry.instance(), 'getAll').returns([managedRuntime]);
             quickPickStub.resolves();
             await UserInputUtil.showConnectionQuickPickBox('choose a connection', true);
-            quickPickStub.should.have.been.calledWith([{label: connectionEntryOne.name, data: connectionEntryOne}]);
+            quickPickStub.should.have.been.calledWith([{label: connectionEntryOne.name, data: connectionEntryOne}, {label: managedRuntime.name, data: managedRuntime}]);
         });
     });
 

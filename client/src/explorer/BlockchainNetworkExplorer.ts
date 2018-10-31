@@ -37,6 +37,8 @@ import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 import { ConnectionPropertyTreeItem } from './model/ConnectionPropertyTreeItem';
+import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
+import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -52,6 +54,8 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     private connection: IFabricConnection = null;
 
     private connectionRegistryManager: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+
+    private runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
 
     constructor() {
         FabricConnectionManager.instance().on('connected', async (connection: IFabricConnection) => {
@@ -184,16 +188,43 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: BlockchainTreeItem[] = [];
 
         const allConnections: FabricConnectionRegistryEntry[] = this.connectionRegistryManager.getAll();
+        const allRuntimes: FabricRuntimeRegistryEntry[] = this.runtimeRegistryManager.getAll();
+
+        for (const runtime of allRuntimes) {
+            try {
+                const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                connection.name = runtime.name;
+                connection.managedRuntime = true;
+
+                const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                    runtime.name,
+                    connection,
+                    vscode.TreeItemCollapsibleState.None,
+                    {
+                        command: 'blockchainExplorer.connectEntry',
+                        title: '',
+                        arguments: [connection]
+                    });
+                tree.push(treeItem);
+            } catch (error) {
+                vscode.window.showErrorMessage(`Error populating Blockchain Explorer View: ${error.message}`);
+            }
+        }
 
         for (const connection of allConnections) {
             let collapsibleState: vscode.TreeItemCollapsibleState;
             let command: vscode.Command;
+
+            // Cleanup any managed runtimes which shouldn't be in the fabric.connections anymore
+            if (connection.managedRuntime) {
+                await this.connectionRegistryManager.delete(connection.name); // Delete managed runtime
+                continue; // Iterate to next connection
+            }
+
             if (connection.identities && connection.identities.length > 1) {
                 collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
             } else if (!FabricConnectionHelper.isCompleted(connection)) {
                 collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-            } else if (connection.managedRuntime) {
-                collapsibleState = vscode.TreeItemCollapsibleState.None;
             } else {
                 collapsibleState = vscode.TreeItemCollapsibleState.None;
                 command = {
@@ -203,17 +234,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 };
             }
 
-            if (connection.managedRuntime) {
-                try {
-                    const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                        connection.name,
-                        connection,
-                        collapsibleState);
-                    tree.push(treeItem);
-                } catch (error) {
-                    vscode.window.showErrorMessage(`Error populating Blockchain Explorer View: ${error.message}`);
-                }
-            } else if (!FabricConnectionHelper.isCompleted(connection)) {
+            if (!FabricConnectionHelper.isCompleted(connection)) {
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,
                     connection,

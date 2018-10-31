@@ -24,6 +24,8 @@ import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistr
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { IFabricConnection } from '../fabric/IFabricConnection';
+import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
+import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -44,7 +46,7 @@ export class UserInputUtil {
     static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly INSTALL_INSTANTIATE_LABEL: string = 'Install and Instantiate a new smart contract from a package';
 
-    public static showConnectionQuickPickBox(prompt: string, hideManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
+    public static showConnectionQuickPickBox(prompt: string, showManagedRuntimes?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -53,15 +55,21 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        let connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = connections.map((connection: FabricConnectionRegistryEntry) => {
+        if (showManagedRuntimes) {
+            // Allow users to choose from managed runtimes
+            const runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+            const allRuntimes: FabricRuntimeRegistryEntry[] = runtimeRegistryManager.getAll();
+            for (const runtime of allRuntimes) {
+                const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                connection.name = runtime.name;
+                connection.managedRuntime = true;
+                connections.push(connection);
+            }
+        }
+
+        const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = connections.map((connection: FabricConnectionRegistryEntry) => {
             return {label: connection.name, data: connection};
         });
-
-        if (hideManagedRuntime) {
-            connectionsQuickPickItems = connectionsQuickPickItems.filter((connection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry>) => {
-                return connection.label !== 'local_fabric';
-            });
-        }
 
         return vscode.window.showQuickPick(connectionsQuickPickItems, quickPickOptions);
     }

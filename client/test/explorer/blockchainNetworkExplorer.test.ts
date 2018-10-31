@@ -395,17 +395,12 @@ describe('BlockchainNetworkExplorer', () => {
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
 
-                const connections: any = [{
-                    name: 'myBrokenRuntime',
-                    managedRuntime: true
-                }];
-
                 const runtimes: any = [{
                     name: 'myBrokenRuntime',
                     developmentMode: false
                 }];
 
-                await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
 
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects({message: 'some error'});
@@ -420,10 +415,6 @@ describe('BlockchainNetworkExplorer', () => {
 
             it('should display managed runtimes with single identities', async () => {
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
-                const connections: any = [{
-                    name: 'myRuntime',
-                    managedRuntime: true
-                }];
 
                 const runtimes: any = [{
                     name: 'myRuntime',
@@ -431,7 +422,7 @@ describe('BlockchainNetworkExplorer', () => {
                 }];
 
                 // reset the available connections
-                await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
 
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
@@ -446,8 +437,9 @@ describe('BlockchainNetworkExplorer', () => {
                     setTimeout(resolve, 0);
                 });
 
-                const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myRuntime');
-
+                const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                connection.name = 'myRuntime';
+                connection.managedRuntime = true;
                 const myCommand: vscode.Command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
@@ -459,7 +451,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const runtimeTreeItem: RuntimeTreeItem = allChildren[0] as RuntimeTreeItem;
                 runtimeTreeItem.label.should.equal('myRuntime  ●');
                 runtimeTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                runtimeTreeItem.connection.should.deep.equal(connections[0]);
+                runtimeTreeItem.connection.should.deep.equal(connection);
                 runtimeTreeItem.command.should.deep.equal(myCommand);
                 allChildren[1].label.should.equal('+ Add new connection');
             });
@@ -492,6 +484,38 @@ describe('BlockchainNetworkExplorer', () => {
 
                 result[0].collapsibleState.should.equal(2); // Should be an expanded tree item
                 result[0].label.should.equal('uncompletedConnection');
+            });
+
+            it('should delete any managed runtimes from fabric.connections', async () => {
+
+                const rootPath: string = path.dirname(__dirname);
+                const deleteSpy: sinon.SinonSpy = mySandBox.spy(FabricConnectionRegistry.instance(), 'delete');
+
+                const connectionA: any = {
+                    name: 'myConnection',
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    identities: [{
+                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/badPath/certificate'),
+                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                    }]
+                };
+                const connectionB: any = {
+                    name: 'local_fabric',
+                    managedRuntime: true
+                };
+
+                const connections: Array<any> = [connectionA, connectionB];
+
+                await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+
+                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+
+                const treeItems: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+
+                deleteSpy.should.have.been.calledWith(connectionB.name);
+
+                treeItems.length.should.equal(2);
+                treeItems.indexOf(connectionB).should.equal(-1);
             });
         });
 

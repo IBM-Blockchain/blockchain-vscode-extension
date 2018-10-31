@@ -73,7 +73,9 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         } else if (running) {
             // Running!
             this.disableBusyTicker();
-            const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get(this.name);
+            const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            connection.name = this.name;
+            connection.managedRuntime = true;
             newLabel += '●';
             newCommand = {
                 command: 'blockchainExplorer.connectEntry',

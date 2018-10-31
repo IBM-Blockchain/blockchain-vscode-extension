@@ -110,14 +110,16 @@ describe('DeleteConnectionCommand', () => {
 
             connections.push(myConnectionA);
 
-            connections.push({
+            const myConnectionB: any = {
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
                 identities: [{
                     certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
                 }]
-            });
+            };
+
+            connections.push(myConnectionB);
 
             await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
 
@@ -131,7 +133,7 @@ describe('DeleteConnectionCommand', () => {
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(1);
-            connections[0].should.deep.equal(myConnectionA);
+            connections[0].should.deep.equal(myConnectionB);
         });
 
         it('should test delete connection can be cancelled', async () => {
