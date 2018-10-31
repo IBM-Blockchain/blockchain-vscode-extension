@@ -174,6 +174,9 @@ describe('testSmartContractCommand', () => {
             templateData.includes(fakeMetadataFunctions[0]).should.be.true;
             templateData.includes(fakeMetadataFunctions[1]).should.be.true;
             templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
             errorSpy.should.not.have.been.called;
         });
 
@@ -280,6 +283,9 @@ describe('testSmartContractCommand', () => {
             templateData.includes(fakeMetadataFunctions[0]).should.be.true;
             templateData.includes(fakeMetadataFunctions[1]).should.be.true;
             templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
             errorSpy.should.not.have.been.called;
         });
 
@@ -446,6 +452,9 @@ describe('testSmartContractCommand', () => {
             templateData.includes(fakeMetadataFunctions[0]).should.be.true;
             templateData.includes(fakeMetadataFunctions[1]).should.be.true;
             templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
             errorSpy.should.not.have.been.called;
         });
 

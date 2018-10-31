@@ -180,7 +180,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
 
     const showTextDocumentOptions: any = {
         preserveFocus: true,
-        selection: new vscode.Range(1, 0, 3, 0) // TODO: get this to highlight comment when it's added
+        selection: new vscode.Range(0, 0, 12, 2) // Only highlights comment when overwriting the test file
     };
     const textEditor: vscode.TextEditor = await vscode.window.showTextDocument(document, showTextDocumentOptions);
 
