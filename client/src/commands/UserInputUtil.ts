@@ -56,6 +56,7 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
+        const managedRuntimes: Array<FabricConnectionRegistryEntry> = [];
         if (showManagedRuntimes) {
             // Allow users to choose from managed runtimes
             const runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
@@ -64,11 +65,15 @@ export class UserInputUtil {
                 const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
                 connection.name = runtime.name;
                 connection.managedRuntime = true;
-                connections.push(connection);
+                managedRuntimes.push(connection);
             }
         }
 
-        const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = connections.map((connection: FabricConnectionRegistryEntry) => {
+        const allConnections: Array<FabricConnectionRegistryEntry> = [];
+        allConnections.push(...connections);
+        allConnections.push(...managedRuntimes);
+
+        const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = allConnections.map((connection: FabricConnectionRegistryEntry) => {
             return {label: connection.name, data: connection};
         });
 

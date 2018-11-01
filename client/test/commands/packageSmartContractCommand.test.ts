@@ -101,7 +101,8 @@ describe('packageSmartContract', () => {
     let buildTasks: vscode.Task[];
     let executeTaskStub: sinon.SinonStub;
 
-    beforeEach(async () => {
+    beforeEach(async function(): Promise<void> {
+        this.timeout(10000);
         mySandBox = sinon.createSandbox();
 
         await TestUtil.deleteTestFiles(fileDest);
@@ -222,7 +223,7 @@ describe('packageSmartContract', () => {
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
             executeTaskStub.should.have.not.been.called;
-        }).timeout(4000);
+        }).timeout(10000);
 
         it('should package the TypeScript project', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);

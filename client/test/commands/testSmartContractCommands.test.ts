@@ -129,7 +129,6 @@ describe('testSmartContractCommand', () => {
             });
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            blockchainNetworkExplorerProvider['connection'] = ((fabricClientConnectionMock as any) as FabricConnection);
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
             channel = allChildren[0] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
@@ -191,8 +190,8 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should connect if there is no connection', async () => {
-            getConnectionStub.onFirstCall().returns(null);
-            getConnectionStub.onSecondCall().returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
@@ -206,7 +205,6 @@ describe('testSmartContractCommand', () => {
 
         it('should handle connecting being cancelled', async () => {
             getConnectionStub.returns(null);
-
             await testSmartContract();
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             showChannelQuickPickStub.should.not.have.been.called;
@@ -431,7 +429,6 @@ describe('testSmartContractCommand', () => {
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            blockchainNetworkExplorerProvider['connection'] = ((fabricRuntimeConnectionMock as any) as FabricConnection);
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
             channel = allChildren[0] as ChannelTreeItem;
             chaincodes = channel.chaincodes;

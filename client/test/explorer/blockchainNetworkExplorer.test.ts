@@ -523,12 +523,13 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
 
+                const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection );
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({message: 'cannot connect'});
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const oldChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-                blockchainNetworkExplorerProvider['connection'] = ((fabricConnection as any) as FabricConnection);
                 const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider, 'disconnect');
 
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
@@ -543,13 +544,14 @@ describe('BlockchainNetworkExplorer', () => {
                 const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
+                const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection );
 
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({message: 'Received http2 header with status: 503'});
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const oldChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-                blockchainNetworkExplorerProvider['connection'] = ((fabricConnection as any) as FabricConnection);
                 const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider, 'disconnect');
 
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
@@ -601,7 +603,8 @@ describe('BlockchainNetworkExplorer', () => {
                 }]);
 
                 blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                blockchainNetworkExplorerProvider['connection'] = ((fabricConnection as any) as FabricConnection);
+                const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection );
 
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
             });
@@ -1010,8 +1013,6 @@ describe('BlockchainNetworkExplorer', () => {
 
             onDidChangeTreeDataSpy.should.have.been.called;
 
-            blockchainNetworkExplorerProvider['connection'].should.deep.equal(myConnection);
-
             executeCommandSpy.should.have.been.calledOnce;
             executeCommandSpy.getCall(0).should.have.been.calledWith('setContext', 'blockchain-connected', true);
         });
@@ -1035,7 +1036,6 @@ describe('BlockchainNetworkExplorer', () => {
             const myConnection: TestFabricConnection = new TestFabricConnection();
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            blockchainNetworkExplorerProvider['connection'] = myConnection;
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -1044,8 +1044,6 @@ describe('BlockchainNetworkExplorer', () => {
             await blockchainNetworkExplorerProvider.disconnect();
 
             onDidChangeTreeDataSpy.should.have.been.called;
-
-            should.not.exist(blockchainNetworkExplorerProvider['connection']);
 
             executeCommandSpy.should.have.been.calledOnce;
             executeCommandSpy.getCall(0).should.have.been.calledWith('setContext', 'blockchain-connected', false);
