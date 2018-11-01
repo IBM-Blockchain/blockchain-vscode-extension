@@ -100,6 +100,7 @@ describe('FabricConnection', () => {
         };
 
         fabricGatewayStub.getNetwork.returns(fabricNetworkStub);
+        fabricGatewayStub.disconnect.returns(null);
 
         fabricConnection['gateway'] = fabricGatewayStub;
     });
@@ -342,5 +343,12 @@ describe('FabricConnection', () => {
             functionArray.should.deep.equal(["instantiate", "wagonwheeling" , "transaction2"]);
         });
 
+    });
+
+    describe('disconnect', () => {
+        it('should disconnect from gateway', async () => {
+            await fabricConnection.disconnect();
+            fabricGatewayStub.disconnect.should.have.been.called;
+        });
     });
 });

@@ -48,6 +48,7 @@ import { teardownFabricRuntime } from './commands/teardownFabricRuntime';
 import { exportSmartContractPackage } from './commands/exportSmartContractPackageCommand';
 import { PackageTreeItem } from './explorer/model/PackageTreeItem';
 import { FabricDebugConfigurationProvider } from './debug/FabricDebugConfigurationProvider';
+import { FabricConnectionManager } from './fabric/FabricConnectionManager';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -113,7 +114,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identity: {certificatePath: string, privateKeyPath: string}) => connect(connection, identity)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.disconnectEntry', () => blockchainNetworkExplorerProvider.disconnect()));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.disconnectEntry', () => FabricConnectionManager.instance().disconnect()));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionEntry', addConnection));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.deleteConnectionEntry', (connection: ConnectionTreeItem) => deleteConnection(connection)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionIdentityEntry', (connection: ConnectionTreeItem) => addConnectionIdentity(connection)));

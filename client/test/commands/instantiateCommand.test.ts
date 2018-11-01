@@ -96,7 +96,6 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
 
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            blockchainNetworkExplorerProvider['connection'] = ((fabricClientConnectionMock as any) as FabricConnection);
 
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
         });
@@ -114,21 +113,20 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
-            getConnectionStub.onFirstCall().returns(null);
-            getConnectionStub.onSecondCall().returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
 
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully instantiated / upgraded smart contract');
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.returns(null);
-
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(null);
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-
+            console.log('count', getConnectionStub.callCount);
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
         });

@@ -80,7 +80,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     async connect(connection: IFabricConnection): Promise<void> {
         console.log('connect', connection);
-        this.connection = connection;
         // This controls which menu buttons appear
         await vscode.commands.executeCommand('setContext', 'blockchain-connected', true);
         await this.refresh();
@@ -88,10 +87,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     async disconnect(): Promise<void> {
         console.log('disconnect');
-        if (this.connection) {
-            this.connection.disconnect();
-        }
-        this.connection = null;
         // This controls which menu buttons appear
         await vscode.commands.executeCommand('setContext', 'blockchain-connected', false);
         await this.refresh();
@@ -145,7 +140,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 return this.tree;
             }
 
-            if (this.connection) {
+            if (FabricConnectionManager.instance().getConnection()) {
                 this.tree = await this.createConnectedTree();
             } else {
                 this.tree = await this.createConnectionTree();
@@ -306,7 +301,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         for (const peer of peersElement.peers) {
             try {
-                const chaincodes: Map<string, Array<string>> = await this.connection.getInstalledChaincode(peer);
+                const chaincodes: Map<string, Array<string>> = await FabricConnectionManager.instance().getConnection().getInstalledChaincode(peer);
                 const collapsibleState: vscode.TreeItemCollapsibleState = chaincodes.size > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
                 tree.push(new PeerTreeItem(this, peer, chaincodes, collapsibleState));
             } catch (error) {
@@ -330,7 +325,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 let chaincodes: Array<string>;
                 const peers: Array<string> = channelMap.get(channel);
                 try {
-                    chaincodes = await this.connection.getInstantiatedChaincode(channel);
+                    chaincodes = await FabricConnectionManager.instance().getConnection().getInstantiatedChaincode(channel);
                     tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
                 } catch (error) {
                     tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.Collapsed));
@@ -348,13 +343,13 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     private async createChannelMap(): Promise<Map<string, Array<string>>> {
         console.log('createChannelMap');
-        const allPeerNames: Array<string> = await this.connection.getAllPeerNames();
+        const allPeerNames: Array<string> = await FabricConnectionManager.instance().getConnection().getAllPeerNames();
 
         const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
         return allPeerNames.reduce((promise: Promise<void>, peerName: string) => {
             return promise
                 .then(() => {
-                    return this.connection.getAllChannelsForPeer(peerName);
+                    return FabricConnectionManager.instance().getConnection().getAllChannelsForPeer(peerName);
                 })
                 .then((channels: Array<any>) => {
                     channels.forEach((channelName: string) => {
