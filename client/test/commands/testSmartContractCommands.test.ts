@@ -256,25 +256,34 @@ describe('testSmartContractCommand', () => {
             await testSmartContract(instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
             errorSpy.should.have.been.calledWith('Error creating template data: some error');
-            fsRemoveStub.should.have.been.called;
         });
 
         it('should not overwrite an existing test file if the user says no', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
-            const showQuickPickYesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
+            const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.NO);
 
             await testSmartContract(instantiatedSmartContract);
-            showQuickPickYesNoStub.should.have.been.called;
+            showTestFileOverwriteQuickPickStub.should.have.been.called;
+            openTextDocumentStub.should.not.have.been.called;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should not overwrite an existing test file if the user cancels the overwrite quick pick box', async () => {
+            mySandBox.stub(fs, 'pathExists').resolves(true);
+            const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(undefined);
+
+            await testSmartContract(instantiatedSmartContract);
+            showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
         });
 
         it('should overwrite an existing test file if the user says yes', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
-            const showQuickPickYesNoStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.YES);
+            const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.YES);
 
             await testSmartContract(instantiatedSmartContract);
-            showQuickPickYesNoStub.should.have.been.called;
+            showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
@@ -286,6 +295,27 @@ describe('testSmartContractCommand', () => {
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should generate a copy of the test file if the user tells it to', async () => {
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(true);
+            pathExistsStub.onCall(1).resolves(true);
+            pathExistsStub.callThrough();
+            const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.GENERATE_NEW_TEST_FILE);
+            const testFilePath: string = path.join(testFileDir, 'test', smartContractName, `${smartContractName}-copy1.test.js`);
+
+            await testSmartContract(instantiatedSmartContract);
+            showTestFileOverwriteQuickPickStub.should.have.been.called;
+            openTextDocumentStub.should.have.been.calledWith(testFilePath);
+            showTextDocumentStub.should.have.been.called;
+            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            templateData.should.not.equal('');
+            templateData.includes(smartContractName).should.be.true;
+            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
+            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
+            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
             errorSpy.should.not.have.been.called;
         });
 
@@ -326,22 +356,26 @@ describe('testSmartContractCommand', () => {
             reporterStub.should.have.been.calledWith('testSmartContractCommand');
         });
 
-        it('should handle errors when attempting to remove created test directory', async () => {
-            mySandBox.stub(ejs, 'renderFile').yields({message: 'some error'}, null);
+        it('should handle errors when attempting to remove created test file', async () => {
+            mySandBox.stub(fs, 'ensureFile').rejects();
             fsRemoveStub.rejects({message: 'some other error'});
 
             await testSmartContract(instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
-            errorSpy.should.have.been.calledWith('Error removing test command directory: some other error');
+            errorSpy.should.have.been.calledWith('Error removing test file: some other error');
+            fsRemoveStub.should.have.been.called;
+            openTextDocumentStub.should.not.have.been.called;
         });
 
-        it('should not show error for removing non-existent test directory', async () => {
-            mySandBox.stub(ejs, 'renderFile').yields({message: 'some error'}, null);
+        it('should not show error for removing non-existent test file', async () => {
+            mockTextEditor.edit.resolves(false);
             fsRemoveStub.rejects({message: 'ENOENT: no such file or directory'});
+            const testFilePath: string = path.join(testFileDir, 'test', smartContractName, `${smartContractName}.test.js`);
 
             await testSmartContract(instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
-            errorSpy.should.have.been.calledWith('Error creating template data: some error');
+            errorSpy.should.have.been.calledOnceWith('Error editing test file: ' + testFilePath);
+            fsRemoveStub.should.have.been.called;
         });
 
     });
@@ -466,7 +500,6 @@ describe('testSmartContractCommand', () => {
             await testSmartContract(instantiatedSmartContract);
             getDirPathStub.should.have.been.calledOnce;
             errorSpy.should.have.been.calledWith('Error writing runtime connection profile: some error');
-            fsRemoveStub.should.have.been.called;
         });
 
     });

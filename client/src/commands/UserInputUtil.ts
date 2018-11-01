@@ -45,6 +45,7 @@ export class UserInputUtil {
     static readonly BROWSE_LABEL: string = '📁 Browse';
     static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly INSTALL_INSTANTIATE_LABEL: string = 'Install and Instantiate a new smart contract from a package';
+    static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
 
     public static showConnectionQuickPickBox(prompt: string, showManagedRuntimes?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
@@ -425,6 +426,18 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    public static async showTestFileOverwriteQuickPick(prompt: string): Promise<string | undefined> {
+        const options: Array<string> = [this.YES, this.NO, this.GENERATE_NEW_TEST_FILE];
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(options, quickPickOptions);
+
     }
 
 }
