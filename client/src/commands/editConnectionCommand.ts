@@ -19,6 +19,7 @@ import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { ConnectionPropertyTreeItem } from '../explorer/model/ConnectionPropertyTreeItem';
+import { ParsedCertificate } from '../fabric/ParsedCertificate';
 
 export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem): Promise < {} | void > {
     console.log('editConnection', treeItem);
@@ -70,35 +71,43 @@ export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem
 }
 
 async function updateConnection(propertyToEdit: string, connectionName: string): Promise<void> {
-
-    // Get the placeholder text for the chosen property
-    const placeHolder: string = getPlaceHolder(propertyToEdit);
-    if (!placeHolder) {
-        return;
-    }
-
-    const result: string = await UserInputUtil.browseEdit(placeHolder, connectionName);
-    if (!result) {
-        return;
-    } else {
-
-        // Get the connection from registry
-        const fabricConnectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
-        const connection: FabricConnectionRegistryEntry = fabricConnectionRegistry.get(connectionName);
-
-        // Update the connection with data given for the property
-        if (propertyToEdit === 'Connection Profile') {
-            connection.connectionProfilePath = result;
-        } else if (propertyToEdit === 'Certificate') {
-            connection.identities[0].certificatePath = result;
-        } else {
-            connection.identities[0].privateKeyPath = result;
+    try {
+        // Get the placeholder text for the chosen property
+        const placeHolder: string = getPlaceHolder(propertyToEdit);
+        if (!placeHolder) {
+            return;
         }
 
-        // Update the registry with new connection data
-        await fabricConnectionRegistry.update(connection);
+        const result: string = await UserInputUtil.browseEdit(placeHolder, connectionName);
+        if (!result) {
+            return;
+        } else {
 
-        await vscode.window.showInformationMessage('Successfully updated connection');
+            // Get the connection from registry
+            const fabricConnectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+            const connection: FabricConnectionRegistryEntry = fabricConnectionRegistry.get(connectionName);
+
+            // Update the connection with data given for the property
+            if (propertyToEdit === 'Connection Profile') {
+                connection.connectionProfilePath = result;
+            } else if (propertyToEdit === 'Certificate') {
+                console.log('result', result);
+                ParsedCertificate.validPEM(result, 'certificate');
+
+                connection.identities[0].certificatePath = result;
+            } else {
+                ParsedCertificate.validPEM(result, 'private key');
+
+                connection.identities[0].privateKeyPath = result;
+            }
+
+            // Update the registry with new connection data
+            await fabricConnectionRegistry.update(connection);
+
+            await vscode.window.showInformationMessage('Successfully updated connection');
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(`Failed to edit connection: ${error.message}`);
     }
 }
 

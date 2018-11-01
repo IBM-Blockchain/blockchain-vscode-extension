@@ -22,6 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import {TestUtil} from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
+import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
 
 chai.should();
 chai.use(sinonChai);
@@ -54,7 +55,7 @@ describe('AddConnectionCommand', () => {
         it('should test a completed connection can be added', async () => {
             const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-
+            mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
             const rootPath: string = path.dirname(__dirname);
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
@@ -113,6 +114,7 @@ describe('AddConnectionCommand', () => {
             const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             const rootPath: string = path.dirname(__dirname);
+            mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
 
             showInputBoxStub.onFirstCall().resolves('myConnection');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
@@ -274,6 +276,37 @@ describe('AddConnectionCommand', () => {
                     privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
                 }]
             });
+        });
+
+        it('should throw an error if certificate is invalid', async () => {
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            mySandBox.stub(ParsedCertificate, 'validPEM').throws({message: 'Could not validate certificate: invalid pem'});
+            const rootPath: string = path.dirname(__dirname);
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            showInputBoxStub.onFirstCall().resolves('myConnection');
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
+
+            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+
+            errorSpy.should.have.been.calledWith('Failed to add a new connection: Could not validate certificate: invalid pem');
+        });
+
+        it('should throw an error if private key is invalid', async () => {
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            mySandBox.stub(ParsedCertificate, 'validPEM').onSecondCall().throws({message: 'Could not validate private key: invalid pem'});
+            const rootPath: string = path.dirname(__dirname);
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            showInputBoxStub.onFirstCall().resolves('myConnection');
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
+            browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
+
+            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+
+            errorSpy.should.have.been.calledWith('Failed to add a new connection: Could not validate private key: invalid pem');
         });
     });
 });
