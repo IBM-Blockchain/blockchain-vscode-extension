@@ -74,6 +74,36 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
     }
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
+    // Only generate the test file if the smart contract is open in the workspace
+    let workspaceFolders: Array<vscode.WorkspaceFolder>;
+    try {
+        workspaceFolders = await UserInputUtil.getWorkspaceFolders();
+    } catch (error) {
+        vscode.window.showErrorMessage('Error determining workspace folders: ' + error.message);
+        return;
+    }
+    if (workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace`);
+        return;
+    }
+    const packageJSONSearch: Array<vscode.Uri> = await vscode.workspace.findFiles('**/package.json', '**/node_modules/**', workspaceFolders.length);
+    let packageJSONFound: vscode.Uri;
+    let functionalTestsDirectory: string;
+    for (packageJSONFound of packageJSONSearch) {
+        const packageJSONBuffer: Buffer = await fs.readFile(packageJSONFound.path);
+        const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
+        const workspaceProjectName: string = packageJSONObj.name;
+        if (workspaceProjectName === chaincodeName) {
+            // Smart contract is open in workspace
+            functionalTestsDirectory = path.join(packageJSONFound.fsPath, '..', 'functionalTests');
+            break;
+        }
+    }
+    if (!functionalTestsDirectory) {
+        vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace`);
+        return;
+    }
+
     // Get the metadata for the chosen instantiated smart contract
     const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
     let metadataObj: any;
@@ -149,7 +179,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
 
     // Determine if test file already exists
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    let testFile: string = path.join(testCommandDir, `${chaincodeLabel}.test.js`);
+    let testFile: string = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.js`);
     const testFileExists: boolean = await fs.pathExists(testFile);
     let overwriteTestFile: string;
     if (testFileExists) {
@@ -169,7 +199,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         // Generate copy of test file, indicate a copy has been created in the file name
         let i: number = 1;
         while (await fs.pathExists(testFile)) {
-            testFile = path.join(testCommandDir, `${chaincodeLabel}-copy${i}.test.js`);
+            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.js`);
             i++;
         }
     }
