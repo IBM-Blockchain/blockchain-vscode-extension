@@ -27,6 +27,8 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { MetadataUtil } from '../util/MetadataUtil';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -336,6 +338,8 @@ export class UserInputUtil {
     }
 
     public static async browseEdit(placeHolder: string, connectionName: string, filters?: any): Promise<string> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
         const options: string[] = [this.BROWSE_LABEL, this.EDIT_LABEL];
         try {
             const result: string = await vscode.window.showQuickPick(options, { placeHolder });
@@ -366,12 +370,14 @@ export class UserInputUtil {
 
             }
         } catch (error) {
-            vscode.window.showErrorMessage(error.message);
+            outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
 
     }
 
     public static async openUserSettings(connectionName: string): Promise<void> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
         let settingsPath: string;
 
         try {
@@ -411,7 +417,7 @@ export class UserInputUtil {
                 selection: new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(endLine, 0))
             });
         } catch (error) {
-            vscode.window.showErrorMessage(error.message);
+            outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
     }
 
@@ -434,11 +440,12 @@ export class UserInputUtil {
     }
 
     public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
 
         if (!connection) {
-            vscode.window.showErrorMessage('No connection to a blockchain found');
+            outputAdapter.log(LogType.ERROR, 'No connection to a blockchain found');
             return;
         }
 
@@ -463,7 +470,7 @@ export class UserInputUtil {
         }
 
         if (instantiatedChaincodes.length === 0) {
-            vscode.window.showInformationMessage('No instantiated chaincodes within connection');
+            outputAdapter.log(LogType.ERROR, 'No instantiated chaincodes within connection');
             return;
         }
 
@@ -499,7 +506,7 @@ export class UserInputUtil {
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
 
         if (!connection) {
-            vscode.window.showErrorMessage('No connection to a blockchain found');
+            VSCodeOutputAdapter.instance().log(LogType.ERROR, 'No connection to a blockchain found');
             return;
         }
 

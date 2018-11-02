@@ -28,6 +28,8 @@ import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnection
 import * as myExtension from '../../src/extension';
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -155,29 +157,31 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should throw an error if certificate is invalid', async () => {
-                mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws({message: 'Could not validate certificate: invalid PEM'});
+                const error: Error = new Error('Could not validate certificate: invalid PEM');
+                mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws(error);
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
                 mySandBox.stub(vscode.window, 'showQuickPick').resolves('Certificate');
                 mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', identities: [{certificatePath: '', privateKeyPath: '/some/path'}]}});
                 mySandBox.stub(UserInputUtil, 'browseEdit').resolves('/some/path');
                 mySandBox.stub(FabricConnectionRegistry.instance(), 'get').returns({connectionProfilePath: '/some/path', identities: [{certificatePath: '', privateKeyPath: '/some/path'}]});
-                const showErrorMessageSpy: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage');
+                const logSpy: sinon.SinonSpy = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
 
                 await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
-                showErrorMessageSpy.should.have.been.calledWith('Failed to edit connection: Could not validate certificate: invalid PEM');
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit connection: ${error.message}`, `Failed to edit connection: ${error.toString()}`);
             });
 
             it('should throw an error if private key is invalid', async () => {
-                mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws({message: 'Could not validate private key: invalid PEM'});
+                const error: Error = new Error('Could not validate private key: invalid PEM');
+                mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws(error);
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
                 mySandBox.stub(vscode.window, 'showQuickPick').resolves('Private Key');
                 mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', identities: [{certificatePath: '/some/path', privateKeyPath: ''}]}});
                 mySandBox.stub(UserInputUtil, 'browseEdit').resolves('/some/path');
                 mySandBox.stub(FabricConnectionRegistry.instance(), 'get').returns({connectionProfilePath: '/some/path', identities: [{certificatePath: '/some/path', privateKeyPath: ''}]});
-                const showErrorMessageSpy: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage');
+                const logSpy: sinon.SinonSpy = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
 
                 await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
-                showErrorMessageSpy.should.have.been.calledWith('Failed to edit connection: Could not validate private key: invalid PEM');
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit connection: ${error.message}`, `Failed to edit connection: ${error.toString()}`);
             });
         });
 

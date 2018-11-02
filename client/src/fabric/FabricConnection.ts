@@ -19,7 +19,8 @@ import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import * as uuid from 'uuid/v4';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType, OutputAdapter } from '../logging/OutputAdapter';
+import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 
 export abstract class FabricConnection implements IFabricConnection {
 
@@ -27,11 +28,17 @@ export abstract class FabricConnection implements IFabricConnection {
     private identityName: string = uuid();
     private gateway: Gateway = new Gateway();
     private networkIdProperty: boolean;
+    private outputAdapter: OutputAdapter;
 
-    constructor() {
+    constructor(outputAdapter?: OutputAdapter) {
         this.wallet = new InMemoryWallet();
         this.identityName = uuid();
         this.gateway = new Gateway();
+        if (!outputAdapter) {
+            this.outputAdapter = ConsoleOutputAdapter.instance();
+        } else {
+            this.outputAdapter = outputAdapter;
+        }
     }
 
     public isIBPConnection(): boolean {
@@ -144,14 +151,13 @@ export abstract class FabricConnection implements IFabricConnection {
 
         let proposalResponseObject: Client.ProposalResponseObject;
 
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         let message: string;
 
         if (foundChaincode) {
             throw new Error('The name of the contract you tried to instantiate is already instantiated');
         } else {
             message = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
-            outputAdapter.log(message);
+            this.outputAdapter.log(LogType.INFO, undefined, message);
             proposalResponseObject = await channel.sendInstantiateProposal(instantiateRequest);
         }
 
@@ -252,12 +258,11 @@ export abstract class FabricConnection implements IFabricConnection {
 
         let proposalResponseObject: Client.ProposalResponseObject;
 
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         let message: string;
 
         if (foundChaincode) {
             message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
-            outputAdapter.log(message);
+            this.outputAdapter.log(LogType.INFO, undefined, message);
             proposalResponseObject = await channel.sendUpgradeProposal(upgradeRequest);
         } else {
             //

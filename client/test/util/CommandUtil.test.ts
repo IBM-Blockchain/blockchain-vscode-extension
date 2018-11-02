@@ -21,6 +21,7 @@ import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -115,7 +116,7 @@ describe('CommandUtil Tests', () => {
             spawnSpy.should.have.been.calledOnce;
             spawnSpy.should.have.been.calledWith(cmd, args);
 
-            outputSpy.should.have.been.calledWith('hyperlegendary');
+            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, 'hyperlegendary');
         });
 
         it('should send a command and handle error', async () => {

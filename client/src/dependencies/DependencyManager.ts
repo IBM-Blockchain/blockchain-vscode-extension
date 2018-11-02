@@ -23,6 +23,7 @@ import * as vscode from 'vscode';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import { TemporaryCommandRegistry } from './TemporaryCommandRegistry';
+import { LogType } from '../logging/OutputAdapter';
 
 export class DependencyManager {
 
@@ -90,11 +91,11 @@ export class DependencyManager {
 
             const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-            outputAdapter.log('Updating native node modules');
+            outputAdapter.log(LogType.INFO, undefined, 'Updating native node modules');
             progress.report({message: 'Updating native node modules'});
 
             for (const dependency of this.dependencies) {
-                outputAdapter.log('Rebuilding native node modules');
+                outputAdapter.log(LogType.INFO, undefined, 'Rebuilding native node modules');
                 progress.report({message: 'Rebuilding native node modules'});
 
                 // npm needs to run in a shell on Windows
@@ -104,19 +105,17 @@ export class DependencyManager {
                     await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
-                    outputAdapter.error(`Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
-                    vscode.window.showErrorMessage(`Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
-
+                    outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
                     throw error;
                 }
 
                 progress.report({message: `Updating ${dependency.moduleName}`});
-                outputAdapter.log(`Updating ${dependency.moduleName}`);
+                outputAdapter.log(LogType.INFO, undefined, `Updating ${dependency.moduleName}`);
                 await fs.remove(`${extensionPath}/${dependency.original}`);
                 await fs.rename(`${extensionPath}/${dependency.new}`, `${extensionPath}/${dependency.original}`);
             }
 
-            outputAdapter.log('Finished updating native node modules');
+            outputAdapter.log(LogType.SUCCESS, undefined, 'Finished updating native node modules');
             progress.report({message: 'Finished updating native node modules'});
         });
     }

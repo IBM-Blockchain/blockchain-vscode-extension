@@ -19,9 +19,12 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem): Promise<void> {
-
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'upgradeSmartContract');
     let channelName: string;
     let peers: Set<string>;
     let packageEntry: PackageRegistryEntry;
@@ -113,11 +116,11 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');
 
-            vscode.window.showInformationMessage('Successfully upgraded smart contract');
+            outputAdapter.log(LogType.SUCCESS, `Successfully upgraded smart contract`);
             await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         });
     } catch (error) {
-        vscode.window.showErrorMessage('Error upgrading smart contract: ' + error.message);
+        outputAdapter.log(LogType.ERROR, `Error upgrading smart contract: ${error.message}`);
         throw error;
     }
 }

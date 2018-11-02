@@ -23,6 +23,7 @@ import * as yeoman from 'yeoman-environment';
 import { YeomanAdapter } from '../util/YeomanAdapter';
 import * as util from 'util';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { LogType } from '../logging/OutputAdapter';
 
 class GeneratorDependencies {
     needYo: boolean = false;
@@ -39,6 +40,8 @@ class GeneratorDependencies {
 
 export async function createSmartContractProject(generator: string = 'fabric:contract'): Promise<void> {
     console.log('create Smart Contract Project');
+    // Create and show output channel
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     // check for yo and generator-fabric
     const dependencies: GeneratorDependencies = await checkGeneratorDependenciesWithProgress();
@@ -50,13 +53,10 @@ export async function createSmartContractProject(generator: string = 'fabric:con
     if (dependencies.missingDependencies()) {
         const installPermission: string = await UserInputUtil.showQuickPickYesNo('Can this extension install missing npm packages before proceeding?');
         if (installPermission !== UserInputUtil.YES) {
-            vscode.window.showErrorMessage('npm modules: yo and generator-fabric are required before creating a smart contract project');
+            outputAdapter.log(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
             return;
         }
     }
-
-    // Create and show output channel
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     // Install missing node modules
     if (dependencies.missingDependencies()) {
@@ -68,11 +68,11 @@ export async function createSmartContractProject(generator: string = 'fabric:con
 
     let smartContractLanguageOptions: string[];
     let smartContractLanguage: string;
-    outputAdapter.log('Getting smart contract languages...');
+    outputAdapter.log(LogType.INFO, 'Getting smart contract languages...');
     try {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
-        vscode.window.showErrorMessage('Issue determining available smart contract language options: ' + error.message);
+        outputAdapter.log(LogType.ERROR, `Issue determining available smart contract language options: ${error.message}`, `Issue determining available smart contract language options: ${error.toString()}`);
         return;
     }
 
@@ -139,15 +139,14 @@ export async function createSmartContractProject(generator: string = 'fabric:con
             await env.run(generator, runOptions);
         });
 
-        outputAdapter.log('Successfully generated smart contract project');
+        outputAdapter.log(LogType.SUCCESS, 'Successfully generated smart contract project');
 
         Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
         // Open the returned folder in explorer, in a new window
         console.log('new smart contract project folder is :' + folderPath);
         await UserInputUtil.openNewProject(openMethod, folderUri);
     } catch (error) {
-        vscode.window.showErrorMessage('Issue creating smart contract project');
-        outputAdapter.log(error);
+        outputAdapter.log(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
         return;
     }
 
@@ -168,6 +167,9 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
     let needYo: boolean = false;
     let needGenFab: boolean = false;
 
+    // Create and show output channel
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
     try {
         await CommandUtil.sendCommand('npm view yo version');
         console.log('yo is installed');
@@ -186,11 +188,9 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
                 // The users global installation of generator-fabric is out of date
                 console.log('Updating generator-fabric as it is out of date');
 
-                const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-
                 const npmUpdateOut: string = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + versionToInstall, '', 'Updating generator-fabric...');
-                outputAdapter.log(npmUpdateOut);
-                outputAdapter.log('Successfully updated to latest version of generator-fabric');
+                outputAdapter.log(LogType.INFO, undefined, npmUpdateOut);
+                outputAdapter.log(LogType.SUCCESS, 'Successfully updated to latest version of generator-fabric');
             }
 
         } catch (error) {
@@ -204,7 +204,8 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
             needGenFab = true; // assume generator-fabric isn't installed either
         } else {
             console.log('npm not installed');
-            vscode.window.showErrorMessage('npm is required before creating a smart contract project');
+            outputAdapter.log(LogType.ERROR, 'npm is required before creating a smart contract project');
+
             return null;
         }
     }
@@ -230,25 +231,23 @@ async function installGeneratorDependencies(dependencies: GeneratorDependencies)
 
     // Install missing node modules
     if (dependencies.needYo) {
-        outputAdapter.log('Installing yo');
+        outputAdapter.log(LogType.INFO, undefined, 'Installing yo');
         try {
             const yoInstOut: string = await CommandUtil.sendCommand('npm install -g yo');
-            outputAdapter.log(yoInstOut);
+            outputAdapter.log(LogType.INFO, undefined, yoInstOut);
         } catch (error) {
-            vscode.window.showErrorMessage('Issue installing yo node module');
-            outputAdapter.log(error);
+            outputAdapter.log(LogType.ERROR, `Issue installing yo node module: ${error.message}`, `Issue installing yo node module: ${error.toString()}`);
             return false;
         }
     }
 
     // it is assumed that if we got here we need to install the generator.
-    outputAdapter.log('Installing generator-fabric');
+    outputAdapter.log(LogType.INFO, undefined, 'Installing generator-fabric');
     try {
         const genFabInstOut: string = await CommandUtil.sendCommand('npm install -g generator-fabric');
-        outputAdapter.log(genFabInstOut);
+        outputAdapter.log(LogType.INFO, undefined, genFabInstOut);
     } catch (error) {
-        vscode.window.showErrorMessage('Issue installing generator-fabric module');
-        outputAdapter.log(error);
+        outputAdapter.log(LogType.ERROR, `Issue installing generator-fabric module: ${error.message}`, `Issue installing generator-fabric module: ${error.toString()}`);
         return false;
     }
     return true;

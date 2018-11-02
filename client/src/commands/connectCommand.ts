@@ -22,10 +22,12 @@ import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistr
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { Reporter } from '../util/Reporter';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function connect(connectionRegistryEntry: FabricConnectionRegistryEntry, identity?: { certificatePath: string, privateKeyPath: string }): Promise<void> {
-    console.log('connect', connectionRegistryEntry, identity);
-
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, `connect`);
     let runtimeData: string;
 
     if (!connectionRegistryEntry) {
@@ -70,7 +72,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
                 }));
 
                 if (!identity) {
-                    vscode.window.showErrorMessage('Could not connect as no identity found');
+                    outputAdapter.log(LogType.ERROR, 'Could not connect as no identity found');
                     return;
                 }
             }
@@ -96,12 +98,13 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
             }
             await connection.connect(mspid);
         } else {
-            vscode.window.showErrorMessage(error.message);
+            outputAdapter.log(LogType.ERROR, error.message, error.toString());
             throw error;
         }
     } finally {
         FabricConnectionManager.instance().connect(connection, connectionRegistryEntry);
 
+        outputAdapter.log(LogType.SUCCESS, `Connected to ${connectionRegistryEntry.name}`, `Connected to ${connectionRegistryEntry.name}`);
         if (!runtimeData) {
             const isIBP: boolean = connection.isIBPConnection();
             runtimeData = (isIBP ? 'IBP instance' : 'user runtime');

@@ -25,6 +25,7 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -40,7 +41,7 @@ describe('toggleFabricRuntimeDevMode', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
-    let successSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -65,7 +66,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
-        successSpy = sandbox.stub(vscode.window, 'showInformationMessage');
+        logSpy = sandbox.stub(VSCodeOutputAdapter.instance(), 'log');
     });
 
     afterEach(async () => {
@@ -83,7 +84,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', runtimeTreeItem);
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should disable development mode and not restart a stopped Fabric runtime specified by right clicking the tree', async () => {
@@ -94,7 +95,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', runtimeTreeItem);
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.false;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should enable development mode and restart a running Fabric runtime specified by right clicking the tree', async () => {
@@ -105,7 +106,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', runtimeTreeItem);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.true;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should disable development mode and restart a running Fabric runtime specified by right clicking the tree', async () => {
@@ -116,7 +117,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', runtimeTreeItem);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should enable development mode and not restart a stopped Fabric runtime specified by selecting it from the quick pick', async () => {
@@ -129,7 +130,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should disable development mode and not restart a stopped Fabric runtime specified by selecting it from the quick pick', async () => {
@@ -142,7 +143,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.false;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should enable development mode and restart a running Fabric runtime specified by selecting it from the quick pick', async () => {
@@ -155,7 +156,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.true;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should disable development mode and restart a running Fabric runtime specified by selecting it from the quick pick', async () => {
@@ -168,7 +169,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should not ask to choose if only one runtime', async () => {
@@ -182,7 +183,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         quickPickStub.should.not.have.been.called.called;
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should handle cancel choosing runtime', async () => {
@@ -193,7 +194,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
         quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.not.have.been.called;
-        successSpy.should.not.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.not.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should disconnect when trying to toggle a connected runtime', async () => {
@@ -205,7 +206,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', runtimeTreeItem);
         restartStub.should.have.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        successSpy.should.have.been.calledWith('Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
         executeCommandSpy.should.have.been.calledWith('blockchainExplorer.disconnectEntry');
     });
 });

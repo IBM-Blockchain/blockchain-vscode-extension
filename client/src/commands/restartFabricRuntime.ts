@@ -18,8 +18,11 @@ import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'restartFabricRuntime');
     let runtime: FabricRuntime;
     if (!runtimeTreeItem) {
         const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
@@ -42,7 +45,6 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
         cancellable: false
     }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({message: `Restarting Fabric runtime ${runtime.getName()}`});
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         await runtime.restart(outputAdapter);
     });
 }

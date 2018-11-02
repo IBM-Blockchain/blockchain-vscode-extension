@@ -22,8 +22,11 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import * as path from 'path';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function exportConnectionDetails(connectionTreeItem?: ConnectionTreeItem): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
     let fabricRuntime: FabricRuntime;
     if (connectionTreeItem) {
         const connectionRegistry: FabricConnectionRegistryEntry = connectionTreeItem.connection;
@@ -44,8 +47,7 @@ export async function exportConnectionDetails(connectionTreeItem?: ConnectionTre
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (!workspaceFolders || workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage('A folder must be open to export connection details to');
-        VSCodeOutputAdapter.instance().error('A folder must be open to export connection details to');
+        VSCodeOutputAdapter.instance().log(LogType.ERROR, 'A folder must be open to export connection details to');
         return;
     } else if (workspaceFolders.length > 1) {
         const chosenFolder: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('Choose which folder to save the connection profile to');
@@ -59,5 +61,5 @@ export async function exportConnectionDetails(connectionTreeItem?: ConnectionTre
     }
 
     await fabricRuntime.exportConnectionDetails(VSCodeOutputAdapter.instance(), dir);
-    vscode.window.showInformationMessage('Successfully exported connection details to ' + path.join(dir, fabricRuntime.getName()));
+    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection details to ${path.join(dir, fabricRuntime.getName())}`);
 }

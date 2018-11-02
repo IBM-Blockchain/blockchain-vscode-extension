@@ -32,6 +32,8 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import * as fs from 'fs-extra';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -838,10 +840,10 @@ describe('userInputUtil', () => {
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
-            const infoSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
             fabricConnectionStub.getInstantiatedChaincode.returns([]);
             await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
-            infoSpy.should.have.been.calledWith('No instantiated chaincodes within connection');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'No instantiated chaincodes within connection');
 
         });
     });
