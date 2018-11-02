@@ -55,6 +55,8 @@ export async function packageSmartContract(): Promise<void> {
             let properties: { workspacePackageName: string, workspacePackageVersion: string };
             if (language === 'golang') {
                 properties = await golangPackageAndVersion();
+            } else if (language === 'java') {
+                properties = await javaPackageAndVersion();
             } else {
                 properties = await packageJsonNameAndVersion(workspaceDir);
             }
@@ -69,6 +71,8 @@ export async function packageSmartContract(): Promise<void> {
             if (pkgFileExists) {
                 if (language === 'golang') {
                     throw new Error('Package with name and version already exists. Please input a different name or version for your Go project.');
+                } else if (language === 'java') {
+                    throw new Error('Package with name and version already exists. Please input a different name or version for your Java project.');
                 } else {
                     throw new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
                 }
@@ -148,11 +152,16 @@ async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
 async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<ChaincodeType> {
     let language: ChaincodeType;
 
-    const jsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.js'), '**/node_modules/**', 1);
-
-    const tsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.ts'), '**/node_modules/**', 1);
-
-    const goFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(workspaceDir, '**/*.go'), '**/node_modules/**', 1);
+    // Do the workspace search once, and then filter the responses.
+    const interestingFiles: vscode.Uri[] = await vscode.workspace.findFiles(
+        new vscode.RelativePattern(workspaceDir, '**/*.{js,ts,go,java,kt}'),
+        '**/node_modules/**',
+        1
+    );
+    const jsFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.js$/));
+    const tsFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.ts$/));
+    const goFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.go$/));
+    const javaFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.(java|kt)$/));
 
     if (jsFiles.length > 0 && tsFiles.length > 0) {
         language = 'node';
@@ -164,6 +173,8 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
         language = 'golang';
     } else if (jsFiles.length > 0) {
         language = 'node';
+    } else if (javaFiles.length > 0) {
+        language = 'java';
     } else {
         const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, and Go';
         vscode.window.showErrorMessage(message);
@@ -190,6 +201,27 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): 
         vscode.window.showErrorMessage(message);
         throw new Error(message);
     }
+    return {workspacePackageName, workspacePackageVersion};
+}
+
+/**
+ * Method which calls an input box should the project be coded in java, which asks the user for a package name and version
+ * (as java projects do not contain a package.json file), and returns an object containing both these values.
+ * @returns {string, string} Returns an object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method
+ */
+async function javaPackageAndVersion(): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+
+    const workspacePackageName: string = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
+    if (!workspacePackageName) {
+        // User has cancelled the input box
+        return;
+    }
+    const workspacePackageVersion: string = await UserInputUtil.showInputBox('Enter a version for your Java package'); // Getting the specified name and package from the user
+    if (!workspacePackageVersion) {
+        // User has cancelled the input box
+        return;
+    }
+
     return {workspacePackageName, workspacePackageVersion};
 }
 

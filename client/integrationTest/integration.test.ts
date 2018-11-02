@@ -140,7 +140,7 @@ describe('Integration Test', () => {
         const workspaceFolderStub: any = {name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
         getWorkspaceFoldersStub.returns([workspaceFolderStub]);
 
-        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolderStub, '**/*.js'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolderStub, '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
     }
