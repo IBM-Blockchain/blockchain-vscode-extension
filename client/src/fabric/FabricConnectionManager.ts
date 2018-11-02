@@ -39,7 +39,10 @@ export class FabricConnectionManager extends EventEmitter {
     }
 
     public disconnect(): void {
-        this.connection = null;
+        if (this.connection) {
+            this.connection.disconnect();
+            this.connection = null;
+        }
         this.emit('disconnected');
     }
 

@@ -71,7 +71,7 @@ describe('InstallCommand', () => {
             fabricClientConnectionMock.connect.resolves();
             fabricClientConnectionMock.installChaincode.resolves();
             const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-            getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+            getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricClientConnectionMock as any) as FabricConnection );
 
             showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox').resolves('peerOne');
 
@@ -97,25 +97,29 @@ describe('InstallCommand', () => {
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
 
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            blockchainNetworkExplorerProvider['connection'] = ((fabricClientConnectionMock as any) as FabricConnection);
 
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+            await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry'); // should I be deleting this?
+
             mySandBox.restore();
         });
 
         it('should install the smart contract through the command', async () => {
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             successSpy.should.have.been.calledWith('Successfully installed smart contract');
+            // await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+
         });
 
         it('should install the smart contract through the command when not connected', async () => {
-            getConnectionStub.onFirstCall().returns(null);
-            getConnectionStub.onSecondCall().returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
