@@ -23,6 +23,7 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeConnection } from '../fabric/FabricRuntimeConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { Reporter } from '../util/Reporter';
+import { CommandUtil } from '../util/CommandUtil';
 
 export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<void> {
     console.log('testSmartContractCommand', chaincode);
@@ -89,6 +90,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
     const packageJSONSearch: Array<vscode.Uri> = await vscode.workspace.findFiles('**/package.json', '**/node_modules/**', workspaceFolders.length);
     let packageJSONFound: vscode.Uri;
     let functionalTestsDirectory: string;
+    let localSmartContractDirectory: string;
     for (packageJSONFound of packageJSONSearch) {
         const packageJSONBuffer: Buffer = await fs.readFile(packageJSONFound.path);
         const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
@@ -96,6 +98,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         if (workspaceProjectName === chaincodeName) {
             // Smart contract is open in workspace
             functionalTestsDirectory = path.join(packageJSONFound.fsPath, '..', 'functionalTests');
+            localSmartContractDirectory = path.join(packageJSONFound.fsPath, '..');
             break;
         }
     }
@@ -236,6 +239,14 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
     }
     await document.save();
 
+    // Run npm install in smart contract project
+    try {
+        await installNodeModules(localSmartContractDirectory);
+    } catch (error) {
+        vscode.window.showErrorMessage('Error installing node modules in smart contract project: ' + error.message);
+        return;
+    }
+
     Reporter.instance().sendTelemetryEvent('testSmartContractCommand');
 
 }
@@ -269,4 +280,17 @@ async function removeTestFile(fileToRemove: string): Promise<void> {
             return;
         }
     }
+}
+
+async function installNodeModules(dir: string): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
+    outputAdapter.log('Running npm install:');
+    const npmInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install', dir, 'Running npm install in smart contract project...');
+    outputAdapter.log(npmInstallOut);
+
+    outputAdapter.log('Installing fabric-network@beta:');
+    const fabricNetworkInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-network@beta', dir, 'Installing fabric network in smart contract project...');
+    outputAdapter.log(fabricNetworkInstallOut);
+
 }

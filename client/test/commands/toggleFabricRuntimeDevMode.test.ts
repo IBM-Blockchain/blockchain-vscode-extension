@@ -53,7 +53,8 @@ describe('toggleFabricRuntimeDevMode', () => {
         await TestUtil.restoreRuntimesConfig();
     });
 
-    beforeEach(async () => {
+    beforeEach(async function(): Promise<void> {
+        this.timeout(6000);
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
@@ -67,7 +68,8 @@ describe('toggleFabricRuntimeDevMode', () => {
         successSpy = sandbox.stub(vscode.window, 'showInformationMessage');
     });
 
-    afterEach(async () => {
+    afterEach(async function(): Promise<void> {
+        this.timeout(4000);
         sandbox.restore();
         await connectionRegistry.clear();
         await runtimeRegistry.clear();
