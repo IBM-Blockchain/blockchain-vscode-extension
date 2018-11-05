@@ -49,7 +49,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
-            clock = sinon.useFakeTimers();
+            clock = sinon.useFakeTimers({ toFake: ['Date'] });
             fabricDebugConfig = new FabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -101,8 +101,8 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         afterEach(() => {
-            mySandbox.restore();
             clock.restore();
+            mySandbox.restore();
         });
 
         it('should create a debug configuration', async () => {
@@ -114,7 +114,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970' },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -130,7 +130,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'},
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
         });
@@ -146,7 +146,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970' },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -162,7 +162,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970' },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -177,7 +177,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970' },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -192,7 +192,22 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970', myProperty: 'myValue' },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000', myProperty: 'myValue' },
+                args: ['start', '--peer.address', 'localhost:12345']
+            });
+        });
+
+        it('should use CORE_CHAINCODE_ID_NAME if defined', async () => {
+            debugConfig.env = { CORE_CHAINCODE_ID_NAME: 'myContract:myVersion' };
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'myContract:myVersion' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -207,7 +222,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -222,7 +237,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970' },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -237,7 +252,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -271,6 +286,18 @@ describe('FabricDebugConfigurationProvider', () => {
 
         });
 
+        it('should hand errors with package or install', async () => {
+            commandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry', sinon.match.any, sinon.match.any).rejects({ message: 'some error' });
+
+            const errorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
+            const outputSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.not.exist(config);
+
+            errorSpy.should.have.been.calledWith('Failed to launch debug some error');
+            outputSpy.should.have.been.calledWith('Failed to launch debug some error');
+        });
+
         it('should debug typescript', async () => {
             findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
 
@@ -282,7 +309,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')]
             });
@@ -308,7 +335,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
@@ -335,7 +362,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
@@ -362,7 +389,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
@@ -391,11 +418,27 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-00101970'  },
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: ['cake', path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
             });
+        });
+
+        it('should handle error from reading config file', async () => {
+            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+
+            readFileStub.onSecondCall().rejects({ message: 'some error' });
+
+            const errorSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            should.not.exist(config);
+
+            errorSpy.should.have.been.calledWith('Failed to launch debug error reading package.json from project some error');
+            otherErrorSpy.should.have.been.calledWith('Failed to launch debug error reading package.json from project some error');
         });
     });
 

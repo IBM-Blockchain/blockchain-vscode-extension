@@ -236,6 +236,35 @@ describe('packageSmartContract', () => {
             executeTaskStub.should.have.not.been.called;
         }).timeout(10000);
 
+        it('should package the JavaScript project with specified folder and version', async () => {
+            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}')).resolves([vscode.Uri.file('chaincode.js')]);
+
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', folders[testIndex], '0.0.3');
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            errorSpy.should.not.have.been.called;
+            informationSpy.should.have.been.calledOnce;
+            executeTaskStub.should.have.not.been.called;
+        }).timeout(10000);
+
         it('should package the TypeScript project', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
 

@@ -96,14 +96,6 @@ export abstract class FabricConnection implements IFabricConnection {
         return installedChainCodes;
     }
 
-    public async getInstalledChaincodeVersions(peerName: string, chaincodeName: string): Promise<Array<string>> {
-        console.log('getInstalledChaincodeVersions', peerName, chaincodeName);
-
-        const installedChainCodes: Map<string, Array<string>> = await this.getInstalledChaincode(peerName);
-
-        return installedChainCodes.get(chaincodeName);
-    }
-
     public async getInstantiatedChaincode(channelName: string): Promise<Array<any>> {
         console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];

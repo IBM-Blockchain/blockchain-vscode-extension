@@ -17,6 +17,7 @@ import * as path from 'path';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as fs from 'fs-extra';
+import * as dateFormat from 'dateformat';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
@@ -62,18 +63,11 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 newVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             }
 
-            try {
-                const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', folder, newVersion) as PackageRegistryEntry;
+            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', folder, newVersion) as PackageRegistryEntry;
 
-                const peersToIntallOn: Array<string> = await this.getPeersToInstallOn();
+            const peersToIntallOn: Array<string> = await this.getPeersToInstallOn();
 
-                await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', null, new Set(peersToIntallOn), newPackage);
-
-            } catch (error) {
-                vscode.window.showErrorMessage('Failed to launch debug ' + error.message);
-                VSCodeOutputAdapter.instance().error('Failed to launch debug ' + error.message);
-                return;
-            }
+            await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', null, new Set(peersToIntallOn), newPackage);
 
             config.type = 'node2';
 
@@ -129,7 +123,9 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
 
             return config;
         } catch (error) {
-            console.log(error);
+            vscode.window.showErrorMessage('Failed to launch debug ' + error.message);
+            VSCodeOutputAdapter.instance().error('Failed to launch debug ' + error.message);
+            return;
         }
     }
 
@@ -139,7 +135,8 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
 
     private getNewVersion(): string {
         const date: Date = new Date();
-        return `${this.PREFIX}-${date.getHours()}${date.getMinutes()}${date.getDate()}${date.getMonth()}${date.getFullYear()}`;
+        const formattedDate: string = dateFormat(date, 'yyyymmddHHMM');
+        return `${this.PREFIX}-${formattedDate}`;
     }
 
     private async getPeersToInstallOn(): Promise<Array<string>> {
@@ -155,7 +152,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
             const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
             return JSON.parse(workspacePackageContents.toString('utf8'));
         } catch (error) {
-            throw new Error('Error reading package.json from project ' + error.message);
+            throw new Error('error reading package.json from project ' + error.message);
         }
     }
 

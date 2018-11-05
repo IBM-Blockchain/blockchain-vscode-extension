@@ -29,8 +29,6 @@ export interface IFabricConnection {
 
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
-    getInstalledChaincodeVersions(peerName: string, chaincodeName: string): Promise<Array<string>>;
-
     getInstantiatedChaincode(channelName: string): Promise<Array<any>>;
 
     installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
