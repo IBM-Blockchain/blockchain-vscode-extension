@@ -37,7 +37,7 @@ class GeneratorDependencies {
     }
 }
 
-export async function createSmartContractProject(): Promise<void> {
+export async function createSmartContractProject(generator: string = 'fabric:contract'): Promise<void> {
     console.log('create Smart Contract Project');
 
     // check for yo and generator-fabric
@@ -72,12 +72,12 @@ export async function createSmartContractProject(): Promise<void> {
     try {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
-        vscode.window.showErrorMessage('Issue determining available smart contract language options: ' + error);
+        vscode.window.showErrorMessage('Issue determining available smart contract language options: ' + error.message);
         return;
     }
 
     smartContractLanguage = await UserInputUtil.showSmartContractLanguagesQuickPick('Chose smart contract language (Esc to cancel)', smartContractLanguageOptions);
-    if (!smartContractLanguageOptions.includes(smartContractLanguage)) {
+    if (!smartContractLanguage) {
         // User has cancelled the QuickPick box
         return;
     }
@@ -136,7 +136,7 @@ export async function createSmartContractProject(): Promise<void> {
             cancellable: false
         }, async (progress: vscode.Progress<{message: string}>, token: vscode.CancellationToken): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
-            await env.run('fabric:contract', runOptions);
+            await env.run(generator, runOptions);
         });
 
         outputAdapter.log('Successfully generated smart contract project');
@@ -265,18 +265,11 @@ async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> 
 }
 
 async function getSmartContractLanguageOptions(): Promise<string[]> {
-    try {
-
-        const parsedJson: any = await getPackageJson();
-        if (parsedJson.contractLanguages === undefined) {
-            return Promise.reject('Contract languages not found in package.json');
-        } else {
-            return Promise.resolve(parsedJson.contractLanguages);
-        }
-    } catch (error) {
-        return Promise.reject(error);
+    const parsedJson: any = await getPackageJson();
+    if (parsedJson.contractLanguages === undefined) {
+        throw new Error('Contract languages not found in package.json');
     }
-
+    return parsedJson.contractLanguages;
 }
 
 async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
