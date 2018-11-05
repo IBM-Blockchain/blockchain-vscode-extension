@@ -56,7 +56,9 @@ describe('Integration Test', () => {
     let mySandBox: sinon.SinonSandbox;
     let keyPath: string;
     let certPath: string;
+    let testContractName: string;
     let testContractDir: string;
+    let testContractType: string;
 
     let getWorkspaceFoldersStub: sinon.SinonStub;
     let findFilesStub: sinon.SinonStub;
@@ -118,7 +120,9 @@ describe('Integration Test', () => {
         mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves(type);
         mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
+        testContractName = name;
         testContractDir = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', name);
+        testContractType = type;
         const exists: boolean = await fs.pathExists(testContractDir);
         if (exists) {
             await fs.remove(testContractDir);
@@ -129,18 +133,38 @@ describe('Integration Test', () => {
         const openDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog');
         openDialogStub.resolves(uriArr);
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        let generator: string;
+        if (type === 'Java') {
+            generator = 'fabric:chaincode';
+        }
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry', generator);
 
         if (type === 'JavaScript' || type === 'TypeScript') {
             await CommandUtil.sendCommandWithOutput('npm', ['install'], testContractDir, undefined, VSCodeOutputAdapter.instance(), false);
         }
     }
 
-    async function packageSmartContract(): Promise<void> {
-        const workspaceFolderStub: any = {name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
-        getWorkspaceFoldersStub.returns([workspaceFolderStub]);
+    async function packageSmartContract(version: string = '0.0.1'): Promise<void> {
+        let workspaceFolder: vscode.WorkspaceFolder;
+        let workspaceFiles: vscode.Uri[];
+        if (testContractType === 'JavaScript') {
+            workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
+            workspaceFiles = [ vscode.Uri.file('chaincode.js') ];
+        } else if (testContractType === 'TypeScript') {
+            workspaceFolder = { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(testContractDir)};
+            workspaceFiles = [ vscode.Uri.file('chaincode.js'), vscode.Uri.file('chaincode.ts') ];
+        } else if (testContractType === 'Java') {
+            inputBoxStub.withArgs('Enter a name for your Java package').resolves(testContractName);
+            inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
+            workspaceFolder = { index: 0, name: 'javaProject', uri: vscode.Uri.file(testContractDir)};
+            workspaceFiles = [ vscode.Uri.file('chaincode.java') ];
+        } else {
+            throw new Error(`I do not know how to handle language ${testContractType}`);
+        }
+        getWorkspaceFoldersStub.returns([workspaceFolder]);
 
-        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolderStub, '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
+        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves(workspaceFiles);
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
     }
@@ -475,7 +499,7 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    ['JavaScript', 'TypeScript'].forEach((language: string) => {
+    ['Java' , 'JavaScript', 'TypeScript'].forEach((language: string) => {
 
         it(`should create a ${language} smart contract, package, install it on a peer and instantiate`, async () => {
             const smartContractName: string = `my${language}SC`;
@@ -540,9 +564,11 @@ describe('Integration Test', () => {
 
             await instantiateSmartContract(smartContractName, '0.0.1');
 
-            await updatePackageJsonVersion('0.0.2');
+            if (language === 'JavaScript' || language === 'TypeScript') {
+                await updatePackageJsonVersion('0.0.2');
+            }
 
-            await packageSmartContract();
+            await packageSmartContract('0.0.2');
 
             await installSmartContract(smartContractName, '0.0.2');
 
