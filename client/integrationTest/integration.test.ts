@@ -100,6 +100,7 @@ describe('Integration Test', () => {
     });
 
     beforeEach(() => {
+        delete process.env.GOPATH;
         mySandBox = sinon.createSandbox();
         getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
@@ -114,6 +115,7 @@ describe('Integration Test', () => {
     afterEach(async () => {
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
         mySandBox.restore();
+        delete process.env.GOPATH;
     });
 
     async function createSmartContract(name: string, type: string): Promise<void> {
@@ -121,7 +123,12 @@ describe('Integration Test', () => {
         mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
         testContractName = name;
-        testContractDir = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', name);
+        if (type === 'Go') {
+            process.env.GOPATH = path.join(__dirname, '..', '..', 'integrationTest', 'tmp');
+            testContractDir = path.join(process.env.GOPATH, 'src', name);
+        } else {
+            testContractDir = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', name);
+        }
         testContractType = type;
         const exists: boolean = await fs.pathExists(testContractDir);
         if (exists) {
@@ -134,7 +141,7 @@ describe('Integration Test', () => {
         openDialogStub.resolves(uriArr);
 
         let generator: string;
-        if (type === 'Java') {
+        if (type === 'Go' || type === 'Java') {
             generator = 'fabric:chaincode';
         }
 
@@ -159,6 +166,11 @@ describe('Integration Test', () => {
             inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
             workspaceFolder = { index: 0, name: 'javaProject', uri: vscode.Uri.file(testContractDir)};
             workspaceFiles = [ vscode.Uri.file('chaincode.java') ];
+        } else if (testContractType === 'Go') {
+            inputBoxStub.withArgs('Enter a name for your Go package').resolves(testContractName);
+            inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
+            workspaceFolder = { index: 0, name: 'goProject', uri: vscode.Uri.file(testContractDir)};
+            workspaceFiles = [ vscode.Uri.file('chaincode.go') ];
         } else {
             throw new Error(`I do not know how to handle language ${testContractType}`);
         }
@@ -499,7 +511,7 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    ['Java' , 'JavaScript', 'TypeScript'].forEach((language: string) => {
+    ['Go', 'Java' , 'JavaScript', 'TypeScript'].forEach((language: string) => {
 
         it(`should create a ${language} smart contract, package, install it on a peer and instantiate`, async () => {
             const smartContractName: string = `my${language}SC`;
