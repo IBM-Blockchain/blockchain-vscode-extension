@@ -18,18 +18,19 @@ import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { ChaincodeType } from 'fabric-client';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
  * This will be used in other files to call the command to package a smart contract project.
  */
-export async function packageSmartContract(): Promise<void> {
+export async function packageSmartContract(workspaceDir: vscode.WorkspaceFolder, version: string): Promise<PackageRegistryEntry> {
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'Blockchain Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
-        progress.report({message: `Packaging Smart Contract`});
+    }, async (progress: vscode.Progress<{ message: string }>) => {
+        progress.report({ message: `Packaging Smart Contract` });
         try {
 
             // Determine the directory that will contain the packages and ensure it exists.
@@ -38,11 +39,14 @@ export async function packageSmartContract(): Promise<void> {
             const resolvedPkgDir: string = await UserInputUtil.getDirPath(pkgDir);
             await fs.ensureDir(resolvedPkgDir);
 
-            // Choose the workspace directory.
-            const workspaceDir: vscode.WorkspaceFolder = await chooseWorkspace();
             if (!workspaceDir) {
-                // User cancelled.
-                return;
+
+                // Choose the workspace directory.
+                workspaceDir = await chooseWorkspace();
+                if (!workspaceDir) {
+                    // User cancelled.
+                    return;
+                }
             }
 
             // Build the workspace.
@@ -63,6 +67,11 @@ export async function packageSmartContract(): Promise<void> {
             if (!properties) {
                 // User cancelled.
                 return;
+            }
+
+            if (version) {
+                // update version to our custom one (used for debugging the contract)
+                properties.workspacePackageVersion = version;
             }
 
             // Determine the filename of the new package.
@@ -110,6 +119,12 @@ export async function packageSmartContract(): Promise<void> {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
             vscode.window.showInformationMessage('Smart Contract packaged: ' + pkgFile);
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageEntry.name = properties.workspacePackageName;
+            packageEntry.version = properties.workspacePackageVersion;
+            packageEntry.path = pkgFile;
+
+            return packageEntry;
         } catch (err) {
             vscode.window.showErrorMessage(err.message);
         }
@@ -201,7 +216,7 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): 
         vscode.window.showErrorMessage(message);
         throw new Error(message);
     }
-    return {workspacePackageName, workspacePackageVersion};
+    return { workspacePackageName, workspacePackageVersion };
 }
 
 /**
@@ -243,7 +258,7 @@ async function golangPackageAndVersion(): Promise<{ workspacePackageName: string
         return;
     }
 
-    return {workspacePackageName, workspacePackageVersion};
+    return { workspacePackageName, workspacePackageVersion };
 }
 
 async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<void> {

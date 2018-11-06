@@ -28,3 +28,4 @@ coverage/**
 tslint.json
 coverconfig.json
 .istanbul.yml
+media/**

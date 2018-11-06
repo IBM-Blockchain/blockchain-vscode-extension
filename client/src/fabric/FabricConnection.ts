@@ -41,7 +41,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
     public abstract async connect(): Promise<void>;
 
-    public abstract async getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
+    public abstract async getConnectionDetails(): Promise<{ connectionProfile: object, certificatePath: string, privateKeyPath: string } | { connectionProfilePath: string, certificatePath: string, privateKeyPath: string }>;
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
@@ -102,7 +102,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const channel: Client.Channel = this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
         chainCodeResponse.chaincodes.forEach((chainCode: Client.ChaincodeInfo) => {
-            instantiatedChaincodes.push({name: chainCode.name, version: chainCode.version});
+            instantiatedChaincodes.push({ name: chainCode.name, version: chainCode.version });
         });
 
         return instantiatedChaincodes;
@@ -116,7 +116,14 @@ export abstract class FabricConnection implements IFabricConnection {
             chaincodePackage: pkgBuffer,
             txId: this.gateway.getClient().newTransactionID()
         };
-        await this.gateway.getClient().installChaincode(installRequest);
+        const response: [Client.ProposalResponse[], Client.Proposal] = await this.gateway.getClient().installChaincode(installRequest);
+        const proposalResponse: Client.ProposalResponse = response[0][0];
+        // Horrible hack to get around fabric problem
+        const status: number = proposalResponse['status'];
+        if (status && status !== 200) {
+             // Horrible hack to get around fabric problem
+            throw new Error(proposalResponse['message']);
+        }
     }
 
     public async instantiateChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {

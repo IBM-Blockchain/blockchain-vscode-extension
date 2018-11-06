@@ -113,8 +113,15 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             successSpy.should.have.been.calledWith('Successfully installed smart contract');
-            // await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+        });
 
+        it('should install the smart contract with specific package', async () => {
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+
+            await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', null, null, packageRegistryEntry);
+            fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+            successSpy.should.have.been.calledWith('Successfully installed smart contract');
         });
 
         it('should install the smart contract through the command when not connected', async () => {

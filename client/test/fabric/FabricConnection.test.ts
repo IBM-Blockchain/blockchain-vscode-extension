@@ -92,7 +92,7 @@ describe('FabricConnection', () => {
         fabricChannelStub = sinon.createStubInstance(Channel);
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
         fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
-        fabricChannelStub.sendTransaction.resolves({status: 'SUCCESS'});
+        fabricChannelStub.sendTransaction.resolves({ status: 'SUCCESS' });
 
         const fabricNetworkStub: any = {
             getContract: mySandBox.stub().returns(fabricContractStub),
@@ -111,8 +111,8 @@ describe('FabricConnection', () => {
 
     describe('getAllPeerNames', () => {
         it('should get all the names of the peer', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', {name: 'peerOne'});
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', {name: 'peerTwo'});
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
@@ -125,8 +125,8 @@ describe('FabricConnection', () => {
 
     describe('getPeer', () => {
         it('should get a peer', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', {name: 'peerOne'});
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', {name: 'peerTwo'});
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
@@ -139,13 +139,13 @@ describe('FabricConnection', () => {
 
     describe('getAllChannelsForPeer', () => {
         it('should get all the channels a peer has joined', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', {name: 'peerOne'});
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne]);
 
-            const channelOne: {channel_id: string} = {channel_id: 'channel-one'};
-            const channelTwo: {channel_id: string}  = {channel_id: 'channel-two'};
-            fabricClientStub.queryChannels.resolves({channels: [channelOne, channelTwo]});
+            const channelOne: { channel_id: string } = { channel_id: 'channel-one' };
+            const channelTwo: { channel_id: string } = { channel_id: 'channel-two' };
+            fabricClientStub.queryChannels.resolves({ channels: [channelOne, channelTwo] });
 
             await fabricConnection.connect();
 
@@ -157,8 +157,8 @@ describe('FabricConnection', () => {
 
     describe('getInstalledChaincode', () => {
         it('should get the install chaincode', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', {name: 'peerOne'});
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', {name: 'peerTwo'});
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
@@ -166,7 +166,7 @@ describe('FabricConnection', () => {
                 chaincodes: [{
                     name: 'biscuit-network',
                     version: '0.7'
-                }, {name: 'biscuit-network', version: '0.8'}, {name: 'cake-network', version: '0.8'}]
+                }, { name: 'biscuit-network', version: '0.8' }, { name: 'cake-network', version: '0.8' }]
             });
 
             await fabricConnection.connect();
@@ -180,10 +180,10 @@ describe('FabricConnection', () => {
 
     describe('getInstantiatedChaincode', () => {
         it('should get the instantiated chaincode', async () => {
-            const channelOne: any = {channel_id: 'channel-one', queryInstantiatedChaincodes: mySandBox.stub()};
+            const channelOne: any = { channel_id: 'channel-one', queryInstantiatedChaincodes: mySandBox.stub() };
 
             channelOne.queryInstantiatedChaincodes.resolves({
-                chaincodes: [{name: 'biscuit-network', version: '0,7'}, {name: 'cake-network', version: '0.8'}]
+                chaincodes: [{ name: 'biscuit-network', version: '0,7' }, { name: 'cake-network', version: '0.8' }]
             });
 
             fabricClientStub.getChannel.returns(channelOne);
@@ -191,7 +191,7 @@ describe('FabricConnection', () => {
             await fabricConnection.connect();
             const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel-one');
 
-            instantiatedChaincodes.should.deep.equal([{name: 'biscuit-network', version: '0,7'}, {
+            instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {
                 name: 'cake-network',
                 version: '0.8'
             }]);
@@ -203,9 +203,10 @@ describe('FabricConnection', () => {
         let peer: fabricClient.Peer;
 
         beforeEach(async () => {
-            peer = new fabricClient.Peer('grpc://localhost:1453', {name: 'peer1'});
+            peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peer1' });
             fabricClientStub.getPeersForOrg.returns([peer]);
-            fabricClientStub.installChaincode.resolves();
+            const responseStub: any = [[{ status: 200 }]];
+            fabricClientStub.installChaincode.resolves(responseStub);
             await fabricConnection.connect();
         });
 
@@ -217,6 +218,28 @@ describe('FabricConnection', () => {
             });
 
             await fabricConnection.installChaincode(packageEntry, 'peer1');
+            fabricClientStub.installChaincode.should.have.been.calledWith({
+                targets: [peer],
+                txId: sinon.match.any,
+                chaincodePackage: sinon.match((buffer: Buffer) => {
+                    buffer.should.be.an.instanceOf(Buffer);
+                    buffer.length.should.equal(2719);
+                    return true;
+                })
+            });
+        });
+
+        it('should handle error response', async () => {
+            const responseStub: any = [[{ status: 400, message: 'some error' }]];
+            fabricClientStub.installChaincode.resolves(responseStub);
+
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'vscode-pkg-1',
+                version: '0.0.1',
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+            });
+
+            await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith('some error');
             fabricClientStub.installChaincode.should.have.been.calledWith({
                 targets: [peer],
                 txId: sinon.match.any,
@@ -279,7 +302,7 @@ describe('FabricConnection', () => {
         it('should upgrade if already instantiated', async () => {
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
-            getChanincodesStub.withArgs('myChannel').resolves([{name: 'myChaincode'}]);
+            getChanincodesStub.withArgs('myChannel').resolves([{ name: 'myChaincode' }]);
             const responsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
@@ -311,7 +334,7 @@ describe('FabricConnection', () => {
         });
 
         it('should throw an error if submitting the transaction failed', async () => {
-            fabricChannelStub.sendTransaction.returns({status: 'FAILED'});
+            fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
         });
     });
@@ -340,7 +363,7 @@ describe('FabricConnection', () => {
             // tslint:disable-next-line
             const functionArray: string[] = metadata[""].functions;
             // tslint:disable-next-line
-            functionArray.should.deep.equal(["instantiate", "wagonwheeling" , "transaction2"]);
+            functionArray.should.deep.equal(["instantiate", "wagonwheeling", "transaction2"]);
         });
 
     });

@@ -20,7 +20,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
-export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerNames?: Set<string>): Promise<PackageRegistryEntry | boolean> {
+export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
     if (!peerTreeItem && !peerNames) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
@@ -41,16 +41,20 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
     }
 
     try {
-        const chosenPackage: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose which package to install on the peer', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
         if (!chosenPackage) {
-            return;
+            const _package: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose which package to install on the peer', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
+            if (!_package) {
+                return;
+            }
+
+            chosenPackage = _package.data;
         }
 
         const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
 
         const promises: Promise<string | void>[] = [];
         for (const peer of peerNames) {
-            const install: Promise<string | void> = fabricClientConnection.installChaincode(chosenPackage.data, peer).catch((error: Error) => {
+            const install: Promise<string | void> = fabricClientConnection.installChaincode(chosenPackage, peer).catch((error: Error) => {
                 return error.message as string; // We return the error message so we can display it to the user
             });
             promises.push(install); // All successful installs will return undefined
@@ -83,7 +87,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
         if (successfulInstall) {
             // Package was installed on all peers successfully
             vscode.window.showInformationMessage('Successfully installed smart contract');
-            return chosenPackage.data;
+            return chosenPackage;
         } else {
             // Failed to install package on all peers.
             return;
