@@ -10,6 +10,12 @@
 * integration pipeline, or for debugging locally deployed smart 
 * contracts by invoking/submitting individual transactions. 
 */
+/*
+* Generating this test file will also trigger an npm install 
+* in the smart contract project directory. This installs any
+* package dependencies, including fabric-network which is 
+* required for this test file to be run locally. 
+*/
 
 const assert = require('assert');
 const fabricNetwork = require('fabric-network');
@@ -47,7 +53,10 @@ describe('<%=chaincodeLabel%>' , () => {
     beforeEach(async () => {
         await gateway.connect(connectionProfile, {
             wallet: wallet,
-            identity: identityName
+            identity: identityName,
+            discovery: {
+                asLocalhost: true
+            }
         });
     });
 

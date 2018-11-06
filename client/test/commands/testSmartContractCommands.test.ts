@@ -33,6 +33,7 @@ import { ChainCodeTreeItem } from '../../src/explorer/model/ChainCodeTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { testSmartContract } from '../../src/commands/testSmartContractCommand';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { CommandUtil } from '../../src/util/CommandUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -75,6 +76,7 @@ describe('testSmartContractCommand', () => {
     let findFilesStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
+    let sendCommandStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -167,6 +169,7 @@ describe('testSmartContractCommand', () => {
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{name: 'wagonwheeling'}]);
+            sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
 
         });
 
@@ -186,6 +189,7 @@ describe('testSmartContractCommand', () => {
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            sendCommandStub.should.have.been.calledTwice;
             errorSpy.should.not.have.been.called;
         });
 
@@ -412,6 +416,22 @@ describe('testSmartContractCommand', () => {
             fsRemoveStub.should.have.been.called;
         });
 
+        it('should show an error if the npm install fails', async () => {
+            sendCommandStub.onCall(0).rejects({message: 'horrible error'});
+
+            await testSmartContract(instantiatedSmartContract);
+            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: horrible error');
+            sendCommandStub.should.have.been.calledOnce;
+        });
+
+        it('should show an error if installing generator-network fails', async () => {
+            sendCommandStub.onCall(1).rejects({message: 'other horrible error'});
+
+            await testSmartContract(instantiatedSmartContract);
+            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: other horrible error');
+            sendCommandStub.should.have.been.calledTwice;
+        });
+
     });
 
     describe('Generate tests for Fabric Runtime Connection instantiated smart contract', () => {
@@ -501,6 +521,7 @@ describe('testSmartContractCommand', () => {
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{name: 'wagonwheeling'}]);
+            sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
 
         });
 
@@ -524,6 +545,7 @@ describe('testSmartContractCommand', () => {
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            sendCommandStub.should.have.been.calledTwice;
             errorSpy.should.not.have.been.called;
         });
 
