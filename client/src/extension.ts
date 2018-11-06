@@ -133,10 +133,14 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.instantiateSmartContractEntry', (channelTreeItem?: ChannelTreeItem) => instantiateSmartContract(channelTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.editConnectionEntry', (treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem) => editConnectionCommand(treeItem)));
 
-    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((e: any) => {
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
         if (e.affectsConfiguration('fabric.connections') || e.affectsConfiguration('fabric.runtimes')) {
-            return vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+            try {
+                await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+            } catch (error) {
+                // ignore error this only happens in tests
+            }
         }
     }));
 
