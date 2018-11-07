@@ -404,7 +404,7 @@ describe('packageSmartContract', () => {
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
-            errorSpy.should.have.been.calledWith('Failed to determine workspace language type, supported languages are JavaScript, TypeScript, and Go');
+            errorSpy.should.have.been.calledWith('Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java');
             informationSpy.should.not.have.been.called;
         }).timeout(4000);
 
