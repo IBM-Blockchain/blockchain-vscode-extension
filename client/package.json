@@ -14,7 +14,7 @@
     "license": "Apache-2.0",
     "version": "0.0.5",
     "publisher": "IBMBlockchain",
-    "icon": "media/blockchain_marketplace.png",
+    "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
         "color": "#313131",
         "theme": "dark"
@@ -71,7 +71,7 @@
                 {
                     "id": "blockchain-explorer",
                     "title": "IBM Blockchain Platform",
-                    "icon": "media/blockchain_activitybar.svg"
+                    "icon": "resources/blockchain_activitybar.svg"
                 }
             ]
         },
