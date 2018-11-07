@@ -642,14 +642,14 @@ describe('packageSmartContract', () => {
 
             folders.splice(1, folders.length - 1);
 
-            workspaceFoldersStub.throws({message: 'some error'});
+            workspaceFoldersStub.returns([]);
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            errorSpy.should.have.been.calledWith('Issue determining available workspace folders some error');
-        });
+            errorSpy.should.have.been.calledWith('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
+        }).timeout(4000);
 
         it('should handle not choosing folder', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -761,6 +761,35 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-        });
+        }).timeout(4000);
+
+        it('should package a smart contract given a project workspace', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            const testIndex: number = 0;
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}')).resolves([vscode.Uri.file('chaincode.js')]);
+
+            const workspaceFolderMock: vscode.WorkspaceFolder = {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)} as vscode.WorkspaceFolder;
+
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', workspaceFolderMock);
+
+            // chooseWorkspace() should not have been called
+            workspaceFoldersStub.should.not.have.been.called;
+            showWorkspaceQuickPickStub.should.not.have.been.called;
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            errorSpy.should.not.have.been.called;
+            informationSpy.should.have.been.calledOnce;
+            executeTaskStub.should.have.not.been.called;
+        }).timeout(10000);
     });
 });

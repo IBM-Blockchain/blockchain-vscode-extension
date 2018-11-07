@@ -27,9 +27,9 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
-import { ChainCodeTreeItem } from '../../src/explorer/model/ChainCodeTreeItem';
-import { InstantiatedChainCodesTreeItem } from '../../src/explorer/model/InstantiatedChaincodesTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
+import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeParentTreeItem } from '../../src/explorer/model/InstantiatedChaincodeParentTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -152,10 +152,10 @@ describe('SubmitTransactionCommand', () => {
         it('should submit transaction through the tree', async () => {
             const myChannel: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
 
-            const instantiatedChaincodes: Array<InstantiatedChainCodesTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<InstantiatedChainCodesTreeItem>;
+            const instantiatedChaincodes: Array<InstantiatedChaincodeParentTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<InstantiatedChaincodeParentTreeItem>;
 
             instantiatedChaincodes.length.should.equal(2);
-            const contracts: Array<ChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodes[1]) as Array<ChainCodeTreeItem>;
+            const contracts: Array<InstantiatedChaincodeChildTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodes[1]) as Array<InstantiatedChaincodeChildTreeItem>;
 
             contracts.length.should.equal(1);
 

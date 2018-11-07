@@ -74,8 +74,12 @@ describe('InstantiateCommand', () => {
                 {
                     label: 'myContract@0.0.1',
                     data: {
-                        chaincode: 'myContract',
-                        version: '0.0.1'
+                        packageEntry: {
+                            name: 'myContract',
+                            version: '0.0.1',
+                            path: undefined
+                        } as PackageRegistryEntry,
+                        workspace: undefined
                     }
                 }
             );
@@ -107,7 +111,7 @@ describe('InstantiateCommand', () => {
         it('should instantiate the smart contract through the command', async () => {
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
-            successSpy.should.have.been.calledWith('Successfully instantiated / upgraded smart contract');
+            successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
             executeCommandStub.secondCall.should.have.been.calledWith('blockchainExplorer.refreshEntry');
         });
 
@@ -118,7 +122,7 @@ describe('InstantiateCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
-            successSpy.should.have.been.calledWith('Successfully instantiated / upgraded smart contract');
+            successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
         });
 
         it('should handle connecting being cancelled', async () => {
@@ -160,7 +164,7 @@ describe('InstantiateCommand', () => {
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
-            successSpy.should.have.been.calledWith('Successfully instantiated / upgraded smart contract');
+            successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
         });
 
         it('should instantiate the smart contract through the command with no function', async () => {
@@ -168,7 +172,7 @@ describe('InstantiateCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', undefined, undefined);
             showInputBoxStub.should.have.been.calledOnce;
-            successSpy.should.have.been.calledWith('Successfully instantiated / upgraded smart contract');
+            successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
         });
 
         it('should instantiate the smart contract through the command with function but no args', async () => {
@@ -177,17 +181,22 @@ describe('InstantiateCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', undefined);
             showInputBoxStub.should.have.been.calledTwice;
-            successSpy.should.have.been.calledWith('Successfully instantiated / upgraded smart contract');
+            successSpy.should.have.been.calledWith('Successfully instantiated smart contract');
         });
 
-        it('should install and instantiate', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne'])).resolves({name: 'somepackage', version: '0.0.1'});
+        it('should install and instantiate package', async () => {
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves({name: 'somepackage', version: '0.0.1', path: undefined});
 
             showChaincodeAndVersionQuickPick.resolves({
-                label: UserInputUtil.INSTALL_INSTANTIATE_LABEL,
+                label: 'somepackage@0.0.1',
+                description: 'Packaged',
                 data: {
-                    chaincode: '',
-                    version: ''
+                    packageEntry: {
+                        name: 'somepackage',
+                        version: '0.0.1',
+                        path: undefined
+                    },
+                    workspace: undefined
                 }
             });
 
@@ -196,14 +205,64 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
         });
 
-        it('should be able to cancel install and instantiate', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne'])).resolves();
+        it('should be able to cancel install and instantiate for package', async () => {
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
-                label: UserInputUtil.INSTALL_INSTANTIATE_LABEL,
+                label: 'somepackage@0.0.1',
+                description: 'Packaged',
                 data: {
-                    chaincode: '',
-                    version: ''
+                    packageEntry: {
+                        name: 'somepackage',
+                        version: '0.0.1',
+                        path: undefined
+                    },
+                    workspace: undefined
+                }
+            });
+
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry') as PackageRegistryEntry;
+            should.not.exist(packageEntry);
+
+            fabricClientConnectionMock.instantiateChaincode.should.not.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
+        });
+
+        it('should package, install and instantiate a project', async () => {
+            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({name: 'somepackage', version: '0.0.1', path: undefined});
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves({name: 'somepackage', version: '0.0.1', path: undefined});
+
+            showChaincodeAndVersionQuickPick.resolves({
+                label: 'somepackage@0.0.1',
+                description: 'Open Project',
+                data: {
+                    packageEntry: {
+                        name: 'somepackage',
+                        version: '0.0.1',
+                        path: undefined
+                    },
+                    workspace: mySandBox.stub()
+                }
+            });
+
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
+        });
+
+        it('should be able to cancel a project packaging, installing and instantiating', async () => {
+            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({name: 'somepackage', version: '0.0.1', path: undefined});
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves();
+
+            showChaincodeAndVersionQuickPick.resolves({
+                label: 'somepackage@0.0.1',
+                description: 'Open Project',
+                data: {
+                    packageEntry: {
+                        name: 'somepackage',
+                        version: '0.0.1',
+                        path: undefined
+                    },
+                    workspace: mySandBox.stub()
                 }
             });
 

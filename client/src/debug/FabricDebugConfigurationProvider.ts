@@ -16,13 +16,13 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
-import * as fs from 'fs-extra';
 import * as dateFormat from 'dateformat';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -54,7 +54,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
             let newVersion: string;
             if (!config.env.CORE_CHAINCODE_ID_NAME) {
 
-                const chaincodeInfo: { name: string, version: string } = await this.getContractNameAndVersion(folder);
+                const chaincodeInfo: { name: string, version: string } = await ExtensionUtil.getContractNameAndVersion(folder);
 
                 newVersion = this.getNewVersion();
 
@@ -83,7 +83,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
 
             if (tsFiles.length > 0) {
                 let dir: string = '';
-                const tsConfig: any = await this.loadJSON(folder, 'tsconfig.json');
+                const tsConfig: any = await ExtensionUtil.loadJSON(folder, 'tsconfig.json');
                 if (tsConfig && tsConfig.compilerOptions && tsConfig.compilerOptions.outDir) {
                     const outDir: string = tsConfig.compilerOptions.outDir;
                     if (!path.isAbsolute(outDir)) {
@@ -146,18 +146,4 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
         return await runtimeConnection.getAllPeerNames();
     }
 
-    private async loadJSON(folder: vscode.WorkspaceFolder, file: string): Promise<any> {
-        try {
-            const workspacePackage: string = path.join(folder.uri.fsPath, file);
-            const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
-            return JSON.parse(workspacePackageContents.toString('utf8'));
-        } catch (error) {
-            throw new Error('error reading package.json from project ' + error.message);
-        }
-    }
-
-    private async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
-        const packageJson: any = await this.loadJSON(folder, 'package.json');
-        return { name: packageJson.name, version: packageJson.version };
-    }
 }

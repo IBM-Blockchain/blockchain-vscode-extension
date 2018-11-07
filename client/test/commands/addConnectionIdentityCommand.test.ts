@@ -195,9 +195,7 @@ describe('AddConnectionIdentityCommand', () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-
             const connectionToAddTo: BlockchainTreeItem = allChildren[1];
-
             await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry', connectionToAddTo);
 
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
