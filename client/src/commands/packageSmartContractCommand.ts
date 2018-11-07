@@ -191,7 +191,7 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
     } else if (javaFiles.length > 0) {
         language = 'java';
     } else {
-        const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, and Go';
+        const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java';
         vscode.window.showErrorMessage(message);
         throw new Error(message);
     }
