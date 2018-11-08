@@ -86,7 +86,10 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
 
         if (successfulInstall) {
             // Package was installed on all peers successfully
-            vscode.window.showInformationMessage('Successfully installed smart contract');
+            if (peerNames.size !== 1) {
+                // If the package has only been installed on one peer, we disregard this success message
+                vscode.window.showInformationMessage('Successfully installed smart contract on all peers');
+            }
             return chosenPackage;
         } else {
             // Failed to install package on all peers.
