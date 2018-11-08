@@ -335,8 +335,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
             return tree;
         } catch (error) {
-            await this.disconnect(); // This changes the context to be disconnected, so that the appropriate icons are shown
-            this.tree = await this.createConnectionTree(); // If we can't build the connectedTree, we will just rebuild the connectionTree instead (e.g. if connecting to Fabric fails)
+            await FabricConnectionManager.instance().disconnect();
             throw error;
         }
     }
@@ -347,28 +346,28 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
         return allPeerNames.reduce((promise: Promise<void>, peerName: string) => {
-            return promise
-                .then(() => {
-                    return FabricConnectionManager.instance().getConnection().getAllChannelsForPeer(peerName);
-                })
-                .then((channels: Array<any>) => {
-                    channels.forEach((channelName: string) => {
-                        let peers: Array<string> = channelMap.get(channelName);
-                        if (peers) {
-                            peers.push(peerName);
-                            channelMap.set(channelName, peers);
-                        } else {
-                            peers = [peerName];
-                            channelMap.set(channelName, peers);
-                        }
-                    });
-                }).catch((error: Error) => {
-                    if (error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
-                        return Promise.reject(`Cannot connect to Fabric: ${error.message}`);
+            return promise.then(() => {
+                return FabricConnectionManager.instance().getConnection().getAllChannelsForPeer(peerName);
+            }).then((channels: Array<any>) => {
+                channels.forEach((channelName: string) => {
+                    let peers: Array<string> = channelMap.get(channelName);
+                    if (peers) {
+                        peers.push(peerName);
+                        channelMap.set(channelName, peers);
                     } else {
-                        return Promise.reject(`Error creating channel map: ${error.message}`);
+                        peers = [peerName];
+                        channelMap.set(channelName, peers);
                     }
                 });
+            }).catch((error: Error) => {
+                if (!error.message) {
+                    return Promise.reject(error);
+                } else if (error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
+                    return Promise.reject(`Cannot connect to Fabric: ${error.message}`);
+                } else {
+                    return Promise.reject(`Error creating channel map: ${error.message}`);
+                }
+            });
         }, Promise.resolve()).then(() => {
             return channelMap;
         }, (error: string) => {
