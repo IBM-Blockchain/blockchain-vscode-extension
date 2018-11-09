@@ -26,6 +26,10 @@ import * as sinon from 'sinon';
 import { OutputAdapter } from '../../src/logging/OutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import * as vscode from 'vscode';
 
 chai.should();
 
@@ -35,6 +39,7 @@ describe('FabricRuntime', () => {
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+    const rootPath: string = path.dirname(__dirname);
 
     let runtimeRegistryEntry: FabricRuntimeRegistryEntry;
     let runtime: FabricRuntime;
@@ -51,6 +56,14 @@ describe('FabricRuntime', () => {
     let mockOrdererVolume: sinon.SinonStubbedInstance<Volume>;
     let mockCAVolume: sinon.SinonStubbedInstance<Volume>;
     let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
+    let connectionProfilePath: string;
+    let certificatePath: string;
+    let privateKeyPath: string;
+    let getDirPathStub: sinon.SinonStub;
+    let ensureFileStub: sinon.SinonStub;
+    let writeFileStub: sinon.SinonStub;
+    let errorSpy: sinon.SinonSpy;
+    let runtimeDir: string;
 
     // tslint:disable max-classes-per-file
     class TestFabricOutputAdapter implements OutputAdapter {
@@ -163,6 +176,11 @@ describe('FabricRuntime', () => {
         getVolumeStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererVolume);
         getVolumeStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAVolume);
         getVolumeStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchVolume);
+
+        runtimeDir = path.join(rootPath, '..', 'data');
+        getDirPathStub = sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
+        ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
+        writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
     });
 
     afterEach(async () => {
@@ -683,6 +701,39 @@ describe('FabricRuntime', () => {
         it('should get the chaincode address', async () => {
             const result: string = await runtime.getChaincodeAddress();
             result.should.equal('localhost:54321');
+        });
+    });
+
+    describe('#writeConnectionDetailsToDisk', () => {
+
+        beforeEach(async () => {
+            connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
+            certificatePath = path.join(runtimeDir, 'runtime1', 'certificate');
+            privateKeyPath = path.join(runtimeDir, 'runtime1', 'privateKey');
+            errorSpy = sandbox.spy(vscode.window, 'showErrorMessage');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.callsFake(() => {
+                return mockSuccessCommand();
+            });
+        });
+
+        it('should save runtime connection details to disk on start', async () => {
+            await runtime.start();
+            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
+            ensureFileStub.getCall(1).should.have.been.calledWith(certificatePath);
+            ensureFileStub.getCall(2).should.have.been.calledWith(privateKeyPath);
+            writeFileStub.should.have.been.calledThrice;
+            errorSpy.should.not.have.been.called;
+
+        });
+
+        it('should show an info message if we fail to save connection details to disk', async () => {
+            writeFileStub.onCall(2).rejects({message: 'oops'});
+
+            await runtime.start();
+            ensureFileStub.should.have.been.calledThrice;
+            writeFileStub.should.have.been.calledThrice;
+            errorSpy.should.have.been.calledWith('Issue saving runtime connection details in extension directory with error: oops');
         });
     });
 });

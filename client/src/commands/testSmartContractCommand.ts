@@ -118,34 +118,22 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         return;
     }
 
-    // Get extension directory
-    const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-    const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-    const testCommandDir: string = path.join(homeExtDir, 'test', chaincodeLabel);
-
     // Get connection details for connection
-    const connectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = await connection.getConnectionDetails();
     let connectionProfilePath: string;
     let certificatePath: string;
     let privateKeyPath: string;
 
     if (connection instanceof FabricRuntimeConnection) {
-        // connection profile is an object not a path, so write it to a file
-        const runtimeConnectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string} = connectionDetails as {connectionProfile: object, certificatePath: string, privateKeyPath: string};
-        const runtimeConnectionProfilePath: string = path.join(testCommandDir, 'connection.json');
-        const connectionProfile: string = JSON.stringify(runtimeConnectionDetails.connectionProfile, null, 4);
-        try {
-            await fs.ensureFile(runtimeConnectionProfilePath);
-            await fs.writeFileSync(runtimeConnectionProfilePath, connectionProfile);
-        } catch (error) {
-            vscode.window.showErrorMessage('Error writing runtime connection profile: ' + error.message);
-            return;
-        }
-        connectionProfilePath = runtimeConnectionProfilePath;
-        certificatePath = runtimeConnectionDetails.certificatePath;
-        privateKeyPath = runtimeConnectionDetails.privateKeyPath;
+        // connection details are saved to disk in our directory
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+
+        connectionProfilePath = path.join(homeExtDir, 'local_fabric', 'connection.json');
+        certificatePath = path.join(homeExtDir, 'local_fabric', 'certificate');
+        privateKeyPath = path.join(homeExtDir, 'local_fabric', 'privateKey');
     } else {
         // Client connection, so connection details are all paths
+        const connectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = await connection.getConnectionDetails();
         const clientConnectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = connectionDetails as {connectionProfilePath: string, certificatePath: string, privateKeyPath: string};
         connectionProfilePath = clientConnectionDetails.connectionProfilePath;
         certificatePath = clientConnectionDetails.certificatePath;

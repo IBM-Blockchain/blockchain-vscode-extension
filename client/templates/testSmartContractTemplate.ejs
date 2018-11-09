@@ -30,8 +30,6 @@ describe('<%=chaincodeLabel%>' , () => {
     const identityName = '<%=chaincodeLabel%>';
     
     before(async () => {
-        // For local_fabric connections, this connection profile will become invalid if the local_fabric is stopped or restarted. 
-        // Regenerating this test file will overwrite the connection profile with a valid version
         const connectionProfilePath = '<%=connectionProfilePath%>';
         const certificatePath = '<%=certificatePath%>';
         const privateKeyPath = '<%=privateKeyPath%>';

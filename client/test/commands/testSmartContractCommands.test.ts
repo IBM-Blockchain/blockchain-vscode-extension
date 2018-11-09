@@ -53,8 +53,6 @@ describe('testSmartContractCommand', () => {
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
     let getDirPathStub: sinon.SinonStub;
-    let ensureFileStub: sinon.SinonStub;
-    let writeFileSyncStub: sinon.SinonStub;
     let allChildren: Array<BlockchainTreeItem>;
     let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
     let fabricConnectionManager: FabricConnectionManager;
@@ -163,7 +161,6 @@ describe('testSmartContractCommand', () => {
             mockTextEditor.edit.resolves(true);
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
-            getDirPathStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves(testFileDir);
             const packageJSONPath: string = path.join(testFileDir, 'package.json');
             findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([vscode.Uri.file(packageJSONPath)]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
@@ -260,11 +257,11 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should show an error message if it fails to determine the workspace folders', async () => {
-            workspaceFoldersStub.rejects({message: 'piecarambra!'});
+            workspaceFoldersStub.rejects({message: 'piecaramba!'});
 
             await testSmartContract(instantiatedSmartContract);
             findFilesStub.should.not.have.been.called;
-            errorSpy.should.have.been.calledWith('Error determining workspace folders: piecarambra!');
+            errorSpy.should.have.been.calledWith('Error determining workspace folders: piecaramba!');
         });
 
         it('should show an error message if the smart contract project isnt open in the workspace', async () => {
@@ -514,8 +511,6 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
             getDirPathStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves(testFileDir);
-            ensureFileStub = mySandBox.stub(fs, 'ensureFile');
-            writeFileSyncStub = mySandBox.stub(fs, 'writeFileSync');
             const packageJSONPath: string = path.join(testFileDir, 'package.json');
             findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([vscode.Uri.file(packageJSONPath)]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
@@ -525,15 +520,10 @@ describe('testSmartContractCommand', () => {
 
         });
 
-        it('should generate a copy of the connection profile if the connection is a runtime', async () => {
-            const testConnectonProfilePath: string = path.join(testFileDir, 'test', smartContractLabel, 'connection.json');
-            const connectionProfileToString: string = JSON.stringify(fakeRuntimeConnectionDetails.connectionProfile, null, 4);
-            ensureFileStub.resolves();
-            writeFileSyncStub.resolves();
+        it('should generate tests for a runtime connection', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
 
             await testSmartContract(instantiatedSmartContract);
-            writeFileSyncStub.should.have.been.calledWith(testConnectonProfilePath, connectionProfileToString);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
@@ -545,16 +535,12 @@ describe('testSmartContractCommand', () => {
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            templateData.includes(testFileDir).should.be.true;
+            templateData.includes('connection.json').should.be.true;
+            templateData.includes('certificate').should.be.true;
+            templateData.includes('privateKey').should.be.true;
             sendCommandStub.should.have.been.calledTwice;
             errorSpy.should.not.have.been.called;
-        });
-
-        it('should handle errors with copying the connection profile if the connection is a runtime', async () => {
-            ensureFileStub.resolves();
-            writeFileSyncStub.rejects({message: 'some error'});
-
-            await testSmartContract(instantiatedSmartContract);
-            errorSpy.should.have.been.calledWith('Error writing runtime connection profile: some error');
         });
 
     });

@@ -21,6 +21,8 @@ import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import { EventEmitter } from 'events';
 import { Docker, ContainerPorts } from '../docker/Docker';
+import * as vscode from 'vscode';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
@@ -172,6 +174,7 @@ export class FabricRuntime extends EventEmitter {
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('start', outputAdapter);
+        await this.writeConnectionDetailsToDisk();
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
@@ -197,6 +200,34 @@ export class FabricRuntime extends EventEmitter {
         } else {
             await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`], basicNetworkPath, env, outputAdapter);
         }
+    }
+
+    private async writeConnectionDetailsToDisk(): Promise<void> {
+
+        const certificate: string = await this.getCertificate();
+        const privateKey: string = await this.getPrivateKey();
+        const connectionProfileObj: any = await this.getConnectionProfile();
+        const connectionProfile: string = JSON.stringify(connectionProfileObj, null, 4);
+
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const runtimeDir: string = path.join(homeExtDir, this.name);
+
+        const connectionProfilePath: string = path.join(runtimeDir, 'connection.json');
+        const certificatePath: string = path.join(runtimeDir, 'certificate');
+        const privateKeyPath: string = path.join(runtimeDir, 'privateKey');
+
+        try {
+            await fs.ensureFileSync(connectionProfilePath);
+            await fs.ensureFileSync(certificatePath);
+            await fs.ensureFileSync(privateKeyPath);
+            await fs.writeFileSync(connectionProfilePath, connectionProfile);
+            await fs.writeFileSync(certificatePath, certificate);
+            await fs.writeFileSync(privateKeyPath, privateKey);
+        } catch (error) {
+            vscode.window.showErrorMessage('Issue saving runtime connection details in extension directory with error: ' + error.message);
+        }
+
     }
 
 }
