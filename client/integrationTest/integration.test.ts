@@ -41,6 +41,8 @@ import { ChainCodeTreeItem } from '../src/explorer/model/ChainCodeTreeItem';
 import { TestUtil } from '../test/TestUtil';
 import { InstantiatedChainCodesTreeItem } from '../src/explorer/model/InstantiatedChaincodesTreeItem';
 import { CommandUtil } from '../src/util/CommandUtil';
+import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
+import { IFabricConnection } from '../src/fabric/IFabricConnection';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -68,6 +70,8 @@ describe('Integration Test', () => {
     let showChanincodeAndVersionStub: sinon.SinonStub;
     let inputBoxStub: sinon.SinonStub;
     let browseEditStub: sinon.SinonStub;
+    let showInstantiatedSmartContractsStub: sinon.SinonStub;
+    let workspaceFolder: vscode.WorkspaceFolder;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -83,8 +87,9 @@ describe('Integration Test', () => {
 
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
 
-        const packageDir: string = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', 'packages');
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', packageDir, vscode.ConfigurationTarget.Global);
+        const extDir: string = path.join(__dirname, '..', '..', 'integrationTest', 'tmp');
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, vscode.ConfigurationTarget.Global);
+        const packageDir: string = path.join(extDir, 'packages');
         const exists: boolean = await fs.pathExists(packageDir);
         if (exists) {
             await fs.remove(packageDir);
@@ -110,6 +115,7 @@ describe('Integration Test', () => {
         showChanincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+        showInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
     });
 
     afterEach(async () => {
@@ -153,7 +159,6 @@ describe('Integration Test', () => {
     }
 
     async function packageSmartContract(version: string = '0.0.1'): Promise<void> {
-        let workspaceFolder: vscode.WorkspaceFolder;
         let workspaceFiles: vscode.Uri[];
         if (testContractType === 'JavaScript') {
             workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
@@ -235,6 +240,19 @@ describe('Integration Test', () => {
         inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
         inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+    }
+
+    async function generateSmartContractTests(name: string, version: string): Promise<void> {
+        showChannelStub.resolves('myChannel');
+        showInstantiatedSmartContractsStub.resolves({
+            label: `${name}@${version}`,
+            data: {name: name, channel: 'myChannel', version: version}
+        });
+        getWorkspaceFoldersStub.returns([workspaceFolder]);
+        const packageJSONPath: string = path.join(testContractDir, 'package.json');
+        findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
+
+        await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
     }
 
     async function getRawPackageJson(): Promise<any> {
@@ -513,7 +531,7 @@ describe('Integration Test', () => {
 
     ['Go', 'Java' , 'JavaScript', 'TypeScript'].forEach((language: string) => {
 
-        it(`should create a ${language} smart contract, package, install it on a peer and instantiate`, async () => {
+        it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and generate tests`, async () => {
             const smartContractName: string = `my${language}SC`;
 
             await createFabricConnection();
@@ -527,6 +545,10 @@ describe('Integration Test', () => {
             await installSmartContract(smartContractName, '0.0.1');
 
             await instantiateSmartContract(smartContractName, '0.0.1');
+
+            if (language === 'JavaScript' || language === 'TypeScript') {
+                await generateSmartContractTests(smartContractName, '0.0.1');
+            }
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
@@ -558,6 +580,36 @@ describe('Integration Test', () => {
             });
 
             instantiatedSmartContract.should.not.be.null;
+
+            if (language === 'JavaScript' || language === 'TypeScript') {
+                // Check test file exists
+                const pathToTestFile: string = path.join(testContractDir, 'functionalTests', `${smartContractName}@0.0.1.test.js`);
+                fs.pathExists(pathToTestFile).should.eventually.be.true;
+                const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
+                const testFileContents: string = testFileContentsBuffer.toString();
+
+                // Did it open?
+                const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
+                const openFileNameArray: string[] = [];
+                for (const textEditor of textEditors) {
+                    openFileNameArray.push(textEditor.document.fileName);
+                }
+                openFileNameArray.includes(pathToTestFile).should.be.true;
+                // Get the smart contract metadata
+                const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+                const metadataObj: any = await connection.getMetadata(smartContractName, 'mychannel');
+                // tslint:disable-next-line
+                const smartContractFunctionsArray: string[] = metadataObj[""].functions;
+
+                // Check the test file was populated properly
+                testFileContents.includes(smartContractName).should.be.true;
+                testFileContents.startsWith('/*').should.be.true;
+                testFileContents.includes('gateway.connect').should.be.true;
+                testFileContents.includes('submitTransaction').should.be.true;
+                testFileContents.includes(smartContractFunctionsArray[0]).should.be.true;
+                testFileContents.includes(smartContractFunctionsArray[1]).should.be.true;
+                testFileContents.includes(smartContractFunctionsArray[2]).should.be.true;
+            }
 
         }).timeout(0);
 
