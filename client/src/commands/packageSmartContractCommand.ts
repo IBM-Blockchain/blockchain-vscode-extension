@@ -102,14 +102,19 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
                 }
             }
 
-            // Create the package.Need to dynamically load the package class
+            // Determine if there is a metadata path.
+            const metadataPath: string = path.join(workspaceDir.uri.fsPath, 'META-INF');
+            const metadataPathExists: boolean = await fs.pathExists(metadataPath);
+
+            // Create the package. Need to dynamically load the package class
             // from the Fabric SDK to avoid early native module loading.
             const { Package } = await import('fabric-client');
             const pkg: any = await Package.fromDirectory({
                 name: properties.workspacePackageName,
                 version: properties.workspacePackageVersion,
                 path: pkgPath,
-                type: language
+                type: language,
+                metadataPath: metadataPathExists ? metadataPath : null
             });
             const pkgBuffer: any = await pkg.toBuffer();
             await fs.writeFile(pkgFile, pkgBuffer);
