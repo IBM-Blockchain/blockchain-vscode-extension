@@ -62,6 +62,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Start Fabric Runtime | Start a Hyperledger Fabric instance |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
+| Debug | Debug a Smart Contract |
 
 ## Smart Contract Development Lifecycle
 _Please note that all operations shown are also possible using the commands in the table above, issued at the VSCode command-prompt._
@@ -127,6 +128,18 @@ It is useful to think of installing on peers as the first step and instantiating
 Connections can be edited by right-clicking and selecting `Edit Connection`.  This will open User Settings, with the connection available for editing.
 
 ![Edit blockchain connection](client/media/edit_connection.gif)
+
+### Debugging a smart contract
+Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. Before debugging your smart contract, run the **generate test**, or only the instantiate transaction can be debugged. To debug your smart contract follow these steps:
+
+1. Open your smart contract project, and ensure you are connected to the `local_fabric` connection.
+2. Open the debug view in Visual Studio Code using the left-hand navigation bar.
+3. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
+4. Package and install the smart contract by clicking the **play** button.
+5. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
+6. Right-click on the installed smart contract and click **Instantiate**. You can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
+
+To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 
 ## Connecting to your own Hyperledger Fabric instance
 
