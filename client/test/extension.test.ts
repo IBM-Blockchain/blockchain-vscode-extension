@@ -90,7 +90,8 @@ describe('Extension Tests', () => {
             'blockchainAPackageExplorer.exportSmartContractPackageEntry',
             'blockchainExplorer.installSmartContractEntry',
             'blockchainExplorer.instantiateSmartContractEntry',
-            'blockchainExplorer.editConnectionEntry'
+            'blockchainExplorer.editConnectionEntry',
+            'blockchainExplorer.testSmartContractEntry'
         ]);
     });
 
@@ -119,6 +120,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.teardownFabricRuntime',
             'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode',
             'onCommand:blockchainExplorer.editConnectionEntry',
+            'onCommand:blockchainExplorer.testSmartContractEntry',
             'onDebug'
         ]);
     });

@@ -54,7 +54,7 @@ describe('toggleFabricRuntimeDevMode', () => {
     });
 
     beforeEach(async function(): Promise<void> {
-        this.timeout(6000);
+        this.timeout(8000);
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();

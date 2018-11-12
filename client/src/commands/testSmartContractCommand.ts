@@ -274,11 +274,15 @@ async function installNodeModules(dir: string): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     outputAdapter.log('Running npm install:');
-    const npmInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install', dir, 'Running npm install in smart contract project...');
+    const npmInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install', dir, 'Running npm install in smart contract project');
     outputAdapter.log(npmInstallOut);
 
     outputAdapter.log('Installing fabric-network@beta:');
-    const fabricNetworkInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-network@beta', dir, 'Installing fabric network in smart contract project...');
+    const fabricNetworkInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-network@beta', dir, 'Installing fabric-network@beta in smart contract project');
     outputAdapter.log(fabricNetworkInstallOut);
+
+    outputAdapter.log('Installing fabric-client@beta:');
+    const fabricClientOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-client@beta', dir, 'Installing fabric-client@beta in smart contract project');
+    outputAdapter.log(fabricClientOut);
 
 }
