@@ -162,10 +162,13 @@ export abstract class FabricConnection implements IFabricConnection {
         }
 
         const contract: Contract = network.getContract(name);
+        const transaction: any = (contract as any).createTransaction('dummy');
 
-        const responses: any = contract['_validatePeerResponses'](proposalResponseObject[0]);
+        const responses: any = transaction['_validatePeerResponses'](proposalResponseObject[0]);
 
-        const eventHandler: any = contract['_createTxEventHandler'](transactionId.getTransactionID());
+        const txId: any = transactionId.getTransactionID();
+        const eventHandlerOptions: any = (contract as any).getEventHandlerOptions();
+        const eventHandler: any = transaction['_createTxEventHandler'](txId, network, eventHandlerOptions);
 
         if (!eventHandler) {
             throw new Error('Failed to create an event handler');
@@ -208,7 +211,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(instantiatedChaincodeName);
 
-        const metadataBuffer: Buffer = await smartContract.executeTransaction('org.hyperledger.fabric:getMetaData');
+        const metadataBuffer: Buffer = await smartContract.evaluateTransaction('org.hyperledger.fabric:getMetaData');
         const metadataObject: any = JSON.parse(metadataBuffer.toString());
 
         console.log('Metadata object is:', metadataObject);
