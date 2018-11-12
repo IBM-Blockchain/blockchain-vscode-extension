@@ -49,6 +49,7 @@ describe('FabricConnection', () => {
     let fabricConnection: TestFabricConnection;
     let fabricContractStub: any;
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
+    let fabricTransactionStub: any;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -69,6 +70,11 @@ describe('FabricConnection', () => {
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
 
+        const eventHandlerOptions: any = {
+            commitTimeout: 30,
+            strategy: 'MSPID_SCOPE_ANYFORTX'
+        };
+
         const eventHandlerStub: any = {
             startListening: mySandBox.stub(),
             cancelListening: mySandBox.stub(),
@@ -83,10 +89,15 @@ describe('FabricConnection', () => {
                 }
             ]
         };
-        fabricContractStub = {
+        fabricTransactionStub = {
             _validatePeerResponses: mySandBox.stub().returns(responsesStub),
-            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub),
-            executeTransaction: mySandBox.stub()
+            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
+        };
+
+        fabricContractStub = {
+            createTransaction: mySandBox.stub().returns(fabricTransactionStub),
+            evaluateTransaction: mySandBox.stub(),
+            getEventHandlerOptions: mySandBox.stub().returns(eventHandlerOptions)
         };
 
         fabricChannelStub = sinon.createStubInstance(Channel);
@@ -316,8 +327,8 @@ describe('FabricConnection', () => {
         });
 
         it('should instantiate a chaincode and can return empty payload response', async () => {
-            fabricContractStub._validatePeerResponses.returns(null);
-            const nullResponsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            fabricTransactionStub._validatePeerResponses.returns(null);
+            const nullResponsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']);
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
@@ -329,7 +340,7 @@ describe('FabricConnection', () => {
         });
 
         it('should throw an error if cant create event handler', async () => {
-            fabricContractStub._createTxEventHandler.returns();
+            fabricTransactionStub._createTxEventHandler.returns();
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
         });
 
@@ -357,7 +368,7 @@ describe('FabricConnection', () => {
         it('should return the metadata for an instantiated smart contract', async () => {
             const fakeMetaData: string = '{"":{"functions":["instantiate","wagonwheeling","transaction2"]},"org.hyperledger.fabric":{"functions":["getMetaData"]}}';
             const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
-            fabricContractStub.executeTransaction.resolves(fakeMetaDataBuffer);
+            fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
 
             const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
             // tslint:disable-next-line
