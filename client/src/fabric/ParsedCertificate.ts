@@ -21,18 +21,34 @@ const ENCODING: string = 'utf8';
 
 export class ParsedCertificate {
 
+    public static validPEM(path: string, type: string): void {
+        // Used to validate certificate and private key PEMs
+        try {
+            const file: string = ParsedCertificate.loadFileFromDisk(path);
+            if (type === 'certificate') {
+                Certificate.fromPEM(file); // This will throw an error if invalid
+            } else {
+                if (!file.includes('BEGIN PRIVATE KEY') || !file.includes('END PRIVATE KEY')) {
+                    throw new Error('Invalid private key');
+                }
+            }
+        } catch (error) {
+            throw new Error(`Could not validate ${type}: ${error.message}`);
+        }
+    }
+
+    private static loadFileFromDisk(path: string): string {
+        return fs.readFileSync(path, ENCODING) as string;
+    }
+
     private parsedCertificate: any;
 
     constructor(certificatePath: string) {
-        const certFile: string = this.loadFileFromDisk(certificatePath);
+        const certFile: string = ParsedCertificate.loadFileFromDisk(certificatePath);
         this.parsedCertificate = Certificate.fromPEM(certFile);
     }
 
     public getCommonName(): string {
         return this.parsedCertificate.subject.commonName;
-    }
-
-    private loadFileFromDisk(path: string): string {
-        return fs.readFileSync(path, ENCODING) as string;
     }
 }
