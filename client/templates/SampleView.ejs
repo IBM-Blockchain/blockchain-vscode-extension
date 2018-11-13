@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>IBM Blockchain Platform</title>
+        <style>
+            @import url("https://fonts.googleapis.com/css?family=IBM+Plex+Sans");
+
+            body {
+                padding:40px;
+                font-family:IBMPlexSans;
+                font-size: 12px;
+                letter-spacing:0.05px;
+            }
+
+            a {
+                text-decoration: none;
+                font-weight: 300;
+                font-family: IBMPlexSans;
+            }
+
+            a:hover{
+                text-decoration:underline;
+            }
+            p {
+                margin-top:6px;
+                margin-bottom: 6px;
+                font-family: IBMPlexSans;
+            }
+
+            h1{
+                font-family:IBMPlexSans;
+                font-size:24px;
+                letter-spacing:0.06px;
+                font-weight:600;
+            }
+
+            h2 {
+                font-family:IBMPlexSans-SemiBold;
+                font-size: 16px;
+                letter-spacing:0.05px;
+            }
+
+            h3 {
+                font-size: 14px;
+                letter-spacing:0.06px;
+            }
+
+            button{
+                font-size: 0.85em;
+                font-family:IBMPlexSans;
+                border: 0;
+                letter-spacing:0.01px;
+            }
+
+            h4 {
+                margin:0;
+                font-weight:400;
+            }
+
+            /*
+            ##############################################
+            ### Generic Styling ###
+            ##############################################
+            */
+
+            .table {
+                display: flex;
+                flex-wrap: wrap;
+                padding: 0px 5px 0 5px;
+            }
+
+            .cell {
+                box-sizing: border-box;
+                flex-grow: 1;
+                padding: 1em 3em 1em 3em;
+                width: 100%;
+                overflow: hidden;
+                list-style: none;
+                font-family:IBMPlexSans;
+                font-size:0.925em;
+                width: 20%;
+            }
+
+
+
+            .table > .cell-github  {
+                width: 20%;
+                padding-left:0;
+            }
+
+            .table > .cell-download  {
+                width: 20%;
+                padding-left:0;
+            }
+
+            .showMore{
+                height:130px;
+                display:block;
+                overflow:hidden;
+                margin: -5px;
+                padding: 5px;
+                border-radius: 5px;
+            }
+
+            .showLess{
+                height:auto;
+                margin: -5px;
+                padding: 5px;
+                border-radius: 5px;
+            }
+
+            #readme > h1 {
+                font-size: 16px;
+            }
+
+            #readme > h2 {
+                font-size: 14px;
+            }
+
+            #readme > h3 {
+                font-size: 13px;
+            }
+
+            #sample-title{
+                margin:0;
+            }
+
+            #repository-config{
+                display:flex;
+                flex-direction:column;
+            }
+
+            .repository-config-item{
+                flex:1;
+                padding-bottom:7px;
+            }
+
+            .repository-config-item:last-child {
+                padding-bottom: 0;
+            }
+
+            #repository-url-container{
+                display:flex;
+                align-items:center;
+            }
+
+            #repository-url{
+                flex:1;
+            }
+
+            #readme-title{
+                margin-top: 30px;
+                margin-bottom:10px;
+                font-weight:300;
+            }
+
+            #more{
+                text-decoration:underline;
+                font-weight:500;
+            }
+
+            .category-title-container{
+                flex:1;
+                display:flex;
+                align-items:center;
+                margin-top: 30px;
+                margin-bottom: 10px;
+            }
+
+            .category-icon-container{
+                flex-shrink:1;
+                padding-right:10px;
+            }
+
+            .category-title{
+                flex:1;
+            }
+
+            .category-description{
+                margin-top: 10px;
+                margin-bottom: 20px;
+                font-family: IBMPlexSans;
+            }
+
+            .open-button{
+                padding:5px;
+                height:25px;
+                width:85px;
+            }
+
+
+            /*
+            ##############################################
+            ### Styling for vscode-dark grouped themes ###
+            ##############################################
+            */
+
+            body.vscode-dark{
+                color: #ffffff;
+            }
+
+            body.vscode-dark .clone-button{
+                color:white;
+                background-color: #0061FF;
+                padding:5px 10px 5px 10px;
+            }
+
+            body.vscode-dark .clone-button:hover{
+                cursor:pointer;
+                background-color: #054ADA;
+            }
+            body.vscode-dark .open-button{
+                color: white;
+                background-color:#0061FF;
+            }
+
+            body.vscode-dark .open-button:hover{
+                background-color:#054ADA;
+                cursor: pointer;
+            }
+
+            body.vscode-dark .open-button:disabled{
+                background-color:#3D3D3D;
+                cursor:not-allowed;
+                color:#616161;
+            }
+
+            body.vscode-dark .cell{
+                border-bottom: 2px solid #333333;
+                color:#bebebe;
+                font-size:12px;
+            }
+
+            body.vscode-dark .cell-header{
+                background-color:#333333;
+                color:#f3f3f3;
+                font-size:12px;
+            }
+
+            body.vscode-dark .showMore-theme{
+                background-color: #282828;
+            }
+
+            body.vscode-dark .showLess-theme{
+                background-color: #282828;
+
+            }
+
+            body.vscode-dark #more {
+                color:#f3f3f3;
+            }
+
+            body.vscode-dark .application-box{
+                border-bottom:2px solid #333;
+            }
+
+            body.vscode-dark .application-version{
+                color:#bebebe;
+            }
+
+            body.vscode-dark .contract-icon{
+                background: url(<%= images.contractsIconWhite %>) no-repeat right center;
+                width:18px;
+                height:18px;
+            }
+
+            body.vscode-dark .application-icon{
+                background: url(<%= images.applicationsIconWhite %>) no-repeat right center;
+                width:18px;
+                height:18px;
+            }
+
+                /*
+            ##############################################
+            ### Styling for vscode-light grouped themes ###
+            ##############################################
+            */
+
+
+            body.vscode-light{
+                color:#000000;
+            }
+
+            body.vscode-light .clone-button{
+                color:white;
+                background-color:#0061FF;
+                padding:5px 10px 5px 10px;
+            }
+            body.vscode-light .clone-button:hover{
+                cursor:pointer;
+                background-color:#054ADA;
+            }
+            body.vscode-light .open-button{
+                color: #ffffff;
+                background-color:#0061FF;
+            }
+
+            body.vscode-light .open-button:hover{
+                background-color:#054ADA;
+                cursor: pointer;
+            }
+
+            body.vscode-light .open-button:disabled{
+                background-color:#BEBEBE;
+                cursor:not-allowed;
+                color:#8c8c8c;
+            }
+
+            body.vscode-light .cell{
+                border-bottom: 2px solid #F4F4F4;
+                color:#565656;
+                font-size:12px;
+            }
+
+            body.vscode-light .cell-header{
+                background-color:#F3F3F3;
+                color:#000000;
+                font-size:12px;
+            }
+
+            body.vscode-light .showMore-theme{
+                background-color: #F3F3F3;
+            }
+
+            body.vscode-light .showLess-theme{
+                background-color: #F3F3F3;
+
+            }
+
+            body.vscode-light #more {
+                color:#000000;
+            }
+
+            body.vscode-light .application-box{
+                border-bottom:2px solid #F4F4F4;
+            }
+
+            body.vscode-light .application-version{
+                color:#8c8c8c;
+            }
+
+            body.vscode-light .contract-icon{
+                background: url(<%= images.contractsIconBlack %>) no-repeat right center;
+                width:18px;
+                height:18px;
+            }
+            body.vscode-light .application-icon{
+                background: url(<%= images.applicationsIconBlack %>) no-repeat right center;
+                width:18px;
+                height:18px;
+            }
+
+        </style>
+    </head>
+    <body>
+        <h1 id="sample-title"><%= sample.name %> Sample</h1>
+        <p><%= sample.description %></p><br>
+        <% if (repositoryConfig) { %>
+        <div id="repository-config">
+            <div class="repository-config-item">Repository: <a href="https://github.com/<%=repositoryName%>">https://github.com/<%=repositoryName%></a></div>
+            <div class="repository-config-item">Cloned to: <%= repositoryConfig.path %></div>
+            <div class="repository-config-item"><a href="#" onclick="cloneRepository('<%= repositoryName %>',true)">Clone again</a></div>
+        </div>
+
+        <% } else { %>
+        <div id="repository-url-container">
+            <div id="repository-url">Repository: <a href="https://github.com/<%=repositoryName%>">https://github.com/<%=repositoryName%></a></div>
+        </div>
+        <br>
+        <button class="clone-button" onclick="cloneRepository('<%= repositoryName %>')">Clone</button>
+        <% } %>
+
+
+
+        <h2 id="readme-title">Readme</h2>
+        <div id='readme' class="showMore showMore-theme"><%- html %></div>
+        <br>
+        <a id="more" href="#" onclick='showMore()'>Show More</a>
+
+
+        <% for (const category in sample.category) { %>
+            <% if (category === 'contracts') { %>
+
+                <!-- List out all of the available contracts -->
+
+                <div class="category-title-container">
+                    <div class="category-icon-container">
+                        <div class="contract-icon"></div>
+                    </div>
+                    <div class="category-title">
+                        <h2>Smart Contracts</h2>
+                    </div>
+                </div>
+
+                <p class="category-description">Smart Contracts define the transactions available for client applications to interact with the ledger. Many samples feature alternative contracts in multiple languages: pick whichever you prefer.</p>
+
+                <div class="table">
+
+                    <div class="cell-header cell">Name</div>
+                    <div class="cell-header cell">Version</div>
+                    <div class="cell-header cell">Language</div>
+                    <div class="cell-github cell-header cell"></div>
+                    <div class="cell-download cell-header cell"></div>
+
+
+                    <% for (const contract of sample.category['contracts']) { %>
+                        <% for (const language of contract.languages) { %>
+
+                        <div class="cell"><%= contract.name %></div>
+                        <div id="<%= contract.name %>-version" class="cell">v<%= language.version %></div>
+                        <div class="cell"><%= language.type %></div>
+                        <div class="cell-github cell"><a href="https://github.com/<%=repositoryName%>/tree/<%=language.remote.branch%>/<%=language.remote.path%>">View on GitHub</a></div>
+                        <div class="cell-download cell">
+
+
+                        <% if (repositoryConfig) { %>
+                            <button class="open-button" onclick="openFile('<%= sample.name %>','contracts','<%= contract.name %>','<%= language.type %>')">Open Locally</button>
+                        <% } else { %>
+                            <button disabled class="open-button" onclick="openFile('<%= sample.name %>','contracts','<%= contract.name %>','<%= language.type %>')">Open Locally</button>
+                        <% } %>
+
+                        </div>
+
+                        <% } %>
+                    <% } %>
+
+                </div>
+
+            <% } %>
+
+
+            <% if (category === 'applications') { %>
+
+                <!-- List out all of the available contracts -->
+
+                <div class="category-title-container">
+                    <div class="category-icon-container">
+                        <div class="application-icon"></div>
+                    </div>
+                    <div class="category-title">
+                        <h2>Applications</h2>
+                    </div>
+                </div>
+
+                <p class="category-description">Applications invoke the transactions in instantiated smart contracts. Many samples feature client apps in different languages: pick whichever you prefer.</p>
+
+                <div class="table">
+
+                    <div class="cell-header cell">Name</div>
+                    <div class="cell-header cell">Version</div>
+                    <div class="cell-header cell">Language</div>
+                    <div class="cell-github cell-header cell"></div>
+                    <div class="cell-download cell-header cell"></div>
+
+
+                    <% for (const application of sample.category['applications']) { %>
+                        <div class="cell"><%= application.name %></div>
+                        <div id="<%= application.name %>-version" class="cell">v<%= application.version %></div>
+                        <div class="cell"><%= application.language %></div>
+                        <div class="cell-github cell"><a href="https://github.com/<%=repositoryName%>/tree/<%=application.remote.branch%>/<%=application.remote.path%>">View on GitHub</a></div>
+                        <div class="cell-download cell">
+
+
+                        <% if (repositoryConfig) { %>
+                            <button class="open-button" onclick="openFile('<%= sample.name %>','applications','<%= application.name %>')">Open Locally</button>
+                        <% } else { %>
+                            <button disabled class="open-button" onclick="openFile('<%= sample.name %>','applications','<%= application.name %>')">Open Locally</button>
+                        <% } %>
+
+                        </div>
+                    <% } %>
+
+                </div>
+
+            <% } %>
+
+        <% } %>
+
+
+        <script>
+            const vscode = acquireVsCodeApi();
+            let globalContractName;
+
+            function openFile(sampleName,fileType,fileName,language){
+                vscode.postMessage({
+                    command: 'open',
+                    sampleName: sampleName,
+                    fileType: fileType,
+                    fileName: fileName,
+                    language: language
+                });
+            }
+
+            function cloneRepository(repoName,recloning){
+                vscode.postMessage({
+                    command: 'clone',
+                    repository: repoName,
+                    recloning: recloning
+                })
+            }
+
+            function getLanguage(contractName){
+                return document.getElementById(contractName).value;
+            }
+
+            function getLanguageVersion(contractName){
+                let languageType = document.getElementById(contractName).value;
+                globalContractName = contractName;
+                vscode.postMessage({
+                    command: 'getLanguageVersion',
+                    contractName: contractName,
+                    languageType: languageType
+                });
+            }
+
+            function showMore(){
+                var element = document.getElementById("readme");
+                element.classList.toggle("showMore");
+                element.classList.toggle("showLess");
+                var button = document.getElementById("more");
+                if(button.innerHTML == "Show More"){
+                    button.innerHTML = "Show Less";
+                } else{
+                    button.innerHTML = "Show More";
+                }
+            }
+
+            window.addEventListener('message', event => {
+                const message = event.data;
+                if(message.version){
+                    let element = globalContractName + '-version';
+                    let thing = document.getElementById(element).innerHTML = 'v' + message.version;
+                }
+            });
+
+        </script>
+    </body>
+</html>

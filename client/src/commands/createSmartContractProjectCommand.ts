@@ -144,7 +144,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
         // Open the returned folder in explorer, in a new window
         console.log('new smart contract project folder is :' + folderPath);
-        await openNewProject(openMethod, folderUri);
+        await UserInputUtil.openNewProject(openMethod, folderUri);
     } catch (error) {
         vscode.window.showErrorMessage('Issue creating smart contract project');
         outputAdapter.log(error);
@@ -272,35 +272,6 @@ async function getSmartContractLanguageOptions(): Promise<string[]> {
         throw new Error('Contract languages not found in package.json');
     }
     return parsedJson.contractLanguages;
-}
-
-async function openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
-    if (openMethod === UserInputUtil.ADD_TO_WORKSPACE) {
-        const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
-        vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, {uri: uri});
-    } else {
-        let openNewWindow: boolean = true;
-
-        if (openMethod === UserInputUtil.OPEN_IN_CURRENT_WINDOW) {
-            openNewWindow = false;
-            await checkForUnsavedFiles();
-        }
-
-        await vscode.commands.executeCommand('vscode.openFolder', uri, openNewWindow);
-    }
-}
-
-async function checkForUnsavedFiles(): Promise<void> {
-    const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
-        return document.isDirty;
-    });
-
-    if (unsavedFiles) {
-        const answer: string = await UserInputUtil.showQuickPickYesNo('Do you want to save any unsaved changes?');
-        if (answer === UserInputUtil.YES) {
-            await vscode.workspace.saveAll(true);
-        }
-    }
 }
 
 async function getGeneratorFabricPackageJson(): Promise<any> {

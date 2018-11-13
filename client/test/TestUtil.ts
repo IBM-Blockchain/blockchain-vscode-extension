@@ -53,6 +53,24 @@ export class TestUtil {
         await vscode.workspace.getConfiguration().update('fabric.runtimes', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
+    static async storeRepositoriesConfig(): Promise<void> {
+        this.USER_REPOSITORIES = await vscode.workspace.getConfiguration().get('blockchain.repositories');
+        console.log('Storing repositories:', this.USER_REPOSITORIES);
+    }
+    static async restoreRepositoriesConfig(): Promise<void> {
+        console.log('Restoring repositories config to settings:', this.USER_REPOSITORIES);
+        await vscode.workspace.getConfiguration().update('blockchain.repositories', this.USER_REPOSITORIES, vscode.ConfigurationTarget.Global);
+    }
+
+    static async storeShowHomeOnStart(): Promise<void> {
+        this.HOME_STARTUP = await vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
+        console.log('Storing home startup:', this.HOME_STARTUP);
+    }
+    static async restoreShowHomeOnStart(): Promise<void> {
+        console.log('Restoring show home on startup config to settings:', this.HOME_STARTUP);
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', this.HOME_STARTUP, vscode.ConfigurationTarget.Global);
+    }
+
     static async deleteTestFiles(deletePath: string): Promise<void> {
         try {
             await fs.remove(deletePath);
@@ -66,4 +84,6 @@ export class TestUtil {
     private static USER_PACKAGE_DIR_CONFIG: any;
     private static USER_CONNECTIONS_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
+    private static USER_REPOSITORIES: any;
+    private static HOME_STARTUP: any;
 }

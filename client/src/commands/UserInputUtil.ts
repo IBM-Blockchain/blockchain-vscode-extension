@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as homeDir from 'home-dir';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
@@ -571,6 +570,35 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    public static async openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
+        if (openMethod === UserInputUtil.ADD_TO_WORKSPACE) {
+            const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
+            vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, {uri: uri});
+        } else {
+            let openNewWindow: boolean = true;
+
+            if (openMethod === UserInputUtil.OPEN_IN_CURRENT_WINDOW) {
+                openNewWindow = false;
+                await this.checkForUnsavedFiles();
+            }
+
+            await vscode.commands.executeCommand('vscode.openFolder', uri, openNewWindow);
+        }
+    }
+
+    private static async checkForUnsavedFiles(): Promise<void> {
+        const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
+            return document.isDirty;
+        });
+
+        if (unsavedFiles) {
+            const answer: string = await UserInputUtil.showQuickPickYesNo('Do you want to save any unsaved changes?');
+            if (answer === UserInputUtil.YES) {
+                await vscode.workspace.saveAll(true);
+            }
+        }
     }
 
     private static async getChannels(): Promise<Array<IBlockchainQuickPickItem<Set<string>>>> {
