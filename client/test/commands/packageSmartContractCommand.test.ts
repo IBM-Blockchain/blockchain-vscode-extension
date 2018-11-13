@@ -108,8 +108,7 @@ describe('packageSmartContract', () => {
     let buildTasks: vscode.Task[];
     let executeTaskStub: sinon.SinonStub;
 
-    beforeEach(async function(): Promise<void> {
-        this.timeout(10000);
+    beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
         await TestUtil.deleteTestFiles(fileDest);
@@ -234,7 +233,7 @@ describe('packageSmartContract', () => {
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
             executeTaskStub.should.have.not.been.called;
-        }).timeout(10000);
+        });
 
         it('should package the JavaScript project with specified folder and version', async () => {
             await createTestFiles('javascriptProject', '0.0.3', 'javascript', true);
@@ -263,7 +262,7 @@ describe('packageSmartContract', () => {
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
             executeTaskStub.should.have.not.been.called;
-        }).timeout(10000);
+        });
 
         it('should package the TypeScript project', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
@@ -294,7 +293,7 @@ describe('packageSmartContract', () => {
             informationSpy.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
-        }).timeout(4000);
+        });
 
         it('should package the Go project', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -327,7 +326,7 @@ describe('packageSmartContract', () => {
             informationSpy.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
-        }).timeout(4000);
+        });
 
         it('should package the Java project', async () => {
             await createTestFiles('javaProject', '0.0.1', 'java', true);
@@ -360,7 +359,7 @@ describe('packageSmartContract', () => {
             informationSpy.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
-        }).timeout(4000);
+        });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -385,7 +384,7 @@ describe('packageSmartContract', () => {
             smartContractExists.should.be.false;
             errorSpy.should.have.been.calledWith('Please enter a package name and/or package version into your package.json');
             informationSpy.should.not.have.been.called;
-        }).timeout(4000);
+        });
 
         it('should throw an error as the project does not contain a chaincode file', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -406,7 +405,7 @@ describe('packageSmartContract', () => {
             smartContractExists.should.be.false;
             errorSpy.should.have.been.calledWith('Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java');
             informationSpy.should.not.have.been.called;
-        }).timeout(4000);
+        });
 
         it('should throw an error if the JavaScript project already exists', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -425,7 +424,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
-        }).timeout(4000);
+        });
 
         it('should throw an error as the Go project already exists', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -449,7 +448,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Go project.');
-        }).timeout(4000);
+        });
 
         it('should throw an error as the Java project already exists', async () => {
             await createTestFiles('javaProject', '0.0.1', 'java', true);
@@ -473,7 +472,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Java project.');
-        }).timeout(4000);
+        });
 
         it('should throw an error if the GOPATH environment variable is not set', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -496,7 +495,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
-        }).timeout(4000);
+        });
 
         it('should throw an error if the GOPATH environment variable is set to the project directory', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -519,7 +518,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
-        }).timeout(4000);
+        });
 
         it('should throw an error if the project directory is not inside the directory specified by the GOPATH environment variable ', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -542,7 +541,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
-        }).timeout(4000);
+        });
 
         it('should throw an error if the GOPATH environment variable is set to the root directory', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -565,7 +564,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
-        }).timeout(4000);
+        });
 
         it('should fail packaging the TypeScript project as there is no compiled chaincode.js file', async () => {
             await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
@@ -590,7 +589,7 @@ describe('packageSmartContract', () => {
             smartContractExists.should.be.false;
             errorSpy.should.have.been.called;
             informationSpy.should.not.have.been.called;
-        }).timeout(4000);
+        });
 
         it('should run execute the refreshEntry command', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -635,7 +634,7 @@ describe('packageSmartContract', () => {
             ]);
             errorSpy.should.not.have.been.called;
             informationSpy.should.have.been.calledOnce;
-        }).timeout(4000);
+        });
 
         it('should handle error from get workspace folders', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -650,7 +649,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
             errorSpy.should.have.been.calledWith('Issue determining available workspace folders some error');
-        }).timeout(4000);
+        });
 
         it('should handle not choosing folder', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
@@ -668,7 +667,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-        }).timeout(4000);
+        });
 
         it('should handle cancelling the input box for the Go project name', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -691,7 +690,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-        }).timeout(4000);
+        });
 
         it('should handle cancelling the input box for the Go project version', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true);
@@ -715,7 +714,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-        }).timeout(4000);
+        });
 
         it('should handle cancelling the input box for the Java project name', async () => {
             await createTestFiles('javaProject', '0.0.1', 'java', true);
@@ -738,7 +737,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-        }).timeout(4000);
+        });
 
         it('should handle cancelling the input box for the Java project version', async () => {
             await createTestFiles('javaProject', '0.0.1', 'java', true);
@@ -762,6 +761,6 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-        }).timeout(4000);
+        });
     });
 });
