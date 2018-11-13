@@ -20,6 +20,7 @@ Or visit the [Visual Studio Code Marketplace](https://marketplace.visualstudio.c
 ## Requirements
 
 You will need the following installed in order to use the extension:
+- [VSCode version 1.26 or greater](https://code.visualstudio.com)
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Yeoman (yo) v2.x](http://yeoman.io/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)

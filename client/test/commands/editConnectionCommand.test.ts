@@ -27,6 +27,7 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import * as myExtension from '../../src/extension';
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
+import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
 
 chai.should();
 chai.use(sinonChai);
@@ -89,6 +90,7 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should update connection profile', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 const isCompletedStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
                 const quickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves('Connection Profile');
                 mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '', identities: [{certificatePath: '/some/path', privateKeyPath: '/some/path'}]}});
@@ -105,6 +107,7 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should update certificate', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 const isCompletedStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
                 const quickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves('Certificate');
                 mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', identities: [{certificatePath: '', privateKeyPath: '/some/path'}]}});
@@ -121,6 +124,7 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should update private key', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 const isCompletedStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
                 const quickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves('Private Key');
                 mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', identities: [{certificatePath: '/some/path', privateKeyPath: ''}]}});
@@ -150,6 +154,31 @@ describe('EditConnectionCommand', () => {
                 getFabricConnectionRegistrySpy.should.not.have.been.called;
             });
 
+            it('should throw an error if certificate is invalid', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws({message: 'Could not validate certificate: invalid PEM'});
+                const isCompletedStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
+                const quickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves('Certificate');
+                mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', identities: [{certificatePath: '', privateKeyPath: '/some/path'}]}});
+                const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit').resolves('/some/path');
+                mySandBox.stub(FabricConnectionRegistry.instance(), 'get').returns({connectionProfilePath: '/some/path', identities: [{certificatePath: '', privateKeyPath: '/some/path'}]});
+                const showErrorMessageSpy: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage');
+
+                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                showErrorMessageSpy.should.have.been.calledWith('Failed to edit connection: Could not validate certificate: invalid PEM');
+            });
+
+            it('should throw an error if private key is invalid', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws({message: 'Could not validate private key: invalid PEM'});
+                const isCompletedStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
+                const quickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves('Private Key');
+                mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', identities: [{certificatePath: '/some/path', privateKeyPath: ''}]}});
+                const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit').resolves('/some/path');
+                mySandBox.stub(FabricConnectionRegistry.instance(), 'get').returns({connectionProfilePath: '/some/path', identities: [{certificatePath: '/some/path', privateKeyPath: ''}]});
+                const showErrorMessageSpy: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage');
+
+                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                showErrorMessageSpy.should.have.been.calledWith('Failed to edit connection: Could not validate private key: invalid PEM');
+            });
         });
 
         describe('called from tree by clicking or right-clicking and editing', () => {
@@ -189,6 +218,7 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should update a certificate for an uncompleted connection when clicked on', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 const openUserSettingsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const treeItem: ConnectionPropertyTreeItem = new ConnectionPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Certificate', {name: 'myConnection'} as FabricConnectionRegistryEntry, 0);
@@ -204,6 +234,7 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should update a private key for an uncompleted connection when clicked on', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 const openUserSettingsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const treeItem: ConnectionPropertyTreeItem = new ConnectionPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Private Key', {name: 'myConnection'} as FabricConnectionRegistryEntry, 0);
