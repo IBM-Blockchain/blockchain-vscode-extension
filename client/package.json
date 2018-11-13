@@ -537,6 +537,9 @@
             }
         }
     },
+    "extensionPack": [
+        "legfrey.javascript-test-runner"
+    ],
     "license-check-and-add-config": {
         "folder": ".",
         "license": "LICENSE.txt",

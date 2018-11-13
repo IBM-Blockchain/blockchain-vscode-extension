@@ -255,6 +255,12 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
     }
 
+    async function runJavaScriptSmartContractTests(name: string): Promise<string> {
+        // Run the same command that the JavaScript Test Runner runs to run javascript tests
+        const testResult: string = await CommandUtil.sendCommand(`node_modules/.bin/mocha functionalTests/${name}@0.0.1.test.js --grep="instantiate"`, testContractDir);
+        return testResult;
+    }
+
     async function getRawPackageJson(): Promise<any> {
         const fileContents: Buffer = await fs.readFile(path.join(testContractDir, 'package.json'));
         return JSON.parse(fileContents.toString());
@@ -533,6 +539,7 @@ describe('Integration Test', () => {
 
         it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and generate tests`, async () => {
             const smartContractName: string = `my${language}SC`;
+            let javascriptTestRunResult: string;
 
             await createFabricConnection();
 
@@ -546,7 +553,10 @@ describe('Integration Test', () => {
 
             await instantiateSmartContract(smartContractName, '0.0.1');
 
-            if (language === 'JavaScript' || language === 'TypeScript') {
+            if (language === 'JavaScript') {
+                await generateSmartContractTests(smartContractName, '0.0.1');
+                javascriptTestRunResult = await runJavaScriptSmartContractTests(smartContractName);
+            } else if (language === 'TypeScript') {
                 await generateSmartContractTests(smartContractName, '0.0.1');
             }
 
@@ -609,6 +619,10 @@ describe('Integration Test', () => {
                 testFileContents.includes(smartContractFunctionsArray[0]).should.be.true;
                 testFileContents.includes(smartContractFunctionsArray[1]).should.be.true;
                 testFileContents.includes(smartContractFunctionsArray[2]).should.be.true;
+            }
+            if (language === 'JavaScript') {
+                javascriptTestRunResult.includes('success for transaction').should.be.true;
+                javascriptTestRunResult.includes('1 passing').should.be.true;
             }
 
         }).timeout(0);
