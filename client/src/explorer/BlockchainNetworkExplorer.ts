@@ -39,6 +39,7 @@ import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 import { ConnectionPropertyTreeItem } from './model/ConnectionPropertyTreeItem';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
+import { TransactionTreeItem } from './model/TransactionTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -133,6 +134,10 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                     this.tree = await this.createInstantiatedChaincodeTree(element as InstantiatedChainCodesTreeItem);
                 }
 
+                if (element instanceof ChainCodeTreeItem) {
+                    this.tree = await this.createTransactionsChaincodeTree(element as ChainCodeTreeItem);
+                }
+
                 if (element instanceof InstalledChainCodeTreeItem) {
                     this.tree = await this.createInstalledChaincodeVersionTree(element as InstalledChainCodeTreeItem);
                 }
@@ -171,7 +176,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         for (const label of [profileLabel, certLabel, keyLabel]) {
             console.log('Label is', label);
-            command = {command: 'blockchainExplorer.editConnectionEntry', title: '', arguments: [{label: label, connection: element.connection}]};
+            command = { command: 'blockchainExplorer.editConnectionEntry', title: '', arguments: [{ label: label, connection: element.connection }] };
             tree.push(new ConnectionPropertyTreeItem(this, label, element.connection, vscode.TreeItemCollapsibleState.None, command));
         }
 
@@ -288,8 +293,25 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: Array<ChainCodeTreeItem> = [];
         const channel: ChannelTreeItem = instantiatedChainCodesElement.channel;
 
-        instantiatedChainCodesElement.chaincodes.forEach((instantiatedChaincode: { name: string, version: string}) => {
-            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name, channel, instantiatedChaincode.version));
+        for (const instantiatedChaincode of instantiatedChainCodesElement.chaincodes) {
+            const metaDataObject: any = await FabricConnectionManager.instance().getConnection().getMetadata(instantiatedChaincode.name, channel.label);
+            const transactions: Array<string> = metaDataObject[''].functions;
+            let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+            if (transactions.length === 0) {
+                collapsedState = vscode.TreeItemCollapsibleState.None;
+            }
+            tree.push(new ChainCodeTreeItem(this, instantiatedChaincode.name, channel, instantiatedChaincode.version, collapsedState, transactions));
+        }
+
+        return tree;
+    }
+
+    private async createTransactionsChaincodeTree(chainCodeElement: ChainCodeTreeItem): Promise<Array<TransactionTreeItem>> {
+        const tree: Array<TransactionTreeItem> = [];
+        console.log('createTransactionsChaincodeTree', chainCodeElement);
+        const transactions: Array<string> = chainCodeElement.transactions;
+        transactions.forEach((transaction: string) => {
+            tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label));
         });
 
         return tree;
@@ -322,7 +344,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             const channels: Array<string> = Array.from(channelMap.keys());
 
             for (const channel of channels) {
-                let chaincodes: Array<string>;
+                let chaincodes: Array<{name: string, version: string}>;
                 const peers: Array<string> = channelMap.get(channel);
                 try {
                     chaincodes = await FabricConnectionManager.instance().getConnection().getInstantiatedChaincode(channel);

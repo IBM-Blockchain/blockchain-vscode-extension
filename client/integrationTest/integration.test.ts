@@ -72,6 +72,7 @@ describe('Integration Test', () => {
     let browseEditStub: sinon.SinonStub;
     let showInstantiatedSmartContractsStub: sinon.SinonStub;
     let workspaceFolder: vscode.WorkspaceFolder;
+    let showTransactionStub: sinon.SinonStub;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -116,6 +117,7 @@ describe('Integration Test', () => {
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
         showInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
+        showTransactionStub = mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
     });
 
     afterEach(async () => {
@@ -161,21 +163,21 @@ describe('Integration Test', () => {
     async function packageSmartContract(version: string = '0.0.1'): Promise<void> {
         let workspaceFiles: vscode.Uri[];
         if (testContractType === 'JavaScript') {
-            workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(testContractDir)};
-            workspaceFiles = [ vscode.Uri.file('chaincode.js') ];
+            workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(testContractDir) };
+            workspaceFiles = [vscode.Uri.file('chaincode.js')];
         } else if (testContractType === 'TypeScript') {
-            workspaceFolder = { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(testContractDir)};
-            workspaceFiles = [ vscode.Uri.file('chaincode.js'), vscode.Uri.file('chaincode.ts') ];
+            workspaceFolder = { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(testContractDir) };
+            workspaceFiles = [vscode.Uri.file('chaincode.js'), vscode.Uri.file('chaincode.ts')];
         } else if (testContractType === 'Java') {
             inputBoxStub.withArgs('Enter a name for your Java package').resolves(testContractName);
             inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
-            workspaceFolder = { index: 0, name: 'javaProject', uri: vscode.Uri.file(testContractDir)};
-            workspaceFiles = [ vscode.Uri.file('chaincode.java') ];
+            workspaceFolder = { index: 0, name: 'javaProject', uri: vscode.Uri.file(testContractDir) };
+            workspaceFiles = [vscode.Uri.file('chaincode.java')];
         } else if (testContractType === 'Go') {
             inputBoxStub.withArgs('Enter a name for your Go package').resolves(testContractName);
             inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
-            workspaceFolder = { index: 0, name: 'goProject', uri: vscode.Uri.file(testContractDir)};
-            workspaceFiles = [ vscode.Uri.file('chaincode.go') ];
+            workspaceFolder = { index: 0, name: 'goProject', uri: vscode.Uri.file(testContractDir) };
+            workspaceFiles = [vscode.Uri.file('chaincode.go')];
         } else {
             throw new Error(`I do not know how to handle language ${testContractType}`);
         }
@@ -227,7 +229,7 @@ describe('Integration Test', () => {
     }
 
     async function instantiateSmartContract(name: string, version: string): Promise<void> {
-        showChannelStub.resolves('myChannel');
+        showChannelStub.resolves('mychannel');
 
         showChanincodeAndVersionStub.resolves({
             label: `${name}@${version}`,
@@ -242,11 +244,24 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
     }
 
-    async function generateSmartContractTests(name: string, version: string): Promise<void> {
-        showChannelStub.resolves('myChannel');
+    async function submitTransaction(name: string, version: string, transaction: string, args: string): Promise<void> {
         showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
-            data: {name: name, channel: 'myChannel', version: version}
+            data: { name: name, channel: 'mychannel', version: version }
+        });
+
+        showTransactionStub.resolves(transaction);
+
+        inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+
+        await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
+    }
+
+    async function generateSmartContractTests(name: string, version: string): Promise<void> {
+        showChannelStub.resolves('mychannel');
+        showInstantiatedSmartContractsStub.resolves({
+            label: `${name}@${version}`,
+            data: { name: name, channel: 'mychannel', version: version }
         });
         getWorkspaceFoldersStub.returns([workspaceFolder]);
         const packageJSONPath: string = path.join(testContractDir, 'package.json');
@@ -558,6 +573,10 @@ describe('Integration Test', () => {
                 javascriptTestRunResult = await runJavaScriptSmartContractTests(smartContractName);
             } else if (language === 'TypeScript') {
                 await generateSmartContractTests(smartContractName, '0.0.1');
+
+                const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+                await submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world');
+                errorSpy.should.not.have.been.called;
             }
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
@@ -684,7 +703,5 @@ describe('Integration Test', () => {
 
             instantiatedSmartContract.should.not.be.null;
         }).timeout(0);
-
     });
-
 });

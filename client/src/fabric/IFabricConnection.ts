@@ -29,7 +29,7 @@ export interface IFabricConnection {
 
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
-    getInstantiatedChaincode(channelName: string): Promise<Array<any>>;
+    getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
 
     installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
 
@@ -38,4 +38,6 @@ export interface IFabricConnection {
     isIBPConnection(): boolean;
 
     getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
+
+    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>): Promise<void>;
 }

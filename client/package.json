@@ -62,7 +62,8 @@
             "blockchainExplorer.teardownFabricRuntime",
             "blockchainExplorer.toggleFabricRuntimeDevMode",
             "blockchainExplorer.editConnectionEntry",
-            "blockchainExplorer.testSmartContractEntry"
+            "blockchainExplorer.testSmartContractEntry",
+            "blockchainExplorer.submitTransactionEntry"
         ]
     },
     "main": "./out/src/extension",
@@ -229,6 +230,11 @@
                 "command": "blockchainExplorer.testSmartContractEntry",
                 "title": "Generate Smart Contract Tests",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "blockchainExplorer.submitTransactionEntry",
+                "title": " Submit Transaction",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -344,6 +350,10 @@
                 {
                     "command": "blockchainExplorer.testSmartContractEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-chaincode-item"
+                },
+                {
+                    "command": "blockchainExplorer.submitTransactionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-transaction-item"
                 }
             ]
         },

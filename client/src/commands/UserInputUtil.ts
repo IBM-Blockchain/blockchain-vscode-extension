@@ -74,7 +74,7 @@ export class UserInputUtil {
         allConnections.push(...managedRuntimes);
 
         const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = allConnections.map((connection: FabricConnectionRegistryEntry) => {
-            return {label: connection.name, data: connection};
+            return { label: connection.name, data: connection };
         });
 
         return vscode.window.showQuickPick(connectionsQuickPickItems, quickPickOptions);
@@ -89,11 +89,11 @@ export class UserInputUtil {
         return vscode.window.showInputBox(inputBoxOptions);
     }
 
-    public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<vscode.WorkspaceFolder>| undefined>  {
+    public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<vscode.WorkspaceFolder> | undefined> {
         const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
 
         const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<vscode.WorkspaceFolder>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
-            return {label: workspaceFolderOption.name, data: workspaceFolderOption};
+            return { label: workspaceFolderOption.name, data: workspaceFolderOption };
         });
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -104,10 +104,10 @@ export class UserInputUtil {
 
         return vscode.window.showQuickPick(workspaceQuickPickItems, quickPickOptions);
     }
-/**
- * Method to retrieve all the smart contract projects within the active workspace.
- * @returns {<Array<vscode.WorkspaceFolder>>} An Array of all folders in the current workspace
- */
+    /**
+     * Method to retrieve all the smart contract projects within the active workspace.
+     * @returns {<Array<vscode.WorkspaceFolder>>} An Array of all folders in the current workspace
+     */
     public static getWorkspaceFolders(): Array<vscode.WorkspaceFolder> {
         const workspace: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders;
         if (!workspace) {
@@ -117,12 +117,12 @@ export class UserInputUtil {
         }
         return workspace;
     }
-/**
- * Method to replace ~ with OS's home directory, of a path
- * @param {String} dir String containing path
- * @returns {String} Returns dir.
- *
- */
+    /**
+     * Method to replace ~ with OS's home directory, of a path
+     * @param {String} dir String containing path
+     * @returns {String} Returns dir.
+     *
+     */
     public static async getDirPath(dir: string): Promise<string> {
 
         if (dir.startsWith('~')) {
@@ -141,7 +141,7 @@ export class UserInputUtil {
 
         const identityQuickPickItems: Array<IBlockchainQuickPickItem<any>> = connection.identities.map((identity: { certificatePath: string, privateKeyPath: string }) => {
             const parsedCert: ParsedCertificate = new ParsedCertificate(identity.certificatePath);
-            return {label: parsedCert.getCommonName(), data: identity};
+            return { label: parsedCert.getCommonName(), data: identity };
         });
 
         return vscode.window.showQuickPick(identityQuickPickItems, quickPickOptions);
@@ -151,7 +151,7 @@ export class UserInputUtil {
         const runtimes: FabricRuntime[] = FabricRuntimeManager.instance().getAll();
 
         const runtimeQuickPickItems: Array<IBlockchainQuickPickItem<FabricRuntime>> = runtimes.map((runtime: FabricRuntime) => {
-            return {label: runtime.getName(), data: runtime};
+            return { label: runtime.getName(), data: runtime };
         });
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -217,13 +217,13 @@ export class UserInputUtil {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
             chaincodes.forEach((versions: string[], chaincodeName: string) => {
                 versions.forEach((version: string) => {
-                    const data: {chaincode: string, version: string} = {chaincode: chaincodeName, version: version};
-                    quickPickItems.push({label: `${chaincodeName}@${version}`, data: data});
+                    const data: { chaincode: string, version: string } = { chaincode: chaincodeName, version: version };
+                    quickPickItems.push({ label: `${chaincodeName}@${version}`, data: data });
                 });
             });
         }
 
-        quickPickItems.push({label: this.INSTALL_INSTANTIATE_LABEL, data: {chaincode: '', version: ''}});
+        quickPickItems.push({ label: this.INSTALL_INSTANTIATE_LABEL, data: { chaincode: '', version: '' } });
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -235,30 +235,7 @@ export class UserInputUtil {
     }
 
     public static async showChannelQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Set<string>> | undefined> {
-        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        const connection: IFabricConnection = fabricConnectionManager.getConnection();
-        if (!connection) {
-            return Promise.reject('No connection to a blockchain found');
-        }
-
-        const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = [];
-        const peerNames: Array<string> = connection.getAllPeerNames();
-        for (const peerName of peerNames) {
-            const allChannels: Array<string> = await connection.getAllChannelsForPeer(peerName);
-            allChannels.forEach((channel: string) => {
-                const foundItem: IBlockchainQuickPickItem<Set<string>> = quickPickItems.find((item: IBlockchainQuickPickItem<Set<string>>) => {
-                    return channel === item.label;
-                });
-
-                if (foundItem) {
-                    foundItem.data.add(peerName);
-                } else {
-                    const data: Set<string> = new Set<string>();
-                    data.add(peerName);
-                    quickPickItems.push({label: channel, data: data});
-                }
-            });
-        }
+        const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = await UserInputUtil.getChannels();
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -273,7 +250,7 @@ export class UserInputUtil {
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
         const quickPickItems: IBlockchainQuickPickItem<PackageRegistryEntry>[] = packages.map((_package: PackageRegistryEntry) => {
-            return {label: _package.name, description: _package.version, data: _package};
+            return { label: _package.name, description: _package.version, data: _package };
         });
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -348,7 +325,7 @@ export class UserInputUtil {
             // Get the 'user settings' file path
             if (process.platform === 'win32') {
                 // Windows
-                settingsPath = path.join(process.env.APPDATA, 'Code' , 'User', 'settings.json');
+                settingsPath = path.join(process.env.APPDATA, 'Code', 'User', 'settings.json');
             } else if (process.platform === 'darwin') {
                 // Mac
                 settingsPath = path.join(homeDir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json');
@@ -400,10 +377,10 @@ export class UserInputUtil {
      * @param {number} ms milliseconds to pause for
      */
     public static delayWorkaround(ms: number): Promise<any> {
-      return new Promise((resolve: any): any => setTimeout(resolve, ms));
+        return new Promise((resolve: any): any => setTimeout(resolve, ms));
     }
 
-    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined>  {
+    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
 
@@ -412,7 +389,23 @@ export class UserInputUtil {
             return;
         }
 
-        const instantiatedChaincodes: any[] = await connection.getInstantiatedChaincode(channelName); // returns array of objects
+        let channels: Array<string> = [];
+        if (!channelName) {
+            const channelQuickPicks: Array<IBlockchainQuickPickItem<Set<string>>> = await this.getChannels();
+            channels = channelQuickPicks.map((channelQuickPick: IBlockchainQuickPickItem<Set<string>>) => {
+                return channelQuickPick.label;
+            });
+        } else {
+            channels.push(channelName);
+        }
+
+        const instantiatedChaincodes: Array<{ name: string, version: string }> = [];
+
+        for (const channel of channels) {
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(channel); // returns array of objects
+            instantiatedChaincodes.push(...chaincodes);
+        }
+
         if (instantiatedChaincodes.length === 0) {
             vscode.window.showInformationMessage('No instantiated chaincodes within connection');
             return;
@@ -420,8 +413,8 @@ export class UserInputUtil {
 
         const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>> = [];
         for (const chaincode of instantiatedChaincodes) {
-            const data: { name: string, channel: string, version: string } = {name: chaincode.name, channel: channelName, version: chaincode.version};
-            quickPickItems.push({label: `${chaincode.name}@${chaincode.version}`, data: data});
+            const data: { name: string, channel: string, version: string } = { name: chaincode.name, channel: channelName, version: chaincode.version };
+            quickPickItems.push({ label: `${chaincode.name}@${chaincode.version}`, data: data });
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -445,4 +438,51 @@ export class UserInputUtil {
 
     }
 
+    public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<string | undefined> {
+        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+        const connection: IFabricConnection = fabricConnectionManager.getConnection();
+
+        if (!connection) {
+            vscode.window.showErrorMessage('No connection to a blockchain found');
+            return;
+        }
+
+        const metaData: any = await connection.getMetadata(chaincodeName, channelName);
+        const quickPickItems: Array<string> = metaData[''];
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    private static async getChannels(): Promise<Array<IBlockchainQuickPickItem<Set<string>>>> {
+        const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+        const connection: IFabricConnection = fabricConnectionManager.getConnection();
+        if (!connection) {
+            return Promise.reject('No connection to a blockchain found');
+        }
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = [];
+        const peerNames: Array<string> = connection.getAllPeerNames();
+        for (const peerName of peerNames) {
+            const allChannels: Array<string> = await connection.getAllChannelsForPeer(peerName);
+            allChannels.forEach((channel: string) => {
+                const foundItem: IBlockchainQuickPickItem<Set<string>> = quickPickItems.find((item: IBlockchainQuickPickItem<Set<string>>) => {
+                    return channel === item.label;
+                });
+                if (foundItem) {
+                    foundItem.data.add(peerName);
+                } else {
+                    const data: Set<string> = new Set<string>();
+                    data.add(peerName);
+                    quickPickItems.push({ label: channel, data: data });
+                }
+            });
+        }
+        return quickPickItems;
+    }
 }

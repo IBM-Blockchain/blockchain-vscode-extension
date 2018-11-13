@@ -14,7 +14,7 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract } from 'fabric-network';
+import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract, InitOptions } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
@@ -96,7 +96,7 @@ export abstract class FabricConnection implements IFabricConnection {
         return installedChainCodes;
     }
 
-    public async getInstantiatedChaincode(channelName: string): Promise<Array<any>> {
+    public async getInstantiatedChaincode(channelName: string): Promise<Array<{ name: string, version: string }>> {
         console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];
         const channel: Client.Channel = this.getChannel(channelName);
@@ -121,7 +121,7 @@ export abstract class FabricConnection implements IFabricConnection {
         // Horrible hack to get around fabric problem
         const status: number = proposalResponse['status'];
         if (status && status !== 200) {
-             // Horrible hack to get around fabric problem
+            // Horrible hack to get around fabric problem
             throw new Error(proposalResponse['message']);
         }
     }
@@ -218,6 +218,14 @@ export abstract class FabricConnection implements IFabricConnection {
         return metadataObject;
     }
 
+    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>): Promise<void> {
+        const network: Network = await this.gateway.getNetwork(channel);
+        const smartContract: Contract = network.getContract(chaincodeName);
+
+        await smartContract.submitTransaction(transactionName, ...args);
+
+    }
+
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
 
         const client: Client = await Client.loadFromConfig(connectionProfile);
@@ -228,10 +236,16 @@ export abstract class FabricConnection implements IFabricConnection {
 
         await this.wallet.import(this.identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
-        await this.gateway.connect(client, {
+        const options: InitOptions = {
             wallet: this.wallet,
             identity: this.identityName
-        });
+        };
+
+        options['discovery'] = {
+            asLocalhost: true
+        };
+
+        await this.gateway.connect(client, options);
     }
 
     private getChannel(channelName: string): Client.Channel {

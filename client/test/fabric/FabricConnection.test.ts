@@ -97,6 +97,7 @@ describe('FabricConnection', () => {
         fabricContractStub = {
             createTransaction: mySandBox.stub().returns(fabricTransactionStub),
             evaluateTransaction: mySandBox.stub(),
+            submitTransaction: mySandBox.stub(),
             getEventHandlerOptions: mySandBox.stub().returns(eventHandlerOptions)
         };
 
@@ -364,7 +365,6 @@ describe('FabricConnection', () => {
     });
 
     describe('getMetadata', () => {
-
         it('should return the metadata for an instantiated smart contract', async () => {
             const fakeMetaData: string = '{"":{"functions":["instantiate","wagonwheeling","transaction2"]},"org.hyperledger.fabric":{"functions":["getMetaData"]}}';
             const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
@@ -376,7 +376,15 @@ describe('FabricConnection', () => {
             // tslint:disable-next-line
             functionArray.should.deep.equal(["instantiate", "wagonwheeling", "transaction2"]);
         });
+    });
 
+    describe('submitTransaction', () => {
+        it('should submit a transaction', async () => {
+            fabricContractStub.submitTransaction.resolves();
+
+            await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2']);
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+        });
     });
 
     describe('disconnect', () => {
