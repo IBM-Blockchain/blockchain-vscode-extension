@@ -46,6 +46,7 @@ if (process.env.WITHOUTCOVERAGE) {
     let mocha: Mocha = new Mocha({
         ui: 'bdd',
         useColors: true,
+        timeout: 60000
     });
 
     function configure(mochaOpts: any): void {
