@@ -48,9 +48,10 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Create Smart Contract Project | Create a new JavaScript or TypeScript smart contract project |
 | Delete Connection | Delete a Hyperledger Fabric instance connection |
 | Delete Package | Delete a smart contract package |
+| Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
 | Edit Connection | Edit connection to a blockchain |
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
-| Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
+| Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
 | Install Smart Contract | Install a smart contract package onto a peer |
 | Instantiate / Upgrade Smart Contract | Instantiate / upgrade an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!*|
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
