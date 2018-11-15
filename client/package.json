@@ -61,6 +61,7 @@
             "blockchainExplorer.restartFabricRuntime",
             "blockchainExplorer.teardownFabricRuntime",
             "blockchainExplorer.toggleFabricRuntimeDevMode",
+            "blockchainExplorer.openFabricRuntimeTerminal",
             "blockchainExplorer.editConnectionEntry",
             "blockchainExplorer.testSmartContractEntry",
             "blockchainExplorer.submitTransactionEntry",
@@ -213,6 +214,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                "title": "Open Fabric Runtime Terminal",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
                 "title": "Delete Package",
                 "category": "IBM Blockchain Platform"
@@ -259,6 +265,9 @@
                 },
                 {
                     "command": "blockchainExplorer.toggleFabricRuntimeDevMode"
+                },
+                {
+                    "command": "blockchainExplorer.openFabricRuntimeTerminal"
                 }
             ],
             "view/title": [
@@ -332,6 +341,10 @@
                 {
                     "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-removed"
+                },
+                {
+                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
                 },
                 {
                     "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",

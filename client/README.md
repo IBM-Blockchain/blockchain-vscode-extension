@@ -64,7 +64,8 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Submit Transaction | Submit a transaction to a smart contract |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
-| Upgrade Smart Contract | Upgrade an instantiated smart contract|
+| Upgrade Smart Contract | Upgrade an instantiated smart contract |
+| Open Fabric Runtime Terminal | Open a terminal with access to the Fabric runtime (peer CLI) |
 
 ## Smart Contract Development Lifecycle
 _Please note that all operations shown are also possible using the commands in the table above, issued at the VSCode command-prompt._

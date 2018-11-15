@@ -704,6 +704,13 @@ describe('FabricRuntime', () => {
         });
     });
 
+    describe('#getPeerContainerName', () => {
+        it('should get the chaincode address', () => {
+            const result: string = runtime.getPeerContainerName();
+            result.should.equal('fabricvscoderuntime1_peer0.org1.example.com_1');
+        });
+    });
+
     describe('#writeConnectionDetailsToDisk', () => {
 
         beforeEach(async () => {
