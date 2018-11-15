@@ -52,7 +52,7 @@ describe('userInputUtil', () => {
 
     const mockDocument: any = {
         getText: (): any => {
-        return `{
+            return `{
             "fabric.connections": [
                 {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
@@ -76,7 +76,8 @@ describe('userInputUtil', () => {
                 }
             ]
         }`;
-    }};
+        }
+    };
 
     before(async () => {
 
@@ -116,8 +117,8 @@ describe('userInputUtil', () => {
         await connectionRegistry.add(connectionEntryTwo);
 
         await runtimeRegistry.clear();
-        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({name: 'local_fabric1', developmentMode: false}));
-        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({name: 'local_fabric2', developmentMode: true}));
+        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric1', developmentMode: false }));
+        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric2', developmentMode: true }));
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
@@ -134,6 +135,11 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves(chaincodeMap);
 
+        const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
+        chaincodeMap.set('car-network', ['0.0.1', '0.0.2']);
+        chaincodeMap.set('fish-network', ['0.0.3']);
+        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
+
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
@@ -147,7 +153,7 @@ describe('userInputUtil', () => {
 
     describe('showConnectionQuickPickBox', () => {
         it('should show connections in the quickpick box', async () => {
-            quickPickStub.resolves({label: connectionEntryOne.name, data: connectionEntryOne});
+            quickPickStub.resolves({ label: connectionEntryOne.name, data: connectionEntryOne });
             const result: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('choose a connection');
 
             result.label.should.equal('myConnectionA');
@@ -169,14 +175,14 @@ describe('userInputUtil', () => {
             mySandBox.stub(FabricRuntimeRegistry.instance(), 'getAll').returns([managedRuntime]);
             quickPickStub.resolves();
             await UserInputUtil.showConnectionQuickPickBox('choose a connection', true);
-            quickPickStub.should.have.been.calledWith([{label: connectionEntryOne.name, data: connectionEntryOne}, {label: managedRuntime.name, data: managedRuntime}]);
+            quickPickStub.should.have.been.calledWith([{ label: connectionEntryOne.name, data: connectionEntryOne }, { label: managedRuntime.name, data: managedRuntime }]);
         });
     });
 
     describe('showIdentityConnectionQuickPickBox', () => {
 
         it('should show identity connections in the quickpick box', async () => {
-            quickPickStub.resolves({label: 'Admin@org1.example.com', data: connectionEntryOne.identities[0]});
+            quickPickStub.resolves({ label: 'Admin@org1.example.com', data: connectionEntryOne.identities[0] });
             const result: IBlockchainQuickPickItem<any> = await UserInputUtil.showIdentityConnectionQuickPickBox('choose a connection', connectionEntryOne);
 
             result.label.should.equal('Admin@org1.example.com');
@@ -204,7 +210,7 @@ describe('userInputUtil', () => {
 
     describe('showRuntimeQuickPickBox', () => {
         it('should show runtimes in the quickpick box', async () => {
-            quickPickStub.resolves({label: 'local_fabric2', data: runtimeManager.get('local_fabric2')});
+            quickPickStub.resolves({ label: 'local_fabric2', data: runtimeManager.get('local_fabric2') });
             const result: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('choose a runtime');
 
             result.label.should.equal('local_fabric2');
@@ -305,9 +311,9 @@ describe('userInputUtil', () => {
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
 
-            quickPickStub.resolves({label: 'smartContractPackageBlue', data: newPackage});
+            quickPickStub.resolves({ label: 'smartContractPackageBlue', data: newPackage });
             const result: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
-            result.should.deep.equal({label: 'smartContractPackageBlue', data: newPackage});
+            result.should.deep.equal({ label: 'smartContractPackageBlue', data: newPackage });
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -324,9 +330,9 @@ describe('userInputUtil', () => {
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([newPackage]);
 
-            quickPickStub.resolves([{label: 'smartContractPackageBlue', data: newPackage}]);
+            quickPickStub.resolves([{ label: 'smartContractPackageBlue', data: newPackage }]);
             const result: Array<IBlockchainQuickPickItem<PackageRegistryEntry>> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true) as Array<IBlockchainQuickPickItem<PackageRegistryEntry>>;
-            result.should.deep.equal([{label: 'smartContractPackageBlue', data: newPackage}]);
+            result.should.deep.equal([{ label: 'smartContractPackageBlue', data: newPackage }]);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: true,
@@ -352,10 +358,10 @@ describe('userInputUtil', () => {
 
     describe('showChannelQuickPickBox', () => {
         it('should show quick pick box with channels', async () => {
-            quickPickStub.resolves({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
+            quickPickStub.resolves({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             const result: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
-            result.should.deep.equal({label: 'channelOne', data: ['myPeerOne', 'myPeerTwo']});
+            result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
@@ -374,13 +380,13 @@ describe('userInputUtil', () => {
         it('should show the quick pick box with chaincode and version', async () => {
             quickPickStub.resolves({
                 label: 'biscuit-network@0.0.1',
-                data: {chaincode: 'biscuit-network', version: '0.0.1'}
+                data: { chaincode: 'biscuit-network', version: '0.0.1' }
             });
 
             const result: IBlockchainQuickPickItem<{ chaincode: string, version: string }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne', 'myPeerTwo']));
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
-                data: {chaincode: 'biscuit-network', version: '0.0.1'}
+                data: { chaincode: 'biscuit-network', version: '0.0.1' }
             });
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -402,7 +408,7 @@ describe('userInputUtil', () => {
             });
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>());
-            quickPickStub.should.have.been.calledWith([{label: 'Install and Instantiate a new smart contract from a package', data: {chaincode: '', version: ''}}]);
+            quickPickStub.should.have.been.calledWith([{ label: 'Install and Instantiate a new smart contract from a package', data: { chaincode: '', version: '' } }]);
         });
     });
     describe('showGeneratorOptions', () => {
@@ -521,7 +527,7 @@ describe('userInputUtil', () => {
 
         it('should return file path from browse', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{fsPath: '/some/path'}]);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
             const placeHolder: string = 'Enter a file path to the connection profile json file';
             const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
 
@@ -552,7 +558,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, {selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0))});
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0)) });
         });
 
         it('should show user settings for mac', async () => {
@@ -569,7 +575,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, {selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0))});
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0)) });
         });
 
         it('should show user settings for linux', async () => {
@@ -586,11 +592,11 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, {selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0))});
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0)) });
         });
 
         it('should handle any errors', async () => {
-            quickPickStub.rejects({message: 'some error'});
+            quickPickStub.rejects({ message: 'some error' });
             const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
@@ -616,7 +622,7 @@ describe('userInputUtil', () => {
     describe('openUserSettings', () => {
         it('should catch any errors when opening settings', async () => {
             mySandBox.stub(process, 'platform').value('freebsd');
-            mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({message: 'error opening file'});
+            mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({ message: 'error opening file' });
             const errorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage');
 
             await UserInputUtil.openUserSettings('connection');
@@ -646,24 +652,24 @@ describe('userInputUtil', () => {
     });
 
     describe('delayWorkaround', () => {
-      beforeEach(() => {
-          this.clock = sinon.useFakeTimers();
-      });
+        beforeEach(() => {
+            this.clock = sinon.useFakeTimers();
+        });
 
-      afterEach(() => {
-        this.clock.restore();
-      });
+        afterEach(() => {
+            this.clock.restore();
+        });
 
-      it('should delay for the specified time', async () => {
-          const isResolved: boolean = false;
-          const stub: sinon.SinonStub = mySandBox.stub();
-          const p: Promise<any> = UserInputUtil.delayWorkaround(2000).then(stub);
-          sinon.assert.notCalled(stub);
+        it('should delay for the specified time', async () => {
+            const isResolved: boolean = false;
+            const stub: sinon.SinonStub = mySandBox.stub();
+            const p: Promise<any> = UserInputUtil.delayWorkaround(2000).then(stub);
+            sinon.assert.notCalled(stub);
 
-          this.clock.tick(2300);
-          await p.should.be.eventually.fulfilled;
-          return sinon.assert.calledOnce(stub);
-      });
+            this.clock.tick(2300);
+            await p.should.be.eventually.fulfilled;
+            return sinon.assert.calledOnce(stub);
+        });
 
     });
 
@@ -673,13 +679,32 @@ describe('userInputUtil', () => {
             // Fix this resolving instaniated chaincode and the bit below the command
             quickPickStub.resolves({
                 label: 'biscuit-network@0.0.1',
-                data: {name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1'}
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
             });
 
             const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test', 'channelOne');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
-                data: {name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1'}
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+            });
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Please chose instantiated smart contract to test'
+            });
+        });
+
+        it('should show the quick pick box for instantiated smart contracts for all channels', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
             });
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -700,7 +725,7 @@ describe('userInputUtil', () => {
         it('should handle no instantiated chaincodes in connection', async () => {
             const infoSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
             fabricConnectionStub.getInstantiatedChaincode.returns([]);
-            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Chose an instantiated smart contract to test', null);
+            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Chose an instantiated smart contract to test', 'channelTwo');
             infoSpy.should.have.been.calledWith('No instantiated chaincodes within connection');
 
         });
@@ -742,7 +767,35 @@ describe('userInputUtil', () => {
                 placeHolder: 'What should I do next?'
             });
         });
+    });
 
+    describe('showTransactionQuickPick', () => {
+        it('should get a list of transactions', async () => {
+            quickPickStub.resolves('transaction1');
+            fabricConnectionStub.getMetadata.returns({
+                '': [
+                    'instantiate',
+                    'transaction1'
+                ]
+            });
+
+            const result: string = await UserInputUtil.showTransactionQuickPick('choose a transaction', 'mySmartContract', 'myChannel');
+
+            result.should.equal('transaction1');
+
+            quickPickStub.should.have.been.calledWith(['instantiate', 'transaction1'], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'choose a transaction'
+            });
+        });
+
+        it('should handle no connection', async () => {
+            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            getConnectionStub.returns(null);
+            await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
+            errorSpy.should.have.been.calledWith(`No connection to a blockchain found`);
+        });
     });
 
 });

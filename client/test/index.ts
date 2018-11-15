@@ -24,7 +24,8 @@ if (process.env.WITHOUTCOVERAGE) {
 
     testRunner.configure({
         ui: 'bdd',
-        useColors: true
+        useColors: true,
+        timeout: 60000
     });
 
     module.exports = testRunner;

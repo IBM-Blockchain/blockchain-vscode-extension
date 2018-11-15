@@ -52,6 +52,8 @@ import { FabricConnectionManager } from './fabric/FabricConnectionManager';
 import { PackageRegistryEntry } from './packages/PackageRegistryEntry';
 import { ChainCodeTreeItem } from './explorer/model/ChainCodeTreeItem';
 import { testSmartContract } from './commands/testSmartContractCommand';
+import { TransactionTreeItem } from './explorer/model/TransactionTreeItem';
+import { submitTransaction } from './commands/submitTransaction';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -135,6 +137,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.instantiateSmartContractEntry', (channelTreeItem?: ChannelTreeItem) => instantiateSmartContract(channelTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.editConnectionEntry', (treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem) => editConnectionCommand(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.testSmartContractEntry', (chaincode: ChainCodeTreeItem) => testSmartContract(chaincode)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.submitTransactionEntry', (transactionTreeItem: TransactionTreeItem) => submitTransaction(transactionTreeItem)));
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 

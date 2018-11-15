@@ -26,7 +26,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import * as myExtension from '../../src/extension';
-import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 
@@ -126,7 +125,6 @@ describe('InstantiateCommand', () => {
             getConnectionStub.onCall(4).returns(null);
             getConnectionStub.onCall(5).returns(null);
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-            console.log('count', getConnectionStub.callCount);
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
         });
