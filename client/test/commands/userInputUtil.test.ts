@@ -341,11 +341,11 @@ describe('userInputUtil', () => {
         });
     });
 
-    describe('showSmartContractLanguagesQuickPick', () => {
+    describe('showLanguagesQuickPick', () => {
         it('should show the quick pick box with languages', async () => {
             quickPickStub.resolves('javascript');
 
-            const result: string = await UserInputUtil.showSmartContractLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
+            const result: string = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
             result.should.equal('javascript');
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
@@ -676,13 +676,12 @@ describe('userInputUtil', () => {
     describe('showInstantiatedSmartContractsQuickPick', () => {
 
         it('should show the quick pick box for instantiated smart contracts', async () => {
-            // Fix this resolving instaniated chaincode and the bit below the command
             quickPickStub.resolves({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
             });
 
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test', 'channelOne');
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
@@ -691,7 +690,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
                 canPickMany: false,
-                placeHolder: 'Please chose instantiated smart contract to test'
+                placeHolder: 'Please choose instantiated smart contract to test'
             });
         });
 
@@ -701,7 +700,7 @@ describe('userInputUtil', () => {
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
             });
 
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test');
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
@@ -710,14 +709,14 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
                 canPickMany: false,
-                placeHolder: 'Please chose instantiated smart contract to test'
+                placeHolder: 'Please choose instantiated smart contract to test'
             });
         });
 
         it('should handle no connection', async () => {
             const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             getConnectionStub.returns(null);
-            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Chose an instantiated smart contract to test', null);
+            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', null);
             errorSpy.should.have.been.calledWith(`No connection to a blockchain found`);
 
         });
@@ -725,7 +724,7 @@ describe('userInputUtil', () => {
         it('should handle no instantiated chaincodes in connection', async () => {
             const infoSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
             fabricConnectionStub.getInstantiatedChaincode.returns([]);
-            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Chose an instantiated smart contract to test', 'channelTwo');
+            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             infoSpy.should.have.been.calledWith('No instantiated chaincodes within connection');
 
         });

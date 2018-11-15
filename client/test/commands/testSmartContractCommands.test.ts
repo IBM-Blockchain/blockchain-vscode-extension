@@ -72,6 +72,7 @@ describe('testSmartContractCommand', () => {
     let readFileStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
+    let showLanguageQuickPickStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -159,15 +160,18 @@ describe('testSmartContractCommand', () => {
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
 
         });
 
-        it('should generate a test file for a selected instantiated smart contract', async () => {
+        it('should generate a javascript test file for a selected instantiated smart contract', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.js`);
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            openTextDocumentStub.should.have.been.called;
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.called;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
             templateData.should.not.equal('');
@@ -178,7 +182,32 @@ describe('testSmartContractCommand', () => {
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            templateData.includes('require').should.be.true;
             sendCommandStub.should.have.been.calledThrice;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should generate a typescript test file for a selected instantiated smart contract', async () => {
+            showLanguageQuickPickStub.resolves('TypeScript');
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.ts`);
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            showTextDocumentStub.should.have.been.called;
+            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            templateData.should.not.equal('');
+            templateData.includes(smartContractLabel).should.be.true;
+            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
+            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
+            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
+            templateData.includes(': string').should.be.true;
+            sendCommandStub.callCount.should.equal(4);
             errorSpy.should.not.have.been.called;
         });
 
@@ -408,6 +437,15 @@ describe('testSmartContractCommand', () => {
             sendCommandStub.should.have.been.calledThrice;
         });
 
+        it('should show an error if installing mocha types fails', async () => {
+            showLanguageQuickPickStub.resolves('TypeScript');
+            sendCommandStub.onCall(3).rejects({message: 'it all went wrong'});
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: it all went wrong');
+            sendCommandStub.callCount.should.equal(4);
+        });
+
     });
 
     describe('Generate tests for Fabric Runtime Connection instantiated smart contract', () => {
@@ -491,6 +529,7 @@ describe('testSmartContractCommand', () => {
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
 
         });
 
