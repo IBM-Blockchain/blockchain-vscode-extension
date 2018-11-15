@@ -25,7 +25,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import * as myExtension from '../../src/extension';
-import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
@@ -47,7 +46,6 @@ describe('testSmartContractCommand', () => {
     let fsRemoveStub: sinon.SinonStub;
     let reporterStub: sinon.SinonStub;
     let getConnectionStub: sinon.SinonStub;
-    let showChannelQuickPickStub: sinon.SinonStub;
     let showInstantiatedSmartContractsQuickPickStub: sinon.SinonStub;
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
@@ -59,8 +57,8 @@ describe('testSmartContractCommand', () => {
     let chaincodes: any[];
     let instantiatedSmartContract: ChainCodeTreeItem;
     let fakeMetadataFunctions: string[];
-    let fakeConnectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string};
-    let fakeRuntimeConnectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string};
+    let fakeConnectionDetails: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string };
+    let fakeRuntimeConnectionDetails: { connectionProfile: object, certificatePath: string, privateKeyPath: string };
     let smartContractName: string;
     let smartContractLabel: string;
     const rootPath: string = path.dirname(__dirname);
@@ -97,7 +95,7 @@ describe('testSmartContractCommand', () => {
             executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
             executeCommandStub.callThrough();
             // Client Connection stubs
-            fakeMetadataFunctions  =  ['instantiate', 'wagonwheeling', 'transaction2'];
+            fakeMetadataFunctions = ['instantiate', 'wagonwheeling', 'transaction2'];
             fakeConnectionDetails = {
                 connectionProfilePath: 'fakeConnectionProfilePath',
                 certificatePath: 'fakeCertificatePath',
@@ -121,14 +119,9 @@ describe('testSmartContractCommand', () => {
                 }
             ]);
             // UserInputUtil stubs
-            showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
-                label: 'myEnglishChannel',
-                data: ['peerOne']
-            });
-
-            showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myEnglishChannel').resolves({
+            showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
                 label: 'wagonwheel@0.0.1',
-                data: {name: 'wagonwheel', channel: 'myEnglishChannel', version: '0.0.1'}
+                data: { name: 'wagonwheel', channel: 'myEnglishChannel', version: '0.0.1' }
             });
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
@@ -164,7 +157,7 @@ describe('testSmartContractCommand', () => {
             findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([vscode.Uri.file(packageJSONPath)]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{name: 'wagonwheeling'}]);
+            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
 
         });
@@ -194,7 +187,6 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             errorSpy.should.not.have.been.called;
         });
@@ -206,7 +198,6 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
@@ -218,32 +209,13 @@ describe('testSmartContractCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
-            showChannelQuickPickStub.should.not.have.been.called;
-        });
-
-        it('should do nothing if the user cancels selecting a channel', async () => {
-            showChannelQuickPickStub.resolves();
-
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.not.have.been.called;
-            errorSpy.should.not.have.been.called;
-        });
-
-        it('should handle an error in asking for a channel', async () => {
-            showChannelQuickPickStub.rejects({message: 'some error'});
-
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showChannelQuickPickStub.should.have.been.called;
-            showInstantiatedSmartContractsQuickPickStub.should.not.have.been.called;
-            errorSpy.should.have.been.calledWith('some error');
         });
 
         it('should do nothing if the user cancels selecting an instantiated smart contract', async () => {
             showInstantiatedSmartContractsQuickPickStub.resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -257,7 +229,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should show an error message if it fails to determine the workspace folders', async () => {
-            workspaceFoldersStub.rejects({message: 'piecaramba!'});
+            workspaceFoldersStub.rejects({ message: 'piecaramba!' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             findFilesStub.should.not.have.been.called;
@@ -273,17 +245,16 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should handle errors with running getMetaData by showing an error message to the user', async () => {
-            fabricClientConnectionMock.getMetadata.rejects({message: 'some error'});
+            fabricClientConnectionMock.getMetadata.rejects({ message: 'some error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showChannelQuickPickStub.should.have.been.called;
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.have.been.called;
             errorSpy.should.have.been.calledWith('Error getting metadata for smart contract: some error');
         });
 
         it('should handle errors with creating the template data', async () => {
-            mySandBox.stub(ejs, 'renderFile').yields({message: 'some error'}, null);
+            mySandBox.stub(ejs, 'renderFile').yields({ message: 'some error' }, null);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
@@ -354,7 +325,7 @@ describe('testSmartContractCommand', () => {
 
         it('should show an error if it fails to create test file', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
-            mySandBox.stub(fs, 'ensureFile').rejects({message: 'some error'});
+            mySandBox.stub(fs, 'ensureFile').rejects({ message: 'some error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             openTextDocumentStub.should.not.have.been.called;
@@ -392,7 +363,7 @@ describe('testSmartContractCommand', () => {
 
         it('should handle errors when attempting to remove created test file', async () => {
             mySandBox.stub(fs, 'ensureFile').rejects();
-            fsRemoveStub.rejects({message: 'some other error'});
+            fsRemoveStub.rejects({ message: 'some other error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
@@ -403,7 +374,7 @@ describe('testSmartContractCommand', () => {
 
         it('should not show error for removing non-existent test file', async () => {
             mockTextEditor.edit.resolves(false);
-            fsRemoveStub.rejects({message: 'ENOENT: no such file or directory'});
+            fsRemoveStub.rejects({ message: 'ENOENT: no such file or directory' });
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
@@ -414,7 +385,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should show an error if the npm install fails', async () => {
-            sendCommandStub.onCall(0).rejects({message: 'horrible error'});
+            sendCommandStub.onCall(0).rejects({ message: 'horrible error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: horrible error');
@@ -422,7 +393,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should show an error if installing generator-network fails', async () => {
-            sendCommandStub.onCall(1).rejects({message: 'other horrible error'});
+            sendCommandStub.onCall(1).rejects({ message: 'other horrible error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: other horrible error');
@@ -430,7 +401,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should show an error if installing generator-client fails', async () => {
-            sendCommandStub.onCall(2).rejects({message: 'other terrible error'});
+            sendCommandStub.onCall(2).rejects({ message: 'other terrible error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: other terrible error');
@@ -482,11 +453,6 @@ describe('testSmartContractCommand', () => {
                 }
             ]);
             // UserInputUtil stubs
-            showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
-                label: 'myChannelTunnel',
-                data: ['peerThree']
-            });
-
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
@@ -523,7 +489,7 @@ describe('testSmartContractCommand', () => {
             findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([vscode.Uri.file(packageJSONPath)]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{name: 'wagonwheeling'}]);
+            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
 
         });

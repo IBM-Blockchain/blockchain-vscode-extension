@@ -30,7 +30,6 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
 
     let chaincodeLabel: string;
     let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}>;
-    let chosenChannel: IBlockchainQuickPickItem<Set<string>>;
     let channelName: string;
     let chaincodeName: string;
     let chaincodeVersion: string;
@@ -45,20 +44,9 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
                 return;
             }
         }
-        try {
-            // Ask for a channel
-            chosenChannel = await UserInputUtil.showChannelQuickPickBox('Please chose channel of instantiated smart contract to test');
-            if (!chosenChannel) {
-                return;
-            }
-            channelName = chosenChannel.label;
-        } catch (error) {
-            vscode.window.showErrorMessage(error.message);
-            return;
-        }
 
-        // Ask for instantiated smart contract on chosen channel
-        chosenChaincode = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test', channelName);
+        // Ask for instantiated smart contract
+        chosenChaincode = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test');
         if (!chosenChaincode) {
             return;
         }

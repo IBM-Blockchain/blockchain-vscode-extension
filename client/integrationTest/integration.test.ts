@@ -73,6 +73,7 @@ describe('Integration Test', () => {
     let showInstantiatedSmartContractsStub: sinon.SinonStub;
     let workspaceFolder: vscode.WorkspaceFolder;
     let showTransactionStub: sinon.SinonStub;
+    let errorSpy: sinon.SinonSpy;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -118,6 +119,8 @@ describe('Integration Test', () => {
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
         showInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
         showTransactionStub = mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
+
+        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
     });
 
     afterEach(async () => {
@@ -550,7 +553,7 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    ['Go', 'Java' , 'JavaScript', 'TypeScript'].forEach((language: string) => {
+    ['Go', 'Java', 'JavaScript', 'TypeScript'].forEach((language: string) => {
 
         it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and generate tests`, async () => {
             const smartContractName: string = `my${language}SC`;
@@ -573,10 +576,6 @@ describe('Integration Test', () => {
                 javascriptTestRunResult = await runJavaScriptSmartContractTests(smartContractName);
             } else if (language === 'TypeScript') {
                 await generateSmartContractTests(smartContractName, '0.0.1');
-
-                const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-                await submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world');
-                errorSpy.should.not.have.been.called;
             }
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
@@ -638,11 +637,16 @@ describe('Integration Test', () => {
                 testFileContents.includes(smartContractFunctionsArray[0]).should.be.true;
                 testFileContents.includes(smartContractFunctionsArray[1]).should.be.true;
                 testFileContents.includes(smartContractFunctionsArray[2]).should.be.true;
+
+                await submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world');
+
             }
             if (language === 'JavaScript') {
                 javascriptTestRunResult.includes('success for transaction').should.be.true;
                 javascriptTestRunResult.includes('1 passing').should.be.true;
             }
+
+            errorSpy.should.not.have.been.called;
 
         }).timeout(0);
 
