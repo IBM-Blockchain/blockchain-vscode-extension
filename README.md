@@ -68,6 +68,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
 | Restart Fabric Runtime | Restart a Hyperledger Fabric instance |
 | Start Fabric Runtime | Start a Hyperledger Fabric instance |
+| Submit Transaction | Submit a transaction to a smart contract |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
 | Debug | Debug a Smart Contract |
@@ -127,15 +128,18 @@ It is useful to think of installing on peers as the first step and instantiating
 
 <img src="/client/media/instantiate_small.gif" width="85%" alt="Instantiate new smart contract">
 
+### Submit transaction
+Right click a transaction and click **Submit transaction**. This will submit a transaction to a smart contract.
+
 ### Edit an existing blockchain connection
 Connections can be edited by right-clicking and selecting `Edit Connection`.  This will open User Settings, with the connection available for editing.
 
 <img src="client/media/edit_connection.gif" width="85%" alt="Edit an existing blockchain connection">
 
 ### Debugging a smart contract
-Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. Before debugging your smart contract, run the **generate test**, or only the instantiate transaction can be debugged. To debug your smart contract follow these steps:
+Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. To debug your smart contract follow these steps:
 
-1. Open your smart contract project, and ensure you are connected to the `local_fabric` connection.
+1. Open your smart contract project, ensure you are connected to the `local_fabric` connection and the `local_fabric` is in development mode.
 2. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 3. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
 4. Package and install the smart contract by clicking the **play** button.
