@@ -13,7 +13,8 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-
+import * as fs from 'fs-extra';
+import * as path from 'path';
 export class ExtensionUtil {
 
     public static getPackageJSON(): any {
@@ -38,6 +39,21 @@ export class ExtensionUtil {
 
     public static setExtensionContext(context: vscode.ExtensionContext): void {
         this.extensionContext = context;
+    }
+
+    public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
+        const packageJson: any = await this.loadJSON(folder, 'package.json');
+        return { name: packageJson.name, version: packageJson.version };
+    }
+
+    public static async loadJSON(folder: vscode.WorkspaceFolder, file: string): Promise<any> {
+        try {
+            const workspacePackage: string = path.join(folder.uri.fsPath, file);
+            const workspacePackageContents: string = await fs.readFile(workspacePackage, 'utf8');
+            return JSON.parse(workspacePackageContents);
+        } catch (error) {
+            throw new Error('error reading package.json from project ' + error.message);
+        }
     }
 
     private static extensionContext: vscode.ExtensionContext;

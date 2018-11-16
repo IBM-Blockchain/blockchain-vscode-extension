@@ -30,6 +30,8 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import * as fs from 'fs-extra';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -133,11 +135,11 @@ describe('userInputUtil', () => {
         chaincodeMap.set('cake-network', ['0.0.3']);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
-        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves(chaincodeMap);
+        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{name: 'biscuit-network', channel: 'channelOne', version: '0.0.1'}, {name: 'cake-network', channel: 'channelOne', version: '0.0.3'}]);
 
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
-        chaincodeMap.set('car-network', ['0.0.1', '0.0.2']);
-        chaincodeMap.set('fish-network', ['0.0.3']);
+        // chaincodeMap.set('car-network', ['0.0.1', '0.0.2']);
+        // chaincodeMap.set('fish-network', ['0.0.3']);
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
@@ -377,24 +379,6 @@ describe('userInputUtil', () => {
     });
 
     describe('showChaincodeAndVersionQuickPick', () => {
-        it('should show the quick pick box with chaincode and version', async () => {
-            quickPickStub.resolves({
-                label: 'biscuit-network@0.0.1',
-                data: { chaincode: 'biscuit-network', version: '0.0.1' }
-            });
-
-            const result: IBlockchainQuickPickItem<{ chaincode: string, version: string }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne', 'myPeerTwo']));
-            result.should.deep.equal({
-                label: 'biscuit-network@0.0.1',
-                data: { chaincode: 'biscuit-network', version: '0.0.1' }
-            });
-
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
-                canPickMany: false,
-                placeHolder: 'Choose a chaincode and version'
-            });
-        });
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
@@ -402,14 +386,90 @@ describe('userInputUtil', () => {
 
         });
 
-        it('should show install and instantiate option if there are no installed smart contracts ', async () => {
-            mySandBox.stub(FabricConnectionManager, 'instance').returns({
-                getConnection: mySandBox.stub().resolves()
+        it('should show chaincode and version quick pick', async () => {
+            const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'biscuit-network',
+                version: '0.0.2',
+                path: 'biscuit-network@0.0.2.cds'
+            });
+            const packagedTwo: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'biscuit-network',
+                version: '0.0.3',
+                path: 'biscuit-network@0.0.3.cds'
             });
 
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>());
-            quickPickStub.should.have.been.calledWith([{ label: 'Install and Instantiate a new smart contract from a package', data: { chaincode: '', version: '' } }]);
+            const pathOne: string = path.join('some', 'path');
+            const packagePathOne: string = path.join(pathOne, 'package.json');
+            const pathTwo: string = path.join('another', 'one');
+            const packagePathTwo: string = path.join(pathOne, 'package.json');
+
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
+                {name: 'project_1', uri: uriOne},
+                {name: 'biscuit-network', uri: uriTwo}
+            ]);
+
+            const getContractNameAndVersion: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getContractNameAndVersion');
+            getContractNameAndVersion.onCall(0).returns({name: 'project_1', version: '0.0.1'});
+            getContractNameAndVersion.onCall(1).returns({name: 'biscuit-network', version: '0.0.3'});
+
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo]);
+
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne']));
+
+            quickPickStub.getCall(0).args[0].should.deep.equal([
+                {
+                    label: 'project_1@0.0.1',
+                    description: 'Open Project',
+                    data: {
+                        packageEntry: {
+                            name: 'project_1',
+                            version: '0.0.1',
+                            path: undefined
+                        },
+                        workspace: {
+                            name: 'project_1', uri: uriOne
+                        }
+                    }
+                }
+            ]);
         });
+
+        it('should only show packages with the same name (used for an upgrade)', async () => {
+            const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'biscuit-network',
+                version: '0.0.2',
+                path: 'biscuit-network@0.0.2.cds'
+            });
+            const packagedTwo: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'biscuit-network',
+                version: '0.0.3',
+                path: 'biscuit-network@0.0.3.cds'
+            });
+
+            const pathOne: string = path.join('some', 'path');
+            const pathTwo: string = path.join('another', 'one');
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
+                {name: 'project_1', uri: uriOne},
+                {name: 'biscuit-network', uri: uriTwo}
+            ]);
+
+            const joinStub: sinon.SinonStub = mySandBox.stub(path, 'join');
+            joinStub.withArgs(pathOne, 'package.json').returns(path.join(pathOne, 'package.json'));
+            joinStub.withArgs(pathTwo, 'package.json').returns(path.join(pathTwo, 'package.json'));
+
+            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile');
+            readFileStub.withArgs(path.join(pathOne, 'package.json'), 'utf8').resolves('{"name": "project_1", "version": "0.0.1"}');
+            readFileStub.withArgs(path.join(pathTwo, 'package.json'), 'utf8').resolves('{"name": "biscuit-network", "version": "0.0.3"}');
+
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo]);
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne']), 'biscuit-network', '0.0.1');
+            quickPickStub.getCall(0).args[0].length.should.equal(2);
+        });
+
     });
     describe('showGeneratorOptions', () => {
         it('should show generator conflict options in quickpick box', async () => {
@@ -490,14 +550,10 @@ describe('userInputUtil', () => {
         it('should throw an error if no workspace folders', () => {
             const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value(null);
-            let errorMessage: string = '';
-            try {
-                UserInputUtil.getWorkspaceFolders();
-            } catch (error) {
-                errorMessage = error.message;
-            }
-            errorSpy.should.have.been.calledWith('Please open the workspace that you want to be packaged.');
-            errorMessage.should.equal('Please open the workspace that you want to be packaged.');
+
+            const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+
+            result.should.deep.equal([]);
         });
     });
 
@@ -697,16 +753,32 @@ describe('userInputUtil', () => {
         it('should show the quick pick box for instantiated smart contracts for all channels', async () => {
             quickPickStub.resolves({
                 label: 'biscuit-network@0.0.1',
-                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
             });
 
             const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
-                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
             });
 
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith([
+                {
+                    label: 'biscuit-network@0.0.1',
+                    data: {
+                        name: 'biscuit-network',
+                        channel: 'channelOne',
+                        version: '0.0.1'
+                    }
+                },
+                {
+                    label: 'cake-network@0.0.3',
+                    data: {
+                        name: 'cake-network',
+                        channel: 'channelOne',
+                        version: '0.0.3'
+                    }
+                }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Please choose instantiated smart contract to test'
@@ -795,6 +867,65 @@ describe('userInputUtil', () => {
             await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
             errorSpy.should.have.been.calledWith(`No connection to a blockchain found`);
         });
+    });
+
+    describe('showInstallableSmartContractsQuickPick', () => {
+        it('should show installable contracts', async () => {
+            const packageOne: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'new-network',
+                version: '0.0.1',
+                path: 'new-network@0.0.1.cds'
+            });
+            const packageTwo: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'biscuit-network',
+                version: '0.0.1',
+                path: 'biscuit-network@0.0.1.cds'
+            });
+            const packageThree: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'biscuit-network',
+                version: '0.0.2',
+                path: 'biscuit-network@0.0.1.cds'
+            });
+            const packageFour: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'cake-network',
+                version: '0.0.3',
+                path: 'cake-network@0.0.3.cds'
+            });
+            const packageFive: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'cake-network',
+                version: '0.0.2',
+                path: 'cake-network@0.0.2.cds'
+            });
+
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageOne, packageTwo, packageThree, packageFour, packageFive]);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne']));
+
+            quickPickStub.getCall(0).args[0].should.deep.equal([
+                {
+                    label: 'new-network',
+                    description: '0.0.1',
+                    data: {
+                        name: 'new-network',
+                        version: '0.0.1',
+                        path: 'new-network@0.0.1.cds'
+                    }
+                }, {
+                    label: 'cake-network',
+                    description: '0.0.2',
+                    data: {
+                        name: 'cake-network',
+                        version: '0.0.2',
+                        path: 'cake-network@0.0.2.cds'
+                    }
+                }
+            ]);
+        });
+
+        it('should show installable contracts', async () => {
+            getConnectionStub.returns(null);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.be.rejectedWith(`No connection to a blockchain found`);
+        });
+
     });
 
 });

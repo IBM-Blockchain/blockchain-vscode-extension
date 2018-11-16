@@ -15,17 +15,19 @@
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { InstantiatedChaincodeChildTreeItem } from '../explorer/model/InstantiatedChaincodeChildTreeItem';
 
-export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem): Promise<void> {
+export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: InstantiatedChaincodeChildTreeItem): Promise<void> {
 
     let channelName: string;
     let peers: Set<string>;
     let packageEntry: PackageRegistryEntry;
-    if (!channelTreeItem) {
+    let contractName: string;
+    let contractVersion: string;
+    if (!instantiatedChainCodeTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
@@ -34,31 +36,40 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             }
         }
 
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on');
         if (!chosenChannel) {
             return;
         }
+
         channelName = chosenChannel.label;
         peers = chosenChannel.data;
+
+        // We should now ask for the instantiated smart contract to upgrade
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        contractName = initialSmartContract.data.name;
+        contractVersion = initialSmartContract.data.version;
     } else {
-        channelName = channelTreeItem.label;
-        peers = new Set(channelTreeItem.peers);
+        contractName = instantiatedChainCodeTreeItem.name;
+        channelName = instantiatedChainCodeTreeItem.channel.label;
+        peers = new Set(instantiatedChainCodeTreeItem.channel.peers);
     }
 
     try {
-
-        const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', peers);
+        const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', peers, contractName, contractVersion);
         if (!chosenChaincode) {
             return;
         }
+
         const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenChaincode.data;
+
         if (chosenChaincode.description === 'Packaged') {
             packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers, data.packageEntry) as PackageRegistryEntry;
             if (!packageEntry) {
                 // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
                 return;
             }
-        } else if (chosenChaincode.description === 'Open Project') {
+        }
+        if (chosenChaincode.description === 'Open Project') {
             // Project needs packaging and installing
 
             // Package smart contract project using the given 'open workspace'
@@ -71,7 +82,7 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             }
         }
 
-        // Project should be packaged and installed. Now the package can be instantiated.
+        // Project should be packaged and installed. Now the package can be upgraded.
 
         const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call?');
 
@@ -89,9 +100,8 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             cancellable: false
         }, async (progress: vscode.Progress<{message: string}>) => {
 
-            progress.report({message: 'Instantiating Smart Contract'});
+            progress.report({message: 'Upgrading Smart Contract'});
             const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
-
             if (packageEntry) {
                 // If the package has been installed as part of this command
                 await fabricClientConnection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
@@ -100,13 +110,13 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
                 await fabricClientConnection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
             }
 
-            Reporter.instance().sendTelemetryEvent('instantiateCommand');
+            Reporter.instance().sendTelemetryEvent('upgradeCommand');
 
-            vscode.window.showInformationMessage('Successfully instantiated smart contract');
+            vscode.window.showInformationMessage('Successfully upgraded smart contract');
             await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         });
     } catch (error) {
-        vscode.window.showErrorMessage('Error instantiating smart contract: ' + error.message);
+        vscode.window.showErrorMessage('Error upgrading smart contract: ' + error.message);
         throw error;
     }
 }

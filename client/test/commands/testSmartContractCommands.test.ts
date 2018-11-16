@@ -28,10 +28,10 @@ import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { ChainCodeTreeItem } from '../../src/explorer/model/ChainCodeTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { CommandUtil } from '../../src/util/CommandUtil';
+import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -55,7 +55,7 @@ describe('testSmartContractCommand', () => {
     let fabricConnectionManager: FabricConnectionManager;
     let channel: ChannelTreeItem;
     let chaincodes: any[];
-    let instantiatedSmartContract: ChainCodeTreeItem;
+    let instantiatedSmartContract: InstantiatedChaincodeChildTreeItem;
     let fakeMetadataFunctions: string[];
     let fakeConnectionDetails: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string };
     let fakeRuntimeConnectionDetails: { connectionProfile: object, certificatePath: string, privateKeyPath: string };
@@ -129,7 +129,7 @@ describe('testSmartContractCommand', () => {
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
             channel = allChildren[0] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
-            instantiatedSmartContract = chaincodes[0] as ChainCodeTreeItem;
+            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeChildTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs
@@ -255,14 +255,6 @@ describe('testSmartContractCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledWith(`Smart contract project ${smartContractName} is not open in workspace`);
-        });
-
-        it('should show an error message if it fails to determine the workspace folders', async () => {
-            workspaceFoldersStub.rejects({ message: 'piecaramba!' });
-
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            findFilesStub.should.not.have.been.called;
-            errorSpy.should.have.been.calledWith('Error determining workspace folders: piecaramba!');
         });
 
         it('should show an error message if the smart contract project isnt open in the workspace', async () => {
@@ -497,7 +489,7 @@ describe('testSmartContractCommand', () => {
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
             channel = allChildren[0] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
-            instantiatedSmartContract = chaincodes[0] as ChainCodeTreeItem;
+            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeChildTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs

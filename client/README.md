@@ -47,6 +47,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Identity To Connection | Add an identity to be used when connecting to a Hyperledger Fabric instance  |
 | Connect To Blockchain | Connect to a Hyperledger Fabric blockchain using a blockchain connection |
 | Create Smart Contract Project | Create a new JavaScript or TypeScript smart contract project |
+| Debug | Debug a Smart Contract |
 | Delete Connection | Delete a Hyperledger Fabric instance connection |
 | Delete Package | Delete a smart contract package |
 | Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
@@ -54,7 +55,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
 | Install Smart Contract | Install a smart contract package onto a peer |
-| Instantiate / Upgrade Smart Contract | Instantiate / upgrade an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!*|
+| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!*|
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
 | Refresh Blockchain Connections | Refresh the Blockchain Connections view |
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
@@ -62,7 +63,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Start Fabric Runtime | Start a Hyperledger Fabric instance |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
-| Debug | Debug a Smart Contract |
+| Upgrade Smart Contract | Upgrade an instantiated smart contract|
 
 ## Smart Contract Development Lifecycle
 _Please note that all operations shown are also possible using the commands in the table above, issued at the VSCode command-prompt._

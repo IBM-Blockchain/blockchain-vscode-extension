@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as ejs from 'ejs';
 import * as path from 'path';
-import { ChainCodeTreeItem } from '../explorer/model/ChainCodeTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
@@ -24,8 +23,9 @@ import { FabricRuntimeConnection } from '../fabric/FabricRuntimeConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
+import { InstantiatedChaincodeChildTreeItem } from '../explorer/model/InstantiatedChaincodeChildTreeItem';
 
-export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<void> {
+export async function testSmartContract(chaincode?: InstantiatedChaincodeChildTreeItem): Promise<void> {
     console.log('testSmartContractCommand', chaincode);
 
     let chaincodeLabel: string;
@@ -73,17 +73,12 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
     }
 
     // Only generate the test file if the smart contract is open in the workspace
-    let workspaceFolders: Array<vscode.WorkspaceFolder>;
-    try {
-        workspaceFolders = await UserInputUtil.getWorkspaceFolders();
-    } catch (error) {
-        vscode.window.showErrorMessage('Error determining workspace folders: ' + error.message);
-        return;
-    }
+    const workspaceFolders: Array<vscode.WorkspaceFolder> = await UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length === 0) {
         vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace`);
         return;
     }
+
     const packageJSONSearch: Array<vscode.Uri> = await vscode.workspace.findFiles('**/package.json', '**/node_modules/**', workspaceFolders.length);
     let packageJSONFound: vscode.Uri;
     let functionalTestsDirectory: string;

@@ -92,7 +92,8 @@ describe('Extension Tests', () => {
             'blockchainExplorer.instantiateSmartContractEntry',
             'blockchainExplorer.editConnectionEntry',
             'blockchainExplorer.testSmartContractEntry',
-            'blockchainExplorer.submitTransactionEntry'
+            'blockchainExplorer.submitTransactionEntry',
+            'blockchainExplorer.upgradeSmartContractEntry'
         ]);
     });
 
@@ -123,6 +124,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.editConnectionEntry',
             'onCommand:blockchainExplorer.testSmartContractEntry',
             'onCommand:blockchainExplorer.submitTransactionEntry',
+            'onCommand:blockchainExplorer.upgradeSmartContractEntry',
             'onDebug'
         ]);
     });
