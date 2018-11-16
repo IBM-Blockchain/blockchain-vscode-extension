@@ -30,6 +30,7 @@ import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
 import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
 import { InstantiatedChaincodeParentTreeItem } from '../../src/explorer/model/InstantiatedChaincodeParentTreeItem';
+import { Reporter } from '../../src/util/Reporter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -51,6 +52,7 @@ describe('SubmitTransactionCommand', () => {
         let showInstantiatedSmartContractQuickPickStub: sinon.SinonStub;
         let showTransactionQuickPickStub: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
+        let reporterStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -94,6 +96,8 @@ describe('SubmitTransactionCommand', () => {
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
+
+            reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
 
         afterEach(async () => {
@@ -105,6 +109,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
         });
 
         it('should sumbit the smart contract through the command when not connected', async () => {
@@ -115,6 +120,7 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
         });
 
         it('should handle connecting being cancelled', async () => {
@@ -123,6 +129,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            reporterStub.should.not.have.been.called;
         });
 
         it('should handle choosing smart contract being cancelled', async () => {
@@ -131,6 +138,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
 
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            reporterStub.should.not.have.been.called;
         });
 
         it('should handle error from submitting transaction', async () => {
@@ -140,6 +148,7 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3']);
             errorSpy.should.have.been.calledWith('Error submitting transaction: some error');
+            reporterStub.should.not.have.been.called;
         });
 
         it('should handle cancel when choosing transaction', async () => {
@@ -147,6 +156,7 @@ describe('SubmitTransactionCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            reporterStub.should.not.have.been.called;
         });
 
         it('should submit transaction through the tree', async () => {
@@ -167,6 +177,7 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3']);
 
             successSpy.should.have.been.calledWith('Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
         });
 
         it('should submit the smart contract through the command with function but no args', async () => {
@@ -175,6 +186,7 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', []);
             showInputBoxStub.should.have.been.calledOnce;
             successSpy.should.have.been.calledWith('Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
         });
     });
 });

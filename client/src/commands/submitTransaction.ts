@@ -59,13 +59,21 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
         args = argsString.split(',');
     }
 
-    try {
-        VSCodeOutputAdapter.instance().log(`Submitting transaction ${transactionName} with args ${args}`);
-        await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args);
-        Reporter.instance().sendTelemetryEvent('submit transaction');
-        vscode.window.showInformationMessage('Successfully submitted transaction');
-    } catch (error) {
-        vscode.window.showErrorMessage('Error submitting transaction: ' + error.message);
-        VSCodeOutputAdapter.instance().error('Error submitting transaction: ' + error.message);
-    }
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'IBM Blockchain Platform Extension',
+        cancellable: false
+    }, async (progress: vscode.Progress<{ message: string }>) => {
+
+        try {
+            progress.report({message: `Submitting transaction ${transactionName}`});
+            VSCodeOutputAdapter.instance().log(`Submitting transaction ${transactionName} with args ${args}`);
+            await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args);
+            Reporter.instance().sendTelemetryEvent('submit transaction');
+            vscode.window.showInformationMessage('Successfully submitted transaction');
+        } catch (error) {
+            vscode.window.showErrorMessage('Error submitting transaction: ' + error.message);
+            VSCodeOutputAdapter.instance().error('Error submitting transaction: ' + error.message);
+        }
+    });
 }

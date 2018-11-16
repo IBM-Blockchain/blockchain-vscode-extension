@@ -132,7 +132,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
 
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
-            title: 'Blockchain Extension',
+            title: 'IBM Blockchain Platform Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{message: string}>, token: vscode.CancellationToken): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
@@ -156,7 +156,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
 async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDependencies> {
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Blockchain Extension',
+        title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{message: string}>): Promise<GeneratorDependencies> => {
         progress.report({message: `Checking smart contract generator dependencies...`});
@@ -213,7 +213,7 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
 async function installGeneratorDependenciesWithProgress(dependencies: GeneratorDependencies): Promise<boolean> {
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Blockchain Extension',
+        title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({message: `Installing smart contract generator dependencies...`});
@@ -256,7 +256,7 @@ async function installGeneratorDependencies(dependencies: GeneratorDependencies)
 async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> {
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Blockchain Extension',
+        title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{message: string}>): Promise<string[]> => {
         progress.report({message: `Getting smart contract languages...`});
