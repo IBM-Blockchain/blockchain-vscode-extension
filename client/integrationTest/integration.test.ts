@@ -74,6 +74,7 @@ describe('Integration Test', () => {
     let workspaceFolder: vscode.WorkspaceFolder;
     let showTransactionStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
+    let showLanguagesQuickPickStub: sinon.SinonStub;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -121,6 +122,7 @@ describe('Integration Test', () => {
         showTransactionStub = mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
 
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
     });
 
     afterEach(async () => {
@@ -130,7 +132,7 @@ describe('Integration Test', () => {
     });
 
     async function createSmartContract(name: string, type: string): Promise<void> {
-        mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves(type);
+        showLanguagesQuickPickStub.resolves(type);
         mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
         testContractName = name;
@@ -260,12 +262,13 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
     }
 
-    async function generateSmartContractTests(name: string, version: string): Promise<void> {
+    async function generateSmartContractTests(name: string, version: string, language: string): Promise<void> {
         showChannelStub.resolves('mychannel');
         showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
+        showLanguagesQuickPickStub.resolves(language);
         getWorkspaceFoldersStub.returns([workspaceFolder]);
         const packageJSONPath: string = path.join(testContractDir, 'package.json');
         findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
@@ -571,11 +574,11 @@ describe('Integration Test', () => {
 
             await instantiateSmartContract(smartContractName, '0.0.1');
 
+            if (language === 'JavaScript' || language === 'TypeScript') {
+                await generateSmartContractTests(smartContractName, '0.0.1', language);
+            }
             if (language === 'JavaScript') {
-                await generateSmartContractTests(smartContractName, '0.0.1');
                 javascriptTestRunResult = await runJavaScriptSmartContractTests(smartContractName);
-            } else if (language === 'TypeScript') {
-                await generateSmartContractTests(smartContractName, '0.0.1');
             }
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
@@ -610,8 +613,10 @@ describe('Integration Test', () => {
             instantiatedSmartContract.should.not.be.null;
 
             if (language === 'JavaScript' || language === 'TypeScript') {
+                let fileSuffix: string;
+                fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
                 // Check test file exists
-                const pathToTestFile: string = path.join(testContractDir, 'functionalTests', `${smartContractName}@0.0.1.test.js`);
+                const pathToTestFile: string = path.join(testContractDir, 'functionalTests', `${smartContractName}@0.0.1.test.${fileSuffix}`);
                 fs.pathExists(pathToTestFile).should.eventually.be.true;
                 const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
                 const testFileContents: string = testFileContentsBuffer.toString();

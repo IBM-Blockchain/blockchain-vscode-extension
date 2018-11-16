@@ -34,7 +34,7 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
             }
         }
 
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instaniate the smart contract on');
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
         if (!chosenChannel) {
             return;
         }

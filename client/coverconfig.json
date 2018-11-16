@@ -6,7 +6,7 @@
       "**/node_modules/**",
       "**/test/**",
       "**/out/**",
-      "templates/testSmartContractTemplate.ejs"
+      "templates/**"
 
   ],
   "includePid": false,

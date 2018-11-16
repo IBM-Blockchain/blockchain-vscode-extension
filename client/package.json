@@ -568,7 +568,8 @@
             "integrationTest/tmp",
             "basic-network",
             "CHANGELOG.md",
-            "templates/testSmartContractTemplate.ejs"
+            "templates/tsTestSmartContractTemplate.ejs",
+            "templates/jsTestSmartContractTemplate.ejs"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

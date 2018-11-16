@@ -1,0 +1,83 @@
+/*
+* Use this file for functional testing of your smart contract.
+* Fill out the arguments and return values for a function and
+* use a test runner to run these tests locally.
+* All transactions defined in your smart contract are used here
+* to generate tests, including those functions that would
+* normally only be used on instantiate and upgrade operations.
+* This basic test file can also be used as the basis for building
+* further functional tests to run as part of a continuous
+* integration pipeline, or for debugging locally deployed smart
+* contracts by invoking/submitting individual transactions.
+*/
+/*
+* Generating this test file will also trigger an npm install
+* in the smart contract project directory. This installs any
+* package dependencies, including fabric-network which is
+* required for this test file to be run locally.
+*/
+
+import * as assert from 'assert';
+import * as fabricNetwork from 'fabric-network';
+import * as fs from 'fs-extra';
+import * as Client from 'fabric-client';
+
+describe('<%=chaincodeLabel%>' , () => {
+
+    const gateway: fabricNetwork.Gateway = new fabricNetwork.Gateway();
+    const wallet: fabricNetwork.InMemoryWallet = new fabricNetwork.InMemoryWallet();
+    const identityName: string = '<%=chaincodeLabel%>';
+    let client: Client;
+
+    before(async () => {
+        const connectionProfilePath: string = '<%=connectionProfilePath%>';
+        const certificatePath: string = '<%=certificatePath%>';
+        const privateKeyPath: string = '<%=privateKeyPath%>';
+
+        const certificate: string = await fs.readFile(certificatePath, 'utf8');
+        const privateKey: string = await fs.readFile(privateKeyPath, 'utf8');
+
+        client = await Client.loadFromConfig(connectionProfilePath);
+        const mspid: string = client.getMspid();
+
+        await wallet.import(identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
+
+    });
+
+    beforeEach(async () => {
+        const connectOptions: fabricNetwork.InitOptions = {
+            wallet: wallet,
+            identity: identityName,
+        };
+        connectOptions['discovery'] = {
+            asLocalhost: true
+        };
+        await gateway.connect(client, connectOptions);
+    });
+
+    afterEach(async () => {
+        gateway.disconnect();
+    });
+
+    <% functionNames.forEach((functionName) => { %>
+    it('<%=functionName%>', async () => {
+        // TODO: Update with parameters of transaction
+        const args: string = '';
+        const response: Buffer = await submitTransaction('<%=functionName%>', args); // Returns buffer of transcation return value
+        // TODO: Update with return value of transaction
+        assert.equal(true, true);
+        // assert.equal(response.toString(), undefined);
+    }).timeout(10000);
+    <% }) %>
+
+    async function submitTransaction(functionName: string, args: string): Promise<Buffer> {
+        // Send transaction
+
+        const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
+        const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>');
+
+        const responseBuffer: Buffer = await contract.submitTransaction(functionName, args);
+        return responseBuffer;
+    }
+
+});

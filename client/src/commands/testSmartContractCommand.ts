@@ -46,7 +46,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         }
 
         // Ask for instantiated smart contract
-        chosenChaincode = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please chose instantiated smart contract to test');
+        chosenChaincode = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
         if (!chosenChaincode) {
             return;
         }
@@ -62,6 +62,15 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         chaincodeVersion = chaincode.version;
     }
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
+
+    // Ask the user which language to write the tests in
+    const testLanguage: string = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', ['JavaScript', 'TypeScript']);
+    let testFileSuiffix: string;
+    if (testLanguage === 'JavaScript') {
+        testFileSuiffix = 'js';
+    } else {
+        testFileSuiffix = 'ts';
+    }
 
     // Only generate the test file if the smart contract is open in the workspace
     let workspaceFolders: Array<vscode.WorkspaceFolder>;
@@ -147,7 +156,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
     console.log(templateData);
 
     // Create data to write to file from template engine
-    const template: string = path.join(__dirname, '..', '..', '..', 'templates', 'testSmartContractTemplate.ejs');
+    const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
     let dataToWrite: string;
     try {
         dataToWrite = await createDataToWrite(template, templateData);
@@ -158,7 +167,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
 
     // Determine if test file already exists
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    let testFile: string = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.js`);
+    let testFile: string = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuiffix}`);
     const testFileExists: boolean = await fs.pathExists(testFile);
     let overwriteTestFile: string;
     if (testFileExists) {
@@ -178,7 +187,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
         // Generate copy of test file, indicate a copy has been created in the file name
         let i: number = 1;
         while (await fs.pathExists(testFile)) {
-            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.js`);
+            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
             i++;
         }
     }
@@ -217,7 +226,7 @@ export async function testSmartContract(chaincode?: ChainCodeTreeItem): Promise<
 
     // Run npm install in smart contract project
     try {
-        await installNodeModules(localSmartContractDirectory);
+        await installNodeModules(localSmartContractDirectory, testLanguage);
     } catch (error) {
         vscode.window.showErrorMessage('Error installing node modules in smart contract project: ' + error.message);
         return;
@@ -258,7 +267,7 @@ async function removeTestFile(fileToRemove: string): Promise<void> {
     }
 }
 
-async function installNodeModules(dir: string): Promise<void> {
+async function installNodeModules(dir: string, language: string): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     outputAdapter.log('Running npm install:');
@@ -273,4 +282,9 @@ async function installNodeModules(dir: string): Promise<void> {
     const fabricClientOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-client@beta', dir, 'Installing fabric-client@beta in smart contract project');
     outputAdapter.log(fabricClientOut);
 
+    if (language === 'TypeScript') {
+        outputAdapter.log('Installing @types/mocha');
+        const typesMochaInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install @types/mocha', dir, 'Installing mocha types in smart contract project');
+        outputAdapter.log(typesMochaInstallOut);
+    }
 }
