@@ -63,7 +63,8 @@
             "blockchainExplorer.toggleFabricRuntimeDevMode",
             "blockchainExplorer.editConnectionEntry",
             "blockchainExplorer.testSmartContractEntry",
-            "blockchainExplorer.submitTransactionEntry"
+            "blockchainExplorer.submitTransactionEntry",
+            "blockchainExplorer.upgradeSmartContractEntry"
         ]
     },
     "main": "./out/src/extension",
@@ -165,7 +166,7 @@
             },
             {
                 "command": "blockchainExplorer.instantiateSmartContractEntry",
-                "title": "Instantiate / Upgrade Smart Contract",
+                "title": "Instantiate Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -229,6 +230,11 @@
             {
                 "command": "blockchainExplorer.testSmartContractEntry",
                 "title": "Generate Smart Contract Tests",
+                "category": "Blockchain"
+            },
+            {
+                "command": "blockchainExplorer.upgradeSmartContractEntry",
+                "title": "Upgrade Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -354,6 +360,10 @@
                 {
                     "command": "blockchainExplorer.submitTransactionEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-transaction-item"
+                },
+                {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 }
             ]
         },
@@ -568,7 +578,8 @@
             "integrationTest/tmp",
             "basic-network",
             "CHANGELOG.md",
-            "templates/testSmartContractTemplate.ejs"
+            "templates/tsTestSmartContractTemplate.ejs",
+            "templates/jsTestSmartContractTemplate.ejs"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

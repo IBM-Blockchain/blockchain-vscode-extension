@@ -42,7 +42,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
 
     try {
         if (!chosenPackage) {
-            const _package: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose which package to install on the peer', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
+            const _package: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', peerNames) as IBlockchainQuickPickItem<PackageRegistryEntry>;
             if (!_package) {
                 return;
             }

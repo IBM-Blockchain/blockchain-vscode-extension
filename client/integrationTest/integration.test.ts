@@ -37,12 +37,12 @@ import { InstalledChainCodeTreeItem } from '../src/explorer/model/InstalledChain
 import { InstalledChainCodeVersionTreeItem } from '../src/explorer/model/InstalledChaincodeVersionTreeItem';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
-import { ChainCodeTreeItem } from '../src/explorer/model/ChainCodeTreeItem';
 import { TestUtil } from '../test/TestUtil';
-import { InstantiatedChainCodesTreeItem } from '../src/explorer/model/InstantiatedChaincodesTreeItem';
+import { InstantiatedChaincodeParentTreeItem } from '../src/explorer/model/InstantiatedChaincodeParentTreeItem';
 import { CommandUtil } from '../src/util/CommandUtil';
 import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
 import { IFabricConnection } from '../src/fabric/IFabricConnection';
+import { InstantiatedChaincodeChildTreeItem } from '../src/explorer/model/InstantiatedChaincodeChildTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -74,6 +74,7 @@ describe('Integration Test', () => {
     let workspaceFolder: vscode.WorkspaceFolder;
     let showTransactionStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
+    let showLanguagesQuickPickStub: sinon.SinonStub;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -121,6 +122,7 @@ describe('Integration Test', () => {
         showTransactionStub = mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
 
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
     });
 
     afterEach(async () => {
@@ -130,7 +132,7 @@ describe('Integration Test', () => {
     });
 
     async function createSmartContract(name: string, type: string): Promise<void> {
-        mySandBox.stub(UserInputUtil, 'showSmartContractLanguagesQuickPick').resolves(type);
+        showLanguagesQuickPickStub.resolves(type);
         mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
         testContractName = name;
@@ -260,12 +262,13 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
     }
 
-    async function generateSmartContractTests(name: string, version: string): Promise<void> {
+    async function generateSmartContractTests(name: string, version: string, language: string): Promise<void> {
         showChannelStub.resolves('mychannel');
         showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
+        showLanguagesQuickPickStub.resolves(language);
         getWorkspaceFoldersStub.returns([workspaceFolder]);
         const packageJSONPath: string = path.join(testContractDir, 'package.json');
         findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
@@ -517,10 +520,10 @@ describe('Integration Test', () => {
 
         // Ensure that the instantiated chaincodes are still instantiated.
         let channelChildren: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        let instantiatedChaincodesParent: InstantiatedChainCodesTreeItem = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChainCodesTreeItem) as InstantiatedChainCodesTreeItem;
+        let instantiatedChaincodesParent: InstantiatedChaincodeParentTreeItem = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChaincodeParentTreeItem) as InstantiatedChaincodeParentTreeItem;
         instantiatedChaincodesParent.should.not.be.undefined;
-        const instantiatedChaincodesItems: ChainCodeTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(instantiatedChaincodesParent) as ChainCodeTreeItem[];
-        const teardownSmartContractItem: ChainCodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: ChainCodeTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
+        const instantiatedChaincodesItems: InstantiatedChaincodeChildTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(instantiatedChaincodesParent) as InstantiatedChaincodeChildTreeItem[];
+        const teardownSmartContractItem: InstantiatedChaincodeChildTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedChaincodeChildTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
         teardownSmartContractItem.should.not.be.undefined;
 
         // Disconnect from the Fabric runtime.
@@ -548,7 +551,7 @@ describe('Integration Test', () => {
 
         // Ensure that there are no instantiated chaincodes.
         channelChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        instantiatedChaincodesParent = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChainCodesTreeItem) as InstantiatedChainCodesTreeItem;
+        instantiatedChaincodesParent = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChaincodeParentTreeItem) as InstantiatedChaincodeParentTreeItem;
         should.equal(instantiatedChaincodesParent, undefined);
 
     }).timeout(0);
@@ -571,11 +574,11 @@ describe('Integration Test', () => {
 
             await instantiateSmartContract(smartContractName, '0.0.1');
 
+            if (language === 'JavaScript' || language === 'TypeScript') {
+                await generateSmartContractTests(smartContractName, '0.0.1', language);
+            }
             if (language === 'JavaScript') {
-                await generateSmartContractTests(smartContractName, '0.0.1');
                 javascriptTestRunResult = await runJavaScriptSmartContractTests(smartContractName);
-            } else if (language === 'TypeScript') {
-                await generateSmartContractTests(smartContractName, '0.0.1');
             }
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
@@ -601,17 +604,19 @@ describe('Integration Test', () => {
 
             versions[0].label.should.equal('0.0.1');
 
-            const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+            const instantiatedSmartContracts: Array<InstantiatedChaincodeChildTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<InstantiatedChaincodeChildTreeItem>;
 
-            const instantiatedSmartContract: ChainCodeTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: ChainCodeTreeItem) => {
+            const instantiatedSmartContract: InstantiatedChaincodeChildTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: InstantiatedChaincodeChildTreeItem) => {
                 return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
             });
 
             instantiatedSmartContract.should.not.be.null;
 
             if (language === 'JavaScript' || language === 'TypeScript') {
+                let fileSuffix: string;
+                fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
                 // Check test file exists
-                const pathToTestFile: string = path.join(testContractDir, 'functionalTests', `${smartContractName}@0.0.1.test.js`);
+                const pathToTestFile: string = path.join(testContractDir, 'functionalTests', `${smartContractName}@0.0.1.test.${fileSuffix}`);
                 fs.pathExists(pathToTestFile).should.eventually.be.true;
                 const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
                 const testFileContents: string = testFileContentsBuffer.toString();
@@ -699,9 +704,9 @@ describe('Integration Test', () => {
             versions[0].label.should.equal('0.0.1');
             versions[1].label.should.equal('0.0.2');
 
-            const instantiatedSmartContracts: Array<ChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<ChainCodeTreeItem>;
+            const instantiatedSmartContracts: Array<InstantiatedChaincodeChildTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<InstantiatedChaincodeChildTreeItem>;
 
-            const instantiatedSmartContract: ChainCodeTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: ChainCodeTreeItem) => {
+            const instantiatedSmartContract: InstantiatedChaincodeChildTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: InstantiatedChaincodeChildTreeItem) => {
                 return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
             });
 

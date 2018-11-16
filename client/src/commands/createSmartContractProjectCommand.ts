@@ -76,7 +76,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         return;
     }
 
-    smartContractLanguage = await UserInputUtil.showSmartContractLanguagesQuickPick('Chose smart contract language (Esc to cancel)', smartContractLanguageOptions);
+    smartContractLanguage = await UserInputUtil.showLanguagesQuickPick('Choose smart contract language (Esc to cancel)', smartContractLanguageOptions);
     if (!smartContractLanguage) {
         // User has cancelled the QuickPick box
         return;

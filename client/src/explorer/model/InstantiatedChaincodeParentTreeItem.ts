@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { ChannelTreeItem } from './ChannelTreeItem';
 
-export class InstantiatedChainCodesTreeItem extends BlockchainTreeItem {
+export class InstantiatedChaincodeParentTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-instantiated-chaincodes-item';
 
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly chaincodes: Array<any>, public readonly channel: ChannelTreeItem) {

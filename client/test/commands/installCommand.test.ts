@@ -56,7 +56,7 @@ describe('InstallCommand', () => {
         let errorSpy: sinon.SinonSpy;
         let getConnectionStub: sinon.SinonStub;
         let showPeerQuickPickStub: sinon.SinonStub;
-        let showPackageQuickPickStub: sinon.SinonStub;
+        let showInstallableSmartContractsQuickPickStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -81,7 +81,7 @@ describe('InstallCommand', () => {
                 version: '0.0.1'
             });
 
-            showPackageQuickPickStub = mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves({
+            showInstallableSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').resolves({
                 label: 'myContract',
                 data: packageRegistryEntry
             });
@@ -162,7 +162,7 @@ describe('InstallCommand', () => {
         });
 
         it('should handle cancel when choosing package', async () => {
-            showPackageQuickPickStub.resolves();
+            showInstallableSmartContractsQuickPickStub.resolves();
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
             fabricClientConnectionMock.installChaincode.should.not.have.been.called;
