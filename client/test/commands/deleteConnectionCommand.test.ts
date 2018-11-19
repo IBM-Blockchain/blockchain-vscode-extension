@@ -24,6 +24,7 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -42,9 +43,11 @@ describe('DeleteConnectionCommand', () => {
     describe('deleteConnection', () => {
 
         let mySandBox: sinon.SinonSandbox;
+        let warningStub: sinon.SinonStub;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
+            warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
         });
 
         afterEach(() => {
@@ -81,7 +84,10 @@ describe('DeleteConnectionCommand', () => {
 
             await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
 
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves({label: 'myConnectionB', data: FabricConnectionRegistry.instance().get('myConnectionB')});
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            });
 
             await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
 
@@ -173,6 +179,54 @@ describe('DeleteConnectionCommand', () => {
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(2);
+        });
+
+        it('should handle no from confirmation message', async () => {
+            // reset the available connections
+            await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+
+            let connections: Array<any> = [];
+
+            const rootPath: string = path.dirname(__dirname);
+
+            const myConnectionA: any = {
+                name: 'myConnectionA',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+                }]
+            };
+
+            connections.push(myConnectionA);
+
+            const myConnectionB: any = {
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
+            };
+
+            connections.push(myConnectionB);
+
+            await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionB',
+                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            });
+
+            warningStub.resolves(false);
+
+            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+
+            connections = vscode.workspace.getConfiguration().get('fabric.connections');
+
+            connections.length.should.equal(2);
+            connections[0].should.deep.equal(myConnectionA);
+            connections[1].should.deep.equal(myConnectionB);
         });
     });
 });

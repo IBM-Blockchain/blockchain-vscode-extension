@@ -32,5 +32,10 @@ export async function deleteConnection(connectionTreeItem: ConnectionTreeItem): 
         connectionRegistryEntry = connectionTreeItem.connection;
     }
 
+    const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the connection. Do you want to continue?`);
+    if (!reallyDoIt) {
+        return;
+    }
+
     return FabricConnectionRegistry.instance().delete(connectionRegistryEntry.name);
 }
