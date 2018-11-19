@@ -1,7 +1,8 @@
 /*
 * Use this file for functional testing of your smart contract.
 * Fill out the arguments and return values for a function and
-* use a test runner to run these tests locally.
+* use the CodeLens links above the transaction blocks to
+* invoke/submit transactions.
 * All transactions defined in your smart contract are used here
 * to generate tests, including those functions that would
 * normally only be used on instantiate and upgrade operations.
@@ -13,19 +14,19 @@
 /*
 * Generating this test file will also trigger an npm install
 * in the smart contract project directory. This installs any
-* package dependencies, including fabric-network which is
+* package dependencies, including fabric-network, which are
 * required for this test file to be run locally.
 */
 
 import * as assert from 'assert';
+import * as Client from 'fabric-client';
 import * as fabricNetwork from 'fabric-network';
 import * as fs from 'fs-extra';
-import * as Client from 'fabric-client';
 
 describe('<%=chaincodeLabel%>' , () => {
 
     const gateway: fabricNetwork.Gateway = new fabricNetwork.Gateway();
-    const wallet: fabricNetwork.InMemoryWallet = new fabricNetwork.InMemoryWallet();
+    const fabricWallet: fabricNetwork.InMemoryWallet = new fabricNetwork.InMemoryWallet();
     const identityName: string = '<%=chaincodeLabel%>';
     let client: Client;
 
@@ -40,17 +41,18 @@ describe('<%=chaincodeLabel%>' , () => {
         client = await Client.loadFromConfig(connectionProfilePath);
         const mspid: string = client.getMspid();
 
-        await wallet.import(identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
+        await fabricWallet.import(
+            identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
     });
 
     beforeEach(async () => {
         const connectOptions: fabricNetwork.InitOptions = {
-            wallet: wallet,
             identity: identityName,
+            wallet: fabricWallet,
         };
         connectOptions['discovery'] = {
-            asLocalhost: true
+            asLocalhost: true,
         };
         await gateway.connect(client, connectOptions);
     });
@@ -58,18 +60,17 @@ describe('<%=chaincodeLabel%>' , () => {
     afterEach(async () => {
         gateway.disconnect();
     });
-
-    <% functionNames.forEach((functionName) => { %>
+<%functionNames.forEach((functionName) => {%>
     it('<%=functionName%>', async () => {
         // TODO: Update with parameters of transaction
         const args: string = '';
-        const response: Buffer = await submitTransaction('<%=functionName%>', args); // Returns buffer of transcation return value
+        const response: Buffer = await submitTransaction('<%=functionName%>', args);
+        // submitTransaction returns buffer of transcation return value
         // TODO: Update with return value of transaction
         assert.equal(true, true);
         // assert.equal(response.toString(), undefined);
     }).timeout(10000);
-    <% }) %>
-
+<%})%>
     async function submitTransaction(functionName: string, args: string): Promise<Buffer> {
         // Send transaction
 

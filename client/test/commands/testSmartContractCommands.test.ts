@@ -76,6 +76,9 @@ describe('testSmartContractCommand', () => {
     let showLanguageQuickPickStub: sinon.SinonStub;
     let registryEntry: FabricConnectionRegistryEntry;
     let getRegistryStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
+    let workspaceConfigurationUpdateStub: sinon.SinonStub;
+    let workspaceConfigurationGetStub: sinon.SinonStub ;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -168,8 +171,11 @@ describe('testSmartContractCommand', () => {
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
+            // Other stubs
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
+            workspaceConfigurationUpdateStub = mySandBox.stub();
+            workspaceConfigurationGetStub = mySandBox.stub();
 
         });
 
@@ -197,6 +203,12 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should generate a typescript test file for a selected instantiated smart contract', async () => {
+            workspaceConfigurationGetStub.onCall(0).returns('some command');
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
             showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
@@ -217,6 +229,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(': string').should.be.true;
             sendCommandStub.callCount.should.equal(4);
+            workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
@@ -445,6 +458,38 @@ describe('testSmartContractCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
             errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: it all went wrong');
             sendCommandStub.callCount.should.equal(4);
+        });
+
+        it('should correctly detect existing test runner user settings for typescript tests', async () => {
+            workspaceConfigurationGetStub.onCall(0).returns('-r ts-node/register');
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves('TypeScript');
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            workspaceConfigurationUpdateStub.should.not.have.been.called;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should correctly detect no test runner user settings for typescript tests', async () => {
+            workspaceConfigurationGetStub.onCall(0).returns(undefined);
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves('TypeScript');
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            workspaceConfigurationUpdateStub.should.have.been.called;
+            errorSpy.should.not.have.been.called;
         });
 
     });

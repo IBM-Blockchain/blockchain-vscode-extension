@@ -284,12 +284,28 @@ describe('Integration Test', () => {
         const packageJSONPath: string = path.join(testContractDir, 'package.json');
         findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
 
+        if (language === 'TypeScript') {
+            // Stub out the update of JavaScript Test Runner user settings
+            const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
+            const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
+            workspaceConfigurationGetStub.onCall(0).returns('');
+            const getConfigurationStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+        }
+
         await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
     }
 
-    async function runJavaScriptSmartContractTests(name: string): Promise<string> {
-        // Run the same command that the JavaScript Test Runner runs to run javascript tests
-        const testResult: string = await CommandUtil.sendCommand(`node_modules/.bin/mocha functionalTests/${name}@0.0.1.test.js --grep="instantiate"`, testContractDir);
+    async function runSmartContractTests(name: string, language: string): Promise<string> {
+        // Run the same command that the JavaScript Test Runner runs to run javascript/typescript tests
+        let testCommand: string = `node_modules/.bin/mocha functionalTests/${name}@0.0.1.test.js --grep="instantiate"`;
+        if (language === 'TypeScript') {
+            testCommand = `node_modules/.bin/mocha functionalTests/${name}@0.0.1.test.ts --grep="instantiate" -r ts-node/register`;
+        }
+        const testResult: string = await CommandUtil.sendCommand(testCommand, testContractDir);
         return testResult;
     }
 
@@ -602,7 +618,7 @@ describe('Integration Test', () => {
 
         it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and generate tests`, async () => {
             const smartContractName: string = `my${language}SC`;
-            let javascriptTestRunResult: string;
+            let testRunResult: string;
 
             await createFabricConnection();
 
@@ -618,9 +634,7 @@ describe('Integration Test', () => {
 
             if (language === 'JavaScript' || language === 'TypeScript') {
                 await generateSmartContractTests(smartContractName, '0.0.1', language);
-            }
-            if (language === 'JavaScript') {
-                javascriptTestRunResult = await runJavaScriptSmartContractTests(smartContractName);
+                testRunResult = await runSmartContractTests(smartContractName, language);
             }
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
@@ -687,12 +701,10 @@ describe('Integration Test', () => {
 
                 await submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world');
 
-            }
-            if (language === 'JavaScript') {
-                javascriptTestRunResult.includes('success for transaction').should.be.true;
-                javascriptTestRunResult.includes('1 passing').should.be.true;
-            }
+                testRunResult.includes('success for transaction').should.be.true;
+                testRunResult.includes('1 passing').should.be.true;
 
+            }
             errorSpy.should.not.have.been.called;
 
         }).timeout(0);
