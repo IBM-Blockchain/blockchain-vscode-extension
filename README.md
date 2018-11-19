@@ -63,7 +63,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
 | Install Smart Contract | Install a smart contract package onto a peer |
-| Instantiate | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!*|
+| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!*|
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
 | Refresh Blockchain Connections | Refresh the Blockchain Connections view |
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
@@ -131,6 +131,8 @@ It is useful to think of installing on peers as the first step and instantiating
 
 ### Submit transaction
 Right click a transaction and click **Submit transaction**. This will submit a transaction to a smart contract.
+
+<img src="client/media/submit_transaction.gif" with="85%" alt="Submit a transaction to a smart contract">
 
 ### Edit an existing blockchain connection
 Connections can be edited by right-clicking and selecting `Edit Connection`.  This will open User Settings, with the connection available for editing.
