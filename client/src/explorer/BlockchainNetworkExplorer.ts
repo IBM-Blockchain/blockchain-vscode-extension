@@ -21,7 +21,6 @@ import { ParsedCertificate } from '../fabric/ParsedCertificate';
 
 import { PeerTreeItem } from './model/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
-import { AddConnectionTreeItem } from './model/AddConnectionTreeItem';
 import { ConnectionIdentityTreeItem } from './model/ConnectionIdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { ConnectionTreeItem } from './model/ConnectionTreeItem';
@@ -51,8 +50,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
-
-    private connection: IFabricConnection = null;
 
     private connectionRegistryManager: FabricConnectionRegistry = FabricConnectionRegistry.instance();
 
@@ -174,7 +171,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         let tree: ConnectionPropertyTreeItem[] = [];
 
         for (const label of [profileLabel, certLabel, keyLabel]) {
-            command = {command: 'blockchainExplorer.editConnectionEntry', title: '', arguments: [{label: label, connection: element.connection}]};
+            command = {
+                command: 'blockchainExplorer.editConnectionEntry',
+                title: '',
+                arguments: [{label: label, connection: element.connection}]
+            };
             tree.push(new ConnectionPropertyTreeItem(this, label, element.connection, vscode.TreeItemCollapsibleState.None, command));
         }
 
@@ -256,11 +257,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             }
         });
 
-        tree.push(new AddConnectionTreeItem(this, '+ Add new connection', {
-            command: 'blockchainExplorer.addConnectionEntry',
-            title: ''
-        }));
-
         return tree;
     }
 
@@ -307,8 +303,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     private async createTransactionsChaincodeTree(chainCodeElement: InstantiatedChaincodeChildTreeItem): Promise<Array<TransactionTreeItem>> {
         const tree: Array<TransactionTreeItem> = [];
         console.log('createTransactionsChaincodeTree', chainCodeElement);
-        const transactions: Array<string> = chainCodeElement.transactions;
-        transactions.forEach((transaction: string) => {
+        chainCodeElement.transactions.forEach((transaction: string) => {
             tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label));
         });
 
@@ -342,7 +337,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             const channels: Array<string> = Array.from(channelMap.keys());
 
             for (const channel of channels) {
-                let chaincodes: Array<{name: string, version: string}>;
+                let chaincodes: Array<{ name: string, version: string }>;
                 const peers: Array<string> = channelMap.get(channel);
                 try {
                     chaincodes = await FabricConnectionManager.instance().getConnection().getInstantiatedChaincode(channel);

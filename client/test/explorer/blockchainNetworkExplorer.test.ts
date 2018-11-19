@@ -21,7 +21,6 @@ import * as sinonChai from 'sinon-chai';
 
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { ConnectionIdentityTreeItem } from '../../src/explorer/model/ConnectionIdentityTreeItem';
-import { AddConnectionTreeItem } from '../../src/explorer/model/AddConnectionTreeItem';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
@@ -153,18 +152,6 @@ describe('BlockchainNetworkExplorer', () => {
                 mySandBox.restore();
             });
 
-            it('should test a connection tree is created with add connection at the end', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-
-                const addNetwork: BlockchainTreeItem = allChildren[allChildren.length - 1];
-
-                addNetwork.should.be.instanceOf(AddConnectionTreeItem);
-
-                addNetwork.tooltip.should.equal('+ Add new connection');
-                addNetwork.label.should.equal('+ Add new connection');
-            });
-
             it('should display connection that has been added in alphabetical order', async () => {
                 const connections: Array<any> = [];
 
@@ -211,12 +198,11 @@ describe('BlockchainNetworkExplorer', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(5);
+                allChildren.length.should.equal(4);
                 allChildren[0].label.should.equal('myConnectionA');
                 allChildren[1].label.should.equal('myConnectionA');
                 allChildren[2].label.should.equal('myConnectionB');
                 allChildren[3].label.should.equal('myConnectionC');
-                allChildren[4].label.should.equal('+ Add new connection');
             });
 
             it('should display connections with single identities', async () => {
@@ -246,13 +232,12 @@ describe('BlockchainNetworkExplorer', () => {
                     arguments: [FabricConnectionRegistry.instance().get('myConnection')]
                 };
 
-                allChildren.length.should.equal(2);
+                allChildren.length.should.equal(1);
                 const connectionTreeItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
                 connectionTreeItem.label.should.equal('myConnection');
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 connectionTreeItem.connection.should.deep.equal(FabricConnectionRegistry.instance().get('myConnection'));
                 connectionTreeItem.command.should.deep.equal(myCommand);
-                allChildren[1].label.should.equal('+ Add new connection');
             });
 
             it('should display connections with multiple identities', async () => {
@@ -280,14 +265,12 @@ describe('BlockchainNetworkExplorer', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(2);
-                allChildren.length.should.equal(2);
+                allChildren.length.should.equal(1);
                 const connectionTreeItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
                 connectionTreeItem.label.should.equal('myConnection');
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 connectionTreeItem.connection.should.deep.equal(FabricConnectionRegistry.instance().get('myConnection'));
                 should.not.exist(connectionTreeItem.command);
-                allChildren[1].label.should.equal('+ Add new connection');
 
                 const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
 
@@ -344,8 +327,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(2);
-                allChildren.length.should.equal(2);
+                allChildren.length.should.equal(1);
 
                 const connectionTreeItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
 
@@ -353,7 +335,6 @@ describe('BlockchainNetworkExplorer', () => {
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 connectionTreeItem.connection.should.deep.equal(myConnection);
                 should.not.exist(connectionTreeItem.command);
-                allChildren[1].label.should.equal('+ Add new connection');
 
                 const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
@@ -412,7 +393,6 @@ describe('BlockchainNetworkExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
 
                 errorSpy.should.have.been.calledWith('Error populating Blockchain Explorer View: some error');
-                allChildren[0].label.should.equal('+ Add new connection');
             });
 
             it('should display managed runtimes with single identities', async () => {
@@ -448,14 +428,13 @@ describe('BlockchainNetworkExplorer', () => {
                     arguments: [connection]
                 };
 
-                allChildren.length.should.equal(2);
+                allChildren.length.should.equal(1);
                 allChildren[0].should.be.an.instanceOf(RuntimeTreeItem);
                 const runtimeTreeItem: RuntimeTreeItem = allChildren[0] as RuntimeTreeItem;
                 runtimeTreeItem.label.should.equal('myRuntime  ●');
                 runtimeTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 runtimeTreeItem.connection.should.deep.equal(connection);
                 runtimeTreeItem.command.should.deep.equal(myCommand);
-                allChildren[1].label.should.equal('+ Add new connection');
             });
 
             it('should display unfinished connetions', async () => {
@@ -516,7 +495,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 deleteSpy.should.have.been.calledWith(connectionB.name);
 
-                treeItems.length.should.equal(2);
+                treeItems.length.should.equal(1);
                 treeItems.indexOf(connectionB).should.equal(-1);
             });
 
