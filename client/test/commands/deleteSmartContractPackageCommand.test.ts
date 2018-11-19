@@ -45,9 +45,17 @@ describe('DeleteSmartContractPackageCommand', () => {
 
     describe('deleteSmartContractPackage', () => {
         let mySandBox: sinon.SinonSandbox;
+        let _package: PackageRegistryEntry;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
+
+            const packagesStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll');
+            _package = new PackageRegistryEntry();
+            _package.name = 'myPackage';
+            _package.path = 'myPath';
+            _package.version = '0.0.1';
+            packagesStub.resolves([_package]);
         });
 
         afterEach(async () => {
@@ -58,8 +66,6 @@ describe('DeleteSmartContractPackageCommand', () => {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            const _packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-            const _package: PackageRegistryEntry = _packages[0];
             mySandBox.stub(vscode.window, 'showQuickPick').resolves([{
                 label: 'vscode-pkg-1@0.0.1',
                 data: _package

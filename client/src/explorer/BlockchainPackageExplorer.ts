@@ -16,7 +16,6 @@ import { PackageTreeItem } from './model/PackageTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { AddPackageTreeItem } from './model/AddPackageTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 
 export class BlockchainPackageExplorerProvider implements BlockchainExplorerProvider {
@@ -53,11 +52,6 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
 
             tree.push(new PackageTreeItem(this, nameAndVersion, packageRegistryEntry));
         }
-
-        tree.push(new AddPackageTreeItem(this, '+ Add new package', {
-            command: 'blockchainAPackageExplorer.packageSmartContractProjectEntry',
-            title: ''
-        }));
 
         return tree;
     }
