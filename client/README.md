@@ -128,6 +128,8 @@ It is useful to think of installing on peers as the first step and instantiating
 ### Submit transaction
 Right click a transaction and click **Submit transaction**. This will submit a transaction to a smart contract.
 
+![Submit transaction](client/media/submit_transaction.gif)
+
 ### Edit an existing blockchain connection
 Connections can be edited by right-clicking and selecting `Edit Connection`.  This will open User Settings, with the connection available for editing.
 
