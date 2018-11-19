@@ -27,7 +27,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, version?: string): Promise<PackageRegistryEntry> {
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Blockchain Extension',
+        title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Packaging Smart Contract` });

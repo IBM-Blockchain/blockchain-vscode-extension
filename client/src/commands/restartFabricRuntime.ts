@@ -33,7 +33,7 @@ export async function restartFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): P
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
-        title: 'Blockchain Extension',
+        title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({message: `Restarting Fabric runtime ${runtime.getName()}`});
