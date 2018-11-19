@@ -43,7 +43,7 @@ if [ $TRAVIS_OS_NAME == "linux" ]; then
 fi
 
 if [ "${TASK}" == "systest" ]; then
-    ./integrationTest/scripts/run-integration-tests.sh
+    ./integrationTest/scripts/start-integration-tests.sh
     # put back in if you want to see the docker logs when running the tests
     # docker_logs &
 
