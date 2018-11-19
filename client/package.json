@@ -355,7 +355,7 @@
                 },
                 {
                     "command": "blockchainExplorer.testSmartContractEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-chaincode-item"
+                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {
                     "command": "blockchainExplorer.submitTransactionEntry",
