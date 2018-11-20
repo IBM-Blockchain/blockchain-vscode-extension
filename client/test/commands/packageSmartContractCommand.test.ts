@@ -810,7 +810,7 @@ describe('packageSmartContract', () => {
         }).timeout(4000);
 
         it('should package a smart contract given a project workspace', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}')).resolves([vscode.Uri.file('chaincode.js')]);

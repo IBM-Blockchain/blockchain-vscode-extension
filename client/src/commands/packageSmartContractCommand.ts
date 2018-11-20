@@ -103,7 +103,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
             }
 
             // Determine if there is a metadata path.
-            const metadataPath: string = path.join(workspaceDir.uri.fsPath, 'META-INF');
+            const metadataPath: string = path.join(workspace.uri.fsPath, 'META-INF');
             const metadataPathExists: boolean = await fs.pathExists(metadataPath);
 
             // Create the package. Need to dynamically load the package class
