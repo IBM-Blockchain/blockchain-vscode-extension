@@ -41,7 +41,7 @@ describe('packageSmartContract', () => {
 
     const folders: Array<any> = [];
 
-    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean): Promise<void> {
+    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean): Promise<void> {
         let projectDir: string;
         if (language === 'golang') {
             projectDir = path.join(testWorkspace, 'src', packageName);
@@ -85,6 +85,20 @@ describe('packageSmartContract', () => {
             const textFile: string = projectDir + '/text.txt';
             const content: string = 'hello';
             await fs.writeFile(textFile, content);
+        }
+
+        if (createMetadata) {
+            const metadataDir: string = path.join(projectDir, 'META-INF', 'statedb', 'couchdb', 'indexes');
+            await fs.mkdirp(metadataDir);
+            const indexOwnerFile: string = path.join(metadataDir, 'indexOwner.json');
+            await fs.writeJson(indexOwnerFile, {
+                index: {
+                    fields: ['docType', 'owner']
+                },
+                ddoc: 'indexOwnerDoc',
+                name: 'indexOwner',
+                type: 'json'
+            });
         }
     }
 
@@ -207,7 +221,7 @@ describe('packageSmartContract', () => {
     describe('#packageSmartContract', () => {
 
         it('should package the JavaScript project', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -236,7 +250,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the JavaScript project with specified folder and version', async () => {
-            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -264,8 +278,40 @@ describe('packageSmartContract', () => {
             executeTaskStub.should.have.not.been.called;
         });
 
+        it('should package the JavaScript project with a META-INF directory', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, true);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}')).resolves([vscode.Uri.file('chaincode.js')]);
+
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                 // Yes, it gets packaged twice!
+                'META-INF/statedb/couchdb/indexes/indexOwner.json',
+                'src/META-INF/statedb/couchdb/indexes/indexOwner.json',
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            errorSpy.should.not.have.been.called;
+            informationSpy.should.have.been.calledOnce;
+            executeTaskStub.should.have.not.been.called;
+        }).timeout(10000);
+
         it('should package the TypeScript project', async () => {
-            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
+            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);
 
             const testIndex: number = 1;
             workspaceFoldersStub.returns(folders);
@@ -296,7 +342,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Go project', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -329,7 +375,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Java project', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java', true);
+            await createTestFiles('javaProject', '0.0.1', 'java', true, false);
 
             const testIndex: number = 3;
 
@@ -362,7 +408,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -387,7 +433,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error as the project does not contain a chaincode file', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
 
@@ -408,7 +454,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the JavaScript project already exists', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -427,7 +473,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error as the Go project already exists', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -451,7 +497,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error as the Java project already exists', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java', true);
+            await createTestFiles('javaProject', '0.0.1', 'java', true, false);
 
             const testIndex: number = 3;
             workspaceFoldersStub.returns(folders);
@@ -475,7 +521,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the GOPATH environment variable is not set', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -498,7 +544,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the GOPATH environment variable is set to the project directory', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -521,7 +567,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the project directory is not inside the directory specified by the GOPATH environment variable ', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -544,7 +590,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the GOPATH environment variable is set to the root directory', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -567,7 +613,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should fail packaging the TypeScript project as there is no compiled chaincode.js file', async () => {
-            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true);
+            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);
 
             const testIndex: number = 1;
             workspaceFoldersStub.returns(folders);
@@ -592,7 +638,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should run execute the refreshEntry command', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
@@ -609,7 +655,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should not show package chooser when only one folder', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             folders.splice(1, folders.length - 1);
@@ -637,7 +683,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle error from get workspace folders', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             folders.splice(1, folders.length - 1);
@@ -652,7 +698,7 @@ describe('packageSmartContract', () => {
         }).timeout(4000);
 
         it('should handle not choosing folder', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -670,7 +716,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Go project name', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -693,7 +739,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Go project version', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true);
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -717,7 +763,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Java project name', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java', true);
+            await createTestFiles('javaProject', '0.0.1', 'java', true, false);
 
             const testIndex: number = 3;
 
@@ -740,7 +786,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Java project version', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java', true);
+            await createTestFiles('javaProject', '0.0.1', 'java', true, false);
 
             const testIndex: number = 3;
 
@@ -764,7 +810,7 @@ describe('packageSmartContract', () => {
         }).timeout(4000);
 
         it('should package a smart contract given a project workspace', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true);
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}')).resolves([vscode.Uri.file('chaincode.js')]);

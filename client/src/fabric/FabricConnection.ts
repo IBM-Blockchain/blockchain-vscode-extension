@@ -14,7 +14,7 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract, InitOptions } from 'fabric-network';
+import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract, GatewayOptions } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
@@ -236,14 +236,13 @@ export abstract class FabricConnection implements IFabricConnection {
 
         await this.wallet.import(this.identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
-        const options: InitOptions = {
+        const options: GatewayOptions = {
             wallet: this.wallet,
             identity: this.identityName
         };
 
-        options['discovery'] = {
-            asLocalhost: true
-        };
+        options['discovery'] = {};
+        (options['discovery'] as any).asLocalhost = true;
 
         await this.gateway.connect(client, options);
     }
