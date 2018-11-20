@@ -63,7 +63,8 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
 | Install Smart Contract | Install a smart contract package onto a peer |
-| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!*|
+| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!* |
+| Open Fabric Runtime Terminal | Open a terminal with access to the Fabric runtime (peer CLI) |
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
 | Refresh Blockchain Connections | Refresh the Blockchain Connections view |
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
@@ -72,7 +73,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Submit Transaction | Submit a transaction to a smart contract |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
-| Upgrade Smart Contract | Upgrade an instantiated smart contract|
+| Upgrade Smart Contract | Upgrade an instantiated smart contract |
 
 ## Smart Contract Development Lifecycle
 _Please note that all operations shown are also possible using the commands in the table above, issued at the VSCode command-prompt._
