@@ -88,7 +88,7 @@ describe('openFabricRuntimeTerminal', () => {
                 '-e',
                 'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
                 '-ti',
-                'fabricvscodelocalfabric_peer0.org1.example.com_1',
+                'fabricvscodelocalfabric_peer0.org1.example.com',
                 'bash'
             ]
         );
@@ -109,7 +109,7 @@ describe('openFabricRuntimeTerminal', () => {
                 '-e',
                 'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
                 '-ti',
-                'fabricvscodelocalfabric_peer0.org1.example.com_1',
+                'fabricvscodelocalfabric_peer0.org1.example.com',
                 'bash'
             ]
         );
