@@ -53,7 +53,7 @@ describe('Docker', () => {
         mockPeerVolume = sinon.createStubInstance(VolumeImpl);
 
         const dockerodeStub: sinon.SinonStubbedInstance<Dockerode> = sandbox.createStubInstance(Dockerode);
-        dockerodeStub.getContainer.withArgs('fabricvscoderuntime1_peer0.org1.example.com_1').returns(mockPeerContainer);
+        dockerodeStub.getContainer.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerContainer);
         dockerodeStub.getVolume.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerVolume);
 
         docker = new Docker('runtime1');
@@ -89,7 +89,7 @@ describe('Docker', () => {
     describe('#getContainerPorts', () => {
         it('should get the ports for a container', async () => {
             const prefix: string = docker.getContainerPrefix();
-            const ports: ContainerPorts = await docker.getContainerPorts(`${prefix}_peer0.org1.example.com_1`);
+            const ports: ContainerPorts = await docker.getContainerPorts(`${prefix}_peer0.org1.example.com`);
             ports.should.deep.equal(mockPeerInspect.NetworkSettings.Ports);
         });
     });
@@ -115,21 +115,21 @@ describe('Docker', () => {
         it('should return true if container is running', async () => {
             const prefix: string = docker.getContainerPrefix();
 
-            await docker.isContainerRunning(`${prefix}_peer0.org1.example.com_1`).should.eventually.be.true;
+            await docker.isContainerRunning(`${prefix}_peer0.org1.example.com`).should.eventually.be.true;
         });
 
         it('should return false if the container does not exist', async () => {
             const prefix: string = docker.getContainerPrefix();
 
             mockPeerContainer.inspect.rejects(new Error('blah'));
-            await docker.isContainerRunning(`${prefix}_peer0.org1.example.com_1`).should.eventually.be.false;
+            await docker.isContainerRunning(`${prefix}_peer0.org1.example.com`).should.eventually.be.false;
         });
 
         it('should return false if the container is not running', async () => {
             const prefix: string = docker.getContainerPrefix();
 
             mockPeerInspect.State.Running = false;
-            await docker.isContainerRunning(`${prefix}_peer0.org1.example.com_1`).should.eventually.be.false;
+            await docker.isContainerRunning(`${prefix}_peer0.org1.example.com`).should.eventually.be.false;
         });
     });
 });

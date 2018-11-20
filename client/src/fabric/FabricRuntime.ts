@@ -94,15 +94,15 @@ export class FabricRuntime extends EventEmitter {
     public async getConnectionProfile(): Promise<object> {
         const containerPrefix: string = this.docker.getContainerPrefix();
         const connectionProfile: any = basicNetworkConnectionProfile;
-        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com_1`);
+        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com`);
         const peerRequestHost: string = Docker.fixHost(peerPorts['7051/tcp'][0].HostIp);
         const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
         const peerEventHost: string = Docker.fixHost(peerPorts['7053/tcp'][0].HostIp);
         const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
-        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com_1`);
+        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com`);
         const ordererHost: string = Docker.fixHost(ordererPorts['7050/tcp'][0].HostIp);
         const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
-        const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com_1`);
+        const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com`);
         const caHost: string = Docker.fixHost(caPorts['7054/tcp'][0].HostIp);
         const caPort: string = caPorts['7054/tcp'][0].HostPort;
         connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
@@ -142,10 +142,10 @@ export class FabricRuntime extends EventEmitter {
     public async isRunning(): Promise<boolean> {
         const containerPrefix: string = this.docker.getContainerPrefix();
         const running: boolean[] = await Promise.all([
-            this.docker.isContainerRunning(`${containerPrefix}_peer0.org1.example.com_1`),
-            this.docker.isContainerRunning(`${containerPrefix}_orderer.example.com_1`),
-            this.docker.isContainerRunning(`${containerPrefix}_ca.example.com_1`),
-            this.docker.isContainerRunning(`${containerPrefix}_couchdb_1`)
+            this.docker.isContainerRunning(`${containerPrefix}_peer0.org1.example.com`),
+            this.docker.isContainerRunning(`${containerPrefix}_orderer.example.com`),
+            this.docker.isContainerRunning(`${containerPrefix}_ca.example.com`),
+            this.docker.isContainerRunning(`${containerPrefix}_couchdb`)
         ]);
         return !running.some((value: boolean) => value === false);
     }
@@ -161,7 +161,7 @@ export class FabricRuntime extends EventEmitter {
 
     public async getChaincodeAddress(): Promise<string> {
         const prefix: string = this.docker.getContainerPrefix();
-        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${prefix}_peer0.org1.example.com_1`);
+        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${prefix}_peer0.org1.example.com`);
         const peerRequestHost: string = Docker.fixHost(peerPorts['7052/tcp'][0].HostIp);
         const peerRequestPort: string = peerPorts['7052/tcp'][0].HostPort;
         return `${peerRequestHost}:${peerRequestPort}`;
@@ -169,7 +169,7 @@ export class FabricRuntime extends EventEmitter {
 
     public getPeerContainerName(): string {
         const prefix: string = this.docker.getContainerPrefix();
-        return `${prefix}_peer0.org1.example.com_1`;
+        return `${prefix}_peer0.org1.example.com`;
     }
 
     private setBusy(busy: boolean): void {

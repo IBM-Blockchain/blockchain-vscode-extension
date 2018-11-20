@@ -163,10 +163,10 @@ describe('FabricRuntime', () => {
         };
         mockCouchContainer.inspect.resolves(mockCouchInspect);
         const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
-        getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com_1').returns(mockPeerContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com_1').returns(mockOrdererContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com_1').returns(mockCAContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_couchdb_1').returns(mockCouchContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchContainer);
         mockPeerVolume = sinon.createStubInstance(VolumeImpl);
         mockOrdererVolume = sinon.createStubInstance(VolumeImpl);
         mockCAVolume = sinon.createStubInstance(VolumeImpl);
@@ -707,7 +707,7 @@ describe('FabricRuntime', () => {
     describe('#getPeerContainerName', () => {
         it('should get the chaincode address', () => {
             const result: string = runtime.getPeerContainerName();
-            result.should.equal('fabricvscoderuntime1_peer0.org1.example.com_1');
+            result.should.equal('fabricvscoderuntime1_peer0.org1.example.com');
         });
     });
 

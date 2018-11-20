@@ -17,7 +17,7 @@ rem incase of errors when running later commands, issue export FABRIC_START_TIME
 set FABRIC_START_TIMEOUT=30
 for /L %%i in (1, 1, %FABRIC_START_TIMEOUT%) do (
     rem This command only works if the peer is up and running
-    docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com_1 peer channel list > NUL 2>&1
+    docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com peer channel list > NUL 2>&1
     if errorlevel 1 (
         rem This is the closest thing that Windows has to the sleep command
         choice /t 1 /c x /d x /n > NUL
@@ -29,7 +29,11 @@ for /L %%i in (1, 1, %FABRIC_START_TIMEOUT%) do (
 :done
 echo Hyperledger Fabric started in %i% seconds
 
-rem Create the channel
-docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com_1 peer channel create -o orderer.example.com:7050 -c mychannel -f /etc/hyperledger/configtx/channel.tx
-rem Join peer0.org1.example.com to the channel.
-docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com_1 peer channel join -b mychannel.block
+rem Check to see if the channel already exists
+docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com peer channel getinfo -c mychannel
+if errorlevel 1 (
+    rem Create the channel
+    docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com peer channel create -o orderer.example.com:7050 -c mychannel -f /etc/hyperledger/configtx/channel.tx
+    rem Join peer0.org1.example.com to the channel.
+    docker exec -e "CORE_PEER_LOCALMSPID=Org1MSP" -e "CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp" %COMPOSE_PROJECT_NAME%_peer0.org1.example.com peer channel join -b mychannel.block
+)
