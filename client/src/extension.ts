@@ -55,6 +55,7 @@ import { TransactionTreeItem } from './explorer/model/TransactionTreeItem';
 import { submitTransaction } from './commands/submitTransaction';
 import { upgradeSmartContract } from './commands/upgradeCommand';
 import { InstantiatedChaincodeChildTreeItem } from './explorer/model/InstantiatedChaincodeChildTreeItem';
+import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -132,6 +133,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.restartFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.teardownFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => teardownFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', (runtimeTreeItem?: RuntimeTreeItem) => toggleFabricRuntimeDevMode(runtimeTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.openFabricRuntimeTerminal', (runtimeTreeItem?: RuntimeTreeItem) => openFabricRuntimeTerminal(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project: PackageTreeItem) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry', (project: PackageTreeItem) => exportSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.installSmartContractEntry', (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));

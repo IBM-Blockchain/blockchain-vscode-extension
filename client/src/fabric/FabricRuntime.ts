@@ -167,6 +167,11 @@ export class FabricRuntime extends EventEmitter {
         return `${peerRequestHost}:${peerRequestPort}`;
     }
 
+    public getPeerContainerName(): string {
+        const prefix: string = this.docker.getContainerPrefix();
+        return `${prefix}_peer0.org1.example.com_1`;
+    }
+
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);

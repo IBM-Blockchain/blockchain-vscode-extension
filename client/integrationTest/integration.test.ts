@@ -556,7 +556,36 @@ describe('Integration Test', () => {
 
     }).timeout(0);
 
-    ['Go', 'Java', 'JavaScript', 'TypeScript'].forEach((language: string) => {
+    it('should allow you to start, open a terminal on, and stop the local Fabric in non-development mode', async () => {
+
+        // Ensure that the Fabric runtime is in the right state.
+        const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+        runtime.isRunning().should.eventually.be.false;
+        runtime.isDevelopmentMode().should.be.false;
+
+        // Find the Fabric runtime in the connections tree.
+        const connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+        localFabricItem.should.not.be.null;
+
+        // Start the Fabric runtime, and ensure that it is in the right state.
+        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
+        runtime.isRunning().should.eventually.be.true;
+        runtime.isDevelopmentMode().should.be.false;
+
+        // Open a Fabric runtime terminal.
+        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', localFabricItem);
+        const terminal: vscode.Terminal = vscode.window.terminals.find((item: vscode.Terminal) => item.name === 'Fabric runtime - local_fabric');
+        terminal.should.not.be.null;
+
+        // Stop the Fabric runtime, and ensure that it is in the right state.
+        await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', localFabricItem);
+        runtime.isRunning().should.eventually.be.false;
+        runtime.isDevelopmentMode().should.be.false;
+
+    }).timeout(0);
+
+    ['Go', 'Java' , 'JavaScript', 'TypeScript'].forEach((language: string) => {
 
         it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and generate tests`, async () => {
             const smartContractName: string = `my${language}SC`;
