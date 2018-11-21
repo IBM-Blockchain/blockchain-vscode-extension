@@ -19,11 +19,11 @@ import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { FabricRuntimeConnection } from '../fabric/FabricRuntimeConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedChaincodeChildTreeItem } from '../explorer/model/InstantiatedChaincodeChildTreeItem';
+import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 
 export async function testSmartContract(chaincode?: InstantiatedChaincodeChildTreeItem): Promise<void> {
     console.log('testSmartContractCommand', chaincode);
@@ -53,6 +53,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeChildTr
         chaincodeLabel = chosenChaincode.label;
         chaincodeName = chosenChaincode.data.name;
         chaincodeVersion = chosenChaincode.data.version;
+        channelName = chosenChaincode.data.channel;
 
     } else {
         // Smart Contract selected from the tree item, so assign label and name
@@ -115,7 +116,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeChildTr
     let certificatePath: string;
     let privateKeyPath: string;
 
-    if (connection instanceof FabricRuntimeConnection) {
+    const fabricConnectionRegistryEntry: FabricConnectionRegistryEntry = FabricConnectionManager.instance().getConnectionRegistryEntry();
+    if (fabricConnectionRegistryEntry.managedRuntime) {
         // connection details are saved to disk in our directory
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = await UserInputUtil.getDirPath(extDir);

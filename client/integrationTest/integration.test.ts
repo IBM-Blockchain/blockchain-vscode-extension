@@ -75,6 +75,8 @@ describe('Integration Test', () => {
     let showTransactionStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
     let showLanguagesQuickPickStub: sinon.SinonStub;
+    let showConfirmationWarningMessageStub: sinon.SinonStub;
+    let showInstallableStub: sinon.SinonStub;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -114,12 +116,14 @@ describe('Integration Test', () => {
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
         showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         showPackagesStub = mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox');
+        showInstallableStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
         showChannelStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
         showChanincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
         showInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
         showTransactionStub = mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
+        showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
 
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
@@ -226,7 +230,7 @@ describe('Integration Test', () => {
 
         should.exist(packageToInstall);
 
-        showPackagesStub.resolves({
+        showInstallableStub.resolves({
             label: name,
             data: packageToInstall
         });
@@ -236,11 +240,18 @@ describe('Integration Test', () => {
     async function instantiateSmartContract(name: string, version: string): Promise<void> {
         showChannelStub.resolves('mychannel');
 
+        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
+            return packageEntry.name === name && packageEntry.version === version;
+        });
+
         showChanincodeAndVersionStub.resolves({
             label: `${name}@${version}`,
+            description: 'Installed',
             data: {
-                chaincode: name,
-                version: version
+                packageEntry: wantedPackage,
+                workspaceFolder: undefined,
             }
         });
 
@@ -322,6 +333,8 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
         const connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
         const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myConnection')) as ConnectionTreeItem;
+
+        showConfirmationWarningMessageStub.resolves(true);
         await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', myConnectionItem);
         connectionRegistry.exists('myConnection').should.be.false;
     }).timeout(0);
@@ -530,7 +543,7 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
 
         // Teardown the Fabric runtime, and ensure that it is in the right state.
-        const warningStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        const warningStub: sinon.SinonStub = showConfirmationWarningMessageStub.resolves(true);
         await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime', localFabricItem);
         runtime.isRunning().should.eventually.be.false;
         runtime.isDevelopmentMode().should.be.false;

@@ -376,6 +376,18 @@ describe('FabricConnection', () => {
             // tslint:disable-next-line
             functionArray.should.deep.equal(["instantiate", "wagonwheeling", "transaction2"]);
         });
+
+        it('should handle not getting any metadata', async () => {
+            const fakeMetaData: string = '';
+            const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
+            fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
+
+            const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
+            // tslint:disable-next-line
+            const functionArray: string[] = metadata[""].functions;
+            // tslint:disable-next-line
+            functionArray.should.deep.equal([]);
+        });
     });
 
     describe('submitTransaction', () => {
