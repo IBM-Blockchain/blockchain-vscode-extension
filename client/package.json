@@ -236,7 +236,7 @@
             {
                 "command": "blockchainExplorer.testSmartContractEntry",
                 "title": "Generate Smart Contract Tests",
-                "category": "Blockchain"
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainExplorer.upgradeSmartContractEntry",
