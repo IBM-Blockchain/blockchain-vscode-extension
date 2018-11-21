@@ -22,7 +22,6 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { ChannelTreeItem } from '../src/explorer/model/ChannelTreeItem';
 import { PeerTreeItem } from '../src/explorer/model/PeerTreeItem';
-import { PeersTreeItem } from '../src/explorer/model/PeersTreeItem';
 import { ExtensionUtil } from '../src/util/ExtensionUtil';
 import { FabricConnectionRegistry } from '../src/fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../src/fabric/FabricConnectionRegistryEntry';
@@ -38,11 +37,10 @@ import { InstalledChainCodeVersionTreeItem } from '../src/explorer/model/Install
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { TestUtil } from '../test/TestUtil';
-import { InstantiatedChaincodeParentTreeItem } from '../src/explorer/model/InstantiatedChaincodeParentTreeItem';
 import { CommandUtil } from '../src/util/CommandUtil';
 import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
 import { IFabricConnection } from '../src/fabric/IFabricConnection';
-import { InstantiatedChaincodeChildTreeItem } from '../src/explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../src/explorer/model/InstantiatedChaincodeTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -360,16 +358,15 @@ describe('Integration Test', () => {
 
         const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
-        allChildren.length.should.equal(2);
+        allChildren.length.should.equal(3);
 
-        allChildren[0].label.should.equal('mychannel');
-        allChildren[1].label.should.equal('myotherchannel');
+        allChildren[0].label.should.equal('Connected to: myConnection');
+        allChildren[1].label.should.equal('mychannel');
+        allChildren[2].label.should.equal('myotherchannel');
 
-        const channelChildrenOne: Array<PeersTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
-        const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
+        const channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<BlockchainTreeItem>;
 
-        peersChildren.length.should.equal(1);
-        peersChildren[0].label.should.equal('peer0.org1.example.com');
+        channelChildrenOne[0].label.should.equal('peer0.org1.example.com');
 
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
         const connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
@@ -402,8 +399,8 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Disconnect from the Fabric runtime.
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
@@ -445,8 +442,8 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Disconnect from the Fabric runtime.
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
@@ -486,8 +483,8 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Disconnect from the Fabric runtime.
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
@@ -507,8 +504,8 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Disconnect from the Fabric runtime.
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
@@ -542,8 +539,8 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Create a smart contract, package it, install it, and instantiate it.
         await createSmartContract('teardownSmartContract', 'JavaScript');
@@ -569,15 +566,13 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Ensure that the instantiated chaincodes are still instantiated.
         let channelChildren: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        let instantiatedChaincodesParent: InstantiatedChaincodeParentTreeItem = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChaincodeParentTreeItem) as InstantiatedChaincodeParentTreeItem;
-        instantiatedChaincodesParent.should.not.be.undefined;
-        const instantiatedChaincodesItems: InstantiatedChaincodeChildTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(instantiatedChaincodesParent) as InstantiatedChaincodeChildTreeItem[];
-        const teardownSmartContractItem: InstantiatedChaincodeChildTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedChaincodeChildTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
+        const instantiatedChaincodesItems: InstantiatedChaincodeTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildren[1]) as InstantiatedChaincodeTreeItem[];
+        const teardownSmartContractItem: InstantiatedChaincodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedChaincodeTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
         teardownSmartContractItem.should.not.be.undefined;
 
         // Disconnect from the Fabric runtime.
@@ -600,14 +595,13 @@ describe('Integration Test', () => {
 
         // Ensure that the Fabric runtime is showing a single channel.
         channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(1);
-        channelItems[0].label.should.equal('mychannel');
+        channelItems.length.should.equal(2);
+        channelItems[1].label.should.equal('mychannel');
 
         // Ensure that there are no instantiated chaincodes.
-        channelChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        instantiatedChaincodesParent = channelChildren.find((channelChild: BlockchainTreeItem) => channelChild instanceof InstantiatedChaincodeParentTreeItem) as InstantiatedChaincodeParentTreeItem;
-        should.equal(instantiatedChaincodesParent, undefined);
-
+        channelChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[1]);
+        // Should be just the peer
+        channelChildren.length.should.equal(1);
     }).timeout(0);
 
     it('should allow you to start, open a terminal on, and stop the local Fabric in non-development mode', async () => {
@@ -662,16 +656,11 @@ describe('Integration Test', () => {
                 testRunResult = await runSmartContractTests(smartContractName, language);
             }
 
-            let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
-            let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+            const channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<BlockchainTreeItem>;
 
-            allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-            channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
-
-            const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
-
-            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
+            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<InstalledChainCodeTreeItem>;
 
             const installedSmartContract: InstalledChainCodeTreeItem = installedSmartContracts.find((_installedSmartContract: InstalledChainCodeTreeItem) => {
                 return _installedSmartContract.label === smartContractName;
@@ -685,9 +674,7 @@ describe('Integration Test', () => {
 
             versions[0].label.should.equal('0.0.1');
 
-            const instantiatedSmartContracts: Array<InstantiatedChaincodeChildTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<InstantiatedChaincodeChildTreeItem>;
-
-            const instantiatedSmartContract: InstantiatedChaincodeChildTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: InstantiatedChaincodeChildTreeItem) => {
+            const instantiatedSmartContract: BlockchainTreeItem = channelChildrenOne.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                 return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
             });
 
@@ -759,16 +746,11 @@ describe('Integration Test', () => {
 
             await upgradeSmartContract(smartContractName, '0.0.2');
 
-            let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
-            let channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
+            const channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<BlockchainTreeItem>;
 
-            allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-            channelChildrenOne = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<PeersTreeItem>;
-
-            const peersChildren: Array<PeerTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<PeerTreeItem>;
-
-            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(peersChildren[0]) as Array<InstalledChainCodeTreeItem>;
+            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<InstalledChainCodeTreeItem>;
 
             const installedSmartContract: InstalledChainCodeTreeItem = installedSmartContracts.find((_installedSmartContract: InstalledChainCodeTreeItem) => {
                 return _installedSmartContract.label === smartContractName;
@@ -783,9 +765,7 @@ describe('Integration Test', () => {
             versions[0].label.should.equal('0.0.1');
             versions[1].label.should.equal('0.0.2');
 
-            const instantiatedSmartContracts: Array<InstantiatedChaincodeChildTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[1]) as Array<InstantiatedChaincodeChildTreeItem>;
-
-            const instantiatedSmartContract: InstantiatedChaincodeChildTreeItem = instantiatedSmartContracts.find((_instantiatedSmartContract: InstantiatedChaincodeChildTreeItem) => {
+            const instantiatedSmartContract: BlockchainTreeItem = channelChildrenOne.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                 return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
             });
 

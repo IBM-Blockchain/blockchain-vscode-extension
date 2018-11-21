@@ -18,9 +18,9 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { InstantiatedChaincodeChildTreeItem } from '../explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
 
-export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: InstantiatedChaincodeChildTreeItem): Promise<void> {
+export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem): Promise<void> {
 
     let channelName: string;
     let peers: Set<string>;

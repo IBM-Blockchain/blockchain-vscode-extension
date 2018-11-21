@@ -16,7 +16,6 @@ import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
 import { FabricConnectionRegistry } from './FabricConnectionRegistry';
-import { FabricConnectionRegistryEntry } from './FabricConnectionRegistryEntry';
 
 export class FabricRuntimeManager {
 

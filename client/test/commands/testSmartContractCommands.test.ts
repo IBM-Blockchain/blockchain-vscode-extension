@@ -31,7 +31,7 @@ import { FabricClientConnection } from '../../src/fabric/FabricClientConnection'
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { CommandUtil } from '../../src/util/CommandUtil';
-import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 
 const should: Chai.Should = chai.should();
@@ -56,7 +56,7 @@ describe('testSmartContractCommand', () => {
     let fabricConnectionManager: FabricConnectionManager;
     let channel: ChannelTreeItem;
     let chaincodes: any[];
-    let instantiatedSmartContract: InstantiatedChaincodeChildTreeItem;
+    let instantiatedSmartContract: InstantiatedChaincodeTreeItem;
     let fakeMetadataFunctions: string[];
     let fakeConnectionDetails: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string };
     let fakeRuntimeConnectionDetails: { connectionProfile: object, certificatePath: string, privateKeyPath: string };
@@ -139,9 +139,9 @@ describe('testSmartContractCommand', () => {
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            channel = allChildren[0] as ChannelTreeItem;
+            channel = allChildren[1] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
-            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeChildTreeItem;
+            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs
@@ -523,9 +523,9 @@ describe('testSmartContractCommand', () => {
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            channel = allChildren[0] as ChannelTreeItem;
+            channel = allChildren[1] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
-            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeChildTreeItem;
+            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs

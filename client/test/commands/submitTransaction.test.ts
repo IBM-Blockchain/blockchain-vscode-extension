@@ -15,6 +15,7 @@
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -28,8 +29,7 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
-import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
-import { InstantiatedChaincodeParentTreeItem } from '../../src/explorer/model/InstantiatedChaincodeParentTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 
 chai.use(sinonChai);
@@ -91,7 +91,13 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([{ name: 'mySmartContract', version: '0.0.1' }]);
 
-            fabricClientConnectionMock.getMetadata.resolves({ '': { functions: ['transaction1'] }});
+            fabricClientConnectionMock.getMetadata.resolves({ '': { functions: ['transaction1'] } });
+
+            const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            registryEntry.name = 'myConnection';
+            registryEntry.connectionProfilePath = 'myPath';
+            registryEntry.managedRuntime = false;
+            mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
 
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
@@ -160,12 +166,14 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit transaction through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
-            const instantiatedChaincodes: Array<InstantiatedChaincodeParentTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<InstantiatedChaincodeParentTreeItem>;
+            const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            instantiatedChaincodes.length.should.equal(2);
-            const contracts: Array<InstantiatedChaincodeChildTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodes[1]) as Array<InstantiatedChaincodeChildTreeItem>;
+            // remove the peer
+            channelChildren.shift();
+
+            const contracts: Array<InstantiatedChaincodeTreeItem> = channelChildren as Array<InstantiatedChaincodeTreeItem>;
 
             contracts.length.should.equal(1);
 

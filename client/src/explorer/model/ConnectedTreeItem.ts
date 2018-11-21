@@ -12,15 +12,14 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
+import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { ChannelTreeItem } from './ChannelTreeItem';
 
-export class InstantiatedChaincodeChildTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-instantiated-chaincode-item';
+export class ConnectedTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-connected-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channel: ChannelTreeItem, public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly transactions: Array<string>) {
-        super(provider, `${name}@${version}`, collapsibleState);
+    constructor(provider: BlockchainExplorerProvider, private readonly connectionName: string) {
+        super(provider, `Connected to: ${connectionName}`, vscode.TreeItemCollapsibleState.None);
     }
 }

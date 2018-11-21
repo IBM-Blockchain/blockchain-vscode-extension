@@ -25,8 +25,6 @@ import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
-import { PeersTreeItem } from '../../src/explorer/model/PeersTreeItem';
-import { InstantiatedChaincodeParentTreeItem } from '../../src/explorer/model/InstantiatedChaincodeParentTreeItem';
 import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
 import { InstalledChainCodeTreeItem } from '../../src/explorer/model/InstalledChainCodeTreeItem';
 import { InstalledChainCodeVersionTreeItem } from '../../src/explorer/model/InstalledChaincodeVersionTreeItem';
@@ -41,7 +39,8 @@ import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnection
 import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
 import { ConnectionPropertyTreeItem } from '../../src/explorer/model/ConnectionPropertyTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
-import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { ConnectedTreeItem } from '../../src/explorer/model/ConnectedTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -505,8 +504,15 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection );
+                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 getConnectionStub.onCall(3).returns(undefined);
+
+                const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                registryEntry.name = 'myConnection';
+                registryEntry.connectionProfilePath = 'myPath';
+                registryEntry.managedRuntime = false;
+                mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+
                 fabricConnection.getAllPeerNames.returns(['peerTwo']);
                 fabricConnection.getAllChannelsForPeer.throws({message: 'cannot connect'});
 
@@ -528,10 +534,17 @@ describe('BlockchainNetworkExplorer', () => {
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection );
+                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 getConnectionStub.onCall(3).returns(undefined);
                 fabricConnection.getAllPeerNames.returns(['peerTwo']);
                 fabricConnection.getAllChannelsForPeer.throws('some error');
+
+                const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                registryEntry.name = 'myConnection';
+                registryEntry.connectionProfilePath = 'myPath';
+                registryEntry.managedRuntime = false;
+                mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+
                 const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').resolves();
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
@@ -553,6 +566,13 @@ describe('BlockchainNetworkExplorer', () => {
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({message: 'Received http2 header with status: 503'});
+
+                const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                registryEntry.name = 'myConnection';
+                registryEntry.connectionProfilePath = 'myPath';
+                registryEntry.managedRuntime = false;
+                mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const oldChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -606,18 +626,27 @@ describe('BlockchainNetworkExplorer', () => {
                     version: '0.10'
                 }]);
 
-                fabricConnection.getMetadata.withArgs('biscuit-network', 'channelOne').resolves({'': {
-                    functions: ['tradeBiscuits']
-                }});
+                fabricConnection.getMetadata.withArgs('biscuit-network', 'channelOne').resolves({
+                    '': {
+                        functions: ['tradeBiscuits']
+                    }
+                });
 
-                fabricConnection.getMetadata.withArgs('cake-network', 'channelTwo').resolves({'': {
-                    functions: []
-                }});
+                fabricConnection.getMetadata.withArgs('cake-network', 'channelTwo').resolves({
+                    '': {
+                        functions: []
+                    }
+                });
 
                 blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection );
+                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
 
+                const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                registryEntry.name = 'myConnection';
+                registryEntry.connectionProfilePath = 'myPath';
+                registryEntry.managedRuntime = false;
+                mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
             });
 
@@ -627,15 +656,20 @@ describe('BlockchainNetworkExplorer', () => {
 
             it('should create a connected tree if there is a connection', async () => {
 
-                allChildren.length.should.equal(2);
+                allChildren.length.should.equal(3);
 
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+                const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
+                connectedItem.label.should.equal('Connected to: myConnection');
+                connectedItem.contextValue.should.equal('blockchain-connected-item');
+                connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelOne.contextValue.should.equal('blockchain-channel-item');
                 channelOne.label.should.equal('channelOne');
                 channelOne.peers.should.deep.equal(['peerOne']);
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
                 channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
@@ -644,39 +678,49 @@ describe('BlockchainNetworkExplorer', () => {
 
             it('should create channel children correctly', async () => {
 
-                allChildren.length.should.equal(2);
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+                allChildren.length.should.equal(3);
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(2);
 
-                const peersItemOne: PeersTreeItem = channelChildrenOne[0] as PeersTreeItem;
-                peersItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peersItemOne.contextValue.should.equal('blockchain-peers-item');
-                peersItemOne.label.should.equal('Peers');
-                peersItemOne.peers.should.deep.equal(['peerOne']);
-                const instantiatedTreeItemOne: InstantiatedChaincodeParentTreeItem = channelChildrenOne[1] as InstantiatedChaincodeParentTreeItem;
+                let peerItemOne: PeerTreeItem = channelChildrenOne[0] as PeerTreeItem;
+
+                peerItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                peerItemOne.contextValue.should.equal('blockchain-peer-item');
+                peerItemOne.label.should.equal('peerOne');
+
+                const instantiatedTreeItemOne: InstantiatedChaincodeTreeItem = channelChildrenOne[1] as InstantiatedChaincodeTreeItem;
                 instantiatedTreeItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                instantiatedTreeItemOne.chaincodes.should.deep.equal([{name: 'biscuit-network', version: '0.7'}]);
-                instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-chaincodes-item');
-                instantiatedTreeItemOne.label.should.equal('Instantiated Smart Contracts');
+                instantiatedTreeItemOne.name.should.equal('biscuit-network');
+                instantiatedTreeItemOne.version.should.equal('0.7');
+                instantiatedTreeItemOne.label.should.equal('biscuit-network@0.7');
+                instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedTreeItemOne.channel.should.equal(channelOne);
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const peersItemTwo: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
-                peersItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peersItemTwo.contextValue.should.equal('blockchain-peers-item');
-                peersItemTwo.label.should.equal('Peers');
-                peersItemTwo.peers.should.deep.equal(['peerOne', 'peerTwo']);
+                peerItemOne = channelChildrenTwo[0] as PeerTreeItem;
 
-                const instantiatedTreeItemTwo: InstantiatedChaincodeParentTreeItem = channelChildrenTwo[1] as InstantiatedChaincodeParentTreeItem;
-                instantiatedTreeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                instantiatedTreeItemTwo.chaincodes.should.deep.equal([{name: 'cake-network', version: '0.10'}]);
-                instantiatedTreeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincodes-item');
-                instantiatedTreeItemTwo.label.should.equal('Instantiated Smart Contracts');
+                peerItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                peerItemOne.contextValue.should.equal('blockchain-peer-item');
+                peerItemOne.label.should.equal('peerOne');
+
+                const peerItemTwo: PeerTreeItem = channelChildrenTwo[1] as PeerTreeItem;
+
+                peerItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                peerItemTwo.contextValue.should.equal('blockchain-peer-item');
+                peerItemTwo.label.should.equal('peerTwo');
+
+                const instantiatedTreeItemTwo: InstantiatedChaincodeTreeItem = channelChildrenTwo[2] as InstantiatedChaincodeTreeItem;
+                instantiatedTreeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                instantiatedTreeItemTwo.name.should.equal('cake-network');
+                instantiatedTreeItemTwo.version.should.equal('0.10');
+                instantiatedTreeItemTwo.label.should.equal('cake-network@0.10');
+                instantiatedTreeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedTreeItemTwo.channel.should.equal(channelTwo);
             });
 
@@ -686,45 +730,8 @@ describe('BlockchainNetworkExplorer', () => {
 
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(0);
-            });
-
-            it('should not create instantiated chaincodes if no chaincodes', async () => {
-
-                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').resolves([]);
-
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(2);
-
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
-                channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
-                channelChildrenOne.length.should.equal(1);
-
-                const peersItemOne: PeersTreeItem = channelChildrenOne[0] as PeersTreeItem;
-                peersItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peersItemOne.contextValue.should.equal('blockchain-peers-item');
-                peersItemOne.label.should.equal('Peers');
-                peersItemOne.peers.should.deep.equal(['peerOne']);
-
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
-
-                const peersItemTwo: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
-                peersItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peersItemTwo.contextValue.should.equal('blockchain-peers-item');
-                peersItemTwo.label.should.equal('Peers');
-                peersItemTwo.peers.should.deep.equal(['peerOne', 'peerTwo']);
-
-                const instantiatedTreeItemTwo: InstantiatedChaincodeParentTreeItem = channelChildrenTwo[1] as InstantiatedChaincodeParentTreeItem;
-                instantiatedTreeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                instantiatedTreeItemTwo.chaincodes.should.deep.equal([{name: 'cake-network', version: '0.10'}]);
-                instantiatedTreeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincodes-item');
-                instantiatedTreeItemTwo.label.should.equal('Instantiated Smart Contracts');
-                instantiatedTreeItemTwo.channel.should.equal(channelTwo);
+                allChildren.length.should.equal(1);
+                allChildren[0].label.should.equal('Connected to: myConnection');
             });
 
             it('should error if problem with instatiate chaincodes', async () => {
@@ -737,77 +744,30 @@ describe('BlockchainNetworkExplorer', () => {
 
                 errorSpy.should.have.been.calledWith('Error getting instantiated smart contracts for channel channelOne some error');
 
-                allChildren.length.should.equal(2);
+                allChildren.length.should.equal(3);
 
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
 
-                const peersItemOne: PeersTreeItem = channelChildrenOne[0] as PeersTreeItem;
-                peersItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peersItemOne.contextValue.should.equal('blockchain-peers-item');
-                peersItemOne.label.should.equal('Peers');
-                peersItemOne.peers.should.deep.equal(['peerOne']);
+                const peerItemOne: PeerTreeItem = channelChildrenOne[0] as PeerTreeItem;
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
-
-                const peersItemTwo: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
-                peersItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peersItemTwo.contextValue.should.equal('blockchain-peers-item');
-                peersItemTwo.label.should.equal('Peers');
-                peersItemTwo.peers.should.deep.equal(['peerOne', 'peerTwo']);
-            });
-
-            it('should create the peers correctly', async () => {
-
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
-
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
-                channelChildrenOne.length.should.equal(2);
-
-                const peersItemOne: PeersTreeItem = channelChildrenOne[0] as PeersTreeItem;
-
-                const peerItems: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersItemOne) as Array<PeerTreeItem>;
-
-                peerItems.length.should.equal(1);
-                peerItems[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peerItems[0].contextValue.should.equal('blockchain-peer-item');
-                peerItems[0].label.should.equal('peerOne');
-
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
-
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
-
-                const peersItemTwo: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
-
-                const peerItemsTwo: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersItemTwo) as Array<PeerTreeItem>;
-
-                peerItemsTwo.length.should.equal(2);
-                peerItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peerItemsTwo[0].contextValue.should.equal('blockchain-peer-item');
-                peerItemsTwo[0].label.should.equal('peerOne');
-
-                peerItemsTwo[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                peerItemsTwo[1].contextValue.should.equal('blockchain-peer-item');
-                peerItemsTwo[1].label.should.equal('peerTwo');
+                peerItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                peerItemOne.contextValue.should.equal('blockchain-peer-item');
+                peerItemOne.label.should.equal('peerOne');
             });
 
             it('should create the install chaincode correctly', async () => {
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const peersItemOne: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
+                const peerItem: PeerTreeItem = channelChildrenTwo[0] as PeerTreeItem;
 
-                const peerItems: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersItemOne) as Array<PeerTreeItem>;
-
-                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[0]) as Array<InstalledChainCodeTreeItem>;
+                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItem) as Array<InstalledChainCodeTreeItem>;
 
                 chaincodeItems.length.should.equal(2);
                 chaincodeItems[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -818,7 +778,9 @@ describe('BlockchainNetworkExplorer', () => {
                 chaincodeItems[1].contextValue.should.equal('blockchain-installed-chaincode-item');
                 chaincodeItems[1].label.should.equal('sample-food-network');
 
-                const chaincodeItemsTwo: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[1]) as Array<InstalledChainCodeTreeItem>;
+                const peerItemTwo: PeerTreeItem = channelChildrenTwo[1] as PeerTreeItem;
+
+                const chaincodeItemsTwo: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItemTwo) as Array<InstalledChainCodeTreeItem>;
 
                 chaincodeItemsTwo.length.should.equal(1);
                 chaincodeItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -832,22 +794,22 @@ describe('BlockchainNetworkExplorer', () => {
 
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const peersItemOne: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
+                const peerItemOne: PeerTreeItem = channelChildrenTwo[0] as PeerTreeItem;
 
-                const peerItems: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersItemOne) as Array<PeerTreeItem>;
+                peerItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
-                peerItems[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-
-                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[0]) as Array<InstalledChainCodeTreeItem>;
+                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItemOne) as Array<InstalledChainCodeTreeItem>;
 
                 chaincodeItems.length.should.equal(0);
 
-                const chaincodeItemsTwo: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[1]) as Array<InstalledChainCodeTreeItem>;
+                const peerItemTwo: PeerTreeItem = channelChildrenTwo[1] as PeerTreeItem;
+
+                const chaincodeItemsTwo: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItemTwo) as Array<InstalledChainCodeTreeItem>;
 
                 chaincodeItemsTwo.length.should.equal(1);
                 chaincodeItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -863,24 +825,24 @@ describe('BlockchainNetworkExplorer', () => {
 
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const peersItemOne: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
+                const peerItemOne: PeerTreeItem = channelChildrenTwo[0] as PeerTreeItem;
 
-                const peerItems: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersItemOne) as Array<PeerTreeItem>;
-
-                peerItems[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
                 errorSpy.should.have.been.calledWith('Error when getting installed smart contracts for peer peerOne some error');
 
-                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[0]) as Array<InstalledChainCodeTreeItem>;
+                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItemOne) as Array<InstalledChainCodeTreeItem>;
 
                 chaincodeItems.length.should.equal(0);
 
-                const chaincodeItemsTwo: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[1]) as Array<InstalledChainCodeTreeItem>;
+                const peerItemTwo: PeerTreeItem = channelChildrenTwo[1] as PeerTreeItem;
+
+                const chaincodeItemsTwo: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItemTwo) as Array<InstalledChainCodeTreeItem>;
 
                 chaincodeItemsTwo.length.should.equal(1);
                 chaincodeItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -889,16 +851,14 @@ describe('BlockchainNetworkExplorer', () => {
             });
 
             it('should create the installed versions correctly', async () => {
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const peersItemOne: PeersTreeItem = channelChildrenTwo[0] as PeersTreeItem;
+                const peerItemOne: PeerTreeItem = channelChildrenTwo[0] as PeerTreeItem;
 
-                const peerItems: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersItemOne) as Array<PeerTreeItem>;
-
-                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItems[0]) as Array<InstalledChainCodeTreeItem>;
+                const chaincodeItems: Array<InstalledChainCodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peerItemOne) as Array<InstalledChainCodeTreeItem>;
 
                 const versionsItemsOne: Array<InstalledChainCodeVersionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(chaincodeItems[0]) as Array<InstalledChainCodeVersionTreeItem>;
                 versionsItemsOne.length.should.equal(2);
@@ -916,58 +876,49 @@ describe('BlockchainNetworkExplorer', () => {
                 versionsItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 versionsItemsTwo[0].contextValue.should.equal('blockchain-installed-chaincode-version-item');
                 versionsItemsTwo[0].label.should.equal('0.6');
-
             });
 
             it('should create instantiated chaincode correctly', async () => {
 
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(2);
 
-                const instatiateChaincodesItemOne: InstantiatedChaincodeParentTreeItem = channelChildrenOne[1] as InstantiatedChaincodeParentTreeItem;
+                const instatiateChaincodeItemOne: InstantiatedChaincodeTreeItem = channelChildrenOne[1] as InstantiatedChaincodeTreeItem;
 
-                const instantiatedChainItemsOne: Array<InstantiatedChaincodeChildTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instatiateChaincodesItemOne) as Array<InstantiatedChaincodeChildTreeItem>;
+                instatiateChaincodeItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                instatiateChaincodeItemOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
+                instatiateChaincodeItemOne.label.should.equal('biscuit-network@0.7');
+                instatiateChaincodeItemOne.channel.should.equal(channelOne);
+                instatiateChaincodeItemOne.version.should.equal('0.7');
+                instatiateChaincodeItemOne.transactions.should.deep.equal(['tradeBiscuits']);
 
-                instantiatedChainItemsOne[0].should.deep.equal({channel: channelOne, collapsibleState: vscode.TreeItemCollapsibleState.Collapsed, contextValue: 'blockchain-instantiated-chaincode-item', label: 'biscuit-network@0.7', name: 'biscuit-network', provider: blockchainNetworkExplorerProvider, version: '0.7', transactions: ['tradeBiscuits']});
-
-                instantiatedChainItemsOne.length.should.equal(1);
-                instantiatedChainItemsOne[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                instantiatedChainItemsOne[0].contextValue.should.equal('blockchain-instantiated-chaincode-item');
-                instantiatedChainItemsOne[0].label.should.equal('biscuit-network@0.7');
-                instantiatedChainItemsOne[0].channel.should.equal(channelOne);
-                instantiatedChainItemsOne[0].version.should.equal('0.7');
-
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const instatiateChaincodesItemTwo: InstantiatedChaincodeParentTreeItem = channelChildrenTwo[1] as InstantiatedChaincodeParentTreeItem;
+                const instatiateChaincodeItemTwo: InstantiatedChaincodeTreeItem = channelChildrenTwo[2] as InstantiatedChaincodeTreeItem;
 
-                const instantiatedChainItemsTwo: Array<InstantiatedChaincodeChildTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instatiateChaincodesItemTwo) as Array<InstantiatedChaincodeChildTreeItem>;
-
-                instantiatedChainItemsTwo.length.should.equal(1);
-                instantiatedChainItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChainItemsTwo[0].contextValue.should.equal('blockchain-instantiated-chaincode-item');
-                instantiatedChainItemsTwo[0].label.should.equal('cake-network@0.10');
-                instantiatedChainItemsTwo[0].channel.should.equal(channelTwo);
-                instantiatedChainItemsTwo[0].version.should.equal('0.10');
+                instatiateChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                instatiateChaincodeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
+                instatiateChaincodeItemTwo.label.should.equal('cake-network@0.10');
+                instatiateChaincodeItemTwo.channel.should.equal(channelTwo);
+                instatiateChaincodeItemTwo.version.should.equal('0.10');
+                instatiateChaincodeItemTwo.transactions.should.deep.equal([]);
             });
 
             it('should create the transactions correctly', async () => {
 
-                const channelOne: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(2);
 
-                const instatiateChaincodesItemOne: InstantiatedChaincodeParentTreeItem = channelChildrenOne[1] as InstantiatedChaincodeParentTreeItem;
+                const instatiateChaincodeItemOne: InstantiatedChaincodeTreeItem = channelChildrenOne[1] as InstantiatedChaincodeTreeItem;
 
-                const instantiatedChainItemsOne: Array<InstantiatedChaincodeChildTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instatiateChaincodesItemOne) as Array<InstantiatedChaincodeChildTreeItem>;
-
-                const transactionsOne: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChainItemsOne[0]) as Array<TransactionTreeItem>;
+                const transactionsOne: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instatiateChaincodeItemOne) as Array<TransactionTreeItem>;
 
                 transactionsOne.length.should.equal(1);
                 transactionsOne[0].label.should.equal('tradeBiscuits');
@@ -975,15 +926,14 @@ describe('BlockchainNetworkExplorer', () => {
                 transactionsOne[0].channelName.should.equal('channelOne');
                 transactionsOne[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
-                const channelTwo: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
-                channelChildrenTwo.length.should.equal(2);
+                channelChildrenTwo.length.should.equal(3);
 
-                const instatiateChaincodesItemTwo: InstantiatedChaincodeParentTreeItem = channelChildrenTwo[1] as InstantiatedChaincodeParentTreeItem;
+                const instatiateChaincodeItemTwo: InstantiatedChaincodeTreeItem = channelChildrenTwo[2] as InstantiatedChaincodeTreeItem;
 
-                const instantiatedChainItemsTwo: Array<InstantiatedChaincodeChildTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instatiateChaincodesItemTwo) as Array<InstantiatedChaincodeChildTreeItem>;
-                instantiatedChainItemsTwo[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                instatiateChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
             });
         });
     });

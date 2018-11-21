@@ -24,8 +24,6 @@ import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { ConnectionIdentityTreeItem } from './model/ConnectionIdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { ConnectionTreeItem } from './model/ConnectionTreeItem';
-import { InstantiatedChaincodeParentTreeItem } from './model/InstantiatedChaincodeParentTreeItem';
-import { PeersTreeItem } from './model/PeersTreeItem';
 import { InstalledChainCodeTreeItem } from './model/InstalledChainCodeTreeItem';
 import { InstalledChainCodeVersionTreeItem } from './model/InstalledChaincodeVersionTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -38,7 +36,8 @@ import { ConnectionPropertyTreeItem } from './model/ConnectionPropertyTreeItem';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
-import { InstantiatedChaincodeChildTreeItem } from './model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
+import { ConnectedTreeItem } from './model/ConnectedTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -111,31 +110,24 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
                     const channelElement: ChannelTreeItem = element as ChannelTreeItem;
-                    this.tree.push(new PeersTreeItem(this, 'Peers', channelElement.peers));
+                    this.tree = await this.createPeerTree(element as ChannelTreeItem);
 
                     if (channelElement.chaincodes.length > 0) {
-                        this.tree.push(new InstantiatedChaincodeParentTreeItem(this, 'Instantiated Smart Contracts', element.chaincodes, channelElement));
+                        const instantiatedChaincodes: Array<InstantiatedChaincodeTreeItem> = await this.createInstantiatedChaincodeTree(element as ChannelTreeItem);
+                        this.tree.push(...instantiatedChaincodes);
                     }
-                }
-
-                if (element instanceof PeersTreeItem) {
-                    this.tree = await this.createPeerTree(element as PeersTreeItem);
                 }
 
                 if (element instanceof PeerTreeItem) {
                     this.tree = await this.createInstalledChaincodeTree(element as PeerTreeItem);
                 }
 
-                if (element instanceof InstantiatedChaincodeParentTreeItem) {
-                    this.tree = await this.createInstantiatedChaincodeTree(element as InstantiatedChaincodeParentTreeItem);
-                }
-
-                if (element instanceof InstantiatedChaincodeChildTreeItem) {
-                    this.tree = await this.createTransactionsChaincodeTree(element as InstantiatedChaincodeChildTreeItem);
-                }
-
                 if (element instanceof InstalledChainCodeTreeItem) {
                     this.tree = await this.createInstalledChaincodeVersionTree(element as InstalledChainCodeTreeItem);
+                }
+
+                if (element instanceof InstantiatedChaincodeTreeItem) {
+                    this.tree = await this.createTransactionsChaincodeTree(element as InstantiatedChaincodeTreeItem);
                 }
 
                 return this.tree;
@@ -174,7 +166,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             command = {
                 command: 'blockchainExplorer.editConnectionEntry',
                 title: '',
-                arguments: [{label: label, connection: element.connection}]
+                arguments: [{ label: label, connection: element.connection }]
             };
             tree.push(new ConnectionPropertyTreeItem(this, label, element.connection, vscode.TreeItemCollapsibleState.None, command));
         }
@@ -282,25 +274,24 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async createInstantiatedChaincodeTree(instantiatedChainCodesElement: InstantiatedChaincodeParentTreeItem): Promise<Array<InstantiatedChaincodeChildTreeItem>> {
-        console.log('createInstantiatedChaincodeTree', instantiatedChainCodesElement);
-        const tree: Array<InstantiatedChaincodeChildTreeItem> = [];
-        const channel: ChannelTreeItem = instantiatedChainCodesElement.channel;
+    private async createInstantiatedChaincodeTree(channelTreeElement: ChannelTreeItem): Promise<Array<InstantiatedChaincodeTreeItem>> {
+        console.log('createInstantiatedChaincodeTree', channelTreeElement);
+        const tree: Array<InstantiatedChaincodeTreeItem> = [];
 
-        for (const instantiatedChaincode of instantiatedChainCodesElement.chaincodes) {
-            const metaDataObject: any = await FabricConnectionManager.instance().getConnection().getMetadata(instantiatedChaincode.name, channel.label);
+        for (const instantiatedChaincode of channelTreeElement.chaincodes) {
+            const metaDataObject: any = await FabricConnectionManager.instance().getConnection().getMetadata(instantiatedChaincode.name, channelTreeElement.label);
             const transactions: Array<string> = metaDataObject[''].functions;
             let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
             if (transactions.length === 0) {
                 collapsedState = vscode.TreeItemCollapsibleState.None;
             }
-            tree.push(new InstantiatedChaincodeChildTreeItem(this, instantiatedChaincode.name, channel, instantiatedChaincode.version, collapsedState, transactions));
+            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, transactions));
         }
 
         return tree;
     }
 
-    private async createTransactionsChaincodeTree(chainCodeElement: InstantiatedChaincodeChildTreeItem): Promise<Array<TransactionTreeItem>> {
+    private async createTransactionsChaincodeTree(chainCodeElement: InstantiatedChaincodeTreeItem): Promise<Array<TransactionTreeItem>> {
         const tree: Array<TransactionTreeItem> = [];
         console.log('createTransactionsChaincodeTree', chainCodeElement);
         chainCodeElement.transactions.forEach((transaction: string) => {
@@ -310,11 +301,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async createPeerTree(peersElement: PeersTreeItem): Promise<Array<PeerTreeItem>> {
-        console.log('createPeerTree', peersElement);
+    private async createPeerTree(channelElement: ChannelTreeItem): Promise<Array<PeerTreeItem>> {
+        console.log('createPeerTree', channelElement);
         const tree: Array<PeerTreeItem> = [];
 
-        for (const peer of peersElement.peers) {
+        for (const peer of channelElement.peers) {
             try {
                 const chaincodes: Map<string, Array<string>> = await FabricConnectionManager.instance().getConnection().getInstalledChaincode(peer);
                 const collapsibleState: vscode.TreeItemCollapsibleState = chaincodes.size > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
@@ -328,10 +319,13 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async createConnectedTree(): Promise<Array<ChannelTreeItem>> {
+    private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
         try {
             console.log('createConnectedTree');
-            const tree: Array<ChannelTreeItem> = [];
+            const tree: Array<BlockchainTreeItem> = [];
+
+            const connectionRegistryEntry: FabricConnectionRegistryEntry = FabricConnectionManager.instance().getConnectionRegistryEntry();
+            tree.push(new ConnectedTreeItem(this, connectionRegistryEntry.name));
 
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
             const channels: Array<string> = Array.from(channelMap.keys());

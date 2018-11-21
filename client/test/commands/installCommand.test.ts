@@ -30,9 +30,9 @@ import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
 import * as path from 'path';
-import { PeersTreeItem } from '../../src/explorer/model/PeersTreeItem';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -95,6 +95,12 @@ describe('InstallCommand', () => {
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne']);
 
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
+
+            const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            registryEntry.name = 'myConnection';
+            registryEntry.connectionProfilePath = 'myPath';
+            registryEntry.managedRuntime = false;
+            mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
 
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
@@ -169,10 +175,8 @@ describe('InstallCommand', () => {
         });
 
         it('should install smart contract through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
-            const peers: Array<PeersTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<PeersTreeItem>;
-            const peersTreeItem: PeersTreeItem = peers[0] as PeersTreeItem;
-            const peer: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(peersTreeItem) as Array<PeerTreeItem>;
+            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+            const peer: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<PeerTreeItem>;
             const peerTreeItem: PeerTreeItem = peer[0] as PeerTreeItem;
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', peerTreeItem);
