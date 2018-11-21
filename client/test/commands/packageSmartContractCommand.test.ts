@@ -39,7 +39,7 @@ describe('packageSmartContract', () => {
     const javaPath: string = path.join(testWorkspace, 'javaProject');
     const emptyContent: string = '{}';
 
-    const folders: Array<any> = [];
+    let folders: Array<any> = [];
 
     async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean): Promise<void> {
         let projectDir: string;
@@ -47,6 +47,12 @@ describe('packageSmartContract', () => {
             projectDir = path.join(testWorkspace, 'src', packageName);
         } else {
             projectDir = path.join(testWorkspace, packageName);
+        }
+
+        try {
+            await fs.remove(projectDir);
+        } catch (error) {
+            console.log(error);
         }
 
         try {
@@ -135,12 +141,12 @@ describe('packageSmartContract', () => {
         await TestUtil.deleteTestFiles(fileDest);
         await TestUtil.deleteTestFiles(testWorkspace);
 
-        folders.push(...[
+        folders = [
             {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)},
             {name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath)},
             {name: 'goProject', uri: vscode.Uri.file(golangPath)},
             {name: 'javaProject', uri: vscode.Uri.file(javaPath)}
-        ]);
+        ];
 
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
         showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
