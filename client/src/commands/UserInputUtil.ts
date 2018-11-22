@@ -613,7 +613,9 @@ export class UserInputUtil {
         for (const workspace of workspaceFolderOptions) {
 
             const packageInfo: { name: string, version: string } = await ExtensionUtil.getContractNameAndVersion(workspace);
-
+            if (!packageInfo) {
+                continue;
+            }
             const _package: PackageRegistryEntry = new PackageRegistryEntry({name: packageInfo.name, version: packageInfo.version, path: undefined });
 
             const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = {packageEntry: _package, workspace: workspace};

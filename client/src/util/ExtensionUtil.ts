@@ -42,8 +42,12 @@ export class ExtensionUtil {
     }
 
     public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
-        const packageJson: any = await this.loadJSON(folder, 'package.json');
-        return { name: packageJson.name, version: packageJson.version };
+        try {
+            const packageJson: any = await this.loadJSON(folder, 'package.json');
+            return { name: packageJson.name, version: packageJson.version };
+        } catch (error) {
+            return;
+        }
     }
 
     public static async loadJSON(folder: vscode.WorkspaceFolder, file: string): Promise<any> {

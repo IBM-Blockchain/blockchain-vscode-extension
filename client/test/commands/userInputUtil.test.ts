@@ -412,7 +412,8 @@ describe('userInputUtil', () => {
 
             const getContractNameAndVersion: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getContractNameAndVersion');
             getContractNameAndVersion.onCall(0).returns({name: 'project_1', version: '0.0.1'});
-            getContractNameAndVersion.onCall(1).returns({name: 'biscuit-network', version: '0.0.3'});
+            getContractNameAndVersion.onCall(1).returns(undefined);
+            getContractNameAndVersion.onCall(2).returns({name: 'biscuit-network', version: '0.0.3'});
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo]);
 
