@@ -169,38 +169,38 @@ async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
  * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory.
  */
 async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<ChaincodeType> {
-    let language: ChaincodeType;
 
-    // Do the workspace search once, and then filter the responses.
-    const interestingFiles: vscode.Uri[] = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(workspaceDir, '**/*.{js,ts,go,java,kt}'),
-        '**/node_modules/**',
-        1
-    );
-    const jsFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.js$/));
-    const tsFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.ts$/));
-    const goFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.go$/));
-    const javaFiles: vscode.Uri[] = interestingFiles.filter((uri: vscode.Uri) => uri.fsPath.match(/\.(java|kt)$/));
-
-    if (jsFiles.length > 0 && tsFiles.length > 0) {
-        language = 'node';
-    } else if (tsFiles.length > 0 && jsFiles.length === 0) {
-        const message: string = 'Please ensure you have compiled your TypeScript files into JavaScript.';
-        vscode.window.showErrorMessage(message);
-        throw new Error(message);
-    } else if (goFiles.length > 0) {
-        language = 'golang';
-    } else if (jsFiles.length > 0) {
-        language = 'node';
-    } else if (javaFiles.length > 0) {
-        language = 'java';
-    } else {
-        const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java';
-        vscode.window.showErrorMessage(message);
-        throw new Error(message);
+    // Is this a Node.js smart contract (JavaScript, TypeScript, etc)?
+    const packageJsonFile: string = path.join(workspaceDir.uri.fsPath, 'package.json');
+    const packageJsonFileExists: boolean = await fs.pathExists(packageJsonFile);
+    if (packageJsonFileExists) {
+        return 'node';
     }
 
-    return language;
+    // Is this a Java smart contract (Java, Kotlin, etc)?
+    const gradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
+    const gradleFileExists: boolean = await fs.pathExists(gradleFile);
+    const mavenFile: string = path.join(workspaceDir.uri.fsPath, 'pom.xml');
+    const mavenFileExists: boolean = await fs.pathExists(mavenFile);
+    if (gradleFileExists || mavenFileExists) {
+        return 'java';
+    }
+
+    // Is this a Go smart contract?
+    const goFiles: vscode.Uri[] = await vscode.workspace.findFiles(
+        new vscode.RelativePattern(workspaceDir, '**/*.go'),
+        null,
+        1
+    );
+    if (goFiles.length > 0) {
+        return 'golang';
+    }
+
+    // No idea what this is!
+    const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java';
+    vscode.window.showErrorMessage(message);
+    throw new Error(message);
+
 }
 
 /**
