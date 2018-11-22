@@ -198,7 +198,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes('require').should.be.true;
-            sendCommandStub.should.have.been.calledThrice;
+            sendCommandStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
@@ -228,7 +228,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(': string').should.be.true;
-            sendCommandStub.callCount.should.equal(4);
+            sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
@@ -427,37 +427,12 @@ describe('testSmartContractCommand', () => {
             fsRemoveStub.should.have.been.called;
         });
 
-        it('should show an error if the npm install fails', async () => {
-            sendCommandStub.onCall(0).rejects({ message: 'horrible error' });
+        it('should show an error if npm packages fail to install', async () => {
+            sendCommandStub.rejects({ message: 'a disaster!' });
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: horrible error');
+            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: a disaster!');
             sendCommandStub.should.have.been.calledOnce;
-        });
-
-        it('should show an error if installing generator-network fails', async () => {
-            sendCommandStub.onCall(1).rejects({ message: 'other horrible error' });
-
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: other horrible error');
-            sendCommandStub.should.have.been.calledTwice;
-        });
-
-        it('should show an error if installing generator-client fails', async () => {
-            sendCommandStub.onCall(2).rejects({ message: 'other terrible error' });
-
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: other terrible error');
-            sendCommandStub.should.have.been.calledThrice;
-        });
-
-        it('should show an error if installing mocha types fails', async () => {
-            showLanguageQuickPickStub.resolves('TypeScript');
-            sendCommandStub.onCall(3).rejects({message: 'it all went wrong'});
-
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            errorSpy.should.have.been.calledOnceWith('Error installing node modules in smart contract project: it all went wrong');
-            sendCommandStub.callCount.should.equal(4);
         });
 
         it('should correctly detect existing test runner user settings for typescript tests', async () => {
@@ -605,7 +580,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('connection.json').should.be.true;
             templateData.includes('certificate').should.be.true;
             templateData.includes('privateKey').should.be.true;
-            sendCommandStub.should.have.been.calledThrice;
+            sendCommandStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
