@@ -275,22 +275,14 @@ async function removeTestFile(fileToRemove: string): Promise<void> {
 
 async function installNodeModules(dir: string, language: string): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-
-    outputAdapter.log('Running npm install:');
-    const npmInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install', dir, 'Running npm install in smart contract project');
-    outputAdapter.log(npmInstallOut);
-
-    outputAdapter.log('Installing fabric-network@beta:');
-    const fabricNetworkInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-network@beta', dir, 'Installing fabric-network@beta in smart contract project');
-    outputAdapter.log(fabricNetworkInstallOut);
-
-    outputAdapter.log('Installing fabric-client@beta:');
-    const fabricClientOut: string = await CommandUtil.sendCommandWithProgress('npm install fabric-client@beta', dir, 'Installing fabric-client@beta in smart contract project');
-    outputAdapter.log(fabricClientOut);
+    let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log('Installing @types/mocha');
-        const typesMochaInstallOut: string = await CommandUtil.sendCommandWithProgress('npm install @types/mocha', dir, 'Installing mocha types in smart contract project');
-        outputAdapter.log(typesMochaInstallOut);
+        outputAdapter.log('Installing package dependencies including: fabric-network@beta, fabric-client@beta, @types/mocha');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install fabric-network@beta fabric-client@beta @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
+    } else {
+        outputAdapter.log('Installing package dependencies including: fabric-network@beta, fabric-client@beta');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install fabric-network@beta fabric-client@beta', dir, 'Installing npm and package dependencies in smart contract project');
     }
+    outputAdapter.log(npmInstallOut);
 }
