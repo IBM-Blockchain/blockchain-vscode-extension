@@ -18,9 +18,12 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as fs from 'fs-extra';
-chai.should();
-chai.use(sinonChai);
 
+import * as chaiAsPromised from 'chai-as-promised';
+
+const should: Chai.Should = chai.should();
+chai.use(sinonChai);
+chai.use(chaiAsPromised);
 // tslint:disable no-unused-expression
 describe('ExtensionUtil Tests', () => {
 
@@ -101,7 +104,7 @@ describe('ExtensionUtil Tests', () => {
 
             const loadJsonStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
 
-            await ExtensionUtil.getContractNameAndVersion(workspaceFolder).should.be.rejectedWith('error reading package.json from project Cannot read file');
+            ExtensionUtil.getContractNameAndVersion(workspaceFolder).should.eventually.equal({});
 
         });
     });

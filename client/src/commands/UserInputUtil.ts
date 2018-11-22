@@ -227,14 +227,7 @@ export class UserInputUtil {
         tempQuickPickItems.push(...packagedContracts);
 
         // Get all open projects in workspace
-        let openProjects: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = await this.getOpenProjects();
-        openProjects = openProjects.filter((_package: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
-
-            const existingPackage: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = tempQuickPickItems.find((item: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
-                return item.label === _package.label;
-            });
-            return ((!existingPackage) ? true : false);
-        });
+        const openProjects: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = await this.getOpenProjects();
 
         tempQuickPickItems.push(...openProjects);
 
@@ -256,23 +249,31 @@ export class UserInputUtil {
         const quickPickItems: Array<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>> = [];
 
         for (const tempItem of tempQuickPickItems) {
-            const itemName: string = tempItem.data.packageEntry.name;
-            const itemVersion: string = tempItem.data.packageEntry.version;
             const workspace: vscode.WorkspaceFolder = tempItem.data.workspace;
 
-            // If the user is performing an upgrade, we want to show all smart contracts with the same name (but not the currently instantiated version)
-            if (contractName && contractVersion) {
-                if (itemName === contractName && itemVersion !== contractVersion) {
-                    const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: tempItem.data.packageEntry, workspace: workspace};
-                    quickPickItems.push({label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data});
-                }
+            // If the tempItem is an Open Project
+            if (!tempItem.data.packageEntry) {
+                const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: undefined, workspace: workspace};
+                quickPickItems.push({label: `${tempItem.data.workspace.name}`, description: tempItem.description, data: data});
+
             } else {
-                // Show all smart contracts which haven't had a previous version instantiated
-                if (allSmartContracts.findIndex((contract: any) => {
-                    return itemName === contract.name;
-                }) === -1) {
-                    const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: tempItem.data.packageEntry, workspace: workspace};
-                    quickPickItems.push({label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data});
+                const itemName: string = tempItem.data.packageEntry.name;
+                const itemVersion: string = tempItem.data.packageEntry.version;
+
+                // If the user is performing an upgrade, we want to show all smart contracts with the same name (but not the currently instantiated version)
+                if (contractName && contractVersion) {
+                    if (itemName === contractName && itemVersion !== contractVersion) {
+                        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: tempItem.data.packageEntry, workspace: workspace};
+                        quickPickItems.push({label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data});
+                    }
+                } else {
+                    // Show all smart contracts which haven't had a previous version instantiated
+                    if (allSmartContracts.findIndex((contract: any) => {
+                        return itemName === contract.name;
+                    }) === -1) {
+                        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: tempItem.data.packageEntry, workspace: workspace};
+                        quickPickItems.push({label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data});
+                    }
                 }
             }
         }
@@ -612,12 +613,9 @@ export class UserInputUtil {
         const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         for (const workspace of workspaceFolderOptions) {
 
-            const packageInfo: { name: string, version: string } = await ExtensionUtil.getContractNameAndVersion(workspace);
+            const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = {packageEntry: undefined, workspace: workspace};
 
-            const _package: PackageRegistryEntry = new PackageRegistryEntry({name: packageInfo.name, version: packageInfo.version, path: undefined });
-
-            const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = {packageEntry: _package, workspace: workspace};
-            const label: string = `${packageInfo.name}@${packageInfo.version}`;
+            const label: string = `${workspace.name}`;
             tempQuickPickItems.push({label: label, description: 'Open Project', data: data});
 
         }

@@ -311,20 +311,14 @@ describe('FabricConnection', () => {
             outputSpy.should.have.been.calledWith("Instantiating with function: 'instantiate' and arguments: 'arg1'");
         });
 
-        it('should upgrade if already instantiated', async () => {
+        it('should throw an error instantiating if contract is already instantiated', async () => {
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
             getChanincodesStub.withArgs('myChannel').resolves([{ name: 'myChaincode' }]);
-            const responsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
-            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.2',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
-            });
-            responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
+            await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The name of the contract you tried to instantiate is already instantiated');
+            fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
+
+            outputSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
         });
 
         it('should instantiate a chaincode and can return empty payload response', async () => {
@@ -403,6 +397,68 @@ describe('FabricConnection', () => {
         it('should disconnect from gateway', async () => {
             await fabricConnection.disconnect();
             fabricGatewayStub.disconnect.should.have.been.called;
+        });
+    });
+
+    describe('upgradeChaincode', () => {
+
+        let getChanincodesStub: sinon.SinonStub;
+        beforeEach(() => {
+            getChanincodesStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
+            getChanincodesStub.resolves([]);
+        });
+
+        it('should upgrade a chaincode', async () => {
+            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
+            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
+            const responsePayload: any = await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
+            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.1',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            });
+            responsePayload.toString().should.equal('payload response buffer');
+            outputSpy.should.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
+        });
+
+        it('should throw an error instantiating if no contract with the same name has been instantiated', async () => {
+            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
+
+            await fabricConnection.upgradeChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The contract you tried to upgrade with has no previous versions instantiated');
+            fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
+
+            outputSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
+        });
+
+        it('should instantiate a chaincode and can return empty payload response', async () => {
+            fabricTransactionStub._validatePeerResponses.returns(null);
+            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
+
+            const nullResponsePayload: any = await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']);
+            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.1',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            });
+            should.not.exist(nullResponsePayload);
+        });
+
+        it('should throw an error if cant create event handler', async () => {
+            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
+            fabricTransactionStub._createTxEventHandler.returns();
+            await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
+        });
+
+        it('should throw an error if submitting the transaction failed', async () => {
+            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
+            fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
+            await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
         });
     });
 });

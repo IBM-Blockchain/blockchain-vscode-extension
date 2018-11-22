@@ -131,6 +131,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
             return packageEntry;
         } catch (err) {
             vscode.window.showErrorMessage(err.message);
+            throw err;
         }
     });
 }

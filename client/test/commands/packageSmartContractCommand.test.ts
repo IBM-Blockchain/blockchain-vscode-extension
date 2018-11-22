@@ -457,7 +457,7 @@ describe('packageSmartContract', () => {
 
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await fs.writeFile(path.join(javascriptPath, '/package.json'), emptyContent);
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Please enter a package name and/or package version into your package.json');
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
@@ -480,7 +480,7 @@ describe('packageSmartContract', () => {
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/chaincode.js'));
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java');
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
@@ -502,7 +502,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
 
             errorSpy.should.have.been.calledWith('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
         });
@@ -526,7 +526,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Package with name and version already exists. Please input a different name or version for your Go project.');
 
             errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Go project.');
         });
@@ -548,7 +548,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Package with name and version already exists. Please input a different name or version for your Java project.');
 
             errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Java project.');
         });
@@ -571,7 +571,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             delete process.env.GOPATH;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
 
             errorSpy.should.have.been.calledWith('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
         });
@@ -594,7 +594,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = golangPath;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
         });
@@ -617,7 +617,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = javascriptPath;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
         });
@@ -640,7 +640,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = path.resolve('/');
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
         });
@@ -694,7 +694,7 @@ describe('packageSmartContract', () => {
 
             workspaceFoldersStub.returns([]);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
 
             errorSpy.should.have.been.calledWith('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
         }).timeout(4000);
