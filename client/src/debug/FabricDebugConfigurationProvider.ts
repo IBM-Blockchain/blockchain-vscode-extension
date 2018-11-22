@@ -23,6 +23,8 @@ import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 
 export class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -141,8 +143,9 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
 
     private async getPeersToInstallOn(): Promise<Array<string>> {
         const runtimeConnection: IFabricConnection = FabricConnectionFactory.createFabricRuntimeConnection(this.runtime);
+        const connectionRegistyrEntry: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get(this.runtime.getName());
         await runtimeConnection.connect();
-        FabricConnectionManager.instance().connect(runtimeConnection);
+        FabricConnectionManager.instance().connect(runtimeConnection, connectionRegistyrEntry);
         return await runtimeConnection.getAllPeerNames();
     }
 

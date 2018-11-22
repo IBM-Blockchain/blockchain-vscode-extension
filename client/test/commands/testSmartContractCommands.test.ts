@@ -32,6 +32,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedChaincodeChildTreeItem } from '../../src/explorer/model/InstantiatedChaincodeChildTreeItem';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -73,6 +74,8 @@ describe('testSmartContractCommand', () => {
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
     let showLanguageQuickPickStub: sinon.SinonStub;
+    let registryEntry: FabricConnectionRegistryEntry;
+    let getRegistryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -109,6 +112,12 @@ describe('testSmartContractCommand', () => {
             fabricClientConnectionMock.getConnectionDetails.resolves(fakeConnectionDetails);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+
+            registryEntry = new FabricConnectionRegistryEntry();
+            registryEntry.name = 'myConnection';
+            registryEntry.connectionProfilePath = 'myPath';
+            registryEntry.managedRuntime = false;
+            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionRegistryEntry').returns(registryEntry);
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([
@@ -482,6 +491,13 @@ describe('testSmartContractCommand', () => {
                     channel: 'myChannelTunnel'
                 }
             ]);
+
+            registryEntry = new FabricConnectionRegistryEntry();
+            registryEntry.name = 'myConnection';
+            registryEntry.connectionProfilePath = 'myPath';
+            registryEntry.managedRuntime = true;
+            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionRegistryEntry').returns(registryEntry);
+
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
             // Explorer provider stuff

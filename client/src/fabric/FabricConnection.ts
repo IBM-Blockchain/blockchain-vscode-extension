@@ -212,7 +212,16 @@ export abstract class FabricConnection implements IFabricConnection {
         const smartContract: Contract = network.getContract(instantiatedChaincodeName);
 
         const metadataBuffer: Buffer = await smartContract.evaluateTransaction('org.hyperledger.fabric:getMetaData');
-        const metadataObject: any = JSON.parse(metadataBuffer.toString());
+        const metadataString: string = metadataBuffer.toString();
+        let metadataObject: any = {
+            '': {
+                functions: []
+            }
+        };
+
+        if (metadataString !== '') {
+            metadataObject = JSON.parse(metadataBuffer.toString());
+        }
 
         console.log('Metadata object is:', metadataObject);
         return metadataObject;

@@ -26,6 +26,8 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -46,6 +48,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
         let readFileStub: sinon.SinonStub;
+        let registryEntry: FabricConnectionRegistryEntry;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -59,7 +62,13 @@ describe('FabricDebugConfigurationProvider', () => {
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
 
+            registryEntry = new FabricConnectionRegistryEntry();
+            registryEntry.name = 'local_fabric';
+            registryEntry.connectionProfilePath = 'myPath';
+            registryEntry.managedRuntime = true;
+
             mySandbox.stub(FabricRuntimeManager.instance(), 'get').returns(runtimeStub);
+            mySandbox.stub(FabricConnectionRegistry.instance(), 'get').returns(registryEntry);
 
             workspaceFolder = {
                 name: 'myFolder',

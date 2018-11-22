@@ -17,6 +17,7 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 
 const should: Chai.Should = chai.should();
 
@@ -37,11 +38,17 @@ describe('FabricConnectionManager', () => {
     const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
     let mockFabricConnection: sinon.SinonStubbedInstance<TestFabricConnection>;
     let sandbox: sinon.SinonSandbox;
+    let registryEntry: FabricConnectionRegistryEntry;
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         mockFabricConnection = sinon.createStubInstance(TestFabricConnection);
         connectionManager['connection'] = null;
+
+        registryEntry = new FabricConnectionRegistryEntry();
+        registryEntry.name = 'myConnection';
+        registryEntry.connectionProfilePath = 'myPath';
+        registryEntry.managedRuntime = false;
     });
 
     afterEach(async () => {
@@ -58,13 +65,21 @@ describe('FabricConnectionManager', () => {
 
     });
 
+    describe('#getConnectionRegistryEntry', () => {
+        it('should get the registry entry', () => {
+        connectionManager['connectionRegistryEntry'] = registryEntry;
+        connectionManager.getConnectionRegistryEntry().should.equal(registryEntry);
+        });
+    });
+
     describe('#connect', () => {
 
         it('should store the connection and emit an event', () => {
             const listenerStub: sinon.SinonStub = sinon.stub();
             connectionManager.once('connected', listenerStub);
-            connectionManager.connect((mockFabricConnection as any) as FabricConnection);
+            connectionManager.connect((mockFabricConnection as any) as FabricConnection, registryEntry);
             connectionManager.getConnection().should.equal(mockFabricConnection);
+            connectionManager.getConnectionRegistryEntry().should.equal(registryEntry);
             listenerStub.should.have.been.calledOnceWithExactly(mockFabricConnection);
         });
 

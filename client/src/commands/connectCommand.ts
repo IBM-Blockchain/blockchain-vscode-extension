@@ -86,7 +86,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
 
     try {
         await connection.connect();
-        FabricConnectionManager.instance().connect(connection);
+        FabricConnectionManager.instance().connect(connection, connectionRegistryEntry);
 
         if (!runtimeData) {
             const isIBP: boolean = connection.isIBPConnection();
