@@ -50,6 +50,7 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
         contractVersion = initialSmartContract.data.version;
     } else {
         contractName = instantiatedChainCodeTreeItem.name;
+        contractVersion = instantiatedChainCodeTreeItem.version;
         channelName = instantiatedChainCodeTreeItem.channel.label;
         peers = new Set(instantiatedChainCodeTreeItem.channel.peers);
     }
