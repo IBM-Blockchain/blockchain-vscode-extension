@@ -229,6 +229,15 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeChildTr
         return;
     }
 
+    // If TypeScript, update JavaScript Test Runner user settings
+    if (testLanguage === 'TypeScript') {
+        const runnerArgs: string = vscode.workspace.getConfiguration().get('javascript-test-runner.additionalArgs') as string;
+        if (!runnerArgs || !runnerArgs.includes('-r ts-node/register')) {
+            // If the user has removed JavaScript Test Runner since generating tests, this update will silently fail
+            await vscode.workspace.getConfiguration().update('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global);
+        }
+    }
+
     Reporter.instance().sendTelemetryEvent('testSmartContractCommand');
 
 }
