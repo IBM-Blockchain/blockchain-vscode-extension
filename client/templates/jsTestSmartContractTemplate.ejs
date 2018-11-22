@@ -44,7 +44,8 @@ describe('<%=chaincodeLabel%>' , () => {
         const certificate = await fs.readFile(certificatePath, 'utf8');
         const privateKey = await fs.readFile(privateKeyPath, 'utf8');
 
-        const mspid = connectionProfile.organizations.Org1.mspid;
+        const clientOrganization = connectionProfile.client.organization;
+        const mspid = connectionProfile.organizations[clientOrganization].mspid;
         await wallet.import(identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
     });
