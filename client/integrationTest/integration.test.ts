@@ -173,26 +173,22 @@ describe('Integration Test', () => {
         let workspaceFiles: vscode.Uri[];
         if (testContractType === 'JavaScript') {
             workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(testContractDir) };
-            workspaceFiles = [vscode.Uri.file('chaincode.js')];
         } else if (testContractType === 'TypeScript') {
             workspaceFolder = { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(testContractDir) };
-            workspaceFiles = [vscode.Uri.file('chaincode.js'), vscode.Uri.file('chaincode.ts')];
         } else if (testContractType === 'Java') {
             inputBoxStub.withArgs('Enter a name for your Java package').resolves(testContractName);
             inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
             workspaceFolder = { index: 0, name: 'javaProject', uri: vscode.Uri.file(testContractDir) };
-            workspaceFiles = [vscode.Uri.file('chaincode.java')];
         } else if (testContractType === 'Go') {
             inputBoxStub.withArgs('Enter a name for your Go package').resolves(testContractName);
             inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
             workspaceFolder = { index: 0, name: 'goProject', uri: vscode.Uri.file(testContractDir) };
             workspaceFiles = [vscode.Uri.file('chaincode.go')];
+            findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.go'), null, 1).resolves(workspaceFiles);
         } else {
             throw new Error(`I do not know how to handle language ${testContractType}`);
         }
         getWorkspaceFoldersStub.returns([workspaceFolder]);
-
-        findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves(workspaceFiles);
 
         await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
     }
