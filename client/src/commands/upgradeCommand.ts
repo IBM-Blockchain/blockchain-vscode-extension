@@ -105,10 +105,10 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
             const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
             if (packageEntry) {
                 // If the package has been installed as part of this command
-                await fabricClientConnection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
+                await fabricClientConnection.upgradeChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
             } else {
                 // If the package was already installed
-                await fabricClientConnection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
+                await fabricClientConnection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
             }
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');

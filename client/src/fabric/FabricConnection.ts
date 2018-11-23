@@ -142,9 +142,7 @@ export abstract class FabricConnection implements IFabricConnection {
 
         const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
 
-        const foundChaincode: any = instantiatedChaincode.find((chaincode: any) => {
-            return chaincode.name === name;
-        });
+        const foundChaincode: any = this.getChaincode(name, instantiatedChaincode);
 
         let proposalResponseObject: Client.ProposalResponseObject;
 
@@ -152,9 +150,7 @@ export abstract class FabricConnection implements IFabricConnection {
         let message: string;
 
         if (foundChaincode) {
-            message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
-            outputAdapter.log(message);
-            proposalResponseObject = await channel.sendUpgradeProposal(instantiateRequest);
+            throw new Error('The name of the contract you tried to instantiate is already instantiated');
         } else {
             message = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
             outputAdapter.log(message);
@@ -235,6 +231,80 @@ export abstract class FabricConnection implements IFabricConnection {
 
     }
 
+    public async upgradeChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {
+
+        const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
+        const upgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
+            chaincodeId: name,
+            chaincodeVersion: version,
+            txId: transactionId,
+            fcn: fcn,
+            args: args
+        };
+
+        const network: Network = await this.gateway.getNetwork(channelName);
+        const channel: Client.Channel = network.getChannel();
+
+        const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
+
+        const foundChaincode: any = this.getChaincode(name, instantiatedChaincode);
+
+        let proposalResponseObject: Client.ProposalResponseObject;
+
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        let message: string;
+
+        if (foundChaincode) {
+            message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
+            outputAdapter.log(message);
+            proposalResponseObject = await channel.sendUpgradeProposal(upgradeRequest);
+        } else {
+            //
+            throw new Error('The contract you tried to upgrade with has no previous versions instantiated');
+        }
+
+        const contract: Contract = network.getContract(name);
+        const transaction: any = (contract as any).createTransaction('dummy');
+
+        const responses: any = transaction['_validatePeerResponses'](proposalResponseObject[0]);
+
+        const txId: any = transactionId.getTransactionID();
+        const eventHandlerOptions: any = (contract as any).getEventHandlerOptions();
+        const eventHandler: any = transaction['_createTxEventHandler'](txId, network, eventHandlerOptions);
+
+        if (!eventHandler) {
+            throw new Error('Failed to create an event handler');
+        }
+
+        await eventHandler.startListening();
+
+        const transactionRequest: Client.TransactionRequest = {
+            proposalResponses: proposalResponseObject[0],
+            proposal: proposalResponseObject[1],
+            txId: transactionId
+        };
+
+        // Submit the endorsed transaction to the primary orderers.
+        const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
+
+        if (response.status !== 'SUCCESS') {
+            const msg: string = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
+            eventHandler.cancelListening();
+            throw new Error(msg);
+        }
+
+        await eventHandler.waitForEvents();
+        // return the payload from the invoked chaincode
+        let result: any = null;
+        if (responses && responses.validResponses[0].response.payload.length > 0) {
+            result = responses.validResponses[0].response.payload;
+        }
+
+        eventHandler.cancelListening();
+
+        return result;
+    }
+
     protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
 
         const client: Client = await Client.loadFromConfig(connectionProfile);
@@ -266,4 +336,15 @@ export abstract class FabricConnection implements IFabricConnection {
         return this.gateway.getClient().getPeersForOrg(null);
     }
 
+    /**
+     * Get a chaincode from a list of list of chaincode
+     * @param name {String} The name of the chaincode to find
+     * @param chaincodeArray {Array<any>} An array of chaincode to search
+     * @returns {any} Returns a chaincode from the given array where the name matches the users input
+     */
+    private getChaincode(name: string, chaincodeArray: Array<any>): any {
+        return chaincodeArray.find((chaincode: any) => {
+            return chaincode.name === name;
+        });
+    }
 }

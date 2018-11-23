@@ -256,6 +256,35 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
     }
 
+    async function upgradeSmartContract(name: string, version: string): Promise<void> {
+        showChannelStub.resolves('mychannel');
+
+        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
+
+        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
+            return packageEntry.name === name && packageEntry.version === version;
+        });
+
+        showChanincodeAndVersionStub.resolves({
+            label: `${name}@${version}`,
+            description: 'Installed',
+            data: {
+                packageEntry: wantedPackage,
+                workspaceFolder: undefined,
+            }
+        });
+
+        // Upgrade from instantiated contract at version 0.0.1
+        showInstantiatedSmartContractsStub.resolves({
+            label: `${name}@0.0.1`,
+            data: { name: name, channel: 'mychannel', version: '0.0.1' }
+        });
+
+        inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
+        inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
+        await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+    }
+
     async function submitTransaction(name: string, version: string, transaction: string, args: string): Promise<void> {
         showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
@@ -728,7 +757,7 @@ describe('Integration Test', () => {
 
             await installSmartContract(smartContractName, '0.0.2');
 
-            await instantiateSmartContract(smartContractName, '0.0.2');
+            await upgradeSmartContract(smartContractName, '0.0.2');
 
             let allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 

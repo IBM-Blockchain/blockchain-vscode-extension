@@ -138,8 +138,7 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{name: 'biscuit-network', channel: 'channelOne', version: '0.0.1'}, {name: 'cake-network', channel: 'channelOne', version: '0.0.3'}]);
 
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
-        // chaincodeMap.set('car-network', ['0.0.1', '0.0.2']);
-        // chaincodeMap.set('fish-network', ['0.0.3']);
+
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
@@ -397,11 +396,13 @@ describe('userInputUtil', () => {
                 version: '0.0.3',
                 path: 'biscuit-network@0.0.3.cds'
             });
-
+            const packagedThree: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'jaffa-network',
+                version: '0.0.1',
+                path: 'jaffa-network@0.0.1.cds'
+            });
             const pathOne: string = path.join('some', 'path');
-            const packagePathOne: string = path.join(pathOne, 'package.json');
             const pathTwo: string = path.join('another', 'one');
-            const packagePathTwo: string = path.join(pathOne, 'package.json');
 
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
             const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
@@ -410,26 +411,39 @@ describe('userInputUtil', () => {
                 {name: 'biscuit-network', uri: uriTwo}
             ]);
 
-            const getContractNameAndVersion: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getContractNameAndVersion');
-            getContractNameAndVersion.onCall(0).returns({name: 'project_1', version: '0.0.1'});
-            getContractNameAndVersion.onCall(1).returns({name: 'biscuit-network', version: '0.0.3'});
-
-            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo]);
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo, packagedThree]);
 
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne']));
-
             quickPickStub.getCall(0).args[0].should.deep.equal([
                 {
-                    label: 'project_1@0.0.1',
-                    description: 'Open Project',
+                    label: 'jaffa-network@0.0.1',
+                    description: 'Packaged',
                     data: {
                         packageEntry: {
-                            name: 'project_1',
-                            version: '0.0.1',
-                            path: undefined
+                            name: 'jaffa-network',
+                            path: 'jaffa-network@0.0.1.cds',
+                            version: '0.0.1'
                         },
+                        workspace: undefined
+                    }
+                },
+                {
+                    label: 'project_1',
+                    description: 'Open Project',
+                    data: {
+                        packageEntry: undefined,
                         workspace: {
                             name: 'project_1', uri: uriOne
+                        }
+                    }
+                },
+                {
+                    label: 'biscuit-network',
+                    description: 'Open Project',
+                    data: {
+                        packageEntry: undefined,
+                        workspace: {
+                            name: 'biscuit-network', uri: uriTwo
                         }
                     }
                 }
@@ -452,9 +466,12 @@ describe('userInputUtil', () => {
             const pathTwo: string = path.join('another', 'one');
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
             const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
+
+            const workspaceOne: any = {name: 'project_1', uri: uriOne};
+            const workspaceTwo: any = {name: 'biscuit-network', uri: uriTwo};
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
-                {name: 'project_1', uri: uriOne},
-                {name: 'biscuit-network', uri: uriTwo}
+                workspaceOne,
+                workspaceTwo
             ]);
 
             const joinStub: sinon.SinonStub = mySandBox.stub(path, 'join');
@@ -467,7 +484,29 @@ describe('userInputUtil', () => {
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo]);
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set(['myPeerOne']), 'biscuit-network', '0.0.1');
-            quickPickStub.getCall(0).args[0].length.should.equal(2);
+
+            quickPickStub.getCall(0).args[0].should.deep.equal([
+                {
+                    label: `${packagedOne.name}@${packagedOne.version}`,
+                    description: 'Installed',
+                    data: { packageEntry: { name: packagedOne.name, version: packagedOne.version, path: undefined}, workspace: undefined}
+                },
+                {
+                    label: `${packagedTwo.name}@${packagedTwo.version}`,
+                    description: 'Packaged',
+                    data: { packageEntry: { name: packagedTwo.name, version: packagedTwo.version, path: packagedTwo.path}, workspace: undefined}
+                },
+                {
+                    label: `${workspaceOne.name}`,
+                    description: 'Open Project',
+                    data: { packageEntry: undefined, workspace: { name: workspaceOne.name, uri: workspaceOne.uri}}
+                },
+                {
+                    label: `${workspaceTwo.name}`,
+                    description: 'Open Project',
+                    data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri}}
+                }
+            ]);
         });
 
     });

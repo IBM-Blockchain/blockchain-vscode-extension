@@ -235,11 +235,7 @@ describe('InstantiateCommand', () => {
                 label: 'somepackage@0.0.1',
                 description: 'Open Project',
                 data: {
-                    packageEntry: {
-                        name: 'somepackage',
-                        version: '0.0.1',
-                        path: undefined
-                    },
+                    packageEntry: undefined,
                     workspace: mySandBox.stub()
                 }
             });
@@ -257,11 +253,7 @@ describe('InstantiateCommand', () => {
                 label: 'somepackage@0.0.1',
                 description: 'Open Project',
                 data: {
-                    packageEntry: {
-                        name: 'somepackage',
-                        version: '0.0.1',
-                        path: undefined
-                    },
+                    packageEntry: undefined,
                     workspace: mySandBox.stub()
                 }
             });
