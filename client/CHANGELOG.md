@@ -38,7 +38,7 @@
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-38.png)
 
-## 0.0.6: November 22nd 2018
+## 0.0.6: November 26th 2018
 * Fix a problem with a looping error [#309](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/309)
 * Fix having two ways to add connections and packages [#325](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/325)
 * Fix add warning if you delete a connection [#327](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/327)
