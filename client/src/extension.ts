@@ -54,7 +54,7 @@ import { testSmartContract } from './commands/testSmartContractCommand';
 import { TransactionTreeItem } from './explorer/model/TransactionTreeItem';
 import { submitTransaction } from './commands/submitTransaction';
 import { upgradeSmartContract } from './commands/upgradeCommand';
-import { InstantiatedChaincodeChildTreeItem } from './explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from './explorer/model/InstantiatedChaincodeTreeItem';
 import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -139,9 +139,9 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.installSmartContractEntry', (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.instantiateSmartContractEntry', (channelTreeItem?: ChannelTreeItem) => instantiateSmartContract(channelTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.editConnectionEntry', (treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem) => editConnectionCommand(treeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.testSmartContractEntry', (chaincode: InstantiatedChaincodeChildTreeItem) => testSmartContract(chaincode)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.testSmartContractEntry', (chaincode: InstantiatedChaincodeTreeItem) => testSmartContract(chaincode)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.submitTransactionEntry', (transactionTreeItem: TransactionTreeItem) => submitTransaction(transactionTreeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.upgradeSmartContractEntry', (instantiatedChainCodeTreeItem?: InstantiatedChaincodeChildTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.upgradeSmartContractEntry', (instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 

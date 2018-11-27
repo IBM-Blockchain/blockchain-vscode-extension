@@ -15,7 +15,7 @@
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -98,6 +98,12 @@ describe('InstantiateCommand', () => {
 
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
 
+            const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            registryEntry.name = 'myConnection';
+            registryEntry.connectionProfilePath = 'myPath';
+            registryEntry.managedRuntime = false;
+            mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
@@ -142,7 +148,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should handle error from instantiating smart contract', async () => {
-            fabricClientConnectionMock.instantiateChaincode.rejects({message: 'some error'});
+            fabricClientConnectionMock.instantiateChaincode.rejects({ message: 'some error' });
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry').should.be.rejectedWith(`some error`);
 
@@ -158,7 +164,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate smart contract through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[0] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', myChannel);
 
@@ -185,7 +191,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should install and instantiate package', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves({name: 'somepackage', version: '0.0.1', path: undefined});
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -206,7 +212,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should be able to cancel install and instantiate for package', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves();
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -228,8 +234,8 @@ describe('InstantiateCommand', () => {
         });
 
         it('should package, install and instantiate a project', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({name: 'somepackage', version: '0.0.1', path: undefined});
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves({name: 'somepackage', version: '0.0.1', path: undefined});
+            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -246,8 +252,8 @@ describe('InstantiateCommand', () => {
         });
 
         it('should be able to cancel a project packaging, installing and instantiating', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({name: 'somepackage', version: '0.0.1', path: undefined});
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), {name: 'somepackage', version: '0.0.1', path: undefined}).resolves();
+            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',

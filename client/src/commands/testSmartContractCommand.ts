@@ -22,10 +22,10 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
-import { InstantiatedChaincodeChildTreeItem } from '../explorer/model/InstantiatedChaincodeChildTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 
-export async function testSmartContract(chaincode?: InstantiatedChaincodeChildTreeItem): Promise<void> {
+export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeItem): Promise<void> {
     console.log('testSmartContractCommand', chaincode);
 
     let chaincodeLabel: string;
