@@ -38,7 +38,8 @@ import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { ConnectedTreeItem } from './model/ConnectedTreeItem';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { MetadataUtil } from '../util/MetadataUtil';
+import { ContractTreeItem } from './model/ContractTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -128,7 +129,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 }
 
                 if (element instanceof InstantiatedChaincodeTreeItem) {
-                    this.tree = await this.createTransactionsChaincodeTree(element as InstantiatedChaincodeTreeItem);
+                    this.tree = await this.createContractTree(element as InstantiatedChaincodeTreeItem);
+                }
+
+                if (element instanceof ContractTreeItem) {
+                    this.tree = await this.createTransactionsChaincodeTree(element as ContractTreeItem);
                 }
 
                 return this.tree;
@@ -280,30 +285,41 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: Array<InstantiatedChaincodeTreeItem> = [];
 
         for (const instantiatedChaincode of channelTreeElement.chaincodes) {
-
-            const transactions: Array<string> = [];
-            try {
-            const metaDataObject: any = await FabricConnectionManager.instance().getConnection().getMetadata(instantiatedChaincode.name, channelTreeElement.label);
-            transactions.push(...metaDataObject[''].functions);
-            } catch (error) {
-                vscode.window.showErrorMessage('Error getting transaction names ' + error.message);
-                VSCodeOutputAdapter.instance().error('Error getting transaction names ' + error.message);
-            }
+            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
+            const contracts: Array<string> = await MetadataUtil.getContractNames(connection, instantiatedChaincode.name, channelTreeElement.label);
             let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-            if (transactions.length === 0) {
+            if (contracts.length === 0) {
                 collapsedState = vscode.TreeItemCollapsibleState.None;
             }
-            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, transactions));
+            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts));
         }
 
         return tree;
     }
 
-    private async createTransactionsChaincodeTree(chainCodeElement: InstantiatedChaincodeTreeItem): Promise<Array<TransactionTreeItem>> {
+    private async createContractTree(chainCodeElement: InstantiatedChaincodeTreeItem): Promise<Array<ContractTreeItem>> {
+        console.log('createContractsTree', chainCodeElement);
+        const tree: Array<any> = [];
+        for (const contract of chainCodeElement.contracts) {
+            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
+            const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channel.label);
+            const transactionNames: string[] = transactionNamesMap.get(contract);
+            if (contract === '') {
+                for (const transaction of transactionNames) {
+                    tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label, contract));
+                }
+            } else {
+                tree.push(new ContractTreeItem(this, contract, vscode.TreeItemCollapsibleState.Collapsed, chainCodeElement, transactionNames));
+            }
+        }
+        return tree;
+    }
+
+    private async createTransactionsChaincodeTree(contractTreeElement: ContractTreeItem): Promise<Array<TransactionTreeItem>> {
         const tree: Array<TransactionTreeItem> = [];
-        console.log('createTransactionsChaincodeTree', chainCodeElement);
-        chainCodeElement.transactions.forEach((transaction: string) => {
-            tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label));
+        console.log('createTransactionsChaincodeTree', contractTreeElement);
+        contractTreeElement.transactions.forEach((transaction: string) => {
+            tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channel.label, contractTreeElement.name));
         });
 
         return tree;

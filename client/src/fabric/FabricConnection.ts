@@ -18,7 +18,6 @@ import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract, GatewayOpt
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
-
 import * as uuid from 'uuid/v4';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
@@ -207,11 +206,14 @@ export abstract class FabricConnection implements IFabricConnection {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(instantiatedChaincodeName);
 
-        const metadataBuffer: Buffer = await smartContract.evaluateTransaction('org.hyperledger.fabric:getMetaData');
+        const metadataBuffer: Buffer = await smartContract.evaluateTransaction('org.hyperledger.fabric:GetMetadata');
         const metadataString: string = metadataBuffer.toString();
         let metadataObject: any = {
-            '': {
-                functions: []
+            contracts: {
+                '' : {
+                    name: '',
+                    transactions: [],
+                }
             }
         };
 
@@ -223,9 +225,9 @@ export abstract class FabricConnection implements IFabricConnection {
         return metadataObject;
     }
 
-    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>): Promise<void> {
+    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<void> {
         const network: Network = await this.gateway.getNetwork(channel);
-        const smartContract: Contract = network.getContract(chaincodeName);
+        const smartContract: Contract = network.getContract(chaincodeName, namespace);
 
         await smartContract.submitTransaction(transactionName, ...args);
 

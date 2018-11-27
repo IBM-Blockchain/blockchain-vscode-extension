@@ -104,8 +104,11 @@ describe('UpgradeCommand', () => {
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([{ name: 'biscuit-network', version: '0.0.1' }]);
 
             fabricClientConnectionMock.getMetadata.resolves({
-                '': {
-                    functions: []
+                contracts: {
+                    'my-contract' : {
+                        name: 'my-contract',
+                        transactions: [],
+                    }
                 }
             });
 

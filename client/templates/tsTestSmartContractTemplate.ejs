@@ -23,7 +23,11 @@ import * as Client from 'fabric-client';
 import * as fabricNetwork from 'fabric-network';
 import * as fs from 'fs-extra';
 
+<%_ if (contractName !== '') { _%>
+describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
+<%_ } else { _%>
 describe('<%=chaincodeLabel%>' , () => {
+<%_ } _%>
 
     const gateway: fabricNetwork.Gateway = new fabricNetwork.Gateway();
     const fabricWallet: fabricNetwork.InMemoryWallet = new fabricNetwork.InMemoryWallet();
@@ -60,24 +64,39 @@ describe('<%=chaincodeLabel%>' , () => {
     afterEach(async () => {
         gateway.disconnect();
     });
-<%functionNames.forEach((functionName) => {%>
-    it('<%=functionName%>', async () => {
+<% transactions.forEach((transaction) => { %>
+    it('<%=transaction.name%>', async () => {
+        <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
+        // TODO: populate transaction parameters
+            <%_ let params = []; _%>
+            <%_ transaction.parameters.forEach((parameter) => { _%>
+                <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
+                <%_ if (parameter.schema && parameter.schema['type']) { _%>
+        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema['type'].replace(`"`,'')%>;
+                <%_ } else { _%>
+        const <%=parameter.name.replace(`"`,'')%>;
+                <%_ } _%>    
+            <%_ }) _%>
+        const args: string[] = [<%=params%>];
+        <%_ } else { _%>
         // TODO: Update with parameters of transaction
-        const args: string = '';
-        const response: Buffer = await submitTransaction('<%=functionName%>', args);
+        const args: string[] = [''];
+        <%_ } _%>
+
+        const response: Buffer = await submitTransaction('<%=transaction.name%>', args);
         // submitTransaction returns buffer of transcation return value
         // TODO: Update with return value of transaction
         assert.equal(true, true);
-        // assert.equal(response.toString(), undefined);
+        // assert.equal(JSON.parse(response.toString()), undefined);
     }).timeout(10000);
-<%})%>
-    async function submitTransaction(functionName: string, args: string): Promise<Buffer> {
-        // Send transaction
+<% }) %>
+    async function submitTransaction(functionName: string, args: string[]): Promise<Buffer> {
+        // Submit transaction
 
         const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
         const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>');
 
-        const responseBuffer: Buffer = await contract.submitTransaction(functionName, args);
+        const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
     }
 
