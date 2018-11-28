@@ -41,6 +41,7 @@ import { ConnectionPropertyTreeItem } from '../../src/explorer/model/ConnectionP
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { ConnectedTreeItem } from '../../src/explorer/model/ConnectedTreeItem';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -934,6 +935,28 @@ describe('BlockchainNetworkExplorer', () => {
                 const instatiateChaincodeItemTwo: InstantiatedChaincodeTreeItem = channelChildrenTwo[2] as InstantiatedChaincodeTreeItem;
 
                 instatiateChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            });
+
+            it('should handle error with transactions', async () => {
+
+                const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+                const outputSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'error');
+
+                fabricConnection.getMetadata.resetBehavior();
+                fabricConnection.getMetadata.rejects({message: 'some error'});
+
+                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                channelChildrenOne.length.should.equal(2);
+
+                const instatiateChaincodeItemOne: InstantiatedChaincodeTreeItem = channelChildrenOne[1] as InstantiatedChaincodeTreeItem;
+
+                instatiateChaincodeItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                errorSpy.should.have.been.calledWith('Error getting transaction names some error');
+                outputSpy.should.have.been.calledWith('Error getting transaction names some error');
             });
         });
     });
