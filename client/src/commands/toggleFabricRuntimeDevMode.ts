@@ -18,16 +18,22 @@ import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
 export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     let runtime: FabricRuntime;
     if (!runtimeTreeItem) {
-        const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to toggle development mode');
-        if (!chosenRuntime) {
-           return;
-        }
+        const runtimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
+        if (runtimes.length > 1) {
+            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to toggle development mode');
+            if (!chosenRuntime) {
+                return;
+            }
 
-        runtime = chosenRuntime.data;
+            runtime = chosenRuntime.data;
+        } else {
+            runtime = runtimes[0];
+        }
     } else {
         runtime = runtimeTreeItem.getRuntime();
     }
@@ -47,7 +53,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>) => {
+        }, async (progress: vscode.Progress<{ message: string }>) => {
             progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
             const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             await runtime.restart(outputAdapter);
