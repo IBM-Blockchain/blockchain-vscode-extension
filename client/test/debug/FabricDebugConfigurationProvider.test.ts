@@ -25,9 +25,9 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
-import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -100,13 +100,13 @@ describe('FabricDebugConfigurationProvider', () => {
             packageEntry.path = path.join('myPath');
             commandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry', sinon.match.any, sinon.match.any).resolves(packageEntry);
             commandStub.withArgs('blockchainExplorer.installSmartContractEntry', null, sinon.match.any).resolves();
+            commandStub.withArgs('blockchainExplorer.connectEntry', sinon.match.any);
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            mySandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockRuntimeConnection);
-
+            mySandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(mockRuntimeConnection);
         });
 
         afterEach(() => {

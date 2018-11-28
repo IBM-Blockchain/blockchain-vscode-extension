@@ -142,11 +142,13 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
     }
 
     private async getPeersToInstallOn(): Promise<Array<string>> {
-        const runtimeConnection: IFabricConnection = FabricConnectionFactory.createFabricRuntimeConnection(this.runtime);
-        const connectionRegistyrEntry: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get(this.runtime.getName());
-        await runtimeConnection.connect();
-        FabricConnectionManager.instance().connect(runtimeConnection, connectionRegistyrEntry);
-        return await runtimeConnection.getAllPeerNames();
+        const connectionRegistry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+        connectionRegistry.name = this.runtime.getName();
+        connectionRegistry.managedRuntime = true;
+
+        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connectionRegistry);
+        const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+        return connection.getAllPeerNames();
     }
 
 }
