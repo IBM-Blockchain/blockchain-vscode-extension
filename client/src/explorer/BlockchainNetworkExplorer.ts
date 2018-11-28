@@ -38,6 +38,7 @@ import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { ConnectedTreeItem } from './model/ConnectedTreeItem';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -279,8 +280,15 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: Array<InstantiatedChaincodeTreeItem> = [];
 
         for (const instantiatedChaincode of channelTreeElement.chaincodes) {
+
+            const transactions: Array<string> = [];
+            try {
             const metaDataObject: any = await FabricConnectionManager.instance().getConnection().getMetadata(instantiatedChaincode.name, channelTreeElement.label);
-            const transactions: Array<string> = metaDataObject[''].functions;
+            transactions.push(...metaDataObject[''].functions);
+            } catch (error) {
+                vscode.window.showErrorMessage('Error getting transaction names ' + error.message);
+                VSCodeOutputAdapter.instance().error('Error getting transaction names ' + error.message);
+            }
             let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
             if (transactions.length === 0) {
                 collapsedState = vscode.TreeItemCollapsibleState.None;
