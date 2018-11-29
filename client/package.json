@@ -62,6 +62,7 @@
             "blockchainExplorer.teardownFabricRuntime",
             "blockchainExplorer.toggleFabricRuntimeDevMode",
             "blockchainExplorer.openFabricRuntimeTerminal",
+            "blockchainExplorer.exportConnectionDetailsEntry",
             "blockchainExplorer.editConnectionEntry",
             "blockchainExplorer.testSmartContractEntry",
             "blockchainExplorer.submitTransactionEntry",
@@ -247,6 +248,11 @@
                 "command": "blockchainExplorer.submitTransactionEntry",
                 "title": " Submit Transaction",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "blockchainExplorer.exportConnectionDetailsEntry",
+                "title": " Export Connection Details",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -344,6 +350,10 @@
                 },
                 {
                     "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
+                },
+                {
+                    "command": "blockchainExplorer.exportConnectionDetailsEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
                 },
                 {

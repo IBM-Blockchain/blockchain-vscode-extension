@@ -17,16 +17,21 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
 export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | FabricRuntime): Promise<void> {
     let runtime: FabricRuntime;
     if (!runtimeToStart) {
-        const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to start');
-        if (!chosenRuntime) {
-           return;
+        const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
+        if (allRuntimes.length > 1) {
+            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to start') as IBlockchainQuickPickItem<FabricRuntime>;
+            if (!chosenRuntime) {
+                return;
+            }
+            runtime = chosenRuntime.data;
+        } else {
+            runtime = allRuntimes[0];
         }
-
-        runtime = chosenRuntime.data;
     } else if (runtimeToStart instanceof RuntimeTreeItem) {
         runtime = runtimeToStart.getRuntime();
     } else {

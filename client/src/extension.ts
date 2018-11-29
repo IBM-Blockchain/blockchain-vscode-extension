@@ -56,6 +56,7 @@ import { submitTransaction } from './commands/submitTransaction';
 import { upgradeSmartContract } from './commands/upgradeCommand';
 import { InstantiatedChaincodeTreeItem } from './explorer/model/InstantiatedChaincodeTreeItem';
 import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
+import { exportConnectionDetails } from './commands/exportConnectionDetailsCommand';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -134,6 +135,7 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.teardownFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => teardownFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', (runtimeTreeItem?: RuntimeTreeItem) => toggleFabricRuntimeDevMode(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.openFabricRuntimeTerminal', (runtimeTreeItem?: RuntimeTreeItem) => openFabricRuntimeTerminal(runtimeTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.exportConnectionDetailsEntry', (runtimeTreeItem: RuntimeTreeItem) => exportConnectionDetails(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project: PackageTreeItem) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry', (project: PackageTreeItem) => exportSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.installSmartContractEntry', (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));

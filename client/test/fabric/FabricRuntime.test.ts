@@ -30,6 +30,7 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 
 chai.should();
 
@@ -711,36 +712,45 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#writeConnectionDetailsToDisk', () => {
+    describe('#exportConnectionDetails', () => {
 
         beforeEach(async () => {
             connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
             certificatePath = path.join(runtimeDir, 'runtime1', 'certificate');
             privateKeyPath = path.join(runtimeDir, 'runtime1', 'privateKey');
-            errorSpy = sandbox.spy(vscode.window, 'showErrorMessage');
-            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-            spawnStub.callsFake(() => {
-                return mockSuccessCommand();
-            });
+            errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'error');
         });
 
-        it('should save runtime connection details to disk on start', async () => {
-            await runtime.start();
+        it('should save runtime connection details to disk', async () => {
+            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance());
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
             ensureFileStub.getCall(1).should.have.been.calledWith(certificatePath);
             ensureFileStub.getCall(2).should.have.been.calledWith(privateKeyPath);
             writeFileStub.should.have.been.calledThrice;
             errorSpy.should.not.have.been.called;
+        });
 
+        it('should save runtime connection details to a specified place', async () => {
+            runtimeDir = 'myPath';
+            connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
+            certificatePath = path.join(runtimeDir, 'runtime1', 'certificate');
+            privateKeyPath = path.join(runtimeDir, 'runtime1', 'privateKey');
+
+            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance(), 'myPath');
+            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
+            ensureFileStub.getCall(1).should.have.been.calledWith(certificatePath);
+            ensureFileStub.getCall(2).should.have.been.calledWith(privateKeyPath);
+            writeFileStub.should.have.been.calledThrice;
+            errorSpy.should.not.have.been.called;
         });
 
         it('should show an info message if we fail to save connection details to disk', async () => {
             writeFileStub.onCall(2).rejects({message: 'oops'});
 
-            await runtime.start();
+            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance());
             ensureFileStub.should.have.been.calledThrice;
             writeFileStub.should.have.been.calledThrice;
-            errorSpy.should.have.been.calledWith('Issue saving runtime connection details in extension directory with error: oops');
+            errorSpy.should.have.been.calledWith(`Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
         });
     });
 });
