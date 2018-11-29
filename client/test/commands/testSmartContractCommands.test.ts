@@ -284,7 +284,7 @@ describe('testSmartContractCommand', () => {
             readFileStub.resolves(incorrectBuffer);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            errorSpy.should.have.been.calledWith(`Smart contract project ${smartContractName} is not open in workspace`);
+            errorSpy.should.have.been.calledWith(`Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
         });
 
         it('should handle errors with running getMetaData by showing an error message to the user', async () => {

@@ -80,7 +80,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         return;
     }
 
-    const packageJSONSearch: Array<vscode.Uri> = await vscode.workspace.findFiles('**/package.json', '**/node_modules/**', workspaceFolders.length);
+    const packageJSONSearch: Array<vscode.Uri> = await vscode.workspace.findFiles('package.json', '**/node_modules/**', workspaceFolders.length);
     let packageJSONFound: vscode.Uri;
     let functionalTestsDirectory: string;
     let localSmartContractDirectory: string;
@@ -96,7 +96,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         }
     }
     if (!functionalTestsDirectory) {
-        vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace`);
+        vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace. Please ensure the ${chaincodeName} smart contract project folder is not nested within your workspace.`);
         return;
     }
 
