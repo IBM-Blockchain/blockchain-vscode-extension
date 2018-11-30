@@ -59,6 +59,7 @@ describe('openFabricRuntimeTerminal', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
+        await runtimeManager.add('local_fabric2');
         runtime = runtimeManager.get('local_fabric');
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -114,6 +115,29 @@ describe('openFabricRuntimeTerminal', () => {
             ]
         );
         mockTerminal.show.should.have.been.calledOnce;
+    });
+
+    it('should open a terminal for a Fabric runtime if only one', async () => {
+        await FabricRuntimeManager.instance().delete('local_fabric2');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
+        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal');
+        quickPickStub.should.not.have.been.called;
+        createTerminalStub.should.have.been.calledOnceWithExactly(
+            'Fabric runtime - local_fabric',
+            'docker',
+            [
+                'exec',
+                '-e',
+                'CORE_PEER_LOCALMSPID=Org1MSP',
+                '-e',
+                'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
+                '-ti',
+                'fabricvscodelocalfabric_peer0.org1.example.com',
+                'bash'
+            ]
+        );
+        mockTerminal.show.should.have.been.calledOnce;
+        quickPickStub.should.not.have.been.called;
     });
 
     it('should handle cancel from choosing runtime', async () => {

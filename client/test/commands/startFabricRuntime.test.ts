@@ -59,6 +59,7 @@ describe('startFabricRuntime', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
+        await runtimeManager.add('local_fabric2');
         runtime = runtimeManager.get('local_fabric');
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -86,6 +87,15 @@ describe('startFabricRuntime', () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         quickPickStub.should.have.been.called.calledOnce;
+        startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+    });
+
+    it('should start a Fabric runtime if only one', async () => {
+        await runtimeManager.delete('local_fabric2');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
+        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
+        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+        quickPickStub.should.not.have.been.called.called;
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
 

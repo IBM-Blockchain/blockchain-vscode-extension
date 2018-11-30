@@ -58,6 +58,7 @@ describe('teardownFabricRuntime', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
+        await runtimeManager.add('local_fabric2');
         runtime = runtimeManager.get('local_fabric');
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -85,6 +86,17 @@ describe('teardownFabricRuntime', () => {
         const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime');
         quickPickStub.should.have.been.calledOnce;
+        warningStub.should.have.been.calledOnce;
+        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+    });
+
+    it('should teardown a Fabric runtime if only one', async () => {
+        await runtimeManager.delete('local_fabric2');
+        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
+        const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
+        await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime');
+        quickPickStub.should.not.have.been.called;
         warningStub.should.have.been.calledOnce;
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
