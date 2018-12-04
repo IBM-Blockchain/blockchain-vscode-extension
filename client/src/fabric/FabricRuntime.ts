@@ -228,7 +228,13 @@ export class FabricRuntime extends EventEmitter {
 
         const env: any = Object.assign({}, process.env, {
             COMPOSE_PROJECT_NAME: this.docker.getContainerPrefix(),
-            CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net'
+            CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net',
+            CERTIFICATE_AUTHORITY_PORT: this.runtimeRegistryEntry.ports.certificateAuthority,
+            ORDERER_PORT: this.runtimeRegistryEntry.ports.orderer,
+            PEER_REQUEST_PORT: this.runtimeRegistryEntry.ports.peerRequest,
+            PEER_CHAINCODE_PORT: this.runtimeRegistryEntry.ports.peerChaincode,
+            PEER_EVENT_HUB_PORT: this.runtimeRegistryEntry.ports.peerEventHub,
+            COUCH_DB_PORT: this.runtimeRegistryEntry.ports.couchDB,
         });
 
         if (process.platform === 'win32') {

@@ -108,6 +108,14 @@ describe('FabricRuntime', () => {
         runtimeRegistryEntry = new FabricRuntimeRegistryEntry();
         runtimeRegistryEntry.name = 'runtime1';
         runtimeRegistryEntry.developmentMode = false;
+        runtimeRegistryEntry.ports = {
+            orderer: 12347,
+            peerRequest: 12345,
+            peerChaincode: 54321,
+            peerEventHub: 12346,
+            certificateAuthority: 12348,
+            couchDB: 12349
+        };
         await runtimeRegistry.add(runtimeRegistryEntry);
         runtime = new FabricRuntime(runtimeRegistryEntry);
         sandbox = sinon.createSandbox();

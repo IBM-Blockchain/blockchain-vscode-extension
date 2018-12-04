@@ -24,7 +24,7 @@ services:
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/4239aa0dcd76daeeb8ba0cda701851d14504d31aad1b2ddddbac6a57365e497c_sk
     ports:
       # VSCODE - "7054:7054"
-      - 7054
+      - ${CERTIFICATE_AUTHORITY_PORT}:7054
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
       - ./crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
@@ -49,7 +49,7 @@ services:
     command: orderer
     ports:
       # VSCODE - 7050:7050
-      - 7050
+      - ${ORDERER_PORT}:7050
     volumes:
       - ./config/:/etc/hyperledger/configtx
       - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/:/etc/hyperledger/msp/orderer
@@ -88,9 +88,9 @@ services:
     ports:
       # VSCODE - 7051:7051
       # VSCODE - 7053:7053
-      - 7051
-      - 7052
-      - 7053
+      - ${PEER_REQUEST_PORT}:7051
+      - ${PEER_CHAINCODE_PORT}:7052
+      - ${PEER_EVENT_HUB_PORT}:7053
     volumes:
       - /var/run/:/host/var/run/
       - ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/msp/peer
@@ -114,7 +114,7 @@ services:
       - COUCHDB_PASSWORD=
     ports:
       # VSCODE - 5984:5984
-      - 5984
+      - ${COUCH_DB_PORT}:5984
     volumes:
       - couchdb:/opt/couchdb/data
     networks:

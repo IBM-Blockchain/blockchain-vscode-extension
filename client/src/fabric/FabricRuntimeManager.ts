@@ -16,8 +16,11 @@ import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
 import { FabricConnectionRegistry } from './FabricConnectionRegistry';
+import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
 
 export class FabricRuntimeManager {
+
+    public static findFreePort: any = require('find-free-port');
 
     public static instance(): FabricRuntimeManager {
         return this._instance;
@@ -61,23 +64,21 @@ export class FabricRuntimeManager {
     }
 
     public async add(name: string): Promise<void> {
-        let runtimeRegistryAdded: boolean = false;
-        try {
 
-            // Add the Fabric runtime to the runtime registry.
-            const runtimeRegistryEntry: FabricRuntimeRegistryEntry = new FabricRuntimeRegistryEntry();
-            runtimeRegistryEntry.name = name;
-            runtimeRegistryEntry.developmentMode = false;
-            await this.runtimeRegistry.add(runtimeRegistryEntry);
-            runtimeRegistryAdded = true;
+        // Generate a range of ports for this Fabric runtime.
+        const ports: FabricRuntimeRegistryPorts = await this.generatePortConfiguration();
 
-            // Add the Fabric runtime to the internal cache.
-            const runtime: FabricRuntime = new FabricRuntime(runtimeRegistryEntry);
-            this.runtimes.set(name, runtime);
+        // Add the Fabric runtime to the runtime registry.
+        const runtimeRegistryEntry: FabricRuntimeRegistryEntry = new FabricRuntimeRegistryEntry();
+        runtimeRegistryEntry.name = name;
+        runtimeRegistryEntry.developmentMode = false;
+        runtimeRegistryEntry.ports = ports;
+        await this.runtimeRegistry.add(runtimeRegistryEntry);
 
-        } catch (error) {
-            throw error;
-        }
+        // Add the Fabric runtime to the internal cache.
+        const runtime: FabricRuntime = new FabricRuntime(runtimeRegistryEntry);
+        this.runtimes.set(name, runtime);
+
     }
 
     public async delete(name: string): Promise<void> {
@@ -97,6 +98,63 @@ export class FabricRuntimeManager {
 
     public async clear(): Promise<void> {
         this.runtimes.clear();
+    }
+
+    public async migrate(): Promise<void> {
+        const runtimeRegistryEntries: FabricRuntimeRegistryEntry[] = this.runtimeRegistry.getAll();
+        for (const runtimeRegistryEntry of runtimeRegistryEntries) {
+            if (!runtimeRegistryEntry.ports) {
+                runtimeRegistryEntry.ports = await this.generatePortConfiguration();
+            }
+            await this.runtimeRegistry.update(runtimeRegistryEntry);
+        }
+    }
+
+    private async generatePortConfiguration(): Promise<FabricRuntimeRegistryPorts> {
+        const startPort: number = this.getStartPort();
+        const ports: FabricRuntimeRegistryPorts = new FabricRuntimeRegistryPorts();
+        const [
+            orderer,
+            peerRequest,
+            peerChaincode,
+            peerEventHub,
+            certificateAuthority,
+            couchDB
+        ]: number[] = await FabricRuntimeManager.findFreePort(startPort, null, null, 6);
+        ports.orderer = orderer;
+        ports.peerRequest = peerRequest;
+        ports.peerChaincode = peerChaincode;
+        ports.peerEventHub = peerEventHub;
+        ports.certificateAuthority = certificateAuthority;
+        ports.couchDB = couchDB;
+        return ports;
+    }
+
+    private getStartPort(): number {
+        let startPort: number = 17050;
+        const runtimeRegistryEntries: FabricRuntimeRegistryEntry[] = this.runtimeRegistry.getAll();
+        for (const runtimeRegistryEntry of runtimeRegistryEntries) {
+            if (!runtimeRegistryEntry.ports) {
+                continue;
+            }
+            const highestPort: number = this.getHighestPort(runtimeRegistryEntry.ports);
+            if (highestPort > startPort) {
+                startPort = highestPort + 1;
+            }
+        }
+        return startPort;
+    }
+
+    private getHighestPort(ports: FabricRuntimeRegistryPorts): number {
+        let port: number = 0;
+        const portNames: string[] = Object.keys(ports);
+        for (const portName of portNames) {
+            const thisPort: number = ports[portName];
+            if (thisPort > port) {
+                port = thisPort;
+            }
+        }
+        return port;
     }
 
 }

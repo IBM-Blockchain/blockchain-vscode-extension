@@ -85,6 +85,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             registerCommands(context);
         }
 
+        await migrateLocalFabricConfiguration();
         await ensureLocalFabricExists();
 
         ExtensionUtil.setExtensionContext(context);
@@ -162,6 +163,11 @@ export function registerCommands(context: vscode.ExtensionContext): void {
         context.subscriptions.push(Reporter.instance());
     }
 
+}
+
+export async function migrateLocalFabricConfiguration(): Promise <void> {
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    await runtimeManager.migrate();
 }
 
 export async function ensureLocalFabricExists(): Promise<void> {
