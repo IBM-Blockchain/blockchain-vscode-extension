@@ -251,7 +251,7 @@
             },
             {
                 "command": "blockchainExplorer.exportConnectionDetailsEntry",
-                "title": " Export Connection Details",
+                "title": "Export Connection Details",
                 "category": "IBM Blockchain Platform"
             }
         ],
