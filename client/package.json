@@ -353,8 +353,16 @@
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
                 },
                 {
+                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
+                },
+                {
                     "command": "blockchainExplorer.exportConnectionDetailsEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
+                },
+                {
+                    "command": "blockchainExplorer.exportConnectionDetailsEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
                 },
                 {
                     "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
