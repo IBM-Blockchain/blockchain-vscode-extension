@@ -15,11 +15,16 @@
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
 
 export class ConnectedTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-connected-item';
 
-    constructor(provider: BlockchainExplorerProvider, private readonly connectionName: string) {
+    constructor(provider: BlockchainExplorerProvider, private readonly connectionName: string, private readonly fabricConnectionRegistryEntry: FabricConnectionRegistryEntry) {
         super(provider, `Connected to: ${connectionName}`, vscode.TreeItemCollapsibleState.None);
+
+        if (fabricConnectionRegistryEntry.managedRuntime) {
+            this.contextValue = 'blockchain-connected-runtime-item';
+        }
     }
 }
