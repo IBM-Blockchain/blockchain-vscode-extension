@@ -14,7 +14,7 @@ if exist %userprofile%\.hfc-key-store (
 )
 
 rem remove chaincode docker images
-rem docker rm $(docker ps -aq)
-rem docker rmi $(docker images dev-* -q)
+for /f "tokens=*" %%i in ('docker ps -aq --filter "name=%COMPOSE_PROJECT_NAME%-*"') do docker rm -f %%i
+for /f "tokens=*" %%i in ('docker images -aq "%COMPOSE_PROJECT_NAME%-*"') do docker rmi -f %%i
 
 rem Your system is now clean
