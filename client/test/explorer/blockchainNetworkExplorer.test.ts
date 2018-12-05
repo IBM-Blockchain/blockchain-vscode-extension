@@ -594,6 +594,8 @@ describe('BlockchainNetworkExplorer', () => {
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
             let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
+            let registryEntry: FabricConnectionRegistryEntry;
+            let getConnectionRegistryEntryStub: sinon.SinonStub;
 
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
@@ -643,11 +645,11 @@ describe('BlockchainNetworkExplorer', () => {
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
                 const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
 
-                const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                registryEntry = new FabricConnectionRegistryEntry();
                 registryEntry.name = 'myConnection';
                 registryEntry.connectionProfilePath = 'myPath';
                 registryEntry.managedRuntime = false;
-                mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+                getConnectionRegistryEntryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
             });
 
@@ -662,6 +664,31 @@ describe('BlockchainNetworkExplorer', () => {
                 const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
                 connectedItem.label.should.equal('Connected to: myConnection');
                 connectedItem.contextValue.should.equal('blockchain-connected-item');
+                connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+
+                const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+                channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                channelOne.contextValue.should.equal('blockchain-channel-item');
+                channelOne.label.should.equal('channelOne');
+                channelOne.peers.should.deep.equal(['peerOne']);
+
+                const channelTwo: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+                channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+                channelTwo.contextValue.should.equal('blockchain-channel-item');
+                channelTwo.label.should.equal('channelTwo');
+                channelTwo.peers.should.deep.equal(['peerOne', 'peerTwo']);
+            });
+
+            it('should update connected to context value if managed runtime', async () => {
+                registryEntry.managedRuntime = true;
+                getConnectionRegistryEntryStub.returns(registryEntry);
+                allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+
+                allChildren.length.should.equal(3);
+
+                const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
+                connectedItem.label.should.equal('Connected to: myConnection');
+                connectedItem.contextValue.should.equal('blockchain-connected-runtime-item');
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
                 const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;

@@ -52,6 +52,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Delete Package | Delete a smart contract package |
 | Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
 | Edit Connection | Edit connection to a blockchain |
+| Export Connection Details | Export connection details for the a Hyperledger Fabric instance |
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
 | Install Smart Contract | Install a smart contract package onto a peer |
@@ -144,7 +145,7 @@ Debugging your smart contract allows you to run through the smart contract trans
 3. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
 4. Package and install the smart contract by clicking the **play** button.
 5. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
-6. Right-click on the installed smart contract and click **Instantiate**. You can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
+6. Right-click on the channel and click **Instantiate**. You can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 

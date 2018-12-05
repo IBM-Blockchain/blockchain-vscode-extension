@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.0.7",
+    "version": "0.0.8",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -251,7 +251,7 @@
             },
             {
                 "command": "blockchainExplorer.exportConnectionDetailsEntry",
-                "title": " Export Connection Details",
+                "title": "Export Connection Details",
                 "category": "IBM Blockchain Platform"
             }
         ],
@@ -353,8 +353,16 @@
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
                 },
                 {
+                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
+                },
+                {
                     "command": "blockchainExplorer.exportConnectionDetailsEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
+                },
+                {
+                    "command": "blockchainExplorer.exportConnectionDetailsEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
                 },
                 {
                     "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",

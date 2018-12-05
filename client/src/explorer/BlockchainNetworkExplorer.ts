@@ -333,7 +333,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             const tree: Array<BlockchainTreeItem> = [];
 
             const connectionRegistryEntry: FabricConnectionRegistryEntry = FabricConnectionManager.instance().getConnectionRegistryEntry();
-            tree.push(new ConnectedTreeItem(this, connectionRegistryEntry.name));
+            tree.push(new ConnectedTreeItem(this, connectionRegistryEntry.name, connectionRegistryEntry));
 
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
             const channels: Array<string> = Array.from(channelMap.keys());
