@@ -173,20 +173,22 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
         console.log('yo is installed');
         try {
 
-            const newestVersion: string = await CommandUtil.sendCommand('npm view generator-fabric version');
+            // Hardcoded version of generator-fabric in extensions package.json
+            const packageJson: any = ExtensionUtil.getPackageJSON();
+            const versionToInstall: string = packageJson.generatorFabricVersion;
 
-            const parsedJson: any = await getPackageJson();
+            const parsedJson: any = await getGeneratorFabricPackageJson();
 
             let installedVersion: string = parsedJson.version;
             installedVersion = installedVersion.substring(installedVersion.indexOf('@') + 1);
 
-            if (installedVersion !== newestVersion) {
+            if (installedVersion !== versionToInstall) {
                 // The users global installation of generator-fabric is out of date
                 console.log('Updating generator-fabric as it is out of date');
 
                 const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-                const npmUpdateOut: string = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + newestVersion, '', 'Updating generator-fabric...');
+                const npmUpdateOut: string = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + versionToInstall, '', 'Updating generator-fabric...');
                 outputAdapter.log(npmUpdateOut);
                 outputAdapter.log('Successfully updated to latest version of generator-fabric');
             }
@@ -265,7 +267,7 @@ async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> 
 }
 
 async function getSmartContractLanguageOptions(): Promise<string[]> {
-    const parsedJson: any = await getPackageJson();
+    const parsedJson: any = await getGeneratorFabricPackageJson();
     if (parsedJson.contractLanguages === undefined) {
         throw new Error('Contract languages not found in package.json');
     }
@@ -301,7 +303,7 @@ async function checkForUnsavedFiles(): Promise<void> {
     }
 }
 
-async function getPackageJson(): Promise<any> {
+async function getGeneratorFabricPackageJson(): Promise<any> {
     const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
     const packagePath: string = path.join(npmPrefix, (process.platform === 'win32') ? '' : 'lib', 'node_modules', 'generator-fabric', 'package.json');
     const packageJson: any = await fs.readJson(packagePath);
