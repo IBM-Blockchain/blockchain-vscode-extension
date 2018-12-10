@@ -226,7 +226,10 @@ describe('Integration Test', () => {
 
         showInstallableStub.resolves({
             label: name,
-            data: packageToInstall
+            data: {
+                packageEntry: packageToInstall,
+                workspace: undefined
+            }
         });
         await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
     }
