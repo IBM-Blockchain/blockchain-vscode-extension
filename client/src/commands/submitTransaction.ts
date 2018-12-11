@@ -24,6 +24,7 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
     let smartContract: string;
     let transactionName: string;
     let channelName: string;
+    let namespace: string;
     if (!transactionTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
@@ -41,16 +42,18 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
         channelName = chosenSmartContract.data.channel;
         smartContract = chosenSmartContract.data.name;
 
-        const chosenTransaction: string = await UserInputUtil.showTransactionQuickPick('Choose a transaction to submit', smartContract, channelName);
+        const chosenTransaction: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('Choose a transaction to submit', smartContract, channelName);
         if (!chosenTransaction) {
             return;
         } else {
-            transactionName = chosenTransaction;
+            transactionName = chosenTransaction.data.name;
+            namespace = chosenTransaction.data.contract;
         }
     } else {
         smartContract = transactionTreeItem.chaincodeName;
         transactionName = transactionTreeItem.name;
         channelName = transactionTreeItem.channelName;
+        namespace = transactionTreeItem.contractName;
     }
 
     let args: Array<string> = [];
@@ -68,7 +71,7 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
         try {
             progress.report({message: `Submitting transaction ${transactionName}`});
             VSCodeOutputAdapter.instance().log(`Submitting transaction ${transactionName} with args ${args}`);
-            await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args);
+            await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
             Reporter.instance().sendTelemetryEvent('submit transaction');
             vscode.window.showInformationMessage('Successfully submitted transaction');
         } catch (error) {

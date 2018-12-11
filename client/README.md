@@ -18,6 +18,8 @@ You will need the following installed in order to use the extension:
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 
+> ⚠ Please note: From version 0.1.0+, your smart contract package.json should depend on at least 1.4.0-beta2@fabric-contract. This is only required for smart contracts not created using version 0.1.0+ of this extension.
+
 If you are using Windows, you must also ensure the following:
 - Your version of Windows supports Hyper-V and Docker:
   - Windows 10 Enterprise, Pro, or Education with 1607 Anniversary Update or later

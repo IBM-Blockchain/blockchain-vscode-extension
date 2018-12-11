@@ -23,7 +23,11 @@ const fabricNetwork = require('fabric-network');
 const yaml = require('js-yaml');
 const fs = require('fs-extra');
 
+<%_ if (contractName !== '') { _%>
+describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
+<%_ } else { _%>
 describe('<%=chaincodeLabel%>' , () => {
+<%_ } _%>
 
     const gateway = new fabricNetwork.Gateway();
     let connectionProfile;
@@ -63,24 +67,35 @@ describe('<%=chaincodeLabel%>' , () => {
     afterEach(async () => {
         gateway.disconnect();
     });
-
-    <% functionNames.forEach((functionName) => { %>
-    it('<%=functionName%>', async () => {
+<% transactions.forEach((transaction) => { %>
+    it('<%=transaction.name%>', async () => {
+        <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
+        // TODO: populate transaction parameters
+            <%_ let params = []; _%>
+            <%_ transaction.parameters.forEach((parameter) => { _%>
+                <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
+        const <%=parameter.name.replace(`"`,'')%>;
+            <%_ }) _%>
+        const args = [<%=params%>];
+        <%_ } else { _%>
         // TODO: Update with parameters of transaction
-        const args = '';
-        const response = await submitTransaction('<%=functionName%>', args); // Returns buffer of transcation return value
+        const args = [''];
+        <%_ } _%>
+
+        const response = await submitTransaction('<%=transaction.name%>', args); // Returns buffer of transaction return value
         // TODO: Update with return value of transaction
-        // assert.equal(response.toString(), undefined);
+        // assert.equal(JSON.parse(response.toString()), undefined);
     }).timeout(10000);
-    <% }) %>
-
+<% }) %>
     async function submitTransaction(functionName, args) {
-        //Send transaction
-
+        // Submit transaction
         const network = await gateway.getNetwork('<%=channelName%>');
+<%_ if (contractName !== '') { _%>
+        const contract = await network.getContract('<%=chaincodeName%>', '<%=contractName%>');
+<%_ } else { _%>
         const contract = await network.getContract('<%=chaincodeName%>');
-
-        const responseBuffer = await contract.submitTransaction(functionName, args);
+<%_ } _%>
+        const responseBuffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
     }
 

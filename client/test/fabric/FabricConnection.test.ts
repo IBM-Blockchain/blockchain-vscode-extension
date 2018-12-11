@@ -15,7 +15,6 @@
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import * as path from 'path';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -360,15 +359,15 @@ describe('FabricConnection', () => {
 
     describe('getMetadata', () => {
         it('should return the metadata for an instantiated smart contract', async () => {
-            const fakeMetaData: string = '{"":{"functions":["instantiate","wagonwheeling","transaction2"]},"org.hyperledger.fabric":{"functions":["getMetaData"]}}';
+            const fakeMetaData: string = '{"contracts":{"my-contract":{"name":"","contractInstance":{"name":""},"transactions":[{"name":"instantiate"},{"name":"wagonwheeling"},{"name":"transaction2"}],"info":{"title":"","version":""}},"org.hyperledger.fabric":{"name":"org.hyperledger.fabric","contractInstance":{"name":"org.hyperledger.fabric"},"transactions":[{"name":"GetMetadata"}],"info":{"title":"","version":""}}},"info":{"version":"0.0.2","title":"victoria_sponge"},"components":{"schemas":{}}}';
             const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
             fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
 
             const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
             // tslint:disable-next-line
-            const functionArray: string[] = metadata[""].functions;
+            const testFunction: string = metadata.contracts["my-contract"].transactions[1].name;
             // tslint:disable-next-line
-            functionArray.should.deep.equal(["instantiate", "wagonwheeling", "transaction2"]);
+            testFunction.should.equal("wagonwheeling");
         });
 
         it('should handle not getting any metadata', async () => {
@@ -378,17 +377,17 @@ describe('FabricConnection', () => {
 
             const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
             // tslint:disable-next-line
-            const functionArray: string[] = metadata[""].functions;
-            // tslint:disable-next-line
-            functionArray.should.deep.equal([]);
+            const testFunctions: string[] = metadata.contracts[""].transactions;
+            testFunctions.should.deep.equal([]);
         });
+
     });
 
     describe('submitTransaction', () => {
         it('should submit a transaction', async () => {
             fabricContractStub.submitTransaction.resolves();
 
-            await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2']);
+            await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
             fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
         });
     });

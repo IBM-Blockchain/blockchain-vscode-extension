@@ -20,7 +20,7 @@ import { ChannelTreeItem } from './ChannelTreeItem';
 export class InstantiatedChaincodeTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-instantiated-chaincode-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channel: ChannelTreeItem, public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly transactions: Array<string>) {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channel: ChannelTreeItem, public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly contracts: string[]) {
         super(provider, `${name}@${version}`, collapsibleState);
     }
 }

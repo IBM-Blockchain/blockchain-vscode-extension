@@ -881,19 +881,103 @@ describe('userInputUtil', () => {
 
     describe('showTransactionQuickPick', () => {
         it('should get a list of transactions', async () => {
-            quickPickStub.resolves('transaction1');
-            fabricConnectionStub.getMetadata.returns({
-                '': [
-                    'instantiate',
-                    'transaction1'
-                ]
+            quickPickStub.resolves({
+                label: 'my-contract - transaction1',
+                data: { name: 'transaction1', contract: 'my-contract'}
+            });
+            fabricConnectionStub.getMetadata.resolves(
+                {
+                    contracts: {
+                        'my-contract' : {
+                            name: 'my-contract',
+                            transactions: [
+                                {
+                                    name: 'instantiate'
+                                },
+                                {
+                                    name: 'transaction1'
+                                }
+                            ],
+                        },
+                        'my-other-contract' : {
+                            name: 'my-other-contract',
+                            transactions: [
+                                {
+                                    name: 'upgrade'
+                                },
+                                {
+                                    name: 'transaction1'
+                                }
+                            ],
+                        },
+                        '' : {
+                            name: '',
+                            transactions: [
+                                {
+                                    name: 'init'
+                                },
+                                {
+                                    name: 'invoke'
+                                }
+                            ],
+                        }
+                    }
+                }
+            );
+
+            const result: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('choose a transaction', 'mySmartContract', 'myChannel');
+
+            result.should.deep.equal({
+                label: 'my-contract - transaction1',
+                data: { name: 'transaction1', contract: 'my-contract'}
             });
 
-            const result: string = await UserInputUtil.showTransactionQuickPick('choose a transaction', 'mySmartContract', 'myChannel');
+            const quickPickArray: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [
+                {
+                    label: 'my-contract - instantiate',
+                    data: {
+                        name: 'instantiate',
+                        contract: 'my-contract'
+                    }
+                },
+                {
+                    label: 'my-contract - transaction1',
+                    data: {
+                        name: 'transaction1',
+                        contract: 'my-contract'
+                    }
+                },
+                {
+                    label: 'my-other-contract - upgrade',
+                    data: {
+                        name: 'upgrade',
+                        contract: 'my-other-contract'
+                    }
+                },
+                {
+                    label: 'my-other-contract - transaction1',
+                    data: {
+                        name: 'transaction1',
+                        contract: 'my-other-contract'
+                    }
+                },
+                {
+                    label: 'init',
+                    data: {
+                        name: 'init',
+                        contract: ''
+                    }
+                },
+                {
+                    label: 'invoke',
+                    data: {
+                        name: 'invoke',
+                        contract: ''
+                    }
+                }
+            ];
 
-            result.should.equal('transaction1');
-
-            quickPickStub.should.have.been.calledWith(['instantiate', 'transaction1'], {
+            quickPickStub.should.have.been.calledWith(quickPickArray, {
                 ignoreFocusOut: false,
                 canPickMany: false,
                 placeHolder: 'choose a transaction'
