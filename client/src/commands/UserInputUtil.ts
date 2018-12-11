@@ -27,7 +27,7 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { MetadataUtil } from '../util/MetadataUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -494,7 +494,7 @@ export class UserInputUtil {
 
     }
 
-    public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<string | undefined> {
+    public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, contract: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
 
@@ -503,8 +503,18 @@ export class UserInputUtil {
             return;
         }
 
-        const metaData: any = await connection.getMetadata(chaincodeName, channelName);
-        const quickPickItems: Array<string> = metaData[''];
+        const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [];
+        const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        for (const [name, transactionArray] of transactionNamesMap) {
+            for (const transaction of transactionArray) {
+                const data: { name: string, contract: string } = { name: transaction, contract: name };
+                if (name !== '') {
+                    quickPickItems.push({ label: `${name} - ${transaction}`, data: data });
+                } else {
+                    quickPickItems.push({ label: `${transaction}`, data: data });
+                }
+            }
+        }
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
