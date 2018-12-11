@@ -42,12 +42,20 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
 
     try {
         if (!chosenPackage) {
-            const _package: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', peerNames) as IBlockchainQuickPickItem<PackageRegistryEntry>;
-            if (!_package) {
+            const chosenInstallable: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', peerNames) as IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
+            if (!chosenInstallable) {
                 return;
             }
 
-            chosenPackage = _package.data;
+            const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenInstallable.data;
+            if (chosenInstallable.description === 'Open Project') {
+                // Project needs packaging, using the given 'open workspace'
+                const _package: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', data.workspace) as PackageRegistryEntry;
+                chosenPackage = _package;
+            } else {
+                chosenPackage = chosenInstallable.data.packageEntry;
+            }
+
         }
 
         const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();

@@ -1020,31 +1020,62 @@ describe('userInputUtil', () => {
                 path: 'cake-network@0.0.2.cds'
             });
 
+            const pathOne: string = path.join('some', 'path');
+            const pathTwo: string = path.join('another', 'one');
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
+
+            const workspaceOne: any = {name: 'project_1', uri: uriOne};
+            const workspaceTwo: any = {name: 'biscuit-network', uri: uriTwo};
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
+                workspaceOne,
+                workspaceTwo
+            ]);
+
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packageOne, packageTwo, packageThree, packageFour, packageFive]);
             await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne']));
 
             quickPickStub.getCall(0).args[0].should.deep.equal([
                 {
-                    label: 'new-network',
-                    description: '0.0.1',
+                    label: `new-network@0.0.1`,
+                    description: 'Packaged',
                     data: {
-                        name: 'new-network',
-                        version: '0.0.1',
-                        path: 'new-network@0.0.1.cds'
+                        packageEntry:
+                        {
+                            name: 'new-network',
+                            version: '0.0.1',
+                            path: 'new-network@0.0.1.cds'
+                        },
+                        workspace: undefined
                     }
-                }, {
-                    label: 'cake-network',
-                    description: '0.0.2',
+                },
+                {
+                    label: `cake-network@0.0.2`,
+                    description: 'Packaged',
                     data: {
-                        name: 'cake-network',
-                        version: '0.0.2',
-                        path: 'cake-network@0.0.2.cds'
+                        packageEntry:
+                        {
+                            name: 'cake-network',
+                            version: '0.0.2',
+                            path: 'cake-network@0.0.2.cds'
+                        },
+                        workspace: undefined
                     }
+                },
+                {
+                    label: `${workspaceOne.name}`,
+                    description: 'Open Project',
+                    data: { packageEntry: undefined, workspace: { name: workspaceOne.name, uri: workspaceOne.uri}}
+                },
+                {
+                    label: `${workspaceTwo.name}`,
+                    description: 'Open Project',
+                    data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri}}
                 }
             ]);
         });
 
-        it('should show installable contracts', async () => {
+        it('showing installable contracts should handle no connection', async () => {
             getConnectionStub.returns(null);
             await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.be.rejectedWith(`No connection to a blockchain found`);
         });
