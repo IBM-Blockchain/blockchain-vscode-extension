@@ -24,6 +24,7 @@ import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { MetadataUtil } from '../util/MetadataUtil';
 
 export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeItem): Promise<void> {
     console.log('testSmartContractCommand', chaincode);
@@ -64,6 +65,15 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     }
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
+    // Get metadata
+    const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+
+    const transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
+    if (transactions.size === 0) {
+        vscode.window.showErrorMessage(`Populated metadata required for generating smart contract tests, see previous error`);
+        return;
+    }
+
     // Ask the user which language to write the tests in
     const testLanguage: string = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', ['JavaScript', 'TypeScript']);
     let testFileSuiffix: string;
@@ -73,7 +83,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         testFileSuiffix = 'ts';
     }
 
-    // Only generate the test file if the smart contract is open in the workspace
+    // Only generate the test file(s) if the smart contract is open in the workspace
     const workspaceFolders: Array<vscode.WorkspaceFolder> = await UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length === 0) {
         vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace`);
@@ -100,18 +110,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         return;
     }
 
-    // Get the metadata for the chosen instantiated smart contract
-    const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
-    let metadataObj: any;
-    try {
-        metadataObj = await connection.getMetadata(chaincodeName, channelName);
-    } catch (error) {
-        console.log('Error getting the metadata: ' + error);
-        vscode.window.showErrorMessage('Error getting metadata for smart contract: ' + error.message);
-        return;
-    }
-
-    // Get connection details for connection
+    // Get connection details
     let connectionProfilePath: string;
     let certificatePath: string;
     let privateKeyPath: string;
@@ -134,92 +133,101 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         privateKeyPath = clientConnectionDetails.privateKeyPath;
     }
 
-    // Populate the template data
-    // TODO: Needs updating when the metadata is updated:
-    // tslint:disable-next-line
-    const smartContractFunctionsArray: string[] = metadataObj[""].functions;
+    for (const [name, transactionArray] of transactions) {
+        // Populate the template data
+        const templateData: any = {
+            contractName: name,
+            chaincodeLabel: chaincodeLabel,
+            transactions: transactionArray,
+            connectionProfilePath: connectionProfilePath,
+            certificatePath: certificatePath,
+            privateKeyPath: privateKeyPath,
+            chaincodeName: chaincodeName,
+            chaincodeVersion: chaincodeVersion,
+            channelName: channelName
+        };
+        console.log('template data is: ');
+        console.log(templateData);
 
-    const templateData: any = {
-        chaincodeLabel: chaincodeLabel,
-        functionNames: smartContractFunctionsArray,
-        connectionProfilePath: connectionProfilePath,
-        certificatePath: certificatePath,
-        privateKeyPath: privateKeyPath,
-        chaincodeName: chaincodeName,
-        chaincodeVersion: chaincodeVersion,
-        channelName: channelName
-    };
-    console.log('template data is: ');
-    console.log(templateData);
-
-    // Create data to write to file from template engine
-    const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
-    let dataToWrite: string;
-    try {
-        dataToWrite = await createDataToWrite(template, templateData);
-    } catch (error) {
-        vscode.window.showErrorMessage('Error creating template data: ' + error.message);
-        return;
-    }
-
-    // Determine if test file already exists
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    let testFile: string = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuiffix}`);
-    const testFileExists: boolean = await fs.pathExists(testFile);
-    let overwriteTestFile: string;
-    if (testFileExists) {
-        // Ask the user if they want to overwrite existing test file
-        overwriteTestFile = await UserInputUtil.showTestFileOverwriteQuickPick('Test file for selected smart contract already exists in workspace, overwrite it?');
-        if (!overwriteTestFile) {
-            // User cancelled the overwrite options box, so exit
-            outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
+        // Create data to write to file from template engine
+        const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
+        let dataToWrite: string;
+        try {
+            dataToWrite = await createDataToWrite(template, templateData);
+        } catch (error) {
+            vscode.window.showErrorMessage('Error creating template data: ' + error.message);
             return;
         }
-    }
-    if (overwriteTestFile === UserInputUtil.NO) {
-        // Don't create test file, user doesn't want to overwrite existing, but tell them where it is:
-        outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
-        return;
-    } else if (overwriteTestFile === UserInputUtil.GENERATE_NEW_TEST_FILE) {
-        // Generate copy of test file, indicate a copy has been created in the file name
-        let i: number = 1;
-        while (await fs.pathExists(testFile)) {
-            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
-            i++;
+
+        // Determine if test file already exists
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        let testFile: string;
+        if (name !== '') {
+            testFile = path.join(functionalTestsDirectory, `${name}-${chaincodeLabel}.test.${testFileSuiffix}`);
+        } else {
+            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuiffix}`);
         }
-    }
+        const testFileExists: boolean = await fs.pathExists(testFile);
+        let overwriteTestFile: string;
+        if (testFileExists) {
+            // Ask the user if they want to overwrite existing test file
+            overwriteTestFile = await UserInputUtil.showTestFileOverwriteQuickPick('Test file for selected smart contract already exists in workspace, overwrite it?');
+            if (!overwriteTestFile) {
+                // User cancelled the overwrite options box, so exit
+                outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
+                return;
+            }
+        }
+        if (overwriteTestFile === UserInputUtil.NO) {
+            // Don't create test file, user doesn't want to overwrite existing, but tell them where it is:
+            outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
+            return;
+        } else if (overwriteTestFile === UserInputUtil.GENERATE_NEW_TEST_FILE) {
+            // Generate copy of test file, indicate a copy has been created in the file name
+            let i: number = 1;
+            while (await fs.pathExists(testFile)) {
+                if (name !== '') {
+                    testFile = path.join(functionalTestsDirectory, `${name}-${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
+                } else {
+                    testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
+                }
+                i++;
+            }
+        }
 
-    // Create the test file
-    try {
-        await fs.ensureFile(testFile);
-    } catch (error) {
-        console.log('Errored creating test file: ' + testFile);
-        vscode.window.showErrorMessage('Error creating test file: ' + error.message);
-        await removeTestFile(testFile);
-        return;
-    }
-    outputAdapter.log(`Writing to Smart Contract test file: ${testFile}`);
+        // Create the test file
+        try {
+            await fs.ensureFile(testFile);
+        } catch (error) {
+            console.log('Errored creating test file: ' + testFile);
+            vscode.window.showErrorMessage('Error creating test file: ' + error.message);
+            await removeTestFile(testFile);
+            return;
+        }
+        outputAdapter.log(`Writing to Smart Contract test file: ${testFile}`);
 
-   // Open, show and write to test file
-    const document: vscode.TextDocument = await vscode.workspace.openTextDocument(testFile);
+        // Open, show and write to test file
+        const document: vscode.TextDocument = await vscode.workspace.openTextDocument(testFile);
 
-    const showTextDocumentOptions: any = {
-        preserveFocus: true,
-        selection: new vscode.Range(0, 0, 12, 2) // Only highlights comment when overwriting the test file
-    };
-    const textEditor: vscode.TextEditor = await vscode.window.showTextDocument(document, showTextDocumentOptions);
+        const showTextDocumentOptions: any = {
+            preserveFocus: true,
+            selection: new vscode.Range(0, 0, 12, 2) // Only highlights comment when overwriting the test file
+        };
+        const textEditor: vscode.TextEditor = await vscode.window.showTextDocument(document, showTextDocumentOptions);
 
-    const lineCount: number = document.lineCount;
-    const textEditorResult: boolean = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
-            editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
+        const lineCount: number = document.lineCount;
+        const textEditorResult: boolean = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
+                editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
         });
-    if (!textEditorResult) {
-        vscode.window.showErrorMessage('Error editing test file: ' + testFile);
-        await removeTestFile(testFile);
-        return;
+        if (!textEditorResult) {
+            vscode.window.showErrorMessage('Error editing test file: ' + testFile);
+            await removeTestFile(testFile);
+            return;
 
-    }
-    await document.save();
+        }
+        await document.save();
+
+    } // end of for each contract
 
     // Run npm install in smart contract project
     try {
@@ -279,10 +287,10 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
 
     if (language === 'TypeScript') {
         outputAdapter.log('Installing package dependencies including: fabric-network@beta, fabric-client@beta, @types/mocha');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install fabric-network@beta fabric-client@beta @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@beta fabric-client@beta @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
     } else {
         outputAdapter.log('Installing package dependencies including: fabric-network@beta, fabric-client@beta');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install fabric-network@beta fabric-client@beta', dir, 'Installing npm and package dependencies in smart contract project');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@beta fabric-client@beta', dir, 'Installing npm and package dependencies in smart contract project');
     }
     outputAdapter.log(npmInstallOut);
 }

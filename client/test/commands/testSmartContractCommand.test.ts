@@ -44,6 +44,7 @@ describe('testSmartContractCommand', () => {
     let fabricRuntimeConnectionMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
     let executeCommandStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
+    let infoSpy: sinon.SinonSpy;
     let fsRemoveStub: sinon.SinonStub;
     let reporterStub: sinon.SinonStub;
     let getConnectionStub: sinon.SinonStub;
@@ -57,7 +58,6 @@ describe('testSmartContractCommand', () => {
     let channel: ChannelTreeItem;
     let chaincodes: any[];
     let instantiatedSmartContract: InstantiatedChaincodeTreeItem;
-    let fakeMetadataFunctions: string[];
     let fakeConnectionDetails: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string };
     let fakeRuntimeConnectionDetails: { connectionProfile: object, certificatePath: string, privateKeyPath: string };
     let smartContractName: string;
@@ -79,6 +79,10 @@ describe('testSmartContractCommand', () => {
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
     let workspaceConfigurationGetStub: sinon.SinonStub ;
+    let fakeMetadata: any;
+    let transactionOne: any;
+    let transactionTwo: any;
+    let transactionThree: any;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -95,6 +99,7 @@ describe('testSmartContractCommand', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
             // ExecuteCommand stub
@@ -102,7 +107,6 @@ describe('testSmartContractCommand', () => {
             executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
             executeCommandStub.callThrough();
             // Client Connection stubs
-            fakeMetadataFunctions = ['instantiate', 'wagonwheeling', 'transaction2'];
             fakeConnectionDetails = {
                 connectionProfilePath: 'fakeConnectionProfilePath',
                 certificatePath: 'fakeCertificatePath',
@@ -111,7 +115,49 @@ describe('testSmartContractCommand', () => {
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
             fabricClientConnectionMock.instantiateChaincode.resolves();
-            fabricClientConnectionMock.getMetadata.resolves(JSON.parse('{"":{"functions":["instantiate","wagonwheeling","transaction2"]},"org.hyperledger.fabric":{"functions":["getMetaData"]}}'));
+            fakeMetadata = {
+                contracts: {
+                    'my-contract' : {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'eggs',
+                                        schema: {
+                                            type: 'object'
+                                        }
+                                    },
+                                    {
+                                        name: 'sugar',
+                                    },
+                                    {
+                                        name: 'flour',
+                                        schema: {
+                                            type: 'boolean'
+                                        }
+                                    },
+                                    {
+                                        name: 'butter',
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            },
+                            {
+                                name: 'transaction2'
+                            }
+                        ]
+                    }
+                }
+            };
+            transactionOne = fakeMetadata.contracts['my-contract'].transactions[0];
+            transactionTwo = fakeMetadata.contracts['my-contract'].transactions[1];
+            transactionThree = fakeMetadata.contracts['my-contract'].transactions[2];
+            fabricClientConnectionMock.getMetadata.resolves(fakeMetadata);
             fabricClientConnectionMock.getConnectionDetails.resolves(fakeConnectionDetails);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
@@ -182,22 +228,29 @@ describe('testSmartContractCommand', () => {
         it('should generate a javascript test file for a selected instantiated smart contract', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.js`);
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
-            showTextDocumentStub.should.have.been.called;
+            openTextDocumentStub.should.have.been.calledOnceWith(testUri.fsPath);
+            showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
             templateData.should.not.equal('');
             templateData.includes(smartContractLabel).should.be.true;
-            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.includes(transactionOne.name).should.be.true;
+            templateData.includes(transactionTwo.name).should.be.true;
+            templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            templateData.includes(`getContract('${smartContractName.replace(`"`, '')}', 'my-contract')`).should.be.true;
             templateData.includes('require').should.be.true;
+            templateData.includes(`const args = [''];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const args = [ JSON.stringify(${transactionOne.parameters[0].name.replace(`"`, '')})`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
@@ -212,22 +265,27 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.ts`);
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
-            showTextDocumentStub.should.have.been.called;
+            openTextDocumentStub.should.have.been.calledOnceWith(testUri.fsPath);
+            showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
             templateData.should.not.equal('');
             templateData.includes(smartContractLabel).should.be.true;
-            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.includes(transactionOne.name).should.be.true;
+            templateData.includes(transactionTwo.name).should.be.true;
+            templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
-            templateData.includes(': string').should.be.true;
+            templateData.includes(`const args: string[] = [''];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')}: ${transactionOne.parameters[2].schema.type.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const args: string[] = [ JSON.stringify(${transactionOne.parameters[0].name.replace(`"`, '')})`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
@@ -268,7 +326,83 @@ describe('testSmartContractCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
-            fabricClientConnectionMock.getMetadata.should.not.have.been.called;
+            showLanguageQuickPickStub.should.not.have.been.called;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should handle getting empty metadata', async () => {
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            fabricClientConnectionMock.getMetadata.resolves(
+                {
+                    contracts: {
+                        'my-contract' : {
+                            name: 'my-contract',
+                            transactions: [],
+                        }
+                    }
+                }
+            );
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
+            showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
+            fabricClientConnectionMock.getMetadata.should.have.been.called;
+            errorSpy.should.have.been.calledTwice;
+            errorSpy.should.have.been.calledWith(`No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+            errorSpy.should.have.been.calledWith(`Populated metadata required for generating smart contract tests, see previous error`);
+            showLanguageQuickPickStub.should.not.have.been.called;
+        });
+
+        it('should generate test files for smart contracts with no namespace defined', async () => {
+            workspaceConfigurationGetStub.onCall(0).returns('some command');
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves('TypeScript');
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+            fabricClientConnectionMock.getMetadata.resolves(
+                {
+                    contracts: {
+                        '' : {
+                            name: '',
+                            transactions: [
+                                {
+                                    name: 'instantiate',
+                                },
+                                {
+                                    name: 'wagonwheeling',
+                                    parameters: []
+                                },
+                                {
+                                    name: 'transaction2'
+                                }
+                            ]
+                        }
+                    }
+                }
+            );
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.ts`);
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
+            openTextDocumentStub.should.have.been.calledOnceWith(testUri.fsPath);
+            showTextDocumentStub.should.have.been.calledOnce;
+            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            templateData.should.not.equal('');
+            templateData.includes(smartContractLabel).should.be.true;
+            templateData.includes('instantiate').should.be.true;
+            templateData.includes('wagonwheeling').should.be.true;
+            templateData.includes('transaction2').should.be.true;
+            templateData.startsWith('/*').should.be.true;
+            templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('submitTransaction').should.be.true;
+            templateData.includes(`getContract('${smartContractName.replace(`"`, '')}')`).should.be.true;
+            templateData.includes(`const args: string[] = [''];`).should.be.true;
+            sendCommandStub.should.have.been.calledOnce;
+            workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
@@ -287,13 +421,85 @@ describe('testSmartContractCommand', () => {
             errorSpy.should.have.been.calledWith(`Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
         });
 
-        it('should handle errors with running getMetaData by showing an error message to the user', async () => {
-            fabricClientConnectionMock.getMetadata.rejects({ message: 'some error' });
+        it('should generate a test file for each smart contract defined in the metadata', async () => {
+            const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
+            const secondTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-other-contract-${smartContractLabel}.test.js`);
+            const secondTestUri: vscode.Uri = vscode.Uri.file(secondTestFilePath);
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
-            showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
-            fabricClientConnectionMock.getMetadata.should.have.been.called;
-            errorSpy.should.have.been.calledWith('Error getting metadata for smart contract: some error');
+            const morefakeMetadata: any = {
+                contracts: {
+                    'my-contract' : {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'eggs',
+                                        schema: {
+                                            type: 'object'
+                                        }
+                                    },
+                                    {
+                                        name: 'sugar',
+                                    },
+                                ]
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            }
+                        ]
+                    },
+                    'my-other-contract' : {
+                        name: 'my-other-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'chocolate',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'upgrade'
+                            }
+                        ]
+                    }
+                }
+            };
+            fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(secondTestUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            sendCommandStub.should.have.been.calledOnce;
+            errorSpy.should.not.have.been.called;
+
+            const firstTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            firstTemplateData.includes('my-contract').should.be.true;
+            firstTemplateData.includes(smartContractLabel).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(`const args = [''];`).should.be.true;
+
+            const secondTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            secondTemplateData.includes('my-other-contract').should.be.true;
+            secondTemplateData.includes(smartContractLabel).should.be.true;
+            secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].name).should.be.true;
+            secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
+            secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
+            secondTemplateData.includes(`const args = [''];`).should.be.true;
         });
 
         it('should handle errors with creating the template data', async () => {
@@ -335,16 +541,65 @@ describe('testSmartContractCommand', () => {
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
             templateData.should.not.equal('');
             templateData.includes(smartContractLabel).should.be.true;
-            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.includes(transactionOne.name).should.be.true;
+            templateData.includes(transactionTwo.name).should.be.true;
+            templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
+            templateData.includes(`const args = [''];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')};`).should.be.true;
+            templateData.includes(`const args = [ JSON.stringify(${transactionOne.parameters[0].name.replace(`"`, '')})`).should.be.true;
             errorSpy.should.not.have.been.called;
         });
 
         it('should generate a copy of the test file if the user tells it to', async () => {
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onCall(0).resolves(true);
+            pathExistsStub.onCall(1).resolves(true);
+            pathExistsStub.callThrough();
+            const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.GENERATE_NEW_TEST_FILE);
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}-copy1.test.js`);
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            showTestFileOverwriteQuickPickStub.should.have.been.called;
+            openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
+            showTextDocumentStub.should.have.been.called;
+            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            templateData.should.not.equal('');
+            templateData.includes(smartContractName).should.be.true;
+            templateData.includes(transactionOne.name).should.be.true;
+            templateData.includes(transactionTwo.name).should.be.true;
+            templateData.includes(transactionThree.name).should.be.true;
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should generate a copy of the test file and name it correctly if the smart contract namespace isnt defined', async () => {
+            fabricClientConnectionMock.getMetadata.resolves(
+                {
+                    contracts: {
+                        '' : {
+                            name: '',
+                            transactions: [
+                                {
+                                    name: 'instantiate'
+                                },
+                                {
+                                    name: 'wagonwheeling',
+                                    parameters: []
+                                },
+                                {
+                                    name: 'transaction2'
+                                }
+                            ]
+                        }
+                    }
+                }
+            );
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
             pathExistsStub.onCall(0).resolves(true);
             pathExistsStub.onCall(1).resolves(true);
@@ -360,9 +615,9 @@ describe('testSmartContractCommand', () => {
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
             templateData.should.not.equal('');
             templateData.includes(smartContractName).should.be.true;
-            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.includes('instantiate').should.be.true;
+            templateData.includes('wagonwheeling').should.be.true;
+            templateData.includes('transaction2').should.be.true;
             errorSpy.should.not.have.been.called;
         });
 
@@ -379,7 +634,7 @@ describe('testSmartContractCommand', () => {
         it('should handle errors writing data to the file', async () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.js`);
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
             mockTextEditor.edit.resolves(false);
 
@@ -418,7 +673,7 @@ describe('testSmartContractCommand', () => {
         it('should not show error for removing non-existent test file', async () => {
             mockTextEditor.edit.resolves(false);
             fsRemoveStub.rejects({ message: 'ENOENT: no such file or directory' });
-            const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.js`);
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
@@ -481,7 +736,6 @@ describe('testSmartContractCommand', () => {
             executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
             executeCommandStub.callThrough();
             // Runtime Connection stubs
-            fakeMetadataFunctions = ['instantiate', 'doubledecking', 'transaction4'];
             fakeRuntimeConnectionDetails = {
                 connectionProfile: {
                     channels: {
@@ -497,7 +751,26 @@ describe('testSmartContractCommand', () => {
             fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
             fabricRuntimeConnectionMock.connect.resolves();
             fabricRuntimeConnectionMock.instantiateChaincode.resolves();
-            fabricRuntimeConnectionMock.getMetadata.resolves(JSON.parse('{"":{"functions":["instantiate","doubledecking","transaction4"]},"org.hyperledger.fabric":{"functions":["getMetaData"]}}'));
+            fakeMetadata = {
+                contracts: {
+                    'my-contract' : {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate'
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            },
+                            {
+                                name: 'transaction2'
+                            }
+                        ]
+                    }
+                }
+            };
+            fabricRuntimeConnectionMock.getMetadata.resolves(fakeMetadata);
             fabricRuntimeConnectionMock.getConnectionDetails.resolves(fakeRuntimeConnectionDetails);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricRuntimeConnectionMock);
@@ -565,14 +838,14 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
 
             await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
-            openTextDocumentStub.should.have.been.called;
-            showTextDocumentStub.should.have.been.called;
+            openTextDocumentStub.should.have.been.calledOnce;
+            showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
             templateData.should.not.equal('');
             templateData.includes(smartContractLabel).should.be.true;
-            templateData.includes(fakeMetadataFunctions[0]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[1]).should.be.true;
-            templateData.includes(fakeMetadataFunctions[2]).should.be.true;
+            templateData.includes(fakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            templateData.includes(fakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            templateData.includes(fakeMetadata.contracts['my-contract'].transactions[2].name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;

@@ -27,7 +27,7 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { MetadataUtil } from '../util/MetadataUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -494,7 +494,7 @@ export class UserInputUtil {
 
     }
 
-    public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<string | undefined> {
+    public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, contract: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
 
@@ -503,8 +503,18 @@ export class UserInputUtil {
             return;
         }
 
-        const metaData: any = await connection.getMetadata(chaincodeName, channelName);
-        const quickPickItems: Array<string> = metaData[''];
+        const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [];
+        const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        for (const [name, transactionArray] of transactionNamesMap) {
+            for (const transaction of transactionArray) {
+                const data: { name: string, contract: string } = { name: transaction, contract: name };
+                if (name !== '') {
+                    quickPickItems.push({ label: `${name} - ${transaction}`, data: data });
+                } else {
+                    quickPickItems.push({ label: `${transaction}`, data: data });
+                }
+            }
+        }
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -515,33 +525,43 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<Array<IBlockchainQuickPickItem<PackageRegistryEntry>> | IBlockchainQuickPickItem<PackageRegistryEntry> | undefined> {
+    public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
+        // Get connection
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
             return Promise.reject('No connection to a blockchain found');
         }
 
-        const quickPickItems: IBlockchainQuickPickItem<PackageRegistryEntry>[] = [];
-        let packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        const quickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
+        // Get packaged contracts
+        let packagedContracts: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = await this.getPackagedContracts();
 
+        // For each peer, get the installed chaincode, and remove already installed contracts from the packagedContracts array
         for (const peer of peers) {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
             chaincodes.forEach((versions: string[], chaincodeName: string) => {
                 versions.forEach((version: string) => {
                     const label: string = `${chaincodeName}@${version}`;
 
-                    packages = packages.filter((_package: PackageRegistryEntry) => {
-                        const _packageLabel: string = `${_package.name}@${_package.version}`;
-                        return label !== _packageLabel;
+                    packagedContracts = packagedContracts.filter((_package: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
+                        return label !== _package.label;
                     });
                 });
             });
         }
+        quickPickItems.push(...packagedContracts);
 
-        packages.forEach((_package: PackageRegistryEntry) => {
-            quickPickItems.push({label: _package.name, description: _package.version, data: _package});
-        });
+        // Get all open projects in workspace
+        const openProjects: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = await this.getOpenProjects();
+        for (const openProject of openProjects) {
+            const workspace: vscode.WorkspaceFolder = openProject.data.workspace;
+
+            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: undefined, workspace: workspace};
+            quickPickItems.push(
+                {label: `${openProject.data.workspace.name}`, description: openProject.description, data: data}
+            );
+        }
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,

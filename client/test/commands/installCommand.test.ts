@@ -82,8 +82,11 @@ describe('InstallCommand', () => {
             });
 
             showInstallableSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').resolves({
-                label: 'myContract',
-                data: packageRegistryEntry
+                label: 'myContract@0.0.1',
+                data: {
+                    packageEntry: packageRegistryEntry,
+                    workspace: undefined
+                }
             });
 
             successSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
@@ -108,7 +111,7 @@ describe('InstallCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry'); // should I be deleting this?
+            await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
 
             mySandBox.restore();
         });
@@ -136,6 +139,28 @@ describe('InstallCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
+            executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
+            fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+            successSpy.should.have.been.calledOnceWith('Successfully installed on peer peerOne');
+        });
+
+        it('should package and install the smart contract from an open project', async () => {
+            showInstallableSmartContractsQuickPickStub.resolves({
+                label: 'myContract@0.0.1',
+                description: 'Open Project',
+                data: {
+                    packageEntry: packageRegistryEntry,
+                    workspace: undefined
+                }
+            });
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            const packageCommandStub: sinon.SinonStub = executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            packageCommandStub.resolves(packageRegistryEntry);
+
+            await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
+
+            packageCommandStub.should.have.been.calledOnce;
             executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             successSpy.should.have.been.calledOnceWith('Successfully installed on peer peerOne');

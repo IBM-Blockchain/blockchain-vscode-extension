@@ -263,21 +263,23 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should install latest version of generator-fabric', async () => {
         sendCommandStub.withArgs('npm config get prefix').resolves(USER_TEST_DATA);
         sendCommandStub.onCall(0).resolves();
-        sendCommandStub.onCall(1).resolves('0.0.8'); // latest version available from 'npm view'
-        sendCommandStub.onCall(2).resolves(USER_TEST_DATA); // npm prefix path
+        const genFabVersion: string = '0.0.11';
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: genFabVersion});
+        sendCommandStub.onCall(1).resolves(USER_TEST_DATA); // npm prefix path
         const sendCommandWithProgressSpy: sinon.SinonSpy = mySandBox.spy(CommandUtil, 'sendCommandWithProgress');
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
 
-        sendCommandWithProgressSpy.should.have.been.calledWith('npm install -g generator-fabric@' + '0.0.8', '', 'Updating generator-fabric...');
+        sendCommandWithProgressSpy.should.have.been.calledWith('npm install -g generator-fabric@' + genFabVersion, '', 'Updating generator-fabric...');
 
     });
 
     it('should continue if latest version of generator-fabric is installed', async () => {
         sendCommandStub.onCall(0).resolves();
 
-        sendCommandStub.onCall(1).resolves('0.0.7');
-        sendCommandStub.onCall(2).resolves(USER_TEST_DATA);
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '0.0.11'});
+        mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.11'});
+        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
 
         const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
 
@@ -333,8 +335,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(1).resolves();
         sendCommandStub.onCall(0).resolves();
 
-        sendCommandStub.onCall(1).resolves('0.0.7');
-        sendCommandStub.onCall(2).resolves(USER_TEST_DATA);
+        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
 
         quickPickStub.onCall(0).returns('JavaScript');
 
@@ -380,9 +381,8 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should show an error if generator-fabric package.json does not exist', async () => {
         sendCommandStub.onCall(0).resolves();
 
-        sendCommandStub.onCall(1).resolves('0.0.7');
         const wrongPath: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'nonexistent');
-        sendCommandStub.onCall(2).resolves(wrongPath);
+        sendCommandStub.onCall(1).resolves(wrongPath);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         errorSpy.should.have.been.calledWith('npm modules: yo and generator-fabric are required before creating a smart contract project');
@@ -394,9 +394,7 @@ describe('CreateSmartContractProjectCommand', () => {
         mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.7'});
         sendCommandStub.onCall(0).resolves();
 
-        sendCommandStub.onCall(1).resolves('0.0.7');
-
-        sendCommandStub.onCall(2).resolves(USER_TEST_DATA);
+        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const error: string = 'Contract languages not found in package.json';
@@ -405,8 +403,9 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should send a telemetry event if the extension is for production', async () => {
         const getPackageJSONStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
-        getPackageJSONStub.onFirstCall().returns({production: false}); // To disable npm install!
-        getPackageJSONStub.onSecondCall().returns({production: true}); // For the reporter!
+        getPackageJSONStub.onCall(0).returns({generatorFabricVersion: '0.0.11'}); // generator-fabric version check
+        getPackageJSONStub.onCall(1).returns({production: false}); // To disable npm install!
+        getPackageJSONStub.onCall(2).returns({production: true}); // For the reporter!
         const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         sendCommandStub.restore();
@@ -420,7 +419,6 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should find the generator-fabric package.json in the correct path on Linux/MacOS', async () => {
         sendCommandStub.resolves('0.0.0');
-        sendCommandStub.withArgs('npm view generator-fabric version').resolves('0.0.0');
         sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
         mySandBox.stub(process, 'platform').value('darwin');
         const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
@@ -431,7 +429,6 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should find the generator-fabric package.json in the correct path on Windows', async () => {
         sendCommandStub.resolves('0.0.0');
-        sendCommandStub.withArgs('npm view generator-fabric version').resolves('0.0.0');
         sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
         mySandBox.stub(process, 'platform').value('win32');
         const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});

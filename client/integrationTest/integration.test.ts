@@ -41,6 +41,7 @@ import { CommandUtil } from '../src/util/CommandUtil';
 import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
 import { IFabricConnection } from '../src/fabric/IFabricConnection';
 import { InstantiatedChaincodeTreeItem } from '../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { MetadataUtil } from '../src/util/MetadataUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -226,7 +227,10 @@ describe('Integration Test', () => {
 
         showInstallableStub.resolves({
             label: name,
-            data: packageToInstall
+            data: {
+                packageEntry: packageToInstall,
+                workspace: undefined
+            }
         });
         await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
     }
@@ -283,13 +287,16 @@ describe('Integration Test', () => {
         await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
     }
 
-    async function submitTransaction(name: string, version: string, transaction: string, args: string): Promise<void> {
+    async function submitTransaction(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
         showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
 
-        showTransactionStub.resolves(transaction);
+        showTransactionStub.resolves({
+            label: `${contractName} - ${transaction}`,
+            data: { name: transaction, contract: contractName}
+        });
 
         inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
 
@@ -698,20 +705,24 @@ describe('Integration Test', () => {
                 openFileNameArray.includes(pathToTestFile).should.be.true;
                 // Get the smart contract metadata
                 const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
-                const metadataObj: any = await connection.getMetadata(smartContractName, 'mychannel');
-                // tslint:disable-next-line
-                const smartContractFunctionsArray: string[] = metadataObj[""].functions;
+                const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, smartContractName, 'mychannel');
+                let smartContractTransactionsArray: string[];
+                let contractName: string = '';
+                for (const name of smartContractTransactionsMap.keys()) {
+                    smartContractTransactionsArray = smartContractTransactionsMap.get(name);
+                    contractName = name;
+                }
 
                 // Check the test file was populated properly
                 testFileContents.includes(smartContractName).should.be.true;
                 testFileContents.startsWith('/*').should.be.true;
                 testFileContents.includes('gateway.connect').should.be.true;
                 testFileContents.includes('submitTransaction').should.be.true;
-                testFileContents.includes(smartContractFunctionsArray[0]).should.be.true;
-                testFileContents.includes(smartContractFunctionsArray[1]).should.be.true;
-                testFileContents.includes(smartContractFunctionsArray[2]).should.be.true;
+                testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
+                testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
+                testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
 
-                await submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world');
+                await submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
 
                 testRunResult.includes('success for transaction').should.be.true;
                 testRunResult.includes('1 passing').should.be.true;
