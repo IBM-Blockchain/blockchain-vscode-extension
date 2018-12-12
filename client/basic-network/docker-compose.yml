@@ -82,6 +82,7 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
       - CORE_CHAINCODE_MODE=${CORE_CHAINCODE_MODE:-net} # VSCODE
+      - CORE_PEER_NETWORKID=${COMPOSE_PROJECT_NAME} # VSCODE
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     # command: peer node start --peer-chaincodedev=true
