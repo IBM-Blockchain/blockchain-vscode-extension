@@ -612,7 +612,7 @@ describe('userInputUtil', () => {
 
     describe('browseEdit', () => {
         it('should finish if user doesnt select browse or edit', async () => {
-            const placeHolder: string = 'Enter a file path to the connection profile json file';
+            const placeHolder: string = 'Enter a file path to the connection profile file';
             const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
@@ -623,15 +623,20 @@ describe('userInputUtil', () => {
         it('should return file path from browse', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
-            const placeHolder: string = 'Enter a file path to the connection profile json file';
-            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
+            const placeHolder: string = 'Enter a file path to the connection profile file';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection', {
+                'Connection Profiles' : ['json', 'yaml', 'yml']
+            });
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
                 canSelectFiles: true,
                 canSelectFolders: false,
                 canSelectMany: false,
-                openLabel: 'Select'
+                openLabel: 'Select',
+                filters: {
+                    'Connection Profiles' : ['json', 'yaml', 'yml']
+                }
             });
 
             result.should.equal('/some/path');

@@ -336,7 +336,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async browseEdit(placeHolder: string, connectionName: string): Promise<string> {
+    public static async browseEdit(placeHolder: string, connectionName: string, filters?: any): Promise<string> {
         const options: string[] = [this.BROWSE_LABEL, this.EDIT_LABEL];
         try {
             const result: string = await vscode.window.showQuickPick(options, { placeHolder });
@@ -344,13 +344,14 @@ export class UserInputUtil {
                 return;
             } else if (result === this.BROWSE_LABEL) {
                 // Browse file and get path
-                // see method comment for details of this workaround
+                // work around for #135
                 await UserInputUtil.delayWorkaround(500);
                 const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog({
                     canSelectFiles: true,
                     canSelectFolders: false,
                     canSelectMany: false,
-                    openLabel: 'Select'
+                    openLabel: 'Select',
+                    filters: filters
                 });
 
                 if (!fileBrowser) {
