@@ -41,7 +41,9 @@ export async function addConnection(): Promise<{} | void> {
         await fabricConnectionRegistry.add(fabricConnectionEntry);
 
         // Get the connection profile json file path
-        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to the connection profile json file', connectionName);
+        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to the connection profile file', connectionName, {
+            'Connection Profiles' : ['json', 'yaml', 'yml']
+        });
         if (!connectionProfilePath) {
             return Promise.resolve();
         }

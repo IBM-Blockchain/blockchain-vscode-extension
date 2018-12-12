@@ -200,7 +200,7 @@ describe('Integration Test', () => {
         const rootPath: string = path.dirname(__dirname);
 
         inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
-        browseEditStub.withArgs('Enter a file path to the connection profile json file', 'myConnection').resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
+        browseEditStub.withArgs('Enter a file path to the connection profile file', 'myConnection').resolves(path.join(rootPath, '../integrationTest/data/connection/connection.json'));
         browseEditStub.withArgs('Enter a file path to the certificate file', 'myConnection').resolves(certPath);
         browseEditStub.withArgs('Enter a file path to the private key file', 'myConnection').resolves(keyPath);
 

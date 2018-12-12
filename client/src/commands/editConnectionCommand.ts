@@ -77,8 +77,15 @@ async function updateConnection(propertyToEdit: string, connectionName: string):
         if (!placeHolder) {
             return;
         }
+        let result: string;
+        if (propertyToEdit === 'Connection Profile') {
+            result = await UserInputUtil.browseEdit(placeHolder, connectionName, {
+                'Connection Profiles' : ['json', 'yaml', 'yml']
+            });
+        } else {
+            result = await UserInputUtil.browseEdit(placeHolder, connectionName);
+        }
 
-        const result: string = await UserInputUtil.browseEdit(placeHolder, connectionName);
         if (!result) {
             return;
         } else {
@@ -115,7 +122,7 @@ function getPlaceHolder(propertyToEdit: string): string {
     let placeHolder: string;
 
     if (propertyToEdit === 'Connection Profile') {
-        placeHolder = 'Enter a file path to the connection profile json file';
+        placeHolder = 'Enter a file path to the connection profile file';
     } else if (propertyToEdit === 'Certificate') {
         placeHolder = 'Enter a file path to the certificate file';
     } else if (propertyToEdit === 'Private Key') {
