@@ -13,11 +13,11 @@
 */
 
 // tslint:disable no-var-requires
-const integrationTestRunner: any = require('vscode/lib/testrunner');
+const nodeTestRunner: any = require('vscode/lib/testrunner');
 
-integrationTestRunner.configure({
+nodeTestRunner.configure({
     ui: 'bdd',
     useColors: true
 });
 
-module.exports = integrationTestRunner;
+module.exports = nodeTestRunner;

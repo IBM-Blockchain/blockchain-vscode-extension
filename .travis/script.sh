@@ -47,9 +47,20 @@ if [ "${TASK}" == "systest" ]; then
     # put back in if you want to see the docker logs when running the tests
     # docker_logs &
 
-    export CODE_TESTS_PATH="$(pwd)/out/integrationTest";
+    export CODE_TESTS_PATH="$(pwd)/out/integrationTest/tests";
     echo $CODE_TESTS_PATH;
     export CODE_TESTS_WORKSPACE="$(pwd)/integrationTest/data/integrationTest.code-workspace"
+    echo $CODE_TESTS_WORKSPACE;
+    npm run systest 2>&1 | tee
+    ./integrationTest/scripts/stop-integration-tests.sh;
+elif [ "${TASK}" == "systestsNode" ]; then
+    ./integrationTest/scripts/start-integration-tests.sh
+    # put back in if you want to see the docker logs when running the tests
+    # docker_logs &
+
+    export CODE_TESTS_PATH="$(pwd)/out/integrationTest/nodeTests";
+    echo $CODE_TESTS_PATH;
+    export CODE_TESTS_WORKSPACE="$(pwd)/integrationTest/nodeTests/data/integrationTestsNode.code-workspace"
     echo $CODE_TESTS_WORKSPACE;
     npm run systest 2>&1 | tee
     ./integrationTest/scripts/stop-integration-tests.sh;

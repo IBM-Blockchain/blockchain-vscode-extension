@@ -1,17 +1,5 @@
 sudo: false
 
-matrix:
-  include:
-    - os: linux
-      env: TASK=systest
-    - os: linux
-      env: TASK=unit
-    - os: osx
-      env: TASK=unit
-      language: node_js
-      node_js:
-      - "lts/*"
-
 before_install:
      - if [ $TRAVIS_OS_NAME == "linux" ]; then
          sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test;
@@ -22,16 +10,31 @@ before_install:
          sh -e /etc/init.d/xvfb start;
          sleep 3;
         fi
-     - npm install -g yo
-     - npm install -g generator-fabric
 install: |
       ./.travis/install.sh
-script: |
-      ./.travis/script.sh
-deploy:
-    skip_cleanup: true
-    provider: script
-    script: ./.travis/deploy.sh
-    on:
-      all_branches: true
+
+jobs: 
+  include: 
+    - script: ./.travis/script.sh
+      os: osx
+      env: TASK=unit
+      language: node_js
+      node_js:
+      - "lts/*"
+    - script: ./.travis/script.sh
+      os: linux
+      env: TASK=unit
+    - script: ./.travis/script.sh
+      os: linux
+      env: TASK=systestsNode
+    - script: ./.travis/script.sh
+      os: linux
+      env: TASK=systest
+    - stage: deploy
+      skip_cleanup: true
+      provider: script
+      script: ./.travis/deploy.sh
+      if: branch = master
+      if: tag IS present
+
 cache: false
