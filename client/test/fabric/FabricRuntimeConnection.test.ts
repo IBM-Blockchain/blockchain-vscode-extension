@@ -139,6 +139,12 @@ describe('FabricRuntimeConnection', () => {
             await fabricRuntimeConnection.connect();
             gatewayStub.connect.should.have.been.called;
         });
+
+        it('should connect with a defined mspid', async () => {
+            should.exist(FabricConnectionFactory['runtimeConnection']);
+            await fabricRuntimeConnection.connect('Org1MSP');
+            gatewayStub.connect.should.have.been.called;
+        });
     });
     describe('getConnectionDetails', () => {
         it('should return connection details information for a runtime connection', async () => {

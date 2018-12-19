@@ -86,6 +86,20 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
 
     try {
         await connection.connect();
+    } catch (error) {
+        if (error.message.includes(`Client.createUser parameter 'opts mspid' is required`)) {
+            // Error thrown when the client section is missing from the connection profile, so ask the user for it
+            const mspid: string = await UserInputUtil.showInputBox('Client section of the connection profile does not specify mspid. Please enter mspid:');
+            if (!mspid) {
+                // User cancelled entering mspid
+                return;
+            }
+            await connection.connect(mspid);
+        } else {
+            vscode.window.showErrorMessage(error.message);
+            throw error;
+        }
+    } finally {
         FabricConnectionManager.instance().connect(connection, connectionRegistryEntry);
 
         if (!runtimeData) {
@@ -93,8 +107,5 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
             runtimeData = (isIBP ? 'IBP instance' : 'user runtime');
         }
         Reporter.instance().sendTelemetryEvent('connectCommand', {runtimeData: runtimeData});
-    } catch (error) {
-        vscode.window.showErrorMessage(error.message);
-        throw error;
     }
 }

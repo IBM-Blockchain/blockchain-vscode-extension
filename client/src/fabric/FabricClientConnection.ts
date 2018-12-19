@@ -34,7 +34,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         this.privateKeyPath = connectionData.privateKeyPath;
     }
 
-    async connect(): Promise<void> {
+    async connect(mspid?: string): Promise<void> {
         console.log('FabricClientConnection: connect');
         const connectionProfileContents: string = await this.loadFileFromDisk(this.connectionProfilePath);
         let connectionProfile: any;
@@ -50,7 +50,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         console.log('printing connectionProfile:', connectionProfile);
         const certificate: string = await this.loadFileFromDisk(this.certificatePath);
         const privateKey: string = await this.loadFileFromDisk(this.privateKeyPath);
-        await this.connectInner(connectionProfile, certificate, privateKey);
+        await this.connectInner(connectionProfile, certificate, privateKey, mspid);
     }
 
     async getConnectionDetails(): Promise<{connectionProfilePath: string, certificatePath: string, privateKeyPath: string}> {

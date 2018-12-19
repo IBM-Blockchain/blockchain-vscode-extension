@@ -299,6 +299,35 @@ describe('ConnectCommand', () => {
             errorMessageSpy.should.not.have.been.called;
         });
 
+        it('should handle no client section defined in the connection.json of the network', async () => {
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionA',
+                data: FabricConnectionRegistry.instance().get('myConnectionA')
+            });
+            mockConnection.connect.onCall(0).rejects( {message: `Client.createUser parameter 'opts mspid' is required`} );
+            const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('Org1MSP');
+            mockConnection.connect.onCall(1).resolves();
+
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+            showInputBoxStub.should.have.been.calledOnce;
+            errorMessageSpy.should.not.have.been.called;
+        });
+
+        it('should handle the user cancelling providing the mspid', async () => {
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myConnectionA',
+                data: FabricConnectionRegistry.instance().get('myConnectionA')
+            });
+            mockConnection.connect.onCall(0).rejects( {message: `Client.createUser parameter 'opts mspid' is required`} );
+            mySandBox.stub(vscode.window, 'showInputBox').resolves(undefined);
+
+            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            errorMessageSpy.should.not.have.been.called;
+        });
+
         it('should send a telemetry event if the extension is for production', async () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');

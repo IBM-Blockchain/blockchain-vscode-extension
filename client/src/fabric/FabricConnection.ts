@@ -307,13 +307,15 @@ export abstract class FabricConnection implements IFabricConnection {
         return result;
     }
 
-    protected async connectInner(connectionProfile: object, certificate: string, privateKey: string): Promise<void> {
+    protected async connectInner(connectionProfile: object, certificate: string, privateKey: string, mspid?: string): Promise<void> {
 
         const client: Client = await Client.loadFromConfig(connectionProfile);
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
 
-        const mspid: string = client.getMspid();
+        if (!mspid) {
+            mspid = client.getMspid();
+        }
 
         await this.wallet.import(this.identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
