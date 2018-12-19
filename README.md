@@ -98,10 +98,12 @@ To package a project you have open in your workspace, run the `Package a Smart C
 
 Alternatively, navigate to the explorer view (click the IBM Blockchain Platform icon in the left-navigation) then click the `add` icon (this will again package up the project you have open in your workspace).
 
+When you package a smart contract project, all of the smart contract code is added into a new Fabric smart contract package file (using the standard Fabric chaincode deployment specification format). You can deploy this package using this extension. Alternatively, you can deploy the package using other tools, such as the Fabric CLI (`peer chaincode install` command).
+
 <img src="/client/media/package_project.png" width="85%" alt="Create a package from a smart contract project">
 
 ### Export a smart contract package
-Right-click a package and select the `Export Package` option.  You can select where the package is exported to. Use this to take the packages you have made and deploy them somewhere else.
+Right-click a package and select the `Export Package` option.  You can select where the package is exported to. Use this to take the packages you have made and deploy them somewhere else, using other tools, such as the Fabric CLI (`peer chaincode install` command).
 
 <img src="/client/media/export_smart_contract_package.png" width="85%" alt="Export a smart contract project">
 
