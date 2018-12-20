@@ -17,10 +17,6 @@
 set -ex
 set -o pipefail
 
-if [ "${TASK}" != "systest" ]; then
-    exit 0
-fi
-
 # Grab the current root directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd ${DIR}/client
@@ -40,6 +36,7 @@ fi
 # Push the code to npm there there is a travis tag defined
 if [ "${TRAVIS_TAG}" != "" ]; then
 
+  echo "Travis tag defined so attempting to publish"
   # We will also need to trigger the production flag change.
   npm run productionFlag
 
@@ -77,6 +74,10 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   git commit -m "Automatic version bump to ${NEW_VERSION}"
   git push origin master
 
-fi
+  echo "Successfully published the new version"
 
-echo Successfully published the new version
+else
+
+  echo "No travis tag defined, so skipping publish attempt"
+
+fi

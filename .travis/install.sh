@@ -37,3 +37,7 @@ if [ "${TASK}" == "unit" ]; then
         mv ./node_modules/grpc/src/node/extension_binary/electron-v2.0-darwin-x64-unknown ./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown
     fi
 fi
+
+npm install -g yo
+
+npm install -g generator-fabric

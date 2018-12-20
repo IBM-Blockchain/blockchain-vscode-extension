@@ -19,7 +19,7 @@
       "preLaunchTask": "npm: watch"
     },
     {
-      "name": "Extension Tests",
+      "name": "Unit Tests",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -33,7 +33,7 @@
       "preLaunchTask": "npm: watch"
     },
     {
-      "name": "Extension Tests without coverage",
+      "name": "Debug Unit Tests (no coverage)",
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
@@ -50,34 +50,34 @@
       }
     },
     {
-        "name": "Extension Integration Tests",
-        "type": "extensionHost",
-        "request": "launch",
-        "runtimeExecutable": "${execPath}",
-        "args": [
-          "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
-          "--extensionDevelopmentPath=${workspaceFolder}",
-          "--extensionTestsPath=${workspaceFolder}/out/integrationTest"
-        ],
-        "outFiles": [
-          "${workspaceFolder}/out/integrationTest/**/*.js"
-        ],
-        "preLaunchTask": "npm: watch"
-    },
-    {
-        "name": "Extension Tests New Fabric",
-        "type": "extensionHost",
-        "request": "launch",
-        "runtimeExecutable": "${execPath}",
-        "args": [
-            "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
-            "--extensionDevelopmentPath=${workspaceFolder}",
-            "--extensionTestsPath=${workspaceFolder}/out/integrationTest"
-        ],
-        "outFiles": [
-            "${workspaceFolder}/out/integrationTest/**/*.js"
-        ],
-        "preLaunchTask": "npm: integrationTests"
-    }
+      "name": "Integration Tests",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/integrationTest"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/integrationTest/**/*.js"
+      ],
+      "preLaunchTask": "npm: watch"
+  },
+  {
+    "name": "Integration Tests (New Fabric)",
+    "type": "extensionHost",
+    "request": "launch",
+    "runtimeExecutable": "${execPath}",
+    "args": [
+        "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/integrationTest"
+    ],
+    "outFiles": [
+        "${workspaceFolder}/out/integrationTest/**/*.js"
+    ],
+    "preLaunchTask": "npm: integrationTests"
+  }
   ]
 }
