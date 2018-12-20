@@ -17,7 +17,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 
 export interface IFabricConnection {
 
-    connect(): Promise<void>;
+    connect(mspid?: string): Promise<void>;
 
     getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
 

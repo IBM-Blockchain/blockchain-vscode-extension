@@ -23,12 +23,12 @@ export class FabricRuntimeConnection extends FabricConnection {
         super();
     }
 
-    async connect(): Promise<void> {
+    async connect(mspid?: string): Promise<void> {
         console.log('connect');
         const connectionProfile: object = await this.runtime.getConnectionProfile();
         const certificate: string = await this.runtime.getCertificate();
         const privateKey: string = await this.runtime.getPrivateKey();
-        await this.connectInner(connectionProfile, certificate, privateKey);
+        await this.connectInner(connectionProfile, certificate, privateKey, mspid);
     }
 
     async getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string}> {

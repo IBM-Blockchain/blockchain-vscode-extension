@@ -61,7 +61,8 @@ describe('FabricClientConnection', () => {
     });
 
     describe('connect', () => {
-        it('should connect to a fabric', async () => {
+
+        beforeEach(async () => {
             const connectionData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
@@ -69,7 +70,9 @@ describe('FabricClientConnection', () => {
             };
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = gatewayStub;
+        });
 
+        it('should connect to a fabric', async () => {
             await fabricClientConnection.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -77,14 +80,6 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect with an already loaded client connection', async () => {
-            const connectionData: any = {
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-            };
-            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
-            fabricClientConnection['gateway'] = gatewayStub;
-
             should.exist(FabricConnectionFactory['clientConnection']);
             await fabricClientConnection.connect();
             gatewayStub.connect.should.have.been.called;
@@ -92,52 +87,59 @@ describe('FabricClientConnection', () => {
             fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
-        it('should connect to a fabric with a .yaml connection profile', async () => {
-            const connectionYamlData: any = {
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection.yaml'),
-                certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
-            };
-            fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionYamlData) as FabricClientConnection;
-            fabricClientConnectionYaml['gateway'] = gatewayStub;
-
-            await fabricClientConnectionYaml.connect();
+        it('should connect with a defined mspid', async () => {
+            await fabricClientConnection.connect('Org1MSP');
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
             fabricClientConnection['networkIdProperty'].should.equal(false);
         });
+    });
 
-        it('should connect to a fabric with a .yml connection profile', async () => {
-            const otherConnectionYmlData: any = {
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml'),
-                certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
-            };
-            otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
-            otherFabricClientConnectionYml['gateway'] = gatewayStub;
+    it('should connect to a fabric with a .yaml connection profile', async () => {
+        const connectionYamlData: any = {
+            connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection.yaml'),
+            certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
+        };
+        fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionYamlData) as FabricClientConnection;
+        fabricClientConnectionYaml['gateway'] = gatewayStub;
 
-            await otherFabricClientConnectionYml.connect();
-            gatewayStub.connect.should.have.been.called;
-            errorSpy.should.not.have.been.called;
-            fabricClientConnection['networkIdProperty'].should.equal(false);
-        });
+        await fabricClientConnectionYaml.connect();
+        gatewayStub.connect.should.have.been.called;
+        errorSpy.should.not.have.been.called;
+        fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
+    });
 
-        it('should detecting connecting to ibp instance', async () => {
+    it('should connect to a fabric with a .yml connection profile', async () => {
+        const otherConnectionYmlData: any = {
+            connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml'),
+            certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
+        };
+        otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
+        otherFabricClientConnectionYml['gateway'] = gatewayStub;
 
-            const connectionData: any = {
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-            };
-            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
-            fabricClientConnection['gateway'] = gatewayStub;
+        await otherFabricClientConnectionYml.connect();
+        gatewayStub.connect.should.have.been.called;
+        errorSpy.should.not.have.been.called;
+        fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
+    });
 
-            await fabricClientConnection.connect();
+    it('should detecting connecting to ibp instance', async () => {
 
-            gatewayStub.connect.should.have.been.called;
-            errorSpy.should.not.have.been.called;
-            fabricClientConnection['networkIdProperty'].should.equal(true);
-        });
+        const connectionData: any = {
+            connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+            certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+        };
+        fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
+        fabricClientConnection['gateway'] = gatewayStub;
+
+        await fabricClientConnection.connect();
+
+        gatewayStub.connect.should.have.been.called;
+        errorSpy.should.not.have.been.called;
+        fabricClientConnection['networkIdProperty'].should.equal(true);
     });
 
     describe('connection failure', () => {
