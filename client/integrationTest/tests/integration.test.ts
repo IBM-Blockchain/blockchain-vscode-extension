@@ -15,15 +15,12 @@ import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
@@ -33,10 +30,8 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { InstalledChainCodeTreeItem } from '../../src/explorer/model/InstalledChainCodeTreeItem';
 import { InstalledChainCodeVersionTreeItem } from '../../src/explorer/model/InstalledChaincodeVersionTreeItem';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { TestUtil } from '../../test/TestUtil';
-import { CommandUtil } from '../../src/util/CommandUtil';
+import { IntegrationTestUtil } from '../integrationTestUtil';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 
 const should: Chai.Should = chai.should();
@@ -47,34 +42,17 @@ chai.use(chaiAsPromised);
 // Defines a Mocha test suite to group tests of similar kind together
 describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
-
     let mySandBox: sinon.SinonSandbox;
-    let keyPath: string;
-    let certPath: string;
-    let testContractName: string;
-    let testContractDir: string;
-    let testContractType: string;
-
-    let getWorkspaceFoldersStub: sinon.SinonStub;
-    let findFilesStub: sinon.SinonStub;
-    let showPeerQuickPickStub: sinon.SinonStub;
-    let showChannelStub: sinon.SinonStub;
-    let showChanincodeAndVersionStub: sinon.SinonStub;
-    let inputBoxStub: sinon.SinonStub;
-    let browseEditStub: sinon.SinonStub;
-    let showInstantiatedSmartContractsStub: sinon.SinonStub;
-    let workspaceFolder: vscode.WorkspaceFolder;
+    let integrationTestUtil: IntegrationTestUtil;
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    let runtime: FabricRuntime;
+    let localFabricItem: RuntimeTreeItem;
+    let connectionItems: BlockchainTreeItem[];
     let errorSpy: sinon.SinonSpy;
-    let showLanguagesQuickPickStub: sinon.SinonStub;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
-    let showInstallableStub: sinon.SinonStub;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
-        keyPath = path.join(__dirname, `../../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem`);
-        certPath = path.join(__dirname, `../../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
 
         await ExtensionUtil.activateExtension();
         await TestUtil.storeConnectionsConfig();
@@ -102,22 +80,24 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         delete process.env.GOPATH;
         mySandBox = sinon.createSandbox();
-        getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
-        findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
-        showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
-        showInstallableStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
-        showChannelStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
-        showChanincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
-        inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
-        browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-        showInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
-        showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+        integrationTestUtil = new IntegrationTestUtil(mySandBox);
 
+        showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
         errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-        showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
+
+        // Ensure that the Fabric runtime is in the right state.
+        runtime = runtimeManager.get('local_fabric');
+        runtime.isRunning().should.eventually.be.false;
+        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+        if (runtime.isDevelopmentMode()) {
+            await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', localFabricItem);
+        }
+        localFabricItem.should.not.be.null;
+
     });
 
     afterEach(async () => {
@@ -126,163 +106,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         delete process.env.GOPATH;
     });
 
-    async function createSmartContract(name: string, type: string): Promise<void> {
-        showLanguagesQuickPickStub.resolves(type);
-        mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
-
-        testContractName = name;
-        if (type === 'Go') {
-            process.env.GOPATH = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
-            testContractDir = path.join(process.env.GOPATH, 'src', name);
-        } else {
-            testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp', name);
-        }
-        testContractType = type;
-        const exists: boolean = await fs.pathExists(testContractDir);
-        if (exists) {
-            await fs.remove(testContractDir);
-        }
-
-        const uri: vscode.Uri = vscode.Uri.file(testContractDir);
-        const uriArr: Array<vscode.Uri> = [uri];
-        const openDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog');
-        openDialogStub.resolves(uriArr);
-
-        let generator: string;
-        if (type === 'Go' || type === 'Java') {
-            generator = 'fabric:chaincode';
-        }
-
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry', generator);
-
-        if (type === 'JavaScript' || type === 'TypeScript') {
-            await CommandUtil.sendCommandWithOutput('npm', ['install'], testContractDir, undefined, VSCodeOutputAdapter.instance(), false);
-        }
-    }
-
-    async function packageSmartContract(version: string = '0.0.1'): Promise<void> {
-        let workspaceFiles: vscode.Uri[];
-        if (testContractType === 'JavaScript') {
-            workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(testContractDir) };
-        } else if (testContractType === 'TypeScript') {
-            workspaceFolder = { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(testContractDir) };
-        } else if (testContractType === 'Java') {
-            inputBoxStub.withArgs('Enter a name for your Java package').resolves(testContractName);
-            inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
-            workspaceFolder = { index: 0, name: 'javaProject', uri: vscode.Uri.file(testContractDir) };
-        } else if (testContractType === 'Go') {
-            inputBoxStub.withArgs('Enter a name for your Go package').resolves(testContractName);
-            inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
-            workspaceFolder = { index: 0, name: 'goProject', uri: vscode.Uri.file(testContractDir) };
-            workspaceFiles = [vscode.Uri.file('chaincode.go')];
-            findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.go'), null, 1).resolves(workspaceFiles);
-        } else {
-            throw new Error(`I do not know how to handle language ${testContractType}`);
-        }
-        getWorkspaceFoldersStub.returns([workspaceFolder]);
-
-        await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
-    }
-
-    async function createFabricConnection(): Promise<void> {
-        if (connectionRegistry.exists('myConnection')) {
-            await connectionRegistry.delete('myConnection');
-        }
-
-        const rootPath: string = path.dirname(__dirname);
-
-        inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
-        browseEditStub.withArgs('Enter a file path to the connection profile file', 'myConnection').resolves(path.join(rootPath, '../../integrationTest/data/connection/connection.json'));
-        browseEditStub.withArgs('Enter a file path to the certificate file', 'myConnection').resolves(certPath);
-        browseEditStub.withArgs('Enter a file path to the private key file', 'myConnection').resolves(keyPath);
-
-        await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
-
-        connectionRegistry.exists('myConnection').should.be.true;
-    }
-
-    async function connectToFabric(): Promise<void> {
-        const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
-
-    }
-
-    async function installSmartContract(name: string, version: string): Promise<void> {
-        showPeerQuickPickStub.resolves('peer0.org1.example.com');
-        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        const packageToInstall: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry): boolean => {
-            return packageEntry.version === version && packageEntry.name === name;
-        });
-
-        should.exist(packageToInstall);
-
-        showInstallableStub.resolves({
-            label: name,
-            data: {
-                packageEntry: packageToInstall,
-                workspace: undefined
-            }
-        });
-        await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
-    }
-
-    async function instantiateSmartContract(name: string, version: string): Promise<void> {
-        showChannelStub.resolves('mychannel');
-
-        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
-            return packageEntry.name === name && packageEntry.version === version;
-        });
-
-        showChanincodeAndVersionStub.resolves({
-            label: `${name}@${version}`,
-            description: 'Installed',
-            data: {
-                packageEntry: wantedPackage,
-                workspaceFolder: undefined,
-            }
-        });
-
-        inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
-        inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-    }
-
-    async function upgradeSmartContract(name: string, version: string): Promise<void> {
-        showChannelStub.resolves('mychannel');
-
-        const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-        const wantedPackage: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry) => {
-            return packageEntry.name === name && packageEntry.version === version;
-        });
-
-        showChanincodeAndVersionStub.resolves({
-            label: `${name}@${version}`,
-            description: 'Installed',
-            data: {
-                packageEntry: wantedPackage,
-                workspaceFolder: undefined,
-            }
-        });
-
-        // Upgrade from instantiated contract at version 0.0.1
-        showInstantiatedSmartContractsStub.resolves({
-            label: `${name}@0.0.1`,
-            data: { name: name, channel: 'mychannel', version: '0.0.1' }
-        });
-
-        inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
-        inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
-    }
-
     it('should connect to a real fabric', async () => {
-        await createFabricConnection();
+        await integrationTestUtil.createFabricConnection();
 
-        await connectToFabric();
+        await integrationTestUtil.connectToFabric();
 
         const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
@@ -297,25 +124,15 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         channelChildrenOne[0].label.should.equal('peer0.org1.example.com');
 
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-        const connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
         const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myConnection')) as ConnectionTreeItem;
 
         showConfirmationWarningMessageStub.resolves(true);
         await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', myConnectionItem);
-        connectionRegistry.exists('myConnection').should.be.false;
+        integrationTestUtil.connectionRegistry.exists('myConnection').should.be.false;
     }).timeout(0);
 
     it('should allow you to start, connect to, open a terminal on and stop the local Fabric in non-development mode', async () => {
-
-        // Ensure that the Fabric runtime is in the right state.
-        const runtime: FabricRuntime = runtimeManager.get('local_fabric');
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Find the Fabric runtime in the connections tree.
-        let connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        let localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
 
         // Start the Fabric runtime, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
@@ -352,16 +169,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
     it('should allow you to start, connect to, and stop the local Fabric in development mode', async () => {
 
-        // Ensure that the Fabric runtime is in the right state.
-        const runtime: FabricRuntime = runtimeManager.get('local_fabric');
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Find the Fabric runtime in the connections tree.
-        let connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        let localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
-
         // Enable development mode for the Fabric runtime.
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', localFabricItem);
 
@@ -395,16 +202,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
     }).timeout(0);
 
     it('should allow you to restart the local Fabric in non-development mode', async () => {
-
-        // Ensure that the Fabric runtime is in the right state.
-        const runtime: FabricRuntime = runtimeManager.get('local_fabric');
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Find the Fabric runtime in the connections tree.
-        let connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        let localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
 
         // Start the Fabric runtime, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
@@ -452,16 +249,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
     it('should persist local Fabric data across restarts until the local Fabric is torn down', async () => {
 
-        // Ensure that the Fabric runtime is in the right state.
-        const runtime: FabricRuntime = runtimeManager.get('local_fabric');
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Find the Fabric runtime in the connections tree.
-        let connectionItems: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        let localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
-
         // Start the Fabric runtime, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
         runtime.isRunning().should.eventually.be.true;
@@ -476,10 +263,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         channelItems[1].label.should.equal('mychannel');
 
         // Create a smart contract, package it, install it, and instantiate it.
-        await createSmartContract('teardownSmartContract', 'JavaScript');
-        await packageSmartContract();
-        await installSmartContract('teardownSmartContract', '0.0.1');
-        await instantiateSmartContract('teardownSmartContract', '0.0.1');
+        await integrationTestUtil.createSmartContract('teardownSmartContract', 'JavaScript');
+        await integrationTestUtil.packageSmartContract();
+        await integrationTestUtil.installSmartContract('teardownSmartContract', '0.0.1');
+        await integrationTestUtil.instantiateSmartContract('teardownSmartContract', '0.0.1');
 
         // Disconnect from the Fabric runtime.
         await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
@@ -542,23 +329,23 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and upgrade it`, async () => {
             const smartContractName: string = `my${language}SC`;
 
-            await createFabricConnection();
+            await integrationTestUtil.createFabricConnection();
 
-            await connectToFabric();
+            await integrationTestUtil.connectToFabric();
 
-            await createSmartContract(smartContractName, language);
+            await integrationTestUtil.createSmartContract(smartContractName, language);
 
-            await packageSmartContract();
+            await integrationTestUtil.packageSmartContract();
 
-            await installSmartContract(smartContractName, '0.0.1');
+            await integrationTestUtil.installSmartContract(smartContractName, '0.0.1');
 
-            await instantiateSmartContract(smartContractName, '0.0.1');
+            await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1');
 
-            await packageSmartContract('0.0.2');
+            await integrationTestUtil.packageSmartContract('0.0.2');
 
-            await installSmartContract(smartContractName, '0.0.2');
+            await integrationTestUtil.installSmartContract(smartContractName, '0.0.2');
 
-            await upgradeSmartContract(smartContractName, '0.0.2');
+            await integrationTestUtil.upgradeSmartContract(smartContractName, '0.0.2');
 
             const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
 
