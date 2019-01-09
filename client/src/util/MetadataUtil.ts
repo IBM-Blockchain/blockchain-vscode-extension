@@ -69,7 +69,7 @@ export class MetadataUtil {
             }
         } catch (error) {
             if (error.message.includes(`You've asked to invoke a function that does not exist`) ) {
-                vscode.window.showErrorMessage(`Error getting metadata for smart contract ${instantiatedChaincodeName}, please ensure this smart contract is depending on at least fabric-contract@1.4.0-beta2`);
+                vscode.window.showErrorMessage(`Error getting metadata for smart contract ${instantiatedChaincodeName}, please ensure this smart contract is depending on at least fabric-contract@1.4.0`);
             } else {
                 vscode.window.showErrorMessage(`Error getting metadata for smart contract ${instantiatedChaincodeName}: ${error.message}`);
             }

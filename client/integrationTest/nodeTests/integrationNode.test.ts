@@ -145,7 +145,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             let fileSuffix: string;
             fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
             // Check test file exists
-            const pathToTestFile: string = path.join(integrationTestUtil.testContractDir, 'functionalTests', `${smartContractName}@0.0.1.test.${fileSuffix}`);
+            const pathToTestFile: string = path.join(integrationTestUtil.testContractDir, 'functionalTests', `MyContract-${smartContractName}@0.0.1.test.${fileSuffix}`);
             fs.pathExists(pathToTestFile).should.eventually.be.true;
             const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
             const testFileContents: string = testFileContentsBuffer.toString();

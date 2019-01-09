@@ -216,7 +216,11 @@ describe('FabricConnection', () => {
         beforeEach(async () => {
             peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peer1' });
             fabricClientStub.getPeersForOrg.returns([peer]);
-            const responseStub: any = [[{ status: 200 }]];
+            const responseStub: any = [[{
+                response: {
+                    status: 200
+                }
+            }]];
             fabricClientStub.installChaincode.resolves(responseStub);
             await fabricConnection.connect();
         });
@@ -241,7 +245,34 @@ describe('FabricConnection', () => {
         });
 
         it('should handle error response', async () => {
-            const responseStub: any = [[{ status: 400, message: 'some error' }]];
+            const responseStub: any = [[new Error('some error')]];
+            fabricClientStub.installChaincode.resolves(responseStub);
+
+            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+                name: 'vscode-pkg-1',
+                version: '0.0.1',
+                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+            });
+
+            await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(/some error/);
+            fabricClientStub.installChaincode.should.have.been.calledWith({
+                targets: [peer],
+                txId: sinon.match.any,
+                chaincodePackage: sinon.match((buffer: Buffer) => {
+                    buffer.should.be.an.instanceOf(Buffer);
+                    buffer.length.should.equal(2719);
+                    return true;
+                })
+            });
+        });
+
+        it('should handle failed response', async () => {
+            const responseStub: any = [[{
+                response: {
+                    message: 'some error',
+                    status: 400
+                }
+            }]];
             fabricClientStub.installChaincode.resolves(responseStub);
 
             const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({

@@ -298,7 +298,7 @@ describe('userInputUtil', () => {
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
-            await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(`No connection to a blockchain found`);
+            await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(/No connection to a blockchain found/);
         });
     });
 
@@ -373,7 +373,7 @@ describe('userInputUtil', () => {
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
-            await UserInputUtil.showChannelQuickPickBox('Choose a channel').should.be.rejectedWith(`No connection to a blockchain found`);
+            await UserInputUtil.showChannelQuickPickBox('Choose a channel').should.be.rejectedWith(/No connection to a blockchain found/);
         });
     });
 
@@ -381,7 +381,7 @@ describe('userInputUtil', () => {
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>()).should.be.rejectedWith(`No connection to a blockchain found`);
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>()).should.be.rejectedWith(/No connection to a blockchain found/);
 
         });
 
@@ -1082,7 +1082,7 @@ describe('userInputUtil', () => {
 
         it('showing installable contracts should handle no connection', async () => {
             getConnectionStub.returns(null);
-            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.be.rejectedWith(`No connection to a blockchain found`);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.be.rejectedWith(/No connection to a blockchain found/);
         });
 
     });

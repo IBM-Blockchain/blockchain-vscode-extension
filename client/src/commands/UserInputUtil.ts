@@ -183,11 +183,11 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static showPeerQuickPickBox(prompt: string): Thenable<string | undefined> {
+    public static async showPeerQuickPickBox(prompt: string): Promise<string | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
-            return Promise.reject('No connection to a blockchain found');
+            throw new Error('No connection to a blockchain found');
         }
         const peerNames: Array<string> = connection.getAllPeerNames();
 
@@ -204,7 +204,7 @@ export class UserInputUtil {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
-            return Promise.reject('No connection to a blockchain found');
+            throw new Error('No connection to a blockchain found');
         }
 
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
@@ -531,7 +531,7 @@ export class UserInputUtil {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
-            return Promise.reject('No connection to a blockchain found');
+            throw new Error('No connection to a blockchain found');
         }
 
         const quickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
@@ -577,7 +577,7 @@ export class UserInputUtil {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
         if (!connection) {
-            return Promise.reject('No connection to a blockchain found');
+            throw new Error('No connection to a blockchain found');
         }
 
         const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = [];

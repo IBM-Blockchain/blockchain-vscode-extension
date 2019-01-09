@@ -273,9 +273,9 @@ export class IntegrationTestUtil {
 
     public async runSmartContractTests(name: string, language: string): Promise<string> {
         // Run the same command that the JavaScript Test Runner runs to run javascript/typescript tests
-        let testCommand: string = `node_modules/.bin/mocha functionalTests/${name}@0.0.1.test.js --grep="instantiate"`;
+        let testCommand: string = `node_modules/.bin/mocha functionalTests/MyContract-${name}@0.0.1.test.js --grep="instantiate"`;
         if (language === 'TypeScript') {
-            testCommand = `node_modules/.bin/mocha functionalTests/${name}@0.0.1.test.ts --grep="instantiate" -r ts-node/register`;
+            testCommand = `node_modules/.bin/mocha functionalTests/MyContract-${name}@0.0.1.test.ts --grep="instantiate" -r ts-node/register`;
         }
         const testResult: string = await CommandUtil.sendCommand(testCommand, this.testContractDir);
         return testResult;

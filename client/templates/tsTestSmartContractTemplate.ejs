@@ -19,8 +19,8 @@
 */
 
 import * as assert from 'assert';
-import * as Client from 'fabric-client';
 import * as fabricNetwork from 'fabric-network';
+import * as yaml from 'js-yaml';
 import * as fs from 'fs-extra';
 
 <%_ if (contractName !== '') { _%>
@@ -30,35 +30,40 @@ describe('<%=chaincodeLabel%>' , () => {
 <%_ } _%>
 
     const gateway: fabricNetwork.Gateway = new fabricNetwork.Gateway();
+    let connectionProfile;
     const fabricWallet: fabricNetwork.InMemoryWallet = new fabricNetwork.InMemoryWallet();
     const identityName: string = '<%=chaincodeLabel%>';
-    let client: Client;
 
     before(async () => {
         const connectionProfilePath: string = '<%=connectionProfilePath%>';
         const certificatePath: string = '<%=certificatePath%>';
         const privateKeyPath: string = '<%=privateKeyPath%>';
 
+        const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
+        if (connectionProfilePath.endsWith('.json')) {
+            connectionProfile = JSON.parse(connectionProfileContents);
+        } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
+            connectionProfile = yaml.safeLoad(connectionProfileContents);
+        };
         const certificate: string = await fs.readFile(certificatePath, 'utf8');
         const privateKey: string = await fs.readFile(privateKeyPath, 'utf8');
 
-        client = await Client.loadFromConfig(connectionProfilePath);
-        const mspid: string = client.getMspid();
-
+        const clientOrganization: string = connectionProfile.client.organization;
+        const mspid: string = connectionProfile.organizations[clientOrganization].mspid;
         await fabricWallet.import(
             identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
     });
 
     beforeEach(async () => {
-        const connectOptions: fabricNetwork.InitOptions = {
+        const connectOptions: fabricNetwork.GatewayOptions = {
+            discovery: {
+                asLocalhost: true,
+            },
             identity: identityName,
             wallet: fabricWallet,
         };
-        connectOptions['discovery'] = {
-            asLocalhost: true,
-        };
-        await gateway.connect(client, connectOptions);
+        await gateway.connect(connectionProfile, connectOptions);
     });
 
     afterEach(async () => {
