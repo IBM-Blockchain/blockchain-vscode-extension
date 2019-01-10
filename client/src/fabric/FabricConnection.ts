@@ -115,13 +115,12 @@ export abstract class FabricConnection implements IFabricConnection {
             chaincodePackage: pkgBuffer,
             txId: this.gateway.getClient().newTransactionID()
         };
-        const response: [Client.ProposalResponse[], Client.Proposal] = await this.gateway.getClient().installChaincode(installRequest);
-        const proposalResponse: Client.ProposalResponse = response[0][0];
-        // Horrible hack to get around fabric problem
-        const status: number = proposalResponse['status'];
-        if (status && status !== 200) {
-            // Horrible hack to get around fabric problem
-            throw new Error(proposalResponse['message']);
+        const response: Client.ProposalResponseObject = await this.gateway.getClient().installChaincode(installRequest);
+        const proposalResponse: Client.ProposalResponse | Error = response[0][0];
+        if (proposalResponse instanceof Error) {
+            throw proposalResponse;
+        } else if (proposalResponse.response.status !== 200) {
+            throw new Error(proposalResponse.response.message);
         }
     }
 
@@ -172,7 +171,7 @@ export abstract class FabricConnection implements IFabricConnection {
         await eventHandler.startListening();
 
         const transactionRequest: Client.TransactionRequest = {
-            proposalResponses: proposalResponseObject[0],
+            proposalResponses: proposalResponseObject[0] as Client.ProposalResponse[],
             proposal: proposalResponseObject[1],
             txId: transactionId
         };
@@ -281,7 +280,7 @@ export abstract class FabricConnection implements IFabricConnection {
         await eventHandler.startListening();
 
         const transactionRequest: Client.TransactionRequest = {
-            proposalResponses: proposalResponseObject[0],
+            proposalResponses: proposalResponseObject[0] as Client.ProposalResponse[],
             proposal: proposalResponseObject[1],
             txId: transactionId
         };
@@ -321,13 +320,13 @@ export abstract class FabricConnection implements IFabricConnection {
 
         const options: GatewayOptions = {
             wallet: this.wallet,
-            identity: this.identityName
+            identity: this.identityName,
+            discovery: {
+                asLocalhost: true
+            }
         };
 
-        options['discovery'] = {};
-        (options['discovery'] as any).asLocalhost = true;
-
-        await this.gateway.connect(client, options);
+        await this.gateway.connect(connectionProfile, options);
     }
 
     private getChannel(channelName: string): Client.Channel {

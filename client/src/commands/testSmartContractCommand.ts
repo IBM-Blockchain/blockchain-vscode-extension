@@ -286,11 +286,11 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log('Installing package dependencies including: fabric-network@beta, fabric-client@beta, @types/mocha');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@beta fabric-client@beta @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log('Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0 @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
     } else {
-        outputAdapter.log('Installing package dependencies including: fabric-network@beta, fabric-client@beta');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@beta fabric-client@beta', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log('Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0', dir, 'Installing npm and package dependencies in smart contract project');
     }
     outputAdapter.log(npmInstallOut);
 }

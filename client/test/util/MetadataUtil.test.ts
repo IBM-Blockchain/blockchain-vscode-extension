@@ -143,7 +143,7 @@ describe('Metadata Util tests', () => {
         fabricClientConnectionMock.getMetadata.rejects({message: `You've asked to invoke a function that does not exist`});
         const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
         names.size.should.equal(0);
-        errorSpy.should.have.been.calledOnceWith(`Error getting metadata for smart contract chaincode, please ensure this smart contract is depending on at least fabric-contract@1.4.0-beta2`);
+        errorSpy.should.have.been.calledOnceWith(`Error getting metadata for smart contract chaincode, please ensure this smart contract is depending on at least fabric-contract@1.4.0`);
     });
 
     it('should handle error getting metadata', async () => {
