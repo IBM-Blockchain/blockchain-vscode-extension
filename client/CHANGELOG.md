@@ -73,3 +73,14 @@
 * Support for multiple contracts defined in smart contract metadata [#164](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/164)
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-41.png)
+
+## 0.1.1: January 10th 2019
+
+* Support for the newly released Hyperledger Fabric v1.4 [#441](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/441)
+  * Massive congratulations to everyone who contributed to Hyperledger Fabric v1.4!
+* Fix the install command not displaying open smart contract projects [#320](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/320)
+* Fix for dialog box filtering for json or yaml connection profiles when adding a new connection [#326](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/326)
+* Updated packaging documentation [#417](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/417)
+* Ask for MSPid if client section of connection profile is missing [#427](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/427)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-42.png)
