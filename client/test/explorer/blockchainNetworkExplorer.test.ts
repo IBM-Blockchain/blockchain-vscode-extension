@@ -343,10 +343,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const myConnection: any = {
                     name: 'myConnection',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificate: '/some/path',
-                        privateKey: '/some/otherPath'
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
                 };
 
                 connections.push(myConnection);

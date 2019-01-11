@@ -269,7 +269,7 @@ describe('ConnectCommand', () => {
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
             connection.walletPath = testFabricWallet.walletPath;
 
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+            quickPickStub.resolves({
                 label: 'local_fabric',
                 data: connection
             });
@@ -306,7 +306,12 @@ describe('ConnectCommand', () => {
             const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
             connection.name = 'local_fabric';
             connection.managedRuntime = true;
-            const showQuickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+            connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
+            const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
+            mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
+            connection.walletPath = testFabricWallet.walletPath;
+            quickPickStub.resolves({
                 label: 'local_fabric',
                 data: connection
             });

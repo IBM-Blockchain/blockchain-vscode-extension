@@ -240,6 +240,60 @@ describe('EditConnectionCommand', () => {
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
+            it('should update connection profile and then handle the user not providing certificate path', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
+                mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);
+                mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
+                showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: ''}});
+                quickPickStub.resolves('Connection Profile');
+                browseEditStub.onCall(0).resolves('/some/path');
+                showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
+                showInputBoxStub.resolves('greenConga');
+                browseEditStub.onCall(1).resolves('some/certificatePath');
+                browseEditStub.onCall(2).resolves();
+
+                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                updateFabricConnectionRegistryStub.should.have.been.calledOnce;
+                updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: ''});
+                browseEditStub.should.have.been.calledThrice;
+                logSpy.should.have.been.calledTwice;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it('should update connection profile and then handle the user not providing method for importing identity', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
+                mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);
+                mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
+                showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: ''}});
+                quickPickStub.resolves('Connection Profile');
+                browseEditStub.onCall(0).resolves('/some/path');
+                showIdentityOptionsStub.resolves();
+
+                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                updateFabricConnectionRegistryStub.should.have.been.calledOnce;
+                updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: ''});
+                browseEditStub.should.have.been.calledOnce;
+                logSpy.should.have.been.calledTwice;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+            it('should update connection profile and then handle the user not providing wallet path', async () => {
+                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
+                mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);
+                mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
+                showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: ''}});
+                quickPickStub.resolves('Connection Profile');
+                browseEditStub.onCall(0).resolves('/some/path');
+                showIdentityOptionsStub.resolves(UserInputUtil.WALLET);
+                browseEditStub.onCall(1).resolves();
+
+                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                updateFabricConnectionRegistryStub.should.have.been.calledOnce;
+                updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: ''});
+                browseEditStub.should.have.been.calledTwice;
+                logSpy.should.have.been.calledTwice;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
             it('should update the identity with cert/keyPath by creating a wallet', async () => {
                 mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);

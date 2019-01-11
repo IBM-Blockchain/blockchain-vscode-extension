@@ -151,7 +151,6 @@ describe('DeleteConnectionCommand', () => {
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
-
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
             connections.length.should.equal(2);
             connections[0].should.deep.equal(myConnectionA);

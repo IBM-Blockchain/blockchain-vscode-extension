@@ -16,7 +16,6 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { ConnectionIdentityTreeItem } from './model/ConnectionIdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
@@ -247,7 +246,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             }
 
             const command: vscode.Command = {
-                command: 'blockchainExplorer.connectEntry',
+                command: 'blockchainConnectionsExplorer.connectEntry',
                 title: '',
                 arguments: [connection]
             };
