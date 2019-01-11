@@ -60,6 +60,11 @@ export async function exportConnectionDetails(connectionTreeItem?: ConnectionTre
         dir = workspaceFolders[0].uri.fsPath;
     }
 
-    await fabricRuntime.exportConnectionDetails(VSCodeOutputAdapter.instance(), dir);
+    try {
+        await fabricRuntime.exportConnectionDetails(VSCodeOutputAdapter.instance(), dir);
+    } catch (error) {
+        outputAdapter.log(LogType.ERROR, 'Issue exporting connection details, see output channel for more information');
+        return;
+    }
     outputAdapter.log(LogType.SUCCESS, `Successfully exported connection details to ${path.join(dir, fabricRuntime.getName())}`);
 }

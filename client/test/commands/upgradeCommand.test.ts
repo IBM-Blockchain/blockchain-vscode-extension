@@ -26,7 +26,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import * as myExtension from '../../src/extension';
-import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
@@ -34,17 +33,6 @@ import { Reporter } from '../../src/util/Reporter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
-
-class TestFabricConnection extends FabricConnection {
-
-    async connect(): Promise<void> {
-        return;
-    }
-
-    async getConnectionDetails(): Promise<any> {
-        return;
-    }
-}
 
 describe('UpgradeCommand', () => {
     let mySandBox: sinon.SinonSandbox;

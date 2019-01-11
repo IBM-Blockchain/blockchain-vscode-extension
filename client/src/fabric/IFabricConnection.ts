@@ -14,12 +14,11 @@
 'use strict';
 
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { IFabricWallet } from './IFabricWallet';
 
 export interface IFabricConnection {
 
-    connect(mspid?: string): Promise<void>;
-
-    getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string}>;
+    connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
     disconnect(): void;
 

@@ -57,6 +57,7 @@ export class IntegrationTestUtil {
     public workspaceConfigurationUpdateStub: sinon.SinonStub;
     public workspaceConfigurationGetStub: sinon.SinonStub;
     public getConfigurationStub: sinon.SinonStub;
+    public showIdentityOptionsStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -78,6 +79,7 @@ export class IntegrationTestUtil {
         this.showTransactionStub = this.mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
+        this.showIdentityOptionsStub = this.mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
 
     }
 
@@ -87,9 +89,11 @@ export class IntegrationTestUtil {
         }
 
         this.inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
-        this.browseEditStub.withArgs('Enter a file path to the connection profile file', 'myConnection').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
-        this.browseEditStub.withArgs('Enter a file path to the certificate file', 'myConnection').resolves(this.certPath);
-        this.browseEditStub.withArgs('Enter a file path to the private key file', 'myConnection').resolves(this.keyPath);
+        this.browseEditStub.withArgs('Enter a file path to a connection profile file', 'myConnection').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
+        this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
+        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
+        this.browseEditStub.withArgs('Browse for a certificate file', 'myConnection').resolves(this.certPath);
+        this.browseEditStub.withArgs('Browse for a private key file', 'myConnection').resolves(this.keyPath);
 
         await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
 

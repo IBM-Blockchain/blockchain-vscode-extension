@@ -62,6 +62,8 @@ class TestFabricConnection extends FabricConnection {
 // tslint:disable no-unused-expression
 describe('BlockchainNetworkExplorer', () => {
 
+    const rootPath: string = path.dirname(__dirname);
+
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeConnectionsConfig();
@@ -160,42 +162,28 @@ describe('BlockchainNetworkExplorer', () => {
             it('should display connection that has been added in alphabetical order', async () => {
                 const connections: Array<any> = [];
 
-                const rootPath: string = path.dirname(__dirname);
-
                 connections.push({
                     name: 'myConnectionB',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
                 });
 
                 connections.push({
                     name: 'myConnectionC',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data//walletDir/wallet')
                 });
 
                 connections.push({
                     name: 'myConnectionA',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data//walletDir/wallet')
                 });
 
                 connections.push({
                     name: 'myConnectionA',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data//walletDir/wallet')
                 });
 
                 await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
@@ -213,16 +201,19 @@ describe('BlockchainNetworkExplorer', () => {
             it('should display connections with single identities', async () => {
                 const connections: Array<any> = [];
 
-                const rootPath: string = path.dirname(__dirname);
-
                 const myConnection: any = {
                     name: 'myConnection',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                    walletPath: path.join(rootPath, '../../test/data/walletDir/otherWallet')
                 };
+
+                const identities: any = [
+                    {
+                        label: 'Admin@org1.example.com',
+                        identifier: 'cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec',
+                        mspId: 'Org1MSP'
+                    }
+                ];
 
                 connections.push(myConnection);
 
@@ -230,38 +221,58 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
 
                 const myCommand: vscode.Command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: [FabricConnectionRegistry.instance().get('myConnection')]
+                    arguments: [connection]
+                };
+
+                const myIdentityCommand: vscode.Command = {
+                    command: 'blockchainExplorer.connectEntry',
+                    title: '',
+                    arguments: [connection, identities[0].label]
                 };
 
                 allChildren.length.should.equal(1);
                 const connectionTreeItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
                 connectionTreeItem.label.should.equal('myConnection');
-                connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                connectionTreeItem.connection.should.deep.equal(FabricConnectionRegistry.instance().get('myConnection'));
+                connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+                connectionTreeItem.connection.should.deep.equal(connection);
                 connectionTreeItem.command.should.deep.equal(myCommand);
+
+                const identityChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+                identityChildren.length.should.equal(1);
+
+                const identityChildOne: ConnectionIdentityTreeItem = identityChildren[0] as ConnectionIdentityTreeItem;
+                identityChildOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                identityChildOne.contextValue.should.equal('blockchain-connection-identity-item');
+                identityChildOne.label.should.equal('Admin@org1.example.com');
+                identityChildOne.command.should.deep.equal(myIdentityCommand);
             });
 
             it('should display connections with multiple identities', async () => {
                 const connections: Array<any> = [];
 
-                const rootPath: string = path.dirname(__dirname);
-
                 const myConnection: any = {
                     name: 'myConnection',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    },
-                        {
-                            certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                            privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                        }]
+                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
                 };
+
+                const identities: any = [
+                    {
+                        label: 'Admin@org1.example.com',
+                        identifier: 'cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec',
+                        mspId: 'Org1MSP'
+                    },
+                    {
+                        label: 'Test@org1.example.com',
+                        identifier: 'cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec',
+                        mspId: 'Org1MSP'
+                    }
+                ];
 
                 connections.push(myConnection);
 
@@ -269,26 +280,25 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
 
                 allChildren.length.should.equal(1);
                 const connectionTreeItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
                 connectionTreeItem.label.should.equal('myConnection');
-                connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                connectionTreeItem.connection.should.deep.equal(FabricConnectionRegistry.instance().get('myConnection'));
-                should.not.exist(connectionTreeItem.command);
-
-                const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
+                connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+                connectionTreeItem.connection.should.deep.equal(connection);
+                should.exist(connectionTreeItem.command);
 
                 const myCommandOne: vscode.Command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: [connection, connection.identities[0]]
+                    arguments: [connection, identities[0].label]
                 };
 
                 const myCommandTwo: vscode.Command = {
                     command: 'blockchainExplorer.connectEntry',
                     title: '',
-                    arguments: [connection, connection.identities[1]]
+                    arguments: [connection, identities[1].label]
                 };
 
                 const identityChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
@@ -303,63 +313,17 @@ describe('BlockchainNetworkExplorer', () => {
                 const identityChildTwo: ConnectionIdentityTreeItem = identityChildren[1] as ConnectionIdentityTreeItem;
                 identityChildTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 identityChildTwo.contextValue.should.equal('blockchain-connection-identity-item');
-                identityChildTwo.label.should.equal('Admin@org1.example.com');
+                identityChildTwo.label.should.equal('Test@org1.example.com');
                 identityChildTwo.command.should.deep.equal(myCommandTwo);
-            });
-
-            it('should throw an error if cert can\'t be parsed with multiple identities', async () => {
-                const connections: Array<any> = [];
-
-                const rootPath: string = path.dirname(__dirname);
-
-                const myConnection: any = {
-                    name: 'myConnection',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/badPath/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    },
-                        {
-                            certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                            privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                        }]
-                };
-
-                connections.push(myConnection);
-
-                await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
-
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(1);
-
-                const connectionTreeItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
-
-                connectionTreeItem.label.should.equal('myConnection');
-                connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                connectionTreeItem.connection.should.deep.equal(myConnection);
-                should.not.exist(connectionTreeItem.command);
-
-                await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-
-                errorSpy.should.have.been.calledWith(sinon.match((value: string) => {
-                    return value.startsWith('Error parsing certificate ENOENT: no such file or directory');
-                }));
             });
 
             it('should handle error with tree', async () => {
                 const connections: Array<any> = [];
 
-                const rootPath: string = path.dirname(__dirname);
-
                 const myConnection: any = {
                     name: 'myConnection',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/badPath/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
                 };
 
                 connections.push(myConnection);
@@ -437,25 +401,13 @@ describe('BlockchainNetworkExplorer', () => {
                 runtimeTreeItem.command.should.deep.equal(myCommand);
             });
 
-            it('should display unfinished connetions', async () => {
-                mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const connectionTreeItem: ConnectionTreeItem = new ConnectionTreeItem(blockchainNetworkExplorerProvider, 'unfinished_connection', new FabricConnectionRegistryEntry(), 0);
-                const createConnectionUncompleteTreeStub: sinon.SinonStub = mySandBox.stub(blockchainNetworkExplorerProvider, 'createConnectionUncompleteTree').resolves();
-                await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-                createConnectionUncompleteTreeStub.should.have.been.calledWith(connectionTreeItem);
-            });
-
             it('should detect uncompleted connection', async () => {
                 const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
                 const entry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
                 entry.name = 'uncompletedConnection';
                 entry.connectionProfilePath = FabricConnectionHelper.CONNECTION_PROFILE_PATH_DEFAULT;
-                entry.identities = [{
-                    certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
-                    privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
-                }];
+                entry.walletPath = FabricConnectionHelper.WALLET_PATH_DEFAULT;
 
                 const FabricConnectionRegistryEntryArray: FabricConnectionRegistryEntry[] = [entry];
 
@@ -463,22 +415,18 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const result: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren();
 
-                result[0].collapsibleState.should.equal(2); // Should be an expanded tree item
+                result[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded); // Should be an expanded tree item
                 result[0].label.should.equal('uncompletedConnection');
             });
 
             it('should delete any managed runtimes from fabric.connections', async () => {
 
-                const rootPath: string = path.dirname(__dirname);
                 const deleteSpy: sinon.SinonSpy = mySandBox.spy(FabricConnectionRegistry.instance(), 'delete');
 
                 const connectionA: any = {
                     name: 'myConnection',
                     connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    identities: [{
-                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/badPath/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                    }]
+                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
                 };
                 const connectionB: any = {
                     name: 'local_fabric',
@@ -1211,19 +1159,10 @@ describe('BlockchainNetworkExplorer', () => {
         it('should get a tree item', async () => {
             const connections: Array<any> = [];
 
-            const rootPath: string = path.dirname(__dirname);
-
             const myConnection: any = {
                 name: 'myConnection',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                identities: [{
-                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/badPath/certificate'),
-                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-                },
-                    {
-                        certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-                        privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-                    }]
+                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             };
 
             connections.push(myConnection);
@@ -1239,7 +1178,7 @@ describe('BlockchainNetworkExplorer', () => {
         });
     });
 
-    describe('createConnectionUncompleteTree', () => {
+    describe('createConnectionUncompleteTree and createWalletUncompleteTree', () => {
 
         let mySandBox: sinon.SinonSandbox;
 
@@ -1257,56 +1196,63 @@ describe('BlockchainNetworkExplorer', () => {
             const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const element: ConnectionTreeItem = new ConnectionTreeItem(blockchainNetworkExplorer, 'connection', {} as FabricConnectionRegistryEntry, 0);
             mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
-            mySandBox.stub(FabricConnectionHelper, 'certificatePathComplete').returns(false);
-            mySandBox.stub(FabricConnectionHelper, 'privateKeyPathComplete').returns(false);
+            mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);
 
-            const result: ConnectionPropertyTreeItem[] = await blockchainNetworkExplorer.createConnectionUncompleteTree(element);
+            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren(element);
 
-            result[0].label.should.equal('+ Connection Profile');
-            result[1].label.should.equal('+ Certificate');
-            result[2].label.should.equal('+ Private Key');
+            allChildren.length.should.equal(2);
+            allChildren[0].label.should.equal('+ Connection Profile');
+            allChildren[0].should.be.an.instanceOf(ConnectionPropertyTreeItem);
+            allChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            allChildren[1].label.should.equal('+ Wallet');
+            allChildren[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+            allChildren[1].should.be.an.instanceOf(ConnectionPropertyTreeItem);
+
+            const walletChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorer.getChildren(allChildren[1] as ConnectionPropertyTreeItem);
+            walletChildren.length.should.equal(1);
+            walletChildren[0].label.should.equal('+ Identity');
+            walletChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            walletChildren[0].should.be.an.instanceOf(ConnectionPropertyTreeItem);
         });
 
         it('should show completed connection profile path', async () => {
             const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const element: ConnectionTreeItem = new ConnectionTreeItem(blockchainNetworkExplorer, 'connection', {} as FabricConnectionRegistryEntry, 0);
             mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(true);
-            mySandBox.stub(FabricConnectionHelper, 'certificatePathComplete').returns(false);
-            mySandBox.stub(FabricConnectionHelper, 'privateKeyPathComplete').returns(false);
+            mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);
 
-            const result: ConnectionPropertyTreeItem[] = await blockchainNetworkExplorer.createConnectionUncompleteTree(element);
+            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren(element);
 
-            result[0].label.should.equal('✓ Connection Profile');
-            result[1].label.should.equal('+ Certificate');
-            result[2].label.should.equal('+ Private Key');
+            allChildren.length.should.equal(2);
+            allChildren[0].label.should.equal('✓ Connection Profile');
+            allChildren[0].should.be.an.instanceOf(ConnectionPropertyTreeItem);
+            allChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            allChildren[1].label.should.equal('+ Wallet');
+            allChildren[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
+            allChildren[1].should.be.an.instanceOf(ConnectionPropertyTreeItem);
+
+            const walletChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorer.getChildren(allChildren[1] as ConnectionPropertyTreeItem);
+            walletChildren.length.should.equal(1);
+            walletChildren[0].label.should.equal('+ Identity');
+            walletChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            walletChildren[0].should.be.an.instanceOf(ConnectionPropertyTreeItem);
         });
 
-        it('should show completed certificate path', async () => {
+        it('should show completed wallet', async () => {
             const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const element: ConnectionTreeItem = new ConnectionTreeItem(blockchainNetworkExplorer, 'connection', {} as FabricConnectionRegistryEntry, 0);
             mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
-            mySandBox.stub(FabricConnectionHelper, 'certificatePathComplete').returns(true);
-            mySandBox.stub(FabricConnectionHelper, 'privateKeyPathComplete').returns(false);
+            mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(true);
 
-            const result: ConnectionPropertyTreeItem[] = await blockchainNetworkExplorer.createConnectionUncompleteTree(element);
+            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren(element);
 
-            result[0].label.should.equal('+ Connection Profile');
-            result[1].label.should.equal('✓ Certificate');
-            result[2].label.should.equal('+ Private Key');
-        });
-
-        it('should show completed private key path', async () => {
-            const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const element: ConnectionTreeItem = new ConnectionTreeItem(blockchainNetworkExplorer, 'connection', {} as FabricConnectionRegistryEntry, 0);
-            mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
-            mySandBox.stub(FabricConnectionHelper, 'certificatePathComplete').returns(false);
-            mySandBox.stub(FabricConnectionHelper, 'privateKeyPathComplete').returns(true);
-
-            const result: ConnectionPropertyTreeItem[] = await blockchainNetworkExplorer.createConnectionUncompleteTree(element);
-
-            result[0].label.should.equal('+ Connection Profile');
-            result[1].label.should.equal('+ Certificate');
-            result[2].label.should.equal('✓ Private Key');
+            allChildren[0].label.should.equal('+ Connection Profile');
+            allChildren[0].should.be.an.instanceOf(ConnectionPropertyTreeItem);
+            allChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            allChildren[1].label.should.equal('✓ Wallet');
+            allChildren[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            allChildren[1].should.be.an.instanceOf(ConnectionPropertyTreeItem);
+            allChildren.length.should.equal(2);
         });
     });
 });

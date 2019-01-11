@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
@@ -24,11 +23,17 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { Reporter } from '../util/Reporter';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
-export async function connect(connectionRegistryEntry: FabricConnectionRegistryEntry, identity?: { certificatePath: string, privateKeyPath: string }): Promise<void> {
+export async function connect(connectionRegistryEntry: FabricConnectionRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `connect`);
+
     let runtimeData: string;
+    let wallet: IFabricWallet;
+    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
 
     if (!connectionRegistryEntry) {
         const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with', true);
@@ -48,59 +53,58 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
         if (!running) {
             await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', runtime);
         }
+
+        const runtimeWallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(runtime['name']);
+        const connectionProfile: any = await runtime.getConnectionProfile();
+        const certificate: string = await runtime.getCertificate();
+        const privateKey: string = await runtime.getPrivateKey();
+        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, 'Admin@org1.example.com');
+        wallet = runtimeWallet;
+
+        connectionRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+        connectionRegistryEntry.connectionProfilePath = runtime.getConnectionProfilePath();
+
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
 
         runtimeData = 'managed runtime';
+
+        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
+
+        identityName = identityNames[0];
+
     } else {
-        const connectionData: {connectionProfilePath: string, privateKeyPath: string, certificatePath: string} = {
+        const connectionData: {connectionProfilePath: string, walletPath: string} = {
             connectionProfilePath: connectionRegistryEntry.connectionProfilePath,
-            privateKeyPath: null,
-            certificatePath: null
+            walletPath: connectionRegistryEntry.walletPath
         };
 
-        if (connectionRegistryEntry.identities.length > 1) {
+        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
 
-            if (!identity) {
-                const chosenIdentity: IBlockchainQuickPickItem<any> = await UserInputUtil.showIdentityConnectionQuickPickBox('Choose an identity to connect with', connectionRegistryEntry);
-                if (!chosenIdentity) {
-                    return;
-                }
+        if (identityNames.length === 0) {
+            outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + connectionRegistryEntry.walletPath);
+            return;
 
-                identity = connectionRegistryEntry.identities.find(((_identity: { certificatePath: string, privateKeyPath: string }): boolean => {
-                    const parsedCertificate: ParsedCertificate = new ParsedCertificate(_identity.certificatePath);
-                    return parsedCertificate.getCommonName() === chosenIdentity.label;
-                }));
+        } else if (identityNames.length === 1) {
+            identityName = identityNames[0];
 
-                if (!identity) {
-                    outputAdapter.log(LogType.ERROR, 'Could not connect as no identity found');
+        } else {
+            if (!identityName) {
+                identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
+                if (!identityName) {
                     return;
                 }
             }
-        } else {
-            identity = connectionRegistryEntry.identities[0];
         }
 
-        connectionData.certificatePath = identity.certificatePath;
-        connectionData.privateKeyPath = identity.privateKeyPath;
-
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
+        wallet = FabricWalletGenerator.getNewWallet(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
     }
 
     try {
-        await connection.connect();
+        await connection.connect(wallet, identityName);
     } catch (error) {
-        if (error.message.includes(`Client.createUser parameter 'opts mspid' is required`)) {
-            // Error thrown when the client section is missing from the connection profile, so ask the user for it
-            const mspid: string = await UserInputUtil.showInputBox('Client section of the connection profile does not specify mspid. Please enter mspid:');
-            if (!mspid) {
-                // User cancelled entering mspid
-                return;
-            }
-            await connection.connect(mspid);
-        } else {
-            outputAdapter.log(LogType.ERROR, error.message, error.toString());
-            throw error;
-        }
+        outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        throw error;
     } finally {
         FabricConnectionManager.instance().connect(connection, connectionRegistryEntry);
 
