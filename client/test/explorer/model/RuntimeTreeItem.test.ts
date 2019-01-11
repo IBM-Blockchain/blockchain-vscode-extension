@@ -89,7 +89,7 @@ describe('RuntimeTreeItem', () => {
                 name: 'myRuntime',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
-                identities: [{certificatePath: 'myCert', privateKeyPath: 'myKey'}]
+                walletPath: 'walletPath'
             }), vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -111,7 +111,7 @@ describe('RuntimeTreeItem', () => {
                 name: 'myRuntime',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
-                identities: [{certificatePath: 'myCert', privateKeyPath: 'myKey'}]
+                walletPath: 'walletPath'
             }), vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -299,7 +299,7 @@ describe('RuntimeTreeItem', () => {
                 name: 'myRuntime',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
-                identities: [{certificatePath: 'myCert', privateKeyPath: 'myKey'}]
+                walletPath: 'walletPath'
             }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const showErrorMessageSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');

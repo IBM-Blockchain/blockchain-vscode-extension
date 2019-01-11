@@ -15,10 +15,7 @@
 // tslint:disable max-classes-per-file
 'use strict';
 import * as vscode from 'vscode';
-
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { ParsedCertificate } from '../fabric/ParsedCertificate';
-
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { ConnectionIdentityTreeItem } from './model/ConnectionIdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
@@ -39,6 +36,8 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -111,6 +110,10 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                     this.tree = await this.createConnectionUncompleteTree(element as ConnectionTreeItem);
                 }
 
+                if (element instanceof ConnectionPropertyTreeItem && element.label.includes('Wallet') && !FabricConnectionHelper.walletPathComplete(element.connection)) {
+                    this.tree = await this.createWalletUncompleteTree(element as ConnectionPropertyTreeItem);
+                }
+
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
                     const channelElement: ChannelTreeItem = element as ChannelTreeItem;
@@ -149,26 +152,44 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         console.log('createConnectionUncompleteTree', element);
 
         let profileLabel: string = 'Connection Profile';
-        let certLabel: string = 'Certificate';
-        let keyLabel: string = 'Private Key';
+        let walletLabel: string = 'Wallet';
 
         profileLabel = ((FabricConnectionHelper.connectionProfilePathComplete(element.connection)) ? '✓ ' : '+ ') + profileLabel;
-        certLabel = ((FabricConnectionHelper.certificatePathComplete(element.connection)) ? '✓ ' : '+ ') + certLabel;
-        keyLabel = ((FabricConnectionHelper.privateKeyPathComplete(element.connection)) ? '✓ ' : '+ ') + keyLabel;
+        walletLabel = ((FabricConnectionHelper.walletPathComplete(element.connection)) ? '✓ ' : '+ ') + walletLabel;
 
         let command: vscode.Command;
+        let treeState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
 
-        // tslint:disable-next-line
-        let tree: ConnectionPropertyTreeItem[] = [];
+        const tree: ConnectionPropertyTreeItem[] = [];
 
-        for (const label of [profileLabel, certLabel, keyLabel]) {
+        for (const label of [profileLabel, walletLabel]) {
+            if (label === '+ Wallet') {
+                treeState = vscode.TreeItemCollapsibleState.Collapsed;
+            }
             command = {
                 command: 'blockchainConnectionsExplorer.editConnectionEntry',
                 title: '',
                 arguments: [{ label: label, connection: element.connection }]
             };
-            tree.push(new ConnectionPropertyTreeItem(this, label, element.connection, vscode.TreeItemCollapsibleState.None, command));
+            tree.push(new ConnectionPropertyTreeItem(this, label, element.connection, treeState, command));
         }
+
+        return tree;
+    }
+
+    public async createWalletUncompleteTree(element: ConnectionPropertyTreeItem): Promise<ConnectionPropertyTreeItem[]> {
+        console.log('createWalletUncompleteTree', element);
+
+        const identityLabel: string = '+ Identity';
+        let command: vscode.Command;
+        const tree: ConnectionPropertyTreeItem[] = [];
+
+        command = {
+            command: 'blockchainExplorer.editConnectionEntry',
+            title: '',
+            arguments: [{ label: identityLabel, connection: element.connection }]
+        };
+        tree.push(new ConnectionPropertyTreeItem(this, identityLabel, element.connection, vscode.TreeItemCollapsibleState.None, command));
 
         return tree;
     }
@@ -213,38 +234,28 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         }
 
         for (const connection of allConnections) {
-            let collapsibleState: vscode.TreeItemCollapsibleState;
-            let command: vscode.Command;
-
             // Cleanup any managed runtimes which shouldn't be in the fabric.connections anymore
             if (connection.managedRuntime) {
                 await this.connectionRegistryManager.delete(connection.name); // Delete managed runtime
                 continue; // Iterate to next connection
             }
 
-            if (connection.identities && connection.identities.length > 1) {
-                collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-            } else if (!FabricConnectionHelper.isCompleted(connection)) {
-                collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
-            } else {
-                collapsibleState = vscode.TreeItemCollapsibleState.None;
-                command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
-                    title: '',
-                    arguments: [connection]
-                };
-            }
+            const command: vscode.Command = {
+                command: 'blockchainConnectionsExplorer.connectEntry',
+                title: '',
+                arguments: [connection]
+            };
 
             if (!FabricConnectionHelper.isCompleted(connection)) {
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,
                     connection,
-                    collapsibleState));
+                    vscode.TreeItemCollapsibleState.Expanded));
             } else {
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,
                     connection,
-                    collapsibleState,
+                    vscode.TreeItemCollapsibleState.Expanded,
                     command));
             }
         }
@@ -380,22 +391,18 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         const tree: Array<ConnectionIdentityTreeItem> = [];
 
-        for (const identity of element.connection.identities) {
-            try {
-                const cert: ParsedCertificate = new ParsedCertificate(identity.certificatePath);
-                const commonName: string = cert.getCommonName();
+        // get identityNames in the wallet
+        const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(element.connection.name, element.connection.walletPath);
 
-                const command: vscode.Command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
-                    title: '',
-                    arguments: [element.connection, identity]
-                };
+        for (const identityName of identityNames) {
+            const command: vscode.Command = {
+                command: 'blockchainConnectionsExplorer.connectEntry',
+                title: '',
+                arguments: [element.connection, identityName]
+            };
 
-                tree.push(new ConnectionIdentityTreeItem(this, commonName, command));
-
-            } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Error parsing certificate ${error.message}`, `Error parsing certificate ${error.toString()}`);
-            }
+            tree.push(new ConnectionIdentityTreeItem(this, identityName, command));
         }
 
         return tree;

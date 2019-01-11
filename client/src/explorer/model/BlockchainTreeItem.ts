@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export abstract class BlockchainTreeItem extends vscode.TreeItem {

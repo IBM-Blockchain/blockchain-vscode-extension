@@ -115,28 +115,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         return;
     }
 
-    // Get connection details
-    let connectionProfilePath: string;
-    let certificatePath: string;
-    let privateKeyPath: string;
-
     const fabricConnectionRegistryEntry: FabricConnectionRegistryEntry = FabricConnectionManager.instance().getConnectionRegistryEntry();
-    if (fabricConnectionRegistryEntry.managedRuntime) {
-        // connection details are saved to disk in our directory
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-
-        connectionProfilePath = path.join(homeExtDir, 'local_fabric', 'connection.json');
-        certificatePath = path.join(homeExtDir, 'local_fabric', 'certificate');
-        privateKeyPath = path.join(homeExtDir, 'local_fabric', 'privateKey');
-    } else {
-        // Client connection, so connection details are all paths
-        const connectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string} | {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = await connection.getConnectionDetails();
-        const clientConnectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = connectionDetails as {connectionProfilePath: string, certificatePath: string, privateKeyPath: string};
-        connectionProfilePath = clientConnectionDetails.connectionProfilePath;
-        certificatePath = clientConnectionDetails.certificatePath;
-        privateKeyPath = clientConnectionDetails.privateKeyPath;
-    }
 
     for (const [name, transactionArray] of transactions) {
         // Populate the template data
@@ -144,9 +123,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
             contractName: name,
             chaincodeLabel: chaincodeLabel,
             transactions: transactionArray,
-            connectionProfilePath: connectionProfilePath,
-            certificatePath: certificatePath,
-            privateKeyPath: privateKeyPath,
+            connectionProfilePath: fabricConnectionRegistryEntry.connectionProfilePath,
+            walletPath: fabricConnectionRegistryEntry.walletPath,
             chaincodeName: chaincodeName,
             chaincodeVersion: chaincodeVersion,
             channelName: channelName

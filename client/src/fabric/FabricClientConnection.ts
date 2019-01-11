@@ -12,59 +12,24 @@
  * limitations under the License.
 */
 'use strict';
-import * as fs from 'fs-extra';
-import * as yaml from 'js-yaml';
-
+import { OutputAdapter } from '../logging/OutputAdapter';
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnection } from './FabricConnection';
-import { OutputAdapter } from '../logging/OutputAdapter';
-
-const ENCODING: string = 'utf8';
+import { FabricWallet } from './FabricWallet';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class FabricClientConnection extends FabricConnection implements IFabricConnection {
 
     private connectionProfilePath: string;
-    private certificatePath: string;
-    private privateKeyPath: string;
 
-    constructor(connectionData: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string }, outputAdapter?: OutputAdapter) {
+    constructor(connectionData: { connectionProfilePath: string, walletPath: string }, outputAdapter?: OutputAdapter) {
         super(outputAdapter);
         this.connectionProfilePath = connectionData.connectionProfilePath;
-        this.certificatePath = connectionData.certificatePath;
-        this.privateKeyPath = connectionData.privateKeyPath;
     }
 
-    async connect(mspid?: string): Promise<void> {
+    async connect(wallet: FabricWallet, identityName: string): Promise<void> {
         console.log('FabricClientConnection: connect');
-
-        const connectionProfileContents: string = await this.loadFileFromDisk(this.connectionProfilePath);
-        let connectionProfile: any;
-        if (this.connectionProfilePath.endsWith('.json')) {
-            connectionProfile = JSON.parse(connectionProfileContents);
-        } else if (this.connectionProfilePath.endsWith('.yaml') || this.connectionProfilePath.endsWith('.yml')) {
-            connectionProfile = yaml.safeLoad(connectionProfileContents);
-        } else {
-            console.log('Connection Profile given is not .json/.yaml format:', this.connectionProfilePath);
-            throw new Error(`Connection profile must be in JSON or yaml format`);
-        }
-        console.log('printing connectionProfile:', connectionProfile);
-        const certificate: string = await this.loadFileFromDisk(this.certificatePath);
-        const privateKey: string = await this.loadFileFromDisk(this.privateKeyPath);
-        await this.connectInner(connectionProfile, certificate, privateKey, mspid);
+        const connectionProfile: object = await ExtensionUtil.readConnectionProfile(this.connectionProfilePath);
+        await this.connectInner(connectionProfile, wallet, identityName);
     }
-
-    async getConnectionDetails(): Promise<{connectionProfilePath: string, certificatePath: string, privateKeyPath: string}> {
-        const connectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = {
-            connectionProfilePath: this.connectionProfilePath,
-            certificatePath: this.certificatePath,
-            privateKeyPath: this.privateKeyPath
-        };
-        return connectionDetails;
-    }
-
-    private async loadFileFromDisk(path: string): Promise<string> {
-        console.log('loadFileFromDisk', path);
-        return fs.readFile(path, ENCODING);
-    }
-
 }

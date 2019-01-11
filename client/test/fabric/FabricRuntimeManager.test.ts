@@ -283,12 +283,7 @@ describe('FabricRuntimeManager', () => {
             const testConnectionEntry: FabricConnectionRegistryEntry = {
                 name: 'runtime1',
                 connectionProfilePath: '/tmp/connection.json',
-                identities: [
-                    {
-                        certificatePath: '/tmp/cert.pem',
-                        privateKeyPath: '/tmp/key.pem'
-                    }
-                ],
+                walletPath: 'tmp/wallet',
                 managedRuntime: false
             };
             await connectionRegistry.add(testConnectionEntry);
