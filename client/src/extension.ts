@@ -137,7 +137,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainARuntimeExplorer', blockchainRuntimeExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identity: { certificatePath: string, privateKeyPath: string }) => connect(connection, identity)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identityName: string) => connect(connection, identityName)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.disconnectEntry', () => FabricConnectionManager.instance().disconnect()));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.addConnectionEntry', addConnection));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.deleteConnectionEntry', (connection: ConnectionTreeItem) => deleteConnection(connection)));

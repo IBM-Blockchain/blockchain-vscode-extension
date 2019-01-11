@@ -14,25 +14,22 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract, GatewayOptions } from 'fabric-network';
+import { Gateway, Network, Contract, GatewayOptions, FileSystemWallet, IdentityInfo } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
-import * as uuid from 'uuid/v4';
 import { LogType, OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
+import { FabricWallet } from './FabricWallet';
 
 export abstract class FabricConnection implements IFabricConnection {
 
-    private wallet: InMemoryWallet = new InMemoryWallet();
-    private identityName: string = uuid();
+    private mspid: string;
     private gateway: Gateway = new Gateway();
     private networkIdProperty: boolean;
     private outputAdapter: OutputAdapter;
 
     constructor(outputAdapter?: OutputAdapter) {
-        this.wallet = new InMemoryWallet();
-        this.identityName = uuid();
         this.gateway = new Gateway();
         if (!outputAdapter) {
             this.outputAdapter = ConsoleOutputAdapter.instance();
@@ -45,9 +42,7 @@ export abstract class FabricConnection implements IFabricConnection {
         return this.networkIdProperty;
     }
 
-    public abstract async connect(): Promise<void>;
-
-    public abstract async getConnectionDetails(): Promise<{ connectionProfile: object, certificatePath: string, privateKeyPath: string } | { connectionProfilePath: string, certificatePath: string, privateKeyPath: string }>;
+    public abstract async connect(wallet: FabricWallet, identityName: string): Promise<void>;
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
@@ -311,27 +306,28 @@ export abstract class FabricConnection implements IFabricConnection {
         return result;
     }
 
-    protected async connectInner(connectionProfile: object, certificate: string, privateKey: string, mspid?: string): Promise<void> {
+    protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         const client: Client = await Client.loadFromConfig(connectionProfile);
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
 
-        if (!mspid) {
-            mspid = client.getMspid();
-        }
-
-        await this.wallet.import(this.identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
-
         const options: GatewayOptions = {
-            wallet: this.wallet,
-            identity: this.identityName,
+            wallet: wallet,
+            identity: identityName,
             discovery: {
                 asLocalhost: true
             }
         };
 
         await this.gateway.connect(connectionProfile, options);
+
+        const identities: IdentityInfo[] = await wallet.list();
+        const identity: IdentityInfo = identities.find( (identityToSearch: IdentityInfo) => {
+            return identityToSearch.label === identityName;
+        });
+
+        this.mspid = identity.mspId;
     }
 
     private getChannel(channelName: string): Client.Channel {
@@ -341,7 +337,8 @@ export abstract class FabricConnection implements IFabricConnection {
 
     private getAllPeers(): Array<Client.Peer> {
         console.log('getAllPeers');
-        return this.gateway.getClient().getPeersForOrg(null);
+
+        return this.gateway.getClient().getPeersForOrg(this.mspid);
     }
 
     /**
