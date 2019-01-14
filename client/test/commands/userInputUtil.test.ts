@@ -774,7 +774,7 @@ describe('userInputUtil', () => {
 
     describe('delayWorkaround', () => {
         beforeEach(() => {
-            this.clock = sinon.useFakeTimers();
+            this.clock = sinon.useFakeTimers({toFake: ['setTimeout']});
         });
 
         afterEach(() => {
@@ -788,9 +788,8 @@ describe('userInputUtil', () => {
 
             this.clock.tick(2300);
             await p.should.be.eventually.fulfilled;
-            return sinon.assert.calledOnce(stub);
+            sinon.assert.calledOnce(stub);
         });
-
     });
 
     describe('showInstantiatedSmartContractsQuickPick', () => {
