@@ -111,10 +111,30 @@
                     "type": "string",
                     "default": "~/.fabric-vscode",
                     "description": "Configurations for IBM Blockchain extension directory"
+                },
+                "blockchain.repositories": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Repositories for accessing samples stored on disk"
+                },
+                "extension.home.showOnStartup": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show home page when clicking on extension for the first time"
                 }
             }
         },
         "commands": [
+            {
+                "command": "contractSamples.open",
+                "title": "View sample smart contracts",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "extensionHome.open",
+                "title": "View Homepage",
+                "category": "IBM Blockchain Platform"
+            },
             {
                 "command": "blockchainExplorer.refreshEntry",
                 "title": "Refresh Blockchain Connections",
@@ -275,6 +295,10 @@
                 },
                 {
                     "command": "blockchainExplorer.openFabricRuntimeTerminal"
+                },
+                {
+                    "command": "contractSamples.open",
+                    "when": "false"
                 }
             ],
             "view/title": [
@@ -549,6 +573,7 @@
     "dependencies": {
         "@fidm/x509": "1.1.3",
         "ajv": "^5.5.2",
+        "axios": "^0.18.0",
         "child-process-promise": "^2.2.1",
         "dateformat": "^3.0.3",
         "dockerode": "^2.5.5",
@@ -556,6 +581,8 @@
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
         "home-dir": "1.0.0",
+        "shelljs": "^0.8.3",
+        "showdown": "^1.9.0",
         "strip-ansi": "^4.0.0",
         "uuid": "^3.3.2",
         "vscode-extension-telemetry": "0.0.20",
@@ -613,7 +640,9 @@
             "basic-network",
             "CHANGELOG.md",
             "templates/tsTestSmartContractTemplate.ejs",
-            "templates/jsTestSmartContractTemplate.ejs"
+            "templates/jsTestSmartContractTemplate.ejs",
+            "templates/HomeView.ejs",
+            "templates/SampleView.ejs"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

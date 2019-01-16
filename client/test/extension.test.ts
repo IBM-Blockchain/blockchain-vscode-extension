@@ -14,7 +14,7 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import * as path from 'path';
-
+import * as ejs from 'ejs';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -26,25 +26,31 @@ import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { Reporter } from '../src/util/Reporter';
 import { BlockchainNetworkExplorerProvider } from '../src/explorer/BlockchainNetworkExplorer';
+import { HomeView } from '../src/webview/HomeView';
+import { RepositoryRegistry } from '../src/repositories/RepositoryRegistry';
+import { SampleView } from '../src/webview/SampleView';
 
-chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('Extension Tests', () => {
-
     let mySandBox: sinon.SinonSandbox;
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-
     before(async () => {
+        await TestUtil.storeShowHomeOnStart();
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
         await TestUtil.storeConnectionsConfig();
         await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeShowHomeOnStart();
     });
 
     after(async () => {
+        await TestUtil.restoreShowHomeOnStart();
         await TestUtil.restoreConnectionsConfig();
         await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreShowHomeOnStart();
     });
 
     beforeEach(async () => {
@@ -157,6 +163,7 @@ describe('Extension Tests', () => {
     });
 
     it('should refresh the tree when a runtime is added', async () => {
+
         await vscode.workspace.getConfiguration().update('fabric.runtimes', [], vscode.ConfigurationTarget.Global);
 
         const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
@@ -174,12 +181,12 @@ describe('Extension Tests', () => {
     });
 
     it('should install native dependencies on first activation', async () => {
+        mySandBox.stub(vscode.commands, 'executeCommand').resolves();
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         const installStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
         const tempRegistryExecuteStub: sinon.SinonStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
-
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
         installStub.should.have.been.called;
@@ -187,12 +194,14 @@ describe('Extension Tests', () => {
     });
 
     it('should not install native dependencies if already installed', async () => {
+        mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(true);
         const installStub: sinon.SinonStub = mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
-
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
         installStub.should.not.have.been.called;
     });
@@ -204,8 +213,8 @@ describe('Extension Tests', () => {
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
-
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
 
         showErrorStub.should.have.been.calledWith('Failed to activate extension', 'open output view');
@@ -219,8 +228,8 @@ describe('Extension Tests', () => {
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
-
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
 
         showErrorStub.should.have.been.calledWith('Failed to activate extension', 'open output view');
@@ -244,6 +253,7 @@ describe('Extension Tests', () => {
     it('should create a new local_fabric if one does not exist', async () => {
         const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
         addSpy.should.have.been.calledOnceWithExactly('local_fabric');
     });
@@ -252,11 +262,13 @@ describe('Extension Tests', () => {
         await runtimeManager.add('local_fabric');
         const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
         addSpy.should.not.have.been.called;
     });
 
     it('should check if production flag is false on extension activiation', async () => {
+        mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
         const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'dispose');
@@ -266,14 +278,15 @@ describe('Extension Tests', () => {
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
         mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
-
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
 
         reporterStub.should.have.been.called;
     });
 
     it('should check if production flag is true on extension activiation', async () => {
+        mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
         const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
@@ -283,10 +296,47 @@ describe('Extension Tests', () => {
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').resolves();
         mySandBox.stub(TemporaryCommandRegistry.instance(), 'executeStoredCommands');
-
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
         await myExtension.activate(context);
 
         reporterStub.should.have.been.called;
     });
+
+    it('should not open home page if disabled in settings', async () => {
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+
+        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        await myExtension.activate(context);
+
+        executeCommand.should.not.have.been.calledWith('extensionHome.open');
+    });
+
+    it('should open home page if disabled in settings', async () => {
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
+
+        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        await myExtension.activate(context);
+
+        executeCommand.should.have.been.calledWith('extensionHome.open');
+    });
+
+    it('should register and show sample page', async () => {
+        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        const openContractSampleStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openContractSample').resolves();
+        await myExtension.activate(context);
+
+        await vscode.commands.executeCommand('contractSample.open', 'Repo One', 'Sample One');
+
+        openContractSampleStub.should.have.been.calledWith(context, 'Repo One', 'Sample One');
+
+    });
+
 });

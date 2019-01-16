@@ -1,0 +1,155 @@
+{
+    "repositories":[
+        {
+            "name": "hyperledger/fabric-samples",
+            "remote": "https://github.com/hyperledger/fabric-samples.git",
+            "samples":[
+                {
+                    "name": "FabCar",
+                    "description": "Basic sample demonstrating the transfer of vehicle ownership.",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md",
+                    "category":{
+                        "contracts":[
+                            {
+                                "name": "FabCar Contract",
+                                "languages":[
+                                    {
+                                        "type":"GoLang",
+                                        "version": "0.0.1",
+                                        "remote": {
+                                            "branch": "release-1.4",
+                                            "path": "chaincode/fabcar/go"
+                                        }
+                                    },
+                                    {
+                                        "type": "JavaScript",
+                                        "version": "1.0.0",
+                                        "remote":{
+                                            "branch": "release-1.4",
+                                            "path": "chaincode/fabcar/javascript"
+                                        }
+                                    },
+                                    {
+                                        "type": "TypeScript",
+                                        "version": "1.0.0",
+                                        "remote":{
+                                            "branch": "release-1.4",
+                                            "path": "chaincode/fabcar/typescript"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "FabCar Contract (Low-Level)",
+                                "languages": [
+                                    {
+                                        "type": "JavaScript",
+                                        "version": "1.0.0",
+                                        "remote":{
+                                            "branch": "release-1.4",
+                                            "path": "chaincode/fabcar/javascript-low-level"
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "applications":[
+                            {
+                                "name": "JavaScript Application",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "JavaScript",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "fabcar/javascript"
+                                }
+                            },
+                            {
+                                "name": "JavaScript Application (Low-Level)",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "JavaScript",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "fabcar/javascript-low-level"
+                                }
+                            },
+                            {
+                                "name": "TypeScript Application",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "TypeScript",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "fabcar/typescript"
+                                }
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "Commercial Paper",
+                    "description": "Issue, buy and redeem commercial papers using PaperNet, a Hyperledger Fabric blockchain network.",
+                    "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md",
+                    "category":{
+                        "contracts":[
+                            {
+                                "name": "Digibank Contract",
+                                "languages":[
+                                    {
+                                        "type":"JavaScript",
+                                        "version": "0.0.1",
+                                        "remote": {
+                                            "branch": "release-1.4",
+                                            "path": "commercial-paper/organization/digibank/contract"
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                "name": "MagnetoCorp Contract",
+                                "languages":[
+                                    {
+                                        "type":"JavaScript",
+                                        "version": "0.0.1",
+                                        "remote": {
+                                            "branch": "release-1.4",
+                                            "path": "commercial-paper/organization/magnetocorp/contract"
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "applications":[
+                            {
+                                "name": "Digibank Application",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "JavaScript",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "commercial-paper/organization/digibank/application"
+                                }
+                            },
+                            {
+                                "name": "MagnetoCorp Application",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "JavaScript",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "commercial-paper/organization/magnetocorp/application"
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -14,6 +14,8 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 import { Reporter } from './util/Reporter';
 import { BlockchainNetworkExplorerProvider } from './explorer/BlockchainNetworkExplorer';
 import { BlockchainPackageExplorerProvider } from './explorer/BlockchainPackageExplorer';
@@ -58,6 +60,10 @@ import { InstantiatedChaincodeTreeItem } from './explorer/model/InstantiatedChai
 import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
 import { exportConnectionDetails } from './commands/exportConnectionDetailsCommand';
 
+import { HomeView } from './webview/HomeView';
+import { SampleView } from './webview/SampleView';
+import { RepositoryRegistry } from './repositories/RepositoryRegistry';
+
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 
@@ -77,12 +83,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (!dependancyManager.hasNativeDependenciesInstalled()) {
             await dependancyManager.installNativeDependencies();
 
-            registerCommands(context);
+            await registerCommands(context);
 
             const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
             await tempCommandRegistry.executeStoredCommands();
         } else {
-            registerCommands(context);
+            await registerCommands(context);
         }
 
         await migrateLocalFabricConfiguration();
@@ -90,6 +96,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         ExtensionUtil.setExtensionContext(context);
         outputAdapter.log('extension activated');
+
+        // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
+        const showPage: boolean = vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
+        if (showPage) {
+            // Open the Home page
+            await vscode.commands.executeCommand('extensionHome.open');
+        }
     } catch (error) {
         console.log(error);
         outputAdapter.error('Failed to activate extension see previous messages for reason');
@@ -109,7 +122,7 @@ export async function deactivate(): Promise<void> {
 /*
  * Should only be called outside this file in tests
  */
-export function registerCommands(context: vscode.ExtensionContext): void {
+export async function registerCommands(context: vscode.ExtensionContext): Promise<void> {
     blockchainNetworkExplorerProvider = new BlockchainNetworkExplorerProvider();
     blockchainPackageExplorerProvider = new BlockchainPackageExplorerProvider();
 
@@ -146,6 +159,9 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.submitTransactionEntry', (transactionTreeItem: TransactionTreeItem) => submitTransaction(transactionTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.upgradeSmartContractEntry', (instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
 
+    context.subscriptions.push(vscode.commands.registerCommand('extensionHome.open', async () => await HomeView.openHomePage(context)));
+    context.subscriptions.push(vscode.commands.registerCommand('contractSample.open', async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));
+
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
         if (e.affectsConfiguration('fabric.connections') || e.affectsConfiguration('fabric.runtimes')) {
@@ -162,7 +178,6 @@ export function registerCommands(context: vscode.ExtensionContext): void {
     if (packageJson.production === true) {
         context.subscriptions.push(Reporter.instance());
     }
-
 }
 
 export async function migrateLocalFabricConfiguration(): Promise <void> {

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IBM Blockchain Platform</title>
+    <style>
+        body {
+            font-family:IBMPlexSans;
+            display: flex;
+            padding: 40px;
+            font-size: 12px;
+            letter-spacing:0.05px;
+        }
+
+        a {
+            text-decoration: none;
+            font-weight: 300;
+        }
+
+        a:hover{
+            text-decoration:underline;
+        }
+
+        p {
+            margin-top: 6px;
+            margin-bottom: 6px;
+        }
+
+        h1{
+            font-family:IBMPlexSans;
+            font-size:24px;
+            letter-spacing:0.06px;
+            font-weight:600;
+        }
+
+        h2 {
+            font-family:IBMPlexSans-SemiBold;
+            font-size: 16px;
+            letter-spacing:0.05px;
+        }
+
+        h3 {
+            font-size: 14px;
+            letter-spacing:0.06px;
+            font-weight: 500;
+        }
+
+        /*
+        ##############################################
+        ### Generic Styling ###
+        ##############################################
+        */
+
+        #home-container{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+        }
+
+        #home-title{
+            flex-shrink:1;
+            display:flex;
+            flex-direction:row;
+            align-items:baseline;
+            margin-bottom:20px;
+        }
+
+        #extension-name-container{
+            flex-shrink:1;
+            padding-right:20px;
+        }
+
+        #extension-name{
+            display:inline;
+        }
+
+        #extension-version-container{
+            flex:1;
+        }
+
+        #extension-version{
+            display: inline;
+        }
+
+        #home-content{
+            flex:1;
+            display:flex;
+            flex-direction: row;
+        }
+
+        #content-left{
+            flex:1;
+            padding-right:20px;
+        }
+
+        #getting-started-title{
+            margin:0px 0px 10px 0px;
+        }
+
+        #getting-started-sub-text{
+            margin-top: 0;
+        }
+
+        #getting-started-commands{
+            margin-top:15px;
+        }
+
+        #view-readme{
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+        #samples-panel{
+            margin-left:-15px;
+            border-radius:5px;
+            padding:5px 15px 5px 15px;
+        }
+
+        #samples-title{
+            margin-top:10px;
+        }
+
+        #samples-sub-text{
+            margin-bottom: 0;
+        }
+
+        #sample-header{
+            display:inline;
+        }
+
+        #repository-name{
+            margin-top:5px;
+            margin-bottom:5px;
+            font-weight:100;
+            font-style:italic;
+            letter-spacing:0.06px;
+        }
+
+        #sample-description{
+            margin-bottom:20px;
+        }
+
+        #content-right{
+            flex:1;
+        }
+
+        #help-title{
+            margin:0px;
+        }
+
+        /*
+        ##############################################
+        ### Styling for vscode-dark grouped themes ###
+        ##############################################
+        */
+
+        body.vscode-dark{
+            color: #ffffff;
+        }
+
+        body.vscode-dark #samples-panel {
+            background-color: #282828;
+        }
+
+        body.vscode-dark #repository-name {
+            color: #B1B1B1;
+        }
+
+        /*
+        ##############################################
+        ### Styling for vscode-light grouped themes ###
+        ##############################################
+        */
+
+        body.vscode-light {
+            color: #000000;
+        }
+
+        body.vscode-light #samples-panel {
+            background-color: #F3F3F3;
+        }
+
+        body.vscode-dark #repository-name {
+            color: #F3F3F3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="home-container">
+        <div id="home-title">
+            <div id="extension-name-container">
+                <h1 id="extension-name">IBM Blockchain Platform</h1>
+            </div>
+            <div id="extension-version-container">
+                <span id="extension-version">v<%= extensionVersion %></span>
+            </div>
+        </div>
+        <div id="home-content">
+
+            <div id="content-left">
+                <h2 id="getting-started-title">Getting Started</h2>
+                <p id="getting-started-sub-text">Common commands for a smart contract development workflow.</p>
+                Click to execute commands, or follow along with our <a href="https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract/">developer tutorial</a> online.
+
+                <div id="getting-started-commands">
+
+                <p>
+                    <a href="#" onclick="executeCommand('blockchain.createSmartContractProjectEntry')">
+                        Create a new smart contract project
+                    </a>
+                </p>
+                <p>
+                    <a href="#" onclick="executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry')">
+                        Package a smart contract project</a></p>
+                <p>
+                    <a href="#" onclick="executeCommand('blockchainExplorer.installSmartContractEntry')">
+                        Install a smart contract package
+                    </a>
+                </p>
+                <p>
+                    <a href="#" onclick="executeCommand('blockchainExplorer.instantiateSmartContractEntry')">
+                        Instantiate a smart contract
+                    </a>
+                </p>
+                <p>
+                    <a href="#" onclick="executeCommand('blockchainExplorer.testSmartContractEntry')">
+                        Test a smart contract
+                    </a>
+                </p>
+                <p>
+                    <a href="#" onclick="executeCommand('blockchainExplorer.instantiateSmartContractEntry')">
+                        Upgrade a smart contract
+                    </a>
+                </p>
+
+                <p id="view-readme">
+                    View the <a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features">Readme</a> for all of the commands.
+                </p>
+                </div>
+                <br>
+
+                <div id="samples-panel">
+
+                    <h2 id="samples-title">Samples</h2>
+
+                    <p id="samples-sub-text">Best-practice examples of smart contracts, client applications and more.</p>
+                    <br>
+
+                    <!-- We will probably want to change this at some point to only list 3-5 samples.
+                    Might want to add a flag in the repositories.json to help populate this in future.-->
+                    <% for (const repository of repositories) { %>
+                        <% for (const sample of repository.samples) { %>
+                            <h3 id="sample-header">
+                                <a href='#' onclick="openSample('<%=repository.name%>','<%=sample.name%>')"><%=sample.name%></a>
+                            </h3>
+                            <h4 id="repository-name"><%=repository.name%></h4>
+                            <p id="sample-description"><%=sample.description%></p>
+                        <% } %>
+                    <% } %>
+
+                </div>
+            </div>
+            <div id="content-right">
+                <h2 id="help-title">Help</h2>
+                <p><a href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension" onclick="#">Stack Overflow</a></p>
+                <p><a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension" onclick="#">GitHub Repository</a></p>
+                <br>
+            </div>
+
+            <br>
+
+        </div>
+    </div>
+    <script>
+
+        const vscode = acquireVsCodeApi();
+        function executeCommand(executeCommand) {
+            vscode.postMessage({
+                command: 'command',
+                executeCommand: executeCommand
+            })
+        }
+        function openSample(repoName, sampleName) {
+            vscode.postMessage({
+                command: 'openSample',
+                repoName: repoName,
+                sampleName: sampleName
+            });
+        }
+    </script>
+</body>
+
+</html>
