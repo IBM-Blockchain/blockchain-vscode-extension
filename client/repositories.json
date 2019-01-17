@@ -16,6 +16,7 @@
                                     {
                                         "type":"Go",
                                         "version": "1.0.0",
+                                        "workspaceLabel": "fabcar-contract-go",
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "chaincode/fabcar/go"
@@ -24,6 +25,7 @@
                                     {
                                         "type": "JavaScript",
                                         "version": "1.0.0",
+                                        "workspaceLabel": "fabcar-contract-javascript",
                                         "remote":{
                                             "branch": "release-1.4",
                                             "path": "chaincode/fabcar/javascript"
@@ -32,6 +34,7 @@
                                     {
                                         "type": "TypeScript",
                                         "version": "1.0.0",
+                                        "workspaceLabel": "fabcar-contract-typescript",
                                         "remote":{
                                             "branch": "release-1.4",
                                             "path": "chaincode/fabcar/typescript"
@@ -47,6 +50,7 @@
                                 "version": "1.0.0",
                                 "language": "JavaScript",
                                 "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "fabcar-app-javascript",
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "fabcar/javascript"
@@ -58,6 +62,7 @@
                                 "version": "1.0.0",
                                 "language": "TypeScript",
                                 "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "fabcar-app-typescript",
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "fabcar/typescript"
@@ -78,6 +83,7 @@
                                     {
                                         "type":"JavaScript",
                                         "version": "0.0.1",
+                                        "workspaceLabel": "cp-digibank-contract-javascript",
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "commercial-paper/organization/digibank/contract"
@@ -91,6 +97,7 @@
                                     {
                                         "type":"JavaScript",
                                         "version": "0.0.1",
+                                        "workspaceLabel": "cp-magnetocorp-contract-javascript",
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "commercial-paper/organization/magnetocorp/contract"
@@ -106,6 +113,7 @@
                                 "version": "1.0.0",
                                 "language": "JavaScript",
                                 "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "cp-digibank-app-javascript",
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "commercial-paper/organization/digibank/application"
@@ -117,6 +125,7 @@
                                 "version": "1.0.0",
                                 "language": "JavaScript",
                                 "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "cp-magnetocorp-contract-javascript",
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "commercial-paper/organization/magnetocorp/application"

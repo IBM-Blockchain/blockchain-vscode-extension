@@ -201,6 +201,7 @@ export class SampleView {
 
             let samplePath: string; // Relative location from the repository
             let branch: string; // Git branch
+            let workspaceLabel: string; // Workspace label if user 'Adds to Workspace'
 
             if (fileType === 'contracts') {
                 const contract: any = this.getContract(sample, fileName);
@@ -209,6 +210,8 @@ export class SampleView {
                     if (_language.type === language) {
                         samplePath = _language.remote.path;
                         branch = _language.remote.branch;
+                        language = language;
+                        workspaceLabel = _language.workspaceLabel;
                         return true;
                     }
                 });
@@ -217,6 +220,8 @@ export class SampleView {
                 const download: any = this.getApplication(sample, fileName);
                 samplePath = download.remote.path;
                 branch = download.remote.branch;
+                language = download.language;
+                workspaceLabel = download.workspaceLabel;
             } else {
                 /* Need to make it possible to get the location information of additional materials
                     e.g samplePath = download.url;
@@ -231,7 +236,8 @@ export class SampleView {
 
             // If the file extension is 'git', then we want to clone the repository
             if (fileExtension === 'git') {
-                await SampleView.cloneAndOpenRepository(repoName, samplePath, branch);
+
+                await SampleView.cloneAndOpenRepository(repoName, samplePath, branch, workspaceLabel);
             } else {
                 /* We might want to support other file formats in future such as zip, tar, etc.
                 In which case, there's no need to checkout a local git branch. Instead we would:
@@ -352,7 +358,7 @@ export class SampleView {
         return samplePageHtml;
     }
 
-    public static async cloneAndOpenRepository(repoName: string, samplePath: string, branch: string): Promise<void> {
+    public static async cloneAndOpenRepository(repoName: string, samplePath: string, branch: string, workspaceLabel: string): Promise<void> {
         // Find out where sample repository is
         const repositoryRegistry: RepositoryRegistry = new RepositoryRegistry();
         const repositoryData: any = repositoryRegistry.get(repoName);
@@ -419,6 +425,6 @@ export class SampleView {
         const folderUri: vscode.Uri = vscode.Uri.file(folderPath);
 
         // Open the downloaded project
-        return await UserInputUtil.openNewProject(openMethod, folderUri);
+        return await UserInputUtil.openNewProject(openMethod, folderUri, workspaceLabel);
     }
 }

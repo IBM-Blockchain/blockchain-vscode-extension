@@ -49,6 +49,7 @@ describe('SampleView', () => {
                         {
                             type: 'GoLang',
                             version: '0.0.1',
+                            workspaceLabel: 'fabcar-contract-go',
                             remote: {
                                 branch: 'master',
                                 path: 'chaincode/fabcar/go'
@@ -57,6 +58,7 @@ describe('SampleView', () => {
                         {
                             type: 'JavaScript',
                             version: '1.0.0',
+                            workspaceLabel: 'fabcar-contract-javascript',
                             remote: {
                                 branch: 'master',
                                 path: 'chaincode/fabcar/javascript'
@@ -65,6 +67,7 @@ describe('SampleView', () => {
                         {
                             type: 'TypeScript',
                             version: '1.0.0',
+                            workspaceLabel: 'fabcar-contract-typescript',
                             remote: {
                                 branch: 'master',
                                 path: 'chaincode/fabcar/typescript'
@@ -78,7 +81,9 @@ describe('SampleView', () => {
                     name: 'JavaScript Application',
                     type: 'Web',
                     version: '1.0.0',
+                    language: 'JavaScript',
                     readme: 'https://github.com/hyperledger/fabric-samples',
+                    workspaceLabel: 'fabcar-app-javascript',
                     remote: {
                         branch: 'master',
                         path: 'fabcar/javascript'
@@ -88,7 +93,9 @@ describe('SampleView', () => {
                     name: 'TypeScript Application',
                     type: 'Web',
                     version: '1.0.0',
+                    language: 'TypeScript',
                     readme: 'https://github.com/hyperledger/fabric-samples',
+                    workspaceLabel: 'fabcar-app-typescript',
                     remote: {
                         branch: 'master',
                         path: 'fabcar/typescript'
@@ -666,6 +673,7 @@ describe('SampleView', () => {
     describe('openFile', () => {
 
         let repositoryRegistryGetStub: sinon.SinonStub;
+        let cloneAndOpenRepositorySpy: sinon.SinonSpy;
         before(async () => {
             repositories = {
                 repositories: [
@@ -687,6 +695,7 @@ describe('SampleView', () => {
 
         beforeEach(async () => {
             repositoryRegistryGetStub = mySandBox.stub(RepositoryRegistry.prototype, 'get').returns({name: repositoryName, path: '/some/path'});
+            cloneAndOpenRepositorySpy = mySandBox.spy(SampleView, 'cloneAndOpenRepository');
         });
 
         it('should open contract', async () => {
@@ -714,6 +723,8 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
             openNewProjectStub.should.have.been.calledOnce;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
+
         });
 
         it(`should show error if the repository isn't in the user settings`, async () => {
@@ -738,6 +749,7 @@ describe('SampleView', () => {
 
             repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
             showErrorMessageStub.should.have.been.calledOnceWithExactly('The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.');
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
         });
 
         it('should delete the repository from the user settings if the directory cannot be found on disk', async () => {
@@ -755,12 +767,14 @@ describe('SampleView', () => {
             getContract.returns(sample.category.contracts[0]);
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(false);
 
-            await SampleView.openFile(repositoryName, 'FabCar', 'contracts', 'FabCar Contract', 'TypeScript');
+            await SampleView.openFile(repositoryName, 'FabCar', 'contracts', 'FabCar Contract', 'JavaScript');
 
             repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             repositoryRegistryDeleteStub.should.have.been.calledOnceWithExactly(repositoryName);
             showErrorMessageStub.should.have.been.calledOnceWithExactly(`The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/javascript', 'master', 'fabcar-contract-javascript');
+
         });
 
         it('should return if user doesnt select how to open files', async () => {
@@ -788,6 +802,8 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
             openNewProjectStub.should.have.not.have.been.called;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
+
         });
 
         it('should handle if the local branch already exists', async () => {
@@ -820,6 +836,8 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout master');
             openNewProjectStub.should.have.been.calledOnce;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
+
         });
 
         it('should handle other errors', async () => {
@@ -849,6 +867,8 @@ describe('SampleView', () => {
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             openNewProjectStub.should.have.not.have.been.called;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
+
         });
 
         it('should throw an error if a second error is thrown and repository cant be checked out automatically', async () => {
@@ -882,6 +902,8 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout master');
             openNewProjectStub.should.not.have.been.called;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
+
         });
 
         it('should open application', async () => {
@@ -909,6 +931,8 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
             openNewProjectStub.should.have.been.calledOnce;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'fabcar/typescript', 'master', 'fabcar-app-typescript');
+
         });
 
         it('should throw an error if fileType not recognised', async () => {
@@ -928,6 +952,8 @@ describe('SampleView', () => {
             await SampleView.openFile(repositoryName, 'FabCar', 'Something Else', 'TypeScript Application').should.be.rejectedWith('File type not supported');
 
             openNewProjectStub.should.not.have.been.called;
+            cloneAndOpenRepositorySpy.should.not.have.been.called;
+
         });
 
         it('should error if attempting to open files not coming from a Git repository', async () => {
@@ -946,6 +972,7 @@ describe('SampleView', () => {
             await SampleView.openFile(repositoryName, 'FabCar', 'applications', 'TypeScript Application').should.be.rejectedWith(`Currently there is no support for opening files unless they're from a Git repository`);
 
             openNewProjectStub.should.not.have.been.called;
+            cloneAndOpenRepositorySpy.should.not.have.been.calledOnceWith(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-app-typescript');
 
         });
     });

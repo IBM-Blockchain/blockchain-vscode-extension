@@ -1087,4 +1087,39 @@ describe('userInputUtil', () => {
 
     });
 
+    describe('openNewProject', () => {
+        it('should add project to workspace', async () => {
+            const updateWorkspaceFoldersStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders').returns(true);
+            const uri: vscode.Uri = vscode.Uri.file('test');
+            await UserInputUtil.openNewProject(UserInputUtil.ADD_TO_WORKSPACE, uri);
+            updateWorkspaceFoldersStub.should.have.been.calledOnceWithExactly(sinon.match.any, 0, {uri: uri});
+        });
+
+        it('should add workspace with custom workspace name', async () => {
+            const updateWorkspaceFoldersStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders').returns(true);
+            const uri: vscode.Uri = vscode.Uri.file('test');
+            await UserInputUtil.openNewProject(UserInputUtil.ADD_TO_WORKSPACE, uri, 'some-custom-name');
+            updateWorkspaceFoldersStub.should.have.been.calledOnceWithExactly(sinon.match.any, 0, {uri: uri, name: 'some-custom-name'});
+        });
+
+        it('should open project in current window', async () => {
+            const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+            const uri: vscode.Uri = vscode.Uri.file('test');
+
+            await UserInputUtil.openNewProject(UserInputUtil.OPEN_IN_CURRENT_WINDOW, uri);
+
+            executeCommand.should.have.been.calledOnceWithExactly('vscode.openFolder', uri, false);
+
+        });
+
+        it('should open project in new window', async () => {
+            const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+            const uri: vscode.Uri = vscode.Uri.file('test');
+
+            await UserInputUtil.openNewProject(UserInputUtil.OPEN_IN_NEW_WINDOW, uri);
+
+            executeCommand.should.have.been.calledOnceWithExactly('vscode.openFolder', uri, true);
+        });
+    });
+
 });
