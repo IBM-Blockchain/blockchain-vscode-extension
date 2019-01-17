@@ -84,3 +84,9 @@
 * Ask for MSPid if client section of connection profile is missing [#427](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/427)
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-42.png)
+
+## 0.1.2: January 17th 2019
+
+* New extension homepage containing quick links to commands, cloning samples and more [#321](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/321)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-43.png)
