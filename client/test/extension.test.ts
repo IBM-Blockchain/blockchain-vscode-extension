@@ -333,7 +333,7 @@ describe('Extension Tests', () => {
         const openContractSampleStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openContractSample').resolves();
         await myExtension.activate(context);
 
-        await vscode.commands.executeCommand('contractSample.open', 'Repo One', 'Sample One');
+        await vscode.commands.executeCommand('sample.open', 'Repo One', 'Sample One');
 
         openContractSampleStub.should.have.been.calledWith(context, 'Repo One', 'Sample One');
 

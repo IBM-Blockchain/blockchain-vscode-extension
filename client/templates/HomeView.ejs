@@ -207,30 +207,30 @@
                 <div id="getting-started-commands">
 
                 <p>
-                    <a href="#" onclick="executeCommand('blockchain.createSmartContractProjectEntry')">
+                    <a href="command:blockchain.createSmartContractProjectEntry">
                         Create a new smart contract project
                     </a>
                 </p>
                 <p>
-                    <a href="#" onclick="executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry')">
+                    <a href="command:blockchainAPackageExplorer.packageSmartContractProjectEntry">
                         Package a smart contract project</a></p>
                 <p>
-                    <a href="#" onclick="executeCommand('blockchainExplorer.installSmartContractEntry')">
+                    <a href="command:blockchainExplorer.installSmartContractEntry">
                         Install a smart contract package
                     </a>
                 </p>
                 <p>
-                    <a href="#" onclick="executeCommand('blockchainExplorer.instantiateSmartContractEntry')">
+                    <a href="command:blockchainExplorer.instantiateSmartContractEntry">
                         Instantiate a smart contract
                     </a>
                 </p>
                 <p>
-                    <a href="#" onclick="executeCommand('blockchainExplorer.testSmartContractEntry')">
+                    <a href="command:blockchainExplorer.testSmartContractEntry">
                         Test a smart contract
                     </a>
                 </p>
                 <p>
-                    <a href="#" onclick="executeCommand('blockchainExplorer.instantiateSmartContractEntry')">
+                    <a href="command:blockchainExplorer.instantiateSmartContractEntry">
                         Upgrade a smart contract
                     </a>
                 </p>
@@ -253,7 +253,7 @@
                     <% for (const repository of repositories) { %>
                         <% for (const sample of repository.samples) { %>
                             <h3 id="sample-header">
-                                <a href='#' onclick="openSample('<%=repository.name%>','<%=sample.name%>')"><%=sample.name%></a>
+                                <a href='command:sample.open?<%= encodeURIComponent(JSON.stringify([repository.name,sample.name])); %>'><%=sample.name%></a>
                             </h3>
                             <h4 id="repository-name"><%=repository.name%></h4>
                             <p id="sample-description"><%=sample.description%></p>

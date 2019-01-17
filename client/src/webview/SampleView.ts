@@ -53,6 +53,7 @@ export class SampleView {
                 {
                     retainContextWhenHidden: false,
                     enableScripts: true,
+                    enableCommandUris: true,
                     localResourceRoots: [
                         vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                     ]
