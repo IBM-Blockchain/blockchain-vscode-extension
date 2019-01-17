@@ -14,8 +14,8 @@
                                 "name": "FabCar Contract",
                                 "languages":[
                                     {
-                                        "type":"GoLang",
-                                        "version": "0.0.1",
+                                        "type":"Go",
+                                        "version": "1.0.0",
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "chaincode/fabcar/go"
@@ -38,19 +38,6 @@
                                         }
                                     }
                                 ]
-                            },
-                            {
-                                "name": "FabCar Contract (Low-Level)",
-                                "languages": [
-                                    {
-                                        "type": "JavaScript",
-                                        "version": "1.0.0",
-                                        "remote":{
-                                            "branch": "release-1.4",
-                                            "path": "chaincode/fabcar/javascript-low-level"
-                                        }
-                                    }
-                                ]
                             }
                         ],
                         "applications":[
@@ -63,17 +50,6 @@
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "fabcar/javascript"
-                                }
-                            },
-                            {
-                                "name": "JavaScript Application (Low-Level)",
-                                "type": "Web",
-                                "version": "1.0.0",
-                                "language": "JavaScript",
-                                "readme": "https://github.com/hyperledger/fabric-samples",
-                                "remote":{
-                                    "branch": "release-1.4",
-                                    "path": "fabcar/javascript-low-level"
                                 }
                             },
                             {

@@ -267,7 +267,7 @@
             },
             {
                 "command": "blockchainExplorer.submitTransactionEntry",
-                "title": " Submit Transaction",
+                "title": "Submit Transaction",
                 "category": "IBM Blockchain Platform"
             },
             {
