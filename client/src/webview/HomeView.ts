@@ -47,6 +47,7 @@ export class HomeView {
                 {
                     enableScripts: true,
                     retainContextWhenHidden: true,
+                    enableCommandUris: true,
                     localResourceRoots: [
                         vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                     ]
@@ -71,7 +72,7 @@ export class HomeView {
                     await vscode.commands.executeCommand(message.executeCommand);
                 } else if (message.command === 'openSample') {
                     // Creates and opens a webview for the given sample
-                    await vscode.commands.executeCommand('contractSample.open', message.repoName, message.sampleName);
+                    await vscode.commands.executeCommand('sample.open', message.repoName, message.sampleName);
                 }
             }, undefined, context.subscriptions);
 

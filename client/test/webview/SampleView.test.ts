@@ -197,6 +197,7 @@ describe('SampleView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: false,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -250,6 +251,7 @@ describe('SampleView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: false,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -305,6 +307,7 @@ describe('SampleView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: false,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -362,6 +365,7 @@ describe('SampleView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: false,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -421,6 +425,7 @@ describe('SampleView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: false,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]

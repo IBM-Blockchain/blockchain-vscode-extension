@@ -126,8 +126,8 @@
         },
         "commands": [
             {
-                "command": "contractSamples.open",
-                "title": "View sample smart contracts",
+                "command": "sample.open",
+                "title": "Open sample",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -297,7 +297,7 @@
                     "command": "blockchainExplorer.openFabricRuntimeTerminal"
                 },
                 {
-                    "command": "contractSamples.open",
+                    "command": "sample.open",
                     "when": "false"
                 }
             ],

@@ -160,7 +160,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.upgradeSmartContractEntry', (instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
 
     context.subscriptions.push(vscode.commands.registerCommand('extensionHome.open', async () => await HomeView.openHomePage(context)));
-    context.subscriptions.push(vscode.commands.registerCommand('contractSample.open', async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));
+    context.subscriptions.push(vscode.commands.registerCommand('sample.open', async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 

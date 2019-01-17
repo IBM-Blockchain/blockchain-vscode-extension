@@ -124,6 +124,7 @@ describe('HomeView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -162,6 +163,7 @@ describe('HomeView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -204,6 +206,7 @@ describe('HomeView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -240,6 +243,7 @@ describe('HomeView', () => {
             {
                 enableScripts: true,
                 retainContextWhenHidden: true,
+                enableCommandUris: true,
                 localResourceRoots: [
                     vscode.Uri.file(path.join(context.extensionPath, 'resources'))
                 ]
@@ -248,7 +252,7 @@ describe('HomeView', () => {
         );
         getExtensionHomepageStub.should.have.been.calledOnce;
 
-        executeCommand.getCall(0).should.have.been.calledWith('contractSample.open', 'repo1', 'sample1');
+        executeCommand.getCall(0).should.have.been.calledWith('sample.open', 'repo1', 'sample1');
 
     });
 
@@ -276,7 +280,6 @@ describe('HomeView', () => {
 
         const homePageHtml: string = await HomeView.getHomePage(options);
         homePageHtml.should.contain(`<h3 id="sample-header">`);
-        homePageHtml.should.contain(`<a href='#' onclick="openSample('hyperledger/fabric-samples','FabCar')">FabCar</a>`);
         homePageHtml.should.contain(`<h4 id="repository-name">hyperledger/fabric-samples</h4>`);
         homePageHtml.should.contain(`<p id="sample-description">Sample project demonstrating the transfer of vehicle ownership</p>`);
     });
