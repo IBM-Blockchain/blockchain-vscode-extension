@@ -572,10 +572,11 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async openNewProject(openMethod: string, uri: vscode.Uri): Promise<void> {
+    public static async openNewProject(openMethod: string, uri: vscode.Uri, workspaceLabel?: string): Promise<void> {
         if (openMethod === UserInputUtil.ADD_TO_WORKSPACE) {
             const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
-            vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, {uri: uri});
+            const options: any = (workspaceLabel) ? {uri: uri, name: workspaceLabel} : {uri: uri};
+            vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, options);
         } else {
             let openNewWindow: boolean = true;
 
