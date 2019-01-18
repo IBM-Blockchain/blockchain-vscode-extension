@@ -20,10 +20,10 @@ import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegi
 export class ConnectedTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-connected-item';
 
-    constructor(provider: BlockchainExplorerProvider, private readonly connectionName: string, private readonly fabricConnectionRegistryEntry: FabricConnectionRegistryEntry) {
+    constructor(provider: BlockchainExplorerProvider, private readonly connectionName: string, public readonly connection: FabricConnectionRegistryEntry) {
         super(provider, `Connected to: ${connectionName}`, vscode.TreeItemCollapsibleState.None);
 
-        if (fabricConnectionRegistryEntry.managedRuntime) {
+        if (connection.managedRuntime) {
             this.contextValue = 'blockchain-connected-runtime-item';
         }
     }

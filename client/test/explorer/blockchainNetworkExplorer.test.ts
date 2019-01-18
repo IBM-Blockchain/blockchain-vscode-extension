@@ -629,7 +629,7 @@ describe('BlockchainNetworkExplorer', () => {
                 fabricConnection.getMetadata.withArgs('biscuit-network', 'channelOne').resolves(
                     {
                         contracts: {
-                            'my-contract' : {
+                            'my-contract': {
                                 name: 'my-contract',
                                 transactions: [
                                     {
@@ -640,7 +640,7 @@ describe('BlockchainNetworkExplorer', () => {
                                     }
                                 ],
                             },
-                           'someOtherContract' : {
+                            'someOtherContract': {
                                 name: 'someOtherContract',
                                 transactions: [
                                     {
@@ -658,7 +658,7 @@ describe('BlockchainNetworkExplorer', () => {
                 fabricConnection.getMetadata.withArgs('cake-network', 'channelTwo').resolves(
                     {
                         contracts: {
-                            'my-contract' : {
+                            'my-contract': {
                                 name: 'my-contract',
                                 transactions: [],
                             }
@@ -690,6 +690,7 @@ describe('BlockchainNetworkExplorer', () => {
                 connectedItem.label.should.equal('Connected to: myConnection');
                 connectedItem.contextValue.should.equal('blockchain-connected-item');
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                connectedItem.connection.name.should.equal('myConnection');
 
                 const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -715,6 +716,7 @@ describe('BlockchainNetworkExplorer', () => {
                 connectedItem.label.should.equal('Connected to: myConnection');
                 connectedItem.contextValue.should.equal('blockchain-connected-runtime-item');
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                connectedItem.connection.name.should.equal('myConnection');
 
                 const channelOne: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -996,7 +998,7 @@ describe('BlockchainNetworkExplorer', () => {
                 fabricConnection.getMetadata.withArgs('biscuit-network', 'channelOne').resolves(
                     {
                         contracts: {
-                            '' : {
+                            '': {
                                 name: '',
                                 transactions: [
                                     {
