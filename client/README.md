@@ -181,3 +181,11 @@ To track the projects future features, visit [GitHub Issues](https://github.com/
 
 ## License <a name="license"></a>
 The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE.txt) file.
+
+This software uses the IBM Plex Sans font licensed under the SIL Open Font License, Version 1.1.
+Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
