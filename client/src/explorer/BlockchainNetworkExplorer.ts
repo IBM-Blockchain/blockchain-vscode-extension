@@ -19,13 +19,10 @@ import * as vscode from 'vscode';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 
-import { PeerTreeItem } from './model/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { ConnectionIdentityTreeItem } from './model/ConnectionIdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { ConnectionTreeItem } from './model/ConnectionTreeItem';
-import { InstalledChainCodeTreeItem } from './model/InstalledChainCodeTreeItem';
-import { InstalledChainCodeVersionTreeItem } from './model/InstalledChaincodeVersionTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
@@ -112,20 +109,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
                     const channelElement: ChannelTreeItem = element as ChannelTreeItem;
-                    this.tree = await this.createPeerTree(element as ChannelTreeItem);
 
                     if (channelElement.chaincodes.length > 0) {
                         const instantiatedChaincodes: Array<InstantiatedChaincodeTreeItem> = await this.createInstantiatedChaincodeTree(element as ChannelTreeItem);
                         this.tree.push(...instantiatedChaincodes);
                     }
-                }
-
-                if (element instanceof PeerTreeItem) {
-                    this.tree = await this.createInstalledChaincodeTree(element as PeerTreeItem);
-                }
-
-                if (element instanceof InstalledChainCodeTreeItem) {
-                    this.tree = await this.createInstalledChaincodeVersionTree(element as InstalledChainCodeTreeItem);
                 }
 
                 if (element instanceof InstantiatedChaincodeTreeItem) {
@@ -170,7 +158,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         for (const label of [profileLabel, certLabel, keyLabel]) {
             command = {
-                command: 'blockchainExplorer.editConnectionEntry',
+                command: 'blockchainConnectionsExplorer.editConnectionEntry',
                 title: '',
                 arguments: [{ label: label, connection: element.connection }]
             };
@@ -198,7 +186,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                     connection,
                     vscode.TreeItemCollapsibleState.None,
                     {
-                        command: 'blockchainExplorer.connectEntry',
+                        command: 'blockchainConnectionsExplorer.connectEntry',
                         title: '',
                         arguments: [connection]
                     });
@@ -225,7 +213,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             } else {
                 collapsibleState = vscode.TreeItemCollapsibleState.None;
                 command = {
-                    command: 'blockchainExplorer.connectEntry',
+                    command: 'blockchainConnectionsExplorer.connectEntry',
                     title: '',
                     arguments: [connection]
                 };
@@ -253,28 +241,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             } else {
                 return 0;
             }
-        });
-
-        return tree;
-    }
-
-    private createInstalledChaincodeVersionTree(chaincodeElement: InstalledChainCodeTreeItem): Promise<Array<InstalledChainCodeVersionTreeItem>> {
-        console.log('createInstalledChaincodeVersionTree', chaincodeElement);
-        const tree: Array<InstalledChainCodeVersionTreeItem> = [];
-
-        chaincodeElement.versions.forEach((version: string) => {
-            tree.push(new InstalledChainCodeVersionTreeItem(this, version));
-        });
-
-        return Promise.resolve(tree);
-    }
-
-    private async createInstalledChaincodeTree(peerElement: PeerTreeItem): Promise<Array<InstalledChainCodeTreeItem>> {
-        console.log('createInstalledChaincodeTree', peerElement);
-        const tree: Array<InstalledChainCodeTreeItem> = [];
-
-        peerElement.chaincodes.forEach((versions: Array<string>, name: string) => {
-            tree.push(new InstalledChainCodeTreeItem(this, name, versions));
         });
 
         return tree;
@@ -321,24 +287,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         contractTreeElement.transactions.forEach((transaction: string) => {
             tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channel.label, contractTreeElement.name));
         });
-
-        return tree;
-    }
-
-    private async createPeerTree(channelElement: ChannelTreeItem): Promise<Array<PeerTreeItem>> {
-        console.log('createPeerTree', channelElement);
-        const tree: Array<PeerTreeItem> = [];
-
-        for (const peer of channelElement.peers) {
-            try {
-                const chaincodes: Map<string, Array<string>> = await FabricConnectionManager.instance().getConnection().getInstalledChaincode(peer);
-                const collapsibleState: vscode.TreeItemCollapsibleState = chaincodes.size > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
-                tree.push(new PeerTreeItem(this, peer, chaincodes, collapsibleState));
-            } catch (error) {
-                tree.push(new PeerTreeItem(this, peer, new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None));
-                vscode.window.showErrorMessage('Error when getting installed smart contracts for peer ' + peer + ' ' + error.message);
-            }
-        }
 
         return tree;
     }
@@ -418,7 +366,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 const commonName: string = cert.getCommonName();
 
                 const command: vscode.Command = {
-                    command: 'blockchainExplorer.connectEntry',
+                    command: 'blockchainConnectionsExplorer.connectEntry',
                     title: '',
                     arguments: [element.connection, identity]
                 };

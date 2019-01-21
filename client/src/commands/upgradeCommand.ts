@@ -29,7 +29,7 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
     let contractVersion: string;
     if (!instantiatedChainCodeTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return;
@@ -114,7 +114,7 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
             Reporter.instance().sendTelemetryEvent('upgradeCommand');
 
             vscode.window.showInformationMessage('Successfully upgraded smart contract');
-            await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
         });
     } catch (error) {
         vscode.window.showErrorMessage('Error upgrading smart contract: ' + error.message);

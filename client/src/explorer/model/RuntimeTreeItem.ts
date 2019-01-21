@@ -20,7 +20,6 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
-import { FabricConnectionRegistry } from '../../fabric/FabricConnectionRegistry';
 
 export class RuntimeTreeItem extends ConnectionTreeItem {
 
@@ -78,7 +77,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             connection.managedRuntime = true;
             newLabel += '●';
             newCommand = {
-                command: 'blockchainExplorer.connectEntry',
+                command: 'blockchainConnectionsExplorer.connectEntry',
                 title: '',
                 arguments: [connection]
             };

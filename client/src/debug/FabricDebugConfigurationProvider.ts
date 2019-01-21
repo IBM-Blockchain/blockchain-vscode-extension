@@ -146,7 +146,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
         connectionRegistry.name = this.runtime.getName();
         connectionRegistry.managedRuntime = true;
 
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connectionRegistry);
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', connectionRegistry);
         const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
         return connection.getAllPeerNames();
     }

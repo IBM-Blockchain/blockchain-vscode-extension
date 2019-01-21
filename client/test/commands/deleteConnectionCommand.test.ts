@@ -89,7 +89,7 @@ describe('DeleteConnectionCommand', () => {
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -134,7 +134,7 @@ describe('DeleteConnectionCommand', () => {
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
             const connectionToDelete: BlockchainTreeItem = allChildren[1];
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', connectionToDelete);
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry', connectionToDelete);
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -174,7 +174,7 @@ describe('DeleteConnectionCommand', () => {
 
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -220,7 +220,7 @@ describe('DeleteConnectionCommand', () => {
 
             warningStub.resolves(false);
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 

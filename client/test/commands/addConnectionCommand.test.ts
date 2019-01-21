@@ -65,7 +65,7 @@ describe('AddConnectionCommand', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -79,7 +79,7 @@ describe('AddConnectionCommand', () => {
                 }]
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
         });
 
         it('should test an uncompleted connection can be added', async () => {
@@ -93,7 +93,7 @@ describe('AddConnectionCommand', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -107,7 +107,7 @@ describe('AddConnectionCommand', () => {
                 }]
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
         });
 
         it('should test another connection can be added', async () => {
@@ -124,7 +124,7 @@ describe('AddConnectionCommand', () => {
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             let connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -144,16 +144,16 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onCall(5).resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             executeCommandSpy.callCount.should.equal(10);
 
             let calledWithValue: string;
             for (let x: number = 0; x < 10; x++) {
                 if (x % 5 === 0) {
-                    calledWithValue = 'blockchainExplorer.addConnectionEntry';
+                    calledWithValue = 'blockchainConnectionsExplorer.addConnectionEntry';
                 } else {
-                    calledWithValue = 'blockchainExplorer.refreshEntry';
+                    calledWithValue = 'blockchainConnectionsExplorer.refreshEntry';
                 }
                 executeCommandSpy.getCall(x).should.have.been.calledWith(calledWithValue);
             }
@@ -187,14 +187,14 @@ describe('AddConnectionCommand', () => {
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
             connections.length.should.equal(0);
 
             executeCommandSpy.callCount.should.equal(1);
-            executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainExplorer.addConnectionEntry');
+            executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainConnectionsExplorer.addConnectionEntry');
         });
 
         it('should test a connection can be cancelled when adding profile', async () => {
@@ -207,7 +207,7 @@ describe('AddConnectionCommand', () => {
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -222,7 +222,7 @@ describe('AddConnectionCommand', () => {
             });
 
             executeCommandSpy.callCount.should.equal(2);
-            executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainExplorer.addConnectionEntry');
+            executeCommandSpy.getCall(0).should.have.been.calledWith('blockchainConnectionsExplorer.addConnectionEntry');
 
         });
 
@@ -237,7 +237,7 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onSecondCall().resolves();
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -263,7 +263,7 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
             browseEditStub.onThirdCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -288,7 +288,7 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             errorSpy.should.have.been.calledWith('Failed to add a new connection: Could not validate certificate: invalid pem');
         });
@@ -304,7 +304,7 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
             browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             errorSpy.should.have.been.calledWith('Failed to add a new connection: Could not validate private key: invalid pem');
         });
