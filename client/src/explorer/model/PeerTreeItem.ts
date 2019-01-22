@@ -13,11 +13,17 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class PeerTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-peer-item';
+
+    iconPath: {light: string, dark: string} = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'node.svg'),
+        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', 'node.svg')
+    };
 
     constructor(provider: BlockchainExplorerProvider, public readonly peerName: any, public readonly chaincodes: Map<string, Array<string>>, collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, peerName, collapsibleState);
