@@ -168,7 +168,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('myRuntime  ●');
             treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.connectEntry',
+                command: 'blockchainConnectionsExplorer.connectEntry',
                 title: '',
                 arguments: [connection]
             });
@@ -284,7 +284,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('myRuntime  ●  ∞');
             treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.connectEntry',
+                command: 'blockchainConnectionsExplorer.connectEntry',
                 title: '',
                 arguments: [connection]
             });

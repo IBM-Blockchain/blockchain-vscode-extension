@@ -20,8 +20,6 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
-import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
-import { LogType } from '../../logging/OutputAdapter';
 
 export class RuntimeTreeItem extends ConnectionTreeItem {
 
@@ -53,11 +51,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
     }
 
     private safelyUpdateProperties(): void {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-
-        this.updateProperties().catch((error: Error) => {
-            outputAdapter.log(LogType.ERROR, error.message, error.toString());
-        });
+        this.updateProperties().catch((error: Error) => vscode.window.showErrorMessage(error.message));
     }
 
     private async updateProperties(): Promise<void> {
@@ -83,7 +77,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             connection.managedRuntime = true;
             newLabel += '●';
             newCommand = {
-                command: 'blockchainExplorer.connectEntry',
+                command: 'blockchainConnectionsExplorer.connectEntry',
                 title: '',
                 arguments: [connection]
             };

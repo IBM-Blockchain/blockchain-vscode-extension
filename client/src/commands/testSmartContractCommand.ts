@@ -41,7 +41,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     if (!chaincode) {
         if (!FabricConnectionManager.instance().getConnection()) {
             // Connect if not already connected
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;

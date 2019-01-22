@@ -26,9 +26,6 @@ import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegis
 import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
-import { LogType } from '../../src/logging/OutputAdapter';
-import { ConnectionTreeItem} from '../../src/explorer/model/ConnectionTreeItem';
 
 chai.should();
 chai.use(sinonChai);
@@ -46,12 +43,8 @@ describe('AddConnectionIdentityCommand', () => {
 
     describe('addConnectionIdentity', () => {
         let mySandBox: sinon.SinonSandbox;
-        let browseEditStub: sinon.SinonStub;
-        let HelperStub: sinon.SinonStub;
-        let inputBoxStub: sinon.SinonStub;
-        let identityName: string;
+
         const rootPath: string = path.dirname(__dirname);
-        const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -63,156 +56,187 @@ describe('AddConnectionIdentityCommand', () => {
                 name: 'myConnectionA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 managedRuntime: false,
-                walletPath: walletPath
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+                }]
             });
 
             const connectionTwo: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
                 name: 'myConnectionB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
                 managedRuntime: false,
-                walletPath: walletPath
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
             });
 
             await FabricConnectionRegistry.instance().clear();
             await FabricConnectionRegistry.instance().add(connectionOne);
             await FabricConnectionRegistry.instance().add(connectionTwo);
-
-            browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            HelperStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
-            inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         });
 
-        afterEach(async () => {
+        afterEach(() => {
             mySandBox.restore();
-            await TestUtil.deleteTestFiles(path.join(walletPath, identityName));
         });
 
         it('should test a connection identity can be added via the command', async () => {
-            identityName = 'greenConga';
             mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myConnectionB',
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
 
-            inputBoxStub.resolves(identityName);
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-            identities.length.should.equal(3);
-            identities[2].label.should.equal(identityName);
-            identities[2].command.command.should.equal('blockchainExplorer.connectEntry');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
+
+            connections.length.should.equal(2);
+            connections[1].should.deep.equal({
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                },
+                    {
+                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                    }]
+            });
         });
 
         it('should test a config can be cancelled before choosing a connection', async () => {
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-            identities.length.should.equal(2);
-        });
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
-        it('should test a config can be cancelled on giving identity name', async () => {
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
-                label: 'myConnectionB',
-                data: FabricConnectionRegistry.instance().get('myConnectionB')
+            connections.length.should.equal(2);
+            connections[1].should.deep.equal({
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
             });
-            inputBoxStub.resolves();
-
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
-
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-            identities.length.should.equal(2);
         });
 
         it('should test a config can be cancelled on certificate path', async () => {
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myConnectionB',
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            inputBoxStub.resolves('blueConga');
             browseEditStub.onFirstCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-            identities.length.should.equal(2);
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
+
+            connections.length.should.equal(2);
+            connections[1].should.deep.equal({
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
+            });
         });
 
         it('should test a config can be cancelled when adding private key', async () => {
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myConnectionB',
                 data: FabricConnectionRegistry.instance().get('myConnectionB')
             });
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
 
-            inputBoxStub.resolves('violetConga');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
-            identities.length.should.equal(2);
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
+
+            connections.length.should.equal(2);
+            connections[1].should.deep.equal({
+                name: 'myConnectionB',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                }]
+            });
         });
 
         it('should be able to add a identity from the tree', async () => {
-            identityName = 'blackConga';
-            inputBoxStub.resolves(identityName);
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionToAddTo: ConnectionTreeItem = allChildren[1] as ConnectionTreeItem;
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry', connectionToAddTo);
+            const connectionToAddTo: BlockchainTreeItem = allChildren[1];
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry', connectionToAddTo);
 
-            connectionToAddTo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionToAddTo);
-            identities.length.should.equal(3);
-            identities[2].label.should.equal(identityName);
-            identities[2].command.command.should.equal('blockchainExplorer.connectEntry');
+            const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
+
+            connections.length.should.equal(2);
+            connections[0].should.deep.equal({
+                name: 'myConnectionA',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                managedRuntime: false,
+                identities: [{
+                    certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                    privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
+                },
+                    {
+                        certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+                        privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
+                    }]
+            });
         });
 
         it('should show an error if connection is not complete', async () => {
-            HelperStub.returns(false);
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+
+            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
+            const errorMessageSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({
                 label: 'myConnection',
                 data: {
                     connectionProfilePath: FabricConnectionHelper.CONNECTION_PROFILE_PATH_DEFAULT,
                     name: 'myConnection',
-                    walletPath: FabricConnectionHelper.WALLET_PATH_DEFAULT
+                    identities: [
+                        {
+                            certificatePath: FabricConnectionHelper.CERTIFICATE_PATH_DEFAULT,
+                            privateKeyPath: FabricConnectionHelper.PRIVATE_KEY_PATH_DEFAULT
+                        }
+                    ]
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Blockchain connection must be completed first!');
+            errorMessageSpy.should.have.been.calledWith('Blockchain connection must be completed first!');
         });
     });
 });

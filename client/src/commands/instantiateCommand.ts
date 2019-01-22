@@ -19,20 +19,15 @@ import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 
 export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem): Promise<void> {
 
     let channelName: string;
     let peers: Set<string>;
     let packageEntry: PackageRegistryEntry;
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
-
     if (!channelTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return;
@@ -107,11 +102,11 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
-            outputAdapter.log(LogType.SUCCESS, 'Successfully instantiated smart contract');
-            await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+            vscode.window.showInformationMessage('Successfully instantiated smart contract');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
         });
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);
+        vscode.window.showErrorMessage('Error instantiating smart contract: ' + error.message);
         throw error;
     }
 }

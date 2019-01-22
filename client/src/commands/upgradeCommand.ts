@@ -19,12 +19,9 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
 
 export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, 'upgradeSmartContract');
+
     let channelName: string;
     let peers: Set<string>;
     let packageEntry: PackageRegistryEntry;
@@ -32,7 +29,7 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
     let contractVersion: string;
     if (!instantiatedChainCodeTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return;
@@ -116,11 +113,11 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');
 
-            outputAdapter.log(LogType.SUCCESS, `Successfully upgraded smart contract`);
-            await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+            vscode.window.showInformationMessage('Successfully upgraded smart contract');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
         });
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error upgrading smart contract: ${error.message}`);
+        vscode.window.showErrorMessage('Error upgrading smart contract: ' + error.message);
         throw error;
     }
 }
