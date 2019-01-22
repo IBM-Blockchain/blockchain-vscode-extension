@@ -22,7 +22,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Gateway } from 'fabric-network';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -36,7 +35,6 @@ describe('FabricClientConnection', () => {
     let otherFabricClientConnectionYml: FabricClientConnection;
     let fabricClientConnectionWrong: FabricClientConnection;
     let errorSpy: sinon.SinonSpy;
-    let wallet: FabricWallet;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -67,16 +65,15 @@ describe('FabricClientConnection', () => {
         beforeEach(async () => {
             const connectionData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
+                privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
             };
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = gatewayStub;
-
-            wallet = new FabricWallet('myConnection', connectionData.walletPath);
         });
 
         it('should connect to a fabric', async () => {
-            await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricClientConnection.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
             fabricClientConnection['networkIdProperty'].should.equal(false);
@@ -84,24 +81,30 @@ describe('FabricClientConnection', () => {
 
         it('should connect with an already loaded client connection', async () => {
             should.exist(FabricConnectionFactory['clientConnection']);
-            await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricClientConnection.connect();
             gatewayStub.connect.should.have.been.called;
             errorSpy.should.not.have.been.called;
             fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
+        it('should connect with a defined mspid', async () => {
+            await fabricClientConnection.connect('Org1MSP');
+            gatewayStub.connect.should.have.been.called;
+            errorSpy.should.not.have.been.called;
+            fabricClientConnection['networkIdProperty'].should.equal(false);
+        });
     });
 
     it('should connect to a fabric with a .yaml connection profile', async () => {
         const connectionYamlData: any = {
             connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection.yaml'),
-            walletPath: path.join(rootPath, '../../test/data/connectionYaml/wallet')
+            certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
         };
-        wallet = new FabricWallet('myConnection', connectionYamlData.walletPath);
         fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionYamlData) as FabricClientConnection;
         fabricClientConnectionYaml['gateway'] = gatewayStub;
 
-        await fabricClientConnectionYaml.connect(wallet, 'Admin@org1.example.com');
+        await fabricClientConnectionYaml.connect();
         gatewayStub.connect.should.have.been.called;
         errorSpy.should.not.have.been.called;
         fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
@@ -110,13 +113,13 @@ describe('FabricClientConnection', () => {
     it('should connect to a fabric with a .yml connection profile', async () => {
         const otherConnectionYmlData: any = {
             connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml'),
-            walletPath: path.join(rootPath, '../../test/data/connectionYaml/wallet')
+            certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
         };
-        wallet = new FabricWallet('myConnection', otherConnectionYmlData.walletPath);
         otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
         otherFabricClientConnectionYml['gateway'] = gatewayStub;
 
-        await otherFabricClientConnectionYml.connect(wallet, 'Admin@org1.example.com');
+        await otherFabricClientConnectionYml.connect();
         gatewayStub.connect.should.have.been.called;
         errorSpy.should.not.have.been.called;
         fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
@@ -126,13 +129,13 @@ describe('FabricClientConnection', () => {
 
         const connectionData: any = {
             connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-            walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+            certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
+            privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
         };
-        wallet = new FabricWallet('myConnection', connectionData.walletPath);
         fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
         fabricClientConnection['gateway'] = gatewayStub;
 
-        await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
+        await fabricClientConnection.connect();
 
         gatewayStub.connect.should.have.been.called;
         errorSpy.should.not.have.been.called;
@@ -143,14 +146,34 @@ describe('FabricClientConnection', () => {
         it('should show an error if connection profile is not .yaml or .json file', async () => {
             const connectionWrongData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection'),
-                walletPath: path.join(rootPath, '../../test/data/connectionYaml/wallet')
+                certificatePath: path.join(rootPath, '../../test/data/connectionYaml/credentials/certificate'),
+                privateKeyPath: path.join(rootPath, '../../test/data/connectionYaml/credentials/privateKey')
             };
-            wallet = new FabricWallet('myConnection', connectionWrongData.walletPath);
             fabricClientConnectionWrong = FabricConnectionFactory.createFabricClientConnection(connectionWrongData) as FabricClientConnection;
-            fabricClientConnectionWrong['gateway'] = gatewayStub;
 
-            await fabricClientConnectionWrong.connect(wallet, 'Admin@org1.example.com').should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
-            gatewayStub.connect.should.not.have.been.called;
+            await fabricClientConnectionWrong.connect().should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
         });
     });
+
+    describe('getConnectionDetails', () => {
+        it('should return connection details for a client connection', async () => {
+            const connectionProfilePath: string = path.join(rootPath, '../../test/data/connectionOne/connection.json');
+            const certificatePath: string = path.join(rootPath, '../../test/data/connectionOne/credentials/certificate');
+            const privateKeyPath: string = path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey');
+            const connectionData: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = {
+                connectionProfilePath: connectionProfilePath,
+                certificatePath: certificatePath,
+                privateKeyPath: privateKeyPath
+            };
+            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
+            fabricClientConnection['gateway'] = gatewayStub;
+
+            const connectionDetails: {connectionProfilePath: string, certificatePath: string, privateKeyPath: string} = await fabricClientConnection.getConnectionDetails();
+            connectionDetails.connectionProfilePath.should.equal(connectionProfilePath);
+            connectionDetails.certificatePath.should.equal(certificatePath);
+            connectionDetails.privateKeyPath.should.equal(privateKeyPath);
+            errorSpy.should.not.have.been.called;
+        });
+    });
+
 });

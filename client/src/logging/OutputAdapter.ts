@@ -17,8 +17,7 @@ export enum LogType {
     ERROR = 'ERROR',
     INFO = 'INFO',
     IMPORTANT = 'IMPORTANT',
-    YEOMAN = 'YEOMAN',
-    WARNING = 'WARNING'
+    YEOMAN = 'YEOMAN'
 }
 
 export interface OutputAdapter {

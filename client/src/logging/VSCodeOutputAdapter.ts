@@ -57,6 +57,7 @@ export class VSCodeOutputAdapter implements OutputAdapter {
             }
         }
 
+        this.outputChannel.show();
         this.appendLine(type, outputMessage, skipNextLine);
 
         // If a popup message is given, create a popup

@@ -24,7 +24,6 @@ import { YeomanAdapter } from '../util/YeomanAdapter';
 import * as util from 'util';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LogType } from '../logging/OutputAdapter';
-import * as semver from 'semver';
 
 class GeneratorDependencies {
     needYo: boolean = false;
@@ -63,15 +62,6 @@ export async function createSmartContractProject(generator: string = 'fabric:con
     if (dependencies.missingDependencies()) {
         const successful: boolean = await installGeneratorDependenciesWithProgress(dependencies);
         if (!successful) {
-            return;
-        }
-    }
-
-    // If the user is on a Mac (Darwin)
-    if (process.platform === 'darwin') {
-        // Check to see if Xcode is installed (and assume gcc and other dependencies have been installed)
-        const isInstalled: boolean = await isXcodeInstalled();
-        if (!isInstalled) {
             return;
         }
     }
@@ -118,6 +108,8 @@ export async function createSmartContractProject(generator: string = 'fabric:con
     }
 
     try {
+        const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
+
         // tslint:disable-next-line
         let env = yeoman.createEnv([], {}, new YeomanAdapter());
 
@@ -172,67 +164,53 @@ async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDepend
 }
 
 async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
+    let needYo: boolean = false;
+    let needGenFab: boolean = false;
 
     // Create and show output channel
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-    // Check to see if we have npm installed.
     try {
-        await CommandUtil.sendCommand('npm --version');
-    } catch (error) {
-        console.log('npm not installed');
-        outputAdapter.log(LogType.ERROR, 'npm is required before creating a smart contract project');
-        return null;
-    }
+        await CommandUtil.sendCommand('npm view yo version');
+        console.log('yo is installed');
+        try {
 
-    // Check to see if we have yo (yeoman) installed.
-    try {
+            // Hardcoded version of generator-fabric in extensions package.json
+            const packageJson: any = ExtensionUtil.getPackageJSON();
+            const versionToInstall: string = packageJson.generatorFabricVersion;
 
-        // This command should print the long details of the installed yo module.
-        const output: string = await CommandUtil.sendCommand('npm ls --depth=0 --global --json --long yo');
-        const details: any = JSON.parse(output);
-        console.log('yo is installed', details);
+            const parsedJson: any = await getGeneratorFabricPackageJson();
 
-    } catch (error) {
-        console.log('yo missing');
-        // assume generator-fabric isn't installed either
-        return new GeneratorDependencies({ needYo: true, needGenFab: true });
-    }
+            let installedVersion: string = parsedJson.version;
+            installedVersion = installedVersion.substring(installedVersion.indexOf('@') + 1);
 
-    // Check to see if we have generator-fabric installed.
-    try {
+            if (installedVersion !== versionToInstall) {
+                // The users global installation of generator-fabric is out of date
+                console.log('Updating generator-fabric as it is out of date');
 
-        // This command should print the long details of the installed generator-fabric module.
-        const output: string = await CommandUtil.sendCommand('npm ls --depth=0 --global --json --long generator-fabric');
-        const details: any = JSON.parse(output);
+                const npmUpdateOut: string = await CommandUtil.sendCommandWithProgress('npm install -g generator-fabric@' + versionToInstall, '', 'Updating generator-fabric...');
+                outputAdapter.log(LogType.INFO, undefined, npmUpdateOut);
+                outputAdapter.log(LogType.SUCCESS, 'Successfully updated to latest version of generator-fabric');
+            }
 
-        // Grab the version that is installed.
-        const versionInstalled: string = details.dependencies['generator-fabric'].version;
-
-        // Grab the version range that we find acceptable.
-        const packageJson: any = ExtensionUtil.getPackageJSON();
-        const versionRange: string = packageJson.generatorFabricVersion;
-
-        // Check to see if the version range is satisfied.
-        const satisfied: boolean = semver.satisfies(versionInstalled, versionRange);
-
-        // If it's not satisfied, we need to install it.
-        if (!satisfied) {
-
-            // The users global installation of generator-fabric is out of date
-            console.log(`Updating generator-fabric as it is out of date ('${versionInstalled}' does not satisfy '${versionRange}')`);
-            await CommandUtil.sendCommandWithOutputAndProgress('npm', ['install', '-g', `generator-fabric@${versionRange}`], 'Updating generator-fabric...', null, null, outputAdapter);
-            outputAdapter.log(LogType.SUCCESS, 'Successfully updated to latest version of generator-fabric');
-
+        } catch (error) {
+            needGenFab = true;
+            console.log('generator-fabric missing');
         }
-        console.log('generator-fabric is installed', details);
-        return new GeneratorDependencies({ needYo: false, needGenFab: false });
-
     } catch (error) {
-        console.log('generator-fabric missing');
-        return new GeneratorDependencies({ needYo: false, needGenFab: true });
+        if (error.message.includes('npm ERR')) {
+            console.log('npm installed, yo missing');
+            needYo = true;
+            needGenFab = true; // assume generator-fabric isn't installed either
+        } else {
+            console.log('npm not installed');
+            outputAdapter.log(LogType.ERROR, 'npm is required before creating a smart contract project');
+
+            return null;
+        }
     }
 
+    return new GeneratorDependencies({needYo, needGenFab});
 }
 
 async function installGeneratorDependenciesWithProgress(dependencies: GeneratorDependencies): Promise<boolean> {
@@ -288,39 +266,16 @@ async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> 
 }
 
 async function getSmartContractLanguageOptions(): Promise<string[]> {
-    let parsedJson: any;
-    try {
-        parsedJson = await getGeneratorFabricPackageJson();
-    } catch (error) {
-        throw new Error('Could not load package.json for generator-fabric module');
-    }
+    const parsedJson: any = await getGeneratorFabricPackageJson();
     if (parsedJson.contractLanguages === undefined) {
-        throw new Error('Contract languages not found in package.json for generator-fabric module');
+        throw new Error('Contract languages not found in package.json');
     }
     return parsedJson.contractLanguages;
 }
 
 async function getGeneratorFabricPackageJson(): Promise<any> {
-    const output: string = await CommandUtil.sendCommand('npm ls --depth=0 --global --json --long generator-fabric');
-    const details: any = JSON.parse(output);
-    const packagePath: string = path.join(details.dependencies['generator-fabric'].path, 'package.json');
+    const npmPrefix: string = await CommandUtil.sendCommand('npm config get prefix');
+    const packagePath: string = path.join(npmPrefix, (process.platform === 'win32') ? '' : 'lib', 'node_modules', 'generator-fabric', 'package.json');
     const packageJson: any = await fs.readJson(packagePath);
     return packageJson;
-}
-
-async function isXcodeInstalled(): Promise<any> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    try {
-        const output: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
-        if (!output || output.includes('unable to get active developer directory')) {
-            outputAdapter.log(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-            return false;
-        } else {
-            return true;
-        }
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-        return false;
-    }
-
 }

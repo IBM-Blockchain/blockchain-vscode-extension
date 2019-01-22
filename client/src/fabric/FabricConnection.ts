@@ -14,25 +14,25 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, Network, Contract, GatewayOptions, FileSystemWallet, IdentityInfo } from 'fabric-network';
+import { Gateway, InMemoryWallet, X509WalletMixin, Network, Contract, GatewayOptions } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
+import * as uuid from 'uuid/v4';
 import { LogType, OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
-import { FabricWallet } from './FabricWallet';
-import { URL } from 'url';
 
 export abstract class FabricConnection implements IFabricConnection {
 
-    private mspid: string;
+    private wallet: InMemoryWallet = new InMemoryWallet();
+    private identityName: string = uuid();
     private gateway: Gateway = new Gateway();
     private networkIdProperty: boolean;
     private outputAdapter: OutputAdapter;
-    private discoveryAsLocalhost: boolean;
-    private discoveryEnabled: boolean;
 
     constructor(outputAdapter?: OutputAdapter) {
+        this.wallet = new InMemoryWallet();
+        this.identityName = uuid();
         this.gateway = new Gateway();
         if (!outputAdapter) {
             this.outputAdapter = ConsoleOutputAdapter.instance();
@@ -45,7 +45,9 @@ export abstract class FabricConnection implements IFabricConnection {
         return this.networkIdProperty;
     }
 
-    public abstract async connect(wallet: FabricWallet, identityName: string): Promise<void>;
+    public abstract async connect(): Promise<void>;
+
+    public abstract async getConnectionDetails(): Promise<{ connectionProfile: object, certificatePath: string, privateKeyPath: string } | { connectionProfilePath: string, certificatePath: string, privateKeyPath: string }>;
 
     public getAllPeerNames(): Array<string> {
         console.log('getAllPeerNames');
@@ -88,17 +90,7 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Client.Peer = this.getPeer(peerName);
-        let chaincodeResponse: Client.ChaincodeQueryResponse;
-        try {
-            chaincodeResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
-        } catch (error) {
-            if (error.message && error.message.match(/access denied/)) {
-                // Not allowed to do this as we're probably not an administrator.
-                // This is probably not the end of the world, so return the empty map.
-                return installedChainCodes;
-            }
-            throw error;
-        }
+        const chaincodeResponse: Client.ChaincodeQueryResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
         chaincodeResponse.chaincodes.forEach((chaincode: Client.ChaincodeInfo) => {
             if (installedChainCodes.has(chaincode.name)) {
                 installedChainCodes.get(chaincode.name).push(chaincode.version);
@@ -113,7 +105,7 @@ export abstract class FabricConnection implements IFabricConnection {
     public async getInstantiatedChaincode(channelName: string): Promise<Array<{ name: string, version: string }>> {
         console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];
-        const channel: Client.Channel = await this.getChannel(channelName);
+        const channel: Client.Channel = this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
         chainCodeResponse.chaincodes.forEach((chainCode: Client.ChaincodeInfo) => {
             instantiatedChaincodes.push({ name: chainCode.name, version: chainCode.version });
@@ -319,83 +311,37 @@ export abstract class FabricConnection implements IFabricConnection {
         return result;
     }
 
-    protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
+    protected async connectInner(connectionProfile: object, certificate: string, privateKey: string, mspid?: string): Promise<void> {
+
+        const client: Client = await Client.loadFromConfig(connectionProfile);
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
 
-        this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
-        this.discoveryEnabled = !this.discoveryAsLocalhost;
+        if (!mspid) {
+            mspid = client.getMspid();
+        }
+
+        await this.wallet.import(this.identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
 
         const options: GatewayOptions = {
-            wallet: wallet,
-            identity: identityName,
+            wallet: this.wallet,
+            identity: this.identityName,
             discovery: {
-                asLocalhost: this.discoveryAsLocalhost,
-                enabled: this.discoveryEnabled
+                asLocalhost: true
             }
         };
 
         await this.gateway.connect(connectionProfile, options);
-
-        const identities: IdentityInfo[] = await wallet.list();
-        const identity: IdentityInfo = identities.find( (identityToSearch: IdentityInfo) => {
-            return identityToSearch.label === identityName;
-        });
-
-        this.mspid = identity.mspId;
     }
 
-    private isLocalhostURL(url: string): boolean {
-        const parsedURL: URL = new URL(url);
-        const localhosts: string[] = [
-            'localhost',
-            '127.0.0.1'
-        ];
-        return localhosts.indexOf(parsedURL.hostname) !== -1;
-    }
-
-    private hasLocalhostURLs(connectionProfile: any): boolean {
-        const urls: string[] = [];
-        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
-            if (!connectionProfile[nodeType]) {
-                continue;
-            }
-            const nodes: any = connectionProfile[nodeType];
-            for (const nodeName in nodes) {
-                if (!nodes[nodeName].url) {
-                    continue;
-                }
-                urls.push(nodes[nodeName].url);
-            }
-        }
-        return urls.some((url: string) => this.isLocalhostURL(url));
-    }
-
-    private async getChannel(channelName: string): Promise<Client.Channel> {
+    private getChannel(channelName: string): Client.Channel {
         console.log('getChannel', channelName);
-        const client: Client = this.gateway.getClient();
-        let channel: Client.Channel = client.getChannel(channelName, false);
-        if (channel) {
-            return channel;
-        }
-        channel = client.newChannel(channelName);
-        const peers: Client.Peer[] = this.getAllPeers();
-        let lastError: Error = new Error(`Could not discover information for channel ${channelName} from known peers`);
-        for (const target of peers) {
-            try {
-                await channel.initialize({ asLocalhost: this.discoveryAsLocalhost, discover: this.discoveryEnabled, target });
-                return channel;
-            } catch (error) {
-                lastError = error;
-            }
-        }
-        throw lastError;
+        return this.gateway.getClient().getChannel(channelName);
     }
 
     private getAllPeers(): Array<Client.Peer> {
         console.log('getAllPeers');
-
-        return this.gateway.getClient().getPeersForOrg(this.mspid);
+        return this.gateway.getClient().getPeersForOrg(null);
     }
 
     /**

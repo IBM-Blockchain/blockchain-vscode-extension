@@ -13,10 +13,10 @@
 */
 
 'use strict';
+
 import { FabricConnection } from './FabricConnection';
 import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter } from '../logging/OutputAdapter';
-import { FabricWallet } from '../fabric/FabricWallet';
 
 export class FabricRuntimeConnection extends FabricConnection {
 
@@ -24,9 +24,21 @@ export class FabricRuntimeConnection extends FabricConnection {
         super(outputAdapter);
     }
 
-    async connect(wallet: FabricWallet, identityName: string): Promise<void> {
-        console.log('FabricRuntimeConnection: connect');
+    async connect(mspid?: string): Promise<void> {
+        console.log('connect');
         const connectionProfile: object = await this.runtime.getConnectionProfile();
-        await this.connectInner(connectionProfile, wallet, identityName);
+        const certificate: string = await this.runtime.getCertificate();
+        const privateKey: string = await this.runtime.getPrivateKey();
+        await this.connectInner(connectionProfile, certificate, privateKey, mspid);
     }
+
+    async getConnectionDetails(): Promise<{connectionProfile: object, certificatePath: string, privateKeyPath: string}> {
+        const connectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string} = {
+            connectionProfile: await this.runtime.getConnectionProfile(),
+            certificatePath: this.runtime.getCertificatePath(),
+            privateKeyPath: this.runtime.getPrivateKeyPath()
+        };
+        return connectionDetails;
+    }
+
 }

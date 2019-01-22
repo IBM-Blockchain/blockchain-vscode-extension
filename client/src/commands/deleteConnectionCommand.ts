@@ -12,9 +12,6 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
@@ -42,17 +39,7 @@ export async function deleteConnection(connectionTreeItem: ConnectionTreeItem): 
         return;
     }
 
-    // If extension owns the wallet, delete the containing folder, which deletes the wallet and identities
-    if (connectionRegistryEntry.walletPath.includes('fabric-vscode')) {
-
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const connectionPath: string = path.join(homeExtDir, connectionRegistryEntry.name);
-        await fs.remove(connectionPath);
-
-    }
-
     await FabricConnectionRegistry.instance().delete(connectionRegistryEntry.name);
+
     outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${connectionRegistryEntry.name} connection`);
-    return;
 }

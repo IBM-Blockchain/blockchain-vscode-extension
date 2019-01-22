@@ -19,17 +19,19 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import {TestUtil} from '../TestUtil';
+import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
-chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('AddConnectionCommand', () => {
     let mySandBox: sinon.SinonSandbox;
-
+    let logSpy: sinon.SinonSpy;
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeConnectionsConfig();
@@ -46,6 +48,7 @@ describe('AddConnectionCommand', () => {
             // reset the available connections
             await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
 
+            logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
         });
 
         afterEach(() => {
@@ -80,6 +83,8 @@ describe('AddConnectionCommand', () => {
             });
 
             executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new connection');
         });
 
         it('should test an uncompleted connection can be added', async () => {
@@ -108,6 +113,8 @@ describe('AddConnectionCommand', () => {
             });
 
             executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
+            should.not.exist(logSpy.getCall(1));
         });
 
         it('should test another connection can be added', async () => {
@@ -177,6 +184,11 @@ describe('AddConnectionCommand', () => {
                     privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
                 }]
             });
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new connection');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new connection');
         });
 
         it('should test a connection can be cancelled when naming connection', async () => {
@@ -281,24 +293,26 @@ describe('AddConnectionCommand', () => {
         it('should throw an error if certificate is invalid', async () => {
             const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            mySandBox.stub(ParsedCertificate, 'validPEM').throws({message: 'Could not validate certificate: invalid pem'});
+            const error: Error = new Error('Could not validate certificate: invalid pem');
+            mySandBox.stub(ParsedCertificate, 'validPEM').throws(error);
             const rootPath: string = path.dirname(__dirname);
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             showInputBoxStub.onFirstCall().resolves('myConnection');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
-            errorSpy.should.have.been.calledWith('Failed to add a new connection: Could not validate certificate: invalid pem');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
         });
 
         it('should throw an error if private key is invalid', async () => {
             const showInputBoxStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox');
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            mySandBox.stub(ParsedCertificate, 'validPEM').onSecondCall().throws({message: 'Could not validate private key: invalid pem'});
+            const error: Error = new Error('Could not validate private key: invalid pem');
+            mySandBox.stub(ParsedCertificate, 'validPEM').onSecondCall().throws(error);
             const rootPath: string = path.dirname(__dirname);
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
             showInputBoxStub.onFirstCall().resolves('myConnection');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
@@ -306,7 +320,7 @@ describe('AddConnectionCommand', () => {
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
-            errorSpy.should.have.been.calledWith('Failed to add a new connection: Could not validate private key: invalid pem');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
         });
     });
 });

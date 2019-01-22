@@ -113,10 +113,6 @@ export class FabricRuntime extends EventEmitter {
         return connectionProfile;
     }
 
-    public getConnectionProfilePath(): string {
-        return basicNetworkConnectionProfilePath;
-    }
-
     public async getCertificate(): Promise<string> {
         return basicNetworkAdminCertificate;
     }
@@ -127,6 +123,10 @@ export class FabricRuntime extends EventEmitter {
 
     public async getPrivateKey(): Promise<string> {
         return basicNetworkAdminPrivateKey;
+    }
+
+    public getPrivateKeyPath(): string {
+        return basicNetworkAdminPrivateKeyPath;
     }
 
     public async isCreated(): Promise<boolean> {
@@ -174,37 +174,35 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async exportConnectionDetails(outputAdapter: OutputAdapter, dir?: string): Promise<void> {
-
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
-
+        const certificate: string = await this.getCertificate();
+        const privateKey: string = await this.getPrivateKey();
         const connectionProfileObj: any = await this.getConnectionProfile();
         const connectionProfile: string = JSON.stringify(connectionProfileObj, null, 4);
-        let newWalletPath: string;
-
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const runtimeWalletPath: string = path.join(homeExtDir, this.name, 'wallet');
 
         if (!dir) {
+            const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+            const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
             dir = path.join(homeExtDir, this.name);
         } else {
             dir = path.join(dir, this.name);
-            newWalletPath = path.join(dir, 'wallet');
         }
 
         const connectionProfilePath: string = path.join(dir, 'connection.json');
+        const certificatePath: string = path.join(dir, 'certificate');
+        const privateKeyPath: string = path.join(dir, 'privateKey');
 
         try {
             await fs.ensureFileSync(connectionProfilePath);
+            await fs.ensureFileSync(certificatePath);
+            await fs.ensureFileSync(privateKeyPath);
             await fs.writeFileSync(connectionProfilePath, connectionProfile);
-            if (newWalletPath) {
-                await fs.copySync(runtimeWalletPath, newWalletPath);
-            }
+            await fs.writeFileSync(certificatePath, certificate);
+            await fs.writeFileSync(privateKeyPath, privateKey);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Issue saving runtime connection details in directory ${dir} with error: ${error.message}`);
-            throw new Error(error);
         }
     }
 

@@ -72,7 +72,11 @@ export class MetadataUtil {
                 outputAdapter.log(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
             }
         } catch (error) {
-            outputAdapter.log(LogType.WARNING, null, `Could not get metadata for smart contract ${instantiatedChaincodeName}. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript. Error: ${error.message}`);
+            if (error.message.includes(`You've asked to invoke a function that does not exist`) ) {
+                outputAdapter.log(LogType.ERROR, `Error getting metadata for smart contract ${instantiatedChaincodeName}, please ensure this smart contract is depending on at least fabric-contract@1.4.0`);
+            } else {
+                outputAdapter.log(LogType.ERROR, `Error getting metadata for smart contract ${instantiatedChaincodeName}: ${error.message}`);
+            }
         }
 
         return contractsMap;
