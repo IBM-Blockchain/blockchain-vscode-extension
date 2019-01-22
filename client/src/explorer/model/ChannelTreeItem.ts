@@ -13,11 +13,17 @@
 */
 'use strict';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
-import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import * as vscode from 'vscode';
+import * as path from 'path';
 
 export class ChannelTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-channel-item';
+
+    iconPath: {light: string, dark: string} = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'channel.svg'),
+        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', 'channel.svg')
+    };
 
     constructor(provider: BlockchainExplorerProvider, private readonly channelName: string, public readonly peers: Array<string>, public readonly chaincodes: Array<any>, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, channelName, collapsibleState);
