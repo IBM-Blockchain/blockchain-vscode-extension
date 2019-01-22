@@ -17,9 +17,12 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function deleteSmartContractPackage(packageTreeItem: PackageTreeItem): Promise<{} | void> {
-    console.log('deleteSmartContractPackage');
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, `deleteSmartContractPackage`);
     let packagesToDelete: PackageRegistryEntry[];
     if (packageTreeItem) {
         packagesToDelete = [packageTreeItem.packageEntry];
@@ -40,5 +43,7 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
         await packageRegistry.delete(_package);
     }
 
-    return vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
+    await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
+
+    outputAdapter.log(LogType.SUCCESS, `Succesfully deleted package(s)`);
 }

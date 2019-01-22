@@ -26,6 +26,8 @@ import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegis
 import { FabricConnectionHelper } from '../../src/fabric/FabricConnectionHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -218,8 +220,8 @@ describe('AddConnectionIdentityCommand', () => {
 
         it('should show an error if connection is not complete', async () => {
 
-            const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
-            const errorMessageSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(false);
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
             mySandBox.stub(UserInputUtil, 'showConnectionQuickPickBox').resolves({
                 label: 'myConnection',
                 data: {
@@ -236,7 +238,7 @@ describe('AddConnectionIdentityCommand', () => {
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
-            errorMessageSpy.should.have.been.calledWith('Blockchain connection must be completed first!');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Blockchain connection must be completed first!');
         });
     });
 });

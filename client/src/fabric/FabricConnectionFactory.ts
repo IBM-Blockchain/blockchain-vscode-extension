@@ -14,23 +14,24 @@
 'use strict';
 import { IFabricConnection } from './IFabricConnection';
 import { FabricRuntime } from './FabricRuntime';
+import { OutputAdapter } from '../logging/OutputAdapter';
 
 export class FabricConnectionFactory {
 
-    public static createFabricClientConnection(connection: any): IFabricConnection {
+    public static createFabricClientConnection(connection: any, outputAdapter?: OutputAdapter): IFabricConnection {
         if (!this.clientConnection) {
             this.clientConnection = require('./FabricClientConnection');
         }
 
-        return new (this.clientConnection).FabricClientConnection(connection);
+        return new (this.clientConnection).FabricClientConnection(connection, outputAdapter);
     }
 
-    public static createFabricRuntimeConnection(runtime: FabricRuntime): IFabricConnection {
+    public static createFabricRuntimeConnection(runtime: FabricRuntime, outputAdapter?: OutputAdapter): IFabricConnection {
         if (!this.runtimeConnection) {
             this.runtimeConnection = require('./FabricRuntimeConnection');
         }
 
-        return new (this.runtimeConnection).FabricRuntimeConnection(runtime);
+        return new (this.runtimeConnection).FabricRuntimeConnection(runtime, outputAdapter);
     }
 
     private static clientConnection: any;

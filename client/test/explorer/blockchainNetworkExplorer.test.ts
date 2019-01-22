@@ -39,6 +39,8 @@ import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeIte
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { ConnectedTreeItem } from '../../src/explorer/model/ConnectedTreeItem';
 import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();

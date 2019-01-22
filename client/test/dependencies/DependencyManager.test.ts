@@ -23,6 +23,7 @@ import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { TemporaryCommandRegistry } from '../../src/dependencies/TemporaryCommandRegistry';
 import { TestUtil } from '../TestUtil';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -136,7 +137,7 @@ describe('DependencyManager Tests', () => {
         });
 
         it('should handle errors', async () => {
-            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
             const errorMessageSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').rejects({message: 'some error'});
 
@@ -151,7 +152,7 @@ describe('DependencyManager Tests', () => {
 
             sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter));
 
-            outputAdapterSpy.should.have.been.calledWith('Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
 
             errorMessageSpy.should.have.been.calledWith('Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
         });

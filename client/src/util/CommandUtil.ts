@@ -20,6 +20,7 @@ import stripAnsi = require('strip-ansi');
 import * as childProcessPromise from 'child-process-promise';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { OutputAdapter } from '../logging/OutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 const exec: any = childProcessPromise.exec;
 
@@ -56,11 +57,11 @@ export class CommandUtil {
         const child: child_process.ChildProcess = child_process.spawn(command, args, options);
         child.stdout.on('data', (data: string | Buffer) => {
             const str: string = stripAnsi(data.toString());
-            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.log(`${line}`));
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.log(LogType.INFO, undefined, line));
         });
         child.stderr.on('data', (data: string | Buffer) => {
             const str: string = stripAnsi(data.toString());
-            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.error(`${line}`));
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.log(LogType.INFO, undefined, line));
         });
 
         return new Promise<void>((resolve: any, reject: any): any => {

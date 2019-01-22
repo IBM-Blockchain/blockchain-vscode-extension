@@ -25,6 +25,7 @@ import { RepositoryRegistry } from '../repositories/RepositoryRegistry';
 import * as shell from 'shelljs';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as ejs from 'ejs';
+import { LogType } from '../logging/OutputAdapter';
 
 let openPanels: Array<vscode.WebviewPanel> = [];
 
@@ -160,9 +161,9 @@ export class SampleView {
         const command: string = `git clone ${url} ${saveDirectory.fsPath}`;
         try {
             const cloneOutput: string = await CommandUtil.sendCommandWithProgress(command, undefined, `Cloning ${repoName} repository`);
-            outputAdapter.log(cloneOutput);
+            outputAdapter.log(LogType.INFO, undefined, cloneOutput);
         } catch (error) {
-            vscode.window.showErrorMessage(`Could not clone sample: ${error.message}`);
+            outputAdapter.log(LogType.ERROR, `Could not clone sample: ${error.message}`);
             return;
         }
         // Store the location of the repository in the user settings
@@ -179,8 +180,7 @@ export class SampleView {
                 path: saveDirectory.fsPath
             });
         }
-
-        vscode.window.showInformationMessage('Successfully cloned repository!');
+        outputAdapter.log(LogType.SUCCESS, `Successfully cloned repository!`);
 
     }
 
@@ -360,12 +360,14 @@ export class SampleView {
     }
 
     public static async cloneAndOpenRepository(repoName: string, samplePath: string, branch: string, workspaceLabel: string): Promise<void> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
         // Find out where sample repository is
         const repositoryRegistry: RepositoryRegistry = new RepositoryRegistry();
         const repositoryData: any = repositoryRegistry.get(repoName);
         if (!repositoryData) {
             // If the repo isn't in the user settings
-            vscode.window.showErrorMessage(`The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.`);
+            outputAdapter.log(LogType.ERROR, `The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.`);
             return;
         }
         const baseDirectory: string = repositoryData.path;
@@ -376,7 +378,7 @@ export class SampleView {
         if (!directoryExists) {
             // If the directory doesn't exist anymore, the user needs to re-clone the repository
             await repositoryRegistry.delete(repoName);
-            vscode.window.showErrorMessage(`The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
+            outputAdapter.log(LogType.ERROR, `The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
             return;
         } else {
             // If the directory exists, we need to change into the directory

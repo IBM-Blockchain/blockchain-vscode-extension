@@ -14,6 +14,7 @@
 
 import { OutputAdapter } from './OutputAdapter';
 import * as vscode from 'vscode';
+import { LogType } from '../logging/OutputAdapter';
 
 export class VSCodeOutputAdapter implements OutputAdapter {
 
@@ -30,20 +31,44 @@ export class VSCodeOutputAdapter implements OutputAdapter {
         this.outputChannel = vscode.window.createOutputChannel('Blockchain');
     }
 
-    log(value: string): void {
-        if (this.console) {
-            console.log(value);
+    /**
+     * Used to log a message to the output and display a popup message.
+     * @param type {LogType} The type of log message
+     * @param popupMessage {String} The message to be displayed to a vscode.window showInformationMessage/showErrorMessage. Leave as undefined to just log the outputMessage to the console.
+     * @param outputMessage {String} The message to be displayed to the users output log. If not provided, the outputMessage will be the same as the popupMessage.
+     * @param skipNextLine {Boolean} Provide a gap between the next console message
+     * @returns {void}
+     */
+    log(type: LogType, popupMessage: string, outputMessage?: string,  skipNextLine?: boolean): void {
+        if (!popupMessage && !outputMessage) {
+            return;
         }
-        this.outputChannel.show();
-        this.outputChannel.appendLine(value);
-    }
 
-    error(value: string): void {
-        if (this.console) {
-            console.error(value);
+        // If no output message is given, the same message is shown in the log and popup
+        if (!outputMessage) {
+            outputMessage = popupMessage;
         }
+
+        if (this.console) {
+            if (type === LogType.ERROR) {
+                console.error(outputMessage);
+            } else {
+                console.log(outputMessage);
+            }
+        }
+
         this.outputChannel.show();
-        this.outputChannel.appendLine(value);
+        this.appendLine(type, outputMessage, skipNextLine);
+
+        // If a popup message is given, create a popup
+        if (popupMessage) {
+            if (type === LogType.ERROR) {
+                vscode.window.showErrorMessage(popupMessage);
+            } else {
+                vscode.window.showInformationMessage(popupMessage);
+            }
+        }
+
     }
 
     show(): void {
@@ -52,6 +77,20 @@ export class VSCodeOutputAdapter implements OutputAdapter {
 
     setConsole(console: boolean): void {
         this.console = console;
+    }
+
+    appendLine(type: string, value: string, skipNextLine?: boolean): void {
+        // In future it would be nice to log ANSI colours. This is being blocked by https://github.com/Microsoft/vscode/issues/571
+        this.outputChannel.appendLine(`[${this.getTimestamp()}] [${type}] ${value}`);
+        if (skipNextLine) {
+            this.outputChannel.appendLine('');
+        }
+    }
+
+    getTimestamp(): string {
+        let dateTime: string = new Date().toLocaleString(); // Example format 02/11/2018, 10:47:21
+        dateTime = dateTime.replace(',', ''); // Remove comma
+        return dateTime;
     }
 
 }

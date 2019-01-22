@@ -217,14 +217,13 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        showErrorStub.should.have.been.calledWith('Failed to activate extension', 'open output view');
+        showErrorStub.should.have.been.calledWith('Failed to activate extension: open output view');
     });
 
     it('should handle any errors when installing dependencies and show output log', async () => {
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
         const showErrorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('open output view');
-        const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'show');
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
@@ -232,9 +231,7 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        showErrorStub.should.have.been.calledWith('Failed to activate extension', 'open output view');
-
-        outputAdapterSpy.should.have.been.called;
+        showErrorStub.should.have.been.calledWith('Failed to activate extension: open output view');
     });
 
     it('should deactivate extension', async () => {

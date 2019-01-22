@@ -16,11 +16,12 @@
 
 import { FabricConnection } from './FabricConnection';
 import { FabricRuntime } from './FabricRuntime';
+import { OutputAdapter } from '../logging/OutputAdapter';
 
 export class FabricRuntimeConnection extends FabricConnection {
 
-    constructor(private runtime: FabricRuntime) {
-        super();
+    constructor(private runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
+        super(outputAdapter);
     }
 
     async connect(mspid?: string): Promise<void> {

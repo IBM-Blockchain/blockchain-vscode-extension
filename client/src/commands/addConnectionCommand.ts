@@ -18,10 +18,13 @@ import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistr
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function addConnection(): Promise<{} | void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     try {
-        console.log('addConnection');
+        outputAdapter.log(LogType.INFO, undefined, 'addConnection');
 
         const connectionName: string = await UserInputUtil.showInputBox('Enter a name for the connection');
         if (!connectionName) {
@@ -72,7 +75,9 @@ export async function addConnection(): Promise<{} | void> {
 
         fabricConnectionEntry.identities[0].privateKeyPath = privateKeyPath;
         await fabricConnectionRegistry.update(fabricConnectionEntry);
+
+        outputAdapter.log(LogType.SUCCESS, 'Successfully added a new connection');
     } catch (error) {
-        vscode.window.showErrorMessage(`Failed to add a new connection: ${error.message}`);
+        outputAdapter.log(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
     }
 }

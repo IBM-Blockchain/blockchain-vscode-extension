@@ -22,6 +22,7 @@ import * as fabricClient from 'fabric-client';
 import { Gateway } from 'fabric-network';
 import { Channel } from 'fabric-client';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -114,10 +115,19 @@ describe('FabricConnection', () => {
         fabricGatewayStub.disconnect.returns(null);
 
         fabricConnection['gateway'] = fabricGatewayStub;
+        fabricConnection['outputAdapter'] = VSCodeOutputAdapter.instance();
     });
 
     afterEach(() => {
         mySandBox.restore();
+    });
+
+    describe('constructor', () => {
+        it('should set output adapter', async () => {
+            const adapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const fabConnection: TestFabricConnection = new TestFabricConnection(adapter);
+            fabConnection['outputAdapter'].should.deep.equal(adapter);
+        });
     });
 
     describe('getAllPeerNames', () => {
@@ -327,8 +337,8 @@ describe('FabricConnection', () => {
         });
 
         it('should instantiate a chaincode', async () => {
-            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(fabricConnection['outputAdapter'], 'log');
+
             const responsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
                 chaincodeId: 'myChaincode',
@@ -338,17 +348,17 @@ describe('FabricConnection', () => {
                 args: ['arg1']
             });
             responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith("Instantiating with function: 'instantiate' and arguments: 'arg1'");
+            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, "Instantiating with function: 'instantiate' and arguments: 'arg1'");
         });
 
         it('should throw an error instantiating if contract is already instantiated', async () => {
             const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
             getChanincodesStub.withArgs('myChannel').resolves([{ name: 'myChaincode' }]);
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The name of the contract you tried to instantiate is already instantiated');
             fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
 
-            outputSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
+            logSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
         });
 
         it('should instantiate a chaincode and can return empty payload response', async () => {
@@ -439,8 +449,7 @@ describe('FabricConnection', () => {
         });
 
         it('should upgrade a chaincode', async () => {
-            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
+            const outputSpy: sinon.SinonSpy = mySandBox.spy(fabricConnection['outputAdapter'], 'log');
             getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
             const responsePayload: any = await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
             fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
@@ -451,7 +460,7 @@ describe('FabricConnection', () => {
                 args: ['arg1']
             });
             responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
+            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, "Upgrading with function: 'instantiate' and arguments: 'arg1'");
         });
 
         it('should throw an error instantiating if no contract with the same name has been instantiated', async () => {

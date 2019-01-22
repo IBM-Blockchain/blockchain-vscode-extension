@@ -21,9 +21,14 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function exportSmartContractPackage(packageTreeItem?: PackageTreeItem): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'exportSmartContractPackage');
     try {
+
         let packageToExport: PackageRegistryEntry;
         if (packageTreeItem) {
             packageToExport = packageTreeItem.packageEntry;
@@ -43,8 +48,8 @@ export async function exportSmartContractPackage(packageTreeItem?: PackageTreeIt
             return;
         }
         await fs.copy(packageToExport.path, packageUri.fsPath, { overwrite: true });
-        vscode.window.showInformationMessage(`Exported smart contract package ${packageToExport.name}@${packageToExport.version} to ${packageUri.fsPath}.`);
+        outputAdapter.log(LogType.SUCCESS, `Exported smart contract package ${packageToExport.name}@${packageToExport.version} to ${packageUri.fsPath}.`);
     } catch (error) {
-        vscode.window.showErrorMessage(error.message);
+        outputAdapter.log(LogType.ERROR, error.message, error.toString());
     }
 }

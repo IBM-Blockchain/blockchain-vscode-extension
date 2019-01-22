@@ -12,10 +12,14 @@
  * limitations under the License.
 */
 
+export enum LogType {
+    SUCCESS = 'SUCCESS',
+    ERROR = 'ERROR',
+    INFO = 'INFO',
+    IMPORTANT = 'IMPORTANT',
+    YEOMAN = 'YEOMAN'
+}
+
 export interface OutputAdapter {
-
-    log(value: string): void;
-
-    error(value: string): void;
-
+    log(type: LogType, popupMessage: string, outputMessage?: string,  skipNextLine?: boolean): void;
 }

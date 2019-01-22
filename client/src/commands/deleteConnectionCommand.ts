@@ -16,10 +16,12 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function deleteConnection(connectionTreeItem: ConnectionTreeItem): Promise<{} | void> {
-    console.log('deleteConnection', connectionTreeItem);
-
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, `deleteConnection ${connectionTreeItem}`);
     let connectionRegistryEntry: FabricConnectionRegistryEntry;
     if (!connectionTreeItem) {
         const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to delete', false);
@@ -37,5 +39,7 @@ export async function deleteConnection(connectionTreeItem: ConnectionTreeItem): 
         return;
     }
 
-    return FabricConnectionRegistry.instance().delete(connectionRegistryEntry.name);
+    await FabricConnectionRegistry.instance().delete(connectionRegistryEntry.name);
+
+    outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${connectionRegistryEntry.name} connection`);
 }
