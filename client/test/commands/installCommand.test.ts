@@ -64,7 +64,7 @@ describe('InstallCommand', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
+            executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
             executeCommandStub.callThrough();
 
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
@@ -111,7 +111,7 @@ describe('InstallCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
 
             mySandBox.restore();
         });
@@ -139,7 +139,7 @@ describe('InstallCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
+            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             successSpy.should.have.been.calledOnceWith('Successfully installed on peer peerOne');
         });
@@ -161,7 +161,7 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
             packageCommandStub.should.have.been.calledOnce;
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
+            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             successSpy.should.have.been.calledOnceWith('Successfully installed on peer peerOne');
         });
@@ -171,7 +171,7 @@ describe('InstallCommand', () => {
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
+            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
             fabricClientConnectionMock.installChaincode.should.not.have.been.called;
         });
 

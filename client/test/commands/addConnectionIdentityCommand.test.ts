@@ -92,7 +92,7 @@ describe('AddConnectionIdentityCommand', () => {
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -116,7 +116,7 @@ describe('AddConnectionIdentityCommand', () => {
             const HelperStub: sinon.SinonStub = mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -142,7 +142,7 @@ describe('AddConnectionIdentityCommand', () => {
 
             browseEditStub.onFirstCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -169,7 +169,7 @@ describe('AddConnectionIdentityCommand', () => {
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -196,7 +196,7 @@ describe('AddConnectionIdentityCommand', () => {
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
             const connectionToAddTo: BlockchainTreeItem = allChildren[1];
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry', connectionToAddTo);
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry', connectionToAddTo);
 
             const connections: any[] = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -234,7 +234,7 @@ describe('AddConnectionIdentityCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
             errorMessageSpy.should.have.been.calledWith('Blockchain connection must be completed first!');
         });

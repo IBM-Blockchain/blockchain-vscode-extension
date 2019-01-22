@@ -91,14 +91,14 @@ export class IntegrationTestUtil {
         this.browseEditStub.withArgs('Enter a file path to the certificate file', 'myConnection').resolves(this.certPath);
         this.browseEditStub.withArgs('Enter a file path to the private key file', 'myConnection').resolves(this.keyPath);
 
-        await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
         this.connectionRegistry.exists('myConnection').should.be.true;
     }
 
     public async connectToFabric(): Promise<void> {
         const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', connection);
     }
 
     public async createSmartContract(name: string, type: string): Promise<void> {
@@ -244,7 +244,7 @@ export class IntegrationTestUtil {
 
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
 
-        await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
     }
 
     public async generateSmartContractTests(name: string, version: string, language: string): Promise<void> {
@@ -268,7 +268,7 @@ export class IntegrationTestUtil {
             });
         }
 
-        await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
     }
 
     public async runSmartContractTests(name: string, language: string): Promise<string> {

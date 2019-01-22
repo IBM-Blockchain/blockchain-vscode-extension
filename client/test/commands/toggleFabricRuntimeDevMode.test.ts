@@ -206,6 +206,6 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.been.called;
         runtime.isDevelopmentMode().should.be.true;
         successSpy.should.have.been.calledWith('Successfully toggled development mode');
-        executeCommandSpy.should.have.been.calledWith('blockchainExplorer.disconnectEntry');
+        executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.disconnectEntry');
     });
 });

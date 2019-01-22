@@ -23,7 +23,7 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
     if (!peerTreeItem && !peerNames) {
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;
@@ -90,7 +90,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
             }
         });
 
-        await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
 
         if (successfulInstall) {
             // Package was installed on all peers successfully

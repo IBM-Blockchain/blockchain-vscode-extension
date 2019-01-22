@@ -43,7 +43,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
 
     if (FabricConnectionManager.instance().getConnection()) {
         // Disconnect if connected
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
     }
 
     await runtime.setDevelopmentMode(newDevelopmentMode);

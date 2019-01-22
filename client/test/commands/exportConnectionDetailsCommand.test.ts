@@ -81,7 +81,7 @@ describe('exportConnectionDetailsCommand', () => {
 
     it('should export the connection details by right clicking on the tree', async () => {
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry', runtimeTreeItem);
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry', runtimeTreeItem);
         exportStub.should.have.been.called.calledOnceWith(VSCodeOutputAdapter.instance(), workspaceFolder.uri.fsPath);
         successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
     });
@@ -92,7 +92,7 @@ describe('exportConnectionDetailsCommand', () => {
             data: FabricRuntimeManager.instance().get('local_fabric')
         });
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.have.been.called.calledOnceWith(VSCodeOutputAdapter.instance(), workspaceFolder.uri.fsPath);
         quickPickStub.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
@@ -102,7 +102,7 @@ describe('exportConnectionDetailsCommand', () => {
         await runtimeManager.delete('local_fabric2');
         const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.have.been.called.calledOnceWith(VSCodeOutputAdapter.instance(), workspaceFolder.uri.fsPath);
         quickPickStub.should.not.have.been.called;
         successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
@@ -128,7 +128,7 @@ describe('exportConnectionDetailsCommand', () => {
         sandbox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').resolves({ label: workspaceFolder2.name, data: workspaceFolder2 });
 
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.have.been.called.calledOnceWith(VSCodeOutputAdapter.instance(), workspaceFolder2.uri.fsPath);
         quickPickStub.should.have.been.calledOnce;
         successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder2.uri.fsPath, runtime.getName()));
@@ -137,7 +137,7 @@ describe('exportConnectionDetailsCommand', () => {
     it('should handle cancel choosing runtime', async () => {
         const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves();
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
         quickPickStub.should.have.been.calledOnce;
     });
@@ -152,7 +152,7 @@ describe('exportConnectionDetailsCommand', () => {
 
         workspaceFolderStub.returns(null);
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
         quickPickStub.should.have.been.calledOnce;
         errorSpy.should.have.been.calledWith('A folder must be open to export connection details to');
@@ -169,7 +169,7 @@ describe('exportConnectionDetailsCommand', () => {
 
         workspaceFolderStub.returns([]);
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
         quickPickStub.should.have.been.calledOnce;
         errorSpy.should.have.been.calledWith('A folder must be open to export connection details to');
@@ -196,7 +196,7 @@ describe('exportConnectionDetailsCommand', () => {
         sandbox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').resolves();
 
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
         quickPickStub.should.have.been.calledOnce;
     });
