@@ -85,7 +85,7 @@ describe('EditConnectionCommand', () => {
                 const isCompletedSpy: sinon.SinonSpy = mySandBox.spy(FabricConnectionHelper, 'isCompleted');
                 showConnectionQuickPickStub.resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 isCompletedSpy.should.not.have.been.called;
             });
 
@@ -99,7 +99,7 @@ describe('EditConnectionCommand', () => {
                     walletPath: 'some/path'
                 }});
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 isCompletedStub.should.have.been.calledWith({
                     connectionProfilePath: '/some/path',
                     walletPath: 'some/path'
@@ -114,7 +114,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves();
                 showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: ''}});
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 const placeHolder: string = 'Select a connection property to edit:';
                 quickPickStub.should.have.been.calledWith(['Connection Profile', 'Wallet', 'Identity'], {placeHolder});
                 browseEditStub.should.not.have.been.called;
@@ -149,7 +149,7 @@ describe('EditConnectionCommand', () => {
                 showIdentityOptionsStub.resolves(UserInputUtil.WALLET);
                 browseEditStub.onCall(1).resolves('/some/walletPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 const placeHolder: string = 'Select a connection property to edit:';
                 quickPickStub.should.have.been.calledWith(['Connection Profile', 'Wallet', 'Identity'], {placeHolder});
                 updateFabricConnectionRegistryStub.should.have.been.calledTwice;
@@ -377,7 +377,7 @@ describe('EditConnectionCommand', () => {
                 browseEditStub.onCall(0).resolves('/some/walletPath');
                 browseEditStub.onCall(1).resolves('/some/otherPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 const placeHolder: string = 'Select a connection property to edit:';
                 quickPickStub.should.have.been.calledWith(['Connection Profile', 'Wallet', 'Identity'], {placeHolder});
                 updateFabricConnectionRegistryStub.should.have.been.calledTwice;
@@ -394,7 +394,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves('Wallet');
                 browseEditStub.onCall(0).resolves('/some/walletPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 const placeHolder: string = 'Select a connection property to edit:';
                 quickPickStub.should.have.been.calledWith(['Connection Profile', 'Wallet', 'Identity'], {placeHolder});
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
@@ -423,7 +423,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves('Connection Profile');
                 showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: ''}});
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 const placeHolder: string = 'Select a connection property to edit:';
                 quickPickStub.should.have.been.calledWith(['Connection Profile', 'Wallet', 'Identity'], {placeHolder});
                 browseEditStub.should.have.been.called;
@@ -442,7 +442,7 @@ describe('EditConnectionCommand', () => {
                 browseEditStub.onCall(0).resolves('/some/certificatePath');
                 browseEditStub.onCall(1).resolves('/some/KeyPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit connection: ${error.message}`, `Failed to edit connection: ${error.toString()}`);
@@ -532,7 +532,7 @@ describe('EditConnectionCommand', () => {
                 mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
                 const importIdentityStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects(error);
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit connection: ${error.message}`, `Failed to edit connection: ${error.toString()}`);
@@ -547,7 +547,7 @@ describe('EditConnectionCommand', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const treeItem: ConnectionTreeItem = new ConnectionTreeItem(blockchainNetworkExplorerProvider, 'My Connection', {name: 'myConnection'} as FabricConnectionRegistryEntry, 2);
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry', treeItem);
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry', treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myConnection');
                 logSpy.should.have.been.calledOnce;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -557,7 +557,7 @@ describe('EditConnectionCommand', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const treeItem: ConnectionPropertyTreeItem = new ConnectionPropertyTreeItem(blockchainNetworkExplorerProvider, '✓ Connection Profile', {name: 'myConnection'} as FabricConnectionRegistryEntry, 0);
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry', treeItem);
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry', treeItem);
                 openUserSettingsStub.should.not.have.been.called;
                 logSpy.should.have.been.calledOnce;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -569,7 +569,7 @@ describe('EditConnectionCommand', () => {
                 const treeItem: ConnectionPropertyTreeItem = new ConnectionPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Connection Profile', {name: 'myConnection', walletPath: 'some/otherPath'} as FabricConnectionRegistryEntry, 0);
                 browseEditStub.resolves('/some/path');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry', treeItem);
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry', treeItem);
                 updateFabricConnectionRegistryStub.should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: 'some/otherPath', name: 'myConnection'});
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -582,7 +582,7 @@ describe('EditConnectionCommand', () => {
                 const treeItem: ConnectionPropertyTreeItem = new ConnectionPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Wallet', {name: 'myConnection', connectionProfilePath: '/some/path'} as FabricConnectionRegistryEntry, 0);
                 browseEditStub.resolves('/some/walletPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry', treeItem);
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry', treeItem);
                 updateFabricConnectionRegistryStub.should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: '/some/walletPath', name: 'myConnection'});
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -604,7 +604,7 @@ describe('EditConnectionCommand', () => {
                 mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
                 mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry', treeItem);
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry', treeItem);
                 updateFabricConnectionRegistryStub.should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: 'some/new/wallet/path', name: 'myConnection'});
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -614,7 +614,7 @@ describe('EditConnectionCommand', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const treeItem: ConnectionPropertyTreeItem = new ConnectionPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Connection Profile', {name: 'myConnection'} as FabricConnectionRegistryEntry, 0);
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry', treeItem);
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry', treeItem);
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 logSpy.should.have.been.calledOnce;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);

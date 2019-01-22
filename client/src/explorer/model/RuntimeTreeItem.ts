@@ -83,7 +83,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             connection.managedRuntime = true;
             newLabel += '●';
             newCommand = {
-                command: 'blockchainExplorer.connectEntry',
+                command: 'blockchainConnectionsExplorer.connectEntry',
                 title: '',
                 arguments: [connection]
             };

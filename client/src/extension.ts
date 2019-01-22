@@ -134,12 +134,12 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainExplorer', blockchainNetworkExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identityName: string) => connect(connection, identityName)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.disconnectEntry', () => FabricConnectionManager.instance().disconnect()));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionEntry', addConnection));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.deleteConnectionEntry', (connection: ConnectionTreeItem) => deleteConnection(connection)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionIdentityEntry', (connection: ConnectionTreeItem) => addConnectionIdentity(connection)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identityName: string) => connect(connection, identityName)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.disconnectEntry', () => FabricConnectionManager.instance().disconnect()));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.addConnectionEntry', addConnection));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.deleteConnectionEntry', (connection: ConnectionTreeItem) => deleteConnection(connection)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry', (connection: ConnectionTreeItem) => addConnectionIdentity(connection)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchain.createSmartContractProjectEntry', createSmartContractProject));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', (workspace?: vscode.WorkspaceFolder, version?: string) => packageSmartContract(workspace, version)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.refreshEntry', () => blockchainPackageExplorerProvider.refresh()));
@@ -149,14 +149,14 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.teardownFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => teardownFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', (runtimeTreeItem?: RuntimeTreeItem) => toggleFabricRuntimeDevMode(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.openFabricRuntimeTerminal', (runtimeTreeItem?: RuntimeTreeItem) => openFabricRuntimeTerminal(runtimeTreeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.exportConnectionDetailsEntry', (runtimeTreeItem: RuntimeTreeItem) => exportConnectionDetails(runtimeTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry', (runtimeTreeItem: RuntimeTreeItem) => exportConnectionDetails(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project: PackageTreeItem) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry', (project: PackageTreeItem) => exportSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.installSmartContractEntry', (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.instantiateSmartContractEntry', (channelTreeItem?: ChannelTreeItem) => instantiateSmartContract(channelTreeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.editConnectionEntry', (treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem) => editConnectionCommand(treeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.testSmartContractEntry', (chaincode: InstantiatedChaincodeTreeItem) => testSmartContract(chaincode)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.submitTransactionEntry', (transactionTreeItem: TransactionTreeItem) => submitTransaction(transactionTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.editConnectionEntry', (treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem) => editConnectionCommand(treeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.testSmartContractEntry', (chaincode: InstantiatedChaincodeTreeItem) => testSmartContract(chaincode)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.submitTransactionEntry', (transactionTreeItem: TransactionTreeItem) => submitTransaction(transactionTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.upgradeSmartContractEntry', (instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
 
     context.subscriptions.push(vscode.commands.registerCommand('extensionHome.open', async () => await HomeView.openHomePage(context)));
@@ -166,7 +166,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
         if (e.affectsConfiguration('fabric.connections') || e.affectsConfiguration('fabric.runtimes')) {
             try {
-                await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
             } catch (error) {
                 // ignore error this only happens in tests
             }

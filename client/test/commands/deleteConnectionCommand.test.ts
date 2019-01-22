@@ -88,7 +88,7 @@ describe('DeleteConnectionCommand', () => {
 
         it('should test a connection can be deleted from the command', async () => {
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -102,7 +102,7 @@ describe('DeleteConnectionCommand', () => {
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
             const connectionToDelete: BlockchainTreeItem = allChildren[1];
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', connectionToDelete);
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry', connectionToDelete);
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -113,7 +113,7 @@ describe('DeleteConnectionCommand', () => {
         it('should test delete connection can be cancelled', async () => {
             quickPickStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -150,7 +150,8 @@ describe('DeleteConnectionCommand', () => {
             const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves('fabric-vscode');
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
+
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
             connections.length.should.equal(2);
             connections[0].should.deep.equal(myConnectionA);
