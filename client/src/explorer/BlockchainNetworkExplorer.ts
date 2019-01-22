@@ -16,7 +16,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { PeerTreeItem } from './model/PeerTreeItem';
+
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { ConnectionIdentityTreeItem } from './model/ConnectionIdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';

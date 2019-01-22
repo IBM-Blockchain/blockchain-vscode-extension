@@ -122,6 +122,8 @@ describe('AddConnectionCommand', () => {
             });
 
             executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new connection');
         });
 
         it('should test an uncompleted connection can be added', async () => {
@@ -369,7 +371,7 @@ describe('AddConnectionCommand', () => {
             showInputBoxStub.onSecondCall().resolves(identityName);
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
@@ -386,7 +388,7 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
             browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
         });
@@ -460,7 +462,7 @@ describe('AddConnectionCommand', () => {
                 walletPath: FabricConnectionHelper.WALLET_PATH_DEFAULT
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
             errorSpy.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledThrice;
             importStub.should.have.been.calledOnce;
@@ -496,7 +498,7 @@ describe('AddConnectionCommand', () => {
                 walletPath: FabricConnectionHelper.WALLET_PATH_DEFAULT
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
             errorSpy.should.have.been.calledWith('Failed to add a new connection: some other reason');
             showInputBoxStub.should.have.been.calledTwice;
             importStub.should.have.been.calledOnce;
