@@ -13,11 +13,17 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
 export class InstalledChainCodeTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-installed-chaincode-item';
+
+    iconPath: {light: string, dark: string} = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'smart-contract.svg'),
+        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', 'smart-contract.svg')
+    };
 
     constructor(provider: BlockchainExplorerProvider, private readonly name: string, public readonly versions: Array<string>) {
         super(provider, name, vscode.TreeItemCollapsibleState.Collapsed);
