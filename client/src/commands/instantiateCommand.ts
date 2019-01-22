@@ -19,12 +19,17 @@ import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem): Promise<void> {
 
     let channelName: string;
     let peers: Set<string>;
     let packageEntry: PackageRegistryEntry;
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
+
     if (!channelTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
@@ -102,11 +107,11 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
-            vscode.window.showInformationMessage('Successfully instantiated smart contract');
+            outputAdapter.log(LogType.SUCCESS, 'Successfully instantiated smart contract');
             await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
         });
     } catch (error) {
-        vscode.window.showErrorMessage('Error instantiating smart contract: ' + error.message);
+        outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);
         throw error;
     }
 }

@@ -19,8 +19,11 @@ import { PeerTreeItem } from '../explorer/model/PeerTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
     if (!peerTreeItem && !peerNames) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
@@ -68,8 +71,6 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
             promises.push(install); // All successful installs will return undefined
         }
 
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-
         let successfulInstall: boolean = true; // Have all packages been installed successfully
 
         const peerSet: IterableIterator<string> = peerNames.values(); // Values in the peerNames set
@@ -78,13 +79,11 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
             let counter: number = 0; // Used for iterating through installChaincode results
             for (const peer of peerSet) {
                 if (!result[counter]) {
-                    vscode.window.showInformationMessage(`Successfully installed on peer ${peer}`);
-                    outputAdapter.log(`Successfully installed on peer ${peer}`);
+                    outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
                     counter++;
                 } else {
                     successfulInstall = false; // Install on peer failed
-                    vscode.window.showErrorMessage(`Failed to install on peer ${peer} with reason: ${result[counter]}`);
-                    outputAdapter.error(`Failed to install on peer ${peer} with reason: ${result[counter]}`);
+                    outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${result[counter]}`);
                     counter++;
                 }
             }
@@ -96,7 +95,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
             // Package was installed on all peers successfully
             if (peerNames.size !== 1) {
                 // If the package has only been installed on one peer, we disregard this success message
-                vscode.window.showInformationMessage('Successfully installed smart contract on all peers');
+                outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
             }
             return chosenPackage;
         } else {
@@ -105,7 +104,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
         }
 
     } catch (error) {
-        vscode.window.showErrorMessage('Error installing smart contract: ' + error.message);
+        outputAdapter.log(LogType.ERROR, `Error installing smart contract: ${error.message}`, `Error installing smart contract: ${error.toString()}`);
         throw error;
     }
 }

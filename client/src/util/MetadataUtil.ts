@@ -14,6 +14,8 @@
 'use strict';
 import {IFabricConnection} from '../fabric/IFabricConnection';
 import * as vscode from 'vscode';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 // Functions for parsing metadata object
 export class MetadataUtil {
@@ -45,6 +47,8 @@ export class MetadataUtil {
     }
 
     public static async getTransactions(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]>> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
         let metadataObj: any = {
             contracts: {
                 '' : {
@@ -65,13 +69,13 @@ export class MetadataUtil {
             });
 
             if (checkForEmpty && (contractsMap.size === 0)) {
-                vscode.window.showErrorMessage(`No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+                outputAdapter.log(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
             }
         } catch (error) {
             if (error.message.includes(`You've asked to invoke a function that does not exist`) ) {
-                vscode.window.showErrorMessage(`Error getting metadata for smart contract ${instantiatedChaincodeName}, please ensure this smart contract is depending on at least fabric-contract@1.4.0`);
+                outputAdapter.log(LogType.ERROR, `Error getting metadata for smart contract ${instantiatedChaincodeName}, please ensure this smart contract is depending on at least fabric-contract@1.4.0`);
             } else {
-                vscode.window.showErrorMessage(`Error getting metadata for smart contract ${instantiatedChaincodeName}: ${error.message}`);
+                outputAdapter.log(LogType.ERROR, `Error getting metadata for smart contract ${instantiatedChaincodeName}: ${error.message}`);
             }
         }
 

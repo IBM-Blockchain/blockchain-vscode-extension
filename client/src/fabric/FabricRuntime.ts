@@ -23,6 +23,7 @@ import { EventEmitter } from 'events';
 import { Docker, ContainerPorts } from '../docker/Docker';
 import * as vscode from 'vscode';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import { LogType } from '../logging/OutputAdapter';
 
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
@@ -172,8 +173,10 @@ export class FabricRuntime extends EventEmitter {
         return `${prefix}_peer0.org1.example.com`;
     }
 
-    public async exportConnectionDetails(outputAdatpter: OutputAdapter, dir?: string): Promise<void> {
-
+    public async exportConnectionDetails(outputAdapter: OutputAdapter, dir?: string): Promise<void> {
+        if (!outputAdapter) {
+            outputAdapter = ConsoleOutputAdapter.instance();
+        }
         const certificate: string = await this.getCertificate();
         const privateKey: string = await this.getPrivateKey();
         const connectionProfileObj: any = await this.getConnectionProfile();
@@ -199,7 +202,7 @@ export class FabricRuntime extends EventEmitter {
             await fs.writeFileSync(certificatePath, certificate);
             await fs.writeFileSync(privateKeyPath, privateKey);
         } catch (error) {
-            outputAdatpter.error(`Issue saving runtime connection details in directory ${dir} with error: ${error.message}`);
+            outputAdapter.log(LogType.ERROR, `Issue saving runtime connection details in directory ${dir} with error: ${error.message}`);
         }
     }
 

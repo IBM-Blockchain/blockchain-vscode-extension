@@ -23,6 +23,8 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { Package } from 'fabric-client';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -126,8 +128,7 @@ describe('packageSmartContract', () => {
     });
 
     let mySandBox: sinon.SinonSandbox;
-    let errorSpy: sinon.SinonSpy;
-    let informationSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
     let showInputStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
     let showWorkspaceQuickPickStub: sinon.SinonStub;
@@ -148,11 +149,10 @@ describe('packageSmartContract', () => {
             {name: 'javaProject', uri: vscode.Uri.file(javaPath)}
         ];
 
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
         showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
-        informationSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
         await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, true);
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
@@ -255,8 +255,8 @@ describe('packageSmartContract', () => {
                 'src/chaincode.js',
                 'src/package.json'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
         });
 
@@ -282,8 +282,8 @@ describe('packageSmartContract', () => {
                 'src/chaincode.js',
                 'src/package.json'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
         });
 
@@ -312,8 +312,8 @@ describe('packageSmartContract', () => {
                 'src/chaincode.js',
                 'src/package.json'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
         }).timeout(10000);
 
@@ -340,8 +340,8 @@ describe('packageSmartContract', () => {
                 'src/chaincode.ts',
                 'src/package.json'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
         });
@@ -373,8 +373,8 @@ describe('packageSmartContract', () => {
             pkg.getFileNames().should.deep.equal([
                 'src/goProject/chaincode.go'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
         });
@@ -405,8 +405,8 @@ describe('packageSmartContract', () => {
                 'src/build.gradle',
                 'src/chaincode.java'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
         });
@@ -437,10 +437,13 @@ describe('packageSmartContract', () => {
                 'src/chaincode.java',
                 'src/pom.xml'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+
             executeTaskStub.should.have.been.calledOnce;
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+
         });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
@@ -462,8 +465,8 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.be.false;
-            errorSpy.should.have.been.calledWith('Please enter a package name and/or package version into your package.json');
-            informationSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Please enter a package name and/or package version into your package.json`);
         });
 
         it('should throw an error as the project does not contain a chaincode file', async () => {
@@ -484,8 +487,8 @@ describe('packageSmartContract', () => {
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
-            errorSpy.should.have.been.calledWith('Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java');
-            informationSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java');
         });
 
         it('should throw an error if the JavaScript project already exists', async () => {
@@ -502,9 +505,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+            const error: Error = new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
 
-            errorSpy.should.have.been.calledWith('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should throw an error as the Go project already exists', async () => {
@@ -526,9 +533,13 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Package with name and version already exists. Please input a different name or version for your Go project.');
+            const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Go project.');
 
-            errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Go project.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should throw an error as the Java project already exists', async () => {
@@ -548,13 +559,18 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Package with name and version already exists. Please input a different name or version for your Java project.');
+            const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Java project.');
 
-            errorSpy.should.have.been.calledWith('Package with name and version already exists. Please input a different name or version for your Java project.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should throw an error if the GOPATH environment variable is not set', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            const error: Error = new Error('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -571,13 +587,14 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             delete process.env.GOPATH;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
-
-            errorSpy.should.have.been.calledWith('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should throw an error if the GOPATH environment variable is set to the project directory', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -594,13 +611,14 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = golangPath;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
-
-            errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should throw an error if the project directory is not inside the directory specified by the GOPATH environment variable ', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -617,13 +635,14 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = javascriptPath;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
-
-            errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should throw an error if the GOPATH environment variable is set to the root directory', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -640,9 +659,9 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = path.resolve('/');
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
-
-            errorSpy.should.have.been.calledWith('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
         it('should run execute the refreshEntry command', async () => {
@@ -658,6 +677,8 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
             commandSpy.should.have.been.calledWith('blockchainAPackageExplorer.refreshEntry');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
         });
 
         it('should not show package chooser when only one folder', async () => {
@@ -682,8 +703,8 @@ describe('packageSmartContract', () => {
                 'src/chaincode.js',
                 'src/package.json'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
         });
 
         it('should handle error from get workspace folders', async () => {
@@ -693,10 +714,12 @@ describe('packageSmartContract', () => {
             folders.splice(1, folders.length - 1);
 
             workspaceFoldersStub.returns([]);
+            const error: Error = new Error('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
 
-            errorSpy.should.have.been.calledWith('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         }).timeout(4000);
 
         it('should handle not choosing folder', async () => {
@@ -827,8 +850,9 @@ describe('packageSmartContract', () => {
                 'src/chaincode.js',
                 'src/package.json'
             ]);
-            errorSpy.should.not.have.been.called;
-            informationSpy.should.have.been.calledOnce;
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
         }).timeout(10000);
     });

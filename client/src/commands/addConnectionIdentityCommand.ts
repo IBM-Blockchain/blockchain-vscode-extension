@@ -18,10 +18,13 @@ import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     let connectionRegistryEntry: FabricConnectionRegistryEntry;
-    console.log('addConnectionIdentity');
+    outputAdapter.log(LogType.INFO, undefined, 'addConnectionIdentity');
 
     if (connectionItem) {
         connectionRegistryEntry = connectionItem.connection;
@@ -35,7 +38,7 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
     }
 
     if (!FabricConnectionHelper.isCompleted(connectionRegistryEntry)) {
-        vscode.window.showErrorMessage('Blockchain connection must be completed first!');
+        outputAdapter.log(LogType.ERROR, 'Blockchain connection must be completed first!');
         return;
     }
 
@@ -53,5 +56,7 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
 
     connectionRegistryEntry.identities.push({certificatePath, privateKeyPath});
 
-    return FabricConnectionRegistry.instance().update(connectionRegistryEntry);
+    await FabricConnectionRegistry.instance().update(connectionRegistryEntry);
+
+    outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to connection '${connectionRegistryEntry.name}'`);
 }

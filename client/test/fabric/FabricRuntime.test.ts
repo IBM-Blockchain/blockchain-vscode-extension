@@ -31,6 +31,8 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
+import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 
 chai.should();
 
@@ -264,8 +266,9 @@ describe('FabricRuntime', () => {
                 });
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
                 await runtime[verb](outputAdapter);
-                outputAdapter.log.should.have.been.calledOnceWith('stdout');
-                outputAdapter.error.should.have.been.calledOnceWith('stderr');
+                outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
+                outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+                // outputAdapter.error.should.have.been.calledOnceWith('stderr');
             });
 
             it(`should publish busy events before and after handling success (Linux/MacOS)`, async () => {
@@ -340,9 +343,9 @@ describe('FabricRuntime', () => {
                 });
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
                 await runtime[verb](outputAdapter);
-                outputAdapter.log.should.have.been.calledOnceWith('stdout');
-                outputAdapter.error.should.have.been.calledOnceWith('stderr');
-            });
+                outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
+                outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+            }).timeout(4000);
 
             it(`should publish busy events before and after handling success (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -403,12 +406,12 @@ describe('FabricRuntime', () => {
             });
             const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
-            outputAdapter.log.should.have.been.calledTwice;
-            outputAdapter.error.should.have.been.calledTwice;
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
+            outputAdapter.log.callCount.should.equal(4);
+
+            outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
+            outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+            outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
+            outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
         });
 
         it('should publish busy events before and after handling success (Linux/MacOS)', async () => {
@@ -471,13 +474,12 @@ describe('FabricRuntime', () => {
             });
             const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
             await runtime.restart(outputAdapter);
-            outputAdapter.log.should.have.been.calledTwice;
-            outputAdapter.error.should.have.been.calledTwice;
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-            outputAdapter.log.should.have.been.calledWith('stdout');
-            outputAdapter.error.should.have.been.calledWith('stderr');
-        });
+            outputAdapter.log.callCount.should.equal(4);
+            outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
+            outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+            outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
+            outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+        }).timeout(4000);
 
         it('should publish busy events before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
@@ -726,7 +728,7 @@ describe('FabricRuntime', () => {
             connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
             certificatePath = path.join(runtimeDir, 'runtime1', 'certificate');
             privateKeyPath = path.join(runtimeDir, 'runtime1', 'privateKey');
-            errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+            errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
         });
 
         it('should save runtime connection details to disk', async () => {
@@ -758,7 +760,7 @@ describe('FabricRuntime', () => {
             await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance());
             ensureFileStub.should.have.been.calledThrice;
             writeFileStub.should.have.been.calledThrice;
-            errorSpy.should.have.been.calledWith(`Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
         });
     });
 });

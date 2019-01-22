@@ -25,15 +25,17 @@ import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeItem): Promise<void> {
-    console.log('testSmartContractCommand', chaincode);
 
     let chaincodeLabel: string;
     let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}>;
     let channelName: string;
     let chaincodeName: string;
     let chaincodeVersion: string;
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, `testSmartContractCommand`);
 
     // If called from the command palette, ask for instantiated smart contract to test
     if (!chaincode) {
@@ -70,7 +72,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
 
     const transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
     if (transactions.size === 0) {
-        vscode.window.showErrorMessage(`Populated metadata required for generating smart contract tests, see previous error`);
+        outputAdapter.log(LogType.ERROR, `Populated metadata required for generating smart contract tests, see previous error`);
+
         return;
     }
 
@@ -86,7 +89,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     // Only generate the test file(s) if the smart contract is open in the workspace
     const workspaceFolders: Array<vscode.WorkspaceFolder> = await UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace`);
+        outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} is not open in workspace`);
+
         return;
     }
 
@@ -106,7 +110,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         }
     }
     if (!functionalTestsDirectory) {
-        vscode.window.showErrorMessage(`Smart contract project ${chaincodeName} is not open in workspace. Please ensure the ${chaincodeName} smart contract project folder is not nested within your workspace.`);
+        outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} is not open in workspace. Please ensure the ${chaincodeName} smart contract project folder is not nested within your workspace.`);
+
         return;
     }
 
@@ -155,12 +160,12 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         try {
             dataToWrite = await createDataToWrite(template, templateData);
         } catch (error) {
-            vscode.window.showErrorMessage('Error creating template data: ' + error.message);
+            outputAdapter.log(LogType.ERROR, `Error creating template data: ${error.message}`, `Error creating template data: ${error.toString()}`);
+
             return;
         }
 
         // Determine if test file already exists
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         let testFile: string;
         if (name !== '') {
             testFile = path.join(functionalTestsDirectory, `${name}-${chaincodeLabel}.test.${testFileSuiffix}`);
@@ -174,13 +179,13 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
             overwriteTestFile = await UserInputUtil.showTestFileOverwriteQuickPick('Test file for selected smart contract already exists in workspace, overwrite it?');
             if (!overwriteTestFile) {
                 // User cancelled the overwrite options box, so exit
-                outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
+                outputAdapter.log(LogType.INFO, undefined, `Preserving test file for instantiated smart contract located here: ${testFile}`);
                 return;
             }
         }
         if (overwriteTestFile === UserInputUtil.NO) {
             // Don't create test file, user doesn't want to overwrite existing, but tell them where it is:
-            outputAdapter.log(`Preserving test file for instantiated smart contract located here: ${testFile}`);
+            outputAdapter.log(LogType.INFO, undefined, `Preserving test file for instantiated smart contract located here: ${testFile}`);
             return;
         } else if (overwriteTestFile === UserInputUtil.GENERATE_NEW_TEST_FILE) {
             // Generate copy of test file, indicate a copy has been created in the file name
@@ -200,11 +205,11 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
             await fs.ensureFile(testFile);
         } catch (error) {
             console.log('Errored creating test file: ' + testFile);
-            vscode.window.showErrorMessage('Error creating test file: ' + error.message);
+            outputAdapter.log(LogType.ERROR, `Error creating test file: ${error.message}`, `Error creating test file: ${error.toString()}`);
             await removeTestFile(testFile);
             return;
         }
-        outputAdapter.log(`Writing to Smart Contract test file: ${testFile}`);
+        outputAdapter.log(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFile}`);
 
         // Open, show and write to test file
         const document: vscode.TextDocument = await vscode.workspace.openTextDocument(testFile);
@@ -220,7 +225,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
                 editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
         });
         if (!textEditorResult) {
-            vscode.window.showErrorMessage('Error editing test file: ' + testFile);
+            outputAdapter.log(LogType.ERROR, `Error editing test file: ${testFile}`);
             await removeTestFile(testFile);
             return;
 
@@ -233,7 +238,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     try {
         await installNodeModules(localSmartContractDirectory, testLanguage);
     } catch (error) {
-        vscode.window.showErrorMessage('Error installing node modules in smart contract project: ' + error.message);
+        outputAdapter.log(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
         return;
     }
 
@@ -245,6 +250,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
             await vscode.workspace.getConfiguration().update('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global);
         }
     }
+
+    outputAdapter.log(LogType.SUCCESS, 'Successfully generated tests');
 
     Reporter.instance().sendTelemetryEvent('testSmartContractCommand');
 
@@ -269,13 +276,15 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
 }
 
 async function removeTestFile(fileToRemove: string): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
     console.log('Something went wrong, so cleaning up and removing test file:', fileToRemove);
 
     try {
         await fs.remove(fileToRemove);
     } catch (error) {
         if (!error.message.includes('ENOENT: no such file or directory')) {
-            vscode.window.showErrorMessage('Error removing test file: ' + error.message);
+            outputAdapter.log(LogType.ERROR, `Error removing test file: ${error.message}`, `Error removing test file: ${error.toString()}`);
             return;
         }
     }
@@ -286,11 +295,11 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log('Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha');
+        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha');
         npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0 @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
     } else {
-        outputAdapter.log('Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0');
+        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0');
         npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0', dir, 'Installing npm and package dependencies in smart contract project');
     }
-    outputAdapter.log(npmInstallOut);
+    outputAdapter.log(LogType.INFO, undefined, npmInstallOut);
 }

@@ -30,6 +30,7 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as util from 'util';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 // Defines a Mocha test suite to group tests of similar kind together
 // tslint:disable no-unused-expression
@@ -37,7 +38,7 @@ describe('CreateSmartContractProjectCommand', () => {
     // suite variables
     let mySandBox: sinon.SinonSandbox;
     let sendCommandStub: sinon.SinonStub;
-    let errorSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
     let openDialogStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
@@ -53,7 +54,7 @@ describe('CreateSmartContractProjectCommand', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
         openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
         const originalExecuteCommand: any = vscode.commands.executeCommand;
@@ -91,7 +92,7 @@ describe('CreateSmartContractProjectCommand', () => {
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], true);
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
         packageJSON.description.should.equal('My Smart Contract');
@@ -115,7 +116,7 @@ describe('CreateSmartContractProjectCommand', () => {
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], false);
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
         packageJSON.description.should.equal('My Smart Contract');
@@ -145,7 +146,7 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], false);
         saveDialogStub.should.have.been.calledWith(true);
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
         packageJSON.description.should.equal('My Smart Contract');
@@ -175,7 +176,7 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], false);
         saveDialogStub.should.not.have.been.called;
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
         packageJSON.description.should.equal('My Smart Contract');
@@ -203,7 +204,7 @@ describe('CreateSmartContractProjectCommand', () => {
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledOnce;
         updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
         packageJSON.description.should.equal('My Smart Contract');
@@ -227,7 +228,7 @@ describe('CreateSmartContractProjectCommand', () => {
         smartContractExists.should.be.true;
         executeCommandStub.should.have.been.calledOnce;
         updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uriArr[0]});
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
         packageJSON.name.should.equal(path.basename(uri.fsPath));
         packageJSON.version.should.equal('0.0.1');
         packageJSON.description.should.equal('My Smart Contract');
@@ -239,7 +240,7 @@ describe('CreateSmartContractProjectCommand', () => {
         // npm not installed
         sendCommandStub.onCall(0).rejects();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        errorSpy.should.have.been.calledWith('npm is required before creating a smart contract project');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'npm is required before creating a smart contract project');
     });
 
     it('should show error is yo is not installed and not wanted', async () => {
@@ -247,7 +248,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
         quickPickStub.resolves(UserInputUtil.NO);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        errorSpy.should.have.been.calledWith('npm modules: yo and generator-fabric are required before creating a smart contract project');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
     });
 
     it('should show error message if generator-fabric fails to install', async () => {
@@ -255,9 +256,9 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(0).resolves();
         sendCommandStub.onCall(1).rejects();
         quickPickStub.resolves(UserInputUtil.YES);
-        sendCommandStub.onCall(2).rejects();
+        sendCommandStub.onCall(2).rejects({message: 'some error'});
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        errorSpy.should.have.been.calledWith('Issue installing generator-fabric module');
+        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue installing generator-fabric module: some error`);
     });
 
     it('should install latest version of generator-fabric', async () => {
@@ -281,20 +282,19 @@ describe('CreateSmartContractProjectCommand', () => {
         mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.11'});
         sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
 
-        const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
-
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
 
-        outputAdapterSpy.should.not.have.been.calledWith('Successfully updated to latest version of generator-fabric');
+        logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully updated to latest version of generator-fabric');
     });
 
     it('should show error message if yo fails to install', async () => {
         // yo not installed and wanted but fails to install
         sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
         quickPickStub.resolves(UserInputUtil.YES);
-        sendCommandStub.onCall(1).rejects();
+        const error: Error = new Error('some error');
+        sendCommandStub.onCall(1).rejects(error);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        errorSpy.should.have.been.calledWith('Issue installing yo node module');
+        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue installing yo node module: ${error.message}`, `Issue installing yo node module: ${error.toString()}`);
     });
 
     it('should show error message if we fail to create a smart contract', async () => {
@@ -305,12 +305,13 @@ describe('CreateSmartContractProjectCommand', () => {
         // npm install works
         sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
         const promisifyStub: sinon.SinonStub = mySandBox.stub(util, 'promisify').onCall(0).returns(mySandBox.stub().resolves());
-        promisifyStub.onCall(1).returns(mySandBox.stub().rejects());
+        const error: Error = new Error('some error');
+        promisifyStub.onCall(1).returns(mySandBox.stub().rejects(error));
         quickPickStub.onCall(1).returns('JavaScript');
         quickPickStub.onCall(2).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        errorSpy.should.have.been.calledWith('Issue creating smart contract project');
+        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
     });
 
     it('should not do anything if the user cancels the open dialog', async () => {
@@ -324,7 +325,7 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'Getting smart contract languages...');
     });
 
     it('should not do anything if the user cancels the open project ', async () => {
@@ -344,7 +345,7 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'Getting smart contract languages...');
     });
 
     // Go not currently supported as a smart contract language (targetted at Fabric v1.4).
@@ -366,7 +367,7 @@ describe('CreateSmartContractProjectCommand', () => {
         spawnStub.should.have.been.calledWith('/bin/sh', ['-c', 'yo fabric:contract < /dev/null']);
         executeCommandStub.should.have.been.calledTwice;
         executeCommandStub.should.have.been.calledWith('vscode.openFolder', uriArr[0], true);
-        errorSpy.should.not.have.been.called;
+        logSpy.should.not.have.been.called;
     });
 
     it('should not do anything if the user cancels chosing a smart contract language', async () => {
@@ -374,7 +375,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.resolves(undefined);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         quickPickStub.should.have.been.calledOnce;
-        errorSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'Getting smart contract languages...');
         openDialogStub.should.not.have.been.called;
     });
 
@@ -385,7 +386,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.onCall(1).resolves(wrongPath);
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        errorSpy.should.have.been.calledWith('npm modules: yo and generator-fabric are required before creating a smart contract project');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
     });
 
     it('should show an error if contract languages doesnt exist in generator-fabric package.json', async () => {
@@ -398,7 +399,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         const error: string = 'Contract languages not found in package.json';
-        errorSpy.should.have.been.calledWith('Issue determining available smart contract language options: ' + error);
+        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue determining available smart contract language options: ${error}`);
     });
 
     it('should send a telemetry event if the extension is for production', async () => {

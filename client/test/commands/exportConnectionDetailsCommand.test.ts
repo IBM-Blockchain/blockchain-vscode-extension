@@ -30,6 +30,7 @@ import { TestUtil } from '../TestUtil';
 
 import * as path from 'path';
 import * as sinon from 'sinon';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionDetailsCommand', () => {
@@ -143,8 +144,7 @@ describe('exportConnectionDetailsCommand', () => {
     });
 
     it('should handle undefined workspace folders', async () => {
-        const errorSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');
-        const outputSpy: sinon.SinonSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+        const outputSpy: sinon.SinonSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
         const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({
             label: 'local_fabric',
             data: FabricRuntimeManager.instance().get('local_fabric')
@@ -155,13 +155,11 @@ describe('exportConnectionDetailsCommand', () => {
         await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
         quickPickStub.should.have.been.calledOnce;
-        errorSpy.should.have.been.calledWith('A folder must be open to export connection details to');
-        outputSpy.should.have.been.calledWith('A folder must be open to export connection details to');
+        outputSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection details to');
     });
 
     it('should handle empty workspace folders', async () => {
-        const errorSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');
-        const outputSpy: sinon.SinonSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+        const outputSpy: sinon.SinonSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
         const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({
             label: 'local_fabric',
             data: FabricRuntimeManager.instance().get('local_fabric')
@@ -172,8 +170,7 @@ describe('exportConnectionDetailsCommand', () => {
         await vscode.commands.executeCommand('blockchainExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
         quickPickStub.should.have.been.calledOnce;
-        errorSpy.should.have.been.calledWith('A folder must be open to export connection details to');
-        outputSpy.should.have.been.calledWith('A folder must be open to export connection details to');
+        outputSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection details to');
     });
 
     it('should handle cancel choosing folders', async () => {

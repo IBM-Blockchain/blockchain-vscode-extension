@@ -14,6 +14,7 @@
 'use strict';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export class YeomanAdapter {
 
@@ -23,7 +24,7 @@ export class YeomanAdapter {
     constructor() {
         const logger: any = (...str: Array<string>): any => {
             const msg: string = str.join('');
-            VSCodeOutputAdapter.instance().log(msg);
+            VSCodeOutputAdapter.instance().log(LogType.YEOMAN, undefined, msg);
         };
         this.log = logger;
         [

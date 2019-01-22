@@ -151,8 +151,7 @@ describe('FabricClientConnection', () => {
             };
             fabricClientConnectionWrong = FabricConnectionFactory.createFabricClientConnection(connectionWrongData) as FabricClientConnection;
 
-            await fabricClientConnectionWrong.connect();
-            errorSpy.should.have.been.calledWith('Connection profile must be in JSON or yaml format');
+            await fabricClientConnectionWrong.connect().should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
         });
     });
 

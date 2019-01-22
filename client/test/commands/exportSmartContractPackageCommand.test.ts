@@ -28,8 +28,10 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
-chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -51,15 +53,13 @@ describe('exportSmartContractPackageCommand', () => {
     let sandbox: sinon.SinonSandbox;
     let showSaveDialogStub: sinon.SinonStub;
     let copyStub: sinon.SinonStub;
-    let showInformationMessageStub: sinon.SinonStub;
-    let showErrorMessageStub: sinon.SinonStub;
+    let logSpy: sinon.SinonStub;
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(targetPath));
         copyStub = sandbox.stub(fs, 'copy').resolves();
-        showInformationMessageStub = sandbox.stub(vscode.window, 'showInformationMessage');
-        showErrorMessageStub = sandbox.stub(vscode.window, 'showErrorMessage');
+        logSpy = sandbox.stub(VSCodeOutputAdapter.instance(), 'log');
     });
 
     afterEach(async () => {
@@ -76,8 +76,8 @@ describe('exportSmartContractPackageCommand', () => {
         await vscode.commands.executeCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry');
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
-        showInformationMessageStub.should.have.been.calledOnceWithExactly(`Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
-        showErrorMessageStub.should.not.have.been.called;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
     });
 
     it('should export a package to the file system using the tree menu item', async () => {
@@ -87,8 +87,8 @@ describe('exportSmartContractPackageCommand', () => {
         await vscode.commands.executeCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry', _package);
         showSaveDialogStub.should.have.been.calledOnce;
         copyStub.should.have.been.calledOnceWithExactly(_package.packageEntry.path, targetPath, { overwrite: true });
-        showInformationMessageStub.should.have.been.calledOnceWithExactly(`Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
-        showErrorMessageStub.should.not.have.been.called;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
     });
 
     it('should handle the user cancelling the package quick pick', async () => {
@@ -96,8 +96,8 @@ describe('exportSmartContractPackageCommand', () => {
         await vscode.commands.executeCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry');
         showSaveDialogStub.should.not.have.been.called;
         copyStub.should.not.have.been.called;
-        showInformationMessageStub.should.not.have.been.called;
-        showErrorMessageStub.should.not.have.been.called;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        should.not.exist(logSpy.getCall(1));
     });
 
     it('should handle the user cancelling the save dialog', async () => {
@@ -110,8 +110,8 @@ describe('exportSmartContractPackageCommand', () => {
         showSaveDialogStub.resolves();
         await vscode.commands.executeCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry');
         copyStub.should.not.have.been.called;
-        showInformationMessageStub.should.not.have.been.called;
-        showErrorMessageStub.should.not.have.been.called;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        should.not.exist(logSpy.getCall(1));
     });
 
     it('should handle an error writing the file to the file system', async () => {
@@ -121,10 +121,11 @@ describe('exportSmartContractPackageCommand', () => {
             label: 'vscode-pkg-1@0.0.1',
             data: _package
         });
-        copyStub.rejects(new Error('such error'));
+        const error: Error = new Error('such error');
+        copyStub.rejects(error);
         await vscode.commands.executeCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry');
-        showInformationMessageStub.should.not.have.been.called;
-        showErrorMessageStub.should.have.been.calledOnceWithExactly('such error');
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
     });
 
 });

@@ -29,6 +29,7 @@ import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as ejs from 'ejs';
+import { LogType } from '../../src/logging/OutputAdapter';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
@@ -607,9 +608,9 @@ describe('SampleView', () => {
 
             await SampleView.cloneRepository(repositoryName);
 
-            outputAdapterStub.should.have.been.calledOnce;
+            outputAdapterStub.should.have.been.calledTwice;
             repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
-            showInformationMessageStub.should.have.been.calledOnceWithExactly('Successfully cloned repository!');
+            outputAdapterStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
         });
 
         it('should stop if user cancels dialog', async () => {
@@ -635,7 +636,6 @@ describe('SampleView', () => {
         it('should throw an error if repository cannot be cloned', async () => {
 
             const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
-            const showErrorMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').returns(undefined);
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
 
@@ -648,9 +648,7 @@ describe('SampleView', () => {
 
             await SampleView.cloneRepository(repositoryName);
 
-            outputAdapterStub.should.not.have.been.calledOnce;
-
-            showErrorMessageStub.should.have.been.calledOnceWithExactly(`Could not clone sample: ${error.message}`);
+            outputAdapterStub.should.have.been.calledOnceWithExactly(LogType.ERROR, `Could not clone sample: ${error.message}`);
         });
 
         it('should reclone a repository and update the repository registry', async () => {
@@ -668,9 +666,9 @@ describe('SampleView', () => {
 
             await SampleView.cloneRepository(repositoryName, true);
 
-            outputAdapterStub.should.have.been.calledOnce;
+            outputAdapterStub.should.have.been.calledTwice;
             repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
-            showInformationMessageStub.should.have.been.calledOnceWithExactly('Successfully cloned repository!');
+            outputAdapterStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
         });
 
     });

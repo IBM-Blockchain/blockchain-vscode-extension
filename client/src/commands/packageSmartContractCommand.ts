@@ -19,12 +19,16 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { ChaincodeType } from 'fabric-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
  * This will be used in other files to call the command to package a smart contract project.
  */
 export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, version?: string): Promise<PackageRegistryEntry> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'packageSmartContract');
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
@@ -122,7 +126,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
             Reporter.instance().sendTelemetryEvent('packageCommand');
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
-            vscode.window.showInformationMessage('Smart Contract packaged: ' + pkgFile);
+            outputAdapter.log(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+
             const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();
             packageEntry.name = properties.workspacePackageName;
             packageEntry.version = properties.workspacePackageVersion;
@@ -130,7 +135,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
 
             return packageEntry;
         } catch (err) {
-            vscode.window.showErrorMessage(err.message);
+            outputAdapter.log(LogType.ERROR, err.message, err.toString());
             throw err;
         }
     });
@@ -170,6 +175,7 @@ async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
  * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory.
  */
 async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<ChaincodeType> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     // Is this a Node.js smart contract (JavaScript, TypeScript, etc)?
     const packageJsonFile: string = path.join(workspaceDir.uri.fsPath, 'package.json');
@@ -199,7 +205,7 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
 
     // No idea what this is!
     const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java';
-    vscode.window.showErrorMessage(message);
+    outputAdapter.log(LogType.ERROR, message);
     throw new Error(message);
 
 }
@@ -210,6 +216,8 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
  * @returns {string, string}An object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method.
  */
 async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
     const workspacePackage: string = path.join(workspaceDir.uri.fsPath, '/package.json');
     const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
     const workspacePackageObj: any = JSON.parse(workspacePackageContents.toString('utf8'));
@@ -218,7 +226,8 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): 
 
     if (!workspacePackageName || !workspacePackageVersion) {
         const message: string = 'Please enter a package name and/or package version into your package.json';
-        vscode.window.showErrorMessage(message);
+        outputAdapter.log(LogType.ERROR, message);
+
         throw new Error(message);
     }
     return { workspacePackageName, workspacePackageVersion };

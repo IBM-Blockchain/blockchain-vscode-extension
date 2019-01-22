@@ -59,6 +59,7 @@ import { upgradeSmartContract } from './commands/upgradeCommand';
 import { InstantiatedChaincodeTreeItem } from './explorer/model/InstantiatedChaincodeTreeItem';
 import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
 import { exportConnectionDetails } from './commands/exportConnectionDetailsCommand';
+import { LogType } from './logging/OutputAdapter';
 
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
@@ -76,7 +77,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    outputAdapter.log('extension activating');
+
+    // At the moment, the 'Open Log File' doesn't display extension log files to open. https://github.com/Microsoft/vscode/issues/43064
+    outputAdapter.log(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true); // Let users know how to get the log file
+
+    outputAdapter.log(LogType.INFO, undefined, 'Starting IBM Blockchain Platform Extension');
 
     try {
         const dependancyManager: DependencyManager = DependencyManager.instance();
@@ -95,7 +100,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await ensureLocalFabricExists();
 
         ExtensionUtil.setExtensionContext(context);
-        outputAdapter.log('extension activated');
+        outputAdapter.log(LogType.INFO, 'IBM Blockchain Platform Extension activated');
 
         // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
         const showPage: boolean = vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
@@ -105,11 +110,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
     } catch (error) {
         console.log(error);
-        outputAdapter.error('Failed to activate extension see previous messages for reason');
-        const result: string = await vscode.window.showErrorMessage('Failed to activate extension', 'open output view');
-        if (result) {
-            outputAdapter.show();
-        }
+        outputAdapter.log(LogType.ERROR, 'Failed to activate extension: open output view', 'Failed to activate extension see previous messages for reason');
     }
 }
 
