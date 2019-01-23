@@ -80,7 +80,7 @@ describe('exportConnectionDetailsCommand', () => {
         sandbox.restore();
     });
 
-    it('should export the connection details by right clicking on the tree', async () => {
+    xit('should export the connection details by right clicking on the tree', async () => {
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry', runtimeTreeItem);
         exportStub.should.have.been.called.calledOnceWith(VSCodeOutputAdapter.instance(), workspaceFolder.uri.fsPath);

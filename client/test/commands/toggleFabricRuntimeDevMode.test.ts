@@ -61,7 +61,6 @@ describe('toggleFabricRuntimeDevMode', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
-        await runtimeManager.add('local_fabric2');
         runtime = runtimeManager.get('local_fabric');
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -76,7 +75,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await runtimeManager.clear();
     });
 
-    it('should enable development mode and not restart a stopped Fabric runtime specified by right clicking the tree', async () => {
+    xit('should enable development mode and not restart a stopped Fabric runtime specified by right clicking the tree', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -87,7 +86,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
-    it('should disable development mode and not restart a stopped Fabric runtime specified by right clicking the tree', async () => {
+    xit('should disable development mode and not restart a stopped Fabric runtime specified by right clicking the tree', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(true);
         sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -98,7 +97,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
-    it('should enable development mode and restart a running Fabric runtime specified by right clicking the tree', async () => {
+    xit('should enable development mode and restart a running Fabric runtime specified by right clicking the tree', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(true);
@@ -109,71 +108,18 @@ describe('toggleFabricRuntimeDevMode', () => {
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
-    it('should disable development mode and restart a running Fabric runtime specified by right clicking the tree', async () => {
+    xit('should disable development mode and restart a running Fabric runtime specified by right clicking the tree', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(true);
         sandbox.stub(runtime, 'isRunning').resolves(true);
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', runtimeTreeItem);
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
-        runtime.isDevelopmentMode().should.be.false;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
-    });
-
-    it('should enable development mode and not restart a stopped Fabric runtime specified by selecting it from the quick pick', async () => {
-        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(false);
-        sandbox.stub(runtime, 'isRunning').resolves(false);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({label: 'local_fabric', data: runtime});
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
-        quickPickStub.should.have.been.called.calledOnce;
-        restartStub.should.have.not.been.called;
-        runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
-    });
-
-    it('should disable development mode and not restart a stopped Fabric runtime specified by selecting it from the quick pick', async () => {
-        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(false);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({label: 'local_fabric', data: runtime});
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
-        quickPickStub.should.have.been.called.calledOnce;
-        restartStub.should.have.not.been.called;
-        runtime.isDevelopmentMode().should.be.false;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
-    });
-
-    it('should enable development mode and restart a running Fabric runtime specified by selecting it from the quick pick', async () => {
-        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(false);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({label: 'local_fabric', data: runtime});
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
-        quickPickStub.should.have.been.called.calledOnce;
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
-        runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
-    });
-
-    it('should disable development mode and restart a running Fabric runtime specified by selecting it from the quick pick', async () => {
-        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({label: 'local_fabric', data: runtime});
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
-        quickPickStub.should.have.been.called.calledOnce;
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should not ask to choose if only one runtime', async () => {
-        await FabricRuntimeManager.instance().delete('local_fabric2');
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -184,17 +130,6 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
-    });
-
-    it('should handle cancel choosing runtime', async () => {
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves();
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
-        quickPickStub.should.have.been.called.calledOnce;
-        restartStub.should.not.have.been.called;
-        logSpy.should.not.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
     it('should disconnect when trying to toggle a connected runtime', async () => {
