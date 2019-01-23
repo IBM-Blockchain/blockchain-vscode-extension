@@ -32,7 +32,7 @@
         "Debuggers",
         "Other"
     ],
-    "generatorFabricVersion": "0.0.13",
+    "generatorFabricVersion": "~0.0.13",
     "activationEvents": [
     "*"
     ],
@@ -543,6 +543,7 @@
         "@types/mocha": "5.2.5",
         "@types/node": "10.5.4",
         "@types/rimraf": "^2.0.2",
+        "@types/semver": "^5.5.0",
         "@types/sinon": "5.0.1",
         "@types/sinon-chai": "3.2.0",
         "@types/strip-ansi": "^3.0.0",
@@ -558,7 +559,6 @@
         "nyc": "^12.0.2",
         "remap-istanbul": "0.11.1",
         "rimraf": "^2.6.2",
-        "semver": "^5.6.0",
         "sinon": "6.1.4",
         "sinon-chai": "3.2.0",
         "tmp": "0.0.33",
@@ -581,6 +581,7 @@
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
         "home-dir": "1.0.0",
+        "semver": "^5.6.0",
         "shelljs": "^0.8.3",
         "showdown": "^1.9.0",
         "strip-ansi": "^4.0.0",

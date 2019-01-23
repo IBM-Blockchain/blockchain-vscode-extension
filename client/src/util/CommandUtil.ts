@@ -74,4 +74,16 @@ export class CommandUtil {
             });
         });
     }
+
+    public static async sendCommandWithOutputAndProgress(command: string, args: Array<string>, message: string, cwd?: string, env?: any, outputAdapter?: OutputAdapter, shell: boolean = false): Promise<void> {
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'Blockchain Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>): Promise<void> => {
+            progress.report({ message });
+            await this.sendCommandWithOutput(command, args, cwd, env, outputAdapter, shell);
+        });
+    }
+
 }

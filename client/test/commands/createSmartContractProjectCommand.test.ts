@@ -19,8 +19,6 @@ import * as sinon from 'sinon';
 import * as tmp from 'tmp';
 import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
-
-chai.use(sinonChai);
 import * as fs_extra from 'fs-extra';
 import * as child_process from 'child_process';
 import { CommandUtil } from '../../src/util/CommandUtil';
@@ -29,8 +27,10 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import * as util from 'util';
 import { LogType } from '../../src/logging/OutputAdapter';
+import * as yeoman from 'yeoman-environment';
+
+chai.use(sinonChai);
 
 // Defines a Mocha test suite to group tests of similar kind together
 // tslint:disable no-unused-expression
@@ -38,6 +38,7 @@ describe('CreateSmartContractProjectCommand', () => {
     // suite variables
     let mySandBox: sinon.SinonSandbox;
     let sendCommandStub: sinon.SinonStub;
+    let sendCommandWithOutputAndProgressStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
     let openDialogStub: sinon.SinonStub;
@@ -45,7 +46,6 @@ describe('CreateSmartContractProjectCommand', () => {
     let updateWorkspaceFoldersStub: sinon.SinonStub;
     let uri: vscode.Uri;
     let uriArr: Array<vscode.Uri>;
-    const USER_TEST_DATA: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data');
 
     before(async () => {
         await TestUtil.setupTests();
@@ -54,6 +54,7 @@ describe('CreateSmartContractProjectCommand', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
+        sendCommandWithOutputAndProgressStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
         openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
@@ -238,14 +239,18 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should show error if npm is not installed', async () => {
         // npm not installed
-        sendCommandStub.onCall(0).rejects();
+        const error: any = new Error('such error');
+        error.stdout = error.stderr = 'could not find npm';
+        sendCommandStub.onCall(0).rejects(error);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm is required before creating a smart contract project');
     });
 
     it('should show error is yo is not installed and not wanted', async () => {
         // yo not installed and not wanted
-        sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
+        const error: any = new Error('such error');
+        error.stdout = '{}'; error.stderr = 'could not find yo';
+        sendCommandStub.onCall(0).rejects(error);
         quickPickStub.resolves(UserInputUtil.NO);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
@@ -253,65 +258,119 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should show error message if generator-fabric fails to install', async () => {
         // generator-fabric not installed and wanted but fails to install
-        sendCommandStub.onCall(0).resolves();
-        sendCommandStub.onCall(1).rejects();
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        const error1: any = new Error('such error');
+        error1.stdout = '{}'; error1.stderr = 'could not find generator-fabric';
+        sendCommandStub.onCall(1).rejects(error1);
         quickPickStub.resolves(UserInputUtil.YES);
-        sendCommandStub.onCall(2).rejects({message: 'some error'});
+        const error2: any = new Error('such error');
+        error2.stdout = ''; error2.stderr = 'could not install';
+        sendCommandStub.onCall(1).rejects(error1);
+        sendCommandStub.onCall(2).rejects(new Error('such error'));
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue installing generator-fabric module: some error`);
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing generator-fabric module: such error');
+    });
+
+    it('should install yo if not installed', async () => {
+        const error1: any = new Error('such error');
+        error1.stdout = '{}'; error1.stderr = 'could not find yo';
+        sendCommandStub.onCall(0).rejects(error1);
+        quickPickStub.onCall(0).resolves(UserInputUtil.YES);
+        sendCommandStub.onCall(1).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    version: '0.0.12'
+                }
+            }
+        }));
+        quickPickStub.onCall(1).resolves();
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        sendCommandStub.should.have.been.calledWithExactly('npm install -g yo');
+    });
+
+    it('should install generator-fabric if not installed', async () => {
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        const error: any = new Error('such error');
+        error.stdout = '{}'; error.stderr = 'could not find yo';
+        sendCommandStub.onCall(1).rejects(error);
+        quickPickStub.onCall(0).resolves(UserInputUtil.YES);
+        quickPickStub.onCall(1).resolves();
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        sendCommandStub.should.have.been.calledWithExactly('npm install -g generator-fabric');
     });
 
     it('should install latest version of generator-fabric', async () => {
-        sendCommandStub.withArgs('npm config get prefix').resolves(USER_TEST_DATA);
-        sendCommandStub.onCall(0).resolves();
-        const genFabVersion: string = '0.0.11';
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        const genFabVersion: string = '~0.0.11';
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: genFabVersion});
-        sendCommandStub.onCall(1).resolves(USER_TEST_DATA); // npm prefix path
-        const sendCommandWithProgressSpy: sinon.SinonSpy = mySandBox.spy(CommandUtil, 'sendCommandWithProgress');
-
+        sendCommandStub.onCall(1).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    version: '0.0.10'
+                }
+            }
+        }));
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-
-        sendCommandWithProgressSpy.should.have.been.calledWith('npm install -g generator-fabric@' + genFabVersion, '', 'Updating generator-fabric...');
-
+        sendCommandWithOutputAndProgressStub.should.have.been.calledOnceWithExactly('npm', ['install', '-g', `generator-fabric@${genFabVersion}`], 'Updating generator-fabric...', null, null, VSCodeOutputAdapter.instance());
     });
 
     it('should continue if latest version of generator-fabric is installed', async () => {
-        sendCommandStub.onCall(0).resolves();
-
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '0.0.11'});
-        mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.11'});
-        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.onCall(1).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    version: '0.0.12'
+                }
+            }
+        }));
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-
+        sendCommandWithOutputAndProgressStub.should.not.have.been.called;
         logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully updated to latest version of generator-fabric');
     });
 
     it('should show error message if yo fails to install', async () => {
         // yo not installed and wanted but fails to install
-        sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
+        const error1: any = new Error('such error');
+        error1.stdout = '{}'; error1.stderr = 'could not find yo';
+        sendCommandStub.onCall(0).rejects(error1);
         quickPickStub.resolves(UserInputUtil.YES);
-        const error: Error = new Error('some error');
-        sendCommandStub.onCall(1).rejects(error);
+        const error2: any = new Error('such error');
+        error2.stdout = '{}'; error2.stderr = 'could not install yo';
+        sendCommandStub.onCall(1).rejects(error2);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue installing yo node module: ${error.message}`, `Issue installing yo node module: ${error.toString()}`);
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing yo node module: such error');
     });
 
     it('should show error message if we fail to create a smart contract', async () => {
-        // generator-fabric and yo not installed and wanted
-        sendCommandStub.withArgs('npm config get prefix').resolves(USER_TEST_DATA);
-        sendCommandStub.onCall(0).rejects({message: 'npm ERR'});
-        quickPickStub.onCall(0).resolves('yes');
-        // npm install works
-        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-        const promisifyStub: sinon.SinonStub = mySandBox.stub(util, 'promisify').onCall(0).returns(mySandBox.stub().resolves());
-        const error: Error = new Error('some error');
-        promisifyStub.onCall(1).returns(mySandBox.stub().rejects(error));
-        quickPickStub.onCall(1).returns('JavaScript');
-        quickPickStub.onCall(2).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.onCall(1).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11'
+                }
+            }
+        }));
+        sendCommandStub.onCall(2).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11'
+                }
+            }
+        }));
+        const mockEnv: any = {
+            lookup: sinon.stub().yields(new Error('such error')),
+            run: sinon.stub().yields(new Error('such error'))
+        };
+        mySandBox.stub(yeoman, 'createEnv').returns(mockEnv);
+        quickPickStub.onCall(0).resolves('JavaScript');
+        quickPickStub.onCall(1).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue creating smart contract project: such error');
     });
 
     it('should not do anything if the user cancels the open dialog', async () => {
@@ -325,27 +384,20 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'Getting smart contract languages...');
+        logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
     });
 
     it('should not do anything if the user cancels the open project ', async () => {
         // We actually want to execute the command!
         sendCommandStub.restore();
-
         quickPickStub.onCall(0).resolves('JavaScript');
         quickPickStub.onCall(1).resolves();
-        sendCommandStub.onCall(0).resolves();
-
-        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-
-        quickPickStub.onCall(0).returns('JavaScript');
-
         openDialogStub.resolves(uriArr);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         openDialogStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'Getting smart contract languages...');
+        logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
     });
 
     // Go not currently supported as a smart contract language (targetted at Fabric v1.4).
@@ -375,31 +427,56 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.resolves(undefined);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         quickPickStub.should.have.been.calledOnce;
-        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'Getting smart contract languages...');
+        logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
         openDialogStub.should.not.have.been.called;
     });
 
     it('should show an error if generator-fabric package.json does not exist', async () => {
-        sendCommandStub.onCall(0).resolves();
-
-        const wrongPath: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'nonexistent');
-        sendCommandStub.onCall(1).resolves(wrongPath);
-
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.onCall(1).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11'
+                }
+            }
+        }));
+        sendCommandStub.onCall(2).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11'
+                }
+            }
+        }));
+        mySandBox.stub(fs, 'readJson').rejects(new Error('such error'));
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
+        logSpy.should.have.been.calledWith(LogType.ERROR, sinon.match(/Could not load package.json for generator-fabric module/));
     });
 
     it('should show an error if contract languages doesnt exist in generator-fabric package.json', async () => {
-        sendCommandStub.withArgs('npm config get prefix').resolves(USER_TEST_DATA);
-
+        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.onCall(1).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11'
+                }
+            }
+        }));
+        sendCommandStub.onCall(2).resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11'
+                }
+            }
+        }));
         mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.7'});
-        sendCommandStub.onCall(0).resolves();
-
-        sendCommandStub.onCall(1).resolves(USER_TEST_DATA);
-
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        const error: string = 'Contract languages not found in package.json';
-        logSpy.should.have.been.calledWith(LogType.ERROR, `Issue determining available smart contract language options: ${error}`);
+        logSpy.should.have.been.calledWith(LogType.ERROR, sinon.match(/Contract languages not found in package.json for generator-fabric module/));
     });
 
     it('should send a telemetry event if the extension is for production', async () => {
@@ -416,26 +493,6 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         reporterStub.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
-    });
-
-    it('should find the generator-fabric package.json in the correct path on Linux/MacOS', async () => {
-        sendCommandStub.resolves('0.0.0');
-        sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
-        mySandBox.stub(process, 'platform').value('darwin');
-        const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
-
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        readJsonStub.should.always.have.been.calledWith(path.join('PREFIX', 'lib', 'node_modules', 'generator-fabric', 'package.json'));
-    });
-
-    it('should find the generator-fabric package.json in the correct path on Windows', async () => {
-        sendCommandStub.resolves('0.0.0');
-        sendCommandStub.withArgs('npm config get prefix').resolves('PREFIX');
-        mySandBox.stub(process, 'platform').value('win32');
-        const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson').resolves({version: '0.0.0'});
-
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
-        readJsonStub.should.always.have.been.calledWith(path.join('PREFIX', 'node_modules', 'generator-fabric', 'package.json'));
     });
 
 }); // end of createFabricCommand tests
