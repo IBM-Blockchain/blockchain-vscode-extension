@@ -21,7 +21,7 @@ import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { LogType } from '../../src/logging/OutputAdapter';
+import { OutputAdapter, LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -140,4 +140,25 @@ describe('CommandUtil Tests', () => {
             }
         });
     });
+
+    describe('sendCommandWithOutputAndProgress', () => {
+
+        const outputAdapter: OutputAdapter = VSCodeOutputAdapter.instance();
+        let sendCommandWithOutputStub: sinon.SinonStub;
+        let withProgressSpy: sinon.SinonSpy;
+
+        beforeEach(() => {
+            sendCommandWithOutputStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').rejects();
+            sendCommandWithOutputStub.withArgs('npm', ['install'], '/some/dir', { DOGE: 'WOW' }, outputAdapter, true).resolves();
+            withProgressSpy = mySandBox.spy(vscode.window, 'withProgress');
+        });
+
+        it('should call sendCommandWithOutput with a progress message', async () => {
+            await CommandUtil.sendCommandWithOutputAndProgress('npm', ['install'], 'hello world', '/some/dir', { DOGE: 'WOW' }, outputAdapter, true);
+            sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('npm', ['install'], '/some/dir', { DOGE: 'WOW' }, outputAdapter, true);
+            withProgressSpy.should.have.been.calledOnce;
+        });
+
+    });
+
 });
