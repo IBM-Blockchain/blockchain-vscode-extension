@@ -25,16 +25,7 @@ export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Prom
     outputAdapter.log(LogType.INFO, undefined, 'stopFabricRuntime');
     let runtime: FabricRuntime;
     if (!runtimeTreeItem) {
-        const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
-        if (allRuntimes.length > 1) {
-            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to stop') as IBlockchainQuickPickItem<FabricRuntime>;
-            if (!chosenRuntime) {
-                return;
-            }
-            runtime = chosenRuntime.data;
-        } else {
-            runtime = allRuntimes[0];
-        }
+        runtime = FabricRuntimeManager.instance().get('local_fabric');
     } else {
         runtime = runtimeTreeItem.getRuntime();
     }

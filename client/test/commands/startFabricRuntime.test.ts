@@ -20,10 +20,9 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
@@ -40,6 +39,7 @@ describe('startFabricRuntime', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
+    let commandSpy: sinon.SinonSpy;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -59,11 +59,12 @@ describe('startFabricRuntime', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
-        await runtimeManager.add('local_fabric2');
         runtime = runtimeManager.get('local_fabric');
-        const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+        sandbox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+        const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
+        commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
     });
 
     afterEach(async () => {
@@ -77,34 +78,13 @@ describe('startFabricRuntime', () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', runtimeTreeItem);
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
-    });
-
-    it('should start a Fabric runtime specified by selecting it from the quick pick', async () => {
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves({
-            label: 'local_fabric',
-            data: FabricRuntimeManager.instance().get('local_fabric')
-        });
-        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
-        quickPickStub.should.have.been.called.calledOnce;
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        commandSpy.should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
     });
 
     it('should start a Fabric runtime if only one', async () => {
-        await runtimeManager.delete('local_fabric2');
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
-        quickPickStub.should.not.have.been.called.called;
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        commandSpy.should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
     });
-
-    it('should handle cancel from choosing runtime', async () => {
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox').resolves();
-        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
-        quickPickStub.should.have.been.called.calledOnce;
-        startStub.should.not.have.been.called;
-    });
-
 });

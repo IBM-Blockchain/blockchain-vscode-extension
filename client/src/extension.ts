@@ -61,9 +61,11 @@ import { LogType } from './logging/OutputAdapter';
 
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
+import { BlockchainRuntimeExplorerProvider } from './explorer/BlockchainRuntimeExplorer';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
+let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
@@ -125,6 +127,7 @@ export async function deactivate(): Promise<void> {
 export async function registerCommands(context: vscode.ExtensionContext): Promise<void> {
     blockchainNetworkExplorerProvider = new BlockchainNetworkExplorerProvider();
     blockchainPackageExplorerProvider = new BlockchainPackageExplorerProvider();
+    blockchainRuntimeExplorerProvider = new BlockchainRuntimeExplorerProvider();
 
     disposeExtension(context);
 
@@ -133,6 +136,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(provider);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainExplorer', blockchainNetworkExplorerProvider));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainARuntimeExplorer', blockchainRuntimeExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identityName: string) => connect(connection, identityName)));
@@ -143,6 +147,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand('blockchain.createSmartContractProjectEntry', createSmartContractProject));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', (workspace?: vscode.WorkspaceFolder, version?: string) => packageSmartContract(workspace, version)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.refreshEntry', () => blockchainPackageExplorerProvider.refresh()));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainARuntimeExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainRuntimeExplorerProvider.refresh(element)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.startFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => startFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.stopFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => stopFabricRuntime(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.restartFabricRuntime', (runtimeTreeItem?: RuntimeTreeItem) => restartFabricRuntime(runtimeTreeItem)));
@@ -216,6 +221,10 @@ function disposeExtension(context: vscode.ExtensionContext): void {
  */
 export function getBlockchainNetworkExplorerProvider(): BlockchainNetworkExplorerProvider {
     return blockchainNetworkExplorerProvider;
+}
+
+export function getBlockchainRuntimeExplorerProvider(): BlockchainRuntimeExplorerProvider {
+    return blockchainRuntimeExplorerProvider;
 }
 
 export function getBlockchainPackageExplorerProvider(): BlockchainPackageExplorerProvider {

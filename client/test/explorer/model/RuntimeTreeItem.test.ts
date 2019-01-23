@@ -94,7 +94,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('myRuntime  ○');
+            treeItem.label.should.equal('Your local_fabric is stopped');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',
@@ -116,7 +116,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('myRuntime  ○');
+            treeItem.label.should.equal('Your local_fabric is stopped');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',
@@ -185,7 +185,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('myRuntime  ○');
+            treeItem.label.should.equal('Your local_fabric is stopped');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',
@@ -245,7 +245,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('myRuntime  ○');
+            treeItem.label.should.equal('Your local_fabric is stopped');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',
@@ -264,7 +264,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('myRuntime  ○  ∞');
+            treeItem.label.should.equal('Your local_fabric is stopped  ∞');
             treeItem.command.should.deep.equal({
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',

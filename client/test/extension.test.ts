@@ -77,6 +77,7 @@ describe('Extension Tests', () => {
 
         blockchainCommands.should.deep.equal([
             'blockchainAPackageExplorer.focus',
+            'blockchainARuntimeExplorer.focus',
             'blockchainExplorer.focus',
             'blockchainConnectionsExplorer.refreshEntry',
             'blockchainConnectionsExplorer.connectEntry',
@@ -87,6 +88,7 @@ describe('Extension Tests', () => {
             'blockchain.createSmartContractProjectEntry',
             'blockchainAPackageExplorer.packageSmartContractProjectEntry',
             'blockchainAPackageExplorer.refreshEntry',
+            'blockchainARuntimeExplorer.refreshEntry',
             'blockchainExplorer.startFabricRuntime',
             'blockchainExplorer.stopFabricRuntime',
             'blockchainExplorer.restartFabricRuntime',
@@ -124,6 +126,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchainAPackageExplorer.packageSmartContractProjectEntry',
             'onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry',
             'onCommand:blockchainAPackageExplorer.exportSmartContractPackageEntry',
+            'onCommand:blockchainARuntimeExplorer.refreshEntry',
             'onCommand:blockchainExplorer.startFabricRuntime',
             'onCommand:blockchainExplorer.stopFabricRuntime',
             'onCommand:blockchainExplorer.restartFabricRuntime',

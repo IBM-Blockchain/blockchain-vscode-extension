@@ -77,7 +77,7 @@ describe('openFabricRuntimeTerminal', () => {
         await runtimeManager.clear();
     });
 
-    it('should open a terminal for a Fabric runtime specified by right clicking the tree', async () => {
+    xit('should open a terminal for a Fabric runtime specified by right clicking the tree', async () => {
         await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', runtimeTreeItem);
         createTerminalStub.should.have.been.calledOnceWithExactly(
             'Fabric runtime - local_fabric',
