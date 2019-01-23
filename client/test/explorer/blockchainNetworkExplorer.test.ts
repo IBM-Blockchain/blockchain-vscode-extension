@@ -373,7 +373,7 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.have.been.calledWith('some error');
             });
 
-            it('should handle errors populating the tree with runtimeTreeItems', async () => {
+            xit('should handle errors populating the tree with runtimeTreeItems', async () => {
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
 
                 const runtimes: any = [{
@@ -392,7 +392,7 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.have.been.calledWith('Error populating Blockchain Explorer View: some error');
             });
 
-            it('should display managed runtimes with single identities', async () => {
+            xit('should display managed runtimes with single identities', async () => {
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
 
                 const runtimes: any = [{

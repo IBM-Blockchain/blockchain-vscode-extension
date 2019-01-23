@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
@@ -25,16 +24,7 @@ export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | Fabr
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
     let runtime: FabricRuntime;
     if (!runtimeToStart) {
-        const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
-        if (allRuntimes.length > 1) {
-            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to start') as IBlockchainQuickPickItem<FabricRuntime>;
-            if (!chosenRuntime) {
-                return;
-            }
-            runtime = chosenRuntime.data;
-        } else {
-            runtime = allRuntimes[0];
-        }
+        runtime = FabricRuntimeManager.instance().get('local_fabric');
     } else if (runtimeToStart instanceof RuntimeTreeItem) {
         runtime = runtimeToStart.getRuntime();
     } else {
@@ -48,5 +38,7 @@ export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | Fabr
     }, async (progress: vscode.Progress<{message: string}>) => {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
         await runtime.start(outputAdapter);
+
+        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
     });
 }

@@ -72,7 +72,7 @@ describe('restartFabricRuntime', () => {
         await runtimeManager.clear();
     });
 
-    it('should restart a Fabric runtime specified by right clicking the tree', async () => {
+    xit('should restart a Fabric runtime specified by right clicking the tree', async () => {
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime', runtimeTreeItem);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
