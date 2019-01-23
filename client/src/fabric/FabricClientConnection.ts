@@ -14,10 +14,10 @@
 'use strict';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import * as vscode from 'vscode';
 
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnection } from './FabricConnection';
+import { OutputAdapter } from '../logging/OutputAdapter';
 
 const ENCODING: string = 'utf8';
 
@@ -27,8 +27,8 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     private certificatePath: string;
     private privateKeyPath: string;
 
-    constructor(connectionData: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string }) {
-        super();
+    constructor(connectionData: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string }, outputAdapter?: OutputAdapter) {
+        super(outputAdapter);
         this.connectionProfilePath = connectionData.connectionProfilePath;
         this.certificatePath = connectionData.certificatePath;
         this.privateKeyPath = connectionData.privateKeyPath;
@@ -36,6 +36,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
 
     async connect(mspid?: string): Promise<void> {
         console.log('FabricClientConnection: connect');
+
         const connectionProfileContents: string = await this.loadFileFromDisk(this.connectionProfilePath);
         let connectionProfile: any;
         if (this.connectionProfilePath.endsWith('.json')) {
@@ -44,8 +45,7 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
             connectionProfile = yaml.safeLoad(connectionProfileContents);
         } else {
             console.log('Connection Profile given is not .json/.yaml format:', this.connectionProfilePath);
-            vscode.window.showErrorMessage('Connection profile must be in JSON or yaml format');
-            return;
+            throw new Error(`Connection profile must be in JSON or yaml format`);
         }
         console.log('printing connectionProfile:', connectionProfile);
         const certificate: string = await this.loadFileFromDisk(this.certificatePath);

@@ -20,10 +20,12 @@ import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { ConnectionPropertyTreeItem } from '../explorer/model/ConnectionPropertyTreeItem';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem): Promise < {} | void > {
-    console.log('editConnection', treeItem);
-
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, `editConnection ${treeItem}`);
     let propertyToEdit: string;
 
     if (!treeItem) {
@@ -71,6 +73,7 @@ export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem
 }
 
 async function updateConnection(propertyToEdit: string, connectionName: string): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     try {
         // Get the placeholder text for the chosen property
         const placeHolder: string = getPlaceHolder(propertyToEdit);
@@ -111,10 +114,10 @@ async function updateConnection(propertyToEdit: string, connectionName: string):
             // Update the registry with new connection data
             await fabricConnectionRegistry.update(connection);
 
-            await vscode.window.showInformationMessage('Successfully updated connection');
+            outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
         }
     } catch (error) {
-        vscode.window.showErrorMessage(`Failed to edit connection: ${error.message}`);
+        outputAdapter.log(LogType.ERROR, `Failed to edit connection: ${error.message}`, `Failed to edit connection: ${error.toString()}`);
     }
 }
 

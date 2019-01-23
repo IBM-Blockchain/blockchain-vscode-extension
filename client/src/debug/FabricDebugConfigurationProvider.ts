@@ -25,6 +25,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
+import { LogType } from '../logging/OutputAdapter';
 
 export class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -32,20 +33,19 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
     private runtime: FabricRuntime;
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         try {
             this.runtime = FabricRuntimeManager.instance().get('local_fabric');
 
             const isRunning: boolean = await this.runtime.isRunning();
 
             if (!isRunning) {
-                VSCodeOutputAdapter.instance().error('Please ensure "local_fabric" is running before trying to debug a smart contract');
-                vscode.window.showErrorMessage('Please ensure "local_fabric" is running before trying to debug a smart contract');
+                outputAdapter.log(LogType.ERROR, 'Please ensure "local_fabric" is running before trying to debug a smart contract');
                 return;
             }
 
             if (!this.runtime.isDevelopmentMode()) {
-                VSCodeOutputAdapter.instance().error('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
-                vscode.window.showErrorMessage('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
+                outputAdapter.log(LogType.ERROR, 'Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
                 return;
             }
 
@@ -125,8 +125,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
 
             return config;
         } catch (error) {
-            vscode.window.showErrorMessage('Failed to launch debug ' + error.message);
-            VSCodeOutputAdapter.instance().error('Failed to launch debug ' + error.message);
+            outputAdapter.log(LogType.ERROR, `Failed to launch debug: ${error.message}`);
             return;
         }
     }

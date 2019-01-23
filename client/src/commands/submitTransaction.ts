@@ -18,9 +18,11 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
 import { Reporter } from '../util/Reporter';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function submitTransaction(transactionTreeItem?: TransactionTreeItem): Promise<void> {
-
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'submitTransaction');
     let smartContract: string;
     let transactionName: string;
     let channelName: string;
@@ -70,13 +72,12 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
 
         try {
             progress.report({message: `Submitting transaction ${transactionName}`});
-            VSCodeOutputAdapter.instance().log(`Submitting transaction ${transactionName} with args ${args}`);
+            outputAdapter.log(LogType.INFO, undefined, `Submitting transaction ${transactionName} with args ${args}`);
             await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
             Reporter.instance().sendTelemetryEvent('submit transaction');
-            vscode.window.showInformationMessage('Successfully submitted transaction');
+            outputAdapter.log(LogType.SUCCESS, 'Successfully submitted transaction');
         } catch (error) {
-            vscode.window.showErrorMessage('Error submitting transaction: ' + error.message);
-            VSCodeOutputAdapter.instance().error('Error submitting transaction: ' + error.message);
+            outputAdapter.log(LogType.ERROR, `Error submitting transaction: ${error.message}`);
         }
     });
 }

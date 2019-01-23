@@ -28,6 +28,7 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -269,42 +270,42 @@ describe('FabricDebugConfigurationProvider', () => {
         it('should give an error if runtime isnt running', async () => {
             runtimeStub.isRunning.returns(false);
 
-            const errorSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
             const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
 
-            errorSpy.should.have.been.calledWith('Please ensure "local_fabric" is running before trying to debug a smart contract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Please ensure "local_fabric" is running before trying to debug a smart contract');
             otherErrorSpy.should.have.been.calledWith('Please ensure "local_fabric" is running before trying to debug a smart contract');
         });
 
         it('should give an error if runtime isn\'t in development mode', async () => {
             runtimeStub.isDevelopmentMode.returns(false);
 
-            const errorSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
             const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
 
-            errorSpy.should.have.been.calledWith('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "local_fabric" is in development mode before trying to debug a smart contract`);
             otherErrorSpy.should.have.been.calledWith('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
 
         });
 
         it('should hand errors with package or install', async () => {
-            commandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry', sinon.match.any, sinon.match.any).rejects({ message: 'some error' });
+            commandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry', sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const errorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
-            const outputSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'error');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
 
-            errorSpy.should.have.been.calledWith('Failed to launch debug some error');
-            outputSpy.should.have.been.calledWith('Failed to launch debug some error');
+            errorSpy.should.have.been.calledWith('Failed to launch debug: some error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: some error');
         });
 
         it('should debug typescript', async () => {
@@ -439,15 +440,13 @@ describe('FabricDebugConfigurationProvider', () => {
 
             readFileStub.onSecondCall().rejects({ message: 'some error' });
 
-            const errorSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'error');
-            const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
-
-            errorSpy.should.have.been.calledWith('Failed to launch debug error reading package.json from project some error');
-            otherErrorSpy.should.have.been.calledWith('Failed to launch debug error reading package.json from project some error');
+            // const error: Error = new Error('Error reading package.json from project some error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: error reading package.json from project some error');
         });
     });
 

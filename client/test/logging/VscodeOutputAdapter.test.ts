@@ -13,6 +13,7 @@
 */
 
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -38,17 +39,17 @@ describe('VSCodeOutputAdapter', () => {
     describe('#log', () => {
 
         it('should log to the output channel', () => {
-            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter['outputChannel'], 'appendLine');
-            outputAdapter.log('hello world');
-            outputSpy.should.have.been.calledOnceWithExactly('hello world');
+            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter, 'appendLine');
+            outputAdapter.log(LogType.INFO, 'hello world');
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, 'hello world', undefined);
         });
     });
 
     describe('#error', () => {
         it('should log to the output channel', () => {
-            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter['outputChannel'], 'appendLine');
-            outputAdapter.error('hello world');
-            outputSpy.should.have.been.calledOnceWithExactly('hello world');
+            const outputSpy: sinon.SinonSpy = sandbox.spy(outputAdapter, 'appendLine');
+            outputAdapter.log(LogType.ERROR, 'hello world');
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'hello world', undefined);
         });
     });
 
@@ -64,20 +65,20 @@ describe('VSCodeOutputAdapter', () => {
         it('should enable console logging', () => {
             outputAdapter.setConsole(true);
             const consoleLogSpy: sinon.SinonSpy = sandbox.spy(console, 'log');
-            outputAdapter.log('hello world');
+            outputAdapter.log(LogType.INFO, undefined, 'hello world');
             consoleLogSpy.should.have.been.called.calledOnceWithExactly('hello world');
             const consoleErrorSpy: sinon.SinonSpy = sandbox.spy(console, 'error');
-            outputAdapter.error('hello world');
+            outputAdapter.log(LogType.ERROR, undefined, 'hello world');
             consoleErrorSpy.should.have.been.called.calledOnceWithExactly('hello world');
         });
 
         it('should disable console logging', () => {
             outputAdapter.setConsole(false);
             const consoleLogSpy: sinon.SinonSpy = sandbox.spy(console, 'log');
-            outputAdapter.log('hello world');
+            outputAdapter.log(LogType.INFO, undefined, 'hello world');
             consoleLogSpy.should.have.not.been.called;
             const consoleErrorSpy: sinon.SinonSpy = sandbox.spy(console, 'error');
-            outputAdapter.error('hello world');
+            outputAdapter.log(LogType.ERROR, undefined, 'hello world');
             consoleErrorSpy.should.have.not.been.called;
         });
     });

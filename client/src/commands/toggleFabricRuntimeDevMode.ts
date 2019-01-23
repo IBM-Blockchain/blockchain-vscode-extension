@@ -19,8 +19,11 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { LogType } from '../logging/OutputAdapter';
 
 export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
     let runtime: FabricRuntime;
     if (!runtimeTreeItem) {
         const runtimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
@@ -55,11 +58,10 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
             cancellable: false
         }, async (progress: vscode.Progress<{ message: string }>) => {
             progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
             await runtime.restart(outputAdapter);
         });
     }
 
-    vscode.window.showInformationMessage('Successfully toggled development mode');
+    outputAdapter.log(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
 
 }
