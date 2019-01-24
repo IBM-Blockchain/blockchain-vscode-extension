@@ -340,6 +340,29 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.have.been.calledWith('some error');
             });
 
+            it('should handle connections with no walletPath set', async () => {
+                const connections: Array<any> = [];
+
+                const myConnection: any = {
+                    name: 'myConnection',
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    identities: [{
+                        certificate: '/some/path',
+                        privateKey: '/some/otherPath'
+                    }]
+                };
+
+                connections.push(myConnection);
+
+                await vscode.workspace.getConfiguration().update('fabric.connections', connections, vscode.ConfigurationTarget.Global);
+
+                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+
+                allChildren.length.should.equal(0);
+                errorSpy.should.not.have.been.called;
+            });
+
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
                 mySandBox.stub(FabricConnectionHelper, 'isCompleted').returns(true);
 

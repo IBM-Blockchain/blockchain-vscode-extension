@@ -243,6 +243,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 continue; // Iterate to next connection
             }
 
+            if (!connection.walletPath) {
+                // Fix for connections defined in the user settings with no wallet path set
+                continue;
+            }
+
             const command: vscode.Command = {
                 command: 'blockchainExplorer.connectEntry',
                 title: '',
