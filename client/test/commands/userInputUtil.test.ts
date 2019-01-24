@@ -21,7 +21,6 @@ import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegist
 import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -42,7 +41,6 @@ describe('userInputUtil', () => {
     let mySandBox: sinon.SinonSandbox;
     let quickPickStub: sinon.SinonStub;
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
 
     let connectionEntryOne: FabricConnectionRegistryEntry;
@@ -121,7 +119,7 @@ describe('userInputUtil', () => {
         chaincodeMap.set('cake-network', ['0.0.3']);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
-        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{name: 'biscuit-network', channel: 'channelOne', version: '0.0.1'}, {name: 'cake-network', channel: 'channelOne', version: '0.0.3'}]);
+        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
 
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
 
@@ -190,21 +188,6 @@ describe('userInputUtil', () => {
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
                 ignoreFocusOut: true
-            });
-        });
-    });
-
-    describe('showRuntimeQuickPickBox', () => {
-        it('should show runtimes in the quickpick box', async () => {
-            quickPickStub.resolves({ label: 'local_fabric2', data: runtimeManager.get('local_fabric2') });
-            const result: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('choose a runtime');
-
-            result.label.should.equal('local_fabric2');
-            result.data.should.deep.equal(runtimeManager.get('local_fabric2'));
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
-                canPickMany: false,
-                placeHolder: 'choose a runtime'
             });
         });
     });
@@ -392,8 +375,8 @@ describe('userInputUtil', () => {
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
             const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
-                {name: 'project_1', uri: uriOne},
-                {name: 'biscuit-network', uri: uriTwo}
+                { name: 'project_1', uri: uriOne },
+                { name: 'biscuit-network', uri: uriTwo }
             ]);
 
             mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([packagedOne, packagedTwo, packagedThree]);
@@ -452,8 +435,8 @@ describe('userInputUtil', () => {
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
             const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
 
-            const workspaceOne: any = {name: 'project_1', uri: uriOne};
-            const workspaceTwo: any = {name: 'biscuit-network', uri: uriTwo};
+            const workspaceOne: any = { name: 'project_1', uri: uriOne };
+            const workspaceTwo: any = { name: 'biscuit-network', uri: uriTwo };
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
                 workspaceOne,
                 workspaceTwo
@@ -474,22 +457,22 @@ describe('userInputUtil', () => {
                 {
                     label: `${packagedOne.name}@${packagedOne.version}`,
                     description: 'Installed',
-                    data: { packageEntry: { name: packagedOne.name, version: packagedOne.version, path: undefined}, workspace: undefined}
+                    data: { packageEntry: { name: packagedOne.name, version: packagedOne.version, path: undefined }, workspace: undefined }
                 },
                 {
                     label: `${packagedTwo.name}@${packagedTwo.version}`,
                     description: 'Packaged',
-                    data: { packageEntry: { name: packagedTwo.name, version: packagedTwo.version, path: packagedTwo.path}, workspace: undefined}
+                    data: { packageEntry: { name: packagedTwo.name, version: packagedTwo.version, path: packagedTwo.path }, workspace: undefined }
                 },
                 {
                     label: `${workspaceOne.name}`,
                     description: 'Open Project',
-                    data: { packageEntry: undefined, workspace: { name: workspaceOne.name, uri: workspaceOne.uri}}
+                    data: { packageEntry: undefined, workspace: { name: workspaceOne.name, uri: workspaceOne.uri } }
                 },
                 {
                     label: `${workspaceTwo.name}`,
                     description: 'Open Project',
-                    data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri}}
+                    data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri } }
                 }
             ]);
         });
@@ -656,7 +639,7 @@ describe('userInputUtil', () => {
                 canSelectMany: false,
                 openLabel: 'Select',
                 filters: {
-                    'Connection Profiles' : ['json', 'yaml', 'yml']
+                    'Connection Profiles': ['json', 'yaml', 'yml']
                 }
             });
 
@@ -842,10 +825,10 @@ describe('userInputUtil', () => {
                         version: '0.0.3'
                     }
                 }], {
-                ignoreFocusOut: true,
-                canPickMany: false,
-                placeHolder: 'Please choose instantiated smart contract to test'
-            });
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Please choose instantiated smart contract to test'
+                });
         });
 
         it('should handle no connection', async () => {
@@ -907,12 +890,12 @@ describe('userInputUtil', () => {
         it('should get a list of transactions', async () => {
             quickPickStub.resolves({
                 label: 'my-contract - transaction1',
-                data: { name: 'transaction1', contract: 'my-contract'}
+                data: { name: 'transaction1', contract: 'my-contract' }
             });
             fabricConnectionStub.getMetadata.resolves(
                 {
                     contracts: {
-                        'my-contract' : {
+                        'my-contract': {
                             name: 'my-contract',
                             transactions: [
                                 {
@@ -923,7 +906,7 @@ describe('userInputUtil', () => {
                                 }
                             ],
                         },
-                        'my-other-contract' : {
+                        'my-other-contract': {
                             name: 'my-other-contract',
                             transactions: [
                                 {
@@ -934,7 +917,7 @@ describe('userInputUtil', () => {
                                 }
                             ],
                         },
-                        '' : {
+                        '': {
                             name: '',
                             transactions: [
                                 {
@@ -953,7 +936,7 @@ describe('userInputUtil', () => {
 
             result.should.deep.equal({
                 label: 'my-contract - transaction1',
-                data: { name: 'transaction1', contract: 'my-contract'}
+                data: { name: 'transaction1', contract: 'my-contract' }
             });
 
             const quickPickArray: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [
@@ -1049,8 +1032,8 @@ describe('userInputUtil', () => {
             const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
             const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
 
-            const workspaceOne: any = {name: 'project_1', uri: uriOne};
-            const workspaceTwo: any = {name: 'biscuit-network', uri: uriTwo};
+            const workspaceOne: any = { name: 'project_1', uri: uriOne };
+            const workspaceTwo: any = { name: 'biscuit-network', uri: uriTwo };
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
                 workspaceOne,
                 workspaceTwo
@@ -1089,12 +1072,12 @@ describe('userInputUtil', () => {
                 {
                     label: `${workspaceOne.name}`,
                     description: 'Open Project',
-                    data: { packageEntry: undefined, workspace: { name: workspaceOne.name, uri: workspaceOne.uri}}
+                    data: { packageEntry: undefined, workspace: { name: workspaceOne.name, uri: workspaceOne.uri } }
                 },
                 {
                     label: `${workspaceTwo.name}`,
                     description: 'Open Project',
-                    data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri}}
+                    data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri } }
                 }
             ]);
         });
@@ -1111,14 +1094,14 @@ describe('userInputUtil', () => {
             const updateWorkspaceFoldersStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders').returns(true);
             const uri: vscode.Uri = vscode.Uri.file('test');
             await UserInputUtil.openNewProject(UserInputUtil.ADD_TO_WORKSPACE, uri);
-            updateWorkspaceFoldersStub.should.have.been.calledOnceWithExactly(sinon.match.any, 0, {uri: uri});
+            updateWorkspaceFoldersStub.should.have.been.calledOnceWithExactly(sinon.match.any, 0, { uri: uri });
         });
 
         it('should add workspace with custom workspace name', async () => {
             const updateWorkspaceFoldersStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders').returns(true);
             const uri: vscode.Uri = vscode.Uri.file('test');
             await UserInputUtil.openNewProject(UserInputUtil.ADD_TO_WORKSPACE, uri, 'some-custom-name');
-            updateWorkspaceFoldersStub.should.have.been.calledOnceWithExactly(sinon.match.any, 0, {uri: uri, name: 'some-custom-name'});
+            updateWorkspaceFoldersStub.should.have.been.calledOnceWithExactly(sinon.match.any, 0, { uri: uri, name: 'some-custom-name' });
         });
 
         it('should open project in current window', async () => {

@@ -23,7 +23,6 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
@@ -58,7 +57,6 @@ describe('stopFabricRuntime', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
-        await runtimeManager.add('local_fabric2');
         runtime = runtimeManager.get('local_fabric');
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -72,18 +70,9 @@ describe('stopFabricRuntime', () => {
         await runtimeManager.clear();
     });
 
-    xit('should stop a Fabric runtime specified by right clicking the tree', async () => {
-        const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', runtimeTreeItem);
-        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
-    });
-
-    it('should stop a Fabric runtime if only one', async () => {
-        await runtimeManager.delete('local_fabric2');
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
+    it('should stop a Fabric runtime', async () => {
         const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
-        quickPickStub.should.not.have.been.called.called;
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
 });

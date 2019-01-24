@@ -23,7 +23,6 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
 
@@ -119,14 +118,12 @@ describe('toggleFabricRuntimeDevMode', () => {
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
     });
 
-    it('should not ask to choose if only one runtime', async () => {
+    it('should toggle dev mode', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(false);
-        const quickPickStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showRuntimeQuickPickBox');
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
-        quickPickStub.should.not.have.been.called.called;
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, undefined, 'Successfully toggled development mode');

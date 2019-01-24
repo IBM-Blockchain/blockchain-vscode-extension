@@ -13,22 +13,16 @@
 */
 
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
+import { UserInputUtil } from './UserInputUtil';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function teardownFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function teardownFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
-    let runtime: FabricRuntime;
-    if (!runtimeTreeItem) {
-        runtime = FabricRuntimeManager.instance().get('local_fabric');
-    } else {
-        runtime = runtimeTreeItem.getRuntime();
-    }
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 
     const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
     if (!reallyDoIt) {
@@ -39,7 +33,7 @@ export async function teardownFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): 
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
+    }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Tearing down Fabric runtime ${runtime.getName()}` });
         await runtime.teardown(outputAdapter);
     });

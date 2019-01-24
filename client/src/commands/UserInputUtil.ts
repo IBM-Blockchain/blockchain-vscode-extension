@@ -20,8 +20,6 @@ import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
@@ -140,22 +138,6 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(identities, quickPickOptions);
     }
 
-    public static showRuntimeQuickPickBox(prompt: string): Thenable<IBlockchainQuickPickItem<FabricRuntime> | undefined> {
-        const runtimes: FabricRuntime[] = FabricRuntimeManager.instance().getAll();
-
-        const runtimeQuickPickItems: Array<IBlockchainQuickPickItem<FabricRuntime>> = runtimes.map((runtime: FabricRuntime) => {
-            return { label: runtime.getName(), data: runtime };
-        });
-
-        const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
-            canPickMany: false,
-            placeHolder: prompt
-        };
-
-        return vscode.window.showQuickPick(runtimeQuickPickItems, quickPickOptions);
-    }
-
     public static showFolderOptions(prompt: string): Thenable<string | undefined> {
         const options: Array<string> = [this.ADD_TO_WORKSPACE, this.OPEN_IN_NEW_WINDOW, this.OPEN_IN_CURRENT_WINDOW];
 
@@ -250,8 +232,8 @@ export class UserInputUtil {
 
             // If the tempItem is an Open Project
             if (!tempItem.data.packageEntry) {
-                const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: undefined, workspace: workspace};
-                quickPickItems.push({label: `${tempItem.data.workspace.name}`, description: tempItem.description, data: data});
+                const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: undefined, workspace: workspace };
+                quickPickItems.push({ label: `${tempItem.data.workspace.name}`, description: tempItem.description, data: data });
 
             } else {
                 const itemName: string = tempItem.data.packageEntry.name;
@@ -260,16 +242,16 @@ export class UserInputUtil {
                 // If the user is performing an upgrade, we want to show all smart contracts with the same name (but not the currently instantiated version)
                 if (contractName && contractVersion) {
                     if (itemName === contractName && itemVersion !== contractVersion) {
-                        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: tempItem.data.packageEntry, workspace: workspace};
-                        quickPickItems.push({label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data});
+                        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: tempItem.data.packageEntry, workspace: workspace };
+                        quickPickItems.push({ label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data });
                     }
                 } else {
                     // Show all smart contracts which haven't had a previous version instantiated
                     if (allSmartContracts.findIndex((contract: any) => {
                         return itemName === contract.name;
                     }) === -1) {
-                        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: tempItem.data.packageEntry, workspace: workspace};
-                        quickPickItems.push({label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data});
+                        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: tempItem.data.packageEntry, workspace: workspace };
+                        quickPickItems.push({ label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data });
                     }
                 }
             }
@@ -471,7 +453,7 @@ export class UserInputUtil {
         for (const channel of channels) {
             const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(channel); // returns array of objects
             for (const chaincode of chaincodes) {
-                const data: {name: string, version: string, channel: string} = {name: chaincode.name, version: chaincode.version, channel: channel};
+                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: channel };
                 instantiatedChaincodes.push(data);
             }
         }
@@ -571,9 +553,9 @@ export class UserInputUtil {
         for (const openProject of openProjects) {
             const workspace: vscode.WorkspaceFolder = openProject.data.workspace;
 
-            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = {packageEntry: undefined, workspace: workspace};
+            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: undefined, workspace: workspace };
             quickPickItems.push(
-                {label: `${openProject.data.workspace.name}`, description: openProject.description, data: data}
+                { label: `${openProject.data.workspace.name}`, description: openProject.description, data: data }
             );
         }
 
@@ -589,7 +571,7 @@ export class UserInputUtil {
     public static async openNewProject(openMethod: string, uri: vscode.Uri, workspaceLabel?: string): Promise<void> {
         if (openMethod === UserInputUtil.ADD_TO_WORKSPACE) {
             const openFolders: Array<vscode.WorkspaceFolder> = vscode.workspace.workspaceFolders || [];
-            const options: any = (workspaceLabel) ? {uri: uri, name: workspaceLabel} : {uri: uri};
+            const options: any = (workspaceLabel) ? { uri: uri, name: workspaceLabel } : { uri: uri };
             vscode.workspace.updateWorkspaceFolders(openFolders.length, 0, options);
         } else {
             let openNewWindow: boolean = true;
@@ -662,10 +644,10 @@ export class UserInputUtil {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
             chaincodes.forEach((versions: string[], chaincodeName: string) => {
                 versions.forEach((version: string) => {
-                    const _package: PackageRegistryEntry = new PackageRegistryEntry({name: chaincodeName, version: version, path: undefined });
-                    const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = {packageEntry: _package, workspace: undefined};
+                    const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincodeName, version: version, path: undefined });
+                    const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
                     const label: string = `${chaincodeName}@${version}`;
-                    tempQuickPickItems.push({label: label, description: 'Installed', data: data});
+                    tempQuickPickItems.push({ label: label, description: 'Installed', data: data });
                 });
             });
         }
@@ -677,9 +659,9 @@ export class UserInputUtil {
         const packages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
         for (const _package of packages) {
-            const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = {packageEntry: _package, workspace: undefined};
+            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
             const label: string = `${_package.name}@${_package.version}`;
-            tempQuickPickItems.push({label: label, description: 'Packaged', data: data});
+            tempQuickPickItems.push({ label: label, description: 'Packaged', data: data });
         }
 
         return tempQuickPickItems;
@@ -690,10 +672,10 @@ export class UserInputUtil {
         const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
         for (const workspace of workspaceFolderOptions) {
 
-            const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = {packageEntry: undefined, workspace: workspace};
+            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: undefined, workspace: workspace };
 
             const label: string = `${workspace.name}`;
-            tempQuickPickItems.push({label: label, description: 'Open Project', data: data});
+            tempQuickPickItems.push({ label: label, description: 'Open Project', data: data });
 
         }
 

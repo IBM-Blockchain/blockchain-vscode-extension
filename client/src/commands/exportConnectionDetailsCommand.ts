@@ -32,16 +32,7 @@ export async function exportConnectionDetails(connectionTreeItem?: ConnectionTre
         const connectionRegistry: FabricConnectionRegistryEntry = connectionTreeItem.connection;
         fabricRuntime = FabricRuntimeManager.instance().get(connectionRegistry.name);
     } else {
-        const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
-        if (allRuntimes.length > 1) {
-            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Choose the runtime you want to export the connection profile from') as IBlockchainQuickPickItem<FabricRuntime>;
-            if (!chosenRuntime) {
-                return;
-            }
-            fabricRuntime = chosenRuntime.data;
-        } else {
-            fabricRuntime = allRuntimes[0];
-        }
+        fabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
     }
 
     let dir: string;

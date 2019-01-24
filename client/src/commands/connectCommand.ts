@@ -51,7 +51,7 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
         const runtime: FabricRuntime = runtimeManager.get(connectionRegistryEntry.name);
         const running: boolean = await runtime.isRunning();
         if (!running) {
-            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', runtime);
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         }
 
         const runtimeWallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(runtime['name']);
