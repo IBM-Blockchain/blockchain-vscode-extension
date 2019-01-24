@@ -78,7 +78,8 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    beforeEach(async () => {
+    beforeEach(async function(): Promise<void> {
+        this.timeout(600000);
         delete process.env.GOPATH;
         mySandBox = sinon.createSandbox();
         integrationTestUtil = new IntegrationTestUtil(mySandBox);
@@ -88,14 +89,20 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
         // Ensure that the Fabric runtime is in the right state.
         runtime = runtimeManager.get('local_fabric');
-        runtime.isRunning().should.eventually.be.false;
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+
+        let isRunning: boolean = await runtime.isRunning();
+        if (isRunning) {
+            await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+            isRunning = await runtime.isRunning();
+        }
+
+        isRunning.should.equal(false);
+        connectionItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Your local_fabric is stopped')) as RuntimeTreeItem;
         if (runtime.isDevelopmentMode()) {
             await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', localFabricItem);
         }
         localFabricItem.should.not.be.null;
-
     });
 
     afterEach(async () => {
@@ -150,9 +157,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
 
         // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
+        // TODO: this should do it from the menu
+        // connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        // localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+        // localFabricItem.should.not.be.null;
 
         // Stop the Fabric runtime, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', localFabricItem);
@@ -183,9 +191,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
 
         // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
+        // TODO: this should be from the menu
+        // connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        // localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+        // localFabricItem.should.not.be.null;
 
         // Stop the Fabric runtime, disable development mode, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', localFabricItem);
@@ -214,9 +223,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
 
         // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
+        // TODO: should do this from the menu
+        // connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        // localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+        // localFabricItem.should.not.be.null;
 
         // Restart the Fabric runtime, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime', localFabricItem);
@@ -266,9 +276,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
 
         // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
+        // TODO: this should do it from the menu
+        // connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+        // localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
+        // localFabricItem.should.not.be.null;
 
         // Restart the Fabric runtime, and ensure that it is in the right state.
         await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime', localFabricItem);
@@ -350,9 +361,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             instantiatedSmartContract.should.not.be.null;
             errorSpy.should.not.have.been.called;
-
         }).timeout(0);
-
     });
-
 });

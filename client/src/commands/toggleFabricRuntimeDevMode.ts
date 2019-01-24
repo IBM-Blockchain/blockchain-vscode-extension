@@ -26,17 +26,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
     outputAdapter.log(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
     let runtime: FabricRuntime;
     if (!runtimeTreeItem) {
-        const runtimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
-        if (runtimes.length > 1) {
-            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to toggle development mode');
-            if (!chosenRuntime) {
-                return;
-            }
-
-            runtime = chosenRuntime.data;
-        } else {
-            runtime = runtimes[0];
-        }
+        runtime = FabricRuntimeManager.instance().get('local_fabric');
     } else {
         runtime = runtimeTreeItem.getRuntime();
     }

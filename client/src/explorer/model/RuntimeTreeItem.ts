@@ -91,7 +91,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         } else {
             // Not running!
             this.disableBusyTicker();
-            newLabel += '○';
+            newLabel = 'Your local_fabric is stopped';
             newCommand = {
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',
