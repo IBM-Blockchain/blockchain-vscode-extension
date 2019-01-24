@@ -54,15 +54,12 @@ describe('testSmartContractCommand', () => {
     let showInstantiatedSmartContractsQuickPickStub: sinon.SinonStub;
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
-    let getDirPathStub: sinon.SinonStub;
     let allChildren: Array<BlockchainTreeItem>;
     let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
     let fabricConnectionManager: FabricConnectionManager;
     let channel: ChannelTreeItem;
     let chaincodes: any[];
     let instantiatedSmartContract: InstantiatedChaincodeTreeItem;
-    let fakeConnectionDetails: { connectionProfilePath: string, certificatePath: string, privateKeyPath: string };
-    let fakeRuntimeConnectionDetails: { connectionProfile: object, certificatePath: string, privateKeyPath: string };
     let smartContractName: string;
     let smartContractLabel: string;
     const rootPath: string = vscode.Uri.file(path.dirname(__dirname)).fsPath;
@@ -111,12 +108,6 @@ describe('testSmartContractCommand', () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
             executeCommandStub.callThrough();
-            // Client Connection stubs
-            fakeConnectionDetails = {
-                connectionProfilePath: 'fakeConnectionProfilePath',
-                certificatePath: 'fakeCertificatePath',
-                privateKeyPath: 'fakePrivateKeyPath'
-            };
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
             fabricClientConnectionMock.instantiateChaincode.resolves();
@@ -163,7 +154,6 @@ describe('testSmartContractCommand', () => {
             transactionTwo = fakeMetadata.contracts['my-contract'].transactions[1];
             transactionThree = fakeMetadata.contracts['my-contract'].transactions[2];
             fabricClientConnectionMock.getMetadata.resolves(fakeMetadata);
-            fabricClientConnectionMock.getConnectionDetails.resolves(fakeConnectionDetails);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
@@ -171,6 +161,7 @@ describe('testSmartContractCommand', () => {
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = false;
+            registryEntry.walletPath = 'walletPath';
             getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionRegistryEntry').returns(registryEntry);
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
@@ -248,6 +239,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('walletPath').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`getContract('${smartContractName.replace(`"`, '')}', 'my-contract')`).should.be.true;
             templateData.includes('require').should.be.true;
@@ -285,6 +277,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionTwo.name).should.be.true;
             templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
+            templateData.includes('walletPath').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`const args: string[] = [''];`).should.be.true;
@@ -802,18 +795,6 @@ describe('testSmartContractCommand', () => {
             executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
             executeCommandStub.callThrough();
             // Runtime Connection stubs
-            fakeRuntimeConnectionDetails = {
-                connectionProfile: {
-                    channels: {
-                        name: 'myChannelTunnel'
-                    },
-                    name: 'conga@network',
-                    version: '0.1.0',
-                    peers: ['peerThree']
-                },
-                certificatePath: 'fakeCertificatePath',
-                privateKeyPath: 'fakePrivateKeyPath'
-            };
             fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
             fabricRuntimeConnectionMock.connect.resolves();
             fabricRuntimeConnectionMock.instantiateChaincode.resolves();
@@ -837,7 +818,6 @@ describe('testSmartContractCommand', () => {
                 }
             };
             fabricRuntimeConnectionMock.getMetadata.resolves(fakeMetadata);
-            fabricRuntimeConnectionMock.getConnectionDetails.resolves(fakeRuntimeConnectionDetails);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricRuntimeConnectionMock);
             fabricRuntimeConnectionMock.getAllPeerNames.returns(['peerThree']);
@@ -855,6 +835,7 @@ describe('testSmartContractCommand', () => {
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = true;
+            registryEntry.walletPath = 'otherWalletPath';
             getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionRegistryEntry').returns(registryEntry);
 
             // UserInputUtil stubs
@@ -889,7 +870,6 @@ describe('testSmartContractCommand', () => {
             mockTextEditor.edit.resolves(true);
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
-            getDirPathStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves(testFileDir);
             packageJSONPath = vscode.Uri.file(path.join(testFileDir, 'package.json'));
             findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
@@ -914,12 +894,9 @@ describe('testSmartContractCommand', () => {
             templateData.includes(fakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
             templateData.includes(fakeMetadata.contracts['my-contract'].transactions[2].name).should.be.true;
             templateData.startsWith('/*').should.be.true;
+            templateData.includes('otherWalletPath').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
-            templateData.includes(testFileDir).should.be.true;
-            templateData.includes('connection.json').should.be.true;
-            templateData.includes('certificate').should.be.true;
-            templateData.includes('privateKey').should.be.true;
             sendCommandStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);

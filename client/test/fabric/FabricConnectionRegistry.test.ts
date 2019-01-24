@@ -46,12 +46,7 @@ describe('FabricConnectionRegistry', () => {
         const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
             name: 'my-fabric-network',
             connectionProfilePath: '/tmp/connection.json',
-            identities: [
-                {
-                    certificatePath: '/tmp/cert.pem',
-                    privateKeyPath: '/tmp/key.pem'
-                }
-            ],
+            walletPath: 'tmp/wallet',
             managedRuntime: false
         });
         registry.getAll().should.deep.equal([]);

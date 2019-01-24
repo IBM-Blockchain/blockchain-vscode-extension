@@ -20,7 +20,6 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
-import { FabricConnectionRegistry } from '../../fabric/FabricConnectionRegistry';
 import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 

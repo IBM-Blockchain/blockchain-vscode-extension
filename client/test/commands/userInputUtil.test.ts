@@ -31,7 +31,6 @@ import { FabricClientConnection } from '../../src/fabric/FabricClientConnection'
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import * as fs from 'fs-extra';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 
@@ -48,6 +47,7 @@ describe('userInputUtil', () => {
 
     let connectionEntryOne: FabricConnectionRegistryEntry;
     let connectionEntryTwo: FabricConnectionRegistryEntry;
+    let identities: string[];
 
     let getConnectionStub: sinon.SinonStub;
     let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
@@ -61,22 +61,12 @@ describe('userInputUtil', () => {
                 {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
                     "name": "connectionOne",
-                    "identities": [
-                        {
-                            "certificatePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/certificate",
-                            "privateKeyPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/privateKey"
-                        }
-                    ]
+                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 },
                 {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
                     "name": "connectionTwo",
-                    "identities": [
-                        {
-                            "certificatePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/certificate",
-                            "privateKeyPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/credentials/privateKey"
-                        }
-                    ]
+                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 }
             ]
         }`;
@@ -103,18 +93,12 @@ describe('userInputUtil', () => {
         connectionEntryOne = new FabricConnectionRegistryEntry();
         connectionEntryOne.name = 'myConnectionA';
         connectionEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
-        connectionEntryOne.identities = [{
-            certificatePath: path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'),
-            privateKeyPath: path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey')
-        }];
+        connectionEntryOne.walletPath = path.join(rootPath, '../../test/data/connectionOne/wallet');
+        identities = ['Admin@org1.example.com', 'Test@org1.example.com'];
 
         connectionEntryTwo = new FabricConnectionRegistryEntry();
         connectionEntryTwo.name = 'myConnectionB';
         connectionEntryTwo.connectionProfilePath = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
-        connectionEntryTwo.identities = [{
-            certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'),
-            privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')
-        }];
 
         await connectionRegistry.clear();
         await connectionRegistry.add(connectionEntryOne);
@@ -182,18 +166,17 @@ describe('userInputUtil', () => {
         });
     });
 
-    describe('showIdentityConnectionQuickPickBox', () => {
+    describe('showIdentitiesQuickPickBox', () => {
 
-        it('should show identity connections in the quickpick box', async () => {
-            quickPickStub.resolves({ label: 'Admin@org1.example.com', data: connectionEntryOne.identities[0] });
-            const result: IBlockchainQuickPickItem<any> = await UserInputUtil.showIdentityConnectionQuickPickBox('choose a connection', connectionEntryOne);
+        it('should show identity names in the quickpick box', async () => {
+            quickPickStub.resolves('Admin@org1.example.com');
+            const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities);
 
-            result.label.should.equal('Admin@org1.example.com');
-            result.data.should.deep.equal(connectionEntryOne.identities[0]);
+            result.should.equal('Admin@org1.example.com');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
-                placeHolder: 'choose a connection'
+                placeHolder: 'choose an identity to connect with'
             });
         });
     });
@@ -622,11 +605,47 @@ describe('userInputUtil', () => {
             should.not.exist(result);
         });
 
+        it('should not show the edit option for certificate/privateKey file paths', async () => {
+            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
+            const placeHolder: string = 'Enter a file path to the certificate file';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
+            showOpenDialogStub.should.have.been.calledWith({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            });
+
+            result.should.equal('/some/path');
+        });
+
+        it('should allow folders to be chosen when selected, and not files', async () => {
+            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
+            const placeHolder: string = 'Enter a file path to the wallet';
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection', true);
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+            showOpenDialogStub.should.have.been.calledWith({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            });
+
+            result.should.equal('/some/path');
+        });
+
         it('should return file path from browse', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
             const placeHolder: string = 'Enter a file path to the connection profile file';
-            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection', {
+            const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection', false, {
                 'Connection Profiles' : ['json', 'yaml', 'yml']
             });
 
@@ -660,7 +679,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0)) });
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(7, 0)) });
         });
 
         it('should show user settings for mac', async () => {
@@ -677,7 +696,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0)) });
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(7, 0)) });
         });
 
         it('should show user settings for linux', async () => {
@@ -694,7 +713,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(12, 0)) });
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(7, 0)) });
         });
 
         it('should handle any errors', async () => {
@@ -763,7 +782,6 @@ describe('userInputUtil', () => {
         });
 
         it('should delay for the specified time', async () => {
-            const isResolved: boolean = false;
             const stub: sinon.SinonStub = mySandBox.stub();
             const p: Promise<any> = UserInputUtil.delayWorkaround(2000).then(stub);
             sinon.assert.notCalled(stub);
@@ -1121,6 +1139,23 @@ describe('userInputUtil', () => {
             await UserInputUtil.openNewProject(UserInputUtil.OPEN_IN_NEW_WINDOW, uri);
 
             executeCommand.should.have.been.calledOnceWithExactly('vscode.openFolder', uri, true);
+        });
+
+    });
+
+    describe('showAddIdentityOptionsQuickPick', () => {
+
+        it('should show options to add identity in the quick pick box', async () => {
+            quickPickStub.resolves(UserInputUtil.CERT_KEY);
+            const result: string = await UserInputUtil.showAddIdentityOptionsQuickPick('choose option to add identity with');
+
+            result.should.equal(UserInputUtil.CERT_KEY);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                matchOnDetail: true,
+                placeHolder: 'choose option to add identity with',
+                ignoreFocusOut : true,
+                canPickMany: false,
+            });
         });
     });
 

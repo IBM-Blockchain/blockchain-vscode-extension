@@ -17,23 +17,18 @@ export class FabricConnectionHelper {
     // Wanted to type with FabricConnectionRegistryEntry but it failed
 
     static readonly CONNECTION_PROFILE_PATH_DEFAULT: string = '<PATH_TO_CONNECTION_PROFILE_JSON>';
-    static readonly CERTIFICATE_PATH_DEFAULT: string = '<PATH_TO_CERTIFICATE>';
-    static readonly PRIVATE_KEY_PATH_DEFAULT: string = '<PATH_TO_PRIVATE_KEY>';
+    static readonly WALLET_PATH_DEFAULT: string = '<PATH_TO_WALLET>';
 
     public static isCompleted(instance: any): boolean {
-        return this.connectionProfilePathComplete(instance) && this.certificatePathComplete(instance) && this.privateKeyPathComplete(instance);
+        return this.connectionProfilePathComplete(instance) && this.walletPathComplete(instance);
     }
 
     public static connectionProfilePathComplete(instance: any): boolean {
         return instance.connectionProfilePath !== this.CONNECTION_PROFILE_PATH_DEFAULT && instance.connectionProfilePath !== '';
     }
 
-    public static certificatePathComplete(instance: any): boolean {
-        return instance.identities[0].certificatePath !== this.CERTIFICATE_PATH_DEFAULT && instance.identities[0].certificatePath !== '';
-    }
-
-    public static privateKeyPathComplete(instance: any): boolean {
-        return instance.identities[0].privateKeyPath !== this.PRIVATE_KEY_PATH_DEFAULT && instance.identities[0].privateKeyPath !== '';
+    public static walletPathComplete(instance: any): boolean {
+        return instance.walletPath !== this.WALLET_PATH_DEFAULT && instance.walletPath !== '';
     }
 
 }

@@ -14,8 +14,6 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import { Reporter } from './util/Reporter';
 import { BlockchainNetworkExplorerProvider } from './explorer/BlockchainNetworkExplorer';
 import { BlockchainPackageExplorerProvider } from './explorer/BlockchainPackageExplorer';
@@ -63,7 +61,6 @@ import { LogType } from './logging/OutputAdapter';
 
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
-import { RepositoryRegistry } from './repositories/RepositoryRegistry';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -136,7 +133,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainExplorer', blockchainNetworkExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.refreshEntry', (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identity: {certificatePath: string, privateKeyPath: string}) => connect(connection, identity)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.connectEntry', (connection: FabricConnectionRegistryEntry, identityName: string) => connect(connection, identityName)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.disconnectEntry', () => FabricConnectionManager.instance().disconnect()));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.addConnectionEntry', addConnection));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.deleteConnectionEntry', (connection: ConnectionTreeItem) => deleteConnection(connection)));

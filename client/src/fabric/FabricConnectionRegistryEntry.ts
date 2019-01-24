@@ -18,7 +18,7 @@ export class FabricConnectionRegistryEntry extends FabricRegistryEntry {
 
     public connectionProfilePath: string;
 
-    public identities: [{ certificatePath: string, privateKeyPath: string }];
+    public walletPath: string;
 
     public managedRuntime: boolean;
 

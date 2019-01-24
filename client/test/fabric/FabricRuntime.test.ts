@@ -29,7 +29,6 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import * as vscode from 'vscode';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
@@ -60,11 +59,10 @@ describe('FabricRuntime', () => {
     let mockCAVolume: sinon.SinonStubbedInstance<Volume>;
     let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
     let connectionProfilePath: string;
-    let certificatePath: string;
-    let privateKeyPath: string;
     let getDirPathStub: sinon.SinonStub;
     let ensureFileStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
+    let copyStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
     let runtimeDir: string;
 
@@ -192,6 +190,7 @@ describe('FabricRuntime', () => {
         getDirPathStub = sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
         ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
         writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
+        copyStub = sandbox.stub(fs, 'copySync').resolves();
     });
 
     afterEach(async () => {
@@ -268,7 +267,6 @@ describe('FabricRuntime', () => {
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-                // outputAdapter.error.should.have.been.calledOnceWith('stderr');
             });
 
             it(`should publish busy events before and after handling success (Linux/MacOS)`, async () => {
@@ -345,6 +343,7 @@ describe('FabricRuntime', () => {
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+                // outputAdapter.error.should.have.been.calledOnceWith('stderr');
             }).timeout(4000);
 
             it(`should publish busy events before and after handling success (Windows)`, async () => {
@@ -597,6 +596,24 @@ describe('FabricRuntime', () => {
 
     });
 
+    describe('#getCertificatePath', () => {
+
+        it('should get the runtime certificate path', async () => {
+            const certPath: string = await runtime.getCertificatePath();
+            certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'signcerts', 'Admin@org1.example.com-cert.pem'));
+        });
+
+    });
+
+    describe('#getConnectionProfilePath', () => {
+
+        it('should get the runtime connection profile path', async () => {
+            const connectionPath: string = await runtime.getConnectionProfilePath();
+            connectionPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'connection.json'));
+        });
+
+    });
+
     describe('#isCreated', () => {
 
         it('should return true if the peer, orderer, and CA exist', async () => {
@@ -726,40 +743,34 @@ describe('FabricRuntime', () => {
 
         beforeEach(async () => {
             connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
-            certificatePath = path.join(runtimeDir, 'runtime1', 'certificate');
-            privateKeyPath = path.join(runtimeDir, 'runtime1', 'privateKey');
             errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
         });
 
         it('should save runtime connection details to disk', async () => {
             await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance());
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
-            ensureFileStub.getCall(1).should.have.been.calledWith(certificatePath);
-            ensureFileStub.getCall(2).should.have.been.calledWith(privateKeyPath);
-            writeFileStub.should.have.been.calledThrice;
+            writeFileStub.should.have.been.calledOnce;
+            copyStub.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
         });
 
         it('should save runtime connection details to a specified place', async () => {
             runtimeDir = 'myPath';
             connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
-            certificatePath = path.join(runtimeDir, 'runtime1', 'certificate');
-            privateKeyPath = path.join(runtimeDir, 'runtime1', 'privateKey');
 
             await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance(), 'myPath');
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
-            ensureFileStub.getCall(1).should.have.been.calledWith(certificatePath);
-            ensureFileStub.getCall(2).should.have.been.calledWith(privateKeyPath);
-            writeFileStub.should.have.been.calledThrice;
+            writeFileStub.should.have.been.calledOnce;
+            copyStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
         it('should show an info message if we fail to save connection details to disk', async () => {
-            writeFileStub.onCall(2).rejects({message: 'oops'});
+            writeFileStub.onCall(0).rejects({message: 'oops'});
 
-            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance());
-            ensureFileStub.should.have.been.calledThrice;
-            writeFileStub.should.have.been.calledThrice;
+            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance()).should.have.been.rejected;
+            ensureFileStub.should.have.been.calledOnce;
+            writeFileStub.should.have.been.calledOnce;
             errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
         });
     });

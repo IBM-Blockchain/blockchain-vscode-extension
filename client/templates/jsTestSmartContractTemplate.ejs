@@ -30,14 +30,12 @@ describe('<%=chaincodeLabel%>' , () => {
 <%_ } _%>
 
     const gateway = new fabricNetwork.Gateway();
+    const wallet = new fabricNetwork.FileSystemWallet('<%=walletPath%>');
     let connectionProfile;
-    const wallet = new fabricNetwork.InMemoryWallet();
-    const identityName = '<%=chaincodeLabel%>';
+    let identityName;
     
     before(async () => {
         const connectionProfilePath = '<%=connectionProfilePath%>';
-        const certificatePath = '<%=certificatePath%>';
-        const privateKeyPath = '<%=privateKeyPath%>';
 
         const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
         if (connectionProfilePath.endsWith('.json')) {
@@ -45,12 +43,9 @@ describe('<%=chaincodeLabel%>' , () => {
         } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
             connectionProfile = yaml.safeLoad(connectionProfileContents);
         };
-        const certificate = await fs.readFile(certificatePath, 'utf8');
-        const privateKey = await fs.readFile(privateKeyPath, 'utf8');
-
-        const clientOrganization = connectionProfile.client.organization;
-        const mspid = connectionProfile.organizations[clientOrganization].mspid;
-        await wallet.import(identityName, fabricNetwork.X509WalletMixin.createIdentity(mspid, certificate, privateKey));
+        const identities = await wallet.list();
+        // TODO: edit to use different identities in wallet
+        identityName = identities[0].label;
 
     });
 
