@@ -67,6 +67,13 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
         try {
 
+            const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+            if (isRunning) {
+                await vscode.commands.executeCommand('setContext', 'blockchain-started', true);
+            } else {
+                await vscode.commands.executeCommand('setContext', 'blockchain-started', false);
+            }
+
             if (element) {
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
@@ -90,7 +97,6 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 return this.tree;
             }
 
-            const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
             if (isRunning) {
                 this.tree = await this.createConnectedTree();
             } else {
@@ -122,9 +128,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 connection,
                 vscode.TreeItemCollapsibleState.None,
                 {
-                    command: 'blockchainExplorer.connectEntry',
+                    command: 'blockchainARuntimeExplorer.startFabricRuntime',
                     title: '',
-                    arguments: [connection]
+                    arguments: []
                 });
             tree.push(treeItem);
         } catch (error) {

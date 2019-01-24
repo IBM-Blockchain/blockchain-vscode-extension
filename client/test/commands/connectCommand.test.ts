@@ -106,7 +106,7 @@ describe('ConnectCommand', () => {
             });
 
             const connectionRuntime: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
-            connectionRuntime.name = 'myConnectionC';
+            connectionRuntime.name = 'local_fabric';
             connectionRuntime.managedRuntime = true;
 
             await FabricConnectionRegistry.instance().clear();
@@ -114,17 +114,17 @@ describe('ConnectCommand', () => {
             await FabricConnectionRegistry.instance().add(connectionMultiple);
 
             const runtimeRegistry: FabricRuntimeRegistryEntry = new FabricRuntimeRegistryEntry({
-                name: 'myConnectionC',
+                name: 'local_fabric',
                 developmentMode: false
             });
             await FabricRuntimeRegistry.instance().clear();
             await FabricRuntimeRegistry.instance().add(runtimeRegistry);
 
             mockRuntime = sinon.createStubInstance(FabricRuntime);
-            mockRuntime.getName.returns('myConnectionC');
+            mockRuntime.getName.returns('local_fabric');
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myConnectionC').returns(mockRuntime);
+            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('local_fabric').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
             errorMessageSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
@@ -193,7 +193,7 @@ describe('ConnectCommand', () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-            const myConnectionItem: ConnectionTreeItem = allChildren[0] as ConnectionTreeItem;
+            const myConnectionItem: ConnectionTreeItem = allChildren[1] as ConnectionTreeItem;
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
@@ -206,7 +206,7 @@ describe('ConnectCommand', () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-            const myConnectionItem: ConnectionTreeItem = allChildren[1] as ConnectionTreeItem;
+            const myConnectionItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
             const allIdentityChildren: ConnectionIdentityTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem) as ConnectionIdentityTreeItem[];
             const myIdentityItem: ConnectionIdentityTreeItem = allIdentityChildren[1] as ConnectionIdentityTreeItem;
 
@@ -254,11 +254,11 @@ describe('ConnectCommand', () => {
 
         it('should connect to a managed runtime using a quick pick', async () => {
             const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
-            connection.name = 'myConnectionC';
+            connection.name = 'local_fabric';
             connection.managedRuntime = true;
 
             mySandBox.stub(vscode.window, 'showQuickPick').resolves({
-                label: 'myConnectionC',
+                label: 'local_fabric',
                 data: connection
             });
 
@@ -276,7 +276,7 @@ describe('ConnectCommand', () => {
                 setTimeout(resolve, 0);
             });
 
-            const myConnectionItem: BlockchainTreeItem = allChildren[2] as BlockchainTreeItem;
+            const myConnectionItem: BlockchainTreeItem = allChildren[0] as BlockchainTreeItem;
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
@@ -288,10 +288,10 @@ describe('ConnectCommand', () => {
         it('should start a stopped fabric runtime before connecting', async () => {
             mockRuntime.isRunning.resolves(false);
             const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
-            connection.name = 'myConnectionC';
+            connection.name = 'local_fabric';
             connection.managedRuntime = true;
             const showQuickPickStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
-                label: 'myConnectionC',
+                label: 'local_fabric',
                 data: connection
             });
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');

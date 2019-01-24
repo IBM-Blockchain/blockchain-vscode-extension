@@ -13,29 +13,21 @@
 */
 
 import * as vscode from 'vscode';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | FabricRuntime): Promise<void> {
+export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
-    let runtime: FabricRuntime;
-    if (!runtimeToStart) {
-        runtime = FabricRuntimeManager.instance().get('local_fabric');
-    } else if (runtimeToStart instanceof RuntimeTreeItem) {
-        runtime = runtimeToStart.getRuntime();
-    } else {
-        runtime = runtimeToStart;
-    }
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
+    }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
         await runtime.start(outputAdapter);
 
