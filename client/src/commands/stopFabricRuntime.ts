@@ -13,22 +13,15 @@
 */
 
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function stopFabricRuntime(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function stopFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'stopFabricRuntime');
-    let runtime: FabricRuntime;
-    if (!runtimeTreeItem) {
-        runtime = FabricRuntimeManager.instance().get('local_fabric');
-    } else {
-        runtime = runtimeTreeItem.getRuntime();
-    }
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

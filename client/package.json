@@ -345,6 +345,26 @@
                     "command": "blockchainAPackageExplorer.packageSmartContractProjectEntry",
                     "when": "view == blockchainAPackageExplorer",
                     "group": "navigation"
+                },
+                {
+                    "command": "blockchainExplorer.startFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer && !blockchain-started",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainExplorer.stopFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer && blockchain-started",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainExplorer.restartFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer && blockchain-started",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainExplorer.teardownFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer",
+                    "group": "blockchain"
                 }
             ],
             "view/item/context": [
@@ -355,34 +375,6 @@
                 {
                     "command": "blockchainConnectionsExplorer.addConnectionIdentityEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
-                },
-                {
-                    "command": "blockchainExplorer.startFabricRuntime",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-stopped"
-                },
-                {
-                    "command": "blockchainExplorer.startFabricRuntime",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-removed"
-                },
-                {
-                    "command": "blockchainExplorer.stopFabricRuntime",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.restartFabricRuntime",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.teardownFabricRuntime",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.teardownFabricRuntime",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-stopped"
-                },
-                {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-started"
                 },
                 {
                     "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
