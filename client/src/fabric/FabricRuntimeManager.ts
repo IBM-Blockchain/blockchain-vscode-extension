@@ -17,6 +17,8 @@ import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
 import { FabricConnectionRegistry } from './FabricConnectionRegistry';
 import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
+import { IFabricConnection } from './IFabricConnection';
+import { FabricConnectionFactory } from './FabricConnectionFactory';
 
 export class FabricRuntimeManager {
 
@@ -32,8 +34,21 @@ export class FabricRuntimeManager {
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     private runtimes: Map<string, FabricRuntime> = new Map<string, FabricRuntime>();
 
-    private constructor() {
+    private connection: IFabricConnection;
 
+    private constructor() {
+    }
+
+    public async getConnection(): Promise<IFabricConnection> {
+        if (this.connection) {
+            return this.connection;
+        }
+
+        const runtime: FabricRuntime = this.get('local_fabric');
+        this.connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
+        await this.connection.connect();
+
+        return this.connection;
     }
 
     public getAll(): FabricRuntime[] {
