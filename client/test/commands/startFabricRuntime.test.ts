@@ -74,14 +74,14 @@ describe('startFabricRuntime', () => {
         await runtimeManager.clear();
     });
 
-    it('should start a Fabric runtime specified by right clicking the tree', async () => {
+    it('should start a Fabric runtime specified by clicking the tree', async () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', runtimeTreeItem);
+        await vscode.commands.executeCommand(runtimeTreeItem.command.command);
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         commandSpy.should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
     });
 
-    it('should start a Fabric runtime if only one', async () => {
+    it('should start a Fabric runtime', async () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
