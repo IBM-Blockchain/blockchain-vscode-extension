@@ -90,3 +90,14 @@
 * New extension homepage containing quick links to commands, cloning samples and more [#321](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/321)
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-43.png)
+
+## 0.2.0: January 24th 2019
+
+* Fix for naming sample projects [#451](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/451)
+* Fix for exporting connection details when connected [#458](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/458)
+* Fix for displaying homepage fonts whilst offline [#457](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/457)
+* Improved logging [#386](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/386)
+* Fix for determining if yo is installed when creating new smart contract projects [#436](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/436)
+* Use file system wallets for local_fabric and remote connections [#428](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/428)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-44.png)
