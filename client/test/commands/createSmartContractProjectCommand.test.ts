@@ -239,18 +239,15 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should show error if npm is not installed', async () => {
         // npm not installed
-        const error: any = new Error('such error');
-        error.stdout = error.stderr = 'could not find npm';
-        sendCommandStub.onCall(0).rejects(error);
+        sendCommandStub.withArgs('npm --version').rejects(new Error('such error'));
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm is required before creating a smart contract project');
     });
 
     it('should show error is yo is not installed and not wanted', async () => {
         // yo not installed and not wanted
-        const error: any = new Error('such error');
-        error.stdout = '{}'; error.stderr = 'could not find yo';
-        sendCommandStub.onCall(0).rejects(error);
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
         quickPickStub.resolves(UserInputUtil.NO);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
@@ -258,41 +255,40 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should show error message if generator-fabric fails to install', async () => {
         // generator-fabric not installed and wanted but fails to install
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
-        const error1: any = new Error('such error');
-        error1.stdout = '{}'; error1.stderr = 'could not find generator-fabric';
-        sendCommandStub.onCall(1).rejects(error1);
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').rejects(new Error('such error'));
+        sendCommandStub.withArgs('npm install -g generator-fabric').rejects(new Error('such error'));
         quickPickStub.resolves(UserInputUtil.YES);
-        const error2: any = new Error('such error');
-        error2.stdout = ''; error2.stderr = 'could not install';
-        sendCommandStub.onCall(1).rejects(error1);
-        sendCommandStub.onCall(2).rejects(new Error('such error'));
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing generator-fabric module: such error');
     });
 
     it('should install yo if not installed', async () => {
-        const error1: any = new Error('such error');
-        error1.stdout = '{}'; error1.stderr = 'could not find yo';
-        sendCommandStub.onCall(0).rejects(error1);
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
         quickPickStub.onCall(0).resolves(UserInputUtil.YES);
-        sendCommandStub.onCall(1).resolves(JSON.stringify({
-            dependencies: {
-                'generator-fabric': {
-                    version: '0.0.12'
-                }
-            }
-        }));
         quickPickStub.onCall(1).resolves();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         sendCommandStub.should.have.been.calledWithExactly('npm install -g yo');
     });
 
     it('should install generator-fabric if not installed', async () => {
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
-        const error: any = new Error('such error');
-        error.stdout = '{}'; error.stderr = 'could not find yo';
-        sendCommandStub.onCall(1).rejects(error);
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').rejects(new Error('such error'));
         quickPickStub.onCall(0).resolves(UserInputUtil.YES);
         quickPickStub.onCall(1).resolves();
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
@@ -300,10 +296,17 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should install latest version of generator-fabric', async () => {
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
         const genFabVersion: string = '~0.0.11';
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: genFabVersion});
-        sendCommandStub.onCall(1).resolves(JSON.stringify({
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
             dependencies: {
                 'generator-fabric': {
                     version: '0.0.10'
@@ -315,9 +318,16 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should continue if latest version of generator-fabric is installed', async () => {
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
-        sendCommandStub.onCall(1).resolves(JSON.stringify({
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
             dependencies: {
                 'generator-fabric': {
                     version: '0.0.12'
@@ -331,29 +341,25 @@ describe('CreateSmartContractProjectCommand', () => {
 
     it('should show error message if yo fails to install', async () => {
         // yo not installed and wanted but fails to install
-        const error1: any = new Error('such error');
-        error1.stdout = '{}'; error1.stderr = 'could not find yo';
-        sendCommandStub.onCall(0).rejects(error1);
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
+        sendCommandStub.withArgs('npm install -g yo').rejects(new Error('such error'));
         quickPickStub.resolves(UserInputUtil.YES);
-        const error2: any = new Error('such error');
-        error2.stdout = '{}'; error2.stderr = 'could not install yo';
-        sendCommandStub.onCall(1).rejects(error2);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing yo node module: such error');
     });
 
     it('should show error message if we fail to create a smart contract', async () => {
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
-        sendCommandStub.onCall(1).resolves(JSON.stringify({
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
             dependencies: {
-                'generator-fabric': {
-                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
-                    version: '0.0.11'
+                yo: {
+                    version: '2.0.5'
                 }
             }
         }));
-        sendCommandStub.onCall(2).resolves(JSON.stringify({
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
             dependencies: {
                 'generator-fabric': {
                     path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
@@ -432,17 +438,16 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should show an error if generator-fabric package.json does not exist', async () => {
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
-        sendCommandStub.onCall(1).resolves(JSON.stringify({
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
             dependencies: {
-                'generator-fabric': {
-                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
-                    version: '0.0.11'
+                yo: {
+                    version: '2.0.5'
                 }
             }
         }));
-        sendCommandStub.onCall(2).resolves(JSON.stringify({
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
             dependencies: {
                 'generator-fabric': {
                     path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
@@ -456,17 +461,16 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should show an error if contract languages doesnt exist in generator-fabric package.json', async () => {
-        sendCommandStub.onCall(0).resolves(JSON.stringify({}));
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
-        sendCommandStub.onCall(1).resolves(JSON.stringify({
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
             dependencies: {
-                'generator-fabric': {
-                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
-                    version: '0.0.11'
+                yo: {
+                    version: '2.0.5'
                 }
             }
         }));
-        sendCommandStub.onCall(2).resolves(JSON.stringify({
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
             dependencies: {
                 'generator-fabric': {
                     path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
