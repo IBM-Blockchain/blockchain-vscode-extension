@@ -167,26 +167,30 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
     // Create and show output channel
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-    // Check to see if we have npm and yo (yeoman) installed.
+    // Check to see if we have npm installed.
+    try {
+        await CommandUtil.sendCommand('npm --version');
+    } catch (error) {
+        console.log('npm not installed');
+        outputAdapter.log(LogType.ERROR, 'npm is required before creating a smart contract project');
+        return null;
+    }
+
+    // Check to see if we have yo (yeoman) installed.
     try {
 
-            // This command should print the long details of the installed yo module.
-            const output: string = await CommandUtil.sendCommand('npm ls --depth=0 --global --json --long yo');
-            const details: any = JSON.parse(output);
-            console.log('yo is installed', details);
+        // This command should print the long details of the installed yo module.
+        const output: string = await CommandUtil.sendCommand('npm ls --depth=0 --global --json --long yo');
+        const details: any = JSON.parse(output);
+        console.log('yo is installed', details);
 
-        } catch (error) {
-            if (error.stdout.trim() === '{}') {
-                console.log('npm installed, yo missing');
-                // assume generator-fabric isn't installed either
-                return new GeneratorDependencies({ needYo: true, needGenFab: true });
-            }
-            console.log('npm not installed');
-            outputAdapter.log(LogType.ERROR, 'npm is required before creating a smart contract project');
-            return null;
-        }
+    } catch (error) {
+        console.log('yo missing');
+        // assume generator-fabric isn't installed either
+        return new GeneratorDependencies({ needYo: true, needGenFab: true });
+    }
 
-        // Check to see if we have generator-fabric installed.
+    // Check to see if we have generator-fabric installed.
     try {
 
         // This command should print the long details of the installed generator-fabric module.
