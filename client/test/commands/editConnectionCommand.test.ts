@@ -114,7 +114,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves();
                 showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: ''}});
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 const placeHolder: string = 'Select a connection property to edit:';
                 quickPickStub.should.have.been.calledWith(['Connection Profile', 'Wallet', 'Identity'], {placeHolder});
                 browseEditStub.should.not.have.been.called;
@@ -130,7 +130,7 @@ describe('EditConnectionCommand', () => {
                 showConnectionQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '', walletPath: '/some/walletPath'}});
                 browseEditStub.onCall(0).resolves('/some/path');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: '/some/walletPath'});
                 logSpy.should.have.been.calledTwice;
@@ -175,7 +175,7 @@ describe('EditConnectionCommand', () => {
                 mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
                 mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledTwice;
                 updateFabricConnectionRegistryStub.getCall(1).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: 'some/new/wallet/path'});
                 logSpy.should.have.been.calledThrice;
@@ -194,7 +194,7 @@ describe('EditConnectionCommand', () => {
                 browseEditStub.onCall(1).resolves('some/certificatePath');
                 browseEditStub.onCall(2).resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: ''});
                 browseEditStub.should.have.been.calledThrice;
@@ -211,7 +211,7 @@ describe('EditConnectionCommand', () => {
                 browseEditStub.onCall(0).resolves('/some/path');
                 showIdentityOptionsStub.resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: ''});
                 browseEditStub.should.have.been.calledOnce;
@@ -228,7 +228,7 @@ describe('EditConnectionCommand', () => {
                 showIdentityOptionsStub.resolves(UserInputUtil.WALLET);
                 browseEditStub.onCall(1).resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: ''});
                 browseEditStub.should.have.been.calledTwice;
@@ -253,7 +253,7 @@ describe('EditConnectionCommand', () => {
                 mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
                 mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: 'some/new/wallet/path'});
                 logSpy.should.have.been.calledTwice;
@@ -268,7 +268,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves('Identity');
                 showInputBoxStub.resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 browseEditStub.should.not.have.been.called;
                 logSpy.should.have.been.calledOnce;
@@ -284,7 +284,7 @@ describe('EditConnectionCommand', () => {
                 showInputBoxStub.resolves('greenConga');
                 browseEditStub.onCall(0).resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 browseEditStub.should.have.been.calledOnce;
                 logSpy.should.have.been.calledOnce;
@@ -301,7 +301,7 @@ describe('EditConnectionCommand', () => {
                 browseEditStub.onCall(0).resolves('some/path');
                 browseEditStub.onCall(1).resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 browseEditStub.should.have.been.calledTwice;
                 logSpy.should.have.been.calledOnce;
@@ -326,7 +326,7 @@ describe('EditConnectionCommand', () => {
                 mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
                 mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledTwice;
                 updateFabricConnectionRegistryStub.getCall(1).should.have.been.calledWith({connectionProfilePath: '/some/connectionProfilePath', walletPath: 'some/new/wallet/path'});
                 logSpy.should.have.been.calledThrice;
@@ -343,7 +343,7 @@ describe('EditConnectionCommand', () => {
                 browseEditStub.onCall(0).resolves('/some/certificatePath');
                 browseEditStub.onCall(1).resolves('/some/keyPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit connection: Connection Profile required to import identity to file system wallet`, `Failed to edit connection: Error: Connection Profile required to import identity to file system wallet`);
@@ -357,7 +357,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves('Wallet');
                 browseEditStub.onCall(0).resolves('/some/walletPath');
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: '/some/walletPath'});
                 logSpy.should.have.been.calledTwice;
@@ -407,7 +407,7 @@ describe('EditConnectionCommand', () => {
                 quickPickStub.resolves('Wallet');
                 browseEditStub.onCall(0).resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.not.have.been.called;
                 browseEditStub.should.have.been.calledOnce;
                 logSpy.should.have.been.calledOnce;
@@ -479,7 +479,7 @@ describe('EditConnectionCommand', () => {
                 showInputBoxStub.onCall(1).resolves('Org1MSP');
                 importIdentityStub.onCall(1).resolves();
 
-                await vscode.commands.executeCommand('blockchainExplorer.editConnectionEntry');
+                await vscode.commands.executeCommand('blockchainConnectionsExplorer.editConnectionEntry');
                 updateFabricConnectionRegistryStub.should.have.been.calledOnce;
                 updateFabricConnectionRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: 'some/new/wallet/path'});
                 logSpy.should.have.been.calledTwice;

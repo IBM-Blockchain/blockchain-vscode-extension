@@ -73,6 +73,6 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
     const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
     await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
-    await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+    await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
     outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to connection '${connectionRegistryEntry.name}'`);
 }
