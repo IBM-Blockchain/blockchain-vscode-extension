@@ -158,7 +158,9 @@ Debugging your smart contract allows you to run through the smart contract trans
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 ## Connecting to your own Hyperledger Fabric instance
 
-Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later.
+Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. From v0.2.0+, you can use a file system wallet to import identities to connect with. Alternatively, provide a name, certificate and privateKey and the extension will generate a new file system wallet. In either case, this file system wallet can be used by your Blockchain applications. 
+
+> ⚠ Please note: v0.2.0+ supports the use of file system wallets for all fabric connections, so you will need to add any connections created with previous releases again in order to use them
 
 **When using the pre-configured local instance of Hyperledger Fabric named `local_fabric`, the extension will automatically pull and use the correct Docker images.**
 
