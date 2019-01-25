@@ -118,12 +118,12 @@ async function addIdentitytoNewWallet(connection: FabricConnectionRegistryEntry,
                 return;
             }
             await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName, mspid);
-            await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
         } else {
             throw error;
         }
     }
-    await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+    await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
     return wallet.getWalletPath();
 }
 

@@ -211,16 +211,12 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 connection.name = runtime.name;
                 connection.managedRuntime = true;
 
-                if (connection.identities && connection.identities.length > 1) {
-                    collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-                } else {
-                    collapsibleState = vscode.TreeItemCollapsibleState.None;
-                    command = {
-                        command: 'blockchainConnectionsExplorer.connectEntry',
-                        title: '',
-                        arguments: [connection]
-                    };
-                }
+                collapsibleState = vscode.TreeItemCollapsibleState.None;
+                command = {
+                    command: 'blockchainConnectionsExplorer.connectEntry',
+                    title: '',
+                    arguments: [connection]
+                };
 
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,

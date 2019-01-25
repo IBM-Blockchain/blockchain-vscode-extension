@@ -227,7 +227,7 @@ describe('BlockchainNetworkExplorer', () => {
                 };
 
                 const myIdentityCommand: vscode.Command = {
-                    command: 'blockchainExplorer.connectEntry',
+                    command: 'blockchainConnectionsExplorer.connectEntry',
                     title: '',
                     arguments: [connection, identities[0].label]
                 };
