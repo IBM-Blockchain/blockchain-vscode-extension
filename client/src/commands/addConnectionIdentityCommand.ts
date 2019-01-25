@@ -13,13 +13,18 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { ExtensionUtil } from '../util/ExtensionUtil';
+import { IFabricWallet } from '../fabric/IFabricWallet';
+import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
 export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -42,21 +47,32 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
         return;
     }
 
-    // Get the certificate file path
-    const certificatePath: string = await UserInputUtil.browseEdit('Enter a file path to the certificate file', connectionRegistryEntry.name);
-    if (!certificatePath) {
+    // Get the name of the identity
+    const identityName: string = await UserInputUtil.showInputBox('Provide a name for the identity');
+    if (!identityName) {
         return Promise.resolve();
     }
+    // Get the certificate file path
+    const certPath: string = await UserInputUtil.browseEdit('Browse for a certificate file', connectionRegistryEntry.name);
+    if (!certPath) {
+        return Promise.resolve();
+    }
+    ParsedCertificate.validPEM(certPath, 'certificate');
+    const keyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', connectionRegistryEntry.name);
+    if (!keyPath) {
+        return Promise.resolve();
+    }
+    // Get the private key file path
+    ParsedCertificate.validPEM(keyPath, 'private key');
 
-     // Get the private key file path
-    const privateKeyPath: string = await UserInputUtil.browseEdit('Enter a file path to the private key file', connectionRegistryEntry.name);
-    if (!privateKeyPath) {
-         return Promise.resolve();
-     }
+    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+    const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
 
-    connectionRegistryEntry.identities.push({certificatePath, privateKeyPath});
+    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(connectionRegistryEntry.connectionProfilePath);
+    const certificate: string = await fs.readFile(certPath, 'utf8');
+    const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
-    await FabricConnectionRegistry.instance().update(connectionRegistryEntry);
-
+    await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
+    await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
     outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to connection '${connectionRegistryEntry.name}'`);
 }

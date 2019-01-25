@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as homeDir from 'home-dir';
 import * as path from 'path';
-import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -46,6 +45,8 @@ export class UserInputUtil {
     static readonly BROWSE_LABEL: string = '📁 Browse';
     static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
+    static readonly WALLET: string = 'Use an existing wallet on my file system';
+    static readonly CERT_KEY: string = 'Create a new wallet for an identity with a certificate and private key';
 
     public static showConnectionQuickPickBox(prompt: string, showManagedRuntimes?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
         const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
@@ -126,20 +127,15 @@ export class UserInputUtil {
         return dir;
     }
 
-    public static showIdentityConnectionQuickPickBox(prompt: string, connection: FabricConnectionRegistryEntry): Thenable<IBlockchainQuickPickItem<{ certificatePath: string, privateKeyPath: string }> | undefined> {
+    public static showIdentitiesQuickPickBox(prompt: string, identities: string[]): Thenable<string> {
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
 
-        const identityQuickPickItems: Array<IBlockchainQuickPickItem<any>> = connection.identities.map((identity: { certificatePath: string, privateKeyPath: string }) => {
-            const parsedCert: ParsedCertificate = new ParsedCertificate(identity.certificatePath);
-            return { label: parsedCert.getCommonName(), data: identity };
-        });
-
-        return vscode.window.showQuickPick(identityQuickPickItems, quickPickOptions);
+        return vscode.window.showQuickPick(identities, quickPickOptions);
     }
 
     public static showFolderOptions(prompt: string): Thenable<string | undefined> {
@@ -319,10 +315,13 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async browseEdit(placeHolder: string, connectionName: string, filters?: any): Promise<string> {
+    public static async browseEdit(placeHolder: string, connectionName: string, canSelectFolders?: boolean, filters?: any): Promise<string> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
         const options: string[] = [this.BROWSE_LABEL, this.EDIT_LABEL];
+        if (placeHolder.includes('certificate') || placeHolder.includes('private key')) {
+            options.pop();
+        }
         try {
             const result: string = await vscode.window.showQuickPick(options, { placeHolder });
             if (!result) {
@@ -331,9 +330,17 @@ export class UserInputUtil {
                 // Browse file and get path
                 // work around for #135
                 await UserInputUtil.delayWorkaround(500);
+
+                // Handle selecting folders
+                let canSelectFiles: boolean = true;
+                if (canSelectFolders) {
+                    canSelectFiles = false;
+                } else {
+                    canSelectFolders = false;
+                }
                 const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog({
-                    canSelectFiles: true,
-                    canSelectFolders: false,
+                    canSelectFiles: canSelectFiles,
+                    canSelectFolders: canSelectFolders,
                     canSelectMany: false,
                     openLabel: 'Select',
                     filters: filters
@@ -392,7 +399,7 @@ export class UserInputUtil {
 
             // Define the section to highlight
             const startLine: number = startIndex - 2;
-            const endLine: number = startIndex + 8;
+            const endLine: number = startIndex + 3;
 
             // Show the user settings and highlight the connection
             await vscode.window.showTextDocument(document, {
@@ -576,6 +583,19 @@ export class UserInputUtil {
 
             await vscode.commands.executeCommand('vscode.openFolder', uri, openNewWindow);
         }
+    }
+
+    public static async showAddIdentityOptionsQuickPick(prompt: string): Promise<string | undefined> {
+        const addIdentityOptions: Array<string> = [this.WALLET, this.CERT_KEY];
+        const quickPickOptions: vscode.QuickPickOptions = {
+            matchOnDetail: true,
+            placeHolder: prompt,
+            ignoreFocusOut : true,
+            canPickMany: false,
+        };
+
+        return vscode.window.showQuickPick(addIdentityOptions, quickPickOptions);
+
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

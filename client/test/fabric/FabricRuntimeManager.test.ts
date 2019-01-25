@@ -26,6 +26,9 @@ import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactor
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -55,6 +58,7 @@ describe('FabricRuntimeManager', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
         connection = sinon.createStubInstance(FabricRuntimeConnection);
+
     });
 
     afterEach(async () => {
@@ -73,9 +77,19 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should connect if not connection', async () => {
+            runtimeManager['connection'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtime, 'getConnectionProfile');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            connection.connect.resolves();
             sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+            const walletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            walletStub.importIdentity.resolves();
+            sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(walletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
+            connection.connect.should.have.been.calledWith(sinon.match.instanceOf(FabricWallet), 'Admin@org1.example.com');
             result.should.deep.equal(connection);
         });
     });
@@ -283,12 +297,7 @@ describe('FabricRuntimeManager', () => {
             const testConnectionEntry: FabricConnectionRegistryEntry = {
                 name: 'runtime1',
                 connectionProfilePath: '/tmp/connection.json',
-                identities: [
-                    {
-                        certificatePath: '/tmp/cert.pem',
-                        privateKeyPath: '/tmp/key.pem'
-                    }
-                ],
+                walletPath: 'tmp/wallet',
                 managedRuntime: false
             };
             await connectionRegistry.add(testConnectionEntry);

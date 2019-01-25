@@ -151,4 +151,15 @@ describe('exportConnectionDetailsCommand', () => {
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry');
         exportStub.should.not.have.been.called;
     });
+
+    it('should not print the successSpy if there was an error', async () => {
+        const errorSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');
+
+        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').rejects({message: 'something bad happened'});
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry', runtimeTreeItem);
+        exportStub.should.have.been.called.calledOnceWith(VSCodeOutputAdapter.instance(), workspaceFolder.uri.fsPath);
+
+        errorSpy.should.have.been.calledWith('Issue exporting connection details, see output channel for more information');
+        successSpy.should.not.have.been.called;
+    });
 });

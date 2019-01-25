@@ -15,6 +15,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
+
 export class ExtensionUtil {
 
     public static getPackageJSON(): any {
@@ -58,6 +60,20 @@ export class ExtensionUtil {
         } catch (error) {
             throw new Error('error reading package.json from project ' + error.message);
         }
+    }
+
+    public static async readConnectionProfile(connectionProfilePath: string): Promise<object> {
+        const connectionProfileContents: string = await fs.readFile(connectionProfilePath, 'utf8');
+        let connectionProfile: object;
+        if (connectionProfilePath.endsWith('.json')) {
+            connectionProfile = JSON.parse(connectionProfileContents);
+        } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
+            connectionProfile = yaml.safeLoad(connectionProfileContents);
+        } else {
+            console.log('Connection Profile given is not .json/.yaml format:', connectionProfilePath);
+            throw new Error('Connection profile must be in JSON or yaml format');
+        }
+        return connectionProfile;
     }
 
     private static extensionContext: vscode.ExtensionContext;

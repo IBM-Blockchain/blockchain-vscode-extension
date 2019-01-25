@@ -15,6 +15,7 @@
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { Gateway } from 'fabric-network';
 import * as fabricClient from 'fabric-client';
 import * as path from 'path';
@@ -32,6 +33,7 @@ describe('FabricRuntimeConnection', () => {
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
     let fabricRuntimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
     let fabricRuntimeConnection: FabricRuntimeConnection;
+    let wallet: FabricWallet;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -39,10 +41,7 @@ describe('FabricRuntimeConnection', () => {
 
     let rootPath: string;
 
-    const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
-    const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
-    const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'msp/signcerts/Admin@org1.example.com-cert.pem');
-    const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
+    const walletPath: string = path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'walletDir', 'otherWallet');
     const basicNetworkConnectionProfile: any = {
         name: 'basic-network',
         version: '1.0.0',
@@ -110,7 +109,7 @@ describe('FabricRuntimeConnection', () => {
         fabricRuntimeStub.getPrivateKey.resolves('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
         fabricRuntimeStub.getConnectionProfile.callThrough();
         fabricRuntimeStub.getCertificatePath.callThrough();
-        fabricRuntimeStub.getPrivateKeyPath.callThrough();
+        wallet = new FabricWallet('myConnection', walletPath);
 
         fabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection((fabricRuntimeStub as any) as FabricRuntime) as FabricRuntimeConnection;
 
@@ -130,29 +129,14 @@ describe('FabricRuntimeConnection', () => {
     });
     describe('connect', () => {
         it('should connect to a fabric', async () => {
-            await fabricRuntimeConnection.connect();
+            await fabricRuntimeConnection.connect(wallet, 'Admin@org1.example.com');
             gatewayStub.connect.should.have.been.called;
         });
 
         it('should connect with an already loaded client connection', async () => {
             should.exist(FabricConnectionFactory['runtimeConnection']);
-            await fabricRuntimeConnection.connect();
+            await fabricRuntimeConnection.connect(wallet, 'Admin@org1.example.com');
             gatewayStub.connect.should.have.been.called;
-        });
-
-        it('should connect with a defined mspid', async () => {
-            should.exist(FabricConnectionFactory['runtimeConnection']);
-            await fabricRuntimeConnection.connect('Org1MSP');
-            gatewayStub.connect.should.have.been.called;
-        });
-    });
-    describe('getConnectionDetails', () => {
-        it('should return connection details information for a runtime connection', async () => {
-            await fabricRuntimeConnection.connect();
-            const connectionDetails: {connectionProfile: object, certificatePath: string, privateKeyPath: string} = await fabricRuntimeConnection.getConnectionDetails();
-            connectionDetails.connectionProfile.should.equal(basicNetworkConnectionProfile);
-            connectionDetails.certificatePath.should.equal(basicNetworkAdminCertificatePath);
-            connectionDetails.privateKeyPath.should.equal(basicNetworkAdminPrivateKeyPath);
         });
     });
 
