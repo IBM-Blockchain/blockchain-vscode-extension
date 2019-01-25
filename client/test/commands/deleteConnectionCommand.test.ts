@@ -123,7 +123,7 @@ describe('DeleteConnectionCommand', () => {
         it('should handle no from confirmation message', async () => {
             warningStub.resolves(false);
 
-            await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry');
 
             connections = vscode.workspace.getConfiguration().get('fabric.connections');
 

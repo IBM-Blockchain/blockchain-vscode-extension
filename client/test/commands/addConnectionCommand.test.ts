@@ -111,7 +111,7 @@ describe('AddConnectionCommand', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -122,7 +122,7 @@ describe('AddConnectionCommand', () => {
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
         });
 
         it('should test an uncompleted connection can be added', async () => {
@@ -262,7 +262,7 @@ describe('AddConnectionCommand', () => {
             showIdentityOptionsStub.onFirstCall().resolves();
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -282,7 +282,7 @@ describe('AddConnectionCommand', () => {
             showInputBoxStub.onSecondCall().resolves();
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -346,7 +346,7 @@ describe('AddConnectionCommand', () => {
             browseEditStub.onSecondCall().resolves();
 
             // execute a command to force the extension activation
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -411,7 +411,7 @@ describe('AddConnectionCommand', () => {
             showInputBoxStub.onThirdCall().resolves('Org1MSP');
             importStub.callThrough();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -422,7 +422,7 @@ describe('AddConnectionCommand', () => {
                 walletPath: path.join(rootPath, '../../test/data/walletDir/emptyWallet')
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
             errorSpy.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledThrice;
             importStub.should.have.been.calledTwice;
@@ -448,7 +448,7 @@ describe('AddConnectionCommand', () => {
             const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects( {message: `Client.createUser parameter 'opts mspid' is required`} );
             showInputBoxStub.onThirdCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -459,7 +459,7 @@ describe('AddConnectionCommand', () => {
                 walletPath: FabricConnectionHelper.WALLET_PATH_DEFAULT
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
             errorSpy.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledThrice;
             importStub.should.have.been.calledOnce;
@@ -484,7 +484,7 @@ describe('AddConnectionCommand', () => {
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
             const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects( {message: 'some other reason'} );
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
 
             const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
 
@@ -495,7 +495,7 @@ describe('AddConnectionCommand', () => {
                 walletPath: FabricConnectionHelper.WALLET_PATH_DEFAULT
             });
 
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandSpy.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
             errorSpy.should.have.been.calledWith('Failed to add a new connection: some other reason');
             showInputBoxStub.should.have.been.calledTwice;
             importStub.should.have.been.calledOnce;
