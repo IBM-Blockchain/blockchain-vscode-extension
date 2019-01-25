@@ -107,7 +107,7 @@ describe('AddConnectionIdentityCommand', () => {
             const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
-            identities[2].command.command.should.equal('blockchainExplorer.connectEntry');
+            identities[2].command.command.should.equal('blockchainConnectionsExplorer.connectEntry');
         });
 
         it('should test a config can be cancelled before choosing a connection', async () => {
@@ -130,7 +130,7 @@ describe('AddConnectionIdentityCommand', () => {
             });
             inputBoxStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionIdentityEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionIdentityEntry');
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -195,7 +195,7 @@ describe('AddConnectionIdentityCommand', () => {
             const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionToAddTo);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
-            identities[2].command.command.should.equal('blockchainExplorer.connectEntry');
+            identities[2].command.command.should.equal('blockchainConnectionsExplorer.connectEntry');
         });
 
         it('should show an error if connection is not complete', async () => {

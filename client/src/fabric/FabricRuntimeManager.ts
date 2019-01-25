@@ -19,6 +19,8 @@ import { FabricConnectionRegistry } from './FabricConnectionRegistry';
 import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnectionFactory } from './FabricConnectionFactory';
+import { IFabricWallet } from './IFabricWallet';
+import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 
 export class FabricRuntimeManager {
 
@@ -46,7 +48,13 @@ export class FabricRuntimeManager {
 
         const runtime: FabricRuntime = this.get('local_fabric');
         this.connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
-        await this.connection.connect();
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+        const connectionProfile: any = await runtime.getConnectionProfile();
+        const certificate: string = await runtime.getCertificate();
+        const privateKey: string = await runtime.getPrivateKey();
+        const identityName: string = 'Admin@org1.example.com';
+        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
+        await this.connection.connect(runtimeWallet, 'Admin@org1.example.com');
 
         return this.connection;
     }
