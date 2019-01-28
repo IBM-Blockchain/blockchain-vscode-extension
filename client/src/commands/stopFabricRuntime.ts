@@ -27,8 +27,10 @@ export async function stopFabricRuntime(): Promise<void> {
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
+    }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Stopping Fabric runtime ${runtime.getName()}` });
         await runtime.stop(outputAdapter);
+        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
     });
 }
