@@ -72,6 +72,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
+            newLabel = 'Local_fabric runtime is starting... ';
             newLabel += busyStates[this.busyTicks % 4];
             newCommand = null;
             newContextLabel = 'blockchain-runtime-item-busy';
@@ -91,7 +92,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         } else {
             // Not running!
             this.disableBusyTicker();
-            newLabel = 'Your local_fabric is stopped';
+            newLabel = 'Local fabric runtime is stopped. Click to start.';
             newCommand = {
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',

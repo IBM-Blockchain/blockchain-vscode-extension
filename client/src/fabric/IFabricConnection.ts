@@ -18,6 +18,8 @@ import { IFabricWallet } from './IFabricWallet';
 
 export interface IFabricConnection {
 
+    identityName: string;
+
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
     disconnect(): void;

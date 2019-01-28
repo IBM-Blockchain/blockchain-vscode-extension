@@ -153,8 +153,8 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.onCall(4).returns(null);
             getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(null);
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
             executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
@@ -189,7 +189,7 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit transaction through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 

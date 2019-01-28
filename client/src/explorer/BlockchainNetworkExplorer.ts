@@ -25,7 +25,6 @@ import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
-import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 import { ConnectionPropertyTreeItem } from './model/ConnectionPropertyTreeItem';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
@@ -38,6 +37,9 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../fabric/FabricRuntime';
+import { IFabricWallet } from '../fabric/IFabricWallet';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -203,20 +205,29 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const allConnections: FabricConnectionRegistryEntry[] = this.connectionRegistryManager.getAll();
         const allRuntimes: FabricRuntimeRegistryEntry[] = this.runtimeRegistryManager.getAll();
 
-        for (const runtime of allRuntimes) {
+        for (const runtimeEntry of allRuntimes) {
             try {
                 let collapsibleState: vscode.TreeItemCollapsibleState;
                 let command: vscode.Command;
                 const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
-                connection.name = runtime.name;
+                connection.name = runtimeEntry.name;
                 connection.managedRuntime = true;
 
-                collapsibleState = vscode.TreeItemCollapsibleState.None;
-                command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
-                    title: '',
-                    arguments: [connection]
-                };
+                const runtime: FabricRuntime = FabricRuntimeManager.instance().get(runtimeEntry.name);
+                const isRunning: boolean = await runtime.isRunning();
+
+                if (!isRunning) {
+                    collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+                    command = {
+                        command: 'blockchainExplorer.startFabricRuntime',
+                        title: '',
+                    };
+                } else {
+                    const fabricWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+                    const walletPath: string = fabricWallet.getWalletPath();
+                    connection.walletPath = walletPath;
+                    collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+                }
 
                 tree.push(new ConnectionTreeItem(this,
                     connection.name,
@@ -326,8 +337,11 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             console.log('createConnectedTree');
             const tree: Array<BlockchainTreeItem> = [];
 
+            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const connectionRegistryEntry: FabricConnectionRegistryEntry = FabricConnectionManager.instance().getConnectionRegistryEntry();
-            tree.push(new ConnectedTreeItem(this, connectionRegistryEntry.name, connectionRegistryEntry));
+            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${connectionRegistryEntry.name}`, connectionRegistryEntry));
+            tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, connectionRegistryEntry));
+            tree.push(new ConnectedTreeItem(this, `Channels`, connectionRegistryEntry));
 
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
             const channels: Array<string> = Array.from(channelMap.keys());

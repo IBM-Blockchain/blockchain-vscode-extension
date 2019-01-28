@@ -181,7 +181,7 @@ describe('testSmartContractCommand', () => {
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            channel = allChildren[1] as ChannelTreeItem;
+            channel = allChildren[3] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
             instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
@@ -843,7 +843,7 @@ describe('testSmartContractCommand', () => {
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            channel = allChildren[1] as ChannelTreeItem;
+            channel = allChildren[3] as ChannelTreeItem;
             chaincodes = channel.chaincodes;
             instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
             smartContractLabel = instantiatedSmartContract.label;

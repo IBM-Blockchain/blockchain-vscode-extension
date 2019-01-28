@@ -54,26 +54,18 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
             await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         }
 
-        const runtimeWallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(runtime['name']);
-        const connectionProfile: any = await runtime.getConnectionProfile();
-        const certificate: string = await runtime.getCertificate();
-        const privateKey: string = await runtime.getPrivateKey();
-        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, 'Admin@org1.example.com');
-        wallet = runtimeWallet;
+        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
 
-        connectionRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+        connectionRegistryEntry.walletPath = wallet.getWalletPath();
         connectionRegistryEntry.connectionProfilePath = runtime.getConnectionProfilePath();
-
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
-
         runtimeData = 'managed runtime';
 
         const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
-
         identityName = identityNames[0];
 
     } else {
-        const connectionData: {connectionProfilePath: string, walletPath: string} = {
+        const connectionData: { connectionProfilePath: string, walletPath: string } = {
             connectionProfilePath: connectionRegistryEntry.connectionProfilePath,
             walletPath: connectionRegistryEntry.walletPath
         };
@@ -113,6 +105,6 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
             const isIBP: boolean = connection.isIBPConnection();
             runtimeData = (isIBP ? 'IBP instance' : 'user runtime');
         }
-        Reporter.instance().sendTelemetryEvent('connectCommand', {runtimeData: runtimeData});
+        Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData });
     }
 }

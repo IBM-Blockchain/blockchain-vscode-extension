@@ -134,8 +134,8 @@ describe('InstantiateCommand', () => {
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.onCall(4).returns(null);
             getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(null);
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
             executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
             fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
@@ -175,7 +175,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate smart contract through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', myChannel);
 
