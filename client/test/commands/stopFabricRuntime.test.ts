@@ -70,9 +70,13 @@ describe('stopFabricRuntime', () => {
         await runtimeManager.clear();
     });
 
-    it('should stop a Fabric runtime', async () => {
+    it('should stop a Fabric runtime and refresh the view', async () => {
         const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        executeCommandSpy.should.have.been.calledThrice;
+        executeCommandSpy.getCall(1).should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
     });
+
 });

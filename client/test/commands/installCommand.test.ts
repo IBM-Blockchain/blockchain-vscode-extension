@@ -116,8 +116,8 @@ describe('InstallCommand', () => {
         });
 
         it('should install the smart contract through the command', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
@@ -125,8 +125,8 @@ describe('InstallCommand', () => {
         });
 
         it('should install the smart contract with specific package', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', null, null, packageRegistryEntry);
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
@@ -135,8 +135,8 @@ describe('InstallCommand', () => {
         });
 
         it('should install the smart contract through the command when not connected', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
 
@@ -155,8 +155,8 @@ describe('InstallCommand', () => {
                     workspace: undefined
                 }
             });
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
             const packageCommandStub: sinon.SinonStub = executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry');
             packageCommandStub.resolves(packageRegistryEntry);
 
@@ -203,7 +203,7 @@ describe('InstallCommand', () => {
         });
 
         it('should install smart contract through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
             const peer: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<PeerTreeItem>;
             const peerTreeItem: PeerTreeItem = peer[0] as PeerTreeItem;
 

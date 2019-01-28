@@ -34,7 +34,7 @@
     ],
     "generatorFabricVersion": "~0.0.13",
     "activationEvents": [
-    "*"
+        "*"
     ],
     "actualActivationEvents": {
         "other": [
@@ -90,11 +90,11 @@
                 },
                 {
                     "id": "blockchainARuntimeExplorer",
-                    "name": "Local_Fabric Control Panel"
+                    "name": "Local Fabric Ops"
                 },
                 {
                     "id": "blockchainExplorer",
-                    "name": "Blockchain Connections"
+                    "name": "Fabric Gateways"
                 }
             ]
         },
