@@ -24,6 +24,8 @@ import { FabricWallet } from './FabricWallet';
 
 export abstract class FabricConnection implements IFabricConnection {
 
+    public identityName: string;
+
     private mspid: string;
     private gateway: Gateway = new Gateway();
     private networkIdProperty: boolean;
@@ -328,6 +330,7 @@ export abstract class FabricConnection implements IFabricConnection {
         });
 
         this.mspid = identity.mspId;
+        this.identityName = identity.label;
     }
 
     private getChannel(channelName: string): Client.Channel {

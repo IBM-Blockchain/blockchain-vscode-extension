@@ -88,7 +88,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(1);
-                allChildren[0].label.should.equal('Your local_fabric is stopped');
+                allChildren[0].label.should.equal('Local fabric runtime is stopped. Click to start.');
             });
 
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
@@ -512,7 +512,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             const result: RuntimeTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as RuntimeTreeItem;
 
-            result.label.should.equal('Your local_fabric is stopped');
+            result.label.should.equal('Local fabric runtime is stopped. Click to start.');
         });
     });
 });
