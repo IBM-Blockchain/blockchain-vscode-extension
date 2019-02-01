@@ -30,33 +30,33 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
     let packageEntry: PackageRegistryEntry;
     let contractName: string;
     let contractVersion: string;
-    if (!instantiatedChainCodeTreeItem) {
+    // if (!instantiatedChainCodeTreeItem) {
+    if (!FabricConnectionManager.instance().getConnection()) {
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
-            if (!FabricConnectionManager.instance().getConnection()) {
-                // either the user cancelled or ther was an error so don't carry on
-                return;
-            }
-        }
-
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on');
-        if (!chosenChannel) {
+            // either the user cancelled or ther was an error so don't carry on
             return;
         }
-
-        channelName = chosenChannel.label;
-        peers = chosenChannel.data;
-
-        // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
-        contractName = initialSmartContract.data.name;
-        contractVersion = initialSmartContract.data.version;
-    } else {
-        contractName = instantiatedChainCodeTreeItem.name;
-        contractVersion = instantiatedChainCodeTreeItem.version;
-        channelName = instantiatedChainCodeTreeItem.channel.label;
-        peers = new Set(instantiatedChainCodeTreeItem.channel.peers);
     }
+
+    const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on');
+    if (!chosenChannel) {
+        return;
+    }
+
+    channelName = chosenChannel.label;
+    peers = chosenChannel.data;
+
+    // We should now ask for the instantiated smart contract to upgrade
+    const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+    contractName = initialSmartContract.data.name;
+    contractVersion = initialSmartContract.data.version;
+    // } else {
+    //     contractName = instantiatedChainCodeTreeItem.name;
+    //     contractVersion = instantiatedChainCodeTreeItem.version;
+    //     channelName = instantiatedChainCodeTreeItem.channel.label;
+    //     peers = new Set(instantiatedChainCodeTreeItem.channel.peers);
+    // }
 
     try {
         const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', peers, contractName, contractVersion);
@@ -118,6 +118,7 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
 
             outputAdapter.log(LogType.SUCCESS, `Successfully upgraded smart contract`);
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+            await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error upgrading smart contract: ${error.message}`);

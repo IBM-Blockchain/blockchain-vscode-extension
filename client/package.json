@@ -413,8 +413,36 @@
                     "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
                 },
                 {
+                    "command": "blockchainExplorer.installSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-installed-item"
+                },
+                {
+                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
+                },
+                {
                     "command": "blockchainExplorer.instantiateSmartContractEntry",
                     "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-channel-item"
+                },
+                {
+                    "command": "blockchainExplorer.instantiateSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-instantiated-item"
+                },
+                {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-channel-item"
+                },
+                {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-instantiated-item"
                 },
                 {
                     "command": "blockchainConnectionsExplorer.editConnectionEntry",

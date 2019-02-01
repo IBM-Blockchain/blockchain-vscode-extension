@@ -28,6 +28,8 @@ export interface IFabricConnection {
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
 
+    getOrganizations(channelName: string): Promise<Array<string>>;
+
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;

@@ -12,24 +12,22 @@
  * limitations under the License.
 */
 'use strict';
+import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
-import * as path from 'path';
-import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
+import * as path from 'path';
 
-export class PeerTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-peer-item';
+export class NodesTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-nodes-item';
 
     iconPath: {light: string, dark: string} = {
-        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'node.svg'),
-        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', 'node.svg')
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', `nodes.svg`),
+        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', `nodes.svg`)
     };
 
-    constructor(provider: BlockchainExplorerProvider, public readonly peerName: any, public readonly chaincodes: Map<string, Array<string>>, collapsibleState: vscode.TreeItemCollapsibleState, removeIcon?: boolean) {
-        super(provider, peerName, collapsibleState);
+    constructor(provider: BlockchainExplorerProvider, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
+        super(provider, 'Nodes', collapsibleState);
 
-        if (removeIcon) {
-            this.iconPath = null;
-        }
     }
 }
