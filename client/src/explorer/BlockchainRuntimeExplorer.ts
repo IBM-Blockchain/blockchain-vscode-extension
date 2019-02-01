@@ -28,12 +28,23 @@ import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistr
 import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
+import { FabricRuntime } from '../fabric/FabricRuntime';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { SmartContractsTreeItem } from './runtimeOps/SmartContractsTreeItem';
+import { ChannelsOpsTreeItem } from './runtimeOps/ChannelsOpsTreeItem';
+import { NodesTreeItem } from './runtimeOps/NodesTreeItem';
+import { OrganizationsTreeItem } from './runtimeOps/OrganizationsTreeItem';
+import { InstalledTreeItem } from './runtimeOps/InstalledTreeItem';
+import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
+import { InstalledChainCodeOpsTreeItem } from './runtimeOps/InstalledChainCodeOpsTreeItem';
+import { InstantiateCommandTreeItem } from './runtimeOps/InstantiateCommandTreeItem';
+import { InstallCommandTreeItem } from './runtimeOps/InstallCommandTreeItem';
+import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -75,23 +86,23 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             }
 
             if (element) {
-                if (element instanceof ChannelTreeItem) {
-                    this.tree = [];
-                    const channelElement: ChannelTreeItem = element as ChannelTreeItem;
-                    this.tree = await this.createPeerTree(element as ChannelTreeItem);
-
-                    if (channelElement.chaincodes.length > 0) {
-                        const instantiatedChaincodes: Array<InstantiatedChaincodeTreeItem> = await this.createInstantiatedChaincodeTree(element as ChannelTreeItem);
-                        this.tree.push(...instantiatedChaincodes);
-                    }
+                if (element instanceof SmartContractsTreeItem) {
+                    this.tree = await this.createSmartContractsTree(element as SmartContractsTreeItem);
                 }
-
-                if (element instanceof PeerTreeItem) {
-                    this.tree = await this.createInstalledChaincodeTree(element as PeerTreeItem);
+                if (element instanceof ChannelsOpsTreeItem) {
+                    this.tree = await this.createChannelsTree(element as ChannelsOpsTreeItem);
                 }
-
-                if (element instanceof InstalledChainCodeTreeItem) {
-                    this.tree = await this.createInstalledChaincodeVersionTree(element as InstalledChainCodeTreeItem);
+                if (element instanceof NodesTreeItem) {
+                    this.tree = await this.createNodesTree(element as NodesTreeItem);
+                }
+                if (element instanceof OrganizationsTreeItem) {
+                    this.tree = await this.createOrganizationsTree(element as OrganizationsTreeItem);
+                }
+                if (element instanceof InstantiatedTreeItem) {
+                    this.tree = await this.createInstantiatedTree(element as InstantiatedTreeItem);
+                }
+                if (element instanceof InstalledTreeItem) {
+                    this.tree = await this.createInstalledTree(element as InstalledTreeItem);
                 }
 
                 return this.tree;
@@ -99,12 +110,13 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
             if (isRunning) {
                 this.tree = await this.createConnectedTree();
+                await FabricRuntimeManager.instance().getConnection();
             } else {
                 this.tree = await this.createConnectionTree();
             }
 
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, error.message);
+            outputAdapter.log(LogType.ERROR, `Error populating Local Fabric Control Panel: ${error.message}`, `Error populating Local Fabric Control Panel: ${error.message}`);
         }
 
         return this.tree;
@@ -140,87 +152,19 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private createInstalledChaincodeVersionTree(chaincodeElement: InstalledChainCodeTreeItem): Promise<Array<InstalledChainCodeVersionTreeItem>> {
-        console.log('createInstalledChaincodeVersionTree', chaincodeElement);
-        const tree: Array<InstalledChainCodeVersionTreeItem> = [];
-
-        chaincodeElement.versions.forEach((version: string) => {
-            tree.push(new InstalledChainCodeVersionTreeItem(this, version));
-        });
-
-        return Promise.resolve(tree);
-    }
-
-    private async createInstalledChaincodeTree(peerElement: PeerTreeItem): Promise<Array<InstalledChainCodeTreeItem>> {
-        console.log('createInstalledChaincodeTree', peerElement);
-        const tree: Array<InstalledChainCodeTreeItem> = [];
-
-        peerElement.chaincodes.forEach((versions: Array<string>, name: string) => {
-            tree.push(new InstalledChainCodeTreeItem(this, name, versions));
-        });
-
-        return tree;
-    }
-
-    private async createInstantiatedChaincodeTree(channelTreeElement: ChannelTreeItem): Promise<Array<InstantiatedChaincodeTreeItem>> {
-        console.log('createInstantiatedChaincodeTree', channelTreeElement);
-        const tree: Array<InstantiatedChaincodeTreeItem> = [];
-
-        for (const instantiatedChaincode of channelTreeElement.chaincodes) {
-            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, vscode.TreeItemCollapsibleState.None));
-        }
-
-        return tree;
-    }
-
-    private async createPeerTree(channelElement: ChannelTreeItem): Promise<Array<PeerTreeItem>> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-
-        const tree: Array<PeerTreeItem> = [];
-
-        for (const peer of channelElement.peers) {
-            try {
-                const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-                const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
-                const collapsibleState: vscode.TreeItemCollapsibleState = chaincodes.size > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
-                tree.push(new PeerTreeItem(this, peer, chaincodes, collapsibleState));
-            } catch (error) {
-                tree.push(new PeerTreeItem(this, peer, new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None));
-                outputAdapter.log(LogType.ERROR, `Error when getting installed smart contracts for peer ${peer} ${error.message}`, `Error when getting installed smart contracts for peer ${peer} ${error.toString()}`);
-            }
-        }
-
-        return tree;
-    }
-
     private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        console.log('createConnectedTree');
+        const tree: Array<BlockchainTreeItem> = [];
 
-        try {
-            console.log('createConnectedTree');
-            const tree: Array<BlockchainTreeItem> = [];
+        tree.push(new SmartContractsTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
 
-            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
-            const channels: Array<string> = Array.from(channelMap.keys());
+        tree.push(new ChannelsOpsTreeItem(this, vscode.TreeItemCollapsibleState.Collapsed));
 
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        tree.push(new NodesTreeItem(this, vscode.TreeItemCollapsibleState.Collapsed));
 
-            for (const channel of channels) {
-                let chaincodes: Array<{ name: string, version: string }>;
-                const peers: Array<string> = channelMap.get(channel);
-                try {
-                    chaincodes = await connection.getInstantiatedChaincode(channel);
-                    tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
-                } catch (error) {
-                    tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.Collapsed));
-                    outputAdapter.log(LogType.ERROR, `Error getting instantiated smart contracts for channel ${channel} ${error.message}`);
-                }
-            }
+        tree.push(new OrganizationsTreeItem(this, vscode.TreeItemCollapsibleState.Collapsed));
 
-            return tree;
-        } catch (error) {
-            throw error;
-        }
+        return tree;
     }
 
     private async createChannelMap(): Promise<Map<string, Array<string>>> {
@@ -258,5 +202,135 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         }, (error: string) => {
             throw new Error(error);
         });
+    }
+
+    // TODO: remove parameter if not needed
+    private async createSmartContractsTree(smartContracts: SmartContractsTreeItem): Promise<Array<BlockchainTreeItem>> {
+        const tree: Array<BlockchainTreeItem> = [];
+
+        tree.push(new InstantiatedTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
+
+        tree.push(new InstalledTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
+
+        return tree;
+    }
+
+    private async createChannelsTree(channelsItem: ChannelsOpsTreeItem): Promise<Array<BlockchainTreeItem>> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const tree: Array<BlockchainTreeItem> = [];
+
+        try {
+            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const channels: Array<string> = Array.from(channelMap.keys());
+
+            for (const channel of channels) {
+                tree.push(new ChannelTreeItem(this, channel, [], [], vscode.TreeItemCollapsibleState.None));
+            }
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channels view: ${error.toString()}`);
+            return tree;
+        }
+        return tree;
+    }
+
+    private async createNodesTree(nodesTreeItem: NodesTreeItem): Promise<Array<BlockchainTreeItem>> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const tree: Array<BlockchainTreeItem> = [];
+
+        try {
+            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const allPeerNames: Array<string> = connection.getAllPeerNames();
+
+            for (const peer of allPeerNames) {
+                const chaincodes: Map<string, Array<string>> = null;
+                tree.push(new PeerTreeItem(this, peer, chaincodes, vscode.TreeItemCollapsibleState.None, true));
+            }
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating nodes view: ${error.message}`, `Error populating nodes view: ${error.toString()}`);
+            return tree;
+        }
+        return tree;
+
+    }
+
+    private async createOrganizationsTree(orgTreeItem: OrganizationsTreeItem): Promise<Array<BlockchainTreeItem>> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const tree: Array<BlockchainTreeItem> = [];
+
+        try {
+            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const channels: Array<string> = Array.from(channelMap.keys());
+            for (const channel of channels) {
+                const channelOrgs: any[] = await connection.getOrganizations(channel);
+                for (const org of channelOrgs) {
+                    tree.push(new OrgTreeItem(this, org.id));
+                }
+            }
+
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating organizations view: ${error.message}`, `Error populating organizations view: ${error.toString()}`);
+            return tree;
+        }
+        return tree;
+
+    }
+
+    private async createInstantiatedTree(instantiatedTreeItem: InstantiatedTreeItem): Promise<Array<BlockchainTreeItem>> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const tree: Array<BlockchainTreeItem> = [];
+
+        const command: vscode.Command = {
+            command: 'blockchainExplorer.instantiateSmartContractEntry',
+            title: '',
+            arguments: []
+        };
+
+        try {
+            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const channels: Array<string> = Array.from(channelMap.keys());
+            for (const channel of channels) {
+                const chaincodes: any[] = await connection.getInstantiatedChaincode(channel);
+                for (const chaincode of chaincodes) {
+                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, null, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                }
+            }
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating instantiated smart contracts view: ${error.message}`, `Error populating instantiated smart contracts view: ${error.message}`);
+
+        } finally {
+            tree.push(new InstantiateCommandTreeItem(this, command));
+        }
+        return tree;
+    }
+
+    private async createInstalledTree(installedTreeItem: InstalledTreeItem): Promise<Array<BlockchainTreeItem>> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const tree: Array<BlockchainTreeItem> = [];
+        const command: vscode.Command = {
+            command: 'blockchainExplorer.installSmartContractEntry',
+            title: '',
+            arguments: []
+        };
+
+        try {
+            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const allPeerNames: Array<string> = connection.getAllPeerNames();
+            for (const peer of allPeerNames) {
+                const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
+                chaincodes.forEach((versions: Array<string>, name: string) => {
+                    for (const version of versions) {
+                        tree.push(new InstalledChainCodeOpsTreeItem(this, name, version));
+                    }
+                });
+            }
+
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating installed smart contracts view: ${error.message}`, `Error populating installed smart contracts view: ${error.message}`);
+        } finally {
+            tree.push(new InstallCommandTreeItem(this, command));
+        }
+        return tree;
     }
 }

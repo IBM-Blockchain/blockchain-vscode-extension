@@ -71,6 +71,14 @@ export abstract class FabricConnection implements IFabricConnection {
         });
     }
 
+    public async getOrganizations(channelName: string): Promise<any[]> {
+        console.log('getOrganizations', channelName);
+        const network: Network = await this.gateway.getNetwork(channelName);
+        const channel: Client.Channel = network.getChannel();
+        const orgs: any[] = await channel.getOrganizations();
+        return orgs;
+    }
+
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
         console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin

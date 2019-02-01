@@ -174,7 +174,7 @@ describe('InstantiateCommand', () => {
             should.not.exist(logSpy.getCall(1));
         });
 
-        it('should instantiate smart contract through the tree', async () => {
+        xit('should instantiate smart contract through the tree', async () => {
             const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
 
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', myChannel);

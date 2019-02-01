@@ -24,12 +24,12 @@ import { LogType } from '../logging/OutputAdapter';
 export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
-    let runtime: FabricRuntime;
-    if (!runtimeTreeItem) {
-        runtime = FabricRuntimeManager.instance().get('local_fabric');
-    } else {
-        runtime = runtimeTreeItem.getRuntime();
-    }
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    // if (!runtimeTreeItem) {
+    //     runtime = FabricRuntimeManager.instance().get('local_fabric');
+    // } else {
+    //     runtime = runtimeTreeItem.getRuntime();
+    // }
 
     const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
     const newDevelopmentMode: boolean = !oldDevelopmentMode;

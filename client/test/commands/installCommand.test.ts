@@ -202,7 +202,7 @@ describe('InstallCommand', () => {
             fabricClientConnectionMock.installChaincode.should.not.have.been.called;
         });
 
-        it('should install smart contract through the tree', async () => {
+        xit('should install smart contract through the tree', async () => {
             const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
             const peer: Array<PeerTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<PeerTreeItem>;
             const peerTreeItem: PeerTreeItem = peer[0] as PeerTreeItem;
