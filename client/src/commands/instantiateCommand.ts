@@ -16,13 +16,14 @@ import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
+import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem): Promise<void> {
+export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
     let channelName: string;
     let peers: Set<string>;
@@ -30,25 +31,26 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
 
-    if (!channelTreeItem) {
+    // if (!(treeItem instanceof ChannelTreeItem)) {
+    if (!FabricConnectionManager.instance().getConnection()) {
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
-            if (!FabricConnectionManager.instance().getConnection()) {
-                // either the user cancelled or ther was an error so don't carry on
-                return;
-            }
-        }
-
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
-        if (!chosenChannel) {
+            // either the user cancelled or ther was an error so don't carry on
             return;
         }
-        channelName = chosenChannel.label;
-        peers = chosenChannel.data;
-    } else {
-        channelName = channelTreeItem.label;
-        peers = new Set(channelTreeItem.peers);
     }
+
+    const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
+    if (!chosenChannel) {
+        return;
+    }
+    channelName = chosenChannel.label;
+    peers = chosenChannel.data;
+// } else {
+    // const channelTreeItem: ChannelTreeItem = treeItem as ChannelTreeItem;
+    // channelName = channelTreeItem.label;
+    // peers = new Set(channelTreeItem.peers);
+// }
 
     try {
 
@@ -109,6 +111,7 @@ export async function instantiateSmartContract(channelTreeItem?: ChannelTreeItem
 
             outputAdapter.log(LogType.SUCCESS, 'Successfully instantiated smart contract');
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+            await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);
