@@ -16,15 +16,16 @@ import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PeerTreeItem } from '../explorer/model/PeerTreeItem';
+import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
+export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
-    if (!peerTreeItem && !peerNames) {
+    if (!(treeItem instanceof PeerTreeItem) && !peerNames) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
@@ -40,6 +41,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
 
         peerNames = new Set([chosenPeerName]);
     } else if (!peerNames) {
+        const peerTreeItem: PeerTreeItem = treeItem as PeerTreeItem;
         peerNames = new Set([peerTreeItem.peerName]);
     }
 
@@ -90,6 +92,7 @@ export async function installSmartContract(peerTreeItem?: PeerTreeItem, peerName
         });
 
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
 
         if (successfulInstall) {
             // Package was installed on all peers successfully

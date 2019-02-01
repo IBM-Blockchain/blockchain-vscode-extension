@@ -27,13 +27,13 @@ import { LogType } from '../logging/OutputAdapter';
 export async function exportConnectionDetails(connectionTreeItem?: ConnectionTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
-    let fabricRuntime: FabricRuntime;
-    if (connectionTreeItem) {
-        const connectionRegistry: FabricConnectionRegistryEntry = connectionTreeItem.connection;
-        fabricRuntime = FabricRuntimeManager.instance().get(connectionRegistry.name);
-    } else {
-        fabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
-    }
+    const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    // if (connectionTreeItem) {
+    //     const connectionRegistry: FabricConnectionRegistryEntry = connectionTreeItem.connection;
+    //     fabricRuntime = FabricRuntimeManager.instance().get(connectionRegistry.name);
+    // } else {
+    //     fabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    // }
 
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
