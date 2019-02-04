@@ -184,6 +184,7 @@ describe('Extension Tests', () => {
     });
 
     it('should install native dependencies on first activation', async () => {
+        const showOutputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'show');
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
@@ -194,6 +195,7 @@ describe('Extension Tests', () => {
         await myExtension.activate(context);
         installStub.should.have.been.called;
         tempRegistryExecuteStub.should.have.been.called;
+        showOutputAdapterStub.should.have.been.called;
     });
 
     it('should not install native dependencies if already installed', async () => {

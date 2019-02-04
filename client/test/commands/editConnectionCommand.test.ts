@@ -138,6 +138,8 @@ describe('EditConnectionCommand', () => {
             });
 
             it('should update connection profile and then the wallet path', async () => {
+                const showOutputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'show');
+
                 mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 mySandBox.stub(FabricConnectionHelper, 'walletPathComplete').returns(false);
                 mySandBox.stub(FabricConnectionHelper, 'connectionProfilePathComplete').returns(false);
@@ -154,6 +156,8 @@ describe('EditConnectionCommand', () => {
                 updateFabricConnectionRegistryStub.getCall(1).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: '/some/walletPath'});
                 logSpy.should.have.been.calledThrice;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
+
+                showOutputAdapterStub.should.not.have.been.called;
             });
 
             it('should update connection profile and then the identity', async () => {

@@ -101,3 +101,8 @@
 * Use file system wallets for local_fabric and remote connections [#428](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/428)
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-44.png)
+
+## 0.2.1: January 30th 2019
+
+* Fix for fonts on home/samples pages [#486](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/486)
+* Fix for persistently showing output channel [#497](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/497)
