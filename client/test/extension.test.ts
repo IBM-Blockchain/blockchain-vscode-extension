@@ -14,7 +14,6 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import * as path from 'path';
-import * as ejs from 'ejs';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -26,8 +25,6 @@ import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { Reporter } from '../src/util/Reporter';
 import { BlockchainNetworkExplorerProvider } from '../src/explorer/BlockchainNetworkExplorer';
-import { HomeView } from '../src/webview/HomeView';
-import { RepositoryRegistry } from '../src/repositories/RepositoryRegistry';
 import { SampleView } from '../src/webview/SampleView';
 
 const should: Chai.Should = chai.should();
