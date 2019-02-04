@@ -30,6 +30,7 @@ import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -50,6 +51,8 @@ describe('InstantiateCommand', () => {
         let showChannelQuickPickStub: sinon.SinonStub;
         let showChaincodeAndVersionQuickPick: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
+        let getRuntimeConnectionStub: sinon.SinonStub;
+        let isRunningStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
@@ -58,6 +61,7 @@ describe('InstantiateCommand', () => {
             mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
+            executeCommandStub.withArgs('blockchainExplorer.startFabricRuntime').resolves();
             executeCommandStub.callThrough();
 
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
@@ -65,6 +69,10 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.resolves();
             const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+
+            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+            getRuntimeConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves((fabricClientConnectionMock));
+            isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(true);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
                 label: 'myChannel',
@@ -123,24 +131,13 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
-
+            isRunningStub.resolves(false);
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
 
+            executeCommandStub.should.have.been.calledWith('blockchainExplorer.startFabricRuntime');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
-        });
-
-        it('should handle connecting being cancelled', async () => {
-            getConnectionStub.onCall(5).returns(null);
-            getConnectionStub.onCall(6).returns(null);
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
-            fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            should.not.exist(logSpy.getCall(1));
         });
 
         it('should handle choosing channel being cancelled', async () => {
