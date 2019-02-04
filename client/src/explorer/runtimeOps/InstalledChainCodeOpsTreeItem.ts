@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
@@ -21,6 +20,6 @@ export class InstalledChainCodeOpsTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-runtime-installed-chaincode-item';
 
     constructor(provider: BlockchainExplorerProvider, private readonly name: string, public readonly version: string) {
-        super(provider, `${name}@${version}`, vscode.TreeItemCollapsibleState.None);
+        super(provider, `${name} v${version}`, vscode.TreeItemCollapsibleState.None);
     }
 }

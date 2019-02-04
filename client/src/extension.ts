@@ -29,7 +29,7 @@ import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionUtil } from './util/ExtensionUtil';
 import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
-import { RuntimeTreeItem } from './explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from './explorer/runtimeOps/RuntimeTreeItem';
 import { startFabricRuntime } from './commands/startFabricRuntime';
 import { stopFabricRuntime } from './commands/stopFabricRuntime';
 import { restartFabricRuntime } from './commands/restartFabricRuntime';

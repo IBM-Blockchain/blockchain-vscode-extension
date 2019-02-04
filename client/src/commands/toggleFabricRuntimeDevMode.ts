@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';

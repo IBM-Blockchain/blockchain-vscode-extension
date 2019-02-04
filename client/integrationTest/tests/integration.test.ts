@@ -22,7 +22,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';

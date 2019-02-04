@@ -23,7 +23,7 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
-import { RuntimeTreeItem } from './model/RuntimeTreeItem';
+import { RuntimeTreeItem } from './runtimeOps/RuntimeTreeItem';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';

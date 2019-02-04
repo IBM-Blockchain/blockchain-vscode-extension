@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import { getBlockchainNetworkExplorerProvider } from '../../../src/extension';
-import { RuntimeTreeItem } from '../../../src/explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../../src/fabric/FabricRuntime';
