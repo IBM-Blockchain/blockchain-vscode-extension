@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { ConnectionTreeItem } from './ConnectionTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../fabric/FabricRuntime';
+import { FabricRuntime, FabricRuntimeState } from '../../fabric/FabricRuntime';
 import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
 import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
@@ -71,7 +71,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
-            newLabel = 'Local_fabric runtime is starting... ';
+            newLabel = `Local_fabric runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
             newCommand = null;
             newContextLabel = 'blockchain-runtime-item-busy';

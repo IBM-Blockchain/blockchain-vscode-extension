@@ -89,16 +89,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (!dependancyManager.hasNativeDependenciesInstalled()) {
             await dependancyManager.installNativeDependencies();
 
+            await migrateLocalFabricConfiguration();
+            await ensureLocalFabricExists();
+
             await registerCommands(context);
 
             const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
             await tempCommandRegistry.executeStoredCommands();
         } else {
+            await migrateLocalFabricConfiguration();
+            await ensureLocalFabricExists();
+
             await registerCommands(context);
         }
-
-        await migrateLocalFabricConfiguration();
-        await ensureLocalFabricExists();
 
         ExtensionUtil.setExtensionContext(context);
         outputAdapter.log(LogType.INFO, 'IBM Blockchain Platform Extension activated');
@@ -193,7 +196,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     }
 }
 
-export async function migrateLocalFabricConfiguration(): Promise <void> {
+export async function migrateLocalFabricConfiguration(): Promise<void> {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     await runtimeManager.migrate();
 }
