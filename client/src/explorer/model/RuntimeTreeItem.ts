@@ -64,7 +64,6 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         const busy: boolean = this.runtime.isBusy();
         const created: boolean = await this.runtime.isCreated();
         const running: boolean = await this.runtime.isRunning();
-        const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
         let newCommand: vscode.Command = this.command;
         let newContextLabel: string = this.contextValue;
@@ -104,9 +103,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
                 newContextLabel = 'blockchain-runtime-item-removed';
             }
         }
-        if (developmentMode) {
-            newLabel += '  ∞';
-        }
+
         this.setLabel(newLabel);
         this.setCommand(newCommand);
         this.setContextValue(newContextLabel);
@@ -144,5 +141,4 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             this.busyTicks = 0;
         }
     }
-
 }
