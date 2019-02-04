@@ -55,6 +55,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
     constructor() {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        FabricRuntimeManager.instance().get('local_fabric').on('busy', () => {
+            this.refresh();
+        });
     }
 
     async refresh(element?: BlockchainTreeItem): Promise<void> {
@@ -72,6 +75,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
         try {
 
+            const isBusy: boolean = FabricRuntimeManager.instance().get('local_fabric').isBusy();
             const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
             if (isRunning) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-started', true);
@@ -102,7 +106,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 return this.tree;
             }
 
-            if (isRunning) {
+            if (isRunning && !isBusy) {
                 this.tree = await this.createConnectedTree();
                 await FabricRuntimeManager.instance().getConnection();
             } else {
