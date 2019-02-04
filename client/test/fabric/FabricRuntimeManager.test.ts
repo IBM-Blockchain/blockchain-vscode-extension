@@ -12,12 +12,12 @@
  * limitations under the License.
 */
 
-import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
@@ -34,7 +34,7 @@ chai.should();
 // tslint:disable no-unused-expression
 describe('FabricRuntimeManager', () => {
 
-    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let connection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
@@ -42,12 +42,12 @@ describe('FabricRuntimeManager', () => {
     let sandbox: sinon.SinonSandbox;
 
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
     });
 
@@ -294,7 +294,7 @@ describe('FabricRuntimeManager', () => {
         it('should delete the runtime if it exists', async () => {
             const testRuntimeEntry: FabricRuntimeRegistryEntry = { name: 'runtime1', developmentMode: true };
             await runtimeRegistry.add(testRuntimeEntry);
-            const testConnectionEntry: FabricConnectionRegistryEntry = {
+            const testConnectionEntry: FabricGatewayRegistryEntry = {
                 name: 'runtime1',
                 connectionProfilePath: '/tmp/connection.json',
                 walletPath: 'tmp/wallet',

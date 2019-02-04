@@ -15,7 +15,6 @@
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
 import * as path from 'path';
 
 export class NodesTreeItem extends BlockchainTreeItem {

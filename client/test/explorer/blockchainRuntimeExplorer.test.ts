@@ -55,13 +55,13 @@ class TestFabricConnection extends FabricConnection {
 describe('BlockchainRuntimeExplorer', () => {
 
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.setupTests();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
     });
 

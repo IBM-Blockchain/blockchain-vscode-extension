@@ -19,8 +19,8 @@ import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/Blockch
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry';
-import { FabricConnectionRegistry } from '../../../src/fabric/FabricConnectionRegistry';
-import { FabricConnectionRegistryEntry } from '../../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistry } from '../../../src/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 
@@ -31,10 +31,10 @@ const should: Chai.Should = chai.should();
 
 describe('RuntimeTreeItem', () => {
 
-    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let connection: FabricConnectionRegistryEntry;
+    let connection: FabricGatewayRegistryEntry;
 
     let sandbox: sinon.SinonSandbox;
     let clock: sinon.SinonFakeTimers;
@@ -43,12 +43,12 @@ describe('RuntimeTreeItem', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
 
     });
@@ -59,7 +59,7 @@ describe('RuntimeTreeItem', () => {
         await runtimeRegistry.clear();
         await runtimeManager.clear();
 
-        connection = new FabricConnectionRegistryEntry();
+        connection = new FabricGatewayRegistryEntry();
         connection.name = 'myRuntime';
         connection.managedRuntime = true;
 
@@ -85,7 +85,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isCreated').returns(false);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricGatewayRegistryEntry({
                 name: 'myRuntime',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
@@ -108,7 +108,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricGatewayRegistryEntry({
                 name: 'myRuntime',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
@@ -295,7 +295,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricConnectionRegistryEntry({
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricGatewayRegistryEntry({
                 name: 'myRuntime',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',

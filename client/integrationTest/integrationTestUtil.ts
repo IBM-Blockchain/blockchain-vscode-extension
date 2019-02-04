@@ -21,8 +21,8 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { CommandUtil } from '../src/util/CommandUtil';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
-import { FabricConnectionRegistry } from '../src/fabric/FabricConnectionRegistry';
-import { FabricConnectionRegistryEntry } from '../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
 
@@ -38,7 +38,7 @@ export class IntegrationTestUtil {
     public testContractDir: string;
     public testContractType: string;
     public workspaceFolder: vscode.WorkspaceFolder;
-    public connectionRegistry: FabricConnectionRegistry;
+    public gatewayRegistry: FabricGatewayRegistry;
     public packageRegistry: PackageRegistry;
     public keyPath: string;
     public certPath: string;
@@ -70,7 +70,7 @@ export class IntegrationTestUtil {
         this.inputBoxStub = this.mySandBox.stub(UserInputUtil, 'showInputBox');
         this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
-        this.connectionRegistry = FabricConnectionRegistry.instance();
+        this.gatewayRegistry = FabricGatewayRegistry.instance();
         this.browseEditStub = this.mySandBox.stub(UserInputUtil, 'browseEdit');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
@@ -84,25 +84,25 @@ export class IntegrationTestUtil {
     }
 
     public async createFabricConnection(): Promise<void> {
-        if (this.connectionRegistry.exists('myConnection')) {
-            await this.connectionRegistry.delete('myConnection');
+        if (this.gatewayRegistry.exists('myGateway')) {
+            await this.gatewayRegistry.delete('myGateway');
         }
 
-        this.inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
-        this.browseEditStub.withArgs('Enter a file path to a connection profile file', 'myConnection').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
+        this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
+        this.browseEditStub.withArgs('Enter a file path to a connection profile file', 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
-        this.browseEditStub.withArgs('Browse for a certificate file', 'myConnection').resolves(this.certPath);
-        this.browseEditStub.withArgs('Browse for a private key file', 'myConnection').resolves(this.keyPath);
+        this.browseEditStub.withArgs('Browse for a certificate file', 'myGateway').resolves(this.certPath);
+        this.browseEditStub.withArgs('Browse for a private key file', 'myGateway').resolves(this.keyPath);
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayEntry');
 
-        this.connectionRegistry.exists('myConnection').should.be.true;
+        this.gatewayRegistry.exists('myGateway').should.be.true;
     }
 
     public async connectToFabric(): Promise<void> {
-        const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', connection);
+        const gateway: FabricGatewayRegistryEntry = FabricGatewayRegistry.instance().get('myGateway');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', gateway);
     }
 
     public async createSmartContract(name: string, type: string): Promise<void> {

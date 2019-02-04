@@ -25,7 +25,6 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../../test/TestUtil';
@@ -35,6 +34,7 @@ import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
+import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -55,7 +55,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         this.timeout(600000);
 
         await ExtensionUtil.activateExtension();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeExtensionDirectoryConfig();
 
@@ -75,7 +75,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
     after(async () => {
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
         VSCodeOutputAdapter.instance().setConsole(false);
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreExtensionDirectoryConfig();
     });
@@ -451,17 +451,17 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             allChildren.length.should.equal(5);
 
-            allChildren[0].label.should.equal('Connected via gateway: myConnection');
+            allChildren[0].label.should.equal('Connected via gateway: myGateway');
             allChildren[3].label.should.equal('mychannel');
             allChildren[4].label.should.equal('myotherchannel');
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
             connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-            const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myConnection')) as ConnectionTreeItem;
+            const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myGateway')) as ConnectionTreeItem;
 
             showConfirmationWarningMessageStub.resolves(true);
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry', myConnectionItem);
-            integrationTestUtil.connectionRegistry.exists('myConnection').should.be.false;
+            integrationTestUtil.gatewayRegistry.exists('myGateway').should.be.false;
         }).timeout(0);
     });
 });

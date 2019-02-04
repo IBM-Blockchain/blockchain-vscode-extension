@@ -12,25 +12,25 @@
  * limitations under the License.
 */
 
-import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 
 import * as chai from 'chai';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 
 chai.should();
 
-describe('FabricConnectionRegistry', () => {
+describe('FabricGatewayRegistry', () => {
 
-    const registry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    const registry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
     });
 
     beforeEach(async () => {
@@ -43,15 +43,15 @@ describe('FabricConnectionRegistry', () => {
     });
 
     it('should manage configuration for connections', async () => {
-        const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry({
+        const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'my-fabric-network',
             connectionProfilePath: '/tmp/connection.json',
             walletPath: 'tmp/wallet',
             managedRuntime: false
         });
         registry.getAll().should.deep.equal([]);
-        await registry.add(connection);
-        registry.getAll().should.deep.equal([connection]);
+        await registry.add(gateway);
+        registry.getAll().should.deep.equal([gateway]);
     });
 
 });

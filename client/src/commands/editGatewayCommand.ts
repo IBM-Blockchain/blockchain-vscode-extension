@@ -15,11 +15,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
-import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
-import { ConnectionPropertyTreeItem } from '../explorer/model/ConnectionPropertyTreeItem';
-import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
-import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionUtil } from '../util/ExtensionUtil';
@@ -27,36 +22,41 @@ import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
+import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
+import { GatewayPropertyTreeItem } from '../explorer/model/GatewayPropertyTreeItem';
 
-export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem | ConnectionTreeItem): Promise < {} | void > {
+export async function editGatewayCommand(treeItem: GatewayPropertyTreeItem | GatewayTreeItem): Promise < {} | void > {
 
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, `editConnection ${treeItem}`);
+    outputAdapter.log(LogType.INFO, undefined, `editGateway ${treeItem}`);
 
-    const fabricConnectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     let propertyToEdit: string;
-    let connection: FabricConnectionRegistryEntry;
+    let gateway: FabricGatewayRegistryEntry;
 
     try {
         if (!treeItem) {
             // If called from command palette
-            // Ask for connection
-            const chosenConnection: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose the connection that you want to edit', false);
-            if (!chosenConnection) {
+            // Ask for gateway
+            const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to edit', false);
+            if (!chosenGateway) {
                 return;
             }
-            connection = chosenConnection.data;
+            gateway = chosenGateway.data;
 
-            // Check if the connection is completed
-            const completedConnection: boolean = FabricConnectionHelper.isCompleted(chosenConnection.data);
+            // Check if the gateway is completed
+            const completedGateway: boolean = FabricGatewayHelper.isCompleted(chosenGateway.data);
 
-            if (completedConnection) {
+            if (completedGateway) {
                 // Open up the user settings
-                await UserInputUtil.openUserSettings(chosenConnection.label);
+                await UserInputUtil.openUserSettings(chosenGateway.label);
                 return;
             } else {
                 // Browse or Edit for uncompleted fields
-                propertyToEdit = await getProperty(chosenConnection.data);
+                propertyToEdit = await getProperty(chosenGateway.data);
                 if (!propertyToEdit) {
                     return;
                 }
@@ -64,7 +64,7 @@ export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem
 
         } else {
             // If called using tree item
-            connection = treeItem.connection;
+            gateway = treeItem.gateway;
             // Get the name of the property the user clicked on
             if (treeItem.label.includes('✓')) {
                 // Don't allow user to change already completed connection properties
@@ -74,7 +74,7 @@ export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem
             }
             if (!propertyToEdit) {
                 // If trying to edit an uncompleted connection by right-clicking and selecting 'Edit Connection'
-                await UserInputUtil.openUserSettings(connection.name);
+                await UserInputUtil.openUserSettings(gateway.name);
                 return;
             }
         }
@@ -82,31 +82,31 @@ export async function editConnectionCommand(treeItem: ConnectionPropertyTreeItem
         // Do nothing if user cancels adding input
         if (propertyToEdit === 'Connection Profile') {
 
-            await editConnectionProfile(connection, fabricConnectionRegistry, outputAdapter);
+            await editConnectionProfile(gateway, fabricGatewayRegistry, outputAdapter);
 
         } else if (propertyToEdit === 'Wallet') {
 
-            await editWallet(connection, fabricConnectionRegistry, outputAdapter);
+            await editWallet(gateway, fabricGatewayRegistry, outputAdapter);
 
         } else {
             // PropertyToEdit is Identity
-            await editIdentity(connection, fabricConnectionRegistry, outputAdapter);
+            await editIdentity(gateway, fabricGatewayRegistry, outputAdapter);
         }
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Failed to edit connection: ${error.message}`, `Failed to edit connection: ${error.toString()}`);
+        outputAdapter.log(LogType.ERROR, `Failed to edit gateway: ${error.message}`, `Failed to edit gateway: ${error.toString()}`);
         return;
     }
 
 }
 
-async function addIdentitytoNewWallet(connection: FabricConnectionRegistryEntry, identityName: string, certPath: string, keyPath: string): Promise<string> {
+async function addIdentitytoNewWallet(gateway: FabricGatewayRegistryEntry, identityName: string, certPath: string, keyPath: string): Promise<string> {
 
-    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(connection.connectionProfilePath);
+    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(gateway.connectionProfilePath);
     const certificate: string = await fs.readFile(certPath, 'utf8');
     const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-    const wallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(connection.name);
+    const wallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(gateway.name);
     try {
         await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
     } catch (error) {
@@ -154,26 +154,26 @@ async function getIdentity(connectionName: string): Promise<any> {
     return result;
 }
 
-function getOptions(connection: any): string[] {
+function getOptions(gateway: any): string[] {
     const options: string[] = [];
 
-    if (!FabricConnectionHelper.connectionProfilePathComplete(connection)) {
+    if (!FabricGatewayHelper.connectionProfilePathComplete(gateway)) {
         options.push('Connection Profile');
     }
-    if (!FabricConnectionHelper.walletPathComplete(connection)) {
+    if (!FabricGatewayHelper.walletPathComplete(gateway)) {
         options.push('Wallet', 'Identity');
     }
     return options;
 }
 
-async function getProperty(connection: any): Promise<string> {
+async function getProperty(gateway: any): Promise<string> {
     // Get the uncomplete properties
-    const options: string[] = getOptions(connection);
+    const options: string[] = getOptions(gateway);
     if (options.length === 1) {
         return options[0];
     }
 
-    const placeHolder: string = 'Select a connection property to edit:';
+    const placeHolder: string = 'Select a gateway property to edit:';
     const propertyToEdit: string = await vscode.window.showQuickPick(options, { placeHolder });
     if (!propertyToEdit) {
         return;
@@ -182,100 +182,100 @@ async function getProperty(connection: any): Promise<string> {
     return propertyToEdit;
 }
 
-async function editConnectionProfile(connection: FabricConnectionRegistryEntry, fabricConnectionRegistry: FabricConnectionRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
+async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
 
     // Ask for connection profile
-    const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', connection.name, false, {
+    const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
         'Connection Profiles' : ['json', 'yaml', 'yml']
     });
     if (!result) {
         return;
     }
-    connection.connectionProfilePath = result;
-    await fabricConnectionRegistry.update(connection);
-    outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+    gateway.connectionProfilePath = result;
+    await fabricGatewayRegistry.update(gateway);
+    outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
-    if (!FabricConnectionHelper.walletPathComplete(connection) ) {
+    if (!FabricGatewayHelper.walletPathComplete(gateway) ) {
         // Ask method to import identity
         const answer: string = await UserInputUtil.showAddIdentityOptionsQuickPick('Chose a method for importing identity to connect with:');
         if (!answer) {
             return;
         } else if (answer === UserInputUtil.WALLET) {
             // Ask for wallet
-            const walletResult: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', connection.name, true);
+            const walletResult: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', gateway.name, true);
             if (!walletResult) {
                 return;
             }
-            connection.walletPath = walletResult;
-            await fabricConnectionRegistry.update(connection);
-            outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+            gateway.walletPath = walletResult;
+            await fabricGatewayRegistry.update(gateway);
+            outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
         } else {
             // Ask for identity info
-            const identityObject: any = await getIdentity(connection.name);
+            const identityObject: any = await getIdentity(gateway.name);
             if (!identityObject.identityName || !identityObject.certificatePath || !identityObject.privateKeyPath) {
                 return;
             }
             // Import to new wallet
-            const walletPath: string = await addIdentitytoNewWallet(connection, identityObject.identityName, identityObject.certificatePath, identityObject.privateKeyPath);
-            connection.walletPath = walletPath;
-            await fabricConnectionRegistry.update(connection);
-            outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+            const walletPath: string = await addIdentitytoNewWallet(gateway, identityObject.identityName, identityObject.certificatePath, identityObject.privateKeyPath);
+            gateway.walletPath = walletPath;
+            await fabricGatewayRegistry.update(gateway);
+            outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
         }
     }
 }
 
-async function editWallet(connection: FabricConnectionRegistryEntry, fabricConnectionRegistry: FabricConnectionRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
+async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
     // Ask for wallet
-    const result: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', connection.name, true);
+    const result: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', gateway.name, true);
     if (!result) {
         return;
     }
-    connection.walletPath = result;
-    await fabricConnectionRegistry.update(connection);
-    outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+    gateway.walletPath = result;
+    await fabricGatewayRegistry.update(gateway);
+    outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
-    if (!FabricConnectionHelper.connectionProfilePathComplete(connection) ) {
+    if (!FabricGatewayHelper.connectionProfilePathComplete(gateway) ) {
         // Ask for Connection Profile
-        const ccpResult: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', connection.name, false, {
+        const ccpResult: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
             'Connection Profiles' : ['json', 'yaml', 'yml']
         });
         if (!ccpResult) {
             return;
         }
-        connection.connectionProfilePath = ccpResult;
-        await fabricConnectionRegistry.update(connection);
-        outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+        gateway.connectionProfilePath = ccpResult;
+        await fabricGatewayRegistry.update(gateway);
+        outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }
 
 }
 
-async function editIdentity(connection: FabricConnectionRegistryEntry, fabricConnectionRegistry: FabricConnectionRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
+async function editIdentity(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
     // PropertyToEdit is Identity
 
-    const identityObject: any = await getIdentity(connection.name);
+    const identityObject: any = await getIdentity(gateway.name);
     if (!identityObject.identityName || !identityObject.certificatePath || !identityObject.privateKeyPath) {
         return;
     }
-    if (!FabricConnectionHelper.connectionProfilePathComplete(connection) ) {
+    if (!FabricGatewayHelper.connectionProfilePathComplete(gateway) ) {
         // Ask for Connection Profile
-        const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', connection.name, false, {
+        const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
             'Connection Profiles' : ['json', 'yaml', 'yml']
         });
         if (!result) {
             // Connection Profile is needed to import identity so throw error if not given
             throw new Error('Connection Profile required to import identity to file system wallet');
         }
-        connection.connectionProfilePath = result;
-        await fabricConnectionRegistry.update(connection);
-        outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+        gateway.connectionProfilePath = result;
+        await fabricGatewayRegistry.update(gateway);
+        outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }
     // Import identity to new wallet
-    const walletPath: string = await addIdentitytoNewWallet(connection, identityObject.identityName, identityObject.certificatePath, identityObject.privateKeyPath);
+    const walletPath: string = await addIdentitytoNewWallet(gateway, identityObject.identityName, identityObject.certificatePath, identityObject.privateKeyPath);
     if (!walletPath) {
         return;
     }
-    connection.walletPath = walletPath;
-    await fabricConnectionRegistry.update(connection);
-    outputAdapter.log(LogType.SUCCESS, 'Successfully updated connection');
+    gateway.walletPath = walletPath;
+    await fabricGatewayRegistry.update(gateway);
+    outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 }

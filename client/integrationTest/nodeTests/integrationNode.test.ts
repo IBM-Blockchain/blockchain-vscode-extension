@@ -53,7 +53,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         this.timeout(600000);
 
         await ExtensionUtil.activateExtension();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeExtensionDirectoryConfig();
 
@@ -73,7 +73,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
     after(async () => {
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
         VSCodeOutputAdapter.instance().setConsole(false);
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreExtensionDirectoryConfig();
     });
