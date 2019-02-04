@@ -13,7 +13,7 @@
 */
 
 import * as vscode from 'vscode';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/RuntimeTreeItem';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
