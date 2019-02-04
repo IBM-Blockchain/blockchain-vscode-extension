@@ -38,14 +38,14 @@ describe('Extension Tests', () => {
         await TestUtil.storeShowHomeOnStart();
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeShowHomeOnStart();
     });
 
     after(async () => {
         await TestUtil.restoreShowHomeOnStart();
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreShowHomeOnStart();
     });
@@ -55,7 +55,7 @@ describe('Extension Tests', () => {
         if (runtimeManager.exists('local_fabric')) {
             await runtimeManager.delete('local_fabric');
         }
-        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
     });
 
     afterEach(async () => {
@@ -79,9 +79,9 @@ describe('Extension Tests', () => {
             'blockchainConnectionsExplorer.refreshEntry',
             'blockchainConnectionsExplorer.connectEntry',
             'blockchainConnectionsExplorer.disconnectEntry',
-            'blockchainConnectionsExplorer.addConnectionEntry',
-            'blockchainConnectionsExplorer.deleteConnectionEntry',
-            'blockchainConnectionsExplorer.addConnectionIdentityEntry',
+            'blockchainConnectionsExplorer.addGatewayEntry',
+            'blockchainConnectionsExplorer.deleteGatewayEntry',
+            'blockchainConnectionsExplorer.addGatewayIdentityEntry',
             'blockchain.createSmartContractProjectEntry',
             'blockchainAPackageExplorer.packageSmartContractProjectEntry',
             'blockchainAPackageExplorer.refreshEntry',
@@ -97,7 +97,7 @@ describe('Extension Tests', () => {
             'blockchainAPackageExplorer.exportSmartContractPackageEntry',
             'blockchainExplorer.installSmartContractEntry',
             'blockchainExplorer.instantiateSmartContractEntry',
-            'blockchainConnectionsExplorer.editConnectionEntry',
+            'blockchainConnectionsExplorer.editGatewayEntry',
             'blockchainConnectionsExplorer.testSmartContractEntry',
             'blockchainConnectionsExplorer.submitTransactionEntry',
             'blockchainExplorer.upgradeSmartContractEntry'
@@ -110,9 +110,9 @@ describe('Extension Tests', () => {
 
         activationEvents.should.deep.equal([
             'onView:blockchainExplorer',
-            'onCommand:blockchainConnectionsExplorer.addConnectionEntry',
-            'onCommand:blockchainConnectionsExplorer.deleteConnectionEntry',
-            'onCommand:blockchainConnectionsExplorer.addConnectionIdentityEntry',
+            'onCommand:blockchainConnectionsExplorer.addGatewayEntry',
+            'onCommand:blockchainConnectionsExplorer.deleteGatewayEntry',
+            'onCommand:blockchainConnectionsExplorer.addGatewayIdentityEntry',
             'onCommand:blockchainConnectionsExplorer.connectEntry',
             'onCommand:blockchainConnectionsExplorer.disconnectEntry',
             'onCommand:blockchainConnectionsExplorer.refreshEntry',
@@ -131,7 +131,7 @@ describe('Extension Tests', () => {
             'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode',
             'onCommand:blockchainExplorer.openFabricRuntimeTerminal',
             'onCommand:blockchainConnectionsExplorer.exportConnectionDetailsEntry',
-            'onCommand:blockchainConnectionsExplorer.editConnectionEntry',
+            'onCommand:blockchainConnectionsExplorer.editGatewayEntry',
             'onCommand:blockchainConnectionsExplorer.testSmartContractEntry',
             'onCommand:blockchainConnectionsExplorer.submitTransactionEntry',
             'onCommand:blockchainExplorer.upgradeSmartContractEntry',
@@ -140,7 +140,7 @@ describe('Extension Tests', () => {
     });
 
     it('should refresh the tree when a connection is added', async () => {
-        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
 
         const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
@@ -157,7 +157,7 @@ describe('Extension Tests', () => {
             }]
         };
 
-        await vscode.workspace.getConfiguration().update('fabric.connections', [myConnection], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [myConnection], vscode.ConfigurationTarget.Global);
 
         treeSpy.should.have.been.called;
     });

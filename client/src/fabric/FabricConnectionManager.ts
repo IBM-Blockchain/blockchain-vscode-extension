@@ -14,7 +14,7 @@
 
 import { IFabricConnection } from './IFabricConnection';
 import { EventEmitter } from 'events';
-import { FabricConnectionRegistryEntry } from './FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 
 export class FabricConnectionManager extends EventEmitter {
 
@@ -25,7 +25,7 @@ export class FabricConnectionManager extends EventEmitter {
     private static _instance: FabricConnectionManager = new FabricConnectionManager();
 
     private connection: IFabricConnection;
-    private connectionRegistryEntry: FabricConnectionRegistryEntry;
+    private gatewayRegistryEntry: FabricGatewayRegistryEntry;
 
     private constructor() {
         super();
@@ -35,13 +35,13 @@ export class FabricConnectionManager extends EventEmitter {
         return this.connection;
     }
 
-    public getConnectionRegistryEntry(): FabricConnectionRegistryEntry {
-        return this.connectionRegistryEntry;
+    public getGatewayRegistryEntry(): FabricGatewayRegistryEntry {
+        return this.gatewayRegistryEntry;
     }
 
-    public connect(connection: IFabricConnection, connectionRegistryEntry: FabricConnectionRegistryEntry): void {
+    public connect(connection: IFabricConnection, gatewayRegistryEntry: FabricGatewayRegistryEntry): void {
         this.connection = connection;
-        this.connectionRegistryEntry = connectionRegistryEntry;
+        this.gatewayRegistryEntry = gatewayRegistryEntry;
         this.emit('connected', connection);
     }
 
@@ -51,8 +51,8 @@ export class FabricConnectionManager extends EventEmitter {
             this.connection = null;
         }
 
-        if (this.connectionRegistryEntry) {
-            this.connectionRegistryEntry = null;
+        if (this.gatewayRegistryEntry) {
+            this.gatewayRegistryEntry = null;
         }
         this.emit('disconnected');
     }

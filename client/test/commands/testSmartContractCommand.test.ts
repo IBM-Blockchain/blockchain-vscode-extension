@@ -32,7 +32,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 
@@ -57,7 +57,6 @@ describe('testSmartContractCommand', () => {
     let allChildren: Array<BlockchainTreeItem>;
     let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
     let fabricConnectionManager: FabricConnectionManager;
-    let channel: ChannelTreeItem;
     let chaincodes: any[];
     let instantiatedSmartContract: InstantiatedChaincodeTreeItem;
     let smartContractName: string;
@@ -74,7 +73,7 @@ describe('testSmartContractCommand', () => {
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
     let showLanguageQuickPickStub: sinon.SinonStub;
-    let registryEntry: FabricConnectionRegistryEntry;
+    let registryEntry: FabricGatewayRegistryEntry;
     let getRegistryStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
@@ -157,12 +156,12 @@ describe('testSmartContractCommand', () => {
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
-            registryEntry = new FabricConnectionRegistryEntry();
+            registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = false;
             registryEntry.walletPath = 'walletPath';
-            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionRegistryEntry').returns(registryEntry);
+            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(registryEntry);
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([
@@ -181,9 +180,10 @@ describe('testSmartContractCommand', () => {
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            channel = allChildren[3] as ChannelTreeItem;
-            chaincodes = channel.chaincodes;
+            const channelChildren: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            chaincodes = channelChildren[0].chaincodes;
             instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
+
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs
@@ -831,20 +831,20 @@ describe('testSmartContractCommand', () => {
                 }
             ]);
 
-            registryEntry = new FabricConnectionRegistryEntry();
+            registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = true;
             registryEntry.walletPath = 'otherWalletPath';
-            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionRegistryEntry').returns(registryEntry);
+            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(registryEntry);
 
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
             // Explorer provider stuff
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            channel = allChildren[3] as ChannelTreeItem;
-            chaincodes = channel.chaincodes;
+            const channelChildren: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            chaincodes = channelChildren[0].chaincodes;
             instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;

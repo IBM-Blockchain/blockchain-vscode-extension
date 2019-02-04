@@ -15,7 +15,7 @@
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -116,11 +116,11 @@ describe('SubmitTransactionCommand', () => {
                 }
             );
 
-            const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = false;
-            mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+            mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
             blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
@@ -153,8 +153,8 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should handle connecting being cancelled', async () => {
-            getConnectionStub.onCall(5).returns(null);
-            getConnectionStub.onCall(6).returns(null);
+            getConnectionStub.onCall(2).returns(null);
+            getConnectionStub.onCall(3).returns(null);
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
             executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
@@ -189,12 +189,11 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit transaction through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
+            const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = channelChildren as Array<InstantiatedChaincodeTreeItem>;
-
+            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
 
             const contracts: Array<ContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<ContractTreeItem>;

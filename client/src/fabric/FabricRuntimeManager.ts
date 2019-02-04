@@ -15,7 +15,7 @@
 import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
-import { FabricConnectionRegistry } from './FabricConnectionRegistry';
+import { FabricGatewayRegistry } from './FabricGatewayRegistry';
 import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnectionFactory } from './FabricConnectionFactory';
@@ -32,7 +32,7 @@ export class FabricRuntimeManager {
 
     private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
-    private connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    private connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     private runtimes: Map<string, FabricRuntime> = new Map<string, FabricRuntime>();
 

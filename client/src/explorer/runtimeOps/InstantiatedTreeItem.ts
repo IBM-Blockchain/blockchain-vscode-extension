@@ -15,8 +15,6 @@
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
-import * as path from 'path';
 
 export class InstantiatedTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-runtime-instantiated-item';

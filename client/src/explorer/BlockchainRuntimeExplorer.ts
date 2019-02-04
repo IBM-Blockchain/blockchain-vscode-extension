@@ -22,8 +22,8 @@ import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { RuntimeTreeItem } from './runtimeOps/RuntimeTreeItem';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
@@ -129,7 +129,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         const runtimeRegistryEntry: FabricRuntimeRegistryEntry = this.runtimeRegistryManager.get('local_fabric');
 
         try {
-            const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = runtimeRegistryEntry.name;
             connection.managedRuntime = true;
 

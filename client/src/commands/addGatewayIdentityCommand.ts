@@ -15,9 +15,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
-import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
-import { FabricConnectionHelper } from '../fabric/FabricConnectionHelper';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
@@ -25,25 +22,28 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 
-export async function addConnectionIdentity(connectionItem: ConnectionTreeItem): Promise<{} | void> {
+export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
-    let connectionRegistryEntry: FabricConnectionRegistryEntry;
-    outputAdapter.log(LogType.INFO, undefined, 'addConnectionIdentity');
+    let gatewayRegistryEntry: FabricGatewayRegistryEntry;
+    outputAdapter.log(LogType.INFO, undefined, 'addGatewayIdentity');
 
-    if (connectionItem) {
-        connectionRegistryEntry = connectionItem.connection;
+    if (gatewayItem) {
+        gatewayRegistryEntry = gatewayItem.gateway;
     } else {
-        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to add an identity to', false);
+        const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to add an identity to', false);
         if (!chosenEntry) {
             return;
         }
 
-        connectionRegistryEntry = chosenEntry.data;
+        gatewayRegistryEntry = chosenEntry.data;
     }
 
-    if (!FabricConnectionHelper.isCompleted(connectionRegistryEntry)) {
-        outputAdapter.log(LogType.ERROR, 'Blockchain connection must be completed first!');
+    if (!FabricGatewayHelper.isCompleted(gatewayRegistryEntry)) {
+        outputAdapter.log(LogType.ERROR, 'Blockchain gateway must be completed first!');
         return;
     }
 
@@ -53,12 +53,12 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
         return Promise.resolve();
     }
     // Get the certificate file path
-    const certPath: string = await UserInputUtil.browseEdit('Browse for a certificate file', connectionRegistryEntry.name);
+    const certPath: string = await UserInputUtil.browseEdit('Browse for a certificate file', gatewayRegistryEntry.name);
     if (!certPath) {
         return Promise.resolve();
     }
     ParsedCertificate.validPEM(certPath, 'certificate');
-    const keyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', connectionRegistryEntry.name);
+    const keyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', gatewayRegistryEntry.name);
     if (!keyPath) {
         return Promise.resolve();
     }
@@ -66,13 +66,13 @@ export async function addConnectionIdentity(connectionItem: ConnectionTreeItem):
     ParsedCertificate.validPEM(keyPath, 'private key');
 
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-    const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
+    const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
 
-    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(connectionRegistryEntry.connectionProfilePath);
+    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(gatewayRegistryEntry.connectionProfilePath);
     const certificate: string = await fs.readFile(certPath, 'utf8');
     const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
     await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
     await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
-    outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to connection '${connectionRegistryEntry.name}'`);
+    outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway '${gatewayRegistryEntry.name}'`);
 }
