@@ -13,8 +13,8 @@
 */
 'use strict';
 
-export class FabricConnectionHelper {
-    // Wanted to type with FabricConnectionRegistryEntry but it failed
+export class FabricGatewayHelper {
+    // Wanted to type with FabricGatewayRegistryEntry but it failed
 
     static readonly CONNECTION_PROFILE_PATH_DEFAULT: string = '<PATH_TO_CONNECTION_PROFILE_JSON>';
     static readonly WALLET_PATH_DEFAULT: string = '<PATH_TO_WALLET>';

@@ -16,13 +16,13 @@
 
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
+import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 
 export async function exportConnectionDetails(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();

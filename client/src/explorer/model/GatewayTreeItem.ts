@@ -17,8 +17,8 @@ import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 
-export class ConnectionTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-connection-item';
+export class GatewayTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-gateway-item';
 
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);

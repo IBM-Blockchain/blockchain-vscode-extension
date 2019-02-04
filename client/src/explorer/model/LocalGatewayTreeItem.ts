@@ -11,45 +11,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
-
 'use strict';
-
 import * as vscode from 'vscode';
-import { ConnectionTreeItem } from '../model/ConnectionTreeItem';
+import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 
-export class RuntimeTreeItem extends ConnectionTreeItem {
+export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
-        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState);
+    static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<LocalGatewayTreeItem> {
+        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState);
         await treeItem.updateProperties();
         return treeItem;
     }
 
-    contextValue: string = 'blockchain-runtime-item';
+    contextValue: string = 'blockchain-local-gateway-item';
 
     private name: string;
     private runtime: FabricRuntime;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
-        super(provider, label, connection, collapsableState, command);
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
+        super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         this.runtime = runtimeManager.get(label);
         this.name = this.runtime.getName();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
-    }
-
-    public getRuntime(): FabricRuntime {
-        return this.runtime;
     }
 
     private safelyUpdateProperties(): void {
@@ -64,6 +58,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         const busy: boolean = this.runtime.isBusy();
         const created: boolean = await this.runtime.isCreated();
         const running: boolean = await this.runtime.isRunning();
+        const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
         let newCommand: vscode.Command = this.command;
         let newContextLabel: string = this.contextValue;
@@ -71,40 +66,40 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
-            newLabel = `Local_fabric runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
+            this.tooltip = `${this.label}`;
             newCommand = null;
-            newContextLabel = 'blockchain-runtime-item-busy';
+            newContextLabel = 'blockchain-local-gateway-item-busy';
         } else if (running) {
             // Running!
             this.disableBusyTicker();
-            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            connection.name = this.name;
-            connection.managedRuntime = true;
+            const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gateway.name = this.name;
+            gateway.managedRuntime = true;
             newLabel += '●';
-            newCommand = {
-                command: 'blockchainConnectionsExplorer.connectEntry',
-                title: '',
-                arguments: [connection]
-            };
-            newContextLabel = 'blockchain-runtime-item-started';
+            // newCommand = {
+            //     command: 'blockchainConnectionsExplorer.connectEntry',
+            //     title: '',
+            //     arguments: [gateway]
+            // };
+            this.tooltip = 'Local Fabric is running';
+
+            newContextLabel = 'blockchain-local-gateway-item-started';
         } else {
             // Not running!
             this.disableBusyTicker();
-            newLabel = 'Local fabric runtime is stopped. Click to start.';
-            this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
-            newCommand = {
-                command: 'blockchainExplorer.startFabricRuntime',
-                title: '',
-                arguments: [this]
-            };
+            newLabel += '○';
+            this.tooltip = 'Local Fabric is not running';
+
             if (created) {
-                newContextLabel = 'blockchain-runtime-item-stopped';
+                newContextLabel = 'blockchain-local-gateway-item-stopped';
             } else {
-                newContextLabel = 'blockchain-runtime-item-removed';
+                newContextLabel = 'blockchain-local-gateway-item-removed';
             }
         }
-
+        if (developmentMode) {
+            newLabel += '  ∞';
+        }
         this.setLabel(newLabel);
         this.setCommand(newCommand);
         this.setContextValue(newContextLabel);

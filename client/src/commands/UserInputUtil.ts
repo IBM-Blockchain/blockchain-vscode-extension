@@ -18,8 +18,7 @@ import * as path from 'path';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
@@ -27,6 +26,7 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -49,8 +49,8 @@ export class UserInputUtil {
     static readonly WALLET: string = 'Use an existing wallet on my file system';
     static readonly CERT_KEY: string = 'Create a new wallet for an identity with a certificate and private key';
 
-    public static showConnectionQuickPickBox(prompt: string, showManagedRuntimes?: boolean): Thenable<IBlockchainQuickPickItem<FabricConnectionRegistryEntry> | undefined> {
-        const connections: Array<FabricConnectionRegistryEntry> = FabricConnectionRegistry.instance().getAll();
+    public static showGatewayQuickPickBox(prompt: string, showManagedRuntimes?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
+        const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -58,28 +58,28 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        const managedRuntimes: Array<FabricConnectionRegistryEntry> = [];
+        const managedRuntimes: Array<FabricGatewayRegistryEntry> = [];
         if (showManagedRuntimes) {
             // Allow users to choose from managed runtimes
             const runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
             const allRuntimes: FabricRuntimeRegistryEntry[] = runtimeRegistryManager.getAll();
             for (const runtime of allRuntimes) {
-                const connection: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+                const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 connection.name = runtime.name;
                 connection.managedRuntime = true;
                 managedRuntimes.push(connection);
             }
         }
 
-        const allConnections: Array<FabricConnectionRegistryEntry> = [];
-        allConnections.push(...connections);
-        allConnections.push(...managedRuntimes);
+        const allGateways: Array<FabricGatewayRegistryEntry> = [];
+        allGateways.push(...gateways);
+        allGateways.push(...managedRuntimes);
 
-        const connectionsQuickPickItems: Array<IBlockchainQuickPickItem<FabricConnectionRegistryEntry>> = allConnections.map((connection: FabricConnectionRegistryEntry) => {
-            return { label: connection.name, data: connection };
+        const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
+            return { label: gateway.name, data: gateway };
         });
 
-        return vscode.window.showQuickPick(connectionsQuickPickItems, quickPickOptions);
+        return vscode.window.showQuickPick(gatewaysQuickPickItems, quickPickOptions);
     }
 
     public static showInputBox(question: string): Thenable<string | undefined> {
