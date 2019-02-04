@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { PeerTreeItem } from '../explorer/model/PeerTreeItem';
+import { PeerTreeItem } from '../explorer/runtimeOps/PeerTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
