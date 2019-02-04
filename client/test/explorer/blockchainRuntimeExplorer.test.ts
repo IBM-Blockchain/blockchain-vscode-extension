@@ -22,25 +22,19 @@ import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
-import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
-import { InstalledChainCodeTreeItem } from '../../src/explorer/model/InstalledChainCodeTreeItem';
-import { InstalledChainCodeVersionTreeItem } from '../../src/explorer/model/InstalledChaincodeVersionTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
-import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { OrganizationsTreeItem } from '../../src/explorer/runtimeOps/OrganizationsTreeItem';
-import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
 import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/InstantiateCommandTreeItem';
-import { Peer } from 'fabric-client';
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 
 chai.use(sinonChai);
@@ -103,7 +97,7 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
-                mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects({message: 'some error'});
+                mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects({ message: 'some error' });
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 await blockchainRuntimeExplorerProvider.getChildren();
@@ -125,7 +119,7 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should handle errors thrown when connection fails (with message)', async () => {
-                getConnectionStub.onCall(0).rejects({message: 'some error'});
+                getConnectionStub.onCall(0).rejects({ message: 'some error' });
                 isRunningStub.resolves(true);
 
                 const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
@@ -141,7 +135,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws({message: 'Received http2 header with status: 503'});
+                fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
                 const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
@@ -165,6 +159,8 @@ describe('BlockchainRuntimeExplorer', () => {
 
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
+
+                mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isDevelopmentMode').returns(false);
                 errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
                 await ExtensionUtil.activateExtension();
@@ -275,7 +271,6 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should show peers (nodes) correctly', async () => {
-
                 const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -299,7 +294,7 @@ describe('BlockchainRuntimeExplorer', () => {
             it('should error if there is a problem with displaying instantiated chaincodes', async () => {
 
                 const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
-                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').rejects({message: 'some error'});
+                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').rejects({ message: 'some error' });
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
@@ -395,7 +390,7 @@ describe('BlockchainRuntimeExplorer', () => {
             it('should handle errror getting installed chaincodes', async () => {
 
                 const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
-                fabricConnection.getInstalledChaincode.withArgs('peerOne').rejects({message: 'some error'});
+                fabricConnection.getInstalledChaincode.withArgs('peerOne').rejects({ message: 'some error' });
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 

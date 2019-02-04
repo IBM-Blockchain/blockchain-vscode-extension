@@ -28,7 +28,7 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
-import { PeerTreeItem } from '../../src/explorer/model/PeerTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import * as path from 'path';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';

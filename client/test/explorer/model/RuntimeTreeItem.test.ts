@@ -67,7 +67,7 @@ describe('RuntimeTreeItem', () => {
         await runtimeManager.add('myRuntime');
         runtime = runtimeManager.get('myRuntime');
         sandbox = sinon.createSandbox();
-        clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
+        clock = sinon.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     });
 
     afterEach(async () => {
@@ -252,43 +252,6 @@ describe('RuntimeTreeItem', () => {
                 arguments: [treeItem]
             });
             treeItem.contextValue.should.equal('blockchain-runtime-item-stopped');
-        });
-
-        it('should have the right properties for a runtime that is not running in development mode', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isDevelopmentMode').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
-
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.  ∞');
-            treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.startFabricRuntime',
-                title: '',
-                arguments: [treeItem]
-            });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-stopped');
-        });
-
-        it('should have the right properties for a runtime that is running in development mode', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isDevelopmentMode').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(true);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            treeItem.label.should.equal('myRuntime  ●  ∞');
-            treeItem.command.should.deep.equal({
-                command: 'blockchainConnectionsExplorer.connectEntry',
-                title: '',
-                arguments: [connection]
-            });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-started');
         });
 
         it('should report errors animating the label for a runtime that is busy', async () => {

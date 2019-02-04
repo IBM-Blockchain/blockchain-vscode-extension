@@ -38,7 +38,7 @@ import { FabricConnectionRegistryEntry } from './fabric/FabricConnectionRegistry
 import { ConnectionTreeItem } from './explorer/model/ConnectionTreeItem';
 import { BlockchainTreeItem } from './explorer/model/BlockchainTreeItem';
 import { deleteSmartContractPackage } from './commands/deleteSmartContractPackageCommand';
-import { PeerTreeItem } from './explorer/model/PeerTreeItem';
+import { PeerTreeItem } from './explorer/runtimeOps/PeerTreeItem';
 import { installSmartContract } from './commands/installCommand';
 import { ChannelTreeItem } from './explorer/model/ChannelTreeItem';
 import { instantiateSmartContract } from './commands/instantiateCommand';
