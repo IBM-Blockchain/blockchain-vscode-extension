@@ -21,8 +21,11 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
+import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
-export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: InstantiatedChaincodeTreeItem): Promise<void> {
+export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'upgradeSmartContract');
     let channelName: string;
@@ -30,33 +33,45 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
     let packageEntry: PackageRegistryEntry;
     let contractName: string;
     let contractVersion: string;
-    // if (!instantiatedChainCodeTreeItem) {
-    if (!FabricConnectionManager.instance().getConnection()) {
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
-        if (!FabricConnectionManager.instance().getConnection()) {
-            // either the user cancelled or ther was an error so don't carry on
+
+    if ((treeItem instanceof InstantiatedChaincodeTreeItem)) {
+        // Called on instantiated chaincode tree item
+        contractName = treeItem.name;
+        contractVersion = treeItem.version;
+        channelName = treeItem.channel.label;
+        peers = new Set(treeItem.channel.peers);
+
+    } else if ((treeItem instanceof ChannelTreeItem)) {
+        // Called on a channel
+        channelName = treeItem.label;
+        peers = new Set(treeItem.peers);
+
+        // We should now ask for the instantiated smart contract to upgrade
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName, connection);
+        contractName = initialSmartContract.data.name;
+        contractVersion = initialSmartContract.data.version;
+
+    } else {
+        // called on '+ Instantiate' or via the command palette
+        const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+        if (!isRunning) {
+            // Start local_fabric to connect
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+        }
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on', connection);
+        if (!chosenChannel) {
             return;
         }
+        channelName = chosenChannel.label;
+        peers = chosenChannel.data;
+
+        // We should now ask for the instantiated smart contract to upgrade
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName, connection);
+        contractName = initialSmartContract.data.name;
+        contractVersion = initialSmartContract.data.version;
     }
-
-    const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on');
-    if (!chosenChannel) {
-        return;
-    }
-
-    channelName = chosenChannel.label;
-    peers = chosenChannel.data;
-
-    // We should now ask for the instantiated smart contract to upgrade
-    const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
-    contractName = initialSmartContract.data.name;
-    contractVersion = initialSmartContract.data.version;
-    // } else {
-    //     contractName = instantiatedChainCodeTreeItem.name;
-    //     contractVersion = instantiatedChainCodeTreeItem.version;
-    //     channelName = instantiatedChainCodeTreeItem.channel.label;
-    //     peers = new Set(instantiatedChainCodeTreeItem.channel.peers);
-    // }
 
     try {
         const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', peers, contractName, contractVersion);
@@ -105,13 +120,14 @@ export async function upgradeSmartContract(instantiatedChainCodeTreeItem?: Insta
         }, async (progress: vscode.Progress<{message: string}>) => {
 
             progress.report({message: 'Upgrading Smart Contract'});
-            const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+
             if (packageEntry) {
                 // If the package has been installed as part of this command
-                await fabricClientConnection.upgradeChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
+                await connection.upgradeChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
             } else {
                 // If the package was already installed
-                await fabricClientConnection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
+                await connection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
             }
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');

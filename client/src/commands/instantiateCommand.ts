@@ -22,6 +22,7 @@ import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
@@ -31,26 +32,27 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
 
-    // if (!(treeItem instanceof ChannelTreeItem)) {
-    if (!FabricConnectionManager.instance().getConnection()) {
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
-        if (!FabricConnectionManager.instance().getConnection()) {
-            // either the user cancelled or ther was an error so don't carry on
+    if (treeItem instanceof ChannelTreeItem) {
+        // If clicked on runtime channel
+        const channelTreeItem: ChannelTreeItem = treeItem as ChannelTreeItem;
+        channelName = channelTreeItem.label;
+        peers = new Set(channelTreeItem.peers);
+    } else {
+        // Called from command palette or Instantiated runtime tree item
+        const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+        if (!isRunning) {
+            // Start local_fabric to connect
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+        }
+
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on', connection);
+        if (!chosenChannel) {
             return;
         }
+        channelName = chosenChannel.label;
+        peers = chosenChannel.data;
     }
-
-    const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
-    if (!chosenChannel) {
-        return;
-    }
-    channelName = chosenChannel.label;
-    peers = chosenChannel.data;
-// } else {
-    // const channelTreeItem: ChannelTreeItem = treeItem as ChannelTreeItem;
-    // channelName = channelTreeItem.label;
-    // peers = new Set(channelTreeItem.peers);
-// }
 
     try {
 
@@ -97,14 +99,14 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         }, async (progress: vscode.Progress<{message: string}>) => {
 
             progress.report({message: 'Instantiating Smart Contract'});
-            const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
 
             if (packageEntry) {
                 // If the package has been installed as part of this command
-                await fabricClientConnection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
+                await connection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
             } else {
                 // If the package was already installed
-                await fabricClientConnection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
+                await connection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
             }
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
