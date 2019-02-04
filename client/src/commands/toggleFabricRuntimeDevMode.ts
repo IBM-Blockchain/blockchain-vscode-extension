@@ -52,6 +52,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
         });
     }
 
+    await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
     outputAdapter.log(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
 
 }

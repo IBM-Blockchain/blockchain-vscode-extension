@@ -17,22 +17,16 @@
 import * as vscode from 'vscode';
 
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { PeerTreeItem } from './model/PeerTreeItem';
+import { PeerTreeItem } from './runtimeOps/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
-import { InstalledChainCodeTreeItem } from './model/InstalledChainCodeTreeItem';
-import { InstalledChainCodeVersionTreeItem } from './model/InstalledChaincodeVersionTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
 import { RuntimeTreeItem } from './model/RuntimeTreeItem';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
-import { FabricRuntime } from '../fabric/FabricRuntime';
-import { TransactionTreeItem } from './model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
-import { MetadataUtil } from '../util/MetadataUtil';
-import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { SmartContractsTreeItem } from './runtimeOps/SmartContractsTreeItem';
@@ -243,7 +237,8 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = null;
-                tree.push(new PeerTreeItem(this, peer, chaincodes, vscode.TreeItemCollapsibleState.None, true));
+                const peerTreeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(this, peer, chaincodes, vscode.TreeItemCollapsibleState.None, true);
+                tree.push(peerTreeItem);
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating nodes view: ${error.message}`, `Error populating nodes view: ${error.toString()}`);
