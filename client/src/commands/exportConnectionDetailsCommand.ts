@@ -24,16 +24,10 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function exportConnectionDetails(connectionTreeItem?: ConnectionTreeItem): Promise<void> {
+export async function exportConnectionDetails(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
-    // if (connectionTreeItem) {
-    //     const connectionRegistry: FabricConnectionRegistryEntry = connectionTreeItem.connection;
-    //     fabricRuntime = FabricRuntimeManager.instance().get(connectionRegistry.name);
-    // } else {
-    //     fabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
-    // }
 
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();

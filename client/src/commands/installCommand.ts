@@ -98,10 +98,10 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
 
         if (successfulInstall) {
             // Package was installed on all peers successfully
-            if (peerNames.size !== 1) {
-                // If the package has only been installed on one peer, we disregard this success message
-                outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            }
+            // if (peerNames.size !== 1) {
+            //     // If the package has only been installed on one peer, we disregard this success message
+            //     outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
+            // }
             return chosenPackage;
         } else {
             // Failed to install package on all peers.
