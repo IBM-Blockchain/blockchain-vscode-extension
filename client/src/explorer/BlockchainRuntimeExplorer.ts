@@ -318,7 +318,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
                 chaincodes.forEach((versions: Array<string>, name: string) => {
                     for (const version of versions) {
-                        tree.push(new InstalledChainCodeOpsTreeItem(this, name, version));
+                        tree.push(new InstalledChainCodeOpsTreeItem(this, name, version, peer));
                     }
                 });
             }
