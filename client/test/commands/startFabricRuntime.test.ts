@@ -24,14 +24,16 @@ import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/Blockchain
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
-
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 
 chai.should();
 
 // tslint:disable no-unused-expression
-xdescribe('startFabricRuntime', () => {
+describe('startFabricRuntime', () => {
 
     let sandbox: sinon.SinonSandbox;
     const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
@@ -40,6 +42,7 @@ xdescribe('startFabricRuntime', () => {
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
     let commandSpy: sinon.SinonSpy;
+    const rootPath: string = path.dirname(__dirname);
 
     before(async () => {
         await TestUtil.setupTests();
@@ -61,6 +64,14 @@ xdescribe('startFabricRuntime', () => {
         await runtimeManager.add('local_fabric');
         runtime = runtimeManager.get('local_fabric');
         sandbox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+
+        sandbox.stub(runtime, 'getConnectionProfile').resolves();
+        sandbox.stub(runtime, 'getCertificate').resolves();
+        sandbox.stub(runtime, 'getPrivateKey').resolves();
+        const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+        sandbox.stub(testFabricWallet, 'importIdentity').resolves();
+        sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;

@@ -105,19 +105,6 @@ describe('BlockchainRuntimeExplorer', () => {
                 errorSpy.should.have.been.calledWith('Error populating Local Fabric Control Panel: some error');
             });
 
-            xit('should handle errors thrown when connection fails (no message)', async () => {
-
-                getConnectionStub.onCall(0).rejects('some error');
-                isRunningStub.resolves(true);
-
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
-                const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
-
-                await blockchainRuntimeExplorerProvider.getChildren();
-
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error', 'Error populating Local Fabric Control Panel: some error');
-            });
-
             it('should handle errors thrown when connection fails (with message)', async () => {
                 getConnectionStub.onCall(0).rejects({ message: 'some error' });
                 isRunningStub.resolves(true);
@@ -130,21 +117,21 @@ describe('BlockchainRuntimeExplorer', () => {
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error', 'Error populating Local Fabric Control Panel: some error');
             });
 
-            xit('should error if gRPC cant connect to Fabric', async () => {
+            it('should error if gRPC cant connect to Fabric', async () => {
+                isRunningStub.resolves(true);
+                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+                const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
+                await blockchainRuntimeExplorerProvider.getChildren(smartcontractsChildren[0]);
 
-                isRunningStub.resolves(true);
-
-                await blockchainRuntimeExplorerProvider.getChildren();
-
-                // logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Received http2 header with status: 503');
+                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating instantiated smart contracts view: Cannot connect to Fabric: Received http2 header with status: 503', 'Error populating instantiated smart contracts view: Cannot connect to Fabric: Received http2 header with status: 503');
                 logSpy.should.have.been.calledOnce;
             });
         });
@@ -259,15 +246,6 @@ describe('BlockchainRuntimeExplorer', () => {
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
 
-            });
-
-            xit('should not create anything if no peers', async () => {
-
-                fabricConnection.getAllPeerNames.returns([]);
-
-                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(0);
             });
 
             it('should show peers (nodes) correctly', async () => {
