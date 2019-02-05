@@ -14,23 +14,24 @@
 'use strict';
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import * as myExtension from '../../src/extension';
-import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
+import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
+import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -55,7 +56,10 @@ describe('InstantiateCommand', () => {
         let isRunningStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
-        let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
+        let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
+        let instantiateCommandTreeItem: InstallCommandTreeItem;
+        let smartContractsChildren: BlockchainTreeItem[];
+        let channelsChildren: BlockchainTreeItem[];
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -102,7 +106,7 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
 
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
-            fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne']);
+            fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myChannel']);
 
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
 
@@ -112,9 +116,16 @@ describe('InstantiateCommand', () => {
             registryEntry.managedRuntime = false;
             mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
 
-            blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+            allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
-            allChildren = await blockchainNetworkExplorerProvider.getChildren();
+            const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
+            smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
+            const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
+            instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstallCommandTreeItem;
+
+            const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
+            channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
         });
 
         afterEach(async () => {
@@ -127,7 +138,7 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
-            executeCommandStub.secondCall.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
+            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
@@ -171,12 +182,28 @@ describe('InstantiateCommand', () => {
             should.not.exist(logSpy.getCall(1));
         });
 
-        xit('should instantiate smart contract through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
+        it('should instantiate smart contract through the tree by clicking + Instantiate in the runtime ops view', async () => {
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', instantiateCommandTreeItem);
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', myChannel);
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
-            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should instantiate smart contract through the tree by right-clicking Instantiated in the runtime ops view', async () => {
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', smartContractsChildren[0]);
+
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should instantiate smart contract through the tree by right-clicking on channel in the runtime ops view', async () => {
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', channelsChildren[0]);
+
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');

@@ -85,19 +85,19 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
             if (element) {
                 if (element instanceof SmartContractsTreeItem) {
-                    this.tree = await this.createSmartContractsTree(element as SmartContractsTreeItem);
+                    this.tree = await this.createSmartContractsTree();
                 }
                 if (element instanceof ChannelsOpsTreeItem) {
-                    this.tree = await this.createChannelsTree(element as ChannelsOpsTreeItem);
+                    this.tree = await this.createChannelsTree();
                 }
                 if (element instanceof NodesTreeItem) {
-                    this.tree = await this.createNodesTree(element as NodesTreeItem);
+                    this.tree = await this.createNodesTree();
                 }
                 if (element instanceof OrganizationsTreeItem) {
-                    this.tree = await this.createOrganizationsTree(element as OrganizationsTreeItem);
+                    this.tree = await this.createOrganizationsTree();
                 }
                 if (element instanceof InstantiatedTreeItem) {
-                    this.tree = await this.createInstantiatedTree(element as InstantiatedTreeItem);
+                    this.tree = await this.createInstantiatedTree();
                 }
                 if (element instanceof InstalledTreeItem) {
                     this.tree = await this.createInstalledTree(element as InstalledTreeItem);
@@ -202,8 +202,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         });
     }
 
-    // TODO: remove parameter if not needed
-    private async createSmartContractsTree(smartContracts: SmartContractsTreeItem): Promise<Array<BlockchainTreeItem>> {
+    private async createSmartContractsTree(): Promise<Array<BlockchainTreeItem>> {
         const tree: Array<BlockchainTreeItem> = [];
 
         tree.push(new InstantiatedTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
@@ -213,7 +212,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async createChannelsTree(channelsItem: ChannelsOpsTreeItem): Promise<Array<BlockchainTreeItem>> {
+    private async createChannelsTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
 
@@ -232,7 +231,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async createNodesTree(nodesTreeItem: NodesTreeItem): Promise<Array<BlockchainTreeItem>> {
+    private async createNodesTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
 
@@ -253,7 +252,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
     }
 
-    private async createOrganizationsTree(orgTreeItem: OrganizationsTreeItem): Promise<Array<BlockchainTreeItem>> {
+    private async createOrganizationsTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
 
@@ -276,7 +275,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
     }
 
-    private async createInstantiatedTree(instantiatedTreeItem: InstantiatedTreeItem): Promise<Array<BlockchainTreeItem>> {
+    private async createInstantiatedTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
 

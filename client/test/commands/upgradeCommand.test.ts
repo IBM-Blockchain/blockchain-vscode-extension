@@ -19,18 +19,19 @@ import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnection
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
+import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
+import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -54,10 +55,13 @@ describe('UpgradeCommand', () => {
         let showInputBoxStub: sinon.SinonStub;
         let showInstantiatedSmartContractsQuickPick: sinon.SinonStub;
         let allChildren: Array<BlockchainTreeItem>;
-        let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
         let reporterStub: sinon.SinonStub;
         let getRuntimeConnectionStub: sinon.SinonStub;
         let isRunningStub: sinon.SinonStub;
+        let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
+        let instantiatedSmartContractsList: BlockchainTreeItem[];
+        let smartContractsChildren: BlockchainTreeItem[];
+        let channelsChildren: BlockchainTreeItem[];
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -114,8 +118,6 @@ describe('UpgradeCommand', () => {
             registryEntry.managedRuntime = false;
             mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
 
-            blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-
             showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, new Set(['peerOne'])).resolves(
                 {
                     label: 'biscuit-network@0.0.2',
@@ -134,7 +136,14 @@ describe('UpgradeCommand', () => {
                 { label: 'biscuit-network@0.0.1', data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' } }
             );
 
-            allChildren = await blockchainNetworkExplorerProvider.getChildren();
+            blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+            allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+            const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
+            smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
+            instantiatedSmartContractsList = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
+
+            const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
+            channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
         });
 
         afterEach(async () => {
@@ -162,14 +171,6 @@ describe('UpgradeCommand', () => {
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
         });
 
-        xit('should handle connecting being cancelled', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(null);
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
-            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
-            fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
-        });
-
         it('should handle choosing channel being cancelled', async () => {
             showChannelQuickPickStub.resolves();
 
@@ -195,16 +196,27 @@ describe('UpgradeCommand', () => {
             fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
         });
 
-        xit('should upgrade smart contract through the tree', async () => {
+        it('should upgrade smart contract through the tree by right-clicking on an instantiated smart contract in the runtime ops view', async () => {
 
             executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-            const channelOne: ChannelTreeItem = allChildren[3] as ChannelTreeItem;
-            const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
-            channelChildrenOne.length.should.equal(1);
 
-            const instantiatedChaincodeTreeItem: InstantiatedChaincodeTreeItem = channelChildrenOne[0] as InstantiatedChaincodeTreeItem;
+            instantiatedSmartContractsList.length.should.equal(2);
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry', instantiatedChaincodeTreeItem);
+            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry', instantiatedSmartContractsList[0] as InstalledChainCodeOpsTreeItem);
+
+            fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
+
+            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            reporterStub.should.have.been.calledWith('upgradeCommand');
+        });
+
+        it('should upgrade smart contract through the tree by right-clicking on a channel in the runtime ops view', async () => {
+
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            channelsChildren.length.should.equal(1);
+
+            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry', channelsChildren[0]);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
 

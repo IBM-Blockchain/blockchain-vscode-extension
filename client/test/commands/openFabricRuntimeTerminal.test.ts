@@ -19,11 +19,11 @@ import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
-
+import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 chai.should();
@@ -36,9 +36,10 @@ describe('openFabricRuntimeTerminal', () => {
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
-    let runtimeTreeItem: RuntimeTreeItem;
     let mockTerminal: any;
     let createTerminalStub: sinon.SinonStub;
+    let nodes: NodesTreeItem;
+    let peerTreeItem: PeerTreeItem;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -59,9 +60,12 @@ describe('openFabricRuntimeTerminal', () => {
         await runtimeManager.clear();
         await runtimeManager.add('local_fabric');
         runtime = runtimeManager.get('local_fabric');
-        const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-        const children: BlockchainTreeItem[] = await provider.getChildren();
-        runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
+        sandbox.stub(runtime, 'isRunning').resolves(true);
+        const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const allChildren: BlockchainTreeItem[] = await provider.getChildren();
+        nodes = allChildren[2] as NodesTreeItem;
+        const peers: BlockchainTreeItem[] = await provider.getChildren(nodes);
+        peerTreeItem = peers[0] as PeerTreeItem;
         mockTerminal = {
             show: sinon.stub()
         };
@@ -75,8 +79,8 @@ describe('openFabricRuntimeTerminal', () => {
         await runtimeManager.clear();
     });
 
-    xit('should open a terminal for a Fabric runtime specified by right clicking the tree', async () => {
-        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', runtimeTreeItem);
+    it('should open a terminal for a Fabric runtime specified by right clicking the tree', async () => {
+        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', peerTreeItem);
         createTerminalStub.should.have.been.calledOnceWithExactly(
             'Fabric runtime - local_fabric',
             'docker',
