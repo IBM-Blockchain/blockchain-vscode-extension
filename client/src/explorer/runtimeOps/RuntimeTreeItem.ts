@@ -15,7 +15,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { ConnectionTreeItem } from './ConnectionTreeItem';
+import { ConnectionTreeItem } from '../model/ConnectionTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../fabric/FabricRuntime';
