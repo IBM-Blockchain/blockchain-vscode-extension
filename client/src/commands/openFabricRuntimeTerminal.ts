@@ -13,11 +13,10 @@
 */
 
 import * as vscode from 'vscode';
-import { RuntimeTreeItem } from '../explorer/runtimeOps/RuntimeTreeItem';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
-export async function openFabricRuntimeTerminal(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function openFabricRuntimeTerminal(): Promise<void> {
     const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 
     const name: string = `Fabric runtime - ${runtime.getName()}`;
