@@ -222,7 +222,8 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             const channels: Array<string> = Array.from(channelMap.keys());
 
             for (const channel of channels) {
-                tree.push(new ChannelTreeItem(this, channel, [], [], vscode.TreeItemCollapsibleState.None));
+                const peers: Array<string> = channelMap.get(channel);
+                tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.None));
             }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channels view: ${error.toString()}`);
@@ -291,8 +292,10 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             const channels: Array<string> = Array.from(channelMap.keys());
             for (const channel of channels) {
                 const chaincodes: any[] = await connection.getInstantiatedChaincode(channel);
+                const peers: Array<string> = channelMap.get(channel);
+                const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None);
                 for (const chaincode of chaincodes) {
-                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, null, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
                 }
             }
         } catch (error) {
@@ -307,12 +310,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     private async createInstalledTree(installedTreeItem: InstalledTreeItem): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
-        const command: vscode.Command = {
-            command: 'blockchainExplorer.installSmartContractEntry',
-            title: '',
-            arguments: []
-        };
-
+        let command: vscode.Command;
         try {
             const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
             const allPeerNames: Array<string> = connection.getAllPeerNames();
@@ -324,6 +322,12 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                     }
                 });
             }
+
+            command = {
+                command: 'blockchainExplorer.installSmartContractEntry',
+                title: '',
+                arguments: [installedTreeItem]
+            };
 
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating installed smart contracts view: ${error.message}`, `Error populating installed smart contracts view: ${error.message}`);

@@ -49,6 +49,7 @@ describe('userInputUtil', () => {
 
     let getConnectionStub: sinon.SinonStub;
     let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let getLocalFabricConnectionStub: sinon.SinonStub;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -107,6 +108,7 @@ describe('userInputUtil', () => {
         await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric2', developmentMode: true }));
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+        const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
         fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
         fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
@@ -126,6 +128,7 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
+        getLocalFabricConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
     });
@@ -266,6 +269,7 @@ describe('userInputUtil', () => {
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
+            getLocalFabricConnectionStub.returns(null);
             await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(/No connection to a blockchain found/);
         });
     });
@@ -349,6 +353,7 @@ describe('userInputUtil', () => {
 
         it('should handle no connection', async () => {
             getConnectionStub.returns(null);
+            getLocalFabricConnectionStub.returns(null);
             await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>()).should.be.rejectedWith(/No connection to a blockchain found/);
 
         });
@@ -1085,6 +1090,7 @@ describe('userInputUtil', () => {
 
         it('showing installable contracts should handle no connection', async () => {
             getConnectionStub.returns(null);
+            getLocalFabricConnectionStub.returns(null);
             await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.be.rejectedWith(/No connection to a blockchain found/);
         });
 
