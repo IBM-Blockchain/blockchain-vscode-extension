@@ -18,7 +18,7 @@ import * as vscode from 'vscode';
 import { ConnectionTreeItem } from '../model/ConnectionTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
-import { FabricRuntime, FabricRuntimeState } from '../../fabric/FabricRuntime';
+import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
 import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
@@ -92,6 +92,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             // Not running!
             this.disableBusyTicker();
             newLabel = 'Local fabric runtime is stopped. Click to start.';
+            this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
             newCommand = {
                 command: 'blockchainExplorer.startFabricRuntime',
                 title: '',
