@@ -25,9 +25,15 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { TestUtil } from '../../test/TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { IFabricConnection } from '../../src/fabric/IFabricConnection';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { IntegrationTestUtil } from '../integrationTestUtil';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -39,6 +45,9 @@ describe('Integration Tests for Node Smart Contracts', () => {
     let mySandBox: sinon.SinonSandbox;
     let integrationTestUtil: IntegrationTestUtil;
     let errorSpy: sinon.SinonSpy;
+
+    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    let runtime: FabricRuntime;
 
     before(async function(): Promise<void> {
         this.timeout(600000);
@@ -69,108 +78,186 @@ describe('Integration Tests for Node Smart Contracts', () => {
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    beforeEach(() => {
-        delete process.env.GOPATH;
-        mySandBox = sinon.createSandbox();
-        integrationTestUtil = new IntegrationTestUtil(mySandBox);
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+    describe('local fabric', () => {
+        beforeEach(async function(): Promise<void> {
+            this.timeout(600000);
+            delete process.env.GOPATH;
+            mySandBox = sinon.createSandbox();
+            integrationTestUtil = new IntegrationTestUtil(mySandBox);
+            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+            // Ensure that the Fabric runtime is in the right state.
+            runtime = runtimeManager.get('local_fabric');
+
+            let isRunning: boolean = await runtime.isRunning();
+            if (isRunning) {
+                await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+                isRunning = await runtime.isRunning();
+            }
+
+            isRunning.should.equal(false);
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            if (runtime.isDevelopmentMode()) {
+                await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
+            }
+            localFabricItem.should.not.be.null;
+        });
+
+        afterEach(async () => {
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            mySandBox.restore();
+            delete process.env.GOPATH;
+        });
+
+        ['JavaScript', 'TypeScript'].forEach((language: string) => {
+
+            it(`should create a ${language} smart contract, package, install and instantiate it on a peer, submit transactions, generate tests and upgrade it`, async () => {
+                const smartContractName: string = `my${language}SC`;
+
+                // let testRunResult: string;
+
+                await integrationTestUtil.createSmartContract(smartContractName, language);
+
+                await integrationTestUtil.packageSmartContract();
+
+                await integrationTestUtil.installSmartContract(smartContractName, '0.0.1');
+
+                await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1');
+
+                let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+                let smartContractsChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
+
+                smartContractsChildren.length.should.equal(2);
+                smartContractsChildren[0].label.should.equal('Instantiated');
+                smartContractsChildren[1].label.should.equal('Installed');
+
+                let instantiatedChaincodesItems: Array<InstantiatedChaincodeTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+
+                let instantiatedSmartContract: BlockchainTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                    return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
+                });
+
+                instantiatedSmartContract.should.not.be.null;
+
+                let installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
+
+                let installedSmartContract: BlockchainTreeItem = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
+                    return _installedSmartContract.label === `${smartContractName} v0.0.1`;
+                });
+
+                installedSmartContract.should.not.be.null;
+
+                // await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language);
+                // testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+
+                await integrationTestUtil.updatePackageJsonVersion('0.0.2');
+
+                // if (language === 'TypeScript') {
+                //     integrationTestUtil.getConfigurationStub.callThrough();
+                // }
+
+                await integrationTestUtil.packageSmartContract('0.0.2');
+
+                await integrationTestUtil.installSmartContract(smartContractName, '0.0.2');
+
+                await integrationTestUtil.upgradeSmartContract(smartContractName, '0.0.2');
+
+                allChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+                smartContractsChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
+
+                smartContractsChildren.length.should.equal(2);
+                smartContractsChildren[0].label.should.equal('Instantiated');
+                smartContractsChildren[1].label.should.equal('Installed');
+
+                instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+
+                instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                    return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
+                });
+
+                instantiatedSmartContract.should.not.be.null;
+
+                installedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
+
+                installedSmartContract = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
+                    return _installedSmartContract.label === `${smartContractName} v0.0.2`;
+                });
+
+                installedSmartContract.should.not.be.null;
+
+                // TODO: check gateway tree here as well
+
+                // let fileSuffix: string;
+                // fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
+                // // Check test file exists
+                // const pathToTestFile: string = path.join(integrationTestUtil.testContractDir, 'functionalTests', `MyContract-${smartContractName}@0.0.1.test.${fileSuffix}`);
+                // fs.pathExists(pathToTestFile).should.eventually.be.true;
+                // const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
+                // const testFileContents: string = testFileContentsBuffer.toString();
+
+                // // Did it open?
+                // const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
+                // const openFileNameArray: string[] = [];
+                // for (const textEditor of textEditors) {
+                //     openFileNameArray.push(textEditor.document.fileName);
+                // }
+                // openFileNameArray.includes(pathToTestFile).should.be.true;
+                // Get the smart contract metadata
+
+                // TODO: fix, metadata to being retrieved for integration test smart contracts
+
+                // const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+                // const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, smartContractName, 'mychannel');
+                // let smartContractTransactionsArray: string[];
+                // let contractName: string = '';
+                // for (const name of smartContractTransactionsMap.keys()) {
+                //     smartContractTransactionsArray = smartContractTransactionsMap.get(name);
+                //     contractName = name;
+                // }
+
+                // // Check the test file was populated properly
+                // testFileContents.includes(smartContractName).should.be.true;
+                // testFileContents.startsWith('/*').should.be.true;
+                // testFileContents.includes('gateway.connect').should.be.true;
+                // testFileContents.includes('submitTransaction').should.be.true;
+                // testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
+                // testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
+                // testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
+
+                // await integrationTestUtil.submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
+
+                // testRunResult.includes('success for transaction').should.be.true;
+                // testRunResult.includes('1 passing').should.be.true;
+
+                errorSpy.should.not.have.been.called;
+
+            }).timeout(0);
+        });
     });
 
-    afterEach(async () => {
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
-        mySandBox.restore();
-        delete process.env.GOPATH;
-    });
+    xdescribe('other fabric', () => {
+        beforeEach(async function(): Promise<void> {
+            this.timeout(600000);
+            delete process.env.GOPATH;
+            mySandBox = sinon.createSandbox();
+            integrationTestUtil = new IntegrationTestUtil(mySandBox);
+            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
-    ['JavaScript', 'TypeScript'].forEach((language: string) => {
+           // TODO need to install/instantiate something here
+        });
 
-        it(`should create a ${language} smart contract, package, install and instantiate it on a peer, generate tests and upgrade it`, async () => {
-            const smartContractName: string = `my${language}SC`;
-            // let testRunResult: string;
+        afterEach(async () => {
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            mySandBox.restore();
+            delete process.env.GOPATH;
+        });
 
-            await integrationTestUtil.createFabricConnection();
+        ['JavaScript', 'TypeScript'].forEach((language: string) => {
 
-            await integrationTestUtil.connectToFabric();
-
-            await integrationTestUtil.createSmartContract(smartContractName, language);
-
-            await integrationTestUtil.packageSmartContract();
-
-            await integrationTestUtil.installSmartContract(smartContractName, '0.0.1');
-
-            await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1');
-
-            // await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language);
-            // testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
-
-            await integrationTestUtil.updatePackageJsonVersion('0.0.2');
-
-            // if (language === 'TypeScript') {
-            //     integrationTestUtil.getConfigurationStub.callThrough();
-            // }
-
-            await integrationTestUtil.packageSmartContract('0.0.2');
-
-            await integrationTestUtil.installSmartContract(smartContractName, '0.0.2');
-
-            await integrationTestUtil.upgradeSmartContract(smartContractName, '0.0.2');
-
-            // TODO: fix - cannot currently install/instantiate for client connection
-            // const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-
-            // const channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[3]) as Array<BlockchainTreeItem>;
-
-            // const instantiatedSmartContract: BlockchainTreeItem = channelChildrenOne.find((_instantiatedSmartContract: BlockchainTreeItem) => {
-            //     return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
-            // });
-
-            // instantiatedSmartContract.should.not.be.null;
-
-            // let fileSuffix: string;
-            // fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
-            // // Check test file exists
-            // const pathToTestFile: string = path.join(integrationTestUtil.testContractDir, 'functionalTests', `MyContract-${smartContractName}@0.0.1.test.${fileSuffix}`);
-            // fs.pathExists(pathToTestFile).should.eventually.be.true;
-            // const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
-            // const testFileContents: string = testFileContentsBuffer.toString();
-
-            // // Did it open?
-            // const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
-            // const openFileNameArray: string[] = [];
-            // for (const textEditor of textEditors) {
-            //     openFileNameArray.push(textEditor.document.fileName);
-            // }
-            // openFileNameArray.includes(pathToTestFile).should.be.true;
-            // Get the smart contract metadata
-
-            // TODO: fix, metadata to being retrieved for integration test smart contracts
-
-            // const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
-            // const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, smartContractName, 'mychannel');
-            // let smartContractTransactionsArray: string[];
-            // let contractName: string = '';
-            // for (const name of smartContractTransactionsMap.keys()) {
-            //     smartContractTransactionsArray = smartContractTransactionsMap.get(name);
-            //     contractName = name;
-            // }
-
-            // // Check the test file was populated properly
-            // testFileContents.includes(smartContractName).should.be.true;
-            // testFileContents.startsWith('/*').should.be.true;
-            // testFileContents.includes('gateway.connect').should.be.true;
-            // testFileContents.includes('submitTransaction').should.be.true;
-            // testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
-            // testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
-            // testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
-
-            // await integrationTestUtil.submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
-
-            // testRunResult.includes('success for transaction').should.be.true;
-            // testRunResult.includes('1 passing').should.be.true;
-
-            errorSpy.should.not.have.been.called;
-
-        }).timeout(0);
-
+            it(`should create a ${language} smart contract, submit transactions, and generate tests`, async () => {
+                // TODO: add test code here
+            });
+        });
     });
 });
