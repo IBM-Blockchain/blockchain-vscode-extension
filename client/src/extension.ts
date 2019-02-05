@@ -155,8 +155,8 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.stopFabricRuntime', () => stopFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.restartFabricRuntime', () => restartFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.teardownFabricRuntime', () => teardownFabricRuntime()));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', (runtimeTreeItem?: RuntimeTreeItem) => toggleFabricRuntimeDevMode(runtimeTreeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.openFabricRuntimeTerminal', (runtimeTreeItem?: RuntimeTreeItem) => openFabricRuntimeTerminal(runtimeTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.toggleFabricRuntimeDevMode', () => toggleFabricRuntimeDevMode()));
+    context.subscriptions.push(vscode.commands.registerCommand('blockchainExplorer.openFabricRuntimeTerminal', () => openFabricRuntimeTerminal()));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainConnectionsExplorer.exportConnectionDetailsEntry', (runtimeTreeItem: RuntimeTreeItem) => exportConnectionDetails(runtimeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', (project: PackageTreeItem) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand('blockchainAPackageExplorer.exportSmartContractPackageEntry', (project: PackageTreeItem) => exportSmartContractPackage(project)));
