@@ -101,6 +101,7 @@ describe('RuntimeTreeItem', () => {
                 arguments: [treeItem]
             });
             treeItem.contextValue.should.equal('blockchain-runtime-item-removed');
+            treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
         });
 
         it('should have the right properties for a runtime that is not running', async () => {
