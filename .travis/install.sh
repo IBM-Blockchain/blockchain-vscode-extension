@@ -20,21 +20,20 @@ set -o pipefail
 cd ./client
 
 npm install --no-optional
-
 npm install --ignore-scripts
 
 npm run compile
 
 if [ "${TASK}" == "unit" ]; then
-    npm rebuild grpc --target=2.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
+    npm rebuild grpc --target=3.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
 
     if [ $TRAVIS_OS_NAME == "linux" ]; then
         export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
-        rm -rf ./node_modules/grpc/src/node/extension_binary/node-v57-linux-x64-glibc
-        mv ./node_modules/grpc/src/node/extension_binary/electron-v2.0-linux-x64-glibc ./node_modules/grpc/src/node/extension_binary/node-v57-linux-x64-glibc
+        rm -rf ./node_modules/grpc/src/node/extension_binary/node-v64-linux-x64-glibc
+        mv ./node_modules/grpc/src/node/extension_binary/electron-v3.0-linux-x64-glibc ./node_modules/grpc/src/node/extension_binary/node-v64-linux-x64-glibc
     else
-        rm -rf ./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown
-        mv ./node_modules/grpc/src/node/extension_binary/electron-v2.0-darwin-x64-unknown ./node_modules/grpc/src/node/extension_binary/node-v57-darwin-x64-unknown
+        rm -rf ./node_modules/grpc/src/node/extension_binary/node-v64-darwin-x64-unknown
+        mv ./node_modules/grpc/src/node/extension_binary/electron-v3.0-darwin-x64-unknown ./node_modules/grpc/src/node/extension_binary/node-v64-darwin-x64-unknown
     fi
 fi
 
