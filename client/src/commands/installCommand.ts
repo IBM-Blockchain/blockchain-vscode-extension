@@ -53,7 +53,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
                 return;
             }
 
-            const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenInstallable.data;
+            const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenInstallable.data;
             if (chosenInstallable.description === 'Open Project') {
                 // Project needs packaging, using the given 'open workspace'
                 const _package: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', data.workspace) as PackageRegistryEntry;

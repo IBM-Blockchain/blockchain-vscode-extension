@@ -14,11 +14,11 @@
 'use strict';
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
@@ -110,11 +110,11 @@ describe('InstantiateCommand', () => {
 
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
 
-            const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = false;
-            mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+            mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
             blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();

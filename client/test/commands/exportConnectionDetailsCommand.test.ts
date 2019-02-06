@@ -17,7 +17,7 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
-import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -35,7 +35,7 @@ import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 describe('exportConnectionDetailsCommand', () => {
 
     let sandbox: sinon.SinonSandbox;
-    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
@@ -47,12 +47,12 @@ describe('exportConnectionDetailsCommand', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
     });
 

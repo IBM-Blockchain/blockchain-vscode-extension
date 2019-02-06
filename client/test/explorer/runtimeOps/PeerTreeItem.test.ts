@@ -38,12 +38,12 @@ describe('PeerTreeItem', () => {
 
     before(async () => {
         await TestUtil.setupTests();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
 
     });

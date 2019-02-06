@@ -14,7 +14,7 @@
 
 import { FabricRegistryEntry } from './FabricRegistryEntry';
 
-export class FabricConnectionRegistryEntry extends FabricRegistryEntry {
+export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
 
     public connectionProfilePath: string;
 
@@ -22,7 +22,7 @@ export class FabricConnectionRegistryEntry extends FabricRegistryEntry {
 
     public managedRuntime: boolean;
 
-    constructor(fields?: FabricConnectionRegistryEntry) {
+    constructor(fields?: FabricGatewayRegistryEntry) {
         super();
         Object.assign(this, fields);
     }

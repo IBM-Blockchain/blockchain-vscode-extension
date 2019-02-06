@@ -25,11 +25,11 @@ describe('RepositoryRegistryEntry', () => {
     const registry: RepositoryRegistry = new RepositoryRegistry();
 
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
     });
 
     beforeEach(async () => {
