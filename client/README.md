@@ -45,15 +45,15 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 
 | Command | Description |
 | --- | --- |
-| Add Connection | Add a Hyperledger Fabric instance connection |
-| Add Identity To Connection | Add an identity to be used when connecting to a Hyperledger Fabric instance  |
-| Connect To Blockchain | Connect to a Hyperledger Fabric blockchain using a blockchain connection |
+| Add Gateway | Add a Hyperledger Fabric instance gateway |
+| Add Identity To Wallet | Add an identity to be used when connecting to a Hyperledger Fabric gateway  |
+| Connect Via Gateway | Connect to a Hyperledger Fabric blockchain using a gateway |
 | Create Smart Contract Project | Create a new JavaScript or TypeScript smart contract project |
 | Debug | Debug a Smart Contract |
-| Delete Connection | Delete a Hyperledger Fabric instance connection |
+| Delete Gateway | Delete a Hyperledger Fabric instance gateway |
 | Delete Package | Delete a smart contract package |
-| Disconnect From Blockchain | Disconnect from the blockchain you're currently connected to |
-| Edit Connection | Edit connection to a blockchain |
+| Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
+| Edit Gateway | Edit connection profile or wallet used for connecting to a blockchain gateway |
 | Export Connection Details | Export connection details for the a Hyperledger Fabric instance |
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
@@ -61,10 +61,11 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!* |
 | Open Fabric Runtime Terminal | Open a terminal with access to the Fabric runtime (peer CLI) |
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
-| Refresh Blockchain Connections | Refresh the Blockchain Connections view |
+| Refresh Fabric Gateways | Refresh the Fabric Gateways view |
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
-| Restart Fabric Runtime | Restart a Hyperledger Fabric instance |
+| Restart Local Fabric Ops | Refresh the Local Fabric Ops view |
 | Start Fabric Runtime | Start a Hyperledger Fabric instance |
+| Stop Fabric Runtime | Stop a Hyperledger Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
