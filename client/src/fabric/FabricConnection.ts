@@ -21,6 +21,7 @@ import * as fs from 'fs-extra';
 import { LogType, OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { FabricWallet } from './FabricWallet';
+import { URL } from 'url';
 
 export abstract class FabricConnection implements IFabricConnection {
 
@@ -28,6 +29,8 @@ export abstract class FabricConnection implements IFabricConnection {
     private gateway: Gateway = new Gateway();
     private networkIdProperty: boolean;
     private outputAdapter: OutputAdapter;
+    private discoveryAsLocalhost: boolean;
+    private discoveryEnabled: boolean;
 
     constructor(outputAdapter?: OutputAdapter) {
         this.gateway = new Gateway();
@@ -85,7 +88,17 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Client.Peer = this.getPeer(peerName);
-        const chaincodeResponse: Client.ChaincodeQueryResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
+        let chaincodeResponse: Client.ChaincodeQueryResponse;
+        try {
+            chaincodeResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
+        } catch (error) {
+            if (error.message && error.message.match(/access denied/)) {
+                // Not allowed to do this as we're probably not an administrator.
+                // This is probably not the end of the world, so return the empty map.
+                return installedChainCodes;
+            }
+            throw error;
+        }
         chaincodeResponse.chaincodes.forEach((chaincode: Client.ChaincodeInfo) => {
             if (installedChainCodes.has(chaincode.name)) {
                 installedChainCodes.get(chaincode.name).push(chaincode.version);
@@ -100,7 +113,7 @@ export abstract class FabricConnection implements IFabricConnection {
     public async getInstantiatedChaincode(channelName: string): Promise<Array<{ name: string, version: string }>> {
         console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];
-        const channel: Client.Channel = this.getChannel(channelName);
+        const channel: Client.Channel = await this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
         chainCodeResponse.chaincodes.forEach((chainCode: Client.ChaincodeInfo) => {
             instantiatedChaincodes.push({ name: chainCode.name, version: chainCode.version });
@@ -308,15 +321,17 @@ export abstract class FabricConnection implements IFabricConnection {
 
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
-        const client: Client = await Client.loadFromConfig(connectionProfile);
-
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
+
+        this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
+        this.discoveryEnabled = !this.discoveryAsLocalhost;
 
         const options: GatewayOptions = {
             wallet: wallet,
             identity: identityName,
             discovery: {
-                asLocalhost: true
+                asLocalhost: this.discoveryAsLocalhost,
+                enabled: this.discoveryEnabled
             }
         };
 
@@ -330,9 +345,51 @@ export abstract class FabricConnection implements IFabricConnection {
         this.mspid = identity.mspId;
     }
 
-    private getChannel(channelName: string): Client.Channel {
+    private isLocalhostURL(url: string): boolean {
+        const parsedURL: URL = new URL(url);
+        const localhosts: string[] = [
+            'localhost',
+            '127.0.0.1'
+        ];
+        return localhosts.indexOf(parsedURL.hostname) !== -1;
+    }
+
+    private hasLocalhostURLs(connectionProfile: any): boolean {
+        const urls: string[] = [];
+        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
+            if (!connectionProfile[nodeType]) {
+                continue;
+            }
+            const nodes: any = connectionProfile[nodeType];
+            for (const nodeName in nodes) {
+                if (!nodes[nodeName].url) {
+                    continue;
+                }
+                urls.push(nodes[nodeName].url);
+            }
+        }
+        return urls.some((url: string) => this.isLocalhostURL(url));
+    }
+
+    private async getChannel(channelName: string): Promise<Client.Channel> {
         console.log('getChannel', channelName);
-        return this.gateway.getClient().getChannel(channelName);
+        const client: Client = this.gateway.getClient();
+        let channel: Client.Channel = client.getChannel(channelName, false);
+        if (channel) {
+            return channel;
+        }
+        channel = client.newChannel(channelName);
+        const peers: Client.Peer[] = this.getAllPeers();
+        let lastError: Error = new Error(`Could not discover information for channel ${channelName} from known peers`);
+        for (const target of peers) {
+            try {
+                await channel.initialize({ asLocalhost: this.discoveryAsLocalhost, discover: this.discoveryEnabled, target });
+                return channel;
+            } catch (error) {
+                lastError = error;
+            }
+        }
+        throw lastError;
     }
 
     private getAllPeers(): Array<Client.Peer> {
