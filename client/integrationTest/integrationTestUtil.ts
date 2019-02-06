@@ -58,6 +58,7 @@ export class IntegrationTestUtil {
     public workspaceConfigurationGetStub: sinon.SinonStub;
     public getConfigurationStub: sinon.SinonStub;
     public showIdentityOptionsStub: sinon.SinonStub;
+    public showGatewayQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -80,7 +81,7 @@ export class IntegrationTestUtil {
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
         this.showIdentityOptionsStub = this.mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
-
+        this.showGatewayQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
     }
 
     public async createFabricConnection(): Promise<void> {
@@ -100,9 +101,18 @@ export class IntegrationTestUtil {
         this.gatewayRegistry.exists('myGateway').should.be.true;
     }
 
-    public async connectToFabric(): Promise<void> {
-        const gateway: FabricGatewayRegistryEntry = FabricGatewayRegistry.instance().get('myGateway');
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', gateway);
+    public async connectToFabric(name: string): Promise<void> {
+        let gatewayEntry: FabricGatewayRegistryEntry;
+
+        try {
+            gatewayEntry = FabricGatewayRegistry.instance().get(name);
+        } catch (error) {
+            gatewayEntry = new FabricGatewayRegistryEntry();
+            gatewayEntry.name = name;
+            gatewayEntry.managedRuntime = true;
+        }
+
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', gatewayEntry);
     }
 
     public async createSmartContract(name: string, type: string): Promise<void> {
@@ -243,7 +253,7 @@ export class IntegrationTestUtil {
 
         this.showTransactionStub.resolves({
             label: `${contractName} - ${transaction}`,
-            data: { name: transaction, contract: contractName}
+            data: { name: transaction, contract: contractName }
         });
 
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
@@ -251,12 +261,28 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
     }
 
-    public async generateSmartContractTests(name: string, version: string, language: string): Promise<void> {
+    public async generateSmartContractTests(name: string, version: string, language: string, gatewayConnectionName: string): Promise<void> {
+        let gatewayEntry: FabricGatewayRegistryEntry;
+
+        try {
+            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayConnectionName);
+        } catch (error) {
+            gatewayEntry = new FabricGatewayRegistryEntry();
+            gatewayEntry.name = gatewayConnectionName;
+            gatewayEntry.managedRuntime = true;
+        }
+
+        this.showGatewayQuickPickStub.resolves({
+            label: gatewayConnectionName,
+            data: gatewayEntry
+        });
+
         this.showChannelStub.resolves('mychannel');
         this.showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
+
         this.showLanguagesQuickPickStub.resolves(language);
         this.getWorkspaceFoldersStub.returns([this.workspaceFolder]);
         const packageJSONPath: string = path.join(this.testContractDir, 'package.json');
