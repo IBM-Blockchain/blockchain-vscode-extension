@@ -126,7 +126,7 @@ describe('ConnectCommand', () => {
             mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('local_fabric').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
-            mockRuntime.getConnectionProfilePath.returns(path.join(rootPath, '../../basic-network/connection.json'));
+            mockRuntime.getConnectionProfilePath.resolves(path.join(rootPath, '../../basic-network/connection.json'));
             walletGenerator = await FabricWalletGenerator.instance();
 
             identity = {
