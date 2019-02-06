@@ -57,7 +57,7 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
 
         gatewayRegistryEntry.walletPath = wallet.getWalletPath();
-        gatewayRegistryEntry.connectionProfilePath = runtime.getConnectionProfilePath();
+        gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         runtimeData = 'managed runtime';
 

@@ -35,6 +35,8 @@ import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
+import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
+import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -47,7 +49,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
     let integrationTestUtil: IntegrationTestUtil;
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
-    let connectionItems: BlockchainTreeItem[];
     let errorSpy: sinon.SinonSpy;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
 
@@ -100,7 +101,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             }
 
             isRunning.should.equal(false);
-            connectionItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             if (runtime.isDevelopmentMode()) {
                 await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
@@ -191,7 +192,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             runtime.isRunning().should.eventually.be.false;
             runtime.isDevelopmentMode().should.be.false;
 
-            connectionItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
 
@@ -223,7 +224,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             runtime.isRunning().should.eventually.be.false;
             runtime.isDevelopmentMode().should.be.false;
 
-            connectionItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
 
@@ -266,7 +267,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             runtime.isRunning().should.eventually.be.false;
             runtime.isDevelopmentMode().should.be.false;
 
-            connectionItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
 
@@ -355,10 +356,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and upgrade it`, async () => {
                 const smartContractName: string = `my${language}SC`;
 
-                await integrationTestUtil.createFabricConnection();
-
-                await integrationTestUtil.connectToFabric();
-
                 await integrationTestUtil.createSmartContract(smartContractName, language);
 
                 await integrationTestUtil.packageSmartContract();
@@ -425,7 +422,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         });
     });
 
-    xdescribe('gateway view', () => {
+    describe('gateway view', () => {
         beforeEach(async function(): Promise<void> {
             this.timeout(600000);
             delete process.env.GOPATH;
@@ -442,25 +439,49 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             delete process.env.GOPATH;
         });
 
+        it('should create the unconnected tree', async () => {
+            await integrationTestUtil.createFabricConnection();
+            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+
+            allChildren.length.should.equal(2);
+            allChildren[0]['name'].should.equal('local_fabric');
+
+            allChildren[1].label.should.equal('myGateway');
+
+            const localFabricChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<GatewayIdentityTreeItem>;
+
+            localFabricChildren.length.should.equal(1);
+            localFabricChildren[0].label.should.equal('Admin@org1.example.com');
+
+            const otherChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<GatewayIdentityTreeItem>;
+            otherChildren.length.should.equal(1);
+            otherChildren[0].label.should.equal('greenConga');
+        });
+
         it('should connect to a real fabric', async () => {
             await integrationTestUtil.createFabricConnection();
 
-            await integrationTestUtil.connectToFabric();
+            await integrationTestUtil.connectToFabric('myGateway');
 
-            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            const allChildren: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
 
-            allChildren.length.should.equal(5);
+            allChildren.length.should.equal(3);
 
             allChildren[0].label.should.equal('Connected via gateway: myGateway');
-            allChildren[3].label.should.equal('mychannel');
-            allChildren[4].label.should.equal('myotherchannel');
+            allChildren[1].label.should.equal('Using ID: greenConga');
+            allChildren[2].label.should.equal('Channels');
+
+            const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            channels.length.should.equal(2);
+            channels[0].label.should.equal('mychannel');
+            channels[1].label.should.equal('myotherchannel');
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
-            connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-            const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myGateway')) as ConnectionTreeItem;
+            const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+            const myGatewayItem: GatewayTreeItem = gatewayItems.find((value: BlockchainTreeItem) => value instanceof GatewayTreeItem && value.label.startsWith('myGateway')) as GatewayTreeItem;
 
             showConfirmationWarningMessageStub.resolves(true);
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteConnectionEntry', myConnectionItem);
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry', myGatewayItem);
             integrationTestUtil.gatewayRegistry.exists('myGateway').should.be.false;
         }).timeout(0);
     });
