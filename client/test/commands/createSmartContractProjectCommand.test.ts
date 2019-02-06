@@ -54,6 +54,7 @@ describe('CreateSmartContractProjectCommand', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
+        sendCommandStub.withArgs('xcode-select -p').resolves('path');
         sendCommandWithOutputAndProgressStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
@@ -497,6 +498,189 @@ describe('CreateSmartContractProjectCommand', () => {
         openDialogStub.resolves(uriArr);
         await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
         reporterStub.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
+    });
+
+    it('should check if Mac (Darwin) devices have Xcode installed', async () => {
+
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11',
+                    contractLanguages: ['JavaScript', 'TypeScript']
+                }
+            }
+        }));
+
+        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
+
+        mySandBox.stub(process, 'platform').value('darwin');
+
+        quickPickStub.onCall(0).resolves('JavaScript');
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
+
+        sendCommandStub.should.have.been.calledWith('xcode-select -p');
+        logSpy.should.not.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
+    });
+
+    it('should error if Xcode check returns undefined', async () => {
+
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11',
+                    contractLanguages: ['JavaScript', 'TypeScript']
+                }
+            }
+        }));
+
+        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
+
+        mySandBox.stub(process, 'platform').value('darwin');
+
+        sendCommandStub.withArgs('xcode-select -p').resolves('');
+        quickPickStub.onCall(0).resolves('JavaScript');
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.not.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
+
+        sendCommandStub.should.have.been.calledWith('xcode-select -p');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
+    });
+
+    it('should error if Xcode check returns an error message', async () => {
+
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11',
+                    contractLanguages: ['JavaScript', 'TypeScript']
+                }
+            }
+        }));
+
+        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
+
+        mySandBox.stub(process, 'platform').value('darwin');
+
+        sendCommandStub.withArgs('xcode-select -p').resolves('xcode-select: error: unable to get active developer directory, use `sudo xcode-select --switch path/to/Xcode.app` to set one (or see `man xcode-select`)');
+        quickPickStub.onCall(0).resolves('JavaScript');
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.not.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
+
+        sendCommandStub.should.have.been.calledWith('xcode-select -p');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
+    });
+
+    it('should error if Xcode check throws error', async () => {
+
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11',
+                    contractLanguages: ['JavaScript', 'TypeScript']
+                }
+            }
+        }));
+
+        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
+
+        mySandBox.stub(process, 'platform').value('darwin');
+        const error: Error = new Error('xcode-select: error: unable to get active developer directory, use `sudo xcode-select --switch path/to/Xcode.app` to set one (or see `man xcode-select`');
+        sendCommandStub.withArgs('xcode-select -p').throws(error);
+        quickPickStub.onCall(0).resolves('JavaScript');
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.not.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
+
+        sendCommandStub.should.have.been.calledWith('xcode-select -p');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
+    });
+
+    it('should ignore Xcode check if system isn\'t Mac (Darwin)', async () => {
+
+        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').resolves(JSON.stringify({
+            dependencies: {
+                yo: {
+                    version: '2.0.5'
+                }
+            }
+        }));
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({generatorFabricVersion: '~0.0.11'});
+        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').resolves(JSON.stringify({
+            dependencies: {
+                'generator-fabric': {
+                    path: path.join(__dirname, '..', '..', '..', 'test', 'data', 'node_modules', 'generator-fabric'),
+                    version: '0.0.11',
+                    contractLanguages: ['JavaScript', 'TypeScript']
+                }
+            }
+        }));
+
+        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
+
+        mySandBox.stub(process, 'platform').value('win32');
+
+        quickPickStub.onCall(0).resolves('JavaScript');
+
+        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
+
+        sendCommandStub.should.not.have.been.calledWith('xcode-select -p');
+        logSpy.should.not.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
     });
 
 }); // end of createFabricCommand tests
