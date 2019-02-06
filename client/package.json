@@ -132,7 +132,7 @@
         "commands": [
             {
                 "command": "sample.open",
-                "title": "Open sample",
+                "title": "Open Sample",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -142,7 +142,7 @@
             },
             {
                 "command": "blockchainConnectionsExplorer.refreshEntry",
-                "title": "Refresh Blockchain Connections",
+                "title": "Refresh Fabric Gateways",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -151,12 +151,12 @@
             },
             {
                 "command": "blockchainConnectionsExplorer.connectEntry",
-                "title": "Connect with ID",
+                "title": "Connect Via Gateway",
                 "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainConnectionsExplorer.disconnectEntry",
-                "title": "Disconnect From A Blockchain",
+                "title": "Disconnect from Gateway",
                 "icon": {
                     "light": "resources/light/back_light.svg",
                     "dark": "resources/dark/back.svg"
@@ -165,7 +165,7 @@
             },
             {
                 "command": "blockchainConnectionsExplorer.addGatewayEntry",
-                "title": "Add Connection",
+                "title": "Add Gateway",
                 "icon": {
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
@@ -174,12 +174,12 @@
             },
             {
                 "command": "blockchainConnectionsExplorer.deleteGatewayEntry",
-                "title": "Delete Connection",
+                "title": "Delete Gateway",
                 "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchainConnectionsExplorer.addGatewayIdentityEntry",
-                "title": "Add Identity To Gateway",
+                "title": "Add Identity To Wallet",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -189,7 +189,7 @@
             },
             {
                 "command": "blockchainARuntimeExplorer.refreshEntry",
-                "title": "Refresh Blockchain Runtime",
+                "title": "Refresh Local Fabric Ops",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -266,7 +266,7 @@
             },
             {
                 "command": "blockchainConnectionsExplorer.editGatewayEntry",
-                "title": "Edit Connection",
+                "title": "Edit Gateway",
                 "category": "IBM Blockchain Platform"
             },
             {
