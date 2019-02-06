@@ -377,30 +377,6 @@
                     "when": "view == blockchainExplorer && viewItem == blockchain-gateway-item"
                 },
                 {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-stopped"
-                },
-                {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-removed"
-                },
-                {
-                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
-                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-connected-runtime-item"
-                },
-                {
-                    "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
-                },
-                {
                     "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
                     "when": "view == blockchainAPackageExplorer && viewItem == blockchain-package-item"
                 },
