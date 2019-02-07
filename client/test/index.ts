@@ -25,7 +25,7 @@ if (process.env.WITHOUTCOVERAGE) {
     testRunner.configure({
         ui: 'bdd',
         useColors: true,
-        timeout: 0
+        timeout: 120000
     });
 
     module.exports = testRunner;
@@ -47,7 +47,7 @@ if (process.env.WITHOUTCOVERAGE) {
     let mocha: Mocha = new Mocha({
         ui: 'bdd',
         useColors: true,
-        timeout: 60000
+        timeout: 120000
     });
 
     function configure(mochaOpts: any): void {
