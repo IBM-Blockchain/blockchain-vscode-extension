@@ -142,8 +142,8 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should sumbit the smart contract through the command when not connected', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(2).returns(null);
+            getConnectionStub.onCall(3).returns(fabricClientConnectionMock);
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
 

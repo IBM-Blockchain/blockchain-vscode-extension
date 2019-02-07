@@ -284,29 +284,27 @@ describe('ConnectCommand', () => {
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
         });
 
-        xit('should connect to a managed runtime from the tree', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-
-            const myConnectionItem: BlockchainTreeItem = allChildren[0] as BlockchainTreeItem;
-            const identityItems: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            const identityToConnect: BlockchainTreeItem = identityItems[0] as BlockchainTreeItem;
-
+        it('should connect to a managed runtime from the tree', async () => {
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
+            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            connection.name = 'local_fabric';
+            connection.managedRuntime = true;
+            connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
             const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
-            mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-            mySandBox.stub(testFabricWallet, 'getWalletPath').resolves('some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'getIdentityNames').resolves(['Admin@org1.example.com']);
+            mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
+            mySandBox.stub(testFabricWallet, 'getWalletPath').returns('some/new/wallet/path');
+            connection.walletPath = testFabricWallet.walletPath;
 
-            await vscode.commands.executeCommand(identityToConnect.command.command, identityToConnect.command.arguments);
+            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const myConnectionItem: GatewayTreeItem = allChildren[0] as GatewayTreeItem;
+            const identityItems: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem);
+            const identityToConnect: GatewayIdentityTreeItem = identityItems[0] as GatewayIdentityTreeItem;
+
+            await vscode.commands.executeCommand(identityToConnect.command.command, ...identityToConnect.command.arguments);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
         });
