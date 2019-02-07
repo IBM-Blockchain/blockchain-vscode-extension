@@ -17,10 +17,12 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { ConnectedTreeItem } from '../explorer/model/ConnectedTreeItem';
 
-export async function openFabricRuntimeTerminal(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
+export async function openFabricRuntimeTerminal(treeItem?: RuntimeTreeItem | ConnectedTreeItem): Promise<void> {
     let runtime: FabricRuntime;
-    if (!runtimeTreeItem) {
+
+    if (!treeItem) {
         const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
         if (allRuntimes.length > 1) {
             const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to open a terminal for') as IBlockchainQuickPickItem<FabricRuntime>;
@@ -31,8 +33,13 @@ export async function openFabricRuntimeTerminal(runtimeTreeItem?: RuntimeTreeIte
         } else {
             runtime = allRuntimes[0];
         }
+
     } else {
-        runtime = runtimeTreeItem.getRuntime();
+        if (treeItem instanceof RuntimeTreeItem) {
+            runtime = treeItem.getRuntime();
+        } else {
+            runtime = FabricRuntimeManager.instance().get(treeItem.connection.name);
+        }
     }
 
     const name: string = `Fabric runtime - ${runtime.getName()}`;

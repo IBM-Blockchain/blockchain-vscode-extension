@@ -27,6 +27,8 @@ import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ConnectedTreeItem } from '../../src/explorer/model/ConnectedTreeItem';
+import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -90,6 +92,40 @@ describe('openFabricRuntimeTerminal', () => {
                 'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
                 '-ti',
                 'fabricvscodelocalfabric_peer0.org1.example.com',
+                'bash'
+            ]
+        );
+        mockTerminal.show.should.have.been.calledOnce;
+    });
+
+    it('should open a terminal for a connected tree item specified by right clicking the tree', async () => {
+        const connectionRegistryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+        connectionRegistryEntry.connectionProfilePath = 'path';
+        connectionRegistryEntry.name = 'connection_name';
+        connectionRegistryEntry.walletPath = 'path';
+
+        const connectedTreeItem: ConnectedTreeItem = new ConnectedTreeItem(this, connectionRegistryEntry.name, connectionRegistryEntry);
+
+        const getRuntimeStub: sinon.SinonStub = sandbox.stub(runtimeManager, 'get').returns(runtime);
+        const getNameStub: sinon.SinonStub = sandbox.stub(runtime, 'getName').returns(connectionRegistryEntry.name);
+        const getPeerContainerNameStub: sinon.SinonStub = sandbox.stub(runtime, 'getPeerContainerName').returns('peercontainername');
+
+        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', connectedTreeItem);
+
+        getRuntimeStub.should.have.been.calledOnceWithExactly(connectionRegistryEntry.name);
+        getNameStub.should.have.been.calledOnce;
+        getPeerContainerNameStub.should.have.been.calledOnce;
+        createTerminalStub.should.have.been.calledOnceWithExactly(
+            'Fabric runtime - connection_name',
+            'docker',
+            [
+                'exec',
+                '-e',
+                'CORE_PEER_LOCALMSPID=Org1MSP',
+                '-e',
+                'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
+                '-ti',
+                'peercontainername',
                 'bash'
             ]
         );
