@@ -38,14 +38,19 @@ describe('packageSmartContract', () => {
     const javascriptPath: string = path.join(testWorkspace, 'javascriptProject');
     const typescriptPath: string = path.join(testWorkspace, 'typescriptProject');
     const golangPath: string = path.join(testWorkspace, 'src', 'goProject');
+    const wrongGolangPath: string = path.join(testWorkspace, 'goProject');
     const javaPath: string = path.join(testWorkspace, 'javaProject');
     const emptyContent: string = '{}';
 
     let folders: Array<any> = [];
 
-    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean): Promise<void> {
+    async function createTestFiles(packageName: string, version: string, language: string, createValid: boolean, createMetadata: boolean, createWrongPlace: boolean = false): Promise<void> {
         let projectDir: string;
         if (language === 'golang') {
+            if (createWrongPlace) {
+                folders[2].uri = vscode.Uri.file(wrongGolangPath);
+                projectDir = path.join(testWorkspace, packageName);
+            }
             projectDir = path.join(testWorkspace, 'src', packageName);
         } else {
             projectDir = path.join(testWorkspace, packageName);
@@ -143,10 +148,10 @@ describe('packageSmartContract', () => {
         await TestUtil.deleteTestFiles(testWorkspace);
 
         folders = [
-            {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)},
-            {name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath)},
-            {name: 'goProject', uri: vscode.Uri.file(golangPath)},
-            {name: 'javaProject', uri: vscode.Uri.file(javaPath)}
+            { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) },
+            { name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) },
+            { name: 'goProject', uri: vscode.Uri.file(golangPath) },
+            { name: 'javaProject', uri: vscode.Uri.file(javaPath) }
         ];
 
         logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
@@ -156,8 +161,6 @@ describe('packageSmartContract', () => {
         await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, true);
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
-
-        process.env.GOPATH = testWorkspace;
 
         // Create a bunch of tasks that should never get executed.
         const unscopedTask: vscode.Task = new vscode.Task({ type: 'npm' }, 'unscopedTask', 'npm');
@@ -200,7 +203,7 @@ describe('packageSmartContract', () => {
 
         // Stub the list of tasks VSCode knows about.
         mySandBox.stub(vscode.tasks, 'fetchTasks').resolves(
-            [ unscopedTask, globalTask, workspaceTask, differentUriTask ]
+            [unscopedTask, globalTask, workspaceTask, differentUriTask]
                 .concat(testTasks, backgroundTasks, buildTasks)
                 .filter((task: vscode.Task) => !!task)
         );
@@ -306,7 +309,7 @@ describe('packageSmartContract', () => {
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
-                 // Yes, it gets packaged twice!
+                // Yes, it gets packaged twice!
                 'META-INF/statedb/couchdb/indexes/indexOwner.json',
                 'src/META-INF/statedb/couchdb/indexes/indexOwner.json',
                 'src/chaincode.js',
@@ -359,6 +362,41 @@ describe('packageSmartContract', () => {
 
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+
+            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('myProject');
+            pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('golang');
+            pkg.getFileNames().should.deep.equal([
+                'src/goProject/chaincode.go'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
+        it('should use the GOPATH if set', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            process.env.GOPATH = testWorkspace;
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
@@ -568,9 +606,9 @@ describe('packageSmartContract', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
         });
 
-        it('should throw an error if the GOPATH environment variable is not set', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
-            const error: Error = new Error('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+        it('should throw an error if project not child of src dir', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', false, false, true);
+            const error: Error = new Error('The enviroment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -586,7 +624,6 @@ describe('packageSmartContract', () => {
             showInputStub.onThirdCall().resolves('myProject');
             showInputStub.onCall(3).resolves('0.0.3');
 
-            delete process.env.GOPATH;
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry').should.be.rejectedWith(error.message);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
@@ -832,7 +869,7 @@ describe('packageSmartContract', () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
-            const workspaceFolderMock: vscode.WorkspaceFolder = {name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath)} as vscode.WorkspaceFolder;
+            const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
 
             await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', workspaceFolderMock);
 
