@@ -18,6 +18,8 @@ import * as sinonChai from 'sinon-chai';
 import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -34,7 +36,7 @@ describe('Metadata Util tests', () => {
     let pancakeTransactionOne: any;
     let pancakeTransactionTwo: any;
     const transactionNames: Map<string, string[]> = new Map();
-    let errorSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
     const testMap: Map<string, any[]> = new Map();
 
     beforeEach(() => {
@@ -120,7 +122,7 @@ describe('Metadata Util tests', () => {
         transactionNames.set('pancake', [pancakeTransactionOne.name, pancakeTransactionTwo.name]);
         testMap.set('cake', [transactionOne, transactionTwo, transactionThree]);
         testMap.set('pancake', [pancakeTransactionOne, pancakeTransactionTwo]);
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
     });
 
     afterEach(() => {
@@ -130,27 +132,20 @@ describe('Metadata Util tests', () => {
     it('should return the Transaction names', async () => {
          const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
          names.should.deep.equal(transactionNames);
-         errorSpy.should.not.have.been.called;
+         logSpy.should.not.have.been.called;
     });
 
     it('should return the Transaction objects', async () => {
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
-        errorSpy.should.not.have.been.called;
-    });
-
-    it('should handle calling metadata using out of date smart contract apis', async () => {
-        fabricClientConnectionMock.getMetadata.rejects({message: `You've asked to invoke a function that does not exist`});
-        const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
-        names.size.should.equal(0);
-        errorSpy.should.have.been.calledOnceWith(`Error getting metadata for smart contract chaincode, please ensure this smart contract is depending on at least fabric-contract@1.4.0`);
+        logSpy.should.not.have.been.called;
     });
 
     it('should handle error getting metadata', async () => {
         fabricClientConnectionMock.getMetadata.rejects({message: `some error`});
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel');
         transactionsMap.size.should.equal(0);
-        errorSpy.should.have.been.calledOnceWith(`Error getting metadata for smart contract chaincode: some error`);
+        logSpy.should.have.been.calledOnceWithExactly(LogType.WARNING, null, sinon.match(/Could not get metadata for smart contract chaincode.*some error/));
     });
 
 });
