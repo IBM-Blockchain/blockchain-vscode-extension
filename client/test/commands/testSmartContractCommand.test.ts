@@ -302,8 +302,8 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should connect if there is no connection', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);

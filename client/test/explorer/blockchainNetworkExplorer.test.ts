@@ -41,7 +41,8 @@ import { GatewayPropertyTreeItem } from '../../src/explorer/model/GatewayPropert
 import { LocalGatewayTreeItem } from '../../src/explorer/model/LocalGatewayTreeItem';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -221,12 +222,6 @@ describe('BlockchainNetworkExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
                 const gateway: FabricGatewayRegistryEntry = FabricGatewayRegistry.instance().get('myGateway');
 
-                // const myCommand: vscode.Command = {
-                //     command: 'blockchainConnectionsExplorer.connectEntry',
-                //     title: '',
-                //     arguments: [gateway]
-                // };
-
                 const myIdentityCommand: vscode.Command = {
                     command: 'blockchainConnectionsExplorer.connectEntry',
                     title: '',
@@ -238,7 +233,6 @@ describe('BlockchainNetworkExplorer', () => {
                 connectionTreeItem.label.should.equal('myGateway');
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
                 connectionTreeItem.gateway.should.deep.equal(gateway);
-                // connectionTreeItem.command.should.deep.equal(myCommand);
 
                 const identityChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
                 identityChildren.length.should.equal(1);
@@ -338,27 +332,7 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.have.been.calledWith('some error');
             });
 
-            it('should handle gateways with no walletPath set', async () => {
-                const gateways: Array<any> = [];
-
-                const myGateway: any = {
-                    name: 'myGateway',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                    walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
-                };
-
-                gateways.push(myGateway);
-
-                await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
-
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-
-                allChildren.length.should.equal(0);
-                errorSpy.should.not.have.been.called;
-            });
-
-            xit('should handle errors populating the tree with localGatewayTreeItems', async () => {
+            it('should handle errors populating the tree with localGatewayTreeItems', async () => {
                 mySandBox.stub(FabricGatewayHelper, 'isCompleted').returns(true);
 
                 const runtimes: any = [{
@@ -369,6 +343,10 @@ describe('BlockchainNetworkExplorer', () => {
                 await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
 
+                const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+                mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+                mySandBox.stub(testFabricWallet, 'getWalletPath').returns(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+
                 mySandBox.stub(LocalGatewayTreeItem, 'newLocalGatewayTreeItem').rejects({ message: 'some error' });
 
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
@@ -377,7 +355,7 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.have.been.calledWith('Error populating Blockchain Explorer View: some error');
             });
 
-            xit('should display managed runtimes with single identities', async () => {
+            it('should display managed runtimes with single identities', async () => {
                 mySandBox.stub(FabricGatewayHelper, 'isCompleted').returns(true);
 
                 const runtimes: any = [{
@@ -395,6 +373,12 @@ describe('BlockchainNetworkExplorer', () => {
                 mockRuntime.isRunning.resolves(true);
                 mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
 
+                const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+                const walletGenerator: FabricWalletGenerator = await FabricWalletGenerator.instance();
+                mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+                mySandBox.stub(walletGenerator, 'getIdentityNames').resolves(['Admin@org1.example.com']);
+                mySandBox.stub(testFabricWallet, 'getWalletPath').returns(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
                 await new Promise((resolve: any): any => {
@@ -404,19 +388,25 @@ describe('BlockchainNetworkExplorer', () => {
                 const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 gateway.name = 'myRuntime';
                 gateway.managedRuntime = true;
+                gateway.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
                 const myCommand: vscode.Command = {
                     command: 'blockchainConnectionsExplorer.connectEntry',
                     title: '',
-                    arguments: [gateway]
+                    arguments: [gateway, 'Admin@org1.example.com']
                 };
 
                 allChildren.length.should.equal(1);
                 allChildren[0].should.be.an.instanceOf(LocalGatewayTreeItem);
                 const localGatewayTreeItem: LocalGatewayTreeItem = allChildren[0] as LocalGatewayTreeItem;
                 localGatewayTreeItem.label.should.equal('myRuntime  ●');
-                localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
                 localGatewayTreeItem.gateway.should.deep.equal(gateway);
-                localGatewayTreeItem.command.should.deep.equal(myCommand);
+                const gatewayChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(localGatewayTreeItem);
+                gatewayChildren.length.should.equal(1);
+                const identity: GatewayIdentityTreeItem = gatewayChildren[0] as GatewayIdentityTreeItem;
+                identity.command.should.deep.equal(myCommand);
+                identity.label.should.equal('Admin@org1.example.com');
+                identity.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
             });
 
             it('should detect uncompleted gateway', async () => {
@@ -465,42 +455,30 @@ describe('BlockchainNetworkExplorer', () => {
                 treeItems.indexOf(myGatewayB).should.equal(-1);
             });
 
-            it('should handle errors thrown when connection fails (with message)', async () => {
-
+            it('should handle errors thrown when connection fails', async () => {
+                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
-                getConnectionStub.onCall(3).returns(undefined);
-
-                const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-                registryEntry.name = 'myGateway';
-                registryEntry.connectionProfilePath = 'myPath';
-                registryEntry.managedRuntime = false;
-                mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
-
-                fabricConnection.getAllPeerNames.returns(['peerTwo']);
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'cannot connect' });
+                getConnectionStub.onCall(1).throws({ message: 'cannot connect'});
 
                 const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').resolves();
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const oldChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+                await blockchainNetworkExplorerProvider.getChildren();
 
-                const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-                disconnnectStub.should.have.been.calledOnce; // Not sure why this was being called twice
-                // TODO: fix
-                // oldChildren.should.not.equal(allChildren);
-                // errorSpy.should.have.been.calledOnceWith('Error creating channel map: cannot connect');
+                disconnnectStub.should.have.been.calledOnce;
+                logStub.should.have.been.calledWith(LogType.ERROR, `cannot connect`);
             });
 
-            it('should handle errors thrown when connection fails (no message)', async () => {
+            it('should error if getAllChannelsForPeer fails', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'Some other error' });
+                fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
@@ -519,7 +497,7 @@ describe('BlockchainNetworkExplorer', () => {
                 await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
-                logStub.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error creating channel map: Some other error`);
+                logStub.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error creating channel map: some error`);
 
             });
 
