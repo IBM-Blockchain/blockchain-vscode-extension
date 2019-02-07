@@ -102,7 +102,7 @@ export class DependencyManager {
                 const shell: boolean = (process.platform === 'win32') ? true : false;
 
                 try {
-                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=2.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter, shell);
+                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);

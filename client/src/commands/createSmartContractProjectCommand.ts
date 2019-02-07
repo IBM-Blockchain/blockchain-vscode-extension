@@ -67,6 +67,15 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         }
     }
 
+    // If the user is on a Mac (Darwin)
+    if (process.platform === 'darwin') {
+        // Check to see if Xcode is installed (and assume gcc and other dependencies have been installed)
+        const isInstalled: boolean = await isXcodeInstalled();
+        if (!isInstalled) {
+            return;
+        }
+    }
+
     let smartContractLanguageOptions: string[];
     let smartContractLanguage: string;
     outputAdapter.log(LogType.INFO, 'Getting smart contract languages...');
@@ -297,4 +306,21 @@ async function getGeneratorFabricPackageJson(): Promise<any> {
     const packagePath: string = path.join(details.dependencies['generator-fabric'].path, 'package.json');
     const packageJson: any = await fs.readJson(packagePath);
     return packageJson;
+}
+
+async function isXcodeInstalled(): Promise<any> {
+    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    try {
+        const output: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
+        if (!output || output.includes('unable to get active developer directory')) {
+            outputAdapter.log(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
+            return false;
+        } else {
+            return true;
+        }
+    } catch (error) {
+        outputAdapter.log(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
+        return false;
+    }
+
 }
