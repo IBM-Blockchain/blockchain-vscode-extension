@@ -225,7 +225,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.None));
             }
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channels view: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Error populating channel view: ${error.message}`, `Error populating channel view: ${error.toString()}`);
             return tree;
         }
         return tree;
