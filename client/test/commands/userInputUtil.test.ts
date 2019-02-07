@@ -272,6 +272,12 @@ describe('userInputUtil', () => {
             getLocalFabricConnectionStub.returns(null);
             await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(/No connection to a blockchain found/);
         });
+
+        it('should take a connection as an argument', async () => {
+            quickPickStub.resolves('myPeerOne');
+            const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer', fabricConnectionStub);
+            result.should.equal('myPeerOne');
+        });
     });
 
     describe('showSmartContractPackagesQuickPickBox', () => {
@@ -809,6 +815,41 @@ describe('userInputUtil', () => {
             });
 
             const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            quickPickStub.should.have.been.calledWith([
+                {
+                    label: 'biscuit-network@0.0.1',
+                    data: {
+                        name: 'biscuit-network',
+                        channel: 'channelOne',
+                        version: '0.0.1'
+                    }
+                },
+                {
+                    label: 'cake-network@0.0.3',
+                    data: {
+                        name: 'cake-network',
+                        channel: 'channelOne',
+                        version: '0.0.3'
+                    }
+                }], {
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Please choose instantiated smart contract to test'
+                });
+        });
+
+        it('should take a connection as an argument', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', null, fabricConnectionStub);
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }

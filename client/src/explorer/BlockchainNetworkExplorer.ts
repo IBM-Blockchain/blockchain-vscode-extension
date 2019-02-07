@@ -259,11 +259,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 continue; // Iterate to next connection
             }
 
-            if (!gateway.walletPath) {
-                // Fix for connections defined in the user settings with no wallet path set
-                continue;
-            }
-
             const command: vscode.Command = undefined;
 
             if (!FabricGatewayHelper.isCompleted(gateway)) {
@@ -304,7 +299,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             if (contracts.length === 0) {
                 collapsedState = vscode.TreeItemCollapsibleState.None;
             }
-            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts));
+            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
         }
 
         return tree;

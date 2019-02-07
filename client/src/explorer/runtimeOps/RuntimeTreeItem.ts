@@ -48,10 +48,6 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         });
     }
 
-    public getRuntime(): FabricRuntime {
-        return this.runtime;
-    }
-
     private safelyUpdateProperties(): void {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
