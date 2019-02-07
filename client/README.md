@@ -12,13 +12,13 @@ If you have find any problems or want to make suggestions for future features pl
 ## Requirements
 
 You will need the following installed in order to use the extension:
-- [VSCode version 1.26 or greater](https://code.visualstudio.com)
+- [VSCode version 1.31 or greater](https://code.visualstudio.com)
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Yeoman (yo) v2.x](http://yeoman.io/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 
-> ⚠ Please note: From version 0.1.0+, your smart contract package.json should depend on at least 1.4.0-beta2@fabric-contract. This is only required for smart contracts not created using version 0.1.0+ of this extension.
+> ⚠ Please note: From version 0.1.0+, your smart contract package.json should depend on at least fabric-contract@1.4.0-beta2. This is only required for smart contracts not created using version 0.1.0+ of this extension.
 
 If you are using Windows, you must also ensure the following:
 - Your version of Windows supports Hyper-V and Docker:
@@ -90,7 +90,7 @@ You'll find the smart contract file in the `lib` directory of a newly generated 
 ### Package a smart contract project
 To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages will be added to the `Smart Contract Packages` panel in the explorer view.
 
-Alternatively, navigate to the explorer view (click the IBM Blockchain Platform icon in the left-navigation) then click the `add` icon (this will again package up the project you have open in your workspace).
+Alternatively, navigate to the explorer view (click the IBM Blockchain Platform icon in the left-navigation) then click the `add` icon on the Smart Contract Packages view (this will again package up the project you have open in your workspace).
 
 When you package a smart contract project, all of the smart contract code is added into a new Fabric smart contract package file (using the standard Fabric chaincode deployment specification format). You can deploy this package using this extension. Alternatively, you can deploy the package using other tools, such as the Fabric CLI (`peer chaincode install` command).
 
@@ -103,55 +103,56 @@ Right-click a package and select the `Export Package` option.  You can select wh
 
 
 ### Connect to local_fabric runtime
-The `local_fabric` runtime can be enabled by left-clicking it in the `Blockchain Connections` panel. The first time you enable it, Fabric images will be installed.  
-Left-click to connect to `local_fabric` when it is enabled. Right-click the connection for management options (including start/stop, teardown and toggle dev mode).
+The `local_fabric` runtime can be enabled in `Local Fabric Ops` panel. The first time you enable it, Fabric images will be installed.  
+Click the menu on the `Local Fabric Ops` header-bar for management options (including start/stop and teardown).
+Left-click the `local_fabric` identity to connect to it within the `Fabric Gateways` view.
 
 ![Connect to local_fabric runtime](client/media/connect_to_local_fabric_runtime_small.gif)
 
 
 ### Teardown the local_fabric runtime
-When you start/stop the local_fabric, all data will be maintained. To completely teardown the runtime and start over, right-click `local_fabric` in the `Blockchain Connections` view and choose `Teardown Fabric Runtime` (you must then confirm this action).
+When you start/stop the local_fabric, all data will be maintained. Choose `Teardown Fabric Runtime` from the `Local Fabric Ops` header-bar to completely teardown the runtime and start over (you must then confirm this action).
 
 ![Teardown the local_fabric runtime](client/media/teardown_fabric_runtime.gif)
 
 ### Connect to a specified (remote) Fabric runtime and discover the existing resources
-Left-click a connection to activate connect to the blockchain runtime it represents. Expand the sections in the navigation tree to explore its resources. When you're done, use the "back" icon in the section's header-bar to disconnect.
+Left-click a gateway identity to activate connect to the blockchain runtime it represents. Expand the sections in the navigation tree to explore its resources. When you're done, use the "back" icon in the section's header-bar to disconnect.
 
 ![Connect to the network and discover the existing resources](client/media/discover_resources.png)
 
 
 ### Install smart contract package
-Smart contract packages are installed on Fabric peers.  Find a peer by connecting to a blockchain network, then right-click and select `Install Smart Contract`.
+Smart contract packages are installed on Fabric peers.  Start `local_fabric`, find a peer under `Nodes` in the `Local Fabric Ops` panel and right-click to select `Install Smart Contract`. Alternatively click on `+ Install` or right-click `Installed` under `Smart Contracts` in the `Local Fabric Ops` panel
 
 ![Install smart contract](client/media/install_smart_contract.png)
 
 
 ### Instantiate smart contract package
-Smart contract packages are instantiated on Fabric channels.  Find a channel by connecting to a blockchain network, then right-click and select `Instantiate / Upgrade Smart Contract`. You will be offered a list of the smart contracts that are installed on peers in the channel.
+Start `local_fabric`, find a channel under `Channels` in the `Local Fabric Ops` panel and right-click to select `Instantiate Smart Contract`. Alternatively click on `+ Instantiate` or right-click `Instantiated` under `Smart Contracts` in the `Local Fabric Ops` panel. You will be asked to select from a list of open projects, smart contract packages or smart contracts installed on peers in the channel.
 
 It is useful to think of installing on peers as the first step and instantiating on a channel as the second step of deploying a smart contract package.
 
 ![Instantiate smart contract](client/media/instantiate_small.gif)
 
 ### Submit transaction
-Right click a transaction and click **Submit transaction**. This will submit a transaction to a smart contract.
+Once connected to a Fabric gateway in the `Fabric Gateways` panel, right-click a transaction under an instantiated smart contract and click `Submit transaction`. This will submit a transaction to a smart contract.
 
 ![Submit transaction](client/media/submit_transaction.gif)
 
 ### Edit an existing blockchain connection
-Connections can be edited by right-clicking and selecting `Edit Connection`.  This will open User Settings, with the connection available for editing.
+Gatways and their wallets can be edited by right-clicking and selecting `Edit Gateway` in the `Fabric Gateways` panel.  This will open User Settings, with the gateway available for editing.
 
 ![Edit blockchain connection](client/media/edit_connection.gif)
 
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. To debug your smart contract follow these steps:
 
-1. Open your smart contract project, ensure you are connected to the `local_fabric` connection and the `local_fabric` is in development mode.
+1. Open your smart contract project, ensure you are connected to the `local_fabric` runtime and the `local_fabric` is in development mode.
 2. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 3. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
 4. Package and install the smart contract by clicking the **play** button.
 5. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
-6. Right-click on the channel and click **Instantiate**. You can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
+6. Click **Instantiate** in the `Local Fabric Ops` panel. In the `Fabric Gateways` panel, you can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 
@@ -159,7 +160,7 @@ To make iterative changes to your smart contract while debugging, after making y
 
 Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. From v0.2.0+, you can use a file system wallet to import identities to connect with. Alternatively, provide a name, certificate and privateKey and the extension will generate a new file system wallet. In either case, this file system wallet can be used by your Blockchain applications. 
 
-> ⚠ Please note: v0.2.0+ supports the use of file system wallets for all fabric connections, so you will need to add any connections created with previous releases again in order to use them
+> ⚠ Please note: v0.3.0 has restructured fabric connections to fabric gateways, so you will need to add any connections created with previous releases again in order to use them. 
 
 **When using the pre-configured local instance of Hyperledger Fabric named `local_fabric`, the extension will automatically pull and use the correct Docker images.**
 
