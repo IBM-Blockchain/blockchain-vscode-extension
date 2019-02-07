@@ -338,4 +338,29 @@ describe('Extension Tests', () => {
 
     });
 
+    it('should reload blockchain explorer when debug event emitted', async () => {
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+
+        const session: any = {
+            some: 'thing'
+        };
+        mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledWithExactly('blockchainExplorer.refreshEntry');
+    });
+
+    it('should ignore undefined emitted debug events', async () => {
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+
+        const session: any = undefined;
+        mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        executeCommand.should.have.been.calledOnceWithExactly('blockchainExplorer.refreshEntry');
+    });
+
 });
