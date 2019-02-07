@@ -65,5 +65,8 @@ elif [ "${TASK}" == "systestsNode" ]; then
     npm run systest 2>&1 | tee
     ./integrationTest/scripts/stop-integration-tests.sh;
 else
+    if [ $TRAVIS_OS_NAME == "windows" ]; then
+        export CODE_DOWNLOAD_URL="https://vscode-update.azurewebsites.net/1.31.0/win32-x64-archive/stable"
+    fi
     npm test
 fi

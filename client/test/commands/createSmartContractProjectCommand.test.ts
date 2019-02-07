@@ -484,7 +484,7 @@ describe('CreateSmartContractProjectCommand', () => {
         logSpy.should.have.been.calledWith(LogType.ERROR, sinon.match(/Contract languages not found in package.json for generator-fabric module/));
     });
 
-    it('should send a telemetry event if the extension is for production', async () => {
+    it.only('should send a telemetry event if the extension is for production', async () => {
         const getPackageJSONStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
         getPackageJSONStub.onCall(0).returns({generatorFabricVersion: '0.0.11'}); // generator-fabric version check
         getPackageJSONStub.onCall(1).returns({production: false}); // To disable npm install!

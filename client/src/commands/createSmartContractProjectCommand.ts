@@ -40,11 +40,13 @@ class GeneratorDependencies {
 }
 
 export async function createSmartContractProject(generator: string = 'fabric:contract'): Promise<void> {
+
     console.log('create Smart Contract Project');
     // Create and show output channel
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
     // check for yo and generator-fabric
+    console.log('checking for dependencies');
     const dependencies: GeneratorDependencies = await checkGeneratorDependenciesWithProgress();
     if (!dependencies) {
         return;
@@ -79,6 +81,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
     let smartContractLanguageOptions: string[];
     let smartContractLanguage: string;
     outputAdapter.log(LogType.INFO, 'Getting smart contract languages...');
+    console.log('getting languages');
     try {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
@@ -86,6 +89,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         return;
     }
 
+    console.log('show languages quick pick');
     smartContractLanguage = await UserInputUtil.showLanguagesQuickPick('Choose smart contract language (Esc to cancel)', smartContractLanguageOptions);
     if (!smartContractLanguage) {
         // User has cancelled the QuickPick box
@@ -111,6 +115,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
     const folderPath: string = folderUri.fsPath;
     const folderName: string = path.basename(folderPath);
 
+    console.log('show folder options');
     const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open your new project');
 
     if (!openMethod) {
@@ -126,6 +131,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         await env.lookup();
 
         // tslint:disable-next-line
+        console.log('get package json');
         const packageJson: any = ExtensionUtil.getPackageJSON();
         const runOptions: any = {
             'destination': folderPath,
@@ -142,8 +148,9 @@ export async function createSmartContractProject(generator: string = 'fabric:con
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>, token: vscode.CancellationToken): Promise<void> => {
+        }, async (progress: vscode.Progress<{ message: string }>, token: vscode.CancellationToken): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
+            console.log('generating project');
             await env.run(generator, runOptions);
         });
 
@@ -155,6 +162,8 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         await UserInputUtil.openNewProject(openMethod, folderUri);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
+        console.log(error.message);
+        console.log(error);
         return;
     }
 
@@ -165,7 +174,7 @@ async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDepend
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>): Promise<GeneratorDependencies> => {
+    }, async (progress: vscode.Progress<{ message: string }>): Promise<GeneratorDependencies> => {
         progress.report({message: `Checking smart contract generator dependencies...`});
         return checkGeneratorDependencies();
     });
@@ -196,7 +205,7 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
     } catch (error) {
         console.log('yo missing');
         // assume generator-fabric isn't installed either
-        return new GeneratorDependencies({ needYo: true, needGenFab: true });
+        return new GeneratorDependencies({needYo: true, needGenFab: true});
     }
 
     // Check to see if we have generator-fabric installed.
@@ -226,11 +235,11 @@ async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
 
         }
         console.log('generator-fabric is installed', details);
-        return new GeneratorDependencies({ needYo: false, needGenFab: false });
+        return new GeneratorDependencies({needYo: false, needGenFab: false});
 
     } catch (error) {
         console.log('generator-fabric missing');
-        return new GeneratorDependencies({ needYo: false, needGenFab: true });
+        return new GeneratorDependencies({needYo: false, needGenFab: true});
     }
 
 }
@@ -240,7 +249,7 @@ async function installGeneratorDependenciesWithProgress(dependencies: GeneratorD
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
+    }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({message: `Installing smart contract generator dependencies...`});
         return installGeneratorDependencies(dependencies);
     });
@@ -281,7 +290,7 @@ async function getSmartContractLanguageOptionsWithProgress(): Promise<string[]> 
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>): Promise<string[]> => {
+    }, async (progress: vscode.Progress<{ message: string }>): Promise<string[]> => {
         progress.report({message: `Getting smart contract languages...`});
         return getSmartContractLanguageOptions();
     });

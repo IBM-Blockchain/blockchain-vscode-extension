@@ -11,16 +11,22 @@ before_install:
          sleep 3;
         fi
 install: |
-      ./.travis/install.sh
+         ./.travis/install.sh
 
-jobs: 
-  include: 
+jobs:
+  include:
     - script: ./.travis/script.sh
       os: osx
       env: TASK=unit
       language: node_js
       node_js:
       - "lts/*"
+    - script: ./.travis/script.sh
+      os: windows
+      env: TASK=unit
+      language: node_js
+      node_js:
+      - "8"
     - script: ./.travis/script.sh
       os: linux
       env: TASK=unit
