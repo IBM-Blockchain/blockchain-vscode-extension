@@ -659,7 +659,7 @@ describe('FabricRuntime', () => {
 
         it('should get the runtime connection profile path', async () => {
             const connectionPath: string = await runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'connection.json'));
+            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'runtime1', 'connection.json'));
         });
 
     });
