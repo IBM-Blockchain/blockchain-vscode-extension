@@ -88,7 +88,7 @@ Use the `Create Smart Contract Project` command to start a new project. Select f
 
 
 ### Edit / write smart contract files
-You'll find the smart contract file in the `lib` directory of a newly generated project.
+You'll find the smart contract file in the `lib` directory of a newly generated project if you use JavaScript and in the `src` directory if you use TypeScript.
 
 <img src="/client/media/edit_write_files.png" width="85%" alt="Edit smart contract files">
 
