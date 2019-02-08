@@ -173,6 +173,14 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
         }
     }));
 
+    vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
+        // Listen for any changes to the debug state.
+        if (e) {
+            // Show any new transactions added to a contract, after 'reload debug' is executed.
+            await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+        }
+    });
+
     const packageJson: any = ExtensionUtil.getPackageJSON();
 
     if (packageJson.production === true) {
