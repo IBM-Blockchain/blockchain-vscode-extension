@@ -108,8 +108,10 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         let args: Array<string>;
         if (fcn) {
             const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
-            if (argsString) {
-                args = argsString.split(',');
+            if (argsString === undefined) {
+                return;
+            } else {
+                args = argsString.split(','); // If empty, args will be ['']
             }
         }
 

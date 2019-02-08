@@ -220,12 +220,22 @@ describe('InstantiateCommand', () => {
 
         it('should instantiate the smart contract through the command with function but no args', async () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
-            showInputBoxStub.onSecondCall().resolves();
+            showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', undefined);
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', ['']);
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should cancel instantiating when user escape entering args', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves(undefined);
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
         });
 
         it('should install and instantiate package', async () => {

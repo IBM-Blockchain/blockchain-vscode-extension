@@ -211,12 +211,21 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit the smart contract through the command with function but no args', async () => {
-            showInputBoxStub.onFirstCall().resolves();
+            showInputBoxStub.onFirstCall().resolves('');
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [''], 'my-contract');
             showInputBoxStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
+        it('should handle cancelling when required to give args', async () => {
+            showInputBoxStub.onFirstCall().resolves(undefined);
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledOnce;
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
         });
     });
 });

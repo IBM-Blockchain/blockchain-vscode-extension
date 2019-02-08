@@ -212,7 +212,7 @@ export class IntegrationTestUtil {
         });
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
+        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
         await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
     }
 
@@ -241,7 +241,7 @@ export class IntegrationTestUtil {
         });
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves();
+        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
         await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
     }
 
