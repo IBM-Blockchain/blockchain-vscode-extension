@@ -29,6 +29,56 @@ import { LogType } from '../logging/OutputAdapter';
 export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, version?: string): Promise<PackageRegistryEntry> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'packageSmartContract');
+
+    let resolvedPkgDir: string;
+    let properties: { workspacePackageName: string, workspacePackageVersion: string };
+    let language: ChaincodeType;
+
+    try {
+        // Determine the directory that will contain the packages and ensure it exists.
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const pkgDir: string = path.join(extDir, 'packages');
+        resolvedPkgDir = await UserInputUtil.getDirPath(pkgDir);
+        await fs.ensureDir(resolvedPkgDir);
+
+        // Choose the workspace directory.
+        if (!workspace) {
+            workspace = await chooseWorkspace();
+            if (!workspace) {
+                // User cancelled.
+                return;
+            }
+        }
+
+        // Build the workspace.
+        await buildWorkspace(workspace);
+
+        // Determine the language.
+        language = await getLanguage(workspace);
+
+        // Determine the package name and version.
+        if (language === 'golang') {
+            properties = await golangPackageAndVersion();
+        } else if (language === 'java') {
+            properties = await javaPackageAndVersion();
+        } else {
+            properties = await packageJsonNameAndVersion(workspace);
+        }
+        if (!properties) {
+            // User cancelled.
+            return;
+        }
+
+        if (version) {
+            // update version to our custom one (used for debugging the contract)
+            properties.workspacePackageVersion = version;
+        }
+
+    } catch (err) {
+        outputAdapter.log(LogType.ERROR, err.message, err.toString());
+        return;
+    }
+
     return vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
@@ -36,46 +86,6 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Packaging Smart Contract` });
         try {
-
-            // Determine the directory that will contain the packages and ensure it exists.
-            const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-            const pkgDir: string = path.join(extDir, 'packages');
-            const resolvedPkgDir: string = await UserInputUtil.getDirPath(pkgDir);
-            await fs.ensureDir(resolvedPkgDir);
-
-            // Choose the workspace directory.
-            if (!workspace) {
-                workspace = await chooseWorkspace();
-                if (!workspace) {
-                    // User cancelled.
-                    return;
-                }
-            }
-
-            // Build the workspace.
-            await buildWorkspace(workspace);
-
-            // Determine the language.
-            const language: ChaincodeType = await getLanguage(workspace);
-
-            // Determine the package name and version.
-            let properties: { workspacePackageName: string, workspacePackageVersion: string };
-            if (language === 'golang') {
-                properties = await golangPackageAndVersion();
-            } else if (language === 'java') {
-                properties = await javaPackageAndVersion();
-            } else {
-                properties = await packageJsonNameAndVersion(workspace);
-            }
-            if (!properties) {
-                // User cancelled.
-                return;
-            }
-
-            if (version) {
-                // update version to our custom one (used for debugging the contract)
-                properties.workspacePackageVersion = version;
-            }
 
             // Determine the filename of the new package.
             const pkgFile: string = path.join(resolvedPkgDir, `${properties.workspacePackageName}@${properties.workspacePackageVersion}.cds`);
@@ -136,7 +146,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
             return packageEntry;
         } catch (err) {
             outputAdapter.log(LogType.ERROR, err.message, err.toString());
-            throw err;
+            return;
         }
     });
 }
@@ -205,7 +215,6 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
 
     // No idea what this is!
     const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java';
-    outputAdapter.log(LogType.ERROR, message);
     throw new Error(message);
 
 }
@@ -226,8 +235,6 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): 
 
     if (!workspacePackageName || !workspacePackageVersion) {
         const message: string = 'Please enter a package name and/or package version into your package.json';
-        outputAdapter.log(LogType.ERROR, message);
-
         throw new Error(message);
     }
     return { workspacePackageName, workspacePackageVersion };

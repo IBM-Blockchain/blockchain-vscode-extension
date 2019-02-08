@@ -419,6 +419,14 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace`);
         });
 
+        it('should do nothing if user cancels selecting a test language', async () => {
+            showLanguageQuickPickStub.resolves(undefined);
+
+            await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry', instantiatedSmartContract);
+            logSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            workspaceFoldersStub.should.not.have.been.called;
+        });
+
         it('should show an error message if the smart contract project isnt open in the workspace', async () => {
             const incorrectBuffer: Buffer = Buffer.from(`{"name": "double_decker"}`);
             readFileStub.resolves(incorrectBuffer);

@@ -195,6 +195,28 @@ describe('InstallCommand', () => {
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Error installing smart contract: some error');
         });
 
+        it('should handle error from packaging smart contract', async () => {
+            showInstallableSmartContractsQuickPickStub.resolves({
+                label: 'myContract@0.0.1',
+                description: 'Open Project',
+                data: {
+                    packageEntry: packageRegistryEntry,
+                    workspace: undefined
+                }
+            });
+            getConnectionStub.onCall(4).returns(null);
+            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
+            const packageCommandStub: sinon.SinonStub = executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            packageCommandStub.resolves();
+
+            await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
+
+            packageCommandStub.should.have.been.calledOnce;
+            logOutputSpy.should.have.been.calledOnce;
+            logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
+
+        });
+
         it('should handle cancel when choosing package', async () => {
             showInstallableSmartContractsQuickPickStub.resolves();
 

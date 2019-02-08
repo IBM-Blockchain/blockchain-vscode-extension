@@ -82,8 +82,10 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     let testFileSuiffix: string;
     if (testLanguage === 'JavaScript') {
         testFileSuiffix = 'js';
-    } else {
+    } else if (testLanguage === 'TypeScript') {
         testFileSuiffix = 'ts';
+    } else {
+        return;
     }
 
     // Only generate the test file(s) if the smart contract is open in the workspace
