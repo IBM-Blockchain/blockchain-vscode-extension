@@ -851,6 +851,47 @@ describe('BlockchainNetworkExplorer', () => {
                 errorSpy.should.not.have.been.called;
             });
 
+            it('should show the transactions and not contracts if there is only one contract', async () => {
+                fabricConnection.getMetadata.withArgs('cake-network', 'channelTwo').resolves(
+                    {
+                        contracts: {
+                            'my-contract': {
+                                name: 'my-contract',
+                                transactions: [
+                                    {
+                                        name: 'garabaldi'
+                                    },
+                                    {
+                                        name: 'shortbread'
+                                    }
+                                ],
+                            }
+                        }
+                    }
+                );
+                const channels: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+
+                const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channels);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[1]);
+
+                const instantiatedChaincodeItemOne: InstantiatedChaincodeTreeItem = channelChildrenTwo[0] as InstantiatedChaincodeTreeItem;
+
+                const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
+                transactions.length.should.equal(2);
+                transactions[0].label.should.equal('garabaldi');
+                transactions[0].chaincodeName.should.equal('cake-network');
+                transactions[0].channelName.should.equal('channelTwo');
+                transactions[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                transactions[0].contractName.should.equal('my-contract');
+                transactions[1].label.should.equal('shortbread');
+                transactions[1].chaincodeName.should.equal('cake-network');
+                transactions[1].channelName.should.equal('channelTwo');
+                transactions[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                transactions[1].contractName.should.equal('my-contract');
+
+                errorSpy.should.not.have.been.called;
+            });
+
             it('should create the transactions correctly', async () => {
 
                 allChildren = await blockchainNetworkExplorerProvider.getChildren();
