@@ -326,5 +326,25 @@ describe('InstantiateCommand', () => {
             should.not.exist(logSpy.getCall(1));
         });
 
+        it('should be able to handle a project failing to package', async () => {
+            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves();
+
+            showChaincodeAndVersionQuickPick.resolves({
+                label: 'somepackage@0.0.1',
+                description: 'Open Project',
+                data: {
+                    packageEntry: undefined,
+                    workspace: mySandBox.stub()
+                }
+            });
+
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry') as PackageRegistryEntry;
+            should.not.exist(packageEntry);
+
+            fabricClientConnectionMock.instantiateChaincode.should.not.been.called;
+            logSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+        });
+
     });
 });
