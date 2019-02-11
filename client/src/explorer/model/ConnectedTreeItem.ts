@@ -15,16 +15,26 @@
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricConnectionRegistryEntry } from '../../fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
+import * as path from 'path';
 
 export class ConnectedTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-connected-item';
 
-    constructor(provider: BlockchainExplorerProvider, private readonly connectionName: string, public readonly connection: FabricConnectionRegistryEntry) {
-        super(provider, `Connected to: ${connectionName}`, vscode.TreeItemCollapsibleState.None);
+    iconPath: {light: string, dark: string} = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'channel.svg'),
+        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', 'channel.svg')
+    };
+
+    constructor(provider: BlockchainExplorerProvider, public readonly connectionName: string, public readonly connection: FabricGatewayRegistryEntry, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
+        super(provider, connectionName, collapsibleState);
 
         if (connection.managedRuntime) {
             this.contextValue = 'blockchain-connected-runtime-item';
+        }
+
+        if (connectionName.includes('Connected via gateway') || connectionName.includes('Using ID')) {
+            this.iconPath = null;
         }
     }
 }

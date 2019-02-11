@@ -47,7 +47,10 @@ describe('CreateSmartContractProjectCommand', () => {
     let uri: vscode.Uri;
     let uriArr: Array<vscode.Uri>;
 
-    before(async () => {
+    before(async function(): Promise<void> {
+        if (process.platform === 'win32') {
+            this.skip();
+        }
         await TestUtil.setupTests();
     });
 

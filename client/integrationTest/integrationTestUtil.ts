@@ -21,8 +21,8 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { CommandUtil } from '../src/util/CommandUtil';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
-import { FabricConnectionRegistry } from '../src/fabric/FabricConnectionRegistry';
-import { FabricConnectionRegistryEntry } from '../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
 
@@ -38,7 +38,7 @@ export class IntegrationTestUtil {
     public testContractDir: string;
     public testContractType: string;
     public workspaceFolder: vscode.WorkspaceFolder;
-    public connectionRegistry: FabricConnectionRegistry;
+    public gatewayRegistry: FabricGatewayRegistry;
     public packageRegistry: PackageRegistry;
     public keyPath: string;
     public certPath: string;
@@ -58,6 +58,7 @@ export class IntegrationTestUtil {
     public workspaceConfigurationGetStub: sinon.SinonStub;
     public getConfigurationStub: sinon.SinonStub;
     public showIdentityOptionsStub: sinon.SinonStub;
+    public showGatewayQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -70,7 +71,7 @@ export class IntegrationTestUtil {
         this.inputBoxStub = this.mySandBox.stub(UserInputUtil, 'showInputBox');
         this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
-        this.connectionRegistry = FabricConnectionRegistry.instance();
+        this.gatewayRegistry = FabricGatewayRegistry.instance();
         this.browseEditStub = this.mySandBox.stub(UserInputUtil, 'browseEdit');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
@@ -80,29 +81,38 @@ export class IntegrationTestUtil {
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
         this.showIdentityOptionsStub = this.mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
-
+        this.showGatewayQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
     }
 
     public async createFabricConnection(): Promise<void> {
-        if (this.connectionRegistry.exists('myConnection')) {
-            await this.connectionRegistry.delete('myConnection');
+        if (this.gatewayRegistry.exists('myGateway')) {
+            await this.gatewayRegistry.delete('myGateway');
         }
 
-        this.inputBoxStub.withArgs('Enter a name for the connection').resolves('myConnection');
-        this.browseEditStub.withArgs('Enter a file path to a connection profile file', 'myConnection').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
+        this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
+        this.browseEditStub.withArgs('Enter a file path to a connection profile file', 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
-        this.browseEditStub.withArgs('Browse for a certificate file', 'myConnection').resolves(this.certPath);
-        this.browseEditStub.withArgs('Browse for a private key file', 'myConnection').resolves(this.keyPath);
+        this.browseEditStub.withArgs('Browse for a certificate file', 'myGateway').resolves(this.certPath);
+        this.browseEditStub.withArgs('Browse for a private key file', 'myGateway').resolves(this.keyPath);
 
-        await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayEntry');
 
-        this.connectionRegistry.exists('myConnection').should.be.true;
+        this.gatewayRegistry.exists('myGateway').should.be.true;
     }
 
-    public async connectToFabric(): Promise<void> {
-        const connection: FabricConnectionRegistryEntry = FabricConnectionRegistry.instance().get('myConnection');
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connection);
+    public async connectToFabric(name: string): Promise<void> {
+        let gatewayEntry: FabricGatewayRegistryEntry;
+
+        try {
+            gatewayEntry = FabricGatewayRegistry.instance().get(name);
+        } catch (error) {
+            gatewayEntry = new FabricGatewayRegistryEntry();
+            gatewayEntry.name = name;
+            gatewayEntry.managedRuntime = true;
+        }
+
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', gatewayEntry);
     }
 
     public async createSmartContract(name: string, type: string): Promise<void> {
@@ -243,20 +253,36 @@ export class IntegrationTestUtil {
 
         this.showTransactionStub.resolves({
             label: `${contractName} - ${transaction}`,
-            data: { name: transaction, contract: contractName}
+            data: { name: transaction, contract: contractName }
         });
 
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
 
-        await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
     }
 
-    public async generateSmartContractTests(name: string, version: string, language: string): Promise<void> {
+    public async generateSmartContractTests(name: string, version: string, language: string, gatewayConnectionName: string): Promise<void> {
+        let gatewayEntry: FabricGatewayRegistryEntry;
+
+        try {
+            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayConnectionName);
+        } catch (error) {
+            gatewayEntry = new FabricGatewayRegistryEntry();
+            gatewayEntry.name = gatewayConnectionName;
+            gatewayEntry.managedRuntime = true;
+        }
+
+        this.showGatewayQuickPickStub.resolves({
+            label: gatewayConnectionName,
+            data: gatewayEntry
+        });
+
         this.showChannelStub.resolves('mychannel');
         this.showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
+
         this.showLanguagesQuickPickStub.resolves(language);
         this.getWorkspaceFoldersStub.returns([this.workspaceFolder]);
         const packageJSONPath: string = path.join(this.testContractDir, 'package.json');
@@ -272,7 +298,7 @@ export class IntegrationTestUtil {
             });
         }
 
-        await vscode.commands.executeCommand('blockchainExplorer.testSmartContractEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
     }
 
     public async runSmartContractTests(name: string, language: string): Promise<string> {

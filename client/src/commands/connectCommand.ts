@@ -17,7 +17,7 @@ import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { Reporter } from '../util/Reporter';
@@ -27,7 +27,7 @@ import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
-export async function connect(connectionRegistryEntry: FabricConnectionRegistryEntry, identityName?: string): Promise<void> {
+export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `connect`);
 
@@ -35,53 +35,45 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
     let wallet: IFabricWallet;
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
 
-    if (!connectionRegistryEntry) {
-        const chosenEntry: IBlockchainQuickPickItem<FabricConnectionRegistryEntry> = await UserInputUtil.showConnectionQuickPickBox('Choose a connection to connect with', true);
+    if (!gatewayRegistryEntry) {
+        const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to connect with', true);
         if (!chosenEntry) {
             return;
         }
 
-        connectionRegistryEntry = chosenEntry.data;
+        gatewayRegistryEntry = chosenEntry.data;
     }
 
     let connection: IFabricConnection;
-    if (connectionRegistryEntry.managedRuntime) {
+    if (gatewayRegistryEntry.managedRuntime) {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.get(connectionRegistryEntry.name);
+        const runtime: FabricRuntime = runtimeManager.get(gatewayRegistryEntry.name);
         const running: boolean = await runtime.isRunning();
         if (!running) {
-            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', runtime);
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
         }
 
-        const runtimeWallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(runtime['name']);
-        const connectionProfile: any = await runtime.getConnectionProfile();
-        const certificate: string = await runtime.getCertificate();
-        const privateKey: string = await runtime.getPrivateKey();
-        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, 'Admin@org1.example.com');
-        wallet = runtimeWallet;
+        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
 
-        connectionRegistryEntry.walletPath = runtimeWallet.getWalletPath();
-        connectionRegistryEntry.connectionProfilePath = runtime.getConnectionProfilePath();
-
+        gatewayRegistryEntry.walletPath = wallet.getWalletPath();
+        gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
-
         runtimeData = 'managed runtime';
 
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
-
+        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
         identityName = identityNames[0];
 
     } else {
-        const connectionData: {connectionProfilePath: string, walletPath: string} = {
-            connectionProfilePath: connectionRegistryEntry.connectionProfilePath,
-            walletPath: connectionRegistryEntry.walletPath
+        const connectionData: { connectionProfilePath: string, walletPath: string } = {
+            connectionProfilePath: gatewayRegistryEntry.connectionProfilePath,
+            walletPath: gatewayRegistryEntry.walletPath
         };
 
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
+        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
 
         if (identityNames.length === 0) {
-            outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + connectionRegistryEntry.walletPath);
+            outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + gatewayRegistryEntry.walletPath);
             return;
 
         } else if (identityNames.length === 1) {
@@ -97,22 +89,21 @@ export async function connect(connectionRegistryEntry: FabricConnectionRegistryE
         }
 
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
-        wallet = FabricWalletGenerator.getNewWallet(connectionRegistryEntry.name, connectionRegistryEntry.walletPath);
+        wallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
     }
 
     try {
         await connection.connect(wallet, identityName);
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, error.message, error.toString());
-        throw error;
-    } finally {
-        FabricConnectionManager.instance().connect(connection, connectionRegistryEntry);
+        FabricConnectionManager.instance().connect(connection, gatewayRegistryEntry);
 
-        outputAdapter.log(LogType.SUCCESS, `Connected to ${connectionRegistryEntry.name}`, `Connected to ${connectionRegistryEntry.name}`);
+        outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayRegistryEntry.name}`, `Connecting to ${gatewayRegistryEntry.name}`);
         if (!runtimeData) {
             const isIBP: boolean = connection.isIBPConnection();
             runtimeData = (isIBP ? 'IBP instance' : 'user runtime');
         }
-        Reporter.instance().sendTelemetryEvent('connectCommand', {runtimeData: runtimeData});
+        Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData });
+    } catch (error) {
+        outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        throw error;
     }
 }
