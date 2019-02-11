@@ -14,6 +14,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as dateFormat from 'dateformat';
@@ -81,11 +82,15 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 config.program = path.join(folder.uri.fsPath, 'node_modules', '.bin', 'fabric-chaincode-node');
             }
 
-            const tsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '**/*.ts'), '**/node_modules/**', 1);
+            // Search for a TsConfig file. If we find one, then assume the project is a TypeScript project.
+            const tsProject: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '**/tsconfig.json'), '**/node_modules/**', 1);
 
-            if (tsFiles.length > 0) {
+            if (tsProject.length > 0) {
+                // Asssume it's a TypeScript project
                 let dir: string = '';
-                const tsConfig: any = await ExtensionUtil.loadJSON(folder, 'tsconfig.json');
+                const tsConfigPath: string = tsProject[0].fsPath;
+                const tsConfig: any = await fs.readJSON(tsConfigPath);
+
                 if (tsConfig && tsConfig.compilerOptions && tsConfig.compilerOptions.outDir) {
                     const outDir: string = tsConfig.compilerOptions.outDir;
                     if (!path.isAbsolute(outDir)) {

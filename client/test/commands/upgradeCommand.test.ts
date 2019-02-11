@@ -236,11 +236,21 @@ describe('UpgradeCommand', () => {
         it('should upgrade the smart contract through the command with function but no args', async () => {
             executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             showInputBoxStub.onFirstCall().resolves('instantiate');
-            showInputBoxStub.onSecondCall().resolves();
+            showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
-            fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', 'channelOne', 'instantiate', undefined);
+            fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['']);
             showInputBoxStub.should.have.been.calledTwice;
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+        });
+
+        it('should cancel if user escapes during inputting args', async () => {
+            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves(undefined);
+            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+            successSpy.should.not.have.been.calledWith('Successfully upgraded smart contract');
         });
 
         it('should install and upgrade package', async () => {
