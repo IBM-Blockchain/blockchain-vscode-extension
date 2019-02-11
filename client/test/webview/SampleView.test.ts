@@ -182,7 +182,8 @@ describe('SampleView', () => {
                     }
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -235,7 +236,8 @@ describe('SampleView', () => {
                     }
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -291,7 +293,8 @@ describe('SampleView', () => {
                     postMessage: mySandBox.stub().resolves()
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -347,7 +350,8 @@ describe('SampleView', () => {
                     postMessage: mySandBox.stub().resolves()
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -412,7 +416,8 @@ describe('SampleView', () => {
                     postMessage: mySandBox.stub().resolves()
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub().yields()
+                onDidDispose: mySandBox.stub().yields(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -465,7 +470,8 @@ describe('SampleView', () => {
                 },
                 title: 'Sample One Sample',
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
             });
         }));
 
@@ -477,6 +483,61 @@ describe('SampleView', () => {
         should.equal(createWebviewPanelStub.getCall(1), null);
         should.equal(getSamplePageStub.getCall(1), null);
 
+    });
+
+    it('should receive onDidChangeViewState events', async () => {
+        const findStub: sinon.SinonStub = mySandBox.stub(Array.prototype, 'find');
+        findStub.callThrough();
+        findStub.onCall(0).returns(undefined);
+        findStub.onCall(1).returns(undefined);
+
+        mySandBox.stub(RepositoryRegistry.prototype, 'get').returns({name: 'Repo One', path: 'path'});
+
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({ command: 'open', fileType: 'contract', fileName: 'Contract One', language: 'GoLang' });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {return; },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub().yields()
+
+            });
+        }));
+
+        const openFileStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openFile').returns(undefined);
+
+        await SampleView.openContractSample(context, 'Repo One', 'Sample One');
+        await Promise.all(onDidReceiveMessagePromises);
+
+        createWebviewPanelStub.getCall(0).should.have.been.calledWith(
+            'Sample One',
+            'Sample One Sample',
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: false,
+                enableCommandUris: true,
+                localResourceRoots: [
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                ]
+
+            }
+        );
+
+        getSamplePageStub.getCall(0).should.have.been.calledWith({
+            repositoryName: 'Repo One',
+            sample: sample,
+            repositoryConfig: {name: 'Repo One', path: 'path'},
+            images: sinon.match.any
+        });
+        getSamplePageStub.getCalls().length.should.equal(3);
+        openFileStub.should.have.been.calledOnceWithExactly('Repo One', 'Sample One', 'contract', 'Contract One', 'GoLang');
     });
 
     describe('getSamplePage', () => {
