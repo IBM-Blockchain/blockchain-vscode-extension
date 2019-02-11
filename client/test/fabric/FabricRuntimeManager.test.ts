@@ -12,35 +12,42 @@
  * limitations under the License.
 */
 
-import { FabricConnectionRegistry } from '../../src/fabric/FabricConnectionRegistry';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { IFabricConnection } from '../../src/fabric/IFabricConnection';
+import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+
 chai.should();
 
 // tslint:disable no-unused-expression
 describe('FabricRuntimeManager', () => {
 
-    const connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    let connection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
 
     let sandbox: sinon.SinonSandbox;
 
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
     });
 
@@ -50,6 +57,8 @@ describe('FabricRuntimeManager', () => {
         await connectionRegistry.clear();
         await runtimeRegistry.clear();
         await runtimeManager.clear();
+        connection = sinon.createStubInstance(FabricRuntimeConnection);
+
     });
 
     afterEach(async () => {
@@ -57,6 +66,32 @@ describe('FabricRuntimeManager', () => {
         await connectionRegistry.clear();
         await runtimeRegistry.clear();
         await runtimeManager.clear();
+    });
+
+    describe('getConnection', () => {
+        it('should return the connection if there is a connection', async () => {
+            runtimeManager['connection'] = connection;
+
+            const result: IFabricConnection = await runtimeManager.getConnection();
+            result.should.deep.equal(connection);
+        });
+
+        it('should connect if not connection', async () => {
+            runtimeManager['connection'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtime, 'getConnectionProfile');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            connection.connect.resolves();
+            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+            const walletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            walletStub.importIdentity.resolves();
+            sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(walletStub);
+
+            const result: IFabricConnection = await runtimeManager.getConnection();
+            connection.connect.should.have.been.calledWith(sinon.match.instanceOf(FabricWallet), 'Admin@org1.example.com');
+            result.should.deep.equal(connection);
+        });
     });
 
     describe('#getAll', () => {
@@ -67,7 +102,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should get all runtimes if some runtimes exist', async () => {
-            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true}, { name: 'runtime2', developmentMode: false}];
+            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true }, { name: 'runtime2', developmentMode: false }];
             await runtimeRegistry.add(testEntries[0]);
             await runtimeRegistry.add(testEntries[1]);
             const runtimes: FabricRuntime[] = runtimeManager.getAll();
@@ -79,7 +114,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should get all runtimes if they are already cached', async () => {
-            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true}, { name: 'runtime2', developmentMode: false}];
+            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true }, { name: 'runtime2', developmentMode: false }];
             await runtimeRegistry.add(testEntries[0]);
             await runtimeRegistry.add(testEntries[1]);
             const runtimes1: FabricRuntime[] = runtimeManager.getAll();
@@ -101,7 +136,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should get the runtime if it exists', async () => {
-            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true}, { name: 'runtime2', developmentMode: false}];
+            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true }, { name: 'runtime2', developmentMode: false }];
             await runtimeRegistry.add(testEntries[0]);
             await runtimeRegistry.add(testEntries[1]);
             const runtime: FabricRuntime = runtimeManager.get('runtime2');
@@ -110,7 +145,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should get the runtime if it is already cached', async () => {
-            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true}, { name: 'runtime2', developmentMode: false}];
+            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true }, { name: 'runtime2', developmentMode: false }];
             await runtimeRegistry.add(testEntries[0]);
             await runtimeRegistry.add(testEntries[1]);
             const runtime1: FabricRuntime = runtimeManager.get('runtime2');
@@ -123,14 +158,14 @@ describe('FabricRuntimeManager', () => {
     describe('#exists', () => {
 
         it('should return true if the specified runtime exists', async () => {
-            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true}, { name: 'runtime2', developmentMode: false}];
+            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true }, { name: 'runtime2', developmentMode: false }];
             await runtimeRegistry.add(testEntries[0]);
             await runtimeRegistry.add(testEntries[1]);
             runtimeManager.exists('runtime2').should.be.true;
         });
 
         it('should return false if the specified runtime does not exist', async () => {
-            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true}, { name: 'runtime2', developmentMode: false}];
+            const testEntries: FabricRuntimeRegistryEntry[] = [{ name: 'runtime1', developmentMode: true }, { name: 'runtime2', developmentMode: false }];
             await runtimeRegistry.add(testEntries[0]);
             await runtimeRegistry.add(testEntries[1]);
             runtimeManager.exists('runtime0').should.be.false;
@@ -259,7 +294,7 @@ describe('FabricRuntimeManager', () => {
         it('should delete the runtime if it exists', async () => {
             const testRuntimeEntry: FabricRuntimeRegistryEntry = { name: 'runtime1', developmentMode: true };
             await runtimeRegistry.add(testRuntimeEntry);
-            const testConnectionEntry: FabricConnectionRegistryEntry = {
+            const testConnectionEntry: FabricGatewayRegistryEntry = {
                 name: 'runtime1',
                 connectionProfilePath: '/tmp/connection.json',
                 walletPath: 'tmp/wallet',

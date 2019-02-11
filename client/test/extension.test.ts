@@ -14,7 +14,6 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import * as path from 'path';
-import * as ejs from 'ejs';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -26,8 +25,6 @@ import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { Reporter } from '../src/util/Reporter';
 import { BlockchainNetworkExplorerProvider } from '../src/explorer/BlockchainNetworkExplorer';
-import { HomeView } from '../src/webview/HomeView';
-import { RepositoryRegistry } from '../src/repositories/RepositoryRegistry';
 import { SampleView } from '../src/webview/SampleView';
 
 const should: Chai.Should = chai.should();
@@ -41,14 +38,14 @@ describe('Extension Tests', () => {
         await TestUtil.storeShowHomeOnStart();
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeShowHomeOnStart();
     });
 
     after(async () => {
         await TestUtil.restoreShowHomeOnStart();
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreShowHomeOnStart();
     });
@@ -58,7 +55,7 @@ describe('Extension Tests', () => {
         if (runtimeManager.exists('local_fabric')) {
             await runtimeManager.delete('local_fabric');
         }
-        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
     });
 
     afterEach(async () => {
@@ -77,30 +74,32 @@ describe('Extension Tests', () => {
 
         blockchainCommands.should.deep.equal([
             'blockchainAPackageExplorer.focus',
+            'blockchainARuntimeExplorer.focus',
             'blockchainExplorer.focus',
-            'blockchainExplorer.refreshEntry',
-            'blockchainExplorer.connectEntry',
-            'blockchainExplorer.disconnectEntry',
-            'blockchainExplorer.addConnectionEntry',
-            'blockchainExplorer.deleteConnectionEntry',
-            'blockchainExplorer.addConnectionIdentityEntry',
+            'blockchainConnectionsExplorer.refreshEntry',
+            'blockchainConnectionsExplorer.connectEntry',
+            'blockchainConnectionsExplorer.disconnectEntry',
+            'blockchainConnectionsExplorer.addGatewayEntry',
+            'blockchainConnectionsExplorer.deleteGatewayEntry',
+            'blockchainConnectionsExplorer.addGatewayIdentityEntry',
             'blockchain.createSmartContractProjectEntry',
             'blockchainAPackageExplorer.packageSmartContractProjectEntry',
             'blockchainAPackageExplorer.refreshEntry',
+            'blockchainARuntimeExplorer.refreshEntry',
             'blockchainExplorer.startFabricRuntime',
             'blockchainExplorer.stopFabricRuntime',
             'blockchainExplorer.restartFabricRuntime',
             'blockchainExplorer.teardownFabricRuntime',
             'blockchainExplorer.toggleFabricRuntimeDevMode',
             'blockchainExplorer.openFabricRuntimeTerminal',
-            'blockchainExplorer.exportConnectionDetailsEntry',
+            'blockchainConnectionsExplorer.exportConnectionDetailsEntry',
             'blockchainAPackageExplorer.deleteSmartContractPackageEntry',
             'blockchainAPackageExplorer.exportSmartContractPackageEntry',
             'blockchainExplorer.installSmartContractEntry',
             'blockchainExplorer.instantiateSmartContractEntry',
-            'blockchainExplorer.editConnectionEntry',
-            'blockchainExplorer.testSmartContractEntry',
-            'blockchainExplorer.submitTransactionEntry',
+            'blockchainConnectionsExplorer.editGatewayEntry',
+            'blockchainConnectionsExplorer.testSmartContractEntry',
+            'blockchainConnectionsExplorer.submitTransactionEntry',
             'blockchainExplorer.upgradeSmartContractEntry'
         ]);
     });
@@ -111,12 +110,12 @@ describe('Extension Tests', () => {
 
         activationEvents.should.deep.equal([
             'onView:blockchainExplorer',
-            'onCommand:blockchainExplorer.addConnectionEntry',
-            'onCommand:blockchainExplorer.deleteConnectionEntry',
-            'onCommand:blockchainExplorer.addConnectionIdentityEntry',
-            'onCommand:blockchainExplorer.connectEntry',
-            'onCommand:blockchainExplorer.disconnectEntry',
-            'onCommand:blockchainExplorer.refreshEntry',
+            'onCommand:blockchainConnectionsExplorer.addGatewayEntry',
+            'onCommand:blockchainConnectionsExplorer.deleteGatewayEntry',
+            'onCommand:blockchainConnectionsExplorer.addGatewayIdentityEntry',
+            'onCommand:blockchainConnectionsExplorer.connectEntry',
+            'onCommand:blockchainConnectionsExplorer.disconnectEntry',
+            'onCommand:blockchainConnectionsExplorer.refreshEntry',
             'onCommand:blockchain.createSmartContractProjectEntry',
             'onCommand:blockchainExplorer.installSmartContractEntry',
             'onCommand:blockchainExplorer.instantiateSmartContractEntry',
@@ -124,23 +123,24 @@ describe('Extension Tests', () => {
             'onCommand:blockchainAPackageExplorer.packageSmartContractProjectEntry',
             'onCommand:blockchainAPackageExplorer.deleteSmartContractPackageEntry',
             'onCommand:blockchainAPackageExplorer.exportSmartContractPackageEntry',
+            'onCommand:blockchainARuntimeExplorer.refreshEntry',
             'onCommand:blockchainExplorer.startFabricRuntime',
             'onCommand:blockchainExplorer.stopFabricRuntime',
             'onCommand:blockchainExplorer.restartFabricRuntime',
             'onCommand:blockchainExplorer.teardownFabricRuntime',
             'onCommand:blockchainExplorer.toggleFabricRuntimeDevMode',
             'onCommand:blockchainExplorer.openFabricRuntimeTerminal',
-            'onCommand:blockchainExplorer.exportConnectionDetailsEntry',
-            'onCommand:blockchainExplorer.editConnectionEntry',
-            'onCommand:blockchainExplorer.testSmartContractEntry',
-            'onCommand:blockchainExplorer.submitTransactionEntry',
+            'onCommand:blockchainConnectionsExplorer.exportConnectionDetailsEntry',
+            'onCommand:blockchainConnectionsExplorer.editGatewayEntry',
+            'onCommand:blockchainConnectionsExplorer.testSmartContractEntry',
+            'onCommand:blockchainConnectionsExplorer.submitTransactionEntry',
             'onCommand:blockchainExplorer.upgradeSmartContractEntry',
             'onDebug'
         ]);
     });
 
     it('should refresh the tree when a connection is added', async () => {
-        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
 
         const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
@@ -157,7 +157,7 @@ describe('Extension Tests', () => {
             }]
         };
 
-        await vscode.workspace.getConfiguration().update('fabric.connections', [myConnection], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [myConnection], vscode.ConfigurationTarget.Global);
 
         treeSpy.should.have.been.called;
     });
@@ -349,7 +349,7 @@ describe('Extension Tests', () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
         executeCommand.should.have.been.calledTwice;
-        executeCommand.should.have.been.calledWithExactly('blockchainExplorer.refreshEntry');
+        executeCommand.should.have.been.calledWithExactly('blockchainConnectionsExplorer.refreshEntry');
     });
 
     it('should ignore undefined emitted debug events', async () => {
@@ -360,7 +360,7 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.have.been.calledOnceWithExactly('blockchainExplorer.refreshEntry');
+        executeCommand.should.have.been.calledOnceWithExactly('blockchainConnectionsExplorer.refreshEntry');
     });
 
 });
