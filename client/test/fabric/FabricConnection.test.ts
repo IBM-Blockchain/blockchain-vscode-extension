@@ -134,6 +134,7 @@ describe('FabricConnection', () => {
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
         fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
         fabricChannelStub.sendTransaction.resolves({ status: 'SUCCESS' });
+        fabricChannelStub.getOrganizations.resolves([{id: 'Org1MSP'}]);
 
         const fabricNetworkStub: any = {
             getContract: mySandBox.stub().returns(fabricContractStub),
@@ -323,6 +324,16 @@ describe('FabricConnection', () => {
 
             const peer: fabricClient.Peer = await fabricConnection.getPeer('peerTwo');
             peer.getName().should.deep.equal('peerTwo');
+        });
+    });
+
+    describe('getOrganization', () => {
+        it('should get an organization', async () => {
+            await fabricConnection.connect(mockWallet, mockIdentityName);
+
+            const orgs: any[] = await fabricConnection.getOrganizations('myChannel');
+            orgs.length.should.equal(1);
+            orgs[0].id.should.deep.equal('Org1MSP');
         });
     });
 

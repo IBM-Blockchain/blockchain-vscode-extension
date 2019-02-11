@@ -34,12 +34,19 @@ const basicNetworkAdminCertificate: string = fs.readFileSync(basicNetworkAdminCe
 const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
 const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
 
+export enum FabricRuntimeState {
+    STARTING  = 'starting',
+    STOPPING  = 'stopping',
+    RESTARTING = 'restarting',
+}
+
 export class FabricRuntime extends EventEmitter {
 
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     private docker: Docker;
     private name: string;
     private busy: boolean = false;
+    private state: FabricRuntimeState;
 
     constructor(private runtimeRegistryEntry: FabricRuntimeRegistryEntry) {
         super();
@@ -55,9 +62,14 @@ export class FabricRuntime extends EventEmitter {
         return this.busy;
     }
 
+    public getState(): FabricRuntimeState {
+        return this.state;
+    }
+
     public async start(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
+            this.setState(FabricRuntimeState.STARTING);
             await this.startInner(outputAdapter);
         } finally {
             this.setBusy(false);
@@ -67,6 +79,7 @@ export class FabricRuntime extends EventEmitter {
     public async stop(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
+            this.setState(FabricRuntimeState.STOPPING);
             await this.stopInner(outputAdapter);
         } finally {
             this.setBusy(false);
@@ -76,6 +89,7 @@ export class FabricRuntime extends EventEmitter {
     public async teardown(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
+            this.setState(FabricRuntimeState.STOPPING);
             await this.teardownInner(outputAdapter);
         } finally {
             this.setBusy(false);
@@ -85,6 +99,7 @@ export class FabricRuntime extends EventEmitter {
     public async restart(outputAdapter?: OutputAdapter): Promise<void> {
         try {
             this.setBusy(true);
+            this.setState(FabricRuntimeState.RESTARTING);
             await this.stopInner(outputAdapter);
             await this.startInner(outputAdapter);
         } finally {
@@ -113,8 +128,12 @@ export class FabricRuntime extends EventEmitter {
         return connectionProfile;
     }
 
-    public getConnectionProfilePath(): string {
-        return basicNetworkConnectionProfilePath;
+    public async getConnectionProfilePath(): Promise<string> {
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const dir: string = path.join(homeExtDir, this.name);
+
+        return path.join(dir, 'connection.json');
     }
 
     public async getCertificate(): Promise<string> {
@@ -208,9 +227,30 @@ export class FabricRuntime extends EventEmitter {
         }
     }
 
+    public async deleteConnectionDetails(outputAdapter: OutputAdapter): Promise<void> {
+
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const runtimePath: string = path.join(homeExtDir, this.name);
+
+        try {
+            await fs.remove(runtimePath);
+        } catch (error) {
+            if (!error.message.includes('ENOENT: no such file or directory')) {
+                outputAdapter.log(LogType.ERROR, `Error removing runtime connection details: ${error.message}`, `Error removing runtime connection details: ${error.toString()}`);
+                return;
+            }
+        }
+
+    }
+
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
+    }
+
+    private setState( state: FabricRuntimeState): void {
+        this.state = state;
     }
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
@@ -224,6 +264,7 @@ export class FabricRuntime extends EventEmitter {
 
     private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('teardown', outputAdapter);
+        await this.deleteConnectionDetails(outputAdapter);
     }
 
     private async execute(script: string, outputAdapter?: OutputAdapter): Promise<void> {

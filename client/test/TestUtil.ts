@@ -35,13 +35,13 @@ export class TestUtil {
         console.log('Restoring user extension directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
         await vscode.workspace.getConfiguration().update('blockchain.ext.directory', this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
     }
-    static async storeConnectionsConfig(): Promise<void> {
-        this.USER_CONNECTIONS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.connections');
-        console.log('Storing user connections config:', this.USER_CONNECTIONS_CONFIG);
+    static async storeGatewaysConfig(): Promise<void> {
+        this.USER_GATEWAYS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.gateways');
+        console.log('Storing user connections config:', this.USER_GATEWAYS_CONFIG);
     }
-    static async restoreConnectionsConfig(): Promise<void> {
-        console.log('Restoring user connections config to settings:', this.USER_CONNECTIONS_CONFIG);
-        await vscode.workspace.getConfiguration().update('fabric.connections', this.USER_CONNECTIONS_CONFIG, vscode.ConfigurationTarget.Global);
+    static async restoreGatewaysConfig(): Promise<void> {
+        console.log('Restoring user connections config to settings:', this.USER_GATEWAYS_CONFIG);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', this.USER_GATEWAYS_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
     static async storeRuntimesConfig(): Promise<void> {
@@ -82,7 +82,7 @@ export class TestUtil {
     }
 
     private static USER_PACKAGE_DIR_CONFIG: any;
-    private static USER_CONNECTIONS_CONFIG: any;
+    private static USER_GATEWAYS_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
     private static USER_REPOSITORIES: any;
     private static HOME_STARTUP: any;

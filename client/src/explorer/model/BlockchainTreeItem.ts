@@ -21,16 +21,7 @@ export abstract class BlockchainTreeItem extends vscode.TreeItem {
 
     constructor(private readonly provider: BlockchainExplorerProvider, public readonly label: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(label, collapsibleState);
-    }
-
-    get tooltip(): string {
-        if (this.label === 'local_fabric  ○') {
-            return 'Creates a local development runtime using Hyperledger Fabric Docker images';
-        } else if (this.label === 'local_fabric  ●') {
-            return 'Connected to local development runtime';
-        } else {
-            return `${this.label}`;
-        }
+        this.tooltip = this.label;
     }
 
     refresh(): void {

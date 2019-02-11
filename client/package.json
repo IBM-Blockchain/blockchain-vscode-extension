@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.2.3",
+    "version": "0.3.0",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -44,12 +44,12 @@
             "blockchainExplorer"
         ],
         "onCommand": [
-            "blockchainExplorer.addConnectionEntry",
-            "blockchainExplorer.deleteConnectionEntry",
-            "blockchainExplorer.addConnectionIdentityEntry",
-            "blockchainExplorer.connectEntry",
-            "blockchainExplorer.disconnectEntry",
-            "blockchainExplorer.refreshEntry",
+            "blockchainConnectionsExplorer.addGatewayEntry",
+            "blockchainConnectionsExplorer.deleteGatewayEntry",
+            "blockchainConnectionsExplorer.addGatewayIdentityEntry",
+            "blockchainConnectionsExplorer.connectEntry",
+            "blockchainConnectionsExplorer.disconnectEntry",
+            "blockchainConnectionsExplorer.refreshEntry",
             "blockchain.createSmartContractProjectEntry",
             "blockchainExplorer.installSmartContractEntry",
             "blockchainExplorer.instantiateSmartContractEntry",
@@ -57,16 +57,17 @@
             "blockchainAPackageExplorer.packageSmartContractProjectEntry",
             "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
             "blockchainAPackageExplorer.exportSmartContractPackageEntry",
+            "blockchainARuntimeExplorer.refreshEntry",
             "blockchainExplorer.startFabricRuntime",
             "blockchainExplorer.stopFabricRuntime",
             "blockchainExplorer.restartFabricRuntime",
             "blockchainExplorer.teardownFabricRuntime",
             "blockchainExplorer.toggleFabricRuntimeDevMode",
             "blockchainExplorer.openFabricRuntimeTerminal",
-            "blockchainExplorer.exportConnectionDetailsEntry",
-            "blockchainExplorer.editConnectionEntry",
-            "blockchainExplorer.testSmartContractEntry",
-            "blockchainExplorer.submitTransactionEntry",
+            "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
+            "blockchainConnectionsExplorer.editGatewayEntry",
+            "blockchainConnectionsExplorer.testSmartContractEntry",
+            "blockchainConnectionsExplorer.submitTransactionEntry",
             "blockchainExplorer.upgradeSmartContractEntry"
         ]
     },
@@ -88,8 +89,12 @@
                     "name": "Smart Contract Packages"
                 },
                 {
+                    "id": "blockchainARuntimeExplorer",
+                    "name": "Local Fabric Ops"
+                },
+                {
                     "id": "blockchainExplorer",
-                    "name": "Blockchain Connections"
+                    "name": "Fabric Gateways"
                 }
             ]
         },
@@ -97,10 +102,10 @@
             "type": "object",
             "title": "Blockchain configuration",
             "properties": {
-                "fabric.connections": {
+                "fabric.gateways": {
                     "type": "array",
                     "default": [],
-                    "description": "Configurations for connecting to a Blockchain network"
+                    "description": "Gateways for connecting to a Blockchain network"
                 },
                 "fabric.runtimes": {
                     "type": "array",
@@ -127,7 +132,7 @@
         "commands": [
             {
                 "command": "sample.open",
-                "title": "Open sample",
+                "title": "Open Sample",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -136,8 +141,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.refreshEntry",
-                "title": "Refresh Blockchain Connections",
+                "command": "blockchainConnectionsExplorer.refreshEntry",
+                "title": "Refresh Fabric Gateways",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -145,13 +150,13 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.connectEntry",
-                "title": "Connect To A Blockchain",
+                "command": "blockchainConnectionsExplorer.connectEntry",
+                "title": "Connect Via Gateway",
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.disconnectEntry",
-                "title": "Disconnect From A Blockchain",
+                "command": "blockchainConnectionsExplorer.disconnectEntry",
+                "title": "Disconnect from Gateway",
                 "icon": {
                     "light": "resources/light/back_light.svg",
                     "dark": "resources/dark/back.svg"
@@ -159,8 +164,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.addConnectionEntry",
-                "title": "Add Connection",
+                "command": "blockchainConnectionsExplorer.addGatewayEntry",
+                "title": "Add Gateway",
                 "icon": {
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
@@ -168,18 +173,27 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.deleteConnectionEntry",
-                "title": "Delete Connection",
+                "command": "blockchainConnectionsExplorer.deleteGatewayEntry",
+                "title": "Delete Gateway",
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.addConnectionIdentityEntry",
-                "title": "Add Identity To Connection",
+                "command": "blockchainConnectionsExplorer.addGatewayIdentityEntry",
+                "title": "Add Identity To Wallet",
                 "category": "IBM Blockchain Platform"
             },
             {
                 "command": "blockchain.createSmartContractProjectEntry",
                 "title": "Create Smart Contract Project",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "blockchainARuntimeExplorer.refreshEntry",
+                "title": "Refresh Local Fabric Ops",
+                "icon": {
+                    "light": "resources/light/refresh_light.svg",
+                    "dark": "resources/dark/refresh.svg"
+                },
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -251,12 +265,12 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.editConnectionEntry",
-                "title": "Edit Connection",
+                "command": "blockchainConnectionsExplorer.editGatewayEntry",
+                "title": "Edit Gateway",
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.testSmartContractEntry",
+                "command": "blockchainConnectionsExplorer.testSmartContractEntry",
                 "title": "Generate Smart Contract Tests",
                 "category": "IBM Blockchain Platform"
             },
@@ -266,12 +280,12 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.submitTransactionEntry",
+                "command": "blockchainConnectionsExplorer.submitTransactionEntry",
                 "title": "Submit Transaction",
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "blockchainExplorer.exportConnectionDetailsEntry",
+                "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
                 "title": "Export Connection Details",
                 "category": "IBM Blockchain Platform"
             }
@@ -303,18 +317,23 @@
             ],
             "view/title": [
                 {
-                    "command": "blockchainExplorer.addConnectionEntry",
+                    "command": "blockchainConnectionsExplorer.addGatewayEntry",
                     "when": "view == blockchainExplorer && !blockchain-connected",
                     "group": "navigation"
                 },
                 {
-                    "command": "blockchainExplorer.disconnectEntry",
+                    "command": "blockchainConnectionsExplorer.disconnectEntry",
                     "when": "view == blockchainExplorer && blockchain-connected",
                     "group": "navigation"
                 },
                 {
-                    "command": "blockchainExplorer.refreshEntry",
+                    "command": "blockchainConnectionsExplorer.refreshEntry",
                     "when": "view == blockchainExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "blockchainARuntimeExplorer.refreshEntry",
+                    "when": "view == blockchainARuntimeExplorer",
                     "group": "navigation"
                 },
                 {
@@ -326,68 +345,36 @@
                     "command": "blockchainAPackageExplorer.packageSmartContractProjectEntry",
                     "when": "view == blockchainAPackageExplorer",
                     "group": "navigation"
+                },
+                {
+                    "command": "blockchainExplorer.startFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer && !blockchain-started",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainExplorer.stopFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer && blockchain-started",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainExplorer.restartFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer && blockchain-started",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainExplorer.teardownFabricRuntime",
+                    "when": "view == blockchainARuntimeExplorer",
+                    "group": "blockchain"
                 }
             ],
             "view/item/context": [
                 {
-                    "command": "blockchainExplorer.deleteConnectionEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
+                    "command": "blockchainConnectionsExplorer.deleteGatewayEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-gateway-item"
                 },
                 {
-                    "command": "blockchainExplorer.addConnectionIdentityEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
-                },
-                {
-                    "command": "blockchainExplorer.startFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-stopped"
-                },
-                {
-                    "command": "blockchainExplorer.startFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-removed"
-                },
-                {
-                    "command": "blockchainExplorer.stopFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.restartFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.teardownFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.teardownFabricRuntime",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-stopped"
-                },
-                {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-stopped"
-                },
-                {
-                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-removed"
-                },
-                {
-                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
-                },
-                {
-                    "command": "blockchainExplorer.exportConnectionDetailsEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-runtime-item-started"
-                },
-                {
-                    "command": "blockchainExplorer.exportConnectionDetailsEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-connected-runtime-item"
+                    "command": "blockchainConnectionsExplorer.addGatewayIdentityEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-gateway-item"
                 },
                 {
                     "command": "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
@@ -399,27 +386,55 @@
                 },
                 {
                     "command": "blockchainExplorer.installSmartContractEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-peer-item"
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "blockchainExplorer.installSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-installed-item"
+                },
+                {
+                    "command": "blockchainExplorer.openFabricRuntimeTerminal",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "blockchainExplorer.toggleFabricRuntimeDevMode",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-peer-item"
                 },
                 {
                     "command": "blockchainExplorer.instantiateSmartContractEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-channel-item"
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-channel-item"
                 },
                 {
-                    "command": "blockchainExplorer.editConnectionEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-connection-item"
+                    "command": "blockchainExplorer.instantiateSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-instantiated-item"
                 },
                 {
-                    "command": "blockchainExplorer.testSmartContractEntry",
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-channel-item"
+                },
+                {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-instantiated-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.editGatewayEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-gateway-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.testSmartContractEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {
-                    "command": "blockchainExplorer.submitTransactionEntry",
+                    "command": "blockchainConnectionsExplorer.submitTransactionEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-transaction-item"
                 },
                 {
                     "command": "blockchainExplorer.upgradeSmartContractEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 }
             ]
         },
@@ -573,7 +588,6 @@
     },
     "dependencies": {
         "@fidm/x509": "1.1.3",
-        "ajv": "^5.5.2",
         "axios": "^0.18.0",
         "child-process-promise": "^2.2.1",
         "dateformat": "^3.0.3",

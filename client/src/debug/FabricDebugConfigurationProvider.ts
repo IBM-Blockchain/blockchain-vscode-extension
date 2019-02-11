@@ -14,6 +14,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as dateFormat from 'dateformat';
@@ -23,8 +24,8 @@ import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
-import { FabricConnectionRegistry } from '../fabric/FabricConnectionRegistry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { LogType } from '../logging/OutputAdapter';
 
 export class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
@@ -81,11 +82,15 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 config.program = path.join(folder.uri.fsPath, 'node_modules', '.bin', 'fabric-chaincode-node');
             }
 
-            const tsFiles: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '**/*.ts'), '**/node_modules/**', 1);
+            // Search for a TsConfig file. If we find one, then assume the project is a TypeScript project.
+            const tsProject: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '**/tsconfig.json'), '**/node_modules/**', 1);
 
-            if (tsFiles.length > 0) {
+            if (tsProject.length > 0) {
+                // Asssume it's a TypeScript project
                 let dir: string = '';
-                const tsConfig: any = await ExtensionUtil.loadJSON(folder, 'tsconfig.json');
+                const tsConfigPath: string = tsProject[0].fsPath;
+                const tsConfig: any = await fs.readJSON(tsConfigPath);
+
                 if (tsConfig && tsConfig.compilerOptions && tsConfig.compilerOptions.outDir) {
                     const outDir: string = tsConfig.compilerOptions.outDir;
                     if (!path.isAbsolute(outDir)) {
@@ -141,11 +146,11 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
     }
 
     private async getPeersToInstallOn(): Promise<Array<string>> {
-        const connectionRegistry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+        const connectionRegistry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         connectionRegistry.name = this.runtime.getName();
         connectionRegistry.managedRuntime = true;
 
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', connectionRegistry);
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', connectionRegistry);
         const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
         return connection.getAllPeerNames();
     }

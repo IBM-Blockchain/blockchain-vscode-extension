@@ -14,22 +14,24 @@
 'use strict';
 // tslint:disable no-unused-expression
 import * as vscode from 'vscode';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import * as myExtension from '../../src/extension';
-import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
+import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
+import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -50,14 +52,20 @@ describe('InstantiateCommand', () => {
         let showChannelQuickPickStub: sinon.SinonStub;
         let showChaincodeAndVersionQuickPick: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
+        let getRuntimeConnectionStub: sinon.SinonStub;
+        let isRunningStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
-        let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
+        let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
+        let instantiateCommandTreeItem: InstallCommandTreeItem;
+        let smartContractsChildren: BlockchainTreeItem[];
+        let channelsChildren: BlockchainTreeItem[];
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs('blockchainExplorer.connectEntry').resolves();
+            executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
+            executeCommandStub.withArgs('blockchainExplorer.startFabricRuntime').resolves();
             executeCommandStub.callThrough();
 
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
@@ -65,6 +73,10 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.resolves();
             const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
+
+            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+            getRuntimeConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves((fabricClientConnectionMock));
+            isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(true);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
                 label: 'myChannel',
@@ -94,23 +106,30 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
 
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
-            fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne']);
+            fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myChannel']);
 
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([]);
 
-            const registryEntry: FabricConnectionRegistryEntry = new FabricConnectionRegistryEntry();
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = 'myConnection';
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = false;
-            mySandBox.stub(FabricConnectionManager.instance(), 'getConnectionRegistryEntry').returns(registryEntry);
+            mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-            blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+            allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
-            allChildren = await blockchainNetworkExplorerProvider.getChildren();
+            const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
+            smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
+            const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
+            instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstallCommandTreeItem;
+
+            const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
+            channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
             mySandBox.restore();
         });
 
@@ -119,28 +138,17 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
-            executeCommandStub.secondCall.should.have.been.calledWith('blockchainExplorer.refreshEntry');
+            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(fabricClientConnectionMock);
-
+            isRunningStub.resolves(false);
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
 
+            executeCommandStub.should.have.been.calledWith('blockchainExplorer.startFabricRuntime');
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
-        });
-
-        it('should handle connecting being cancelled', async () => {
-            getConnectionStub.onCall(4).returns(null);
-            getConnectionStub.onCall(5).returns(null);
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.connectEntry');
-            fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            should.not.exist(logSpy.getCall(1));
         });
 
         it('should handle choosing channel being cancelled', async () => {
@@ -174,12 +182,28 @@ describe('InstantiateCommand', () => {
             should.not.exist(logSpy.getCall(1));
         });
 
-        it('should instantiate smart contract through the tree', async () => {
-            const myChannel: ChannelTreeItem = allChildren[1] as ChannelTreeItem;
+        it('should instantiate smart contract through the tree by clicking + Instantiate in the runtime ops view', async () => {
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', instantiateCommandTreeItem);
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', myChannel);
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
-            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should instantiate smart contract through the tree by right-clicking Instantiated in the runtime ops view', async () => {
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', smartContractsChildren[0]);
+
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should instantiate smart contract through the tree by right-clicking on channel in the runtime ops view', async () => {
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', channelsChildren[0]);
+
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
@@ -196,12 +220,22 @@ describe('InstantiateCommand', () => {
 
         it('should instantiate the smart contract through the command with function but no args', async () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
-            showInputBoxStub.onSecondCall().resolves();
+            showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', undefined);
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', ['']);
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should cancel instantiating when user escape entering args', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves(undefined);
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
         });
 
         it('should install and instantiate package', async () => {
