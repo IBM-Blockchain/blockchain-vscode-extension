@@ -18,6 +18,8 @@ import { IFabricWallet } from './IFabricWallet';
 
 export interface IFabricConnection {
 
+    identityName: string;
+
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
     disconnect(): void;
@@ -25,6 +27,8 @@ export interface IFabricConnection {
     getAllPeerNames(): Array<string>;
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
+
+    getOrganizations(channelName: string): Promise<Array<string>>;
 
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 

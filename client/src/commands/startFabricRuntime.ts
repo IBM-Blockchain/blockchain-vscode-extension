@@ -13,40 +13,33 @@
 */
 
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
+import { IFabricWallet } from '../fabric/IFabricWallet';
+import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
-export async function startFabricRuntime(runtimeToStart?: RuntimeTreeItem | FabricRuntime): Promise<void> {
+export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
-    let runtime: FabricRuntime;
-    if (!runtimeToStart) {
-        const allRuntimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
-        if (allRuntimes.length > 1) {
-            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to start') as IBlockchainQuickPickItem<FabricRuntime>;
-            if (!chosenRuntime) {
-                return;
-            }
-            runtime = chosenRuntime.data;
-        } else {
-            runtime = allRuntimes[0];
-        }
-    } else if (runtimeToStart instanceof RuntimeTreeItem) {
-        runtime = runtimeToStart.getRuntime();
-    } else {
-        runtime = runtimeToStart;
-    }
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
-    }, async (progress: vscode.Progress<{message: string}>) => {
+    }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
         await runtime.start(outputAdapter);
+
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
+        const connectionProfile: any = await runtime.getConnectionProfile();
+        const certificate: string = await runtime.getCertificate();
+        const privateKey: string = await runtime.getPrivateKey();
+        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, 'Admin@org1.example.com');
+
+        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
     });
 }

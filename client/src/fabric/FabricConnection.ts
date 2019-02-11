@@ -25,6 +25,8 @@ import { URL } from 'url';
 
 export abstract class FabricConnection implements IFabricConnection {
 
+    public identityName: string;
+
     private mspid: string;
     private gateway: Gateway = new Gateway();
     private networkIdProperty: boolean;
@@ -67,6 +69,14 @@ export abstract class FabricConnection implements IFabricConnection {
         return allPeers.find((peer: Client.Peer) => {
             return peer.getName() === name;
         });
+    }
+
+    public async getOrganizations(channelName: string): Promise<any[]> {
+        console.log('getOrganizations', channelName);
+        const network: Network = await this.gateway.getNetwork(channelName);
+        const channel: Client.Channel = network.getChannel();
+        const orgs: any[] = await channel.getOrganizations();
+        return orgs;
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
@@ -343,6 +353,7 @@ export abstract class FabricConnection implements IFabricConnection {
         });
 
         this.mspid = identity.mspId;
+        this.identityName = identity.label;
     }
 
     private isLocalhostURL(url: string): boolean {

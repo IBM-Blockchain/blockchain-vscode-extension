@@ -23,7 +23,7 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
-import { FabricConnectionRegistryEntry } from '../fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 
@@ -41,7 +41,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     if (!chaincode) {
         if (!FabricConnectionManager.instance().getConnection()) {
             // Connect if not already connected
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;
@@ -117,7 +117,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
         return;
     }
 
-    const fabricConnectionRegistryEntry: FabricConnectionRegistryEntry = FabricConnectionManager.instance().getConnectionRegistryEntry();
+    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
 
     for (const [name, transactionArray] of transactions) {
         // Populate the template data
@@ -125,8 +125,8 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
             contractName: name,
             chaincodeLabel: chaincodeLabel,
             transactions: transactionArray,
-            connectionProfilePath: fabricConnectionRegistryEntry.connectionProfilePath,
-            walletPath: fabricConnectionRegistryEntry.walletPath,
+            connectionProfilePath: fabricGatewayRegistryEntry.connectionProfilePath,
+            walletPath: fabricGatewayRegistryEntry.walletPath,
             chaincodeName: chaincodeName,
             chaincodeVersion: chaincodeVersion,
             channelName: channelName
