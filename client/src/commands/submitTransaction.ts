@@ -63,6 +63,9 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
     if (argsString) {
         args = argsString.split(',');
     }
+    if (args[0] === transactionName) {
+        args.shift();
+    }
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

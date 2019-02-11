@@ -141,6 +141,14 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.have.been.calledWith('submit transaction');
         });
 
+        it('should remove the transaction name from the args if the user provides it', async () => {
+            showInputBoxStub.onFirstCall().resolves('transaction1,arg1,arg2,arg3');
+            await vscode.commands.executeCommand('blockchainExplorer.submitTransactionEntry');
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
         it('should sumbit the smart contract through the command when not connected', async () => {
             getConnectionStub.onCall(2).returns(null);
             getConnectionStub.onCall(3).returns(fabricClientConnectionMock);
