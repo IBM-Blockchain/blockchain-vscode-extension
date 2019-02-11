@@ -312,7 +312,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channel.label);
             const transactionNames: string[] = transactionNamesMap.get(contract);
-            if (contract === '') {
+            if (contract === '' || chainCodeElement.contracts.length === 1) {
                 for (const transaction of transactionNames) {
                     tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label, contract));
                 }
