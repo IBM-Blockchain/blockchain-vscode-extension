@@ -76,6 +76,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    // Show the output adapter
+    outputAdapter.show();
 
     // At the moment, the 'Open Log File' doesn't display extension log files to open. https://github.com/Microsoft/vscode/issues/43064
     outputAdapter.log(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true); // Let users know how to get the log file
@@ -178,6 +180,14 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
             }
         }
     }));
+
+    vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
+        // Listen for any changes to the debug state.
+        if (e) {
+            // Show any new transactions added to a contract, after 'reload debug' is executed.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+        }
+    });
 
     const packageJson: any = ExtensionUtil.getPackageJSON();
 
