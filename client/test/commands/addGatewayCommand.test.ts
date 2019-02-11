@@ -17,7 +17,8 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import {TestUtil} from '../TestUtil';
+
+import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
@@ -86,36 +87,7 @@ describe('AddGatewayCommand', () => {
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
 
-            await vscode.commands.executeCommand('blockchainExplorer.addConnectionEntry');
-
-            const connections: Array<any> = vscode.workspace.getConfiguration().get('fabric.connections');
-
-            connections.length.should.equal(1);
-            connections[0].should.deep.equal({
-                name: 'myConnection',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/emptyWallet')
-            });
-
-            executeCommandSpy.should.have.been.calledWith('blockchainExplorer.refreshEntry');
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addConnection');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new connection');
-        });
-
-        it('should test a completed connection can be added via wallet file path', async () => {
-            showInputBoxStub.onFirstCall().resolves('myConnection');
-            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-            showIdentityOptionsStub.onFirstCall().resolves(UserInputUtil.WALLET);
-            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/walletDir/wallet'));
-
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-
-            const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
-            mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-
-            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addConnectionEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayEntry');
 
             const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
 

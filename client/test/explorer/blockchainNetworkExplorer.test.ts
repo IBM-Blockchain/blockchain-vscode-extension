@@ -325,7 +325,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
                 // @ts-ignore
-                mySandBox.stub(blockchainNetworkExplorerProvider, 'createConnectionTree').rejects({message: 'some error'});
+                mySandBox.stub(blockchainNetworkExplorerProvider, 'createConnectionTree').rejects({ message: 'some error' });
 
                 await blockchainNetworkExplorerProvider.getChildren();
 

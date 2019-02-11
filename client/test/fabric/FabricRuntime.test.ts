@@ -373,7 +373,8 @@ describe('FabricRuntime', () => {
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-            });
+                // outputAdapter.error.should.have.been.calledOnceWith('stderr');
+            }).timeout(4000);
 
             it(`should publish busy events and set state before and after handling success (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');

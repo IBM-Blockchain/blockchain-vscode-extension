@@ -732,7 +732,6 @@ describe('testSmartContractCommand', () => {
             sendCommandStub.onCall(0).rejects(error);
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
-
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
