@@ -29,6 +29,7 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -49,6 +50,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
         let readFileStub: sinon.SinonStub;
+        let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
 
         beforeEach(() => {
@@ -76,6 +78,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 uri: vscode.Uri.file('myPath')
             };
 
+            readJsonStub = mySandbox.stub(fs, 'readJSON');
             readFileStub = mySandbox.stub(fs, 'readFile').resolves(`{
                 "name": "mySmartContract",
                 "version": "0.0.1"
@@ -309,7 +312,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should debug typescript', async () => {
-            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
@@ -325,9 +328,28 @@ describe('FabricDebugConfigurationProvider', () => {
             });
         });
 
+        it('should debug JavaScript contract which has TypeScript tests', async () => {
+            const loadJsonSpy: sinon.SinonSpy = mySandbox.spy(ExtensionUtil, 'loadJSON');
+
+            findFilesStub.resolves([]);
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            config.should.deep.equal({
+                type: 'node2',
+                request: 'myLaunch',
+                name: 'Launch Program',
+                program: 'myProgram',
+                cwd: 'myCwd',
+                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000'},
+                args: ['start', '--peer.address', 'localhost:12345']
+            });
+
+            loadJsonSpy.should.not.have.been.calledWith(workspaceFolder, 'tsconfig.json');
+        });
+
         it('should use the tsconfig for the configuration', async () => {
 
-            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
             const fakeConfig: object = {
                 compilerOptions: {
@@ -335,7 +357,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 }
             };
 
-            readFileStub.onSecondCall().resolves(JSON.stringify(fakeConfig));
+            readJsonStub.resolves(fakeConfig);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
@@ -354,7 +376,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should not update the directory if it is an absolute path', async () => {
 
-            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
             const fakeConfig: object = {
                 compilerOptions: {
@@ -362,7 +384,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 }
             };
 
-            readFileStub.onSecondCall().resolves(JSON.stringify(fakeConfig));
+            readJsonStub.resolves(fakeConfig);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
@@ -381,7 +403,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should update path if not absolute path', async () => {
 
-            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
             const fakeConfig: object = {
                 compilerOptions: {
@@ -389,7 +411,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 }
             };
 
-            readFileStub.onSecondCall().resolves(JSON.stringify(fakeConfig));
+            readJsonStub.resolves(fakeConfig);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
@@ -408,7 +430,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should add to outfile if already set', async () => {
 
-            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
             debugConfig.outFiles = ['cake'];
 
@@ -418,7 +440,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 }
             };
 
-            readFileStub.onSecondCall().resolves(JSON.stringify(fakeConfig));
+            readJsonStub.resolves(fakeConfig);
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
@@ -436,9 +458,10 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle error from reading config file', async () => {
-            findFilesStub.resolves([vscode.Uri.file('chaincode.ts')]);
+            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
-            readFileStub.onSecondCall().rejects({ message: 'some error' });
+            const error: Error = new Error('some error');
+            readJsonStub.rejects(error);
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
 
@@ -446,7 +469,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             should.not.exist(config);
             // const error: Error = new Error('Error reading package.json from project some error');
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: error reading package.json from project some error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to launch debug: ${error.message}`);
         });
     });
 
