@@ -37,13 +37,13 @@ describe('BlockchainPackageExplorer', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeExtensionDirectoryConfig();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
         await TestUtil.restoreExtensionDirectoryConfig();
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
 
     });

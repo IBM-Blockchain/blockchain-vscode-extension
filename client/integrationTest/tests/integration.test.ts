@@ -22,32 +22,33 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { InstalledChainCodeTreeItem } from '../../src/explorer/model/InstalledChainCodeTreeItem';
-import { InstalledChainCodeVersionTreeItem } from '../../src/explorer/model/InstalledChaincodeVersionTreeItem';
 import { TestUtil } from '../../test/TestUtil';
 import { IntegrationTestUtil } from '../integrationTestUtil';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
+import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
+import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
+import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
+import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
-// Defines a Mocha test suite to group tests of similar kind together
 describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let integrationTestUtil: IntegrationTestUtil;
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
-    let localFabricItem: RuntimeTreeItem;
-    let connectionItems: BlockchainTreeItem[];
     let errorSpy: sinon.SinonSpy;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
 
@@ -55,7 +56,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         this.timeout(600000);
 
         await ExtensionUtil.activateExtension();
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeExtensionDirectoryConfig();
 
@@ -75,306 +76,413 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
     after(async () => {
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
         VSCodeOutputAdapter.instance().setConsole(false);
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    beforeEach(async () => {
-        delete process.env.GOPATH;
-        mySandBox = sinon.createSandbox();
-        integrationTestUtil = new IntegrationTestUtil(mySandBox);
+    describe('Ops View', () => {
+        beforeEach(async function(): Promise<void> {
+            this.timeout(600000);
+            delete process.env.GOPATH;
+            mySandBox = sinon.createSandbox();
+            integrationTestUtil = new IntegrationTestUtil(mySandBox);
 
-        showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+            // Ensure that the Fabric runtime is in the right state.
+            runtime = runtimeManager.get('local_fabric');
 
-        // Ensure that the Fabric runtime is in the right state.
-        runtime = runtimeManager.get('local_fabric');
-        runtime.isRunning().should.eventually.be.false;
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        if (runtime.isDevelopmentMode()) {
-            await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', localFabricItem);
-        }
-        localFabricItem.should.not.be.null;
-
-    });
-
-    afterEach(async () => {
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-        mySandBox.restore();
-        delete process.env.GOPATH;
-    });
-
-    it('should connect to a real fabric', async () => {
-        await integrationTestUtil.createFabricConnection();
-
-        await integrationTestUtil.connectToFabric();
-
-        const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-
-        allChildren.length.should.equal(3);
-
-        allChildren[0].label.should.equal('Connected to: myConnection');
-        allChildren[1].label.should.equal('mychannel');
-        allChildren[2].label.should.equal('myotherchannel');
-
-        const channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<BlockchainTreeItem>;
-
-        channelChildrenOne[0].label.should.equal('peer0.org1.example.com');
-
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        const myConnectionItem: ConnectionTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof ConnectionTreeItem && value.label.startsWith('myConnection')) as ConnectionTreeItem;
-
-        showConfirmationWarningMessageStub.resolves(true);
-        await vscode.commands.executeCommand('blockchainExplorer.deleteConnectionEntry', myConnectionItem);
-        integrationTestUtil.connectionRegistry.exists('myConnection').should.be.false;
-    }).timeout(0);
-
-    it('should allow you to start, connect to, open a terminal on and stop the local Fabric in non-development mode', async () => {
-
-        // Start the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Open a Fabric runtime terminal.
-        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', localFabricItem);
-        const terminal: vscode.Terminal = vscode.window.terminals.find((item: vscode.Terminal) => item.name === 'Fabric runtime - local_fabric');
-        terminal.should.not.be.null;
-
-        // Disconnect from the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-
-        // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
-
-        // Stop the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-    }).timeout(0);
-
-    it('should allow you to start, connect to, and stop the local Fabric in development mode', async () => {
-
-        // Enable development mode for the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', localFabricItem);
-
-        // Start the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.true;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Disconnect from the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-
-        // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
-
-        // Stop the Fabric runtime, disable development mode, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', localFabricItem);
-        await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode', localFabricItem);
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-    }).timeout(0);
-
-    it('should allow you to restart the local Fabric in non-development mode', async () => {
-
-        // Start the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Disconnect from the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-
-        // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
-
-        // Restart the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Disconnect from the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-
-        // Stop the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-
-    }).timeout(0);
-
-    it('should persist local Fabric data across restarts until the local Fabric is torn down', async () => {
-
-        // Start the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Create a smart contract, package it, install it, and instantiate it.
-        await integrationTestUtil.createSmartContract('teardownSmartContract', 'JavaScript');
-        await integrationTestUtil.packageSmartContract();
-        await integrationTestUtil.installSmartContract('teardownSmartContract', '0.0.1');
-        await integrationTestUtil.instantiateSmartContract('teardownSmartContract', '0.0.1');
-
-        // Disconnect from the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-
-        // Find the Fabric runtime in the connections tree again.
-        connectionItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
-        localFabricItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('local_fabric')) as RuntimeTreeItem;
-        localFabricItem.should.not.be.null;
-
-        // Restart the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Ensure that the instantiated chaincodes are still instantiated.
-        let channelChildren: BlockchainTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[0]);
-        const instantiatedChaincodesItems: InstantiatedChaincodeTreeItem[] = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildren[1]) as InstantiatedChaincodeTreeItem[];
-        const teardownSmartContractItem: InstantiatedChaincodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedChaincodeTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
-        teardownSmartContractItem.should.not.be.undefined;
-
-        // Disconnect from the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
-
-        // Teardown the Fabric runtime, and ensure that it is in the right state.
-        const warningStub: sinon.SinonStub = showConfirmationWarningMessageStub.resolves(true);
-        await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.false;
-        runtime.isDevelopmentMode().should.be.false;
-        warningStub.restore();
-
-        // Start the Fabric runtime, and ensure that it is in the right state.
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime', localFabricItem);
-        runtime.isRunning().should.eventually.be.true;
-        runtime.isDevelopmentMode().should.be.false;
-
-        // Connect to the Fabric runtime.
-        await vscode.commands.executeCommand('blockchainExplorer.connectEntry', localFabricItem.connection);
-
-        // Ensure that the Fabric runtime is showing a single channel.
-        channelItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as ChannelTreeItem[];
-        channelItems.length.should.equal(2);
-        channelItems[1].label.should.equal('mychannel');
-
-        // Ensure that there are no instantiated chaincodes.
-        channelChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelItems[1]);
-        // Should be just the peer
-        channelChildren.length.should.equal(1);
-    }).timeout(0);
-
-    ['Go', 'Java'].forEach((language: string) => {
-
-        it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and upgrade it`, async () => {
-            const smartContractName: string = `my${language}SC`;
-
-            await integrationTestUtil.createFabricConnection();
-
-            await integrationTestUtil.connectToFabric();
-
-            await integrationTestUtil.createSmartContract(smartContractName, language);
-
-            await integrationTestUtil.packageSmartContract();
-
-            await integrationTestUtil.installSmartContract(smartContractName, '0.0.1');
-
-            await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1');
-
-            await integrationTestUtil.packageSmartContract('0.0.2');
-
-            await integrationTestUtil.installSmartContract(smartContractName, '0.0.2');
-
-            await integrationTestUtil.upgradeSmartContract(smartContractName, '0.0.2');
-
-            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
-
-            const channelChildrenOne: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<BlockchainTreeItem>;
-
-            const installedSmartContracts: Array<InstalledChainCodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channelChildrenOne[0]) as Array<InstalledChainCodeTreeItem>;
-
-            const installedSmartContract: InstalledChainCodeTreeItem = installedSmartContracts.find((_installedSmartContract: InstalledChainCodeTreeItem) => {
-                return _installedSmartContract.label === smartContractName;
-            });
-
-            installedSmartContract.should.not.be.null;
-
-            const versions: Array<InstalledChainCodeVersionTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(installedSmartContract) as Array<InstalledChainCodeVersionTreeItem>;
-
-            versions.length.should.equal(2);
-
-            versions[0].label.should.equal('0.0.1');
-            versions[1].label.should.equal('0.0.2');
-
-            const instantiatedSmartContract: BlockchainTreeItem = channelChildrenOne.find((_instantiatedSmartContract: BlockchainTreeItem) => {
-                return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
-            });
-
-            instantiatedSmartContract.should.not.be.null;
-            errorSpy.should.not.have.been.called;
+            let isRunning: boolean = await runtime.isRunning();
+            if (isRunning) {
+                await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+                isRunning = await runtime.isRunning();
+            }
+
+            isRunning.should.equal(false);
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            if (runtime.isDevelopmentMode()) {
+                await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
+            }
+            localFabricItem.should.not.be.null;
+        });
+
+        afterEach(async () => {
+            mySandBox.restore();
+            delete process.env.GOPATH;
+        });
+
+        it('should show the unconnected view', async () => {
+            const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+
+            allChildren.length.should.equal(1);
+            allChildren[0].label.should.equal('Local fabric runtime is stopped. Click to start.');
+        }).timeout(0);
+
+        it('should connect to the ops view', async () => {
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            allChildren.length.should.equal(4);
+
+            allChildren[0].label.should.equal('Smart Contracts');
+            allChildren[1].label.should.equal('Channels');
+            allChildren[2].label.should.equal('Nodes');
+            allChildren[3].label.should.equal('Organizations');
+
+            const smartContractsChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
+
+            smartContractsChildren.length.should.equal(2);
+            smartContractsChildren[0].label.should.equal('Instantiated');
+            smartContractsChildren[1].label.should.equal('Installed');
+
+            const instantiatedChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]);
+            instantiatedChildren.length.should.equal(1);
+            instantiatedChildren[0].label.should.equal('+ Instantiate');
+
+            const installedChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
+            installedChildren.length.should.equal(1);
+            installedChildren[0].label.should.equal('+ Install');
+
+            const channelChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelChildren.length.should.equal(1);
+            channelChildren[0].label.should.equal('mychannel');
+
+            const nodesChildren: Array<PeerTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<PeerTreeItem>;
+
+            nodesChildren.length.should.equal(1);
+            nodesChildren[0].label.should.equal('peer0.org1.example.com');
+
+            const orgsChildren: Array<OrgTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[3]) as Array<OrgTreeItem>;
+
+            orgsChildren.length.should.equal(1);
+            orgsChildren[0].label.should.equal('Org1MSP');
+        }).timeout(0);
+
+        it('should allow you to start, connect to, open a terminal on and stop the local Fabric in non-development mode', async () => {
+
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Open a Fabric runtime terminal.
+            await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal');
+            const terminal: vscode.Terminal = vscode.window.terminals.find((item: vscode.Terminal) => item.name === 'Fabric runtime - local_fabric');
+            terminal.should.not.be.null;
+
+            // Disconnect from the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+
+            // Stop the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+            runtime.isRunning().should.eventually.be.false;
+            runtime.isDevelopmentMode().should.be.false;
+
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            localFabricItem.should.not.be.null;
 
         }).timeout(0);
 
+        it('should allow you to start, connect to, and stop the local Fabric in development mode', async () => {
+
+            // Enable development mode for the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
+
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.true;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Disconnect from the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+
+            // Stop the Fabric runtime, disable development mode, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+            await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
+            runtime.isRunning().should.eventually.be.false;
+            runtime.isDevelopmentMode().should.be.false;
+
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            localFabricItem.should.not.be.null;
+
+        }).timeout(0);
+
+        it('should allow you to restart the local Fabric in non-development mode', async () => {
+
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            let channelItems: ChannelTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Disconnect from the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+
+            // Restart the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            allChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            channelItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Disconnect from the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+
+            // Stop the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+            runtime.isRunning().should.eventually.be.false;
+            runtime.isDevelopmentMode().should.be.false;
+
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            localFabricItem.should.not.be.null;
+
+        }).timeout(0);
+
+        it('should persist local Fabric data across restarts until the local Fabric is torn down', async () => {
+
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            let channelItems: Array<ChannelTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Create a smart contract, package it, install it, and instantiate it.
+            await integrationTestUtil.createSmartContract('teardownSmartContract', 'JavaScript');
+            await integrationTestUtil.packageSmartContract();
+            await integrationTestUtil.installSmartContract('teardownSmartContract', '0.0.1');
+            await integrationTestUtil.instantiateSmartContract('teardownSmartContract', '0.0.1');
+
+            // Disconnect from the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+
+            // Restart the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            allChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            channelItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Ensure that the instantiated chaincodes are still instantiated.
+            let smartContractsChildren: BlockchainTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]);
+
+            smartContractsChildren.length.should.equal(2);
+            smartContractsChildren[0].label.should.equal('Instantiated');
+
+            let instantiatedChaincodesItems: InstantiatedChaincodeTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            const teardownSmartContractItem: InstantiatedChaincodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedChaincodeTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
+            teardownSmartContractItem.should.not.be.undefined;
+
+            // Disconnect from the Fabric runtime.
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+
+            // Teardown the Fabric runtime, and ensure that it is in the right state.
+            const warningStub: sinon.SinonStub = showConfirmationWarningMessageStub.resolves(true);
+            await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime');
+            runtime.isRunning().should.eventually.be.false;
+            runtime.isDevelopmentMode().should.be.false;
+            warningStub.restore();
+
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Ensure that the Fabric runtime is showing a single channel.
+            allChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            channelItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
+
+            channelItems.length.should.equal(1);
+            channelItems[0].label.should.equal('mychannel');
+
+            // Ensure that there are no instantiated chaincodes.
+            smartContractsChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]);
+
+            smartContractsChildren.length.should.equal(2);
+            smartContractsChildren[0].label.should.equal('Instantiated');
+
+            instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            // should just be the one to click to instantiate
+            instantiatedChaincodesItems.length.should.equal(1);
+        }).timeout(0);
+
+        ['Go', 'Java'].forEach((language: string) => {
+
+            it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and upgrade it`, async () => {
+                const smartContractName: string = `my${language}SC`;
+
+                await integrationTestUtil.createSmartContract(smartContractName, language);
+
+                await integrationTestUtil.packageSmartContract();
+
+                await integrationTestUtil.installSmartContract(smartContractName, '0.0.1');
+
+                await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1');
+
+                let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+                let smartContractsChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
+
+                smartContractsChildren.length.should.equal(2);
+                smartContractsChildren[0].label.should.equal('Instantiated');
+                smartContractsChildren[1].label.should.equal('Installed');
+
+                let instantiatedChaincodesItems: Array<InstantiatedChaincodeTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+
+                let instantiatedSmartContract: BlockchainTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                    return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
+                });
+
+                instantiatedSmartContract.should.not.be.null;
+
+                let installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
+
+                let installedSmartContract: BlockchainTreeItem = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
+                    return _installedSmartContract.label === `${smartContractName} v0.0.1`;
+                });
+
+                installedSmartContract.should.not.be.null;
+
+                await integrationTestUtil.packageSmartContract('0.0.2');
+
+                await integrationTestUtil.installSmartContract(smartContractName, '0.0.2');
+
+                await integrationTestUtil.upgradeSmartContract(smartContractName, '0.0.2');
+
+                allChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+
+                smartContractsChildren = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
+
+                smartContractsChildren.length.should.equal(2);
+                smartContractsChildren[0].label.should.equal('Instantiated');
+                smartContractsChildren[1].label.should.equal('Installed');
+
+                instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+
+                instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                    return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
+                });
+
+                instantiatedSmartContract.should.not.be.null;
+
+                installedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
+
+                installedSmartContract = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
+                    return _installedSmartContract.label === `${smartContractName} v0.0.2`;
+                });
+
+                installedSmartContract.should.not.be.null;
+
+                errorSpy.should.not.have.been.called;
+            }).timeout(0);
+        });
     });
 
+    describe('gateway view', () => {
+        beforeEach(async function(): Promise<void> {
+            this.timeout(600000);
+            delete process.env.GOPATH;
+            mySandBox = sinon.createSandbox();
+            integrationTestUtil = new IntegrationTestUtil(mySandBox);
+
+            showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        });
+
+        afterEach(async () => {
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            mySandBox.restore();
+            delete process.env.GOPATH;
+        });
+
+        it('should create the unconnected tree', async () => {
+            await integrationTestUtil.createFabricConnection();
+            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+
+            allChildren.length.should.equal(2);
+            allChildren[0]['name'].should.equal('local_fabric');
+
+            allChildren[1].label.should.equal('myGateway');
+
+            const localFabricChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<GatewayIdentityTreeItem>;
+
+            localFabricChildren.length.should.equal(1);
+            localFabricChildren[0].label.should.equal('Admin@org1.example.com');
+
+            const otherChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<GatewayIdentityTreeItem>;
+            otherChildren.length.should.equal(1);
+            otherChildren[0].label.should.equal('greenConga');
+        });
+
+        it('should connect to a real fabric', async () => {
+            await integrationTestUtil.createFabricConnection();
+
+            await integrationTestUtil.connectToFabric('myGateway');
+
+            const allChildren: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+
+            allChildren.length.should.equal(3);
+
+            allChildren[0].label.should.equal('Connected via gateway: myGateway');
+            allChildren[1].label.should.equal('Using ID: greenConga');
+            allChildren[2].label.should.equal('Channels');
+
+            const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            channels.length.should.equal(2);
+            channels[0].label.should.equal('mychannel');
+            channels[1].label.should.equal('myotherchannel');
+
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+            const myGatewayItem: GatewayTreeItem = gatewayItems.find((value: BlockchainTreeItem) => value instanceof GatewayTreeItem && value.label.startsWith('myGateway')) as GatewayTreeItem;
+
+            showConfirmationWarningMessageStub.resolves(true);
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry', myGatewayItem);
+            integrationTestUtil.gatewayRegistry.exists('myGateway').should.be.false;
+        }).timeout(0);
+    });
 });

@@ -53,7 +53,7 @@ describe('TemporaryCommandRegistry Tests', () => {
 
         tempRegistry.createTempCommands();
 
-        await vscode.commands.executeCommand('blockchainExplorer.refreshEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
 
         tempRegistry.restoreCommands();
         await myExtension.registerCommands(context);

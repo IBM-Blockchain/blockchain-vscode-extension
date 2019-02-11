@@ -34,7 +34,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Packaging Smart Contract` });
+        progress.report({message: `Packaging Smart Contract`});
         try {
 
             // Determine the directory that will contain the packages and ensure it exists.
@@ -93,16 +93,27 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
             // Determine the path argument.
             let pkgPath: string = workspace.uri.fsPath;
             if (language === 'golang') {
-                // Ensure GOPATH is set for Go smart contracts.
+
                 if (!process.env.GOPATH) {
-                    throw new Error('The enviroment variable GOPATH has not been set. You cannot package a Go smart contract without setting the environment variable GOPATH.');
-                }
-                // The path is relative to $GOPATH/src for Go smart contracts.
-                const srcPath: string = path.join(process.env.GOPATH, 'src');
-                pkgPath = path.relative(srcPath, pkgPath);
-                if (!pkgPath || pkgPath.startsWith('..') || path.isAbsolute(pkgPath)) {
-                    // Project path is not under GOPATH.
-                    throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+                    // The path is relative to $GOPATH/src for Go smart contracts.
+                    const srcPath: string = path.join(pkgPath, '..', '..', 'src');
+                    pkgPath = path.basename(pkgPath);
+                    const exists: boolean = await fs.pathExists(srcPath);
+
+                    if (!exists) {
+                        // Project path is not under GOPATH.
+                        throw new Error('The enviroment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+                    } else {
+                        process.env.GOPATH = path.join(srcPath, '..');
+                    }
+                } else {
+                    // The path is relative to $GOPATH/src for Go smart contracts.
+                    const srcPath: string = path.join(process.env.GOPATH, 'src');
+                    pkgPath = path.relative(srcPath, pkgPath);
+                    if (!pkgPath || pkgPath.startsWith('..') || path.isAbsolute(pkgPath)) {
+                        // Project path is not under GOPATH.
+                        throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
+                    }
                 }
             }
 
@@ -112,7 +123,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
 
             // Create the package. Need to dynamically load the package class
             // from the Fabric SDK to avoid early native module loading.
-            const { Package } = await import('fabric-client');
+            const {Package} = await import('fabric-client');
             const pkg: any = await Package.fromDirectory({
                 name: properties.workspacePackageName,
                 version: properties.workspacePackageVersion,
@@ -230,7 +241,7 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): 
 
         throw new Error(message);
     }
-    return { workspacePackageName, workspacePackageVersion };
+    return {workspacePackageName, workspacePackageVersion};
 }
 
 /**
@@ -272,7 +283,7 @@ async function golangPackageAndVersion(): Promise<{ workspacePackageName: string
         return;
     }
 
-    return { workspacePackageName, workspacePackageVersion };
+    return {workspacePackageName, workspacePackageVersion};
 }
 
 async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<void> {
