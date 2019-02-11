@@ -60,8 +60,10 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
 
     let args: Array<string> = [];
     const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
-    if (argsString) {
-        args = argsString.split(',');
+    if (argsString === undefined) {
+        return;
+    } else {
+        args = argsString.split(','); // If empty, args will be ['']
     }
 
     await vscode.window.withProgress({
