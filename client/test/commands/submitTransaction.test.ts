@@ -196,10 +196,7 @@ describe('SubmitTransactionCommand', () => {
             const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
 
-            const contracts: Array<ContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<ContractTreeItem>;
-            contracts.length.should.equal(1);
-
-            const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(contracts[0]) as Array<TransactionTreeItem>;
+            const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<TransactionTreeItem>;
             transactions.length.should.equal(3);
 
             await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry', transactions[0]);
