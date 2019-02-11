@@ -29,7 +29,14 @@
                                         "remote":{
                                             "branch": "release-1.4",
                                             "path": "chaincode/fabcar/javascript"
-                                        }
+                                        },
+                                        "onOpen": [
+                                            {
+                                                "message": "Installing Node.js dependencies ...",
+                                                "command": "npm",
+                                                "arguments": ["install"]
+                                            }
+                                        ]
                                     },
                                     {
                                         "type": "TypeScript",
@@ -38,7 +45,14 @@
                                         "remote":{
                                             "branch": "release-1.4",
                                             "path": "chaincode/fabcar/typescript"
-                                        }
+                                        },
+                                        "onOpen": [
+                                            {
+                                                "message": "Installing Node.js dependencies ...",
+                                                "command": "npm",
+                                                "arguments": ["install"]
+                                            }
+                                        ]
                                     }
                                 ]
                             }
@@ -54,7 +68,14 @@
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "fabcar/javascript"
-                                }
+                                },
+                                "onOpen": [
+                                    {
+                                        "message": "Installing Node.js dependencies ...",
+                                        "command": "npm",
+                                        "arguments": ["install"]
+                                    }
+                                ]
                             },
                             {
                                 "name": "TypeScript Application",
@@ -66,7 +87,14 @@
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "fabcar/typescript"
-                                }
+                                },
+                                "onOpen": [
+                                    {
+                                        "message": "Installing Node.js dependencies ...",
+                                        "command": "npm",
+                                        "arguments": ["install"]
+                                    }
+                                ]
                             }
                         ]
                     }
@@ -87,7 +115,14 @@
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "commercial-paper/organization/digibank/contract"
-                                        }
+                                        },
+                                        "onOpen": [
+                                            {
+                                                "message": "Installing Node.js dependencies ...",
+                                                "command": "npm",
+                                                "arguments": ["install"]
+                                            }
+                                        ]
                                     }
                                 ]
                             },
@@ -101,7 +136,14 @@
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "commercial-paper/organization/magnetocorp/contract"
-                                        }
+                                        },
+                                        "onOpen": [
+                                            {
+                                                "message": "Installing Node.js dependencies ...",
+                                                "command": "npm",
+                                                "arguments": ["install"]
+                                            }
+                                        ]
                                     }
                                 ]
                             }
@@ -117,7 +159,14 @@
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "commercial-paper/organization/digibank/application"
-                                }
+                                },
+                                "onOpen": [
+                                    {
+                                        "message": "Installing Node.js dependencies ...",
+                                        "command": "npm",
+                                        "arguments": ["install"]
+                                    }
+                                ]
                             },
                             {
                                 "name": "MagnetoCorp Application",
@@ -129,7 +178,14 @@
                                 "remote":{
                                     "branch": "release-1.4",
                                     "path": "commercial-paper/organization/magnetocorp/application"
-                                }
+                                },
+                                "onOpen": [
+                                    {
+                                        "message": "Installing Node.js dependencies ...",
+                                        "command": "npm",
+                                        "arguments": ["install"]
+                                    }
+                                ]
                             }
                         ]
                     }
