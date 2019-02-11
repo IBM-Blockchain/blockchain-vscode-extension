@@ -349,7 +349,7 @@ describe('Extension Tests', () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
         executeCommand.should.have.been.calledTwice;
-        executeCommand.should.have.been.calledWithExactly('blockchainExplorer.refreshEntry');
+        executeCommand.should.have.been.calledWithExactly('blockchainConnectionsExplorer.refreshEntry');
     });
 
     it('should ignore undefined emitted debug events', async () => {
@@ -360,7 +360,7 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.have.been.calledOnceWithExactly('blockchainExplorer.refreshEntry');
+        executeCommand.should.have.been.calledOnceWithExactly('blockchainConnectionsExplorer.refreshEntry');
     });
 
 });
