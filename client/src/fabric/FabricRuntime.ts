@@ -227,6 +227,23 @@ export class FabricRuntime extends EventEmitter {
         }
     }
 
+    public async deleteConnectionDetails(outputAdapter: OutputAdapter): Promise<void> {
+
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const runtimePath: string = path.join(homeExtDir, this.name);
+
+        try {
+            await fs.remove(runtimePath);
+        } catch (error) {
+            if (!error.message.includes('ENOENT: no such file or directory')) {
+                outputAdapter.log(LogType.ERROR, `Error removing runtime connection details: ${error.message}`, `Error removing runtime connection details: ${error.toString()}`);
+                return;
+            }
+        }
+
+    }
+
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
@@ -247,6 +264,7 @@ export class FabricRuntime extends EventEmitter {
 
     private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('teardown', outputAdapter);
+        await this.deleteConnectionDetails(outputAdapter);
     }
 
     private async execute(script: string, outputAdapter?: OutputAdapter): Promise<void> {
