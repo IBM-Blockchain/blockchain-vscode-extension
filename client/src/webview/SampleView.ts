@@ -76,6 +76,11 @@ export class SampleView {
             // Keep track of the panels open
             openPanels.push(panel);
 
+            panel.onDidChangeViewState(async (e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+                // Whenever the View becomes active, rebuild the UI
+                panel.webview.html = await this.getContractSample(repoName, sampleName);
+            });
+
             panel.webview.onDidReceiveMessage(async (message: any) => {
                 if (message.command === 'clone') {
                     // Clone a repository from the sample page
@@ -137,7 +142,7 @@ export class SampleView {
                 } else {
                     resolve(data);
                 }
-                });
+            });
         });
     }
 
