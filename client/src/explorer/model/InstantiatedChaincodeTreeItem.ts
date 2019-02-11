@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { ChannelTreeItem } from './ChannelTreeItem';
@@ -20,7 +21,18 @@ import { ChannelTreeItem } from './ChannelTreeItem';
 export class InstantiatedChaincodeTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-instantiated-chaincode-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channel: ChannelTreeItem, public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly contracts: string[]) {
+    iconPath: { light: string, dark: string } = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', 'smart-contract.svg'),
+        dark: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'dark', 'smart-contract.svg')
+    };
+
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly channel: ChannelTreeItem, public readonly version: string, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly contracts?: string[], public readonly showIcon?: boolean) {
         super(provider, `${name}@${version}`, collapsibleState);
+
+        this.tooltip = `Instantiated on: ${channel.label}`;
+
+        if (!showIcon) {
+            this.iconPath = null;
+        }
     }
 }

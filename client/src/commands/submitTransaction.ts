@@ -29,7 +29,7 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
     let namespace: string;
     if (!transactionTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainExplorer.connectEntry');
+            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return;

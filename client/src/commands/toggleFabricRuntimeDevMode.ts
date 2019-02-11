@@ -14,7 +14,7 @@
 
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { RuntimeTreeItem } from '../explorer/model/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/RuntimeTreeItem';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -24,29 +24,19 @@ import { LogType } from '../logging/OutputAdapter';
 export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
-    let runtime: FabricRuntime;
-    if (!runtimeTreeItem) {
-        const runtimes: Array<FabricRuntime> = FabricRuntimeManager.instance().getAll();
-        if (runtimes.length > 1) {
-            const chosenRuntime: IBlockchainQuickPickItem<FabricRuntime> = await UserInputUtil.showRuntimeQuickPickBox('Select the Fabric runtime to toggle development mode');
-            if (!chosenRuntime) {
-                return;
-            }
-
-            runtime = chosenRuntime.data;
-        } else {
-            runtime = runtimes[0];
-        }
-    } else {
-        runtime = runtimeTreeItem.getRuntime();
-    }
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    // if (!runtimeTreeItem) {
+    //     runtime = FabricRuntimeManager.instance().get('local_fabric');
+    // } else {
+    //     runtime = runtimeTreeItem.getRuntime();
+    // }
 
     const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
     const newDevelopmentMode: boolean = !oldDevelopmentMode;
 
     if (FabricConnectionManager.instance().getConnection()) {
         // Disconnect if connected
-        await vscode.commands.executeCommand('blockchainExplorer.disconnectEntry');
+        await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
     }
 
     await runtime.setDevelopmentMode(newDevelopmentMode);
@@ -62,6 +52,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
         });
     }
 
-    outputAdapter.log(LogType.SUCCESS, undefined, 'Successfully toggled development mode');
+    await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+    outputAdapter.log(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
 
 }

@@ -17,7 +17,7 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { FabricConnectionRegistryEntry } from '../../src/fabric/FabricConnectionRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 
 const should: Chai.Should = chai.should();
 
@@ -38,14 +38,14 @@ describe('FabricConnectionManager', () => {
     const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
     let mockFabricConnection: sinon.SinonStubbedInstance<TestFabricConnection>;
     let sandbox: sinon.SinonSandbox;
-    let registryEntry: FabricConnectionRegistryEntry;
+    let registryEntry: FabricGatewayRegistryEntry;
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         mockFabricConnection = sinon.createStubInstance(TestFabricConnection);
         connectionManager['connection'] = null;
 
-        registryEntry = new FabricConnectionRegistryEntry();
+        registryEntry = new FabricGatewayRegistryEntry();
         registryEntry.name = 'myConnection';
         registryEntry.connectionProfilePath = 'myPath';
         registryEntry.managedRuntime = false;
@@ -65,10 +65,10 @@ describe('FabricConnectionManager', () => {
 
     });
 
-    describe('#getConnectionRegistryEntry', () => {
+    describe('#getGatewayRegistryEntry', () => {
         it('should get the registry entry', () => {
-        connectionManager['connectionRegistryEntry'] = registryEntry;
-        connectionManager.getConnectionRegistryEntry().should.equal(registryEntry);
+        connectionManager['gatewayRegistryEntry'] = registryEntry;
+        connectionManager.getGatewayRegistryEntry().should.equal(registryEntry);
         });
     });
 
@@ -79,7 +79,7 @@ describe('FabricConnectionManager', () => {
             connectionManager.once('connected', listenerStub);
             connectionManager.connect((mockFabricConnection as any) as FabricConnection, registryEntry);
             connectionManager.getConnection().should.equal(mockFabricConnection);
-            connectionManager.getConnectionRegistryEntry().should.equal(registryEntry);
+            connectionManager.getGatewayRegistryEntry().should.equal(registryEntry);
             listenerStub.should.have.been.calledOnceWithExactly(mockFabricConnection);
         });
 

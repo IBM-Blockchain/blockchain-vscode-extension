@@ -41,12 +41,12 @@ describe('FabricRegistry', () => {
 
     }
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
     });
 
@@ -56,7 +56,7 @@ describe('FabricRegistry', () => {
         await ExtensionUtil.activateExtension();
         registry = new TestFabricRegistry();
         await vscode.workspace.getConfiguration().update(testFabricRegistryName, [], vscode.ConfigurationTarget.Global);
-        await vscode.workspace.getConfiguration().update('fabric.connections', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
     });
 
     describe('#getAll', () => {

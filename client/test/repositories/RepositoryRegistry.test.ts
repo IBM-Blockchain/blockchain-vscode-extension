@@ -27,13 +27,13 @@ describe('RepositoryRegistry', () => {
     const testFabricRegistryName: string = 'blockchain.repositories';
 
     before(async () => {
-        await TestUtil.storeConnectionsConfig();
+        await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeRepositoriesConfig();
     });
 
     after(async () => {
-        await TestUtil.restoreConnectionsConfig();
+        await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreRepositoriesConfig();
     });

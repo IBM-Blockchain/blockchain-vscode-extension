@@ -15,8 +15,12 @@
 import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
 import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
-import { FabricConnectionRegistry } from './FabricConnectionRegistry';
+import { FabricGatewayRegistry } from './FabricGatewayRegistry';
 import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
+import { IFabricConnection } from './IFabricConnection';
+import { FabricConnectionFactory } from './FabricConnectionFactory';
+import { IFabricWallet } from './IFabricWallet';
+import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 
 export class FabricRuntimeManager {
 
@@ -28,12 +32,31 @@ export class FabricRuntimeManager {
 
     private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
-    private connectionRegistry: FabricConnectionRegistry = FabricConnectionRegistry.instance();
+    private connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     private runtimes: Map<string, FabricRuntime> = new Map<string, FabricRuntime>();
 
-    private constructor() {
+    private connection: IFabricConnection;
 
+    private constructor() {
+    }
+
+    public async getConnection(): Promise<IFabricConnection> {
+        if (this.connection) {
+            return this.connection;
+        }
+
+        const runtime: FabricRuntime = this.get('local_fabric');
+        this.connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+        const connectionProfile: any = await runtime.getConnectionProfile();
+        const certificate: string = await runtime.getCertificate();
+        const privateKey: string = await runtime.getPrivateKey();
+        const identityName: string = 'Admin@org1.example.com';
+        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
+        await this.connection.connect(runtimeWallet, 'Admin@org1.example.com');
+
+        return this.connection;
     }
 
     public getAll(): FabricRuntime[] {
