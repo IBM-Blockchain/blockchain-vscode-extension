@@ -95,7 +95,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter));
             removeStub.should.have.been.called;
             renameStub.should.have.been.called;
 
@@ -125,7 +125,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter), sinon.match.truthy);
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter), sinon.match.truthy);
             removeStub.should.have.been.called;
             renameStub.should.have.been.called;
 
@@ -150,7 +150,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeOutputAdapter));
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
 
