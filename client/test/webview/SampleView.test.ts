@@ -63,7 +63,14 @@ describe('SampleView', () => {
                             remote: {
                                 branch: 'master',
                                 path: 'chaincode/fabcar/javascript'
-                            }
+                            },
+                            onOpen: [
+                                {
+                                    message: 'Installing Node.js dependencies ...',
+                                    command: 'npm',
+                                    arguments: ['install']
+                                }
+                            ]
                         },
                         {
                             type: 'TypeScript',
@@ -72,7 +79,14 @@ describe('SampleView', () => {
                             remote: {
                                 branch: 'master',
                                 path: 'chaincode/fabcar/typescript'
-                            }
+                            },
+                            onOpen: [
+                                {
+                                    message: 'Installing Node.js dependencies ...',
+                                    command: 'npm',
+                                    arguments: ['install']
+                                }
+                            ]
                         }
                     ]
                 }
@@ -88,7 +102,14 @@ describe('SampleView', () => {
                     remote: {
                         branch: 'master',
                         path: 'fabcar/javascript'
-                    }
+                    },
+                    onOpen: [
+                        {
+                            message: 'Installing Node.js dependencies ...',
+                            command: 'npm',
+                            arguments: ['install']
+                        }
+                    ]
                 },
                 {
                     name: 'TypeScript Application',
@@ -100,7 +121,14 @@ describe('SampleView', () => {
                     remote: {
                         branch: 'master',
                         path: 'fabcar/typescript'
-                    }
+                    },
+                    onOpen: [
+                        {
+                            message: 'Installing Node.js dependencies ...',
+                            command: 'npm',
+                            arguments: ['install']
+                        }
+                    ]
                 }
             ]
         }
@@ -115,6 +143,7 @@ describe('SampleView', () => {
     let getRepository: sinon.SinonStub;
     let getSample: sinon.SinonStub;
     let getContract: sinon.SinonStub;
+    let sendCommandWithOutputAndProgress: sinon.SinonStub;
     let repositories: any;
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -155,6 +184,8 @@ describe('SampleView', () => {
         getContract = mySandBox.stub(SampleView, 'getContract');
         getContract.returns(repositories[0].samples[0].category['contracts'][0]);
 
+        sendCommandWithOutputAndProgress = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress').resolves();
+
     } );
 
     afterEach(() => {
@@ -182,7 +213,8 @@ describe('SampleView', () => {
                     }
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -235,7 +267,8 @@ describe('SampleView', () => {
                     }
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -291,7 +324,8 @@ describe('SampleView', () => {
                     postMessage: mySandBox.stub().resolves()
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -347,7 +381,8 @@ describe('SampleView', () => {
                     postMessage: mySandBox.stub().resolves()
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -412,7 +447,8 @@ describe('SampleView', () => {
                     postMessage: mySandBox.stub().resolves()
                 },
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub().yields()
+                onDidDispose: mySandBox.stub().yields(),
+                onDidChangeViewState: mySandBox.stub()
 
             });
         }));
@@ -465,7 +501,8 @@ describe('SampleView', () => {
                 },
                 title: 'Sample One Sample',
                 reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
             });
         }));
 
@@ -477,6 +514,61 @@ describe('SampleView', () => {
         should.equal(createWebviewPanelStub.getCall(1), null);
         should.equal(getSamplePageStub.getCall(1), null);
 
+    });
+
+    it('should receive onDidChangeViewState events', async () => {
+        const findStub: sinon.SinonStub = mySandBox.stub(Array.prototype, 'find');
+        findStub.callThrough();
+        findStub.onCall(0).returns(undefined);
+        findStub.onCall(1).returns(undefined);
+
+        mySandBox.stub(RepositoryRegistry.prototype, 'get').returns({name: 'Repo One', path: 'path'});
+
+        const onDidReceiveMessagePromises: any[] = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({ command: 'open', fileType: 'contract', fileName: 'Contract One', language: 'GoLang' });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {return; },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub().yields()
+
+            });
+        }));
+
+        const openFileStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openFile').returns(undefined);
+
+        await SampleView.openContractSample(context, 'Repo One', 'Sample One');
+        await Promise.all(onDidReceiveMessagePromises);
+
+        createWebviewPanelStub.getCall(0).should.have.been.calledWith(
+            'Sample One',
+            'Sample One Sample',
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: false,
+                enableCommandUris: true,
+                localResourceRoots: [
+                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
+                ]
+
+            }
+        );
+
+        getSamplePageStub.getCall(0).should.have.been.calledWith({
+            repositoryName: 'Repo One',
+            sample: sample,
+            repositoryConfig: {name: 'Repo One', path: 'path'},
+            images: sinon.match.any
+        });
+        getSamplePageStub.getCalls().length.should.equal(3);
+        openFileStub.should.have.been.calledOnceWithExactly('Repo One', 'Sample One', 'contract', 'Contract One', 'GoLang');
     });
 
     describe('getSamplePage', () => {
@@ -701,7 +793,74 @@ describe('SampleView', () => {
             cloneAndOpenRepositorySpy = mySandBox.spy(SampleView, 'cloneAndOpenRepository');
         });
 
-        it('should open contract', async () => {
+        it('should open Go contract', async () => {
+
+            getRepository.resolves({
+                name: 'hyperledger/fabric-samples',
+                remote: 'https://github.com/hyperledger/fabric-samples.git',
+                samples: [
+                    sample
+                ]
+            });
+            getSample.returns(sample);
+            getContract.returns(sample.category.contracts[0]);
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
+            const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
+
+            await SampleView.openFile(repositoryName, 'FabCar', 'contracts', 'FabCar Contract', 'GoLang');
+
+            repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
+            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
+            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
+            openNewProjectStub.should.have.been.calledOnce;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/go', 'master', 'fabcar-contract-go');
+            const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
+            repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'go'));
+
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
+
+        });
+
+        it('should open JavaScript contract', async () => {
+
+            getRepository.resolves({
+                name: 'hyperledger/fabric-samples',
+                remote: 'https://github.com/hyperledger/fabric-samples.git',
+                samples: [
+                    sample
+                ]
+            });
+            getSample.returns(sample);
+            getContract.returns(sample.category.contracts[0]);
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
+            const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
+
+            await SampleView.openFile(repositoryName, 'FabCar', 'contracts', 'FabCar Contract', 'JavaScript');
+
+            repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
+            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
+            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
+            openNewProjectStub.should.have.been.calledOnce;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/javascript', 'master', 'fabcar-contract-javascript');
+            const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
+            repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'javascript'));
+
+            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'javascript'), null, outputAdapter);
+
+        });
+
+        it('should open TypeScript contract', async () => {
 
             getRepository.resolves({
                 name: 'hyperledger/fabric-samples',
@@ -727,6 +886,11 @@ describe('SampleView', () => {
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
             openNewProjectStub.should.have.been.calledOnce;
             cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
+            const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
+            repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'typescript'));
+
+            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'typescript'), null, outputAdapter);
 
         });
 
@@ -909,7 +1073,41 @@ describe('SampleView', () => {
 
         });
 
-        it('should open application', async () => {
+        it('should open JavaScript application', async () => {
+
+            getRepository.resolves({
+                name: 'hyperledger/fabric-samples',
+                remote: 'https://github.com/hyperledger/fabric-samples.git',
+                samples: [
+                    sample
+                ]
+            });
+            getSample.returns(sample);
+            mySandBox.stub(SampleView, 'getApplication').returns(sample.category.applications[0]);
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
+            const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
+            const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            const openNewProjectStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
+
+            await SampleView.openFile(repositoryName, 'FabCar', 'applications', 'JavaScript Application');
+
+            repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
+            pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
+            shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
+            sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
+            openNewProjectStub.should.have.been.calledOnce;
+            cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'fabcar/javascript', 'master', 'fabcar-app-javascript');
+            const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
+            repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'fabcar', 'javascript'));
+
+            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, outputAdapter);
+
+        });
+
+        it('should open TypeScript application', async () => {
 
             getRepository.resolves({
                 name: 'hyperledger/fabric-samples',
@@ -935,6 +1133,11 @@ describe('SampleView', () => {
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b master origin/master');
             openNewProjectStub.should.have.been.calledOnce;
             cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'fabcar/typescript', 'master', 'fabcar-app-typescript');
+            const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
+            repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'fabcar', 'typescript'));
+
+            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'typescript'), null, outputAdapter);
 
         });
 

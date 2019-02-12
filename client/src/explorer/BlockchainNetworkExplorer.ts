@@ -312,7 +312,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
             const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channel.label);
             const transactionNames: string[] = transactionNamesMap.get(contract);
-            if (contract === '') {
+            if (contract === '' || chainCodeElement.contracts.length === 1) {
                 for (const transaction of transactionNames) {
                     tree.push(new TransactionTreeItem(this, transaction, chainCodeElement.name, chainCodeElement.channel.label, contract));
                 }
@@ -423,9 +423,13 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 const peers: Array<string> = channelMap.get(channel);
                 try {
                     chaincodes = await FabricConnectionManager.instance().getConnection().getInstantiatedChaincode(channel);
-                    tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
+                    if (chaincodes.length > 0) {
+                        tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
+                    } else {
+                        tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None));
+                    }
                 } catch (error) {
-                    tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.Collapsed));
+                    tree.push(new ChannelTreeItem(this, channel, peers, [], vscode.TreeItemCollapsibleState.None));
                     outputAdapter.log(LogType.ERROR, `Error getting instantiated smart contracts for channel ${channel} ${error.message}`);
                 }
             }

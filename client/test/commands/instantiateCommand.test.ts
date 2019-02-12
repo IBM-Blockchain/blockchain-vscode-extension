@@ -220,12 +220,22 @@ describe('InstantiateCommand', () => {
 
         it('should instantiate the smart contract through the command with function but no args', async () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
-            showInputBoxStub.onSecondCall().resolves();
+            showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
-            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', undefined);
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', ['']);
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should cancel instantiating when user escape entering args', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves(undefined);
+            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
         });
 
         it('should install and instantiate package', async () => {
@@ -314,6 +324,26 @@ describe('InstantiateCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.should.not.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             should.not.exist(logSpy.getCall(1));
+        });
+
+        it('should be able to handle a project failing to package', async () => {
+            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves();
+
+            showChaincodeAndVersionQuickPick.resolves({
+                label: 'somepackage@0.0.1',
+                description: 'Open Project',
+                data: {
+                    packageEntry: undefined,
+                    workspace: mySandBox.stub()
+                }
+            });
+
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry') as PackageRegistryEntry;
+            should.not.exist(packageEntry);
+
+            fabricClientConnectionMock.instantiateChaincode.should.not.been.called;
+            logSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
     });

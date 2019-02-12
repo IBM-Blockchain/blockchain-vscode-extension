@@ -31,7 +31,6 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 
 chai.should();
 
@@ -59,10 +58,12 @@ describe('FabricRuntime', () => {
     let mockCAVolume: sinon.SinonStubbedInstance<Volume>;
     let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
     let connectionProfilePath: string;
+    let runtimeDetailsDir: string;
     let getDirPathStub: sinon.SinonStub;
     let ensureFileStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
     let copyStub: sinon.SinonStub;
+    let removeStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
     let runtimeDir: string;
 
@@ -191,6 +192,7 @@ describe('FabricRuntime', () => {
         ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
         writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
         copyStub = sandbox.stub(fs, 'copySync').resolves();
+        removeStub = sandbox.stub(fs, 'remove').resolves();
     });
 
     afterEach(async () => {
@@ -815,13 +817,42 @@ describe('FabricRuntime', () => {
             errorSpy.should.not.have.been.called;
         });
 
-        it('should show an info message if we fail to save connection details to disk', async () => {
-            writeFileStub.onCall(0).rejects({ message: 'oops' });
+        it('should show an error message if we fail to save connection details to disk', async () => {
+            writeFileStub.onCall(0).rejects( {message: 'oops'} );
 
             await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance()).should.have.been.rejected;
             ensureFileStub.should.have.been.calledOnce;
             writeFileStub.should.have.been.calledOnce;
             errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
+        });
+    });
+
+    describe('#deleteConnectionDetails', () => {
+
+        beforeEach(async () => {
+            errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            runtimeDetailsDir = path.join(runtimeDir, 'runtime1');
+
+        });
+
+        it('should delete runtime connection details', async () => {
+            await runtime.deleteConnectionDetails(VSCodeOutputAdapter.instance());
+            removeStub.getCall(0).should.have.been.calledWith(runtimeDetailsDir);
+            errorSpy.should.not.have.been.called;
+        });
+
+        it('should show an error message if we fail to delete the connection details', async () => {
+            removeStub.onCall(0).rejects({message: 'oops'});
+
+            await runtime.deleteConnectionDetails(VSCodeOutputAdapter.instance());
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Error removing runtime connection details: oops`), `Error removing runtime connection details: oops`;
+        });
+
+        it('should not show an error message if the runtime connection details folder doesnt exist', async () => {
+            removeStub.onCall(0).rejects({ message: 'ENOENT: no such file or directory' });
+
+            await runtime.deleteConnectionDetails(VSCodeOutputAdapter.instance());
+            errorSpy.should.not.have.been.called;
         });
     });
 });

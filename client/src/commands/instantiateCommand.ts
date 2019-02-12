@@ -72,6 +72,9 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
 
             // Package smart contract project using the given 'open workspace'
             const _package: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', data.workspace) as PackageRegistryEntry;
+            if (!_package) {
+                return;
+            }
 
             // Install smart contract package
             packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers, _package) as PackageRegistryEntry;
@@ -87,8 +90,10 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         let args: Array<string>;
         if (fcn) {
             const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
-            if (argsString) {
-                args = argsString.split(',');
+            if (argsString === undefined) {
+                return;
+            } else {
+                args = argsString.split(','); // If empty, args will be ['']
             }
         }
 

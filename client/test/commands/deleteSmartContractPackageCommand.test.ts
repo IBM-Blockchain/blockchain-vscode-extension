@@ -25,8 +25,11 @@ import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
-chai.should();
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('DeleteSmartContractPackageCommand', () => {
@@ -46,7 +49,7 @@ describe('DeleteSmartContractPackageCommand', () => {
     describe('deleteSmartContractPackage', () => {
         let mySandBox: sinon.SinonSandbox;
         let _package: PackageRegistryEntry;
-
+        let logStub: sinon.SinonStub;
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
@@ -56,6 +59,8 @@ describe('DeleteSmartContractPackageCommand', () => {
             _package.path = 'myPath';
             _package.version = '0.0.1';
             packagesStub.resolves([_package]);
+
+            logStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
         });
 
         afterEach(async () => {
@@ -66,7 +71,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves([{
+            mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves([{
                 label: 'vscode-pkg-1@0.0.1',
                 data: _package
             }]);
@@ -76,6 +81,8 @@ describe('DeleteSmartContractPackageCommand', () => {
             onDidChangeTreeDataSpy.should.have.been.called;
 
             deleteStub.should.have.been.calledOnceWithExactly(_package);
+            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully deleted package(s)`);
         });
 
         it(`should test multiple 'smart contract packages' can be deleted from the command`, async () => {
@@ -86,7 +93,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             const dataOne: PackageRegistryEntry = packages[0];
             const dataTwo: PackageRegistryEntry = packages[1];
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves([{
+            mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves([{
                 label: 'vscode-pkg-1@0.0.1',
                 data: dataOne
             }, {
@@ -102,6 +109,8 @@ describe('DeleteSmartContractPackageCommand', () => {
             deleteStub.should.have.been.calledTwice;
             deleteStub.should.have.been.calledWithExactly(dataOne);
             deleteStub.should.have.been.calledWithExactly(dataTwo);
+            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully deleted package(s)`);
         });
 
         it("should test a 'smart contract package' can be deleted from tree", async () => {
@@ -117,17 +126,33 @@ describe('DeleteSmartContractPackageCommand', () => {
             onDidChangeTreeDataSpy.should.have.been.called;
 
             deleteStub.should.have.been.calledOnceWithExactly(packageToDelete.packageEntry);
+            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully deleted package(s)`);
         });
 
         it("should test delete 'smart contract package' can be cancelled", async () => {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             const initialPackages: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             const initialLength: number = initialPackages.length;
-            mySandBox.stub(vscode.window, 'showQuickPick').resolves();
+            mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves(undefined);
             await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
             const newPackageList: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             newPackageList.length.should.equal(initialLength);
             newPackageList.should.deep.equal(initialPackages);
+            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+            should.not.exist(logStub.getCall(1));
+        });
+
+        it('should stop if user doesn\'t pass any smart contract packages to delete', async () => {
+            mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves([]);
+
+            // Execute the delete 'smart contract package' command
+            const deleteSpy: sinon.SinonSpy = mySandBox.spy(PackageRegistry.instance(), 'delete');
+            await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
+
+            deleteSpy.should.not.have.been.called;
+            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+            should.not.exist(logStub.getCall(1));
         });
     });
 });

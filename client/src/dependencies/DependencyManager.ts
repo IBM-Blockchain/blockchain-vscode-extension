@@ -45,12 +45,20 @@ export class DependencyManager {
     }
 
     public async installNativeDependencies(): Promise<void> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
         tempCommandRegistry.createTempCommands();
         this.loadDependencies();
         await this.installNativeDependenciesInternal();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Rewriting activation events');
         await this.rewritePackageJson();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Clearing extension cache');
         await this.clearExtensionCache();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Restoring command registry');
         await tempCommandRegistry.restoreCommands();
     }
 
@@ -102,7 +110,7 @@ export class DependencyManager {
                 const shell: boolean = (process.platform === 'win32') ? true : false;
 
                 try {
-                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron'], extensionPath, null, outputAdapter, shell);
+                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
