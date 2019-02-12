@@ -88,19 +88,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         const dependancyManager: DependencyManager = DependencyManager.instance();
         if (!dependancyManager.hasNativeDependenciesInstalled()) {
             await dependancyManager.installNativeDependencies();
+        }
+        outputAdapter.log(LogType.INFO, undefined, 'Migrating local fabric configuration');
+        await migrateLocalFabricConfiguration();
 
-            await migrateLocalFabricConfiguration();
-            await ensureLocalFabricExists();
+        outputAdapter.log(LogType.INFO, undefined, 'Ensuring local fabric exists in runtime manager');
+        await ensureLocalFabricExists();
 
-            await registerCommands(context);
+        outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
+        await registerCommands(context);
 
+        if (!dependancyManager.hasNativeDependenciesInstalled()) {
+            outputAdapter.log(LogType.INFO, undefined, 'Execute stored commands in the registry');
             const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
             await tempCommandRegistry.executeStoredCommands();
-        } else {
-            await migrateLocalFabricConfiguration();
-            await ensureLocalFabricExists();
-
-            await registerCommands(context);
         }
 
         ExtensionUtil.setExtensionContext(context);
