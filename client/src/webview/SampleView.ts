@@ -199,63 +199,77 @@ export class SampleView {
      * @returns {void}
      */
     public static async openFile(repoName: string, sampleName: string, fileType: string, fileName: string, language?: string): Promise<void> {
-        try {
 
-            // Get data about the sample and the specific download
-            const repository: any = await this.getRepository(repoName);
-            const sample: any = this.getSample(repository, sampleName);
+        // Get data about the sample and the specific download
+        const repository: any = await this.getRepository(repoName);
+        const sample: any = this.getSample(repository, sampleName);
 
-            let samplePath: string; // Relative location from the repository
-            let branch: string; // Git branch
-            let workspaceLabel: string; // Workspace label if user 'Adds to Workspace'
+        let samplePath: string; // Relative location from the repository
+        let branch: string; // Git branch
+        let workspaceLabel: string; // Workspace label if user 'Adds to Workspace'
+        let onOpen: any[]; // Commands to run after the sample is open
 
-            if (fileType === 'contracts') {
-                const contract: any = this.getContract(sample, fileName);
+        if (fileType === 'contracts') {
+            const contract: any = this.getContract(sample, fileName);
 
-                contract.languages.find((_language: any) => {
-                    if (_language.type === language) {
-                        samplePath = _language.remote.path;
-                        branch = _language.remote.branch;
-                        language = language;
-                        workspaceLabel = _language.workspaceLabel;
-                        return true;
-                    }
-                });
+            contract.languages.find((_language: any) => {
+                if (_language.type === language) {
+                    samplePath = _language.remote.path;
+                    branch = _language.remote.branch;
+                    language = language;
+                    workspaceLabel = _language.workspaceLabel;
+                    onOpen = _language.onOpen;
+                    return true;
+                }
+            });
 
-            } else if (fileType === 'applications') {
-                const download: any = this.getApplication(sample, fileName);
-                samplePath = download.remote.path;
-                branch = download.remote.branch;
-                language = download.language;
-                workspaceLabel = download.workspaceLabel;
-            } else {
-                /* Need to make it possible to get the location information of additional materials
-                    e.g samplePath = download.url;
-                */
-                throw new Error('File type not supported');
+        } else if (fileType === 'applications') {
+            const download: any = this.getApplication(sample, fileName);
+            samplePath = download.remote.path;
+            branch = download.remote.branch;
+            language = download.language;
+            workspaceLabel = download.workspaceLabel;
+            onOpen = download.onOpen;
+        } else {
+            /* Need to make it possible to get the location information of additional materials
+                e.g samplePath = download.url;
+            */
+            throw new Error('File type not supported');
+        }
+
+        // Get the repository url
+        const sampleUrl: string = repository.remote;
+
+        const fileExtension: string = sampleUrl.split('.').pop(); // Get everything after the last '.'
+
+        // If the file extension is 'git', then we want to clone the repository
+        let folderUri: vscode.Uri;
+        if (fileExtension === 'git') {
+
+            folderUri = await SampleView.cloneAndOpenRepository(repoName, samplePath, branch, workspaceLabel);
+        } else {
+            /* We might want to support other file formats in future such as zip, tar, etc.
+            In which case, there's no need to checkout a local git branch. Instead we would:
+            - Check directory exists
+            - Open up the project
+            */
+
+            throw new Error(`Currently there is no support for opening files unless they're from a Git repository`);
+        }
+
+        // Check to see if the user cancelled the command prompt(s).
+        if (!folderUri) {
+            return;
+        }
+
+        // Execute any commands that are meant to run after the sample is opened.
+        if (onOpen) {
+            for (const item of onOpen) {
+                const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+                outputAdapter.log(LogType.INFO, null, `Starting command "${item.command}" with arguments "${item.arguments}" for sample "${sampleName}"`);
+                await CommandUtil.sendCommandWithOutputAndProgress(item.command, item.arguments, item.message, folderUri.fsPath, null, outputAdapter);
+                outputAdapter.log(LogType.INFO, null, `Finished command "${item.command}" with arguments "${item.arguments}" for sample "${sampleName}"`);
             }
-
-            // Get the repository url
-            const sampleUrl: string = repository.remote;
-
-            const fileExtension: string = sampleUrl.split('.').pop(); // Get everything after the last '.'
-
-            // If the file extension is 'git', then we want to clone the repository
-            if (fileExtension === 'git') {
-
-                await SampleView.cloneAndOpenRepository(repoName, samplePath, branch, workspaceLabel);
-            } else {
-                /* We might want to support other file formats in future such as zip, tar, etc.
-                In which case, there's no need to checkout a local git branch. Instead we would:
-                - Check directory exists
-                - Open up the project
-                */
-
-                throw new Error(`Currently there is no support for opening files unless they're from a Git repository`);
-            }
-
-        } catch (error) {
-            throw error.message;
         }
 
     }
@@ -364,7 +378,7 @@ export class SampleView {
         return samplePageHtml;
     }
 
-    public static async cloneAndOpenRepository(repoName: string, samplePath: string, branch: string, workspaceLabel: string): Promise<void> {
+    public static async cloneAndOpenRepository(repoName: string, samplePath: string, branch: string, workspaceLabel: string): Promise<vscode.Uri> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
         // Find out where sample repository is
@@ -433,6 +447,7 @@ export class SampleView {
         const folderUri: vscode.Uri = vscode.Uri.file(folderPath);
 
         // Open the downloaded project
-        return await UserInputUtil.openNewProject(openMethod, folderUri, workspaceLabel);
+        await UserInputUtil.openNewProject(openMethod, folderUri, workspaceLabel);
+        return folderUri;
     }
 }
