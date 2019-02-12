@@ -22,7 +22,7 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
@@ -58,7 +58,7 @@ describe('AddGatewayCommand', () => {
             // reset the available gateways
             await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
 
-            logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
             browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             showIdentityOptionsStub = mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');

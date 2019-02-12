@@ -13,24 +13,17 @@
 */
 
 import * as vscode from 'vscode';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { RuntimeTreeItem } from '../explorer/runtimeOps/RuntimeTreeItem';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
-export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+export async function toggleFabricRuntimeDevMode(): Promise<void> {
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
     const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
-    // if (!runtimeTreeItem) {
-    //     runtime = FabricRuntimeManager.instance().get('local_fabric');
-    // } else {
-    //     runtime = runtimeTreeItem.getRuntime();
-    // }
 
     const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
     const newDevelopmentMode: boolean = !oldDevelopmentMode;

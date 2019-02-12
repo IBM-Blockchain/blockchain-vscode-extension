@@ -24,7 +24,7 @@ import * as child_process from 'child_process';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -60,7 +60,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
         sendCommandStub.withArgs('xcode-select -p').resolves('path');
         sendCommandWithOutputAndProgressStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
-        logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
         openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
         const originalExecuteCommand: any = vscode.commands.executeCommand;
@@ -319,7 +319,7 @@ describe('CreateSmartContractProjectCommand', () => {
             }
         }));
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        sendCommandWithOutputAndProgressStub.should.have.been.calledOnceWithExactly('npm', ['install', '-g', `generator-fabric@${genFabVersion}`], 'Updating generator-fabric...', null, null, VSCodeOutputAdapter.instance());
+        sendCommandWithOutputAndProgressStub.should.have.been.calledOnceWithExactly('npm', ['install', '-g', `generator-fabric@${genFabVersion}`], 'Updating generator-fabric...', null, null, VSCodeBlockchainOutputAdapter.instance());
     });
 
     it('should continue if latest version of generator-fabric is installed', async () => {

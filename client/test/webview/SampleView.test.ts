@@ -23,7 +23,7 @@ import * as shell from 'shelljs';
 import * as path from 'path';
 import { SampleView } from '../../src/webview/SampleView';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { TestUtil } from '../TestUtil';
 import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
@@ -686,7 +686,7 @@ describe('SampleView', () => {
 
         it('should clone a repository and save to disk', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
+            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
             const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').returns(undefined);
             const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'add').resolves();
 
@@ -707,7 +707,7 @@ describe('SampleView', () => {
 
         it('should stop if user cancels dialog', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
+            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
             const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage');
             const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'add');
 
@@ -727,7 +727,7 @@ describe('SampleView', () => {
 
         it('should throw an error if repository cannot be cloned', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
+            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
 
@@ -745,7 +745,7 @@ describe('SampleView', () => {
 
         it('should reclone a repository and update the repository registry', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
+            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
             const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').returns(undefined);
             const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'update').resolves();
 
@@ -855,7 +855,7 @@ describe('SampleView', () => {
             const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
             repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'javascript'));
 
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'javascript'), null, outputAdapter);
 
         });
@@ -889,7 +889,7 @@ describe('SampleView', () => {
             const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
             repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'typescript'));
 
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'chaincode', 'fabcar', 'typescript'), null, outputAdapter);
 
         });
@@ -1102,7 +1102,7 @@ describe('SampleView', () => {
             const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
             repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'fabcar', 'javascript'));
 
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, outputAdapter);
 
         });
@@ -1136,7 +1136,7 @@ describe('SampleView', () => {
             const repositoryPath: vscode.Uri = await cloneAndOpenRepositorySpy.returnValues[0];
             repositoryPath.fsPath.should.equal(path.join('/', 'some', 'path', 'fabcar', 'typescript'));
 
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'typescript'), null, outputAdapter);
 
         });

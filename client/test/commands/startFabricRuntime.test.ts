@@ -19,7 +19,7 @@ import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
@@ -89,14 +89,14 @@ describe('startFabricRuntime', () => {
     it('should start a Fabric runtime specified by clicking the tree', async () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        startStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
     });
 
     it('should start a Fabric runtime', async () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        startStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
     });
 });

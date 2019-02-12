@@ -14,23 +14,23 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
     let channelName: string;
     let peers: Set<string>;
     let packageEntry: PackageRegistryEntry;
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
 
     if (treeItem instanceof ChannelTreeItem) {
@@ -107,6 +107,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             progress.report({message: 'Instantiating Smart Contract'});
             const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
 
+            VSCodeBlockchainDockerOutputAdapter.instance().show();
             if (packageEntry) {
                 // If the package has been installed as part of this command
                 await connection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);

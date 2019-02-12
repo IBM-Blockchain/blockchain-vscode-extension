@@ -10,6 +10,7 @@ volumes:
   orderer.example.com:
   peer0.org1.example.com:
   couchdb:
+  logs:
 
 networks:
   basic:
@@ -23,19 +24,16 @@ services:
       - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org1.example.com-cert.pem
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/4239aa0dcd76daeeb8ba0cda701851d14504d31aad1b2ddddbac6a57365e497c_sk
     ports:
-      # VSCODE - "7054:7054"
       - ${CERTIFICATE_AUTHORITY_PORT}:7054
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
       - ./crypto-config/peerOrganizations/org1.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
       - ca.example.com:/etc/hyperledger/fabric-ca-server
-    # VSCODE container_name: ca.example.com
     container_name: ${COMPOSE_PROJECT_NAME}_ca.example.com
     networks:
       - basic
 
   orderer.example.com:
-    # VSCODE container_name: orderer.example.com
     container_name: ${COMPOSE_PROJECT_NAME}_orderer.example.com
     image: hyperledger/fabric-orderer:1.4.0
     environment:
@@ -48,7 +46,6 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/orderer
     command: orderer
     ports:
-      # VSCODE - 7050:7050
       - ${ORDERER_PORT}:7050
     volumes:
       - ./config/:/etc/hyperledger/configtx
@@ -59,7 +56,6 @@ services:
       - basic
 
   peer0.org1.example.com:
-    # VSCODE container_name: peer0.org1.example.com
     container_name: ${COMPOSE_PROJECT_NAME}_peer0.org1.example.com
     image: hyperledger/fabric-peer:1.4.0
     environment:
@@ -70,25 +66,16 @@ services:
       - CORE_PEER_LOCALMSPID=Org1MSP
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/peer/
       - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
-      # # the following setting starts chaincode containers on the same
-      # # bridge network as the peers
-      # # https://docs.docker.com/compose/networking/
       - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=${COMPOSE_PROJECT_NAME}_basic
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
-      # The CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME and CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD
-      # provide the credentials for ledger to connect to CouchDB.  The username and password must
-      # match the username and password set for the associated CouchDB.
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=
-      - CORE_CHAINCODE_MODE=${CORE_CHAINCODE_MODE:-net} # VSCODE
-      - CORE_PEER_NETWORKID=${COMPOSE_PROJECT_NAME} # VSCODE
+      - CORE_CHAINCODE_MODE=${CORE_CHAINCODE_MODE:-net}
+      - CORE_PEER_NETWORKID=${COMPOSE_PROJECT_NAME}
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
-    # command: peer node start --peer-chaincodedev=true
     ports:
-      # VSCODE - 7051:7051
-      # VSCODE - 7053:7053
       - ${PEER_REQUEST_PORT}:7051
       - ${PEER_CHAINCODE_PORT}:7052
       - ${PEER_EVENT_HUB_PORT}:7053
@@ -105,16 +92,12 @@ services:
       - basic
 
   couchdb:
-    # VSCODE container_name: couchdb
     container_name: ${COMPOSE_PROJECT_NAME}_couchdb
     image: hyperledger/fabric-couchdb:0.4.14
-    # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
-    # for CouchDB.  This will prevent CouchDB from operating in an "Admin Party" mode.
     environment:
       - COUCHDB_USER=
       - COUCHDB_PASSWORD=
     ports:
-      # VSCODE - 5984:5984
       - ${COUCH_DB_PORT}:5984
     volumes:
       - couchdb:/opt/couchdb/data
@@ -137,12 +120,17 @@ services:
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
     command: /bin/bash
     volumes:
-        - /var/run/:/host/var/run/
-        - ./../chaincode/:/opt/gopath/src/github.com/
-        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+      - /var/run/:/host/var/run/
+      - ./../chaincode/:/opt/gopath/src/github.com/
+      - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
     networks:
         - basic
-    #depends_on:
-    #  - orderer.example.com
-    #  - peer0.org1.example.com
-    #  - couchdb
+  logs:
+    container_name: ${COMPOSE_PROJECT_NAME}_logs
+    image: gliderlabs/logspout
+    networks:
+      - basic
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+    - ${LOGS_PORT}:80

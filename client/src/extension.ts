@@ -24,12 +24,11 @@ import { connect } from './commands/connectCommand';
 import { createSmartContractProject } from './commands/createSmartContractProjectCommand';
 import { packageSmartContract } from './commands/packageSmartContractCommand';
 
-import { VSCodeOutputAdapter } from './logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from './logging/VSCodeBlockchainOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionUtil } from './util/ExtensionUtil';
 import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
-import { RuntimeTreeItem } from './explorer/runtimeOps/RuntimeTreeItem';
 import { startFabricRuntime } from './commands/startFabricRuntime';
 import { stopFabricRuntime } from './commands/stopFabricRuntime';
 import { restartFabricRuntime } from './commands/restartFabricRuntime';
@@ -76,7 +75,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await Reporter.instance().dispose();
     }
 
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     // Show the output adapter
     outputAdapter.show();
 

@@ -19,7 +19,7 @@ import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
@@ -31,7 +31,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function editGatewayCommand(treeItem: GatewayPropertyTreeItem | GatewayTreeItem): Promise < {} | void > {
 
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `editGateway ${treeItem}`);
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
@@ -183,7 +183,7 @@ async function getProperty(gateway: any): Promise<string> {
     return propertyToEdit;
 }
 
-async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
+async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeBlockchainOutputAdapter): Promise<void> {
 
     // Ask for connection profile
     const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
@@ -226,7 +226,7 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabric
     }
 }
 
-async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
+async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeBlockchainOutputAdapter): Promise<void> {
     // Ask for wallet
     const result: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', gateway.name, true);
     if (!result) {
@@ -251,7 +251,7 @@ async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegi
 
 }
 
-async function editIdentity(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeOutputAdapter): Promise<void> {
+async function editIdentity(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeBlockchainOutputAdapter): Promise<void> {
     // PropertyToEdit is Identity
 
     const identityObject: any = await getIdentity(gateway.name);

@@ -21,6 +21,7 @@ import { IFabricConnection } from './IFabricConnection';
 import { FabricConnectionFactory } from './FabricConnectionFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 
 export class FabricRuntimeManager {
 
@@ -55,6 +56,8 @@ export class FabricRuntimeManager {
         const identityName: string = 'Admin@org1.example.com';
         await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
         await this.connection.connect(runtimeWallet, 'Admin@org1.example.com');
+        const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
+        await runtime.startLogs(outputAdapter);
 
         return this.connection;
     }
@@ -142,14 +145,16 @@ export class FabricRuntimeManager {
             peerChaincode,
             peerEventHub,
             certificateAuthority,
-            couchDB
-        ]: number[] = await FabricRuntimeManager.findFreePort(startPort, null, null, 6);
+            couchDB,
+            logs
+        ]: number[] = await FabricRuntimeManager.findFreePort(startPort, null, null, 7);
         ports.orderer = orderer;
         ports.peerRequest = peerRequest;
         ports.peerChaincode = peerChaincode;
         ports.peerEventHub = peerEventHub;
         ports.certificateAuthority = certificateAuthority;
         ports.couchDB = couchDB;
+        ports.logs = logs;
         return ports;
     }
 

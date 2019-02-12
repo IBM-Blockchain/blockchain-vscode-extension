@@ -18,7 +18,7 @@ import * as sinonChai from 'sinon-chai';
 import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
@@ -122,7 +122,7 @@ describe('Metadata Util tests', () => {
         transactionNames.set('pancake', [pancakeTransactionOne.name, pancakeTransactionTwo.name]);
         testMap.set('cake', [transactionOne, transactionTwo, transactionThree]);
         testMap.set('pancake', [pancakeTransactionOne, pancakeTransactionTwo]);
-        logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
     afterEach(() => {

@@ -20,7 +20,7 @@ import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { CommandUtil } from '../src/util/CommandUtil';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
-import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
@@ -146,7 +146,7 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, generator);
 
         if (type === 'JavaScript' || type === 'TypeScript') {
-            await CommandUtil.sendCommandWithOutput('npm', ['install'], this.testContractDir, undefined, VSCodeOutputAdapter.instance(), false);
+            await CommandUtil.sendCommandWithOutput('npm', ['install'], this.testContractDir, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
         }
     }
 

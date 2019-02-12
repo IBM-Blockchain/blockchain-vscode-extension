@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { ExtensionUtil } from '../util/ExtensionUtil';
@@ -28,7 +28,7 @@ import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<{} | void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     outputAdapter.log(LogType.INFO, undefined, 'addGatewayIdentity');
 

@@ -33,7 +33,7 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
@@ -101,7 +101,7 @@ describe('testSmartContractCommand', () => {
             mySandBox = sinon.createSandbox();
             errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
-            logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
             // ExecuteCommand stub
@@ -885,7 +885,7 @@ describe('testSmartContractCommand', () => {
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
-            logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
         it('should generate tests for a runtime connection', async () => {

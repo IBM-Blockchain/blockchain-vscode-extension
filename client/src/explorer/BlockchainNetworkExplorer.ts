@@ -30,7 +30,7 @@ import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTree
 import { ConnectedTreeItem } from './model/ConnectedTreeItem';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { ContractTreeItem } from './model/ContractTreeItem';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
@@ -60,7 +60,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     private runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
 
     constructor() {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         FabricConnectionManager.instance().on('connected', async (connection: IFabricConnection) => {
             try {
@@ -103,7 +103,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
         console.log('getChildren', element);
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
 
@@ -218,7 +218,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
         console.log('createdConnectionTree');
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tree: BlockchainTreeItem[] = [];
 
@@ -335,7 +335,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
             console.log('createConnectedTree');
@@ -389,7 +389,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     private async createGatewayIdentityTree(element: GatewayTreeItem|LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
         console.log('createConnectionIdentityTree', element);
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tree: Array<GatewayIdentityTreeItem> = [];
 
@@ -411,7 +411,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     }
 
     private async getChannelsTree(): Promise<ChannelTreeItem[]> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
 

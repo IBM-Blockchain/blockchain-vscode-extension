@@ -27,7 +27,7 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import * as myExtension from '../../src/extension';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -36,6 +36,7 @@ import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCom
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -61,6 +62,7 @@ describe('InstallCommand', () => {
         let showPeerQuickPickStub: sinon.SinonStub;
         let showInstallableSmartContractsQuickPickStub: sinon.SinonStub;
         let logOutputSpy: sinon.SinonSpy;
+        let dockerLogsOutputSpy: sinon.SinonSpy;
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
         let installCommandTreeItem: InstallCommandTreeItem;
@@ -101,7 +103,8 @@ describe('InstallCommand', () => {
                 }
             });
 
-            logOutputSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            logOutputSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
 
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
 
@@ -139,6 +142,8 @@ describe('InstallCommand', () => {
         it('should install the smart contract through the command', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
@@ -146,6 +151,8 @@ describe('InstallCommand', () => {
         it('should install the smart contract with specific package', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, null, packageRegistryEntry);
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
@@ -156,6 +163,8 @@ describe('InstallCommand', () => {
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
@@ -176,6 +185,8 @@ describe('InstallCommand', () => {
 
             packageCommandStub.should.have.been.calledOnce;
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
 
@@ -185,6 +196,7 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
 
             fabricClientConnectionMock.installChaincode.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
         });
 
         it('should handle error from installing smart contract', async () => {
@@ -193,6 +205,7 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT).should.be.rejectedWith(`some error`);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+            dockerLogsOutputSpy.should.not.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Error installing smart contract: some error');
         });
@@ -224,12 +237,14 @@ describe('InstallCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
             fabricClientConnectionMock.installChaincode.should.not.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
         });
 
         it('should install smart contract through the tree by clicking on + Install in runtime ops view', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, installCommandTreeItem);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
@@ -238,6 +253,7 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, smartContractsChildren[1]);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
@@ -246,6 +262,7 @@ describe('InstallCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, peerTreeItem);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
@@ -255,8 +272,8 @@ describe('InstallCommand', () => {
 
             const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
 
+            dockerLogsOutputSpy.should.have.been.called;
             logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
-
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Failed to install on peer peerOne with reason: failed to install for some reason');
 
             should.not.exist(packageEntry);
