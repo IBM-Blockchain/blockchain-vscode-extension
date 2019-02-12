@@ -45,12 +45,20 @@ export class DependencyManager {
     }
 
     public async installNativeDependencies(): Promise<void> {
+        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
         tempCommandRegistry.createTempCommands();
         this.loadDependencies();
         await this.installNativeDependenciesInternal();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Rewriting activation events');
         await this.rewritePackageJson();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Clearing extension cache');
         await this.clearExtensionCache();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Restoring command registry');
         await tempCommandRegistry.restoreCommands();
     }
 
