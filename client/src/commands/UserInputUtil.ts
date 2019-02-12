@@ -372,7 +372,7 @@ export class UserInputUtil {
 
     }
 
-    public static async openUserSettings(connectionName: string): Promise<void> {
+    public static async openUserSettings(gatewayName: string): Promise<void> {
         const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
 
         let settingsPath: string;
@@ -392,22 +392,41 @@ export class UserInputUtil {
 
             // Open the user settings (but don't display yet)
             const document: vscode.TextDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
-            const text: string[] = document.getText().split('\n');
+            const settingsText: string[] = document.getText().split('\n');
 
-            let startIndex: number;
+            let highlightStart: number;
 
             // Find the user settings line number
-            for (let x: number = 0; x < text.length; x++) {
-                const searchTerm: string = '"name": "' + connectionName + '",';
-                if (text[x].includes(searchTerm)) {
-                    startIndex = x;
-                    break;
+            for (let index: number = 0; index < settingsText.length; index++) {
+                const gatewaysSection: string = '"fabric.gateways": [';
+                if (settingsText[index].includes(gatewaysSection)) {
+                    // We've found fabric.gateways, so we'll assume that the gateway we're looking for will be the first result
+                    const gatewayEntry: string = '"name": "' + gatewayName + '",';
+
+                    for (let gatewaysIndex: number = index; gatewaysIndex < settingsText.length; gatewaysIndex++) {
+                        // Search for the specific gateway name and set the line number if found
+                        if (settingsText[gatewaysIndex].includes(gatewayEntry)) {
+                            highlightStart = gatewaysIndex;
+                            break;
+                        }
+                    }
+
+                    if (highlightStart) {
+                        // If the starting highlighting position is found, we can break from the loop
+                        break;
+                    }
                 }
             }
 
+            if (!highlightStart) {
+                outputAdapter.log(LogType.ERROR, `Could not find gateway in user settings`);
+                await vscode.window.showTextDocument(document);
+                return;
+            }
+
             // Define the section to highlight
-            const startLine: number = startIndex - 2;
-            const endLine: number = startIndex + 3;
+            const startLine: number = highlightStart - 2;
+            const endLine: number = highlightStart + 3;
 
             // Show the user settings and highlight the connection
             await vscode.window.showTextDocument(document, {
