@@ -28,7 +28,8 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
         packagesToDelete = [packageTreeItem.packageEntry];
     } else {
         const chosenPackages: IBlockchainQuickPickItem<PackageRegistryEntry>[] = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package(s) that you want to delete', true) as IBlockchainQuickPickItem<PackageRegistryEntry>[];
-        if (!chosenPackages) {
+        if (!chosenPackages || chosenPackages.length === 0) {
+            // If the user cancels, or they do not select any packages to delete
             return;
         }
 
