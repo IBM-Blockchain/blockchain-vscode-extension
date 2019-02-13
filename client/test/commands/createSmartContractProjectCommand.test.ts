@@ -194,8 +194,6 @@ describe('CreateSmartContractProjectCommand', () => {
         // We actually want to execute the command!
         sendCommandStub.restore();
 
-        // executeCommandStub.restore();
-
         quickPickStub.onFirstCall().resolves('TypeScript');
         quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
         openDialogStub.resolves(uriArr);

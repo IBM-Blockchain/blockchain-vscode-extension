@@ -126,6 +126,6 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);
-        throw error;
+        return;
     }
 }

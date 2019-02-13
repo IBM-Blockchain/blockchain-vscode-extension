@@ -14,7 +14,6 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PeerTreeItem } from '../explorer/runtimeOps/PeerTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -109,12 +108,12 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             // }
             return chosenPackage;
         } else {
-            // Failed to install package on all peers.
+            // Failed to install package on all peers
             return;
         }
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error installing smart contract: ${error.message}`, `Error installing smart contract: ${error.toString()}`);
-        throw error;
+        return;
     }
 }

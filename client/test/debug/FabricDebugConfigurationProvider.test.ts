@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -53,6 +52,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let readFileStub: sinon.SinonStub;
         let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
+        let getConnectionStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -104,14 +104,18 @@ describe('FabricDebugConfigurationProvider', () => {
             packageEntry.version = 'vscode-13232112018';
             packageEntry.path = path.join('myPath');
             commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves(packageEntry);
-            commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, null, sinon.match.any).resolves();
+            commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, null, sinon.match.any).resolves({
+                name: 'test-package@0.0.1',
+                path: 'some/path',
+                version: '0.0.1'
+            });
             commandStub.withArgs('blockchainExplorer.connectEntry', sinon.match.any);
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            mySandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+            getConnectionStub = mySandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(mockRuntimeConnection);
         });
 
         afterEach(() => {
@@ -295,7 +299,37 @@ describe('FabricDebugConfigurationProvider', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "local_fabric" is in development mode before trying to debug a smart contract`);
         });
 
-        it('should hand errors with package or install', async () => {
+        it('should handle errors with packaging', async () => {
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves();
+
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.not.exist(config);
+
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should handle errors with installing', async () => {
+            commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).resolves();
+
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.not.exist(config);
+
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should handle connecting failing', async () => {
+            getConnectionStub.returns(undefined);
+
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.not.exist(config);
+
+            logSpy.should.not.have.been.called;
+        });
+
+        it('should handle errors with installing', async () => {
             commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -454,7 +488,7 @@ describe('FabricDebugConfigurationProvider', () => {
         it('should handle error from reading config file', async () => {
             findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
 
-            const error: Error = new Error('some error');
+            const error: Error = new Error('Error reading package.json from project some error');
             readJsonStub.rejects(error);
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -462,7 +496,6 @@ describe('FabricDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
-            // const error: Error = new Error('Error reading package.json from project some error');
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to launch debug: ${error.message}`);
         });
     });

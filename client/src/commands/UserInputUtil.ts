@@ -187,8 +187,6 @@ export class UserInputUtil {
     }
 
     public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Set<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
-        // const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        // const connection: IFabricConnection = fabricConnectionManager.getConnection();
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
         if (!connection) {
             throw new Error('No connection to a blockchain found');
@@ -227,9 +225,6 @@ export class UserInputUtil {
         const allSmartContracts: any[] = [];
         for (const channel of channels) {
             const instantiatedSmartContracts: any[] = await connection.getInstantiatedChaincode(channel.label);
-            // if (!instantiatedSmartContracts || instantiatedSmartContracts.length === 0) {
-            //     continue;
-            // }
             allSmartContracts.push(...instantiatedSmartContracts);
         }
 
@@ -556,8 +551,6 @@ export class UserInputUtil {
 
     public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         // Get connection
-        // const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        // const connection: IFabricConnection = fabricConnectionManager.getConnection();
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
         if (!connection) {
             throw new Error('No connection to a blockchain found');

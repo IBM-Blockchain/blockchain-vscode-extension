@@ -77,11 +77,6 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             gateway.name = this.name;
             gateway.managedRuntime = true;
             newLabel += '●';
-            // newCommand = {
-            //     command: ExtensionCommands.CONNECT,
-            //     title: '',
-            //     arguments: [gateway]
-            // };
             this.tooltip = 'Local Fabric is running';
 
             newContextLabel = 'blockchain-local-gateway-item-started';

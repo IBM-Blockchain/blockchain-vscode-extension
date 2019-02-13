@@ -175,7 +175,7 @@ describe('InstantiateCommand', () => {
 
             fabricClientConnectionMock.instantiateChaincode.rejects(error);
 
-            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT).should.be.rejectedWith(error);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 

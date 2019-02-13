@@ -486,7 +486,6 @@ describe('SampleView', () => {
         const findStub: sinon.SinonStub = mySandBox.stub(Array.prototype, 'find');
         findStub.callThrough();
         findStub.onCall(0).returns(undefined);
-        // findStub.onCall(1).returns({title: 'Sample One Sample', reveal: mySandBox.stub().returns(undefined)});
 
         mySandBox.stub(RepositoryRegistry.prototype, 'get').returns({name: 'Repo One', path: 'path'});
 

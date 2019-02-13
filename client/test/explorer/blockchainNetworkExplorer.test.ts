@@ -280,7 +280,6 @@ describe('BlockchainNetworkExplorer', () => {
                 connectionTreeItem.label.should.equal('myGateway');
                 connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
                 connectionTreeItem.gateway.should.deep.equal(gateway);
-                // should.exist(connectionTreeItem.command);
 
                 const myCommandOne: vscode.Command = {
                     command: ExtensionCommands.CONNECT,
