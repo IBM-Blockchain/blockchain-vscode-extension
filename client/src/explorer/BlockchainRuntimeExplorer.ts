@@ -39,6 +39,7 @@ import { InstalledChainCodeOpsTreeItem } from './runtimeOps/InstalledChainCodeOp
 import { InstantiateCommandTreeItem } from './runtimeOps/InstantiateCommandTreeItem';
 import { InstallCommandTreeItem } from './runtimeOps/InstallCommandTreeItem';
 import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -280,7 +281,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         const tree: Array<BlockchainTreeItem> = [];
 
         const command: vscode.Command = {
-            command: 'blockchainExplorer.instantiateSmartContractEntry',
+            command: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
             title: '',
             arguments: []
         };
@@ -323,7 +324,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             }
 
             command = {
-                command: 'blockchainExplorer.installSmartContractEntry',
+                command: ExtensionCommands.INSTALL_SMART_CONTRACT,
                 title: '',
                 arguments: [installedTreeItem]
             };

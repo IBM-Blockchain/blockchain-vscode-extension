@@ -27,6 +27,7 @@ import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionCommands } from '../../ExtensionCommands';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -73,10 +74,10 @@ describe('stopFabricRuntime', () => {
     it('should stop a Fabric runtime and refresh the view', async () => {
         const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
         executeCommandSpy.should.have.been.calledThrice;
-        executeCommandSpy.getCall(1).should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
+        executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
     });
 
 });

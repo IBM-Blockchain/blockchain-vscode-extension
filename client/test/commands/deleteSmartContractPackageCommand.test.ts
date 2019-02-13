@@ -28,6 +28,7 @@ import { BlockchainPackageExplorerProvider } from '../../src/explorer/Blockchain
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -77,7 +78,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             }]);
             // Execute the delete 'smart contract package' command
             const deleteStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'delete').resolves();
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
             onDidChangeTreeDataSpy.should.have.been.called;
 
             deleteStub.should.have.been.calledOnceWithExactly(_package);
@@ -103,7 +104,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             // Execute the delete 'smart contract package' command
             const deleteStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'delete').resolves();
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
 
             onDidChangeTreeDataSpy.should.have.been.called;
             deleteStub.should.have.been.calledTwice;
@@ -121,7 +122,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             // This will be the 'DeleteThisDirectory' as its the first package alphabetically
             const packageToDelete: PackageTreeItem = initialPackages[0] as PackageTreeItem;
             const deleteStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'delete').resolves();
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry', packageToDelete);
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT, packageToDelete);
 
             onDidChangeTreeDataSpy.should.have.been.called;
 
@@ -135,7 +136,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             const initialPackages: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             const initialLength: number = initialPackages.length;
             mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves(undefined);
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
             const newPackageList: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             newPackageList.length.should.equal(initialLength);
             newPackageList.should.deep.equal(initialPackages);
@@ -148,7 +149,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             // Execute the delete 'smart contract package' command
             const deleteSpy: sinon.SinonSpy = mySandBox.spy(PackageRegistry.instance(), 'delete');
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.deleteSmartContractPackageEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
 
             deleteSpy.should.not.have.been.called;
             logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);

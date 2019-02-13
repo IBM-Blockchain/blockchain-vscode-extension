@@ -37,6 +37,7 @@ import { OrganizationsTreeItem } from '../../src/explorer/runtimeOps/Organizatio
 import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/InstantiateCommandTreeItem';
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -532,7 +533,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
 
             onDidChangeTreeDataSpy.should.have.been.called;
         });
@@ -545,7 +546,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry', mockTreeItem);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS, mockTreeItem);
 
             onDidChangeTreeDataSpy.should.have.been.calledOnceWithExactly(mockTreeItem);
         });

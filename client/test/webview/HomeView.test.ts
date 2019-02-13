@@ -24,6 +24,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as ejs from 'ejs';
 import { SampleView } from '../../src/webview/SampleView';
 import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -252,7 +253,7 @@ describe('HomeView', () => {
         );
         getExtensionHomepageStub.should.have.been.calledOnce;
 
-        executeCommand.getCall(0).should.have.been.calledWith('sample.open', 'repo1', 'sample1');
+        executeCommand.getCall(0).should.have.been.calledWith(ExtensionCommands.OPEN_SAMPLE_PAGE, 'repo1', 'sample1');
 
     });
 
@@ -272,6 +273,15 @@ describe('HomeView', () => {
         ];
         const options: any = {
             extensionVersion: '0.0.1',
+            commands : {
+                CREATE_SMART_CONTRACT_PROJECT: ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
+                PACKAGE_SMART_CONTRACT: ExtensionCommands.PACKAGE_SMART_CONTRACT,
+                INSTALL_SMART_CONTRACT: ExtensionCommands.INSTALL_SMART_CONTRACT,
+                INSTANTIATE_SMART_CONTRACT: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
+                TEST_SMART_CONTRACT: ExtensionCommands.TEST_SMART_CONTRACT,
+                UPGRADE_SMART_CONTRACT: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+                OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE
+            },
             marketplaceIcon: imageUri,
             repositories: repository
         };
@@ -301,6 +311,15 @@ describe('HomeView', () => {
         ];
         const options: any = {
             extensionVersion: '0.0.1',
+            commands : {
+                CREATE_SMART_CONTRACT_PROJECT: ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
+                PACKAGE_SMART_CONTRACT: ExtensionCommands.PACKAGE_SMART_CONTRACT,
+                INSTALL_SMART_CONTRACT: ExtensionCommands.INSTALL_SMART_CONTRACT,
+                INSTANTIATE_SMART_CONTRACT: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
+                TEST_SMART_CONTRACT: ExtensionCommands.TEST_SMART_CONTRACT,
+                UPGRADE_SMART_CONTRACT: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+                OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE
+            },
             marketplaceIcon: imageUri,
             repositories: repository
         };

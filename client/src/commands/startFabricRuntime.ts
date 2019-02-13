@@ -19,6 +19,7 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -39,7 +40,7 @@ export async function startFabricRuntime(): Promise<void> {
         const privateKey: string = await runtime.getPrivateKey();
         await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, 'Admin@org1.example.com');
 
-        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     });
 }

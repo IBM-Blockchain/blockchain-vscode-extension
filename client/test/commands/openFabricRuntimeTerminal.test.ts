@@ -26,6 +26,7 @@ import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionCommands } from '../../ExtensionCommands';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -80,7 +81,7 @@ describe('openFabricRuntimeTerminal', () => {
     });
 
     it('should open a terminal for a Fabric runtime specified by right clicking the tree', async () => {
-        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal', peerTreeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL, peerTreeItem);
         createTerminalStub.should.have.been.calledOnceWithExactly(
             'Fabric runtime - local_fabric',
             'docker',
@@ -99,7 +100,7 @@ describe('openFabricRuntimeTerminal', () => {
     });
 
     it('should open a terminal for a Fabric runtime', async () => {
-        await vscode.commands.executeCommand('blockchainExplorer.openFabricRuntimeTerminal');
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL);
         createTerminalStub.should.have.been.calledOnceWithExactly(
             'Fabric runtime - local_fabric',
             'docker',

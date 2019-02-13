@@ -25,6 +25,7 @@ import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
+import { ExtensionCommands } from '../ExtensionCommands';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -96,7 +97,7 @@ export class IntegrationTestUtil {
         this.browseEditStub.withArgs('Browse for a certificate file', 'myGateway').resolves(this.certPath);
         this.browseEditStub.withArgs('Browse for a private key file', 'myGateway').resolves(this.keyPath);
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
         this.gatewayRegistry.exists('myGateway').should.be.true;
     }
@@ -112,7 +113,7 @@ export class IntegrationTestUtil {
             gatewayEntry.managedRuntime = true;
         }
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', gatewayEntry);
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
     }
 
     public async createSmartContract(name: string, type: string): Promise<void> {
@@ -142,7 +143,7 @@ export class IntegrationTestUtil {
             generator = 'fabric:chaincode';
         }
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry', generator);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, generator);
 
         if (type === 'JavaScript' || type === 'TypeScript') {
             await CommandUtil.sendCommandWithOutput('npm', ['install'], this.testContractDir, undefined, VSCodeOutputAdapter.instance(), false);
@@ -170,7 +171,7 @@ export class IntegrationTestUtil {
         }
         this.getWorkspaceFoldersStub.returns([this.workspaceFolder]);
 
-        await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {
@@ -190,7 +191,7 @@ export class IntegrationTestUtil {
                 workspace: undefined
             }
         });
-        await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
     }
 
     public async instantiateSmartContract(name: string, version: string): Promise<void> {
@@ -213,7 +214,7 @@ export class IntegrationTestUtil {
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
-        await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     }
 
     public async upgradeSmartContract(name: string, version: string): Promise<void> {
@@ -242,7 +243,7 @@ export class IntegrationTestUtil {
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
-        await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
 
     public async submitTransaction(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
@@ -258,7 +259,7 @@ export class IntegrationTestUtil {
 
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.submitTransactionEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
 
     public async generateSmartContractTests(name: string, version: string, language: string, gatewayConnectionName: string): Promise<void> {
@@ -298,7 +299,7 @@ export class IntegrationTestUtil {
             });
         }
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
     }
 
     public async runSmartContractTests(name: string, language: string): Promise<string> {

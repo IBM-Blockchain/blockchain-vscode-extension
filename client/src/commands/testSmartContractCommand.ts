@@ -26,6 +26,7 @@ import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedCha
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeItem): Promise<void> {
 
@@ -41,7 +42,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     if (!chaincode) {
         if (!FabricConnectionManager.instance().getConnection()) {
             // Connect if not already connected
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;

@@ -19,6 +19,7 @@ import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function deleteSmartContractPackage(packageTreeItem: PackageTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -44,7 +45,7 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
         await packageRegistry.delete(_package);
     }
 
-    await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
 
     outputAdapter.log(LogType.SUCCESS, `Succesfully deleted package(s)`);
 }

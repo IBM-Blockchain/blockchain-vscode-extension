@@ -23,6 +23,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
@@ -42,7 +43,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
         if (!isRunning) {
             // Start local_fabric to connect
-            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         }
 
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
@@ -62,7 +63,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         }
         const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenChaincode.data;
         if (chosenChaincode.description === 'Packaged') {
-            packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers, data.packageEntry) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, data.packageEntry) as PackageRegistryEntry;
             if (!packageEntry) {
                 // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
                 return;
@@ -71,13 +72,13 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             // Project needs packaging and installing
 
             // Package smart contract project using the given 'open workspace'
-            const _package: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', data.workspace) as PackageRegistryEntry;
+            const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace) as PackageRegistryEntry;
             if (!_package) {
                 return;
             }
 
             // Install smart contract package
-            packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers, _package) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, _package) as PackageRegistryEntry;
             if (!packageEntry) {
                 return;
             }
@@ -117,8 +118,8 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
             outputAdapter.log(LogType.SUCCESS, 'Successfully instantiated smart contract');
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
-            await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);

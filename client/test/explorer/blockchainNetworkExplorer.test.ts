@@ -43,6 +43,7 @@ import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -223,7 +224,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const gateway: FabricGatewayRegistryEntry = FabricGatewayRegistry.instance().get('myGateway');
 
                 const myIdentityCommand: vscode.Command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
+                    command: ExtensionCommands.CONNECT,
                     title: '',
                     arguments: [gateway, identities[0].label]
                 };
@@ -282,13 +283,13 @@ describe('BlockchainNetworkExplorer', () => {
                 // should.exist(connectionTreeItem.command);
 
                 const myCommandOne: vscode.Command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
+                    command: ExtensionCommands.CONNECT,
                     title: '',
                     arguments: [gateway, identities[0].label]
                 };
 
                 const myCommandTwo: vscode.Command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
+                    command: ExtensionCommands.CONNECT,
                     title: '',
                     arguments: [gateway, identities[1].label]
                 };
@@ -390,7 +391,7 @@ describe('BlockchainNetworkExplorer', () => {
                 gateway.managedRuntime = true;
                 gateway.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
                 const myCommand: vscode.Command = {
-                    command: 'blockchainConnectionsExplorer.connectEntry',
+                    command: ExtensionCommands.CONNECT,
                     title: '',
                     arguments: [gateway, 'Admin@org1.example.com']
                 };
@@ -1006,7 +1007,7 @@ describe('BlockchainNetworkExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
 
             onDidChangeTreeDataSpy.should.have.been.called;
         });
@@ -1019,7 +1020,7 @@ describe('BlockchainNetworkExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry', mockTreeItem);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS, mockTreeItem);
 
             onDidChangeTreeDataSpy.should.have.been.calledOnceWithExactly(mockTreeItem);
         });

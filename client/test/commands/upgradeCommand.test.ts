@@ -32,6 +32,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -69,8 +70,8 @@ describe('UpgradeCommand', () => {
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
-            executeCommandStub.withArgs('blockchainExplorer.startFabricRuntime').resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             executeCommandStub.callThrough();
 
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
@@ -147,26 +148,26 @@ describe('UpgradeCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
             mySandBox.restore();
         });
 
         it('should upgrade the smart contract through the command', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
-            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         });
 
         it('should upgrade the smart contract through the command when not connected', async () => {
             isRunningStub.resolves(false);
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.startFabricRuntime');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
         });
@@ -174,16 +175,16 @@ describe('UpgradeCommand', () => {
         it('should handle choosing channel being cancelled', async () => {
             showChannelQuickPickStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
         });
 
         it('should handle error from upgrading smart contract', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             fabricClientConnectionMock.upgradeChaincode.rejects({ message: 'some error' });
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry').should.be.rejectedWith(`some error`);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT).should.be.rejectedWith(`some error`);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             errorSpy.should.have.been.calledWith('Error upgrading smart contract: some error');
@@ -192,17 +193,17 @@ describe('UpgradeCommand', () => {
         it('should handle cancel when choosing chaincode and version', async () => {
             showChaincodeAndVersionQuickPick.resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
         });
 
         it('should upgrade smart contract through the tree by right-clicking on an instantiated smart contract in the runtime ops view', async () => {
 
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             instantiatedSmartContractsList.length.should.equal(2);
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry', instantiatedSmartContractsList[0] as InstalledChainCodeOpsTreeItem);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, instantiatedSmartContractsList[0] as InstalledChainCodeOpsTreeItem);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
@@ -212,11 +213,11 @@ describe('UpgradeCommand', () => {
 
         it('should upgrade smart contract through the tree by right-clicking on a channel in the runtime ops view', async () => {
 
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             channelsChildren.length.should.equal(1);
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry', channelsChildren[0]);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, channelsChildren[0]);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
@@ -225,36 +226,36 @@ describe('UpgradeCommand', () => {
         });
 
         it('should upgrade the smart contract through the command with no function', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             showInputBoxStub.onFirstCall().resolves();
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', undefined, undefined);
             showInputBoxStub.should.have.been.calledOnce;
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
         });
 
         it('should upgrade the smart contract through the command with function but no args', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves('');
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['']);
             showInputBoxStub.should.have.been.calledTwice;
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
         });
 
         it('should cancel if user escapes during inputting args', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves(undefined);
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledTwice;
             successSpy.should.not.have.been.calledWith('Successfully upgraded smart contract');
         });
 
         it('should install and upgrade package', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'biscuit-network@0.0.2',
@@ -269,13 +270,13 @@ describe('UpgradeCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
         });
 
         it('should be able to cancel install and upgrade for package', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'biscuit-network@0.0.2',
@@ -290,15 +291,15 @@ describe('UpgradeCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry') as PackageRegistryEntry;
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT) as PackageRegistryEntry;
             should.not.exist(packageEntry);
 
             fabricClientConnectionMock.upgradeChaincode.should.not.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
         });
 
         it('should package, install and upgrade a project', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'biscuit-network@0.0.2',
@@ -313,14 +314,14 @@ describe('UpgradeCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
         });
 
         it('should be able to cancel a project packaging, installing and upgrading', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'biscuit-network@0.0.2',
@@ -335,14 +336,14 @@ describe('UpgradeCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry') as PackageRegistryEntry;
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT) as PackageRegistryEntry;
             should.not.exist(packageEntry);
 
             fabricClientConnectionMock.upgradeChaincode.should.not.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
         });
 
         it('should upgrade a package if its already installed', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'biscuit-network@0.0.2',
@@ -357,7 +358,7 @@ describe('UpgradeCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.upgradeSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
         });
