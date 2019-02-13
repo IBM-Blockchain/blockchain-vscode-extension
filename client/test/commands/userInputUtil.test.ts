@@ -36,6 +36,8 @@ import { LogType } from '../../src/logging/OutputAdapter';
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
+// tslint:disable no-unused-expression
+
 describe('userInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
@@ -59,12 +61,24 @@ describe('userInputUtil', () => {
             "fabric.connections": [
                 {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
-                    "name": "connectionOne",
+                    "name": "one",
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 },
                 {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
-                    "name": "connectionTwo",
+                    "name": "two",
+                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
+                }
+            ],
+            "fabric.gateways": [
+                {
+                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
+                    "name": "one",
+                    "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
+                },
+                {
+                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
+                    "name": "two",
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 }
             ]
@@ -668,12 +682,12 @@ describe('userInputUtil', () => {
             const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
-            await UserInputUtil.browseEdit(placeHolder, 'connectionOne');
+            await UserInputUtil.browseEdit(placeHolder, 'one');
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(7, 0)) });
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
         });
 
         it('should show user settings for mac', async () => {
@@ -685,12 +699,12 @@ describe('userInputUtil', () => {
             const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
-            await UserInputUtil.browseEdit(placeHolder, 'connectionOne');
+            await UserInputUtil.browseEdit(placeHolder, 'one');
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(7, 0)) });
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
         });
 
         it('should show user settings for linux', async () => {
@@ -702,12 +716,12 @@ describe('userInputUtil', () => {
             const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
-            await UserInputUtil.browseEdit(placeHolder, 'connectionOne');
+            await UserInputUtil.browseEdit(placeHolder, 'one');
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(2, 0), new vscode.Position(7, 0)) });
+            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
         });
 
         it('should handle any errors', async () => {
@@ -740,9 +754,65 @@ describe('userInputUtil', () => {
             mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({ message: 'error opening file' });
             const errorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage');
 
-            await UserInputUtil.openUserSettings('connection');
+            await UserInputUtil.openUserSettings('one');
 
             errorStub.should.have.been.calledWith('error opening file');
+        });
+
+        it('should throw an error if gateway cannot be found in user settings', async () => {
+
+            mySandBox.stub(process, 'platform').value('linux');
+            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+            process.env.HOME = '/users/test';
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            await UserInputUtil.openUserSettings('three');
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument);
+
+        });
+
+        it('should open user settings for windows', async () => {
+            mySandBox.stub(process, 'platform').value('win32');
+            mySandBox.stub(path, 'join').returns('\\c\\users\\test\\appdata\\Code\\User\\settings.json');
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            await UserInputUtil.openUserSettings('one');
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
+        });
+
+        it('should open user settings for mac', async () => {
+            mySandBox.stub(process, 'platform').value('darwin');
+            mySandBox.stub(path, 'join').returns('/users/test/Library/Application Support/Code/User/settings.json');
+            process.env.HOME = '/users/test';
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            await UserInputUtil.openUserSettings('one');
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
+        });
+
+        it('should open user settings for linux', async () => {
+            mySandBox.stub(process, 'platform').value('linux');
+            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
+            process.env.HOME = '/users/test';
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            await UserInputUtil.openUserSettings('one');
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
         });
     });
 
