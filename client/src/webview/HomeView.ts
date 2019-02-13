@@ -17,6 +17,7 @@ import * as ejs from 'ejs';
 import * as path from 'path';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { SampleView } from './SampleView';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 let openPanels: Array<vscode.WebviewPanel> = [];
 
@@ -72,7 +73,7 @@ export class HomeView {
                     await vscode.commands.executeCommand(message.executeCommand);
                 } else if (message.command === 'openSample') {
                     // Creates and opens a webview for the given sample
-                    await vscode.commands.executeCommand('sample.open', message.repoName, message.sampleName);
+                    await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, message.repoName, message.sampleName);
                 }
             }, undefined, context.subscriptions);
 
@@ -110,6 +111,15 @@ export class HomeView {
 
         const options: any = {
             extensionVersion: extensionVersion,
+            commands : {
+                CREATE_SMART_CONTRACT_PROJECT: ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
+                PACKAGE_SMART_CONTRACT: ExtensionCommands.PACKAGE_SMART_CONTRACT,
+                INSTALL_SMART_CONTRACT: ExtensionCommands.INSTALL_SMART_CONTRACT,
+                INSTANTIATE_SMART_CONTRACT: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
+                TEST_SMART_CONTRACT: ExtensionCommands.TEST_SMART_CONTRACT,
+                UPGRADE_SMART_CONTRACT: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+                OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE
+            },
             marketplaceIcon: marketplaceIcon,
             repositories: repositories
         };

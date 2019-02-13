@@ -19,6 +19,7 @@ import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
 import { Reporter } from '../util/Reporter';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function submitTransaction(transactionTreeItem?: TransactionTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -29,7 +30,7 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
     let namespace: string;
     if (!transactionTreeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or ther was an error so don't carry on
                 return;

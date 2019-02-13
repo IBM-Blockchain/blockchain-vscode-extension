@@ -27,6 +27,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -66,11 +67,11 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 newVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             }
 
-            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', folder, newVersion) as PackageRegistryEntry;
+            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, newVersion) as PackageRegistryEntry;
 
             const peersToIntallOn: Array<string> = await this.getPeersToInstallOn();
 
-            await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', null, new Set(peersToIntallOn), newPackage);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(peersToIntallOn), newPackage);
 
             config.type = 'node2';
 
@@ -150,7 +151,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
         connectionRegistry.name = this.runtime.getName();
         connectionRegistry.managedRuntime = true;
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry', connectionRegistry);
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
         const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
         return connection.getAllPeerNames();
     }

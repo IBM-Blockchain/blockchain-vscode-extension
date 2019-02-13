@@ -26,6 +26,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -51,7 +52,7 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         const runtime: FabricRuntime = runtimeManager.get(gatewayRegistryEntry.name);
         const running: boolean = await runtime.isRunning();
         if (!running) {
-            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         }
 
         wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);

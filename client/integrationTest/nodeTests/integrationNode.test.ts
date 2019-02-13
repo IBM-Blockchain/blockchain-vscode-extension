@@ -38,6 +38,7 @@ import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactor
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -95,7 +96,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
             let isRunning: boolean = await runtime.isRunning();
             if (isRunning) {
-                await vscode.commands.executeCommand('blockchainExplorer.stopFabricRuntime');
+                await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
                 isRunning = await runtime.isRunning();
             }
 
@@ -103,13 +104,13 @@ describe('Integration Tests for Node Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             if (runtime.isDevelopmentMode()) {
-                await vscode.commands.executeCommand('blockchainExplorer.toggleFabricRuntimeDevMode');
+                await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
             }
             localFabricItem.should.not.be.null;
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
             mySandBox.restore();
             delete process.env.GOPATH;
         });
@@ -118,7 +119,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
             it(`should create a ${language} smart contract, package, install and instantiate it on a peer, submit transactions, generate tests and upgrade it`, async () => {
                 // Start the Fabric runtime, and ensure that it is in the right state.
-                await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
                 runtime.isRunning().should.eventually.be.true;
                 runtime.isDevelopmentMode().should.be.false;
 
@@ -233,7 +234,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
             mySandBox.restore();
             delete process.env.GOPATH;
         });

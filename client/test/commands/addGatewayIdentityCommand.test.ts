@@ -29,6 +29,7 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
@@ -98,7 +99,7 @@ describe('AddGatewayIdentityCommand', () => {
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -107,13 +108,13 @@ describe('AddGatewayIdentityCommand', () => {
             const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
-            identities[2].command.command.should.equal('blockchainConnectionsExplorer.connectEntry');
+            identities[2].command.command.should.equal(ExtensionCommands.CONNECT);
         });
 
         it('should test a config can be cancelled before choosing a connection', async () => {
             mySandBox.stub(vscode.window, 'showQuickPick').resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -130,7 +131,7 @@ describe('AddGatewayIdentityCommand', () => {
             });
             inputBoxStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -149,7 +150,7 @@ describe('AddGatewayIdentityCommand', () => {
             inputBoxStub.resolves('blueConga');
             browseEditStub.onFirstCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -169,7 +170,7 @@ describe('AddGatewayIdentityCommand', () => {
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -189,13 +190,13 @@ describe('AddGatewayIdentityCommand', () => {
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
             const connectionToAddTo: ConnectionTreeItem = allChildren[1] as ConnectionTreeItem;
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry', connectionToAddTo);
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, connectionToAddTo);
 
             connectionToAddTo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
             const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionToAddTo);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
-            identities[2].command.command.should.equal('blockchainConnectionsExplorer.connectEntry');
+            identities[2].command.command.should.equal(ExtensionCommands.CONNECT);
         });
 
         it('should show an error if connection is not complete', async () => {
@@ -210,7 +211,7 @@ describe('AddGatewayIdentityCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.addGatewayIdentityEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Blockchain gateway must be completed first!');
         });

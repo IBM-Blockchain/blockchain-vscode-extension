@@ -25,6 +25,7 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { Package } from 'fabric-client';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
@@ -246,7 +247,7 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -273,7 +274,7 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', folders[testIndex], '0.0.3');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], '0.0.3');
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -300,7 +301,7 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -330,7 +331,7 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -365,7 +366,7 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -400,7 +401,7 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -431,7 +432,7 @@ describe('packageSmartContract', () => {
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -463,7 +464,7 @@ describe('packageSmartContract', () => {
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves('0.0.3');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
@@ -498,7 +499,7 @@ describe('packageSmartContract', () => {
 
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await fs.writeFile(path.join(javascriptPath, '/package.json'), emptyContent);
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
@@ -521,7 +522,7 @@ describe('packageSmartContract', () => {
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/package.json'));
             await TestUtil.deleteTestFiles(path.join(javascriptPath, '/chaincode.js'));
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
@@ -542,10 +543,10 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.{js,ts,go,java,kt}'), '**/node_modules/**', 1).resolves([vscode.Uri.file('chaincode.js')]);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const error: Error = new Error('Package with name and version already exists. Please change the name and/or the version of the project in your package.json file.');
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
@@ -571,11 +572,11 @@ describe('packageSmartContract', () => {
             showInputStub.onThirdCall().resolves('myProject');
             showInputStub.onCall(3).resolves('0.0.3');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Go project.');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -598,11 +599,11 @@ describe('packageSmartContract', () => {
             showInputStub.onThirdCall().resolves('myProject');
             showInputStub.onCall(3).resolves('0.0.3');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const error: Error = new Error('Package with name and version already exists. Please input a different name or version for your Java project.');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
@@ -628,7 +629,7 @@ describe('packageSmartContract', () => {
             showInputStub.onThirdCall().resolves('myProject');
             showInputStub.onCall(3).resolves('0.0.3');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
             logSpy.should.have.been.calledTwice;
@@ -653,7 +654,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = golangPath;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
             logSpy.should.have.been.calledTwice;
@@ -678,7 +679,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = javascriptPath;
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
             logSpy.should.have.been.calledTwice;
@@ -703,7 +704,7 @@ describe('packageSmartContract', () => {
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = path.resolve('/');
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
             logSpy.should.have.been.calledTwice;
@@ -720,8 +721,8 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
-            commandSpy.should.have.been.calledWith('blockchainAPackageExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
             logSpy.should.have.been.calledTwice;
@@ -735,7 +736,7 @@ describe('packageSmartContract', () => {
 
             workspaceFoldersStub.returns(folders);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             showWorkspaceQuickPickStub.should.not.have.been.called;
 
@@ -763,7 +764,7 @@ describe('packageSmartContract', () => {
             workspaceFoldersStub.returns([]);
             const error: Error = new Error('Issue determining available workspace folders. Please open the workspace that you want to be packaged.');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
@@ -779,7 +780,7 @@ describe('packageSmartContract', () => {
 
             const packageDir: string = path.join(fileDest, folders[testIndex].name + '@0.0.1');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
@@ -803,7 +804,7 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
@@ -828,7 +829,7 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
@@ -850,7 +851,7 @@ describe('packageSmartContract', () => {
 
             showInputStub.onFirstCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
@@ -873,7 +874,7 @@ describe('packageSmartContract', () => {
             showInputStub.onFirstCall().resolves('myProject');
             showInputStub.onSecondCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
@@ -887,7 +888,7 @@ describe('packageSmartContract', () => {
 
             const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', workspaceFolderMock);
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock);
 
             // chooseWorkspace() should not have been called
             workspaceFoldersStub.should.not.have.been.called;

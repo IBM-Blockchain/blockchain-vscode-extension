@@ -32,6 +32,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -64,8 +65,8 @@ describe('InstantiateCommand', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
-            executeCommandStub.withArgs('blockchainExplorer.startFabricRuntime').resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             executeCommandStub.callThrough();
 
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
@@ -129,23 +130,23 @@ describe('InstantiateCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
             mySandBox.restore();
         });
 
         it('should instantiate the smart contract through the command', async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
-            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.refreshEntry');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
             isRunningStub.resolves(false);
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
-            executeCommandStub.should.have.been.calledWith('blockchainExplorer.startFabricRuntime');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
@@ -154,7 +155,7 @@ describe('InstantiateCommand', () => {
         it('should handle choosing channel being cancelled', async () => {
             showChannelQuickPickStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -166,7 +167,7 @@ describe('InstantiateCommand', () => {
 
             fabricClientConnectionMock.instantiateChaincode.rejects(error);
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry').should.be.rejectedWith(error);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT).should.be.rejectedWith(error);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -176,14 +177,14 @@ describe('InstantiateCommand', () => {
         it('should handle cancel when choosing chaincode and version', async () => {
             showChaincodeAndVersionQuickPick.resolves();
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
             fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             should.not.exist(logSpy.getCall(1));
         });
 
         it('should instantiate smart contract through the tree by clicking + Instantiate in the runtime ops view', async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', instantiateCommandTreeItem);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, instantiateCommandTreeItem);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
@@ -192,7 +193,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate smart contract through the tree by right-clicking Instantiated in the runtime ops view', async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', smartContractsChildren[0]);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, smartContractsChildren[0]);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
@@ -201,7 +202,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should instantiate smart contract through the tree by right-clicking on channel in the runtime ops view', async () => {
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry', channelsChildren[0]);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, channelsChildren[0]);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
@@ -211,7 +212,7 @@ describe('InstantiateCommand', () => {
 
         it('should instantiate the smart contract through the command with no function', async () => {
             showInputBoxStub.onFirstCall().resolves();
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', undefined, undefined);
             showInputBoxStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -221,7 +222,7 @@ describe('InstantiateCommand', () => {
         it('should instantiate the smart contract through the command with function but no args', async () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves('');
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', ['']);
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -231,7 +232,7 @@ describe('InstantiateCommand', () => {
         it('should cancel instantiating when user escape entering args', async () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves(undefined);
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
             fabricClientConnectionMock.instantiateChaincode.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -239,7 +240,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should install and instantiate package', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -254,7 +255,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -262,7 +263,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should be able to cancel install and instantiate for package', async () => {
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -277,7 +278,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry') as PackageRegistryEntry;
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT) as PackageRegistryEntry;
             should.not.exist(packageEntry);
 
             fabricClientConnectionMock.instantiateChaincode.should.not.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
@@ -286,8 +287,8 @@ describe('InstantiateCommand', () => {
         });
 
         it('should package, install and instantiate a project', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -298,7 +299,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -306,8 +307,8 @@ describe('InstantiateCommand', () => {
         });
 
         it('should be able to cancel a project packaging, installing and instantiating', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
-            executeCommandStub.withArgs('blockchainExplorer.installSmartContractEntry', undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -318,7 +319,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry') as PackageRegistryEntry;
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT) as PackageRegistryEntry;
             should.not.exist(packageEntry);
 
             fabricClientConnectionMock.instantiateChaincode.should.not.been.calledWith('somepackage', '0.0.1', 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3']);
@@ -327,7 +328,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should be able to handle a project failing to package', async () => {
-            executeCommandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry').resolves();
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -338,7 +339,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainExplorer.instantiateSmartContractEntry') as PackageRegistryEntry;
+            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT) as PackageRegistryEntry;
             should.not.exist(packageEntry);
 
             fabricClientConnectionMock.instantiateChaincode.should.not.been.called;

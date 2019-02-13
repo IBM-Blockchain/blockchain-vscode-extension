@@ -35,6 +35,7 @@ import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/Instanti
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -90,7 +91,7 @@ describe('testSmartContractCommand', () => {
 
     afterEach(async () => {
         mySandBox.restore();
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
         await TestUtil.deleteTestFiles(testFileDir);
     });
 
@@ -105,7 +106,7 @@ describe('testSmartContractCommand', () => {
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
             // ExecuteCommand stub
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
             executeCommandStub.callThrough();
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
@@ -228,7 +229,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.calledOnceWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
@@ -267,7 +268,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.calledOnceWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
@@ -296,7 +297,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
         });
@@ -308,7 +309,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
@@ -319,8 +320,8 @@ describe('testSmartContractCommand', () => {
         it('should handle connecting being cancelled', async () => {
             getConnectionStub.returns(null);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
-            executeCommandStub.should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT);
             showInstantiatedSmartContractsQuickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             should.not.exist(logSpy.getCall(1));
@@ -329,7 +330,7 @@ describe('testSmartContractCommand', () => {
         it('should do nothing if the user cancels selecting an instantiated smart contract', async () => {
             showInstantiatedSmartContractsQuickPickStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             showLanguageQuickPickStub.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
@@ -349,7 +350,7 @@ describe('testSmartContractCommand', () => {
                 }
             );
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.have.been.called;
             errorSpy.should.have.been.calledTwice;
@@ -392,7 +393,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}.test.ts`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             openTextDocumentStub.should.have.been.calledOnceWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
@@ -414,7 +415,7 @@ describe('testSmartContractCommand', () => {
         it('should show an error message if the user has no workspaces open', async () => {
             workspaceFoldersStub.resolves([]);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace`);
         });
@@ -422,7 +423,7 @@ describe('testSmartContractCommand', () => {
         it('should do nothing if user cancels selecting a test language', async () => {
             showLanguageQuickPickStub.resolves(undefined);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             logSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, `testSmartContractCommand`);
             workspaceFoldersStub.should.not.have.been.called;
         });
@@ -431,7 +432,7 @@ describe('testSmartContractCommand', () => {
             const incorrectBuffer: Buffer = Buffer.from(`{"name": "double_decker"}`);
             readFileStub.resolves(incorrectBuffer);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
@@ -493,7 +494,7 @@ describe('testSmartContractCommand', () => {
             };
             fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
             openTextDocumentStub.should.have.been.calledWith(secondTestUri.fsPath);
             showTextDocumentStub.should.have.been.calledTwice;
@@ -523,7 +524,7 @@ describe('testSmartContractCommand', () => {
 
             mySandBox.stub(ejs, 'renderFile').yields(error, null);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -536,7 +537,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.NO);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             mySandBox.stub(fs, 'ensureFile').should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -549,7 +550,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(undefined);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             mySandBox.stub(fs, 'ensureFile').should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -562,7 +563,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.YES);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
@@ -594,7 +595,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}-copy1.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.called;
@@ -637,7 +638,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}-copy1.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.called;
@@ -657,7 +658,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').rejects(error);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -672,7 +673,7 @@ describe('testSmartContractCommand', () => {
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
             mockTextEditor.edit.resolves(false);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             mockDocumentSaveSpy.should.not.have.been.called;
@@ -690,7 +691,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -707,7 +708,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'ensureFile').rejects(ensureError);
             fsRemoveStub.rejects(fsError);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -723,7 +724,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -739,7 +740,7 @@ describe('testSmartContractCommand', () => {
             const error: Error = new Error('horrible error');
             sendCommandStub.onCall(0).rejects(error);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
@@ -760,7 +761,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
@@ -781,7 +782,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
@@ -799,7 +800,7 @@ describe('testSmartContractCommand', () => {
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
             // ExecuteCommand stub
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs('blockchainConnectionsExplorer.connectEntry').resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
             executeCommandStub.callThrough();
             // Runtime Connection stubs
             fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
@@ -891,7 +892,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.testSmartContractEntry', instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.calledOnce;
             showTextDocumentStub.should.have.been.calledOnce;
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];

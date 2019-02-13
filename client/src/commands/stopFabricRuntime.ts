@@ -17,6 +17,7 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function stopFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -30,7 +31,7 @@ export async function stopFabricRuntime(): Promise<void> {
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Stopping Fabric runtime ${runtime.getName()}` });
         await runtime.stop(outputAdapter);
-        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     });
 }

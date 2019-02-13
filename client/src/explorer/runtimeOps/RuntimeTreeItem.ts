@@ -22,6 +22,7 @@ import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
+import { ExtensionCommands } from '../../../ExtensionCommands';
 
 export class RuntimeTreeItem extends ConnectionTreeItem {
 
@@ -79,7 +80,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             connection.managedRuntime = true;
             newLabel += '●';
             newCommand = {
-                command: 'blockchainConnectionsExplorer.connectEntry',
+                command: ExtensionCommands.CONNECT,
                 title: '',
                 arguments: [connection]
             };
@@ -90,7 +91,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             newLabel = 'Local fabric runtime is stopped. Click to start.';
             this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
             newCommand = {
-                command: 'blockchainExplorer.startFabricRuntime',
+                command: ExtensionCommands.START_FABRIC,
                 title: '',
                 arguments: [this]
             };

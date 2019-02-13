@@ -20,6 +20,7 @@ import * as sinonChai from 'sinon-chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { TemporaryCommandRegistry } from '../../src/dependencies/TemporaryCommandRegistry';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
@@ -53,7 +54,7 @@ describe('TemporaryCommandRegistry Tests', () => {
 
         tempRegistry.createTempCommands();
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
 
         tempRegistry.restoreCommands();
         await myExtension.registerCommands(context);

@@ -42,6 +42,7 @@ import { GatewayPropertyTreeItem } from './model/GatewayPropertyTreeItem';
 import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ConnectionTreeItem } from './model/ConnectionTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -188,7 +189,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 treeState = vscode.TreeItemCollapsibleState.Collapsed;
             }
             command = {
-                command: 'blockchainConnectionsExplorer.editGatewayEntry',
+                command: ExtensionCommands.EDIT_GATEWAY,
                 title: '',
                 arguments: [{ label: label, gateway: element.gateway }]
             };
@@ -206,7 +207,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         const tree: GatewayPropertyTreeItem[] = [];
 
         command = {
-            command: 'blockchainExplorer.editGatewayEntry',
+            command: ExtensionCommands.EDIT_GATEWAY,
             title: '',
             arguments: [{ label: identityLabel, gateway: element.gateway }]
         };
@@ -398,7 +399,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         for (const identityName of identityNames) {
             const command: vscode.Command = {
-                command: 'blockchainConnectionsExplorer.connectEntry',
+                command: ExtensionCommands.CONNECT,
                 title: '',
                 arguments: [element.gateway, identityName]
             };

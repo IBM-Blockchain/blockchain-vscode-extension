@@ -21,6 +21,7 @@ import { ChaincodeType } from 'fabric-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
@@ -146,7 +147,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
 
             Reporter.instance().sendTelemetryEvent('packageCommand');
 
-            await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
             outputAdapter.log(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
 
             const packageEntry: PackageRegistryEntry = new PackageRegistryEntry();

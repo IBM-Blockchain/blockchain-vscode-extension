@@ -25,6 +25,7 @@ import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
@@ -88,7 +89,7 @@ describe('DeleteGatewayCommand', () => {
 
         it('should test a connection can be deleted from the command', async () => {
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
 
@@ -102,7 +103,7 @@ describe('DeleteGatewayCommand', () => {
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
             const connectionToDelete: BlockchainTreeItem = allChildren[1];
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry', connectionToDelete);
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, connectionToDelete);
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
 
@@ -113,7 +114,7 @@ describe('DeleteGatewayCommand', () => {
         it('should test delete connection can be cancelled', async () => {
             quickPickStub.resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
 
@@ -123,7 +124,7 @@ describe('DeleteGatewayCommand', () => {
         it('should handle no from confirmation message', async () => {
             warningStub.resolves(false);
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
 
@@ -150,7 +151,7 @@ describe('DeleteGatewayCommand', () => {
             const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves('fabric-vscode');
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.deleteGatewayEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);

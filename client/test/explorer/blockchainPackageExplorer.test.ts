@@ -22,6 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 chai.should();
@@ -73,7 +74,7 @@ describe('BlockchainPackageExplorer', () => {
     it('should refresh the smart contract packages view when refresh is called', async () => {
         const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainPackageExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-        await vscode.commands.executeCommand('blockchainAPackageExplorer.refreshEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
         onDidChangeTreeDataSpy.should.have.been.called;
         errorSpy.should.not.have.been.called;
     });
