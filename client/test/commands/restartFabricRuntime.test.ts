@@ -28,6 +28,7 @@ import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionCommands } from '../../ExtensionCommands';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -73,7 +74,7 @@ describe('restartFabricRuntime', () => {
 
     it('should restart a Fabric runtime', async () => {
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.restartFabricRuntime');
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
 });

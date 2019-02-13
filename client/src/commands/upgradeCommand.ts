@@ -24,6 +24,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -57,7 +58,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
         if (!isRunning) {
             // Start local_fabric to connect
-            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         }
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
         const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on', connection);
@@ -82,7 +83,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenChaincode.data;
 
         if (chosenChaincode.description === 'Packaged') {
-            packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers, data.packageEntry) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, data.packageEntry) as PackageRegistryEntry;
             if (!packageEntry) {
                 // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
                 return;
@@ -92,10 +93,10 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
             // Project needs packaging and installing
 
             // Package smart contract project using the given 'open workspace'
-            const _package: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', data.workspace) as PackageRegistryEntry;
+            const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace) as PackageRegistryEntry;
 
             // Install smart contract package
-            packageEntry = await vscode.commands.executeCommand('blockchainExplorer.installSmartContractEntry', undefined, peers, _package) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, _package) as PackageRegistryEntry;
             if (!packageEntry) {
                 return;
             }
@@ -135,8 +136,8 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
             Reporter.instance().sendTelemetryEvent('upgradeCommand');
 
             outputAdapter.log(LogType.SUCCESS, `Successfully upgraded smart contract`);
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
-            await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error upgrading smart contract: ${error.message}`);

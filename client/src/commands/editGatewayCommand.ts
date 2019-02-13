@@ -27,6 +27,7 @@ import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { GatewayPropertyTreeItem } from '../explorer/model/GatewayPropertyTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function editGatewayCommand(treeItem: GatewayPropertyTreeItem | GatewayTreeItem): Promise < {} | void > {
 
@@ -118,12 +119,12 @@ async function addIdentitytoNewWallet(gateway: FabricGatewayRegistryEntry, ident
                 return;
             }
             await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName, mspid);
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
         } else {
             throw error;
         }
     }
-    await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     return wallet.getWalletPath();
 }
 

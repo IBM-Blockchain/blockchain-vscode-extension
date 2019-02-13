@@ -25,6 +25,7 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -73,6 +74,6 @@ export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<
     const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
     await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
-    await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway '${gatewayRegistryEntry.name}'`);
 }

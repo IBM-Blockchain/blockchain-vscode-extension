@@ -78,7 +78,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             gateway.managedRuntime = true;
             newLabel += '●';
             // newCommand = {
-            //     command: 'blockchainConnectionsExplorer.connectEntry',
+            //     command: ExtensionCommands.CONNECT,
             //     title: '',
             //     arguments: [gateway]
             // };

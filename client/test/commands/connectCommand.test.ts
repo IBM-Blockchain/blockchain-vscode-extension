@@ -40,6 +40,7 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -137,7 +138,7 @@ describe('ConnectCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
             mySandBox.restore();
         });
 
@@ -149,7 +150,7 @@ describe('ConnectCommand', () => {
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
@@ -170,7 +171,7 @@ describe('ConnectCommand', () => {
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
@@ -180,10 +181,10 @@ describe('ConnectCommand', () => {
 
             quickPickStub.onFirstCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             refreshSpy.callCount.should.equal(1);
-            refreshSpy.getCall(0).should.have.been.calledWith('blockchainConnectionsExplorer.connectEntry');
+            refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT);
         });
 
         it('should do nothing if the user cancels choosing the identity to connect with', async () => {
@@ -193,7 +194,7 @@ describe('ConnectCommand', () => {
             });
             quickPickStub.onSecondCall().resolves();
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
         });
 
         it('should test the a fabric with a single identity can be connected to from the tree', async () => {
@@ -236,7 +237,7 @@ describe('ConnectCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayA')
             });
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
         });
@@ -257,7 +258,7 @@ describe('ConnectCommand', () => {
                 data: identity
             });
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry').should.be.rejected;
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT).should.be.rejected;
 
             logSpy.should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
         });
@@ -279,7 +280,7 @@ describe('ConnectCommand', () => {
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
         });
@@ -325,7 +326,7 @@ describe('ConnectCommand', () => {
             });
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             quickPickStub.should.have.been.calledOnce;
             mockRuntime.start.should.have.been.calledOnce;
@@ -347,7 +348,7 @@ describe('ConnectCommand', () => {
 
             mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             reporterSpy.should.have.been.calledWith('connectCommand', { runtimeData: 'user runtime' });
         });
@@ -363,7 +364,7 @@ describe('ConnectCommand', () => {
 
             mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             reporterSpy.should.have.been.calledWith('connectCommand', { runtimeData: 'IBP instance' });
         });
@@ -379,7 +380,7 @@ describe('ConnectCommand', () => {
 
             mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand('blockchainConnectionsExplorer.connectEntry');
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             reporterSpy.should.have.been.calledWith('connectCommand', { runtimeData: 'user runtime' });
         });

@@ -28,6 +28,7 @@ import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionCommands } from '../../ExtensionCommands';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -74,7 +75,7 @@ describe('teardownFabricRuntime', () => {
     it('should teardown a Fabric runtime', async () => {
         const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
         const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime');
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
         warningStub.should.have.been.calledOnce;
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
     });
@@ -82,7 +83,7 @@ describe('teardownFabricRuntime', () => {
     it('should handle cancel from confirmation message', async () => {
         const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(false);
         const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.teardownFabricRuntime', runtimeTreeItem);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, runtimeTreeItem);
         warningStub.should.have.been.calledOnce;
         teardownStub.should.not.have.been.called;
     });

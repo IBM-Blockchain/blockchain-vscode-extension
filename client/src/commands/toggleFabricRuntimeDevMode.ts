@@ -20,6 +20,7 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeItem): Promise<void> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -36,7 +37,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
 
     if (FabricConnectionManager.instance().getConnection()) {
         // Disconnect if connected
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.disconnectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
     }
 
     await runtime.setDevelopmentMode(newDevelopmentMode);
@@ -52,7 +53,7 @@ export async function toggleFabricRuntimeDevMode(runtimeTreeItem?: RuntimeTreeIt
         });
     }
 
-    await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
     outputAdapter.log(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
 
 }

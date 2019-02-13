@@ -29,6 +29,7 @@ import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
 
@@ -89,13 +90,13 @@ describe('startFabricRuntime', () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
     });
 
     it('should start a Fabric runtime', async () => {
         const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
-        await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         startStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith('blockchainARuntimeExplorer.refreshEntry');
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
     });
 });

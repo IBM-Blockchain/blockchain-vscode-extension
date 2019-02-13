@@ -26,6 +26,7 @@ import { TestUtil } from '../../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionCommands } from '../../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 
@@ -96,7 +97,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.startFabricRuntime',
+                command: ExtensionCommands.START_FABRIC,
                 title: '',
                 arguments: [treeItem]
             });
@@ -119,7 +120,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.startFabricRuntime',
+                command: ExtensionCommands.START_FABRIC,
                 title: '',
                 arguments: [treeItem]
             });
@@ -201,7 +202,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('myRuntime  ●');
             treeItem.command.should.deep.equal({
-                command: 'blockchainConnectionsExplorer.connectEntry',
+                command: ExtensionCommands.CONNECT,
                 title: '',
                 arguments: [connection]
             });
@@ -220,7 +221,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.startFabricRuntime',
+                command: ExtensionCommands.START_FABRIC,
                 title: '',
                 arguments: [treeItem]
             });
@@ -283,7 +284,7 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
-                command: 'blockchainExplorer.startFabricRuntime',
+                command: ExtensionCommands.START_FABRIC,
                 title: '',
                 arguments: [treeItem]
             });

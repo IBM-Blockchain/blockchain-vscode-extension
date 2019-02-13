@@ -23,6 +23,7 @@ import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { InstalledTreeItem } from '../explorer/runtimeOps/InstalledTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
     const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
@@ -36,7 +37,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
         const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
         if (!isRunning) {
             // Start local_fabric to connect
-            await vscode.commands.executeCommand('blockchainExplorer.startFabricRuntime');
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         }
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
         const chosenPeerName: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer to install the smart contract on', connection);
@@ -56,7 +57,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenInstallable.data;
             if (chosenInstallable.description === 'Open Project') {
                 // Project needs packaging, using the given 'open workspace'
-                const _package: PackageRegistryEntry = await vscode.commands.executeCommand('blockchainAPackageExplorer.packageSmartContractProjectEntry', data.workspace) as PackageRegistryEntry;
+                const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace) as PackageRegistryEntry;
                 if (!_package) {
                     return;
                 }
@@ -96,8 +97,8 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             }
         });
 
-        await vscode.commands.executeCommand('blockchainConnectionsExplorer.refreshEntry');
-        await vscode.commands.executeCommand('blockchainARuntimeExplorer.refreshEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
 
         if (successfulInstall) {
             // Package was installed on all peers successfully

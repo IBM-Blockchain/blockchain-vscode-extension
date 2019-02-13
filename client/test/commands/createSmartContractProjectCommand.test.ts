@@ -29,6 +29,7 @@ import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
 import * as yeoman from 'yeoman-environment';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 
@@ -89,7 +90,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'package.json');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -113,7 +114,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
         openDialogStub.resolves(uriArr);
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'package.json');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -142,7 +143,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'package.json');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -172,7 +173,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'package.json');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -201,7 +202,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'package.json');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -225,7 +226,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
         openDialogStub.resolves(uriArr);
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'package.json');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -244,7 +245,7 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should show error if npm is not installed', async () => {
         // npm not installed
         sendCommandStub.withArgs('npm --version').rejects(new Error('such error'));
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm is required before creating a smart contract project');
     });
 
@@ -253,7 +254,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('npm --version').resolves('6.4.1');
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
         quickPickStub.resolves(UserInputUtil.NO);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
     });
 
@@ -270,7 +271,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').rejects(new Error('such error'));
         sendCommandStub.withArgs('npm install -g generator-fabric').rejects(new Error('such error'));
         quickPickStub.resolves(UserInputUtil.YES);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing generator-fabric module: such error');
     });
 
@@ -279,7 +280,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
         quickPickStub.onCall(0).resolves(UserInputUtil.YES);
         quickPickStub.onCall(1).resolves();
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         sendCommandStub.should.have.been.calledWithExactly('npm install -g yo');
     });
 
@@ -295,7 +296,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').rejects(new Error('such error'));
         quickPickStub.onCall(0).resolves(UserInputUtil.YES);
         quickPickStub.onCall(1).resolves();
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         sendCommandStub.should.have.been.calledWithExactly('npm install -g generator-fabric');
     });
 
@@ -317,7 +318,7 @@ describe('CreateSmartContractProjectCommand', () => {
                 }
             }
         }));
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         sendCommandWithOutputAndProgressStub.should.have.been.calledOnceWithExactly('npm', ['install', '-g', `generator-fabric@${genFabVersion}`], 'Updating generator-fabric...', null, null, VSCodeOutputAdapter.instance());
     });
 
@@ -338,7 +339,7 @@ describe('CreateSmartContractProjectCommand', () => {
                 }
             }
         }));
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         sendCommandWithOutputAndProgressStub.should.not.have.been.called;
         logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully updated to latest version of generator-fabric');
     });
@@ -349,7 +350,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
         sendCommandStub.withArgs('npm install -g yo').rejects(new Error('such error'));
         quickPickStub.resolves(UserInputUtil.YES);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing yo node module: such error');
     });
 
@@ -379,7 +380,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('JavaScript');
         quickPickStub.onCall(1).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue creating smart contract project: such error');
     });
 
@@ -390,7 +391,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('JavaScript');
 
         openDialogStub.resolves();
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         openDialogStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
@@ -403,7 +404,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('JavaScript');
         quickPickStub.onCall(1).resolves();
         openDialogStub.resolves(uriArr);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         openDialogStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
@@ -422,7 +423,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves('Go');
         openDialogStub.resolves(uriArr);
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         const pathToCheck: string = path.join(uri.fsPath, 'main.go');
         const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
         smartContractExists.should.be.true;
@@ -435,7 +436,7 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should not do anything if the user cancels chosing a smart contract language', async () => {
         sendCommandStub.restore();
         quickPickStub.resolves(undefined);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         quickPickStub.should.have.been.calledOnce;
         logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
         openDialogStub.should.not.have.been.called;
@@ -460,7 +461,7 @@ describe('CreateSmartContractProjectCommand', () => {
             }
         }));
         mySandBox.stub(fs, 'readJson').rejects(new Error('such error'));
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, sinon.match(/Could not load package.json for generator-fabric module/));
     });
 
@@ -483,7 +484,7 @@ describe('CreateSmartContractProjectCommand', () => {
             }
         }));
         mySandBox.stub(fs, 'readJson').resolves({name: 'generator-fabric', version: '0.0.7'});
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, sinon.match(/Contract languages not found in package.json for generator-fabric module/));
     });
 
@@ -499,7 +500,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onFirstCall().resolves('TypeScript');
         quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         openDialogStub.resolves(uriArr);
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         reporterStub.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
     });
 
@@ -530,7 +531,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         quickPickStub.onCall(0).resolves('JavaScript');
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
@@ -567,7 +568,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('xcode-select -p').resolves('');
         quickPickStub.onCall(0).resolves('JavaScript');
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         logSpy.should.not.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
@@ -604,7 +605,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('xcode-select -p').resolves('xcode-select: error: unable to get active developer directory, use `sudo xcode-select --switch path/to/Xcode.app` to set one (or see `man xcode-select`)');
         quickPickStub.onCall(0).resolves('JavaScript');
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         logSpy.should.not.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
@@ -641,7 +642,7 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('xcode-select -p').throws(error);
         quickPickStub.onCall(0).resolves('JavaScript');
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         logSpy.should.not.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');
@@ -677,7 +678,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         quickPickStub.onCall(0).resolves('JavaScript');
 
-        await vscode.commands.executeCommand('blockchain.createSmartContractProjectEntry');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
         logSpy.should.have.been.calledWithExactly(LogType.INFO, 'Getting smart contract languages...');

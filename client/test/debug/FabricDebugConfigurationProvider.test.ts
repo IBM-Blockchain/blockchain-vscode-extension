@@ -30,6 +30,7 @@ import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -102,8 +103,8 @@ describe('FabricDebugConfigurationProvider', () => {
             packageEntry.name = 'banana';
             packageEntry.version = 'vscode-13232112018';
             packageEntry.path = path.join('myPath');
-            commandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry', sinon.match.any, sinon.match.any).resolves(packageEntry);
-            commandStub.withArgs('blockchainExplorer.installSmartContractEntry', null, sinon.match.any).resolves();
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves(packageEntry);
+            commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, null, sinon.match.any).resolves();
             commandStub.withArgs('blockchainExplorer.connectEntry', sinon.match.any);
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
@@ -300,7 +301,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should hand errors with package or install', async () => {
-            commandStub.withArgs('blockchainAPackageExplorer.packageSmartContractProjectEntry', sinon.match.any, sinon.match.any).rejects({message: 'some error'});
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const errorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
