@@ -20,8 +20,9 @@
 
 import * as assert from 'assert';
 import * as fabricNetwork from 'fabric-network';
-import * as yaml from 'js-yaml';
 import * as fs from 'fs-extra';
+import * as yaml from 'js-yaml';
+import { URL } from 'url';
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -52,14 +53,19 @@ describe('<%=chaincodeLabel%>' , () => {
     });
 
     beforeEach(async () => {
-        const connectOptions: fabricNetwork.GatewayOptions = {
+        const discoveryAsLocalhost: boolean = hasLocalhostURLs(connectionProfile);
+        const discoveryEnabled: boolean = !discoveryAsLocalhost;
+
+        const options: fabricNetwork.GatewayOptions = {
             discovery: {
-                asLocalhost: true,
+                asLocalhost: discoveryAsLocalhost,
+                enabled: discoveryEnabled,
             },
             identity: identityName,
             wallet: fabricWallet,
         };
-        await gateway.connect(connectionProfile, connectOptions);
+
+        await gateway.connect(connectionProfile, options);
     });
 
     afterEach(async () => {
@@ -76,7 +82,7 @@ describe('<%=chaincodeLabel%>' , () => {
         const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema['type'].replace(`"`,'')%>;
                 <%_ } else { _%>
         const <%=parameter.name.replace(`"`,'')%>;
-                <%_ } _%>    
+                <%_ } _%>
             <%_ }) _%>
         const args: string[] = [<%=params%>];
         <%_ } else { _%>
@@ -99,6 +105,34 @@ describe('<%=chaincodeLabel%>' , () => {
 
         const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
+    }
+
+    // Checks if URL is localhost
+    function isLocalhostURL(url: string): boolean {
+        const parsedURL: URL = new URL(url);
+        const localhosts: string[] = [
+            'localhost',
+            '127.0.0.1'
+        ];
+        return localhosts.indexOf(parsedURL.hostname) !== -1;
+    }
+
+    // Used for determining whether to use discovery
+    function hasLocalhostURLs(profile: any): boolean {
+        const urls: string[] = [];
+        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
+            if (!profile[nodeType]) {
+                continue;
+            }
+            const nodes: any = profile[nodeType];
+            for (const nodeName in nodes) {
+                if (!nodes[nodeName].url) {
+                    continue;
+                }
+                urls.push(nodes[nodeName].url);
+            }
+        }
+        return urls.some((url: string) => isLocalhostURL(url));
     }
 
 });
