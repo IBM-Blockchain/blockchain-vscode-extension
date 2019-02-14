@@ -394,7 +394,6 @@ describe('AddGatewayCommand', () => {
         it('should handle no client section defined in the connection.json of the network', async () => {
             identityName = 'greenConga';
             mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
             showInputBoxStub.onFirstCall().resolves('myGateway');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
@@ -424,7 +423,7 @@ describe('AddGatewayCommand', () => {
             });
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
             showInputBoxStub.should.have.been.calledThrice;
             importStub.should.have.been.calledTwice;
         });
@@ -432,7 +431,6 @@ describe('AddGatewayCommand', () => {
         it('should handle the user cancelling providing the mspid', async () => {
             identityName = 'greenConga';
             mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
             showInputBoxStub.onFirstCall().resolves('myGateway');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
@@ -461,7 +459,7 @@ describe('AddGatewayCommand', () => {
             });
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
             showInputBoxStub.should.have.been.calledThrice;
             importStub.should.have.been.calledOnce;
         });
@@ -469,7 +467,6 @@ describe('AddGatewayCommand', () => {
         it('should handle the wallet import failing for some other reason', async () => {
             identityName = 'greenConga';
             mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
             showInputBoxStub.onFirstCall().resolves('myGateway');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
@@ -483,7 +480,7 @@ describe('AddGatewayCommand', () => {
             const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects( {message: 'some other reason'} );
+            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).throws( new Error('some other reason'));
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -497,7 +494,7 @@ describe('AddGatewayCommand', () => {
             });
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            errorSpy.should.have.been.calledWith('Failed to add a new connection: some other reason');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to add a new connection: some other reason', 'Failed to add a new connection: Error: some other reason');
             showInputBoxStub.should.have.been.calledTwice;
             importStub.should.have.been.calledOnce;
         });

@@ -275,40 +275,33 @@ describe('FabricDebugConfigurationProvider', () => {
             runtimeStub.isRunning.returns(false);
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Please ensure "local_fabric" is running before trying to debug a smart contract');
-            otherErrorSpy.should.have.been.calledWith('Please ensure "local_fabric" is running before trying to debug a smart contract');
         });
 
         it('should give an error if runtime isn\'t in development mode', async () => {
             runtimeStub.isDevelopmentMode.returns(false);
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 
             should.not.exist(config);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "local_fabric" is in development mode before trying to debug a smart contract`);
-            otherErrorSpy.should.have.been.calledWith('Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
-
         });
 
         it('should hand errors with package or install', async () => {
             commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
-            const errorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
 
-            errorSpy.should.have.been.calledWith('Failed to launch debug: some error');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: some error');
         });
 

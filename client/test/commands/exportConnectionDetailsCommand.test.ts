@@ -42,9 +42,9 @@ describe('exportConnectionDetailsCommand', () => {
     let runtime: FabricRuntime;
     let workspaceFolderStub: sinon.SinonStub;
     let workspaceFolder: any;
-    let successSpy: sinon.SinonSpy;
     let nodes: NodesTreeItem;
     let peerTreeItem: PeerTreeItem;
+    let logSpy: sinon.SinonSpy;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -76,7 +76,7 @@ describe('exportConnectionDetailsCommand', () => {
             uri: vscode.Uri.file('myPath')
         };
         workspaceFolderStub = sandbox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
-        successSpy = sandbox.spy(vscode.window, 'showInformationMessage');
+        logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
     afterEach(async () => {
@@ -87,14 +87,14 @@ describe('exportConnectionDetailsCommand', () => {
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_DETAILS, peerTreeItem);
         exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder.uri.fsPath);
-        successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
     });
 
     it('should export the connection details', async () => {
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_DETAILS);
         exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder.uri.fsPath);
-        successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection details to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
     });
 
     it('should export the connection details ask which project if more than one', async () => {
@@ -114,27 +114,24 @@ describe('exportConnectionDetailsCommand', () => {
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_DETAILS);
         exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder2.uri.fsPath);
-        successSpy.should.have.been.calledWith('Successfully exported connection details to ' + path.join(workspaceFolder2.uri.fsPath, runtime.getName()));
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection details to ' + path.join(workspaceFolder2.uri.fsPath, runtime.getName()));
     });
 
     it('should handle undefined workspace folders', async () => {
-        const outputSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         workspaceFolderStub.returns(null);
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_DETAILS);
         exportStub.should.not.have.been.called;
-        outputSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection details to');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection details to');
     });
 
     it('should handle empty workspace folders', async () => {
-        const outputSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
         workspaceFolderStub.returns([]);
         const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_DETAILS);
         exportStub.should.not.have.been.called;
-        outputSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection details to');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection details to');
     });
 
     it('should handle cancel choosing folders', async () => {
@@ -157,13 +154,12 @@ describe('exportConnectionDetailsCommand', () => {
     });
 
     it('should not print the successSpy if there was an error', async () => {
-        const errorSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');
 
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').rejects({message: 'something bad happened'});
+        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionDetails').rejects({ message: 'something bad happened' });
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_DETAILS);
         exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder.uri.fsPath);
 
-        errorSpy.should.have.been.calledWith('Issue exporting connection details, see output channel for more information');
-        successSpy.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue exporting connection details, see output channel for more information');
+        logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
     });
 });

@@ -37,6 +37,7 @@ import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeIt
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -47,7 +48,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let integrationTestUtil: IntegrationTestUtil;
-    let errorSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
 
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
@@ -87,7 +88,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             delete process.env.GOPATH;
             mySandBox = sinon.createSandbox();
             integrationTestUtil = new IntegrationTestUtil(mySandBox);
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // Ensure that the Fabric runtime is in the right state.
             runtime = runtimeManager.get('local_fabric');
@@ -105,6 +106,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
             }
             localFabricItem.should.not.be.null;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         afterEach(async () => {
@@ -217,7 +219,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 instantiatedSmartContract.should.not.be.null;
 
                 await checkGeneratedSmartContractAndSubmitTransaction(language, smartContractName, testRunResult);
-
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             }).timeout(0);
         });
     });
@@ -228,7 +230,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             delete process.env.GOPATH;
             mySandBox = sinon.createSandbox();
             integrationTestUtil = new IntegrationTestUtil(mySandBox);
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
         afterEach(async () => {
@@ -326,6 +328,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
         await integrationTestUtil.submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
         testRunResult.includes('success for transaction').should.be.true;
         testRunResult.includes('1 passing').should.be.true;
-        errorSpy.should.not.have.been.called;
+        logSpy.should.not.have.been.calledWith(LogType.ERROR);
     }
 });
