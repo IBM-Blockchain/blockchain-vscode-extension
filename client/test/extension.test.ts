@@ -69,11 +69,11 @@ describe('Extension Tests', () => {
     it('should check all the commands are registered', async () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
-        const blockchainCommands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('blockchain');
+        const commands: Array<string> = allCommands.filter((command: string) => {
+            return command.startsWith('blockchain') || command.startsWith('extensionHome');
         });
 
-        blockchainCommands.should.deep.equal([
+        commands.should.deep.equal([
             'blockchainAPackageExplorer.focus',
             'blockchainARuntimeExplorer.focus',
             'blockchainExplorer.focus',
@@ -101,7 +101,8 @@ describe('Extension Tests', () => {
             ExtensionCommands.EDIT_GATEWAY,
             ExtensionCommands.TEST_SMART_CONTRACT,
             ExtensionCommands.SUBMIT_TRANSACTION,
-            ExtensionCommands.UPGRADE_SMART_CONTRACT
+            ExtensionCommands.UPGRADE_SMART_CONTRACT,
+            ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
 
@@ -136,6 +137,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);
     });

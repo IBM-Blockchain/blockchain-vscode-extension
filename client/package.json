@@ -68,7 +68,8 @@
             "blockchainConnectionsExplorer.editGatewayEntry",
             "blockchainConnectionsExplorer.testSmartContractEntry",
             "blockchainConnectionsExplorer.submitTransactionEntry",
-            "blockchainExplorer.upgradeSmartContractEntry"
+            "blockchainExplorer.upgradeSmartContractEntry",
+            "extensionHome.open"
         ]
     },
     "main": "./out/src/extension",
