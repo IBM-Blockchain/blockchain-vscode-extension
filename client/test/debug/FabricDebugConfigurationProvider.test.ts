@@ -30,6 +30,7 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import * as dateFormat from 'dateformat';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -53,10 +54,14 @@ describe('FabricDebugConfigurationProvider', () => {
         let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
         let getConnectionStub: sinon.SinonStub;
+        let date: Date;
+        let formattedDate: string;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
+            date = new Date();
+            formattedDate = dateFormat(date, 'yyyymmddHHMM');
             fabricDebugConfig = new FabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -132,7 +137,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -148,7 +153,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
         });
@@ -164,7 +169,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -180,7 +185,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -195,7 +200,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -210,7 +215,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000', myProperty: 'myValue' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, myProperty: 'myValue' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -240,7 +245,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -255,7 +260,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -270,7 +275,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -350,7 +355,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')]
             });
@@ -368,7 +373,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000'},
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`},
                 args: ['start', '--peer.address', 'localhost:12345']
             });
 
@@ -395,7 +400,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
@@ -422,7 +427,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
@@ -449,7 +454,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'
@@ -478,7 +483,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-197001010000' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345'],
                 outFiles: ['cake', path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
                 preLaunchTask: 'tsc: build - tsconfig.json'

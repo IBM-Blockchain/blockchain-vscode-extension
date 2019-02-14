@@ -62,12 +62,32 @@ import { FabricGatewayRegistryEntry } from './fabric/FabricGatewayRegistryEntry'
 import { GatewayPropertyTreeItem } from './explorer/model/GatewayPropertyTreeItem';
 import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../ExtensionCommands';
+import { version as currentExtensionVersion } from '../package.json';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
 
+class ExtensionData {
+    public activationCount: number;
+    public version: string;
+}
+
+export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
+export const DEFAULT_EXTENSION_DATA: ExtensionData = {
+    activationCount: 0,
+    version: null
+};
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+
+    const originalExtensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
+    const newExtensionData: ExtensionData = {
+        activationCount: originalExtensionData.activationCount + 1,
+        version: currentExtensionVersion
+    };
+    await context.globalState.update(EXTENSION_DATA_KEY, newExtensionData);
+    const extensionUpdated: boolean = newExtensionData.version !== originalExtensionData.version;
 
     const packageJson: any = ExtensionUtil.getPackageJSON();
 
@@ -76,8 +96,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    // Show the output adapter
-    outputAdapter.show();
+    // Show the output adapter if the extension has been updated.
+    if (extensionUpdated) {
+        outputAdapter.show();
+    }
 
     // At the moment, the 'Open Log File' doesn't display extension log files to open. https://github.com/Microsoft/vscode/issues/43064
     outputAdapter.log(LogType.IMPORTANT, undefined, 'Log files can be found by running the `Developer: Open Logs Folder` command from the palette', true); // Let users know how to get the log file
@@ -86,7 +108,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     try {
         const dependancyManager: DependencyManager = DependencyManager.instance();
-        if (!dependancyManager.hasNativeDependenciesInstalled()) {
+        const hasNativeDependenciesInstalled: boolean = await dependancyManager.hasNativeDependenciesInstalled();
+        if (!hasNativeDependenciesInstalled) {
             await dependancyManager.installNativeDependencies();
         }
         outputAdapter.log(LogType.INFO, undefined, 'Migrating local fabric configuration');
@@ -98,18 +121,25 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
         await registerCommands(context);
 
-        if (!dependancyManager.hasNativeDependenciesInstalled()) {
+        if (!hasNativeDependenciesInstalled) {
             outputAdapter.log(LogType.INFO, undefined, 'Execute stored commands in the registry');
             const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
             await tempCommandRegistry.executeStoredCommands();
         }
 
         ExtensionUtil.setExtensionContext(context);
-        outputAdapter.log(LogType.INFO, 'IBM Blockchain Platform Extension activated');
+
+        // Only popup if the extension has been updated.
+        if (extensionUpdated) {
+            outputAdapter.log(LogType.INFO, 'IBM Blockchain Platform Extension activated');
+        } else {
+            outputAdapter.log(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+        }
 
         // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
+        // Only do this if the extension has been updated.
         const showPage: boolean = vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
-        if (showPage) {
+        if (extensionUpdated && showPage) {
             // Open the Home page
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
         }
