@@ -220,7 +220,7 @@ describe('SubmitTransactionCommand', () => {
         it('should submit the smart contract through the command with function but no args', async () => {
             showInputBoxStub.onFirstCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [''], 'my-contract');
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
             showInputBoxStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');

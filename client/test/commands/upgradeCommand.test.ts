@@ -239,7 +239,7 @@ describe('UpgradeCommand', () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
-            fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['']);
+            fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', 'channelOne', 'instantiate', []);
             showInputBoxStub.should.have.been.calledTwice;
             successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
         });

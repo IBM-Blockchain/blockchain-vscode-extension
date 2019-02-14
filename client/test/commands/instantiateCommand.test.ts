@@ -240,7 +240,7 @@ describe('InstantiateCommand', () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', ['']);
+            fabricClientConnectionMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', 'myChannel', 'instantiate', []);
             showInputBoxStub.should.have.been.calledTwice;
 
             dockerLogsOutputSpy.should.have.been.called;

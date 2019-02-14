@@ -61,7 +61,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         if (!chosenChaincode) {
             return;
         }
-        const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenChaincode.data;
+        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenChaincode.data;
         if (chosenChaincode.description === 'Packaged') {
             packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, data.packageEntry) as PackageRegistryEntry;
             if (!packageEntry) {
@@ -93,6 +93,8 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
             if (argsString === undefined) {
                 return;
+            } else if (argsString === '') {
+                args = [];
             } else {
                 args = argsString.split(','); // If empty, args will be ['']
             }
@@ -102,9 +104,9 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>) => {
+        }, async (progress: vscode.Progress<{ message: string }>) => {
 
-            progress.report({message: 'Instantiating Smart Contract'});
+            progress.report({ message: 'Instantiating Smart Contract' });
             const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
 
             VSCodeBlockchainDockerOutputAdapter.instance().show();

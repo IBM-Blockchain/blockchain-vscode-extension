@@ -113,3 +113,23 @@
 * Fix for electron 3 update [#435](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/435)
 * Tolerate smart contracts deployed with old programming model [#532](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/532)
 * Enhance the extension to fully support service discovery [#530](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/530)
+
+## 0.3.0: February 14th 2019
+
+* Restructured the extension to be gateway and peer orientated, introduced the new Local Fabric Ops view and restructured the Fabric Gateways view [#437](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/437)
+* Fixed updating the tree after debug reload [#447](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/447)
+* Rebuild binaries to fix extension loading issue [#398](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/398)
+* Fixed bug with debugging a javascript smart contract project with typescript tests [#480](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/480)
+* Set Go PATH when packaging [#543](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/543)
+* Fixed escaping giving arguments for submit transaction command [#534](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/534) [#591](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/591)
+* Ensure teardown deletes local_fabric connection details [#438](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/438)
+* Ensure sample views update on repo clone [#449](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/449)
+* Removed a single contract namespace being shown in the tree [#442](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/442)
+* Allow samples to run commands on open [#459](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/459)
+* Fixed an issue with teardown failing [#582](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/582)
+* Removed dependency on ajv [#300](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/300)
+* Added windows to travis CI pipeline, removed appveyor [#557](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/557)
+* Other minor bug fixes (472, 481, 502, 505, 506, 556, 570, 574)
+* ReadMe updates (550, 551, 552)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-45.png)

@@ -64,6 +64,8 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
     const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
     if (argsString === undefined) {
         return;
+    } else if (argsString === '') {
+        args = [];
     } else {
         args = argsString.split(','); // If empty, args will be ['']
     }
