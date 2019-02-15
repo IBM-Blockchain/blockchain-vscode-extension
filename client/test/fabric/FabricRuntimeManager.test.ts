@@ -28,6 +28,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import * as vscode from 'vscode';
 
 chai.should();
 
@@ -386,6 +387,40 @@ describe('FabricRuntimeManager', () => {
             });
         });
 
-    });
+        it('should update if doesn\'t have logs section', async () => {
+            sandbox.stub(FabricRuntimeManager, 'findFreePort').withArgs(17056, null, null, 7).resolves([17056, 17057, 17058, 17059, 17060, 17061, 17062]);
 
+            const entry: any = [
+                {
+                    name: 'runtime1',
+                    developmentMode: false,
+                    ports: {
+                        certificateAuthority: 17054,
+                        couchDB: 17055,
+                        orderer: 17050,
+                        peerChaincode: 17052,
+                        peerEventHub: 17053,
+                        peerRequest: 17051
+                    }
+                }
+            ];
+
+            await vscode.workspace.getConfiguration().update('fabric.runtimes', entry, vscode.ConfigurationTarget.Global);
+
+            await runtimeManager.migrate();
+            runtimeRegistry.get('runtime1').should.deep.equal({
+                name: 'runtime1',
+                developmentMode: false,
+                ports: {
+                    certificateAuthority: 17060,
+                    couchDB: 17061,
+                    orderer: 17056,
+                    peerChaincode: 17058,
+                    peerEventHub: 17059,
+                    peerRequest: 17057,
+                    logs: 17062
+                }
+            });
+        });
+    });
 });
