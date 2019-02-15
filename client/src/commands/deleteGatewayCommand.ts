@@ -17,13 +17,13 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{} | void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteGateway ${gatewayTreeItem}`);
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     if (!gatewayTreeItem) {

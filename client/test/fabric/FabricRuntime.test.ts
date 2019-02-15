@@ -29,8 +29,10 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { CommandUtil } from '../../src/util/CommandUtil';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 
 chai.should();
 
@@ -49,14 +51,17 @@ describe('FabricRuntime', () => {
     let mockOrdererContainer: sinon.SinonStubbedInstance<Container>;
     let mockCAContainer: sinon.SinonStubbedInstance<Container>;
     let mockCouchContainer: sinon.SinonStubbedInstance<Container>;
+    let mockLogsContainer: sinon.SinonStubbedInstance<Container>;
     let mockPeerInspect: any;
     let mockOrdererInspect: any;
     let mockCAInspect: any;
     let mockCouchInspect: any;
+    let mockLogsInspect: any;
     let mockPeerVolume: sinon.SinonStubbedInstance<Volume>;
     let mockOrdererVolume: sinon.SinonStubbedInstance<Volume>;
     let mockCAVolume: sinon.SinonStubbedInstance<Volume>;
     let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
+    let mockLogsVolume: sinon.SinonStubbedInstance<Volume>;
     let connectionProfilePath: string;
     let runtimeDetailsDir: string;
     let getDirPathStub: sinon.SinonStub;
@@ -115,7 +120,8 @@ describe('FabricRuntime', () => {
             peerChaincode: 54321,
             peerEventHub: 12346,
             certificateAuthority: 12348,
-            couchDB: 12349
+            couchDB: 12349,
+            logs: 12387
         };
         await runtimeRegistry.add(runtimeRegistryEntry);
         runtime = new FabricRuntime(runtimeRegistryEntry);
@@ -126,9 +132,9 @@ describe('FabricRuntime', () => {
         mockPeerInspect = {
             NetworkSettings: {
                 Ports: {
-                    '7051/tcp': [{ HostIp: '0.0.0.0', HostPort: '12345' }],
-                    '7052/tcp': [{ HostIp: '0.0.0.0', HostPort: '54321' }],
-                    '7053/tcp': [{ HostIp: '0.0.0.0', HostPort: '12346' }]
+                    '7051/tcp': [{HostIp: '0.0.0.0', HostPort: '12345'}],
+                    '7052/tcp': [{HostIp: '0.0.0.0', HostPort: '54321'}],
+                    '7053/tcp': [{HostIp: '0.0.0.0', HostPort: '12346'}]
                 }
             },
             State: {
@@ -140,7 +146,7 @@ describe('FabricRuntime', () => {
         mockOrdererInspect = {
             NetworkSettings: {
                 Ports: {
-                    '7050/tcp': [{ HostIp: '127.0.0.1', HostPort: '12347' }]
+                    '7050/tcp': [{HostIp: '127.0.0.1', HostPort: '12347'}]
                 }
             },
             State: {
@@ -152,7 +158,7 @@ describe('FabricRuntime', () => {
         mockCAInspect = {
             NetworkSettings: {
                 Ports: {
-                    '7054/tcp': [{ HostIp: '127.0.0.1', HostPort: '12348' }]
+                    '7054/tcp': [{HostIp: '127.0.0.1', HostPort: '12348'}]
                 }
             },
             State: {
@@ -164,7 +170,7 @@ describe('FabricRuntime', () => {
         mockCouchInspect = {
             NetworkSettings: {
                 Ports: {
-                    '5984/tcp': [{ HostIp: '127.0.0.1', HostPort: '12349' }]
+                    '5984/tcp': [{HostIp: '127.0.0.1', HostPort: '12349'}]
                 }
             },
             State: {
@@ -172,20 +178,36 @@ describe('FabricRuntime', () => {
             }
         };
         mockCouchContainer.inspect.resolves(mockCouchInspect);
+
+        mockLogsContainer = sinon.createStubInstance(ContainerImpl);
+        mockLogsInspect = {
+            NetworkSettings: {
+                Ports: {
+                    '80/tcp': [{HostIp: '0.0.0.0', HostPort: 12387}]
+                }
+            },
+            State: {
+                Running: true
+            }
+        };
+        mockLogsContainer.inspect.resolves(mockLogsInspect);
         const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
         getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerContainer);
         getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererContainer);
         getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAContainer);
         getContainerStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchContainer);
+        getContainerStub.withArgs('fabricvscoderuntime1_logs').returns(mockLogsContainer);
         mockPeerVolume = sinon.createStubInstance(VolumeImpl);
         mockOrdererVolume = sinon.createStubInstance(VolumeImpl);
         mockCAVolume = sinon.createStubInstance(VolumeImpl);
         mockCouchVolume = sinon.createStubInstance(VolumeImpl);
+        mockLogsVolume = sinon.createStubInstance(VolumeImpl);
         const getVolumeStub: sinon.SinonStub = sandbox.stub(docker, 'getVolume');
         getVolumeStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerVolume);
         getVolumeStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererVolume);
         getVolumeStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAVolume);
         getVolumeStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchVolume);
+        getVolumeStub.withArgs('fabricvscoderuntime1_logs').returns(mockLogsVolume);
 
         runtimeDir = path.join(rootPath, '..', 'data');
         getDirPathStub = sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
@@ -668,7 +690,7 @@ describe('FabricRuntime', () => {
 
     describe('#isCreated', () => {
 
-        it('should return true if the peer, orderer, and CA exist', async () => {
+        it('should return true if the peer, orderer, CA, couchdb, and logs exist', async () => {
             await runtime.isCreated().should.eventually.be.true;
         });
 
@@ -692,19 +714,24 @@ describe('FabricRuntime', () => {
             await runtime.isCreated().should.eventually.be.true;
         });
 
+        it('should return true if logs does not exist, but everything else does', async () => {
+            mockLogsVolume.inspect.rejects(new Error('blah'));
+            await runtime.isCreated().should.eventually.be.true;
+        });
+
         it('should return false if nothing exists', async () => {
             mockPeerVolume.inspect.rejects(new Error('blah'));
             mockOrdererVolume.inspect.rejects(new Error('blah'));
             mockCAVolume.inspect.rejects(new Error('blah'));
             mockCouchVolume.inspect.rejects(new Error('blah'));
+            mockLogsVolume.inspect.rejects(new Error('blah'));
             await runtime.isCreated().should.eventually.be.false;
         });
-
     });
 
     describe('#isRunning', () => {
 
-        it('should return true if the peer, orderer, CA, and Couch are running', async () => {
+        it('should return true if the peer, orderer, CA, Couch and Logs are running', async () => {
             await runtime.isRunning().should.eventually.be.true;
         });
 
@@ -748,6 +775,16 @@ describe('FabricRuntime', () => {
             await runtime.isRunning().should.eventually.be.false;
         });
 
+        it('should return false if Logs does not exist', async () => {
+            mockLogsContainer.inspect.rejects(new Error('blah'));
+            await runtime.isRunning().should.eventually.be.false;
+        });
+
+        it('should return false if Logs is not running', async () => {
+            mockLogsInspect.State.Running = false;
+            await runtime.isRunning().should.eventually.be.false;
+        });
+
     });
 
     describe('#isDevelopmentMode', () => {
@@ -784,6 +821,13 @@ describe('FabricRuntime', () => {
         });
     });
 
+    describe('#getLogsAddress', () => {
+        it('should get the logs address', async () => {
+            const result: string = await runtime.getLogsAddress();
+            result.should.equal('localhost:12387');
+        });
+    });
+
     describe('#getPeerContainerName', () => {
         it('should get the chaincode address', () => {
             const result: string = runtime.getPeerContainerName();
@@ -795,11 +839,11 @@ describe('FabricRuntime', () => {
 
         beforeEach(async () => {
             connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
-            errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
         it('should save runtime connection details to disk', async () => {
-            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance());
+            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
             copyStub.should.not.have.been.called;
@@ -810,7 +854,7 @@ describe('FabricRuntime', () => {
             runtimeDir = 'myPath';
             connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
 
-            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance(), 'myPath');
+            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
             copyStub.should.have.been.calledOnce;
@@ -818,9 +862,9 @@ describe('FabricRuntime', () => {
         });
 
         it('should show an error message if we fail to save connection details to disk', async () => {
-            writeFileStub.onCall(0).rejects( {message: 'oops'} );
+            writeFileStub.onCall(0).rejects({message: 'oops'});
 
-            await runtime.exportConnectionDetails(VSCodeOutputAdapter.instance()).should.have.been.rejected;
+            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
             ensureFileStub.should.have.been.calledOnce;
             writeFileStub.should.have.been.calledOnce;
             errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
@@ -830,13 +874,13 @@ describe('FabricRuntime', () => {
     describe('#deleteConnectionDetails', () => {
 
         beforeEach(async () => {
-            errorSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             runtimeDetailsDir = path.join(runtimeDir, 'runtime1');
 
         });
 
         it('should delete runtime connection details', async () => {
-            await runtime.deleteConnectionDetails(VSCodeOutputAdapter.instance());
+            await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
             removeStub.getCall(0).should.have.been.calledWith(runtimeDetailsDir);
             errorSpy.should.not.have.been.called;
         });
@@ -844,15 +888,26 @@ describe('FabricRuntime', () => {
         it('should show an error message if we fail to delete the connection details', async () => {
             removeStub.onCall(0).rejects({message: 'oops'});
 
-            await runtime.deleteConnectionDetails(VSCodeOutputAdapter.instance());
+            await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
             errorSpy.should.have.been.calledWith(LogType.ERROR, `Error removing runtime connection details: oops`), `Error removing runtime connection details: oops`;
         });
 
         it('should not show an error message if the runtime connection details folder doesnt exist', async () => {
-            removeStub.onCall(0).rejects({ message: 'ENOENT: no such file or directory' });
+            removeStub.onCall(0).rejects({message: 'ENOENT: no such file or directory'});
 
-            await runtime.deleteConnectionDetails(VSCodeOutputAdapter.instance());
+            await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
             errorSpy.should.not.have.been.called;
+        });
+    });
+
+    describe('#startLogs', () => {
+
+        it('should start the logs', async () => {
+            const sendRequest: sinon.SinonStub = sandbox.stub(CommandUtil, 'sendRequestWithOutput');
+
+            await runtime.startLogs(VSCodeBlockchainDockerOutputAdapter.instance());
+
+            sendRequest.should.have.been.calledWith('http://localhost:12387/logs', VSCodeBlockchainDockerOutputAdapter.instance());
         });
     });
 });

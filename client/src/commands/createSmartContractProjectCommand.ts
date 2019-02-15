@@ -14,7 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
 import { UserInputUtil } from './UserInputUtil';
@@ -42,7 +42,7 @@ class GeneratorDependencies {
 export async function createSmartContractProject(generator: string = 'fabric:contract'): Promise<void> {
     console.log('create Smart Contract Project');
     // Create and show output channel
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     // check for yo and generator-fabric
     const dependencies: GeneratorDependencies = await checkGeneratorDependenciesWithProgress();
@@ -174,7 +174,7 @@ async function checkGeneratorDependenciesWithProgress(): Promise<GeneratorDepend
 async function checkGeneratorDependencies(): Promise<GeneratorDependencies> {
 
     // Create and show output channel
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     // Check to see if we have npm installed.
     try {
@@ -249,7 +249,7 @@ async function installGeneratorDependenciesWithProgress(dependencies: GeneratorD
 async function installGeneratorDependencies(dependencies: GeneratorDependencies): Promise<boolean> {
 
     // Create and show output channel
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     // Install missing node modules
     if (dependencies.needYo) {
@@ -309,7 +309,7 @@ async function getGeneratorFabricPackageJson(): Promise<any> {
 }
 
 async function isXcodeInstalled(): Promise<any> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     try {
         const output: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
         if (!output || output.includes('unable to get active developer directory')) {

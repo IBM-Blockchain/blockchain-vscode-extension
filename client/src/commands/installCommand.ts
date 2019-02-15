@@ -19,14 +19,14 @@ import { PeerTreeItem } from '../explorer/runtimeOps/PeerTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { InstalledTreeItem } from '../explorer/runtimeOps/InstalledTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 
 export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
     if ((treeItem instanceof PeerTreeItem)) {
@@ -83,6 +83,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
 
         const peerSet: IterableIterator<string> = peerNames.values(); // Values in the peerNames set
 
+        VSCodeBlockchainDockerOutputAdapter.instance().show();
         await Promise.all(promises).then((result: string[]) => {
             let counter: number = 0; // Used for iterating through installChaincode results
             for (const peer of peerSet) {

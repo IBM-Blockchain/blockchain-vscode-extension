@@ -21,11 +21,11 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 
 export async function exportSmartContractPackage(packageTreeItem?: PackageTreeItem): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'exportSmartContractPackage');
     try {
 

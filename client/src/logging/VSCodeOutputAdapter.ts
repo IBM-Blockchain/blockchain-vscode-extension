@@ -16,19 +16,14 @@ import { OutputAdapter } from './OutputAdapter';
 import * as vscode from 'vscode';
 import { LogType } from '../logging/OutputAdapter';
 
-export class VSCodeOutputAdapter implements OutputAdapter {
-
-    public static instance(): VSCodeOutputAdapter {
-        return VSCodeOutputAdapter._instance;
-    }
-
-    private static _instance: VSCodeOutputAdapter = new VSCodeOutputAdapter();
+export abstract class VSCodeOutputAdapter extends OutputAdapter {
 
     private outputChannel: vscode.OutputChannel;
     private console: boolean = !!process.env.BLOCKCHAIN_VSCODE_CONSOLE_OUTPUT;
 
-    private constructor() {
-        this.outputChannel = vscode.window.createOutputChannel('Blockchain');
+    protected constructor(channelName: string) {
+        super();
+        this.outputChannel = vscode.window.createOutputChannel(channelName);
     }
 
     /**
@@ -39,7 +34,7 @@ export class VSCodeOutputAdapter implements OutputAdapter {
      * @param skipNextLine {Boolean} Provide a gap between the next console message
      * @returns {void}
      */
-    log(type: LogType, popupMessage: string, outputMessage?: string,  skipNextLine?: boolean): void {
+    log(type: LogType, popupMessage: string, outputMessage?: string, skipNextLine?: boolean): void {
         if (!popupMessage && !outputMessage) {
             return;
         }
@@ -50,11 +45,7 @@ export class VSCodeOutputAdapter implements OutputAdapter {
         }
 
         if (this.console) {
-            if (type === LogType.ERROR) {
-                console.error(outputMessage);
-            } else {
-                console.log(outputMessage);
-            }
+            super.log(type, popupMessage, outputMessage);
         }
 
         this.appendLine(type, outputMessage, skipNextLine);

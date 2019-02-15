@@ -10,7 +10,7 @@ set -ev
 # don't rewrite paths for Windows Git Bash users
 export MSYS_NO_PATHCONV=1
 
-docker-compose -f docker-compose.yml up -d ca.example.com orderer.example.com peer0.org1.example.com couchdb
+docker-compose -f docker-compose.yml up -d ca.example.com orderer.example.com peer0.org1.example.com couchdb logs
 
 # wait for Hyperledger Fabric to start
 # incase of errors when running later commands, issue export FABRIC_START_TIMEOUT=<larger number>

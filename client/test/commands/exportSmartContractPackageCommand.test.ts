@@ -28,7 +28,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
@@ -60,7 +60,7 @@ describe('exportSmartContractPackageCommand', () => {
         sandbox = sinon.createSandbox();
         showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(targetPath));
         copyStub = sandbox.stub(fs, 'copy').resolves();
-        logSpy = sandbox.stub(VSCodeOutputAdapter.instance(), 'log');
+        logSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
     afterEach(async () => {

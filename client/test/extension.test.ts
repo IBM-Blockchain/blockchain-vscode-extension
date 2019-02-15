@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ExtensionUtil } from '../src/util/ExtensionUtil';
 import { DependencyManager } from '../src/dependencies/DependencyManager';
-import { VSCodeOutputAdapter } from '../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRegistry';
 import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
@@ -184,7 +184,7 @@ describe('Extension Tests', () => {
     });
 
     it('should install native dependencies on first activation', async () => {
-        const showOutputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'show');
+        const showOutputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'show');
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');

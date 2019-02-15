@@ -12,18 +12,17 @@
  * limitations under the License.
 */
 
-import { OutputAdapter } from './OutputAdapter';
+import { VSCodeOutputAdapter } from './VSCodeOutputAdapter';
 
-export class ConsoleOutputAdapter extends OutputAdapter {
+export class VSCodeBlockchainDockerOutputAdapter extends VSCodeOutputAdapter {
 
-    public static instance(): ConsoleOutputAdapter {
-        return ConsoleOutputAdapter._instance;
+    public static instance(): VSCodeBlockchainDockerOutputAdapter {
+        return VSCodeBlockchainDockerOutputAdapter._instance;
     }
 
-    private static _instance: ConsoleOutputAdapter = new ConsoleOutputAdapter();
+    private static _instance: VSCodeBlockchainDockerOutputAdapter = new VSCodeBlockchainDockerOutputAdapter('Blockchain Logs');
 
-    private constructor() {
-        super();
+    private constructor(channelName: string) {
+        super(channelName);
     }
-
 }
