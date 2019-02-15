@@ -1,27 +1,30 @@
 /*
-* Use this file for functional testing of your smart contract. 
+* Use this file for functional testing of your smart contract.
 * Fill out the arguments and return values for a function and
 * use the CodeLens links above the transaction blocks to
 * invoke/submit transactions.
-* All transactions defined in your smart contract are used here 
-* to generate tests, including those functions that would 
+* All transactions defined in your smart contract are used here
+* to generate tests, including those functions that would
 * normally only be used on instantiate and upgrade operations.
-* This basic test file can also be used as the basis for building 
-* further functional tests to run as part of a continuous 
-* integration pipeline, or for debugging locally deployed smart 
-* contracts by invoking/submitting individual transactions. 
+* This basic test file can also be used as the basis for building
+* further functional tests to run as part of a continuous
+* integration pipeline, or for debugging locally deployed smart
+* contracts by invoking/submitting individual transactions.
 */
 /*
-* Generating this test file will also trigger an npm install 
+* Generating this test file will also trigger an npm install
 * in the smart contract project directory. This installs any
-* package dependencies, including fabric-network, which are 
-* required for this test file to be run locally. 
+* package dependencies, including fabric-network, which are
+* required for this test file to be run locally.
 */
+
+'use strict';
 
 const assert = require('assert');
 const fabricNetwork = require('fabric-network');
-const yaml = require('js-yaml');
 const fs = require('fs-extra');
+const yaml = require('js-yaml');
+const URL = require('url');
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -33,7 +36,7 @@ describe('<%=chaincodeLabel%>' , () => {
     const wallet = new fabricNetwork.FileSystemWallet('<%=walletPath%>');
     let connectionProfile;
     let identityName;
-    
+
     before(async () => {
         const connectionProfilePath = '<%=connectionProfilePath%>';
 
@@ -50,13 +53,20 @@ describe('<%=chaincodeLabel%>' , () => {
     });
 
     beforeEach(async () => {
-        await gateway.connect(connectionProfile, {
+
+        const discoveryAsLocalhost = hasLocalhostURLs(connectionProfile);
+        const discoveryEnabled = !discoveryAsLocalhost;
+
+        const options = {
             wallet: wallet,
             identity: identityName,
             discovery: {
-                asLocalhost: true
+                asLocalhost: discoveryAsLocalhost,
+                enabled: discoveryEnabled
             }
-        });
+        };
+
+        await gateway.connect(connectionProfile, options);
     });
 
     afterEach(async () => {
@@ -92,6 +102,34 @@ describe('<%=chaincodeLabel%>' , () => {
 <%_ } _%>
         const responseBuffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
+    }
+
+     // Checks if URL is localhost
+     function isLocalhostURL(url) {
+        const parsedURL = URL.parse(url);
+        const localhosts = [
+            'localhost',
+            '127.0.0.1'
+        ];
+        return localhosts.indexOf(parsedURL.hostname) !== -1;
+    }
+
+    // Used for determining whether to use discovery
+    function hasLocalhostURLs(connectionProfile) {
+        const urls = [];
+        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
+            if (!connectionProfile[nodeType]) {
+                continue;
+            }
+            const nodes = connectionProfile[nodeType];
+            for (const nodeName in nodes) {
+                if (!nodes[nodeName].url) {
+                    continue;
+                }
+                urls.push(nodes[nodeName].url);
+            }
+        }
+        return urls.some((url) => isLocalhostURL(url));
     }
 
 });
