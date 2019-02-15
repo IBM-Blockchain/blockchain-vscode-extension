@@ -129,7 +129,8 @@ export class FabricRuntimeManager {
     public async migrate(): Promise<void> {
         const runtimeRegistryEntries: FabricRuntimeRegistryEntry[] = this.runtimeRegistry.getAll();
         for (const runtimeRegistryEntry of runtimeRegistryEntries) {
-            if (!runtimeRegistryEntry.ports) {
+            // logs was added after so could have been migrated but not have been set
+            if (!runtimeRegistryEntry.ports || !runtimeRegistryEntry.ports.logs) {
                 runtimeRegistryEntry.ports = await this.generatePortConfiguration();
             }
             await this.runtimeRegistry.update(runtimeRegistryEntry);
