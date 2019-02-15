@@ -105,6 +105,6 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, error.message, error.toString());
-        throw error;
+        return;
     }
 }

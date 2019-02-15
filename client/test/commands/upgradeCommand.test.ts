@@ -183,7 +183,7 @@ describe('UpgradeCommand', () => {
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
             fabricClientConnectionMock.upgradeChaincode.rejects({ message: 'some error' });
 
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT).should.be.rejectedWith(`some error`);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error upgrading smart contract: some error');

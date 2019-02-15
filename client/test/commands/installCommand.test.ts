@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 'use strict';
-// tslint:disable no-unused-expression
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -41,6 +40,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlo
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
+// tslint:disable no-unused-expression
 describe('InstallCommand', () => {
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
@@ -202,7 +202,7 @@ describe('InstallCommand', () => {
         it('should handle error from installing smart contract', async () => {
             fabricClientConnectionMock.installChaincode.throws({message: 'some error'});
 
-            await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT).should.be.rejectedWith(`some error`);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
 
             fabricClientConnectionMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
             dockerLogsOutputSpy.should.not.have.been.called;

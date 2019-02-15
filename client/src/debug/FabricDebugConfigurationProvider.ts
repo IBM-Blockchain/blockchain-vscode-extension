@@ -66,10 +66,21 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
             }
 
             const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, newVersion) as PackageRegistryEntry;
+            if (!newPackage) {
+                // package command failed
+                return;
+            }
 
             const peersToIntallOn: Array<string> = await this.getPeersToInstallOn();
+            if (peersToIntallOn.length === 0) {
+                return;
+            }
 
-            await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(peersToIntallOn), newPackage);
+            const packageEntry: {} = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(peersToIntallOn), newPackage);
+            if (!packageEntry) {
+                // install command failed
+                return;
+            }
 
             config.type = 'node2';
 
@@ -151,6 +162,10 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
         const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+        if (!connection) {
+            // either the user cancelled or there was an error so don't carry on
+            return [];
+        }
         return connection.getAllPeerNames();
     }
 

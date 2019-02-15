@@ -14,9 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-
 import * as fs from 'fs-extra';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -890,7 +888,6 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock);
 
-            // chooseWorkspace() should not have been called
             workspaceFoldersStub.should.not.have.been.called;
             showWorkspaceQuickPickStub.should.not.have.been.called;
 

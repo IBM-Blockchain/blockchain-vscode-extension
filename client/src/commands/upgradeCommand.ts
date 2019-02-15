@@ -142,6 +142,6 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error upgrading smart contract: ${error.message}`);
-        throw error;
+        return;
     }
 }

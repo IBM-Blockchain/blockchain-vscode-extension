@@ -301,7 +301,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         fs.pathExists(pathToTestFile).should.eventually.be.true;
         const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
         const testFileContents: string = testFileContentsBuffer.toString();
-        // // Did it open?
+        // Did it open?
         const textEditors: vscode.TextEditor[] = vscode.window.visibleTextEditors;
         const openFileNameArray: string[] = [];
         for (const textEditor of textEditors) {
@@ -317,7 +317,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             smartContractTransactionsArray = smartContractTransactionsMap.get(name);
             contractName = name;
         }
-        // // Check the test file was populated properly
+        // Check the test file was populated properly
         testFileContents.includes(smartContractName).should.be.true;
         testFileContents.startsWith('/*').should.be.true;
         testFileContents.includes('gateway.connect').should.be.true;

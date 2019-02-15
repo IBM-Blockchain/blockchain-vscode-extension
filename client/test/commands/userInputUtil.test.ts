@@ -21,7 +21,6 @@ import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegist
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';

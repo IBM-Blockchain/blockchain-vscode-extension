@@ -104,11 +104,6 @@ describe('ConnectCommand', () => {
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
-            // const connectionRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            // connectionRuntime.name = 'local_fabric';
-            // connectionRuntime.managedRuntime = true;
-            // connectionRuntime.connectionProfilePath = path.join(rootPath, '../../basic-network/wallet');
-
             await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(connectionSingle);
             await FabricGatewayRegistry.instance().add(connectionMultiple);
@@ -258,9 +253,11 @@ describe('ConnectCommand', () => {
                 data: identity
             });
 
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT).should.be.rejected;
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connect`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
         });
 
         it('should connect to a managed runtime using a quick pick', async () => {

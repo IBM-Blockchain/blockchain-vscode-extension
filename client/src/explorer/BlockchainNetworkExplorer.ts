@@ -335,7 +335,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
             console.log('createConnectedTree');
@@ -389,7 +388,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
     private async createGatewayIdentityTree(element: GatewayTreeItem|LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
         console.log('createConnectionIdentityTree', element);
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tree: Array<GatewayIdentityTreeItem> = [];
 
