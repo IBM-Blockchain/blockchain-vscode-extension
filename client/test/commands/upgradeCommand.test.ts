@@ -25,7 +25,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import * as myExtension from '../../src/extension';
-import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -33,6 +32,8 @@ import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContr
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -48,8 +49,7 @@ describe('UpgradeCommand', () => {
         let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
 
         let executeCommandStub: sinon.SinonStub;
-        let successSpy: sinon.SinonSpy;
-        let errorSpy: sinon.SinonSpy;
+        let logSpy: sinon.SinonSpy;
         let getConnectionStub: sinon.SinonStub;
         let showChannelQuickPickStub: sinon.SinonStub;
         let showChaincodeAndVersionQuickPick: sinon.SinonStub;
@@ -94,8 +94,7 @@ describe('UpgradeCommand', () => {
             showInputBoxStub.onFirstCall().resolves('instantiate');
             showInputBoxStub.onSecondCall().resolves('arg1,arg2,arg3');
 
-            successSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
 
@@ -157,7 +156,7 @@ describe('UpgradeCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
-            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         });
 
@@ -169,7 +168,7 @@ describe('UpgradeCommand', () => {
 
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
-            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
         });
 
         it('should handle choosing channel being cancelled', async () => {
@@ -187,7 +186,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT).should.be.rejectedWith(`some error`);
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
-            errorSpy.should.have.been.calledWith('Error upgrading smart contract: some error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error upgrading smart contract: some error');
         });
 
         it('should handle cancel when choosing chaincode and version', async () => {
@@ -207,7 +206,7 @@ describe('UpgradeCommand', () => {
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
-            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             reporterStub.should.have.been.calledWith('upgradeCommand');
         });
 
@@ -221,7 +220,7 @@ describe('UpgradeCommand', () => {
 
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
 
-            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             reporterStub.should.have.been.calledWith('upgradeCommand');
         });
 
@@ -231,7 +230,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', 'channelOne', undefined, undefined);
             showInputBoxStub.should.have.been.calledOnce;
-            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
         });
 
         it('should upgrade the smart contract through the command with function but no args', async () => {
@@ -241,7 +240,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', 'channelOne', 'instantiate', []);
             showInputBoxStub.should.have.been.calledTwice;
-            successSpy.should.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
         });
 
         it('should cancel if user escapes during inputting args', async () => {
@@ -251,7 +250,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricClientConnectionMock.upgradeChaincode.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledTwice;
-            successSpy.should.not.have.been.calledWith('Successfully upgraded smart contract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
         });
 
         it('should install and upgrade package', async () => {

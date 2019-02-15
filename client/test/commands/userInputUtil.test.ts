@@ -580,7 +580,6 @@ describe('userInputUtil', () => {
         });
 
         it('should throw an error if no workspace folders', () => {
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value(null);
 
             const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
@@ -725,15 +724,15 @@ describe('userInputUtil', () => {
         });
 
         it('should handle any errors', async () => {
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             quickPickStub.rejects({ message: 'some error' });
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
             const result: string = await UserInputUtil.browseEdit(placeHolder, 'connection');
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
-            errorSpy.should.have.been.calledWith('some error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'some error');
         });
 
         it('should finish if cancels browse dialog', async () => {
@@ -752,11 +751,11 @@ describe('userInputUtil', () => {
         it('should catch any errors when opening settings', async () => {
             mySandBox.stub(process, 'platform').value('freebsd');
             mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({ message: 'error opening file' });
-            const errorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             await UserInputUtil.openUserSettings('one');
 
-            errorStub.should.have.been.calledWith('error opening file');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'error opening file');
         });
 
         it('should throw an error if gateway cannot be found in user settings', async () => {
@@ -948,10 +947,10 @@ describe('userInputUtil', () => {
         });
 
         it('should handle no connection', async () => {
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             getConnectionStub.returns(null);
             await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', null);
-            errorSpy.should.have.been.calledWith(`No connection to a blockchain found`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `No connection to a blockchain found`);
 
         });
 
@@ -1108,10 +1107,10 @@ describe('userInputUtil', () => {
         });
 
         it('should handle no connection', async () => {
-            const errorSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             getConnectionStub.returns(null);
             await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
-            errorSpy.should.have.been.calledWith(`No connection to a blockchain found`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `No connection to a blockchain found`);
         });
     });
 

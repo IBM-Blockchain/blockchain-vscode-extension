@@ -138,7 +138,6 @@ describe('DependencyManager Tests', () => {
 
         it('should handle errors', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            const errorMessageSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').rejects({message: 'some error'});
 
             mySandBox.stub(TemporaryCommandRegistry.instance(), 'createTempCommands');
@@ -153,8 +152,6 @@ describe('DependencyManager Tests', () => {
             sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
-
-            errorMessageSpy.should.have.been.calledWith('Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
         });
     });
 });

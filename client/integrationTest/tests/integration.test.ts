@@ -37,6 +37,7 @@ import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeIt
 import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -49,7 +50,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
     let integrationTestUtil: IntegrationTestUtil;
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
-    let errorSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
     let showConfirmationWarningMessageStub: sinon.SinonStub;
 
     before(async function(): Promise<void> {
@@ -89,7 +90,8 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             integrationTestUtil = new IntegrationTestUtil(mySandBox);
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // Ensure that the Fabric runtime is in the right state.
             runtime = runtimeManager.get('local_fabric');
@@ -107,6 +109,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
             }
             localFabricItem.should.not.be.null;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         afterEach(async () => {
@@ -119,6 +122,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             allChildren.length.should.equal(1);
             allChildren[0].label.should.equal('Local fabric runtime is stopped. Click to start.');
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should connect to the ops view', async () => {
@@ -163,6 +167,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             orgsChildren.length.should.equal(1);
             orgsChildren[0].label.should.equal('Org1MSP');
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should allow you to start, connect to, open a terminal on and stop the local Fabric in non-development mode', async () => {
@@ -195,7 +200,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
-
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should allow you to start, connect to, and stop the local Fabric in development mode', async () => {
@@ -227,7 +232,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
-
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should allow you to restart the local Fabric in non-development mode', async () => {
@@ -270,7 +275,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
-
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should persist local Fabric data across restarts until the local Fabric is torn down', async () => {
@@ -349,6 +354,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             // should just be the one to click to instantiate
             instantiatedChaincodesItems.length.should.equal(1);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         ['Go', 'Java'].forEach((language: string) => {
@@ -417,7 +423,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
                 installedSmartContract.should.not.be.null;
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             }).timeout(0);
         });
     });
@@ -430,7 +436,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             integrationTestUtil = new IntegrationTestUtil(mySandBox);
 
             showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
         afterEach(async () => {
@@ -456,6 +462,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const otherChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<GatewayIdentityTreeItem>;
             otherChildren.length.should.equal(1);
             otherChildren[0].label.should.equal('greenConga');
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         it('should connect to a real fabric', async () => {
@@ -483,6 +490,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             showConfirmationWarningMessageStub.resolves(true);
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, myGatewayItem);
             integrationTestUtil.gatewayRegistry.exists('myGateway').should.be.false;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
     });
 });

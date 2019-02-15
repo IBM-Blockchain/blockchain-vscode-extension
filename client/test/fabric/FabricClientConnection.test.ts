@@ -16,13 +16,14 @@ import { FabricClientConnection } from '../../src/fabric/FabricClientConnection'
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import * as fabricClient from 'fabric-client';
 import * as path from 'path';
-import * as vscode from 'vscode';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Gateway } from 'fabric-network';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -35,7 +36,7 @@ describe('FabricClientConnection', () => {
     let fabricClientConnectionYaml: FabricClientConnection;
     let otherFabricClientConnectionYml: FabricClientConnection;
     let fabricClientConnectionWrong: FabricClientConnection;
-    let errorSpy: sinon.SinonSpy;
+    let logSpy: sinon.SinonSpy;
     let wallet: FabricWallet;
 
     let mySandBox: sinon.SinonSandbox;
@@ -46,7 +47,7 @@ describe('FabricClientConnection', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         fabricClientStub = mySandBox.createStubInstance(fabricClient);
 
@@ -78,7 +79,7 @@ describe('FabricClientConnection', () => {
         it('should connect to a fabric', async () => {
             await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
             gatewayStub.connect.should.have.been.called;
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
@@ -86,7 +87,7 @@ describe('FabricClientConnection', () => {
             should.exist(FabricConnectionFactory['clientConnection']);
             await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
             gatewayStub.connect.should.have.been.called;
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnection['networkIdProperty'].should.equal(false);
         });
 
@@ -103,7 +104,7 @@ describe('FabricClientConnection', () => {
 
         await fabricClientConnectionYaml.connect(wallet, 'Admin@org1.example.com');
         gatewayStub.connect.should.have.been.called;
-        errorSpy.should.not.have.been.called;
+        logSpy.should.not.have.been.calledWith(LogType.ERROR);
         fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
     });
 
@@ -118,7 +119,7 @@ describe('FabricClientConnection', () => {
 
         await otherFabricClientConnectionYml.connect(wallet, 'Admin@org1.example.com');
         gatewayStub.connect.should.have.been.called;
-        errorSpy.should.not.have.been.called;
+        logSpy.should.not.have.been.calledWith(LogType.ERROR);
         fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
     });
 
@@ -135,7 +136,7 @@ describe('FabricClientConnection', () => {
         await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
 
         gatewayStub.connect.should.have.been.called;
-        errorSpy.should.not.have.been.called;
+        logSpy.should.not.have.been.calledWith(LogType.ERROR);
         fabricClientConnection['networkIdProperty'].should.equal(true);
     });
 
