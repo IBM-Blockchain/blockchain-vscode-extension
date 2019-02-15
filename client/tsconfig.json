@@ -10,7 +10,8 @@
 		"rootDir": ".",
 		"outDir": "out",
 		"lib": [ "es2016" ],
-		"sourceMap": true
+		"sourceMap": true,
+		"resolveJsonModule": true
 	},
 	"exclude": [
 		"node_modules",

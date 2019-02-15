@@ -53,6 +53,8 @@ describe('Extension Tests', () => {
     });
 
     beforeEach(async () => {
+        const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
         mySandBox = sinon.createSandbox();
         if (runtimeManager.exists('local_fabric')) {
             await runtimeManager.delete('local_fabric');
@@ -61,6 +63,8 @@ describe('Extension Tests', () => {
     });
 
     afterEach(async () => {
+        const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
         mySandBox.restore();
         if (runtimeManager.exists('local_fabric')) {
             await runtimeManager.delete('local_fabric');
@@ -318,7 +322,7 @@ describe('Extension Tests', () => {
         executeCommand.should.not.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
     });
 
-    it('should open home page if disabled in settings', async () => {
+    it('should open home page if enabled in settings on first activation', async () => {
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
 
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
@@ -328,6 +332,24 @@ describe('Extension Tests', () => {
         await myExtension.activate(context);
 
         executeCommand.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+    });
+
+    it('should not open home page if enabled in settings on second activation', async () => {
+        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
+
+        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        await myExtension.activate(context);
+
+        executeCommand.should.have.been.calledWith(ExtensionCommands.OPEN_HOME_PAGE);
+
+        executeCommand.resetHistory();
+
+        await myExtension.activate(context);
+
+        executeCommand.should.not.have.been.called;
     });
 
     it('should register and show sample page', async () => {

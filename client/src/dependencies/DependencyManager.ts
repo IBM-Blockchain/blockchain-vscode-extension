@@ -39,8 +39,8 @@ export class DependencyManager {
 
     }
 
-    public hasNativeDependenciesInstalled(): boolean {
-        const packageJSON: any = ExtensionUtil.getPackageJSON();
+    public async hasNativeDependenciesInstalled(): Promise<boolean> {
+        const packageJSON: any = await this.getRawPackageJson();
         return packageJSON.activationEvents.length > 1;
     }
 

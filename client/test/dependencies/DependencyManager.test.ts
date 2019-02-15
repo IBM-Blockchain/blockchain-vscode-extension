@@ -15,6 +15,7 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -26,6 +27,7 @@ import { TestUtil } from '../TestUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
+chai.use(chaiAsPromised);
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -47,20 +49,20 @@ describe('DependencyManager Tests', () => {
             mySandBox.restore();
         });
 
-        it('should return true if the dependencies are installed', () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({activationEvents: ['myActivationOne', 'myActivationTwo']});
+        it('should return true if the dependencies are installed', async () => {
+            mySandBox.stub(fs, 'readFile').resolves(JSON.stringify({activationEvents: ['myActivationOne', 'myActivationTwo']}));
 
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
-            dependencyManager.hasNativeDependenciesInstalled().should.equal(true);
+            await dependencyManager.hasNativeDependenciesInstalled().should.eventually.equal(true);
         });
 
-        it('should return false if the dependencies are not installed', () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({activationEvents: ['*']});
+        it('should return false if the dependencies are not installed', async () => {
+            mySandBox.stub(fs, 'readFile').resolves(JSON.stringify({activationEvents: ['*']}));
 
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
-            dependencyManager.hasNativeDependenciesInstalled().should.equal(false);
+            await dependencyManager.hasNativeDependenciesInstalled().should.eventually.equal(false);
         });
     });
 
