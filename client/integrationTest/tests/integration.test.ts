@@ -95,7 +95,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // Ensure that the Fabric runtime is in the right state.
-            runtime = runtimeManager.get('local_fabric');
+            runtime = runtimeManager.getRuntime();
 
             let isRunning: boolean = await runtime.isRunning();
             if (isRunning) {

@@ -22,7 +22,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

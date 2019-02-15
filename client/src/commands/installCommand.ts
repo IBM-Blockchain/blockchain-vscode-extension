@@ -33,13 +33,16 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
         peerNames = new Set([treeItem.peerName]);
     } else {
         // Called from command, or runtimes installed tree
-        const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+        const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
         if (!isRunning) {
             // Start local_fabric to connect
             await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
+                // Start local_fabric failed so return
+                return;
+            }
         }
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        const chosenPeerName: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer to install the smart contract on', connection);
+        const chosenPeerName: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer to install the smart contract on');
         if (!chosenPeerName) {
             return;
         }
@@ -67,7 +70,6 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
 
         }
 
-        // const fabricClientConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
 
         const promises: Promise<string | void>[] = [];

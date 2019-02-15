@@ -25,7 +25,7 @@ chai.should();
 // tslint:disable no-unused-expression
 describe('FabricRegistry', () => {
 
-    const testFabricRegistryName: string = 'fabric.runtimes';
+    const testFabricRegistryName: string = 'fabric.gateways';
 
     // tslint:disable max-classes-per-file
     class TestFabricRegistryEntry extends FabricRegistryEntry {
@@ -42,12 +42,10 @@ describe('FabricRegistry', () => {
     }
     before(async () => {
         await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
     });
 
     let registry: TestFabricRegistry;
@@ -56,7 +54,6 @@ describe('FabricRegistry', () => {
         await ExtensionUtil.activateExtension();
         registry = new TestFabricRegistry();
         await vscode.workspace.getConfiguration().update(testFabricRegistryName, [], vscode.ConfigurationTarget.Global);
-        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
     });
 
     describe('#getAll', () => {
@@ -88,7 +85,7 @@ describe('FabricRegistry', () => {
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
             ((): any => {
                 registry.get('foo0');
-            }).should.throw(/Entry "foo0" in Fabric registry "fabric.runtimes" does not exist/);
+            }).should.throw(`Entry "foo0" in Fabric registry "${testFabricRegistryName}" does not exist`);
         });
 
     });
@@ -114,7 +111,7 @@ describe('FabricRegistry', () => {
         it('should throw if an entry does exist in the configuration', async () => {
             const testEntries: TestFabricRegistryEntry[] = [{ name: 'foo1', myValue: 'value1' }, { name: 'foo2', myValue: 'value2' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            await registry.add(testEntries[0]).should.be.rejectedWith(/Entry "foo1" in Fabric registry "fabric.runtimes" already exists/);
+            await registry.add(testEntries[0]).should.be.rejectedWith(`Entry "foo1" in Fabric registry "${testFabricRegistryName}" already exists`);
         });
 
         it('should add an entry if the entry does not exist in the configuration', async () => {
@@ -133,7 +130,7 @@ describe('FabricRegistry', () => {
             const testEntries: TestFabricRegistryEntry[] = [{ name: 'foo1', myValue: 'value1' }, { name: 'foo2', myValue: 'value2' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
             const newEntry: TestFabricRegistryEntry = { name: 'foo0', myValue: 'value0' };
-            await registry.update(newEntry).should.be.rejectedWith(/Entry "foo0" in Fabric registry "fabric.runtimes" does not exist/);
+            await registry.update(newEntry).should.be.rejectedWith(`Entry "foo0" in Fabric registry "${testFabricRegistryName}" does not exist`);
         });
 
         it('should update an entry if the entry exists in the configuration', async () => {
@@ -151,7 +148,7 @@ describe('FabricRegistry', () => {
         it('should throw if an entry does not exist in the configuration', async () => {
             const testEntries: TestFabricRegistryEntry[] = [{ name: 'foo1', myValue: 'value1' }, { name: 'foo2', myValue: 'value2' }];
             await vscode.workspace.getConfiguration().update(testFabricRegistryName, testEntries, vscode.ConfigurationTarget.Global);
-            await registry.delete('foo0').should.be.rejectedWith(/Entry "foo0" in Fabric registry "fabric.runtimes" does not exist/);
+            await registry.delete('foo0').should.be.rejectedWith(`Entry "foo0" in Fabric registry "${testFabricRegistryName}" does not exist`);
         });
 
         it('should delete an entry if the entry exists in the configuration', async () => {

@@ -17,8 +17,6 @@ import { Container, Volume } from 'dockerode';
 import ContainerImpl = require('dockerode/lib/container');
 import VolumeImpl = require('dockerode/lib/volume');
 import * as child_process from 'child_process';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
-import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
 
 import * as chai from 'chai';
@@ -41,10 +39,8 @@ describe('FabricRuntime', () => {
 
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const rootPath: string = path.dirname(__dirname);
 
-    let runtimeRegistryEntry: FabricRuntimeRegistryEntry;
     let runtime: FabricRuntime;
     let sandbox: sinon.SinonSandbox;
     let mockPeerContainer: sinon.SinonStubbedInstance<Container>;
@@ -110,11 +106,8 @@ describe('FabricRuntime', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        await runtimeRegistry.clear();
-        runtimeRegistryEntry = new FabricRuntimeRegistryEntry();
-        runtimeRegistryEntry.name = 'runtime1';
-        runtimeRegistryEntry.developmentMode = false;
-        runtimeRegistryEntry.ports = {
+        runtime = new FabricRuntime();
+        runtime.ports = {
             orderer: 12347,
             peerRequest: 12345,
             peerChaincode: 54321,
@@ -123,8 +116,7 @@ describe('FabricRuntime', () => {
             couchDB: 12349,
             logs: 12387
         };
-        await runtimeRegistry.add(runtimeRegistryEntry);
-        runtime = new FabricRuntime(runtimeRegistryEntry);
+        runtime.developmentMode = false;
         sandbox = sinon.createSandbox();
 
         const docker: Dockerode = (runtime as any).docker['docker'];
@@ -192,22 +184,22 @@ describe('FabricRuntime', () => {
         };
         mockLogsContainer.inspect.resolves(mockLogsInspect);
         const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
-        getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_logs').returns(mockLogsContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_peer0.org1.example.com').returns(mockPeerContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_orderer.example.com').returns(mockOrdererContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_ca.example.com').returns(mockCAContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_couchdb').returns(mockCouchContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsContainer);
         mockPeerVolume = sinon.createStubInstance(VolumeImpl);
         mockOrdererVolume = sinon.createStubInstance(VolumeImpl);
         mockCAVolume = sinon.createStubInstance(VolumeImpl);
         mockCouchVolume = sinon.createStubInstance(VolumeImpl);
         mockLogsVolume = sinon.createStubInstance(VolumeImpl);
         const getVolumeStub: sinon.SinonStub = sandbox.stub(docker, 'getVolume');
-        getVolumeStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_logs').returns(mockLogsVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_peer0.org1.example.com').returns(mockPeerVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_orderer.example.com').returns(mockOrdererVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_ca.example.com').returns(mockCAVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_couchdb').returns(mockCouchVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsVolume);
 
         runtimeDir = path.join(rootPath, '..', 'data');
         getDirPathStub = sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
@@ -218,14 +210,13 @@ describe('FabricRuntime', () => {
     });
 
     afterEach(async () => {
-        await runtimeRegistry.clear();
         sandbox.restore();
     });
 
     describe('#getName', () => {
 
         it('should return the name of the runtime', () => {
-            runtime.getName().should.equal('runtime1');
+            runtime.getName().should.equal('local_fabric');
         });
     });
 
@@ -293,7 +284,7 @@ describe('FabricRuntime', () => {
 
             it(`should execute the ${verb}.sh script and handle success for development mode (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
-                runtimeRegistryEntry.developmentMode = true;
+                runtime.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                 spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
@@ -409,7 +400,7 @@ describe('FabricRuntime', () => {
 
             it(`should execute the ${verb}.cmd script and handle success for development mode (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
-                runtimeRegistryEntry.developmentMode = true;
+                runtime.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                 spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
@@ -822,7 +813,7 @@ describe('FabricRuntime', () => {
 
         it('should get the runtime connection profile path', async () => {
             const connectionPath: string = await runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'runtime1', 'connection.json'));
+            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'local_fabric', 'connection.json'));
         });
 
     });
@@ -929,12 +920,12 @@ describe('FabricRuntime', () => {
     describe('#isDevelopmentMode', () => {
 
         it('should return false if the runtime is in development mode', () => {
-            runtimeRegistryEntry.developmentMode = false;
+            runtime.developmentMode = false;
             runtime.isDevelopmentMode().should.be.false;
         });
 
         it('should return true if the runtime is in development mode', () => {
-            runtimeRegistryEntry.developmentMode = true;
+            runtime.developmentMode = true;
             runtime.isDevelopmentMode().should.be.true;
         });
     });
@@ -942,14 +933,12 @@ describe('FabricRuntime', () => {
     describe('#setDevelopmentMode', () => {
         it('should set the runtime development mode to false', async () => {
             await runtime.setDevelopmentMode(false);
-            const updatedRuntimeRegistryEntry: FabricRuntimeRegistryEntry = await runtimeRegistry.get('runtime1');
-            updatedRuntimeRegistryEntry.developmentMode.should.be.false;
+            runtime.developmentMode.should.be.false;
         });
 
         it('should set the runtime development mode to true', async () => {
             await runtime.setDevelopmentMode(true);
-            const updatedRuntimeRegistryEntry: FabricRuntimeRegistryEntry = await runtimeRegistry.get('runtime1');
-            updatedRuntimeRegistryEntry.developmentMode.should.be.true;
+            runtime.developmentMode.should.be.true;
         });
     });
 
@@ -970,14 +959,14 @@ describe('FabricRuntime', () => {
     describe('#getPeerContainerName', () => {
         it('should get the chaincode address', () => {
             const result: string = runtime.getPeerContainerName();
-            result.should.equal('fabricvscoderuntime1_peer0.org1.example.com');
+            result.should.equal('fabricvscodelocalfabric_peer0.org1.example.com');
         });
     });
 
     describe('#exportConnectionDetails', () => {
 
         beforeEach(async () => {
-            connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
@@ -991,7 +980,7 @@ describe('FabricRuntime', () => {
 
         it('should save runtime connection details to a specified place', async () => {
             runtimeDir = 'myPath';
-            connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
 
             await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
@@ -1006,7 +995,7 @@ describe('FabricRuntime', () => {
             await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
             ensureFileStub.should.have.been.calledOnce;
             writeFileStub.should.have.been.calledOnce;
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
         });
     });
 
@@ -1014,7 +1003,7 @@ describe('FabricRuntime', () => {
 
         beforeEach(async () => {
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            runtimeDetailsDir = path.join(runtimeDir, 'runtime1');
+            runtimeDetailsDir = path.join(runtimeDir, 'local_fabric');
 
         });
 

@@ -108,10 +108,10 @@
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
                 },
-                "fabric.runtimes": {
-                    "type": "array",
-                    "default": [],
-                    "description": "Configurations for managed Blockchain network runtimes"
+                "fabric.runtime": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Configurations for the local Blockchain managed runtime"
                 },
                 "blockchain.ext.directory": {
                     "type": "string",

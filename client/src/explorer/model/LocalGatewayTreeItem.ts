@@ -39,7 +39,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        this.runtime = runtimeManager.get(label);
+        this.runtime = runtimeManager.getRuntime();
         this.name = this.runtime.getName();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();

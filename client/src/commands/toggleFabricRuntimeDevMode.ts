@@ -23,7 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 export async function toggleFabricRuntimeDevMode(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     const oldDevelopmentMode: boolean = runtime.isDevelopmentMode();
     const newDevelopmentMode: boolean = !oldDevelopmentMode;

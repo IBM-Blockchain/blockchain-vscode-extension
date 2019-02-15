@@ -15,7 +15,6 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { ConnectionTreeItem } from '../model/ConnectionTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
@@ -23,8 +22,9 @@ import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEn
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
+import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 
-export class RuntimeTreeItem extends ConnectionTreeItem {
+export class RuntimeTreeItem extends BlockchainTreeItem {
 
     static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
         const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState);
@@ -40,9 +40,9 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
     private busyTicks: number = 0;
 
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
-        super(provider, label, connection, collapsableState, command);
+        super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        this.runtime = runtimeManager.get(label);
+        this.runtime = runtimeManager.getRuntime();
         this.name = this.runtime.getName();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();

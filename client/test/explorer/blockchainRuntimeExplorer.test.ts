@@ -85,8 +85,8 @@ describe('BlockchainRuntimeExplorer', () => {
                 getConnectionStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getConnection');
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-                runtime = await FabricRuntimeManager.instance().get('local_fabric');
-                isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+                runtime = await FabricRuntimeManager.instance().getRuntime();
+                isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
                 await ExtensionUtil.activateExtension();
             });
 
@@ -112,6 +112,15 @@ describe('BlockchainRuntimeExplorer', () => {
 
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects({ message: 'some error' });
+
+                const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+                await blockchainRuntimeExplorerProvider.getChildren();
+
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error');
+            });
+
+            it('should handle errors populating the tree ', async () => {
+                isRunningStub.rejects({ message: 'some error' });
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 await blockchainRuntimeExplorerProvider.getChildren();
@@ -187,7 +196,7 @@ describe('BlockchainRuntimeExplorer', () => {
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
 
-                mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isDevelopmentMode').returns(false);
+                mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isDevelopmentMode').returns(false);
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();
@@ -241,7 +250,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
-                mySandBox.stub(fabricRuntimeManager.get('local_fabric'), 'isRunning').resolves(true);
+                mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
                 const getTransactionNamesStub: sinon.SinonStub = mySandBox.stub(MetadataUtil, 'getTransactionNames');
@@ -562,7 +571,7 @@ describe('BlockchainRuntimeExplorer', () => {
         });
 
         it('should get a tree item', async () => {
-            mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+            mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
             const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();
 

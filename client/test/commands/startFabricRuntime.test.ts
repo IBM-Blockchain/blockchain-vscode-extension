@@ -15,8 +15,9 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -36,8 +37,8 @@ describe('startFabricRuntime', () => {
 
     let sandbox: sinon.SinonSandbox;
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    const rootPath: string = path.dirname(__dirname);
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
     let commandSpy: sinon.SinonSpy;
@@ -58,11 +59,16 @@ describe('startFabricRuntime', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
-        await runtimeManager.add('local_fabric');
-        runtime = runtimeManager.get('local_fabric');
-        sandbox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+        await runtimeManager.add();
+        runtime = runtimeManager.getRuntime();
+        sandbox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
+
+        sandbox.stub(runtime, 'getConnectionProfile').resolves();
+        sandbox.stub(runtime, 'getCertificate').resolves();
+        sandbox.stub(runtime, 'getPrivateKey').resolves();
+        const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+        sandbox.stub(testFabricWallet, 'importIdentity').resolves();
+        sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
         getConnectionStub = sandbox.stub(FabricRuntimeManager.instance(), 'getConnection').resolves();
 
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
@@ -74,8 +80,6 @@ describe('startFabricRuntime', () => {
     afterEach(async () => {
         sandbox.restore();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
     });
 
     it('should start a Fabric runtime specified by clicking the tree', async () => {

@@ -24,8 +24,7 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { RuntimeTreeItem } from './runtimeOps/RuntimeTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
-import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
+import { FabricRuntime } from '../fabric/FabricRuntime';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
@@ -56,10 +55,8 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
-    private runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
-
     constructor() {
-        FabricRuntimeManager.instance().get('local_fabric').on('busy', () => {
+        FabricRuntimeManager.instance().getRuntime().on('busy', () => {
             // tslint:disable-next-line: no-floating-promises
             this.refresh();
         });
@@ -80,8 +77,8 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
         try {
 
-            const isBusy: boolean = FabricRuntimeManager.instance().get('local_fabric').isBusy();
-            const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+            const isBusy: boolean = FabricRuntimeManager.instance().getRuntime().isBusy();
+            const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
             if (isRunning) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-started', true);
             } else {
@@ -130,22 +127,26 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
         const tree: BlockchainTreeItem[] = [];
 
-        const runtimeRegistryEntry: FabricRuntimeRegistryEntry = this.runtimeRegistryManager.get('local_fabric');
+        const runtime: FabricRuntime = await FabricRuntimeManager.instance().getRuntime();
 
-        const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-        connection.name = runtimeRegistryEntry.name;
-        connection.managedRuntime = true;
+        try {
+            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            connection.name = runtime.getName();
+            connection.managedRuntime = true;
 
-        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-            runtimeRegistryEntry.name,
-            connection,
-            vscode.TreeItemCollapsibleState.None,
-            {
-                command: 'blockchainARuntimeExplorer.startFabricRuntime',
-                title: '',
-                arguments: []
-            });
-        tree.push(treeItem);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+                runtime.getName(),
+                connection,
+                vscode.TreeItemCollapsibleState.None,
+                {
+                    command: 'blockchainARuntimeExplorer.startFabricRuntime',
+                    title: '',
+                    arguments: []
+                });
+            tree.push(treeItem);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating Local Fabric Control Panel: ${error.message}`, `Error populating Local Fabric Control Panel: ${error.toString()}`);
+        }
 
         return tree;
     }

@@ -187,13 +187,18 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            executeCommandSpy.callCount.should.equal(8);
+            executeCommandSpy.callCount.should.equal(14);
 
             let calledWithValue: string;
-            for (let x: number = 0; x < 8; x++) {
-                if (x % 4 === 0) {
+            for (let x: number = 0; x < 7; x++) {
+                if (x % 7 === 0) {
+                    // Call 0, 7
                     calledWithValue = ExtensionCommands.ADD_GATEWAY;
+                } else if (x > 0 && x % 2 === 0) {
+                    // Call 2, 4, 6
+                    calledWithValue = ExtensionCommands.REFRESH_LOCAL_OPS;
                 } else {
+                    // Call 1, 3, 5
                     calledWithValue = ExtensionCommands.REFRESH_GATEWAYS;
                 }
                 executeCommandSpy.getCall(x).should.have.been.calledWith(calledWithValue);
@@ -255,8 +260,10 @@ describe('AddGatewayCommand', () => {
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
 
-            executeCommandSpy.callCount.should.equal(2);
+            executeCommandSpy.callCount.should.equal(3);
             executeCommandSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.ADD_GATEWAY);
+            executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandSpy.getCall(2).should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
 
         });
 

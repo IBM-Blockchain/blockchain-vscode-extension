@@ -21,7 +21,7 @@ import { LogType } from '../logging/OutputAdapter';
 export async function restartFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'restartFabricRuntime');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,

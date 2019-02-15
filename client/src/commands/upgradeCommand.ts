@@ -47,20 +47,22 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         peers = new Set(treeItem.peers);
 
         // We should now ask for the instantiated smart contract to upgrade
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName, connection);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
 
     } else {
         // called on '+ Instantiate' or via the command palette
-        const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+        const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
         if (!isRunning) {
             // Start local_fabric to connect
             await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
+                // Start local_fabric failed so return
+                return;
+            }
         }
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on', connection);
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to upgrade the smart contract on');
         if (!chosenChannel) {
             return;
         }
@@ -68,7 +70,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         peers = chosenChannel.data;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName, connection);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
     }
