@@ -318,55 +318,6 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async browseEdit(placeHolder: string, connectionName: string, canSelectFolders?: boolean, filters?: any): Promise<string> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
-        const options: string[] = [this.BROWSE_LABEL, this.EDIT_LABEL];
-        if (placeHolder.includes('certificate') || placeHolder.includes('private key')) {
-            options.pop();
-        }
-        try {
-            const result: string = await vscode.window.showQuickPick(options, { placeHolder });
-            if (!result) {
-                return;
-            } else if (result === this.BROWSE_LABEL) {
-                // Browse file and get path
-                // work around for #135
-                await UserInputUtil.delayWorkaround(500);
-
-                // Handle selecting folders
-                let canSelectFiles: boolean = true;
-                if (canSelectFolders) {
-                    canSelectFiles = false;
-                } else {
-                    canSelectFolders = false;
-                }
-                const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog({
-                    canSelectFiles: canSelectFiles,
-                    canSelectFolders: canSelectFolders,
-                    canSelectMany: false,
-                    openLabel: 'Select',
-                    filters: filters
-                });
-
-                if (!fileBrowser) {
-                    return;
-                }
-
-                return fileBrowser[0].fsPath;
-
-            } else {
-
-                // Edit in user settings
-                await this.openUserSettings(connectionName);
-
-            }
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, error.message, error.toString());
-        }
-
-    }
-
     public static async openUserSettings(gatewayName: string): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
@@ -631,6 +582,47 @@ export class UserInputUtil {
 
         return vscode.window.showQuickPick(addIdentityOptions, quickPickOptions);
 
+    }
+
+    public static async browseEdit(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, connectionName?: string, returnUri?: boolean): Promise<string | vscode.Uri> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+        if (quickPickItems.includes(this.BROWSE_LABEL) && quickPickItems.includes(this.EDIT_LABEL)) {
+            if (placeHolder.includes('certificate') || placeHolder.includes('private key')) {
+                quickPickItems.pop();
+            }
+        }
+
+        try {
+            const result: string = await vscode.window.showQuickPick(quickPickItems, { placeHolder });
+            if (!result) {
+                return;
+            } else if (result === this.BROWSE_LABEL) {
+                // Browse file and get path
+                // work around for #135
+                await UserInputUtil.delayWorkaround(500);
+
+                const fileBrowser: vscode.Uri[] = await vscode.window.showOpenDialog(openDialogOptions);
+
+                if (!fileBrowser) {
+                    return;
+                }
+
+                if (returnUri) {
+                    return fileBrowser[0];
+                } else {
+                    return fileBrowser[0].fsPath;
+                }
+
+            } else { // result === this.EDIT_LABEL
+
+                // Edit in user settings
+                await this.openUserSettings(connectionName);
+            }
+
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, error.message, error.toString());
+        }
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

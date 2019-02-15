@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+import * as vscode from 'vscode';
 import {UserInputUtil} from './UserInputUtil';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -46,10 +47,19 @@ export async function addGateway(): Promise<{} | void> {
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         await fabricGatewayRegistry.add(fabricGatewayEntry);
 
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+        const openDialogOptions: vscode.OpenDialogOptions = {
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: 'Select',
+            filters: {
+                'Connection Profiles' : ['json', 'yaml', 'yml']
+            }
+        };
+
         // Get the connection profile json file path
-        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', connectionName, false, {
-            'Connection Profiles' : ['json', 'yaml', 'yml']
-        });
+        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, connectionName) as string;
         if (!connectionProfilePath) {
             return Promise.resolve();
         }
@@ -71,8 +81,11 @@ export async function addGateway(): Promise<{} | void> {
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
 
         } else {
+
+            openDialogOptions.filters = undefined;
+
             // User has a wallet - get the path
-            const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', connectionName, true);
+            const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, connectionName) as string;
             if (!walletPath) {
                 return Promise.resolve();
             }
@@ -98,15 +111,24 @@ async function getIdentity(connectionName: string): Promise<any> {
         return Promise.resolve();
     }
 
+    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    const openDialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: 'Select',
+        filters: undefined
+    };
+
     // Get the certificate file path
-    result.certificatePath = await UserInputUtil.browseEdit('Browse for a certificate file', connectionName);
+    result.certificatePath = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, connectionName);
     if (!result.certificatePath) {
         return Promise.resolve();
     }
     ParsedCertificate.validPEM(result.certificatePath, 'certificate');
 
     // Get the private key file path
-    result.privateKeyPath = await UserInputUtil.browseEdit('Browse for a private key file', connectionName);
+    result.privateKeyPath = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, connectionName);
     if (!result.privateKeyPath) {
         return Promise.resolve();
     }

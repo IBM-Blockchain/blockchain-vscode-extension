@@ -140,13 +140,22 @@ async function getIdentity(connectionName: string): Promise<any> {
         return result;
     }
 
-    result.certificatePath = await UserInputUtil.browseEdit('Browse for a certificate file', connectionName);
+    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    const openDialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: 'Select',
+        filters: undefined
+    };
+
+    result.certificatePath = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, connectionName);
     if (!result.certificatePath) {
         return result;
     }
     ParsedCertificate.validPEM(result.certificatePath, 'certificate');
 
-    result.privateKeyPath = await UserInputUtil.browseEdit('Browse for a private key file', connectionName);
+    result.privateKeyPath = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, connectionName);
     if (!result.privateKeyPath) {
         return result;
     }
@@ -185,10 +194,19 @@ async function getProperty(gateway: any): Promise<string> {
 
 async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeBlockchainOutputAdapter): Promise<void> {
 
+    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    const openDialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: 'Select',
+        filters: {
+            'Connection Profiles' : ['json', 'yaml', 'yml']
+        }
+    };
+
     // Ask for connection profile
-    const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
-        'Connection Profiles' : ['json', 'yaml', 'yml']
-    });
+    const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, gateway.name) as string;
     if (!result) {
         return;
     }
@@ -203,7 +221,12 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabric
             return;
         } else if (answer === UserInputUtil.WALLET) {
             // Ask for wallet
-            const walletResult: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', gateway.name, true);
+
+            openDialogOptions.filters = undefined;
+            openDialogOptions.canSelectFiles = false;
+            openDialogOptions.canSelectFolders = true;
+
+            const walletResult: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, gateway.name) as string;
             if (!walletResult) {
                 return;
             }
@@ -227,8 +250,17 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabric
 }
 
 async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegistry: FabricGatewayRegistry, outputAdapter: VSCodeBlockchainOutputAdapter): Promise<void> {
+    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    const openDialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: false,
+        canSelectFolders: true,
+        canSelectMany: false,
+        openLabel: 'Select',
+        filters: undefined
+    };
+
     // Ask for wallet
-    const result: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', gateway.name, true);
+    const result: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, gateway.name) as string;
     if (!result) {
         return;
     }
@@ -237,10 +269,14 @@ async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegi
     outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
     if (!FabricGatewayHelper.connectionProfilePathComplete(gateway) ) {
-        // Ask for Connection Profile
-        const ccpResult: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
+        openDialogOptions.canSelectFiles = true;
+        openDialogOptions.canSelectFolders = false;
+        openDialogOptions.filters = {
             'Connection Profiles' : ['json', 'yaml', 'yml']
-        });
+        };
+
+        // Ask for Connection Profile
+        const ccpResult: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, gateway.name) as string;
         if (!ccpResult) {
             return;
         }
@@ -259,10 +295,20 @@ async function editIdentity(gateway: FabricGatewayRegistryEntry, fabricGatewayRe
         return;
     }
     if (!FabricGatewayHelper.connectionProfilePathComplete(gateway) ) {
+
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+        const openDialogOptions: vscode.OpenDialogOptions = {
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: 'Select',
+            filters: {
+                'Connection Profiles' : ['json', 'yaml', 'yml']
+            }
+        };
+
         // Ask for Connection Profile
-        const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', gateway.name, false, {
-            'Connection Profiles' : ['json', 'yaml', 'yml']
-        });
+        const result: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, gateway.name) as string;
         if (!result) {
             // Connection Profile is needed to import identity so throw error if not given
             throw new Error('Connection Profile required to import identity to file system wallet');
