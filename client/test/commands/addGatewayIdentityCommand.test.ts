@@ -26,7 +26,7 @@ import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -201,7 +201,7 @@ describe('AddGatewayIdentityCommand', () => {
 
         it('should show an error if connection is not complete', async () => {
             HelperStub.returns(false);
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({
                 label: 'myGateway',
                 data: {

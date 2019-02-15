@@ -23,7 +23,7 @@ import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { Package } from 'fabric-client';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
@@ -155,7 +155,7 @@ describe('packageSmartContract', () => {
             { name: 'javaProject', uri: vscode.Uri.file(javaPath) }
         ];
 
-        logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');

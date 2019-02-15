@@ -20,7 +20,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import { TemporaryCommandRegistry } from './TemporaryCommandRegistry';
 import { LogType } from '../logging/OutputAdapter';
@@ -45,7 +45,7 @@ export class DependencyManager {
     }
 
     public async installNativeDependencies(): Promise<void> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
         tempCommandRegistry.createTempCommands();
@@ -97,7 +97,7 @@ export class DependencyManager {
             cancellable: false
         }, async (progress: vscode.Progress<{message: string}>) => {
 
-            const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
             outputAdapter.log(LogType.INFO, undefined, 'Updating native node modules');
             progress.report({message: 'Updating native node modules'});

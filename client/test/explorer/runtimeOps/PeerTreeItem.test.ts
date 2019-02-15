@@ -21,7 +21,7 @@ import { FabricRuntime } from '../../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
-import { VSCodeOutputAdapter } from '../../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../src/logging/OutputAdapter';
 
 import * as chai from 'chai';
@@ -89,7 +89,7 @@ describe('PeerTreeItem', () => {
         });
 
         it('should display an error if it fails to update the properties', async () => {
-            const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             sandbox.stub(runtime, 'isDevelopmentMode').onCall(0).throws({message: 'some error'});
 
             const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, false);

@@ -21,6 +21,14 @@ export enum LogType {
     WARNING = 'WARNING'
 }
 
-export interface OutputAdapter {
-    log(type: LogType, popupMessage: string, outputMessage?: string,  skipNextLine?: boolean): void;
+export abstract class OutputAdapter {
+    public log(type: LogType, popupMessage: string, outputMessage?: string, skipNextLine?: boolean): void {
+        if (type === LogType.ERROR) {
+            console.error(popupMessage);
+            console.error(outputMessage);
+        } else {
+            console.log(popupMessage);
+            console.log(outputMessage);
+        }
+    }
 }

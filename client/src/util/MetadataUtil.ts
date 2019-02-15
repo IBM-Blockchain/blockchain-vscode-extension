@@ -13,8 +13,7 @@
 */
 'use strict';
 import {IFabricConnection} from '../fabric/IFabricConnection';
-import * as vscode from 'vscode';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 
 // Functions for parsing metadata object
@@ -47,7 +46,7 @@ export class MetadataUtil {
     }
 
     public static async getTransactions(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]>> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let metadataObj: any = {
             contracts: {

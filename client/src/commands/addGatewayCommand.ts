@@ -15,7 +15,7 @@
 import {UserInputUtil} from './UserInputUtil';
 
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
@@ -27,7 +27,7 @@ import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 
 export async function addGateway(): Promise<{} | void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'addGateway');
 

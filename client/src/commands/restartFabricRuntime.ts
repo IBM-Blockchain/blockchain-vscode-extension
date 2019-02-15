@@ -13,13 +13,13 @@
 */
 
 import * as vscode from 'vscode';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 
 export async function restartFabricRuntime(): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'restartFabricRuntime');
     const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 

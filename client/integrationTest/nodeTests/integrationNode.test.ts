@@ -22,7 +22,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { TestUtil } from '../../test/TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -34,8 +34,6 @@ import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
-import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
-import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -62,7 +60,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeExtensionDirectoryConfig();
 
-        VSCodeOutputAdapter.instance().setConsole(true);
+        VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
 
@@ -77,7 +75,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
     after(async () => {
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
-        VSCodeOutputAdapter.instance().setConsole(false);
+        VSCodeBlockchainOutputAdapter.instance().setConsole(false);
         await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreExtensionDirectoryConfig();

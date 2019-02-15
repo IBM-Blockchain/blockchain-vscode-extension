@@ -18,7 +18,7 @@ import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
-import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 
 export class PeerTreeItem extends BlockchainTreeItem {
@@ -52,7 +52,7 @@ export class PeerTreeItem extends BlockchainTreeItem {
     }
 
     private safelyUpdateProperties(): void {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         this.updateProperties().catch((error: Error) => {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());

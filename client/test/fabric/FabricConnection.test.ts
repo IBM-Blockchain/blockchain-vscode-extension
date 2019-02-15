@@ -21,7 +21,7 @@ import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
 import { Gateway, Wallet, FileSystemWallet } from 'fabric-network';
 import { Channel, Peer } from 'fabric-client';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType, OutputAdapter } from '../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
@@ -145,7 +145,7 @@ describe('FabricConnection', () => {
         fabricGatewayStub.disconnect.returns(null);
 
         fabricConnection['gateway'] = fabricGatewayStub;
-        fabricConnection['outputAdapter'] = VSCodeOutputAdapter.instance();
+        fabricConnection['outputAdapter'] = VSCodeBlockchainOutputAdapter.instance();
 
         await fabricConnection.connect(mockWallet, mockIdentityName);
     });
@@ -156,7 +156,7 @@ describe('FabricConnection', () => {
 
     describe('constructor', () => {
         it('should set output adapter', async () => {
-            const adapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const adapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             const connectionProfile: any  = {
                 orderers: {
                     'orderer.example.com': {
@@ -635,7 +635,7 @@ describe('FabricConnection', () => {
         });
 
         it('should throw an error instantiating if contract is already instantiated', async () => {
-            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             const logSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
             getChanincodesStub.withArgs('myChannel').resolves([{ name: 'myChaincode' }]);
             await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The name of the contract you tried to instantiate is already instantiated');
@@ -747,7 +747,7 @@ describe('FabricConnection', () => {
         });
 
         it('should throw an error instantiating if no contract with the same name has been instantiated', async () => {
-            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
 
             await fabricConnection.upgradeChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The contract you tried to upgrade with has no previous versions instantiated');

@@ -21,6 +21,7 @@ import * as childProcessPromise from 'child-process-promise';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import * as request from 'request';
 
 const exec: any = childProcessPromise.exec;
 
@@ -28,7 +29,7 @@ export class CommandUtil {
 
     // Send shell command
     public static async sendCommand(command: string, cwd?: string): Promise<string> {
-        const result: childProcessPromise.childProcessPromise = await exec(command, { cwd: cwd });
+        const result: childProcessPromise.childProcessPromise = await exec(command, {cwd: cwd});
         return result.stdout.trim();
     }
 
@@ -38,7 +39,7 @@ export class CommandUtil {
             title: 'Blockchain Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{ message: string }>): Promise<string> => {
-            progress.report({ message });
+            progress.report({message});
             return this.sendCommand(command, cwd);
         });
     }
@@ -81,9 +82,21 @@ export class CommandUtil {
             title: 'Blockchain Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{ message: string }>): Promise<void> => {
-            progress.report({ message });
+            progress.report({message});
             await this.sendCommandWithOutput(command, args, cwd, env, outputAdapter, shell);
         });
     }
 
+    public static sendRequestWithOutput(url: string, outputAdapter?: OutputAdapter): void {
+        if (!outputAdapter) {
+            outputAdapter = ConsoleOutputAdapter.instance();
+        }
+        request.get(url)
+            .on('data', (response: request.Response) => {
+                outputAdapter.log(LogType.INFO, undefined, response.toString());
+            })
+            .on('error', (error: any) => {
+                outputAdapter.log(LogType.ERROR, undefined, error.toString());
+            });
+    }
 }

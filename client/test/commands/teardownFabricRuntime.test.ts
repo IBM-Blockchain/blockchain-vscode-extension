@@ -19,7 +19,7 @@ import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
@@ -77,7 +77,7 @@ describe('teardownFabricRuntime', () => {
         const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
         warningStub.should.have.been.calledOnce;
-        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
     });
 
     it('should handle cancel from confirmation message', async () => {

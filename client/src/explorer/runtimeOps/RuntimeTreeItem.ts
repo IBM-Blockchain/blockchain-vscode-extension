@@ -20,7 +20,7 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
-import { VSCodeOutputAdapter } from '../../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 
@@ -50,7 +50,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
     }
 
     private safelyUpdateProperties(): void {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         this.updateProperties().catch((error: Error) => {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());

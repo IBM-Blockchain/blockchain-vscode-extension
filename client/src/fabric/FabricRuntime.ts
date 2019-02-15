@@ -35,8 +35,8 @@ const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPa
 const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
 
 export enum FabricRuntimeState {
-    STARTING  = 'starting',
-    STOPPING  = 'stopping',
+    STARTING = 'starting',
+    STOPPING = 'stopping',
     RESTARTING = 'restarting',
 }
 
@@ -155,6 +155,7 @@ export class FabricRuntime extends EventEmitter {
             this.docker.doesVolumeExist(`${containerPrefix}_orderer.example.com`),
             this.docker.doesVolumeExist(`${containerPrefix}_ca.example.com`),
             this.docker.doesVolumeExist(`${containerPrefix}_couchdb`),
+            this.docker.doesVolumeExist(`${containerPrefix}_logs`)
         ]);
         return created.some((value: boolean) => value === true);
     }
@@ -165,7 +166,8 @@ export class FabricRuntime extends EventEmitter {
             this.docker.isContainerRunning(`${containerPrefix}_peer0.org1.example.com`),
             this.docker.isContainerRunning(`${containerPrefix}_orderer.example.com`),
             this.docker.isContainerRunning(`${containerPrefix}_ca.example.com`),
-            this.docker.isContainerRunning(`${containerPrefix}_couchdb`)
+            this.docker.isContainerRunning(`${containerPrefix}_couchdb`),
+            this.docker.isContainerRunning((`${containerPrefix}_logs`))
         ]);
         return !running.some((value: boolean) => value === false);
     }
@@ -184,6 +186,14 @@ export class FabricRuntime extends EventEmitter {
         const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${prefix}_peer0.org1.example.com`);
         const peerRequestHost: string = Docker.fixHost(peerPorts['7052/tcp'][0].HostIp);
         const peerRequestPort: string = peerPorts['7052/tcp'][0].HostPort;
+        return `${peerRequestHost}:${peerRequestPort}`;
+    }
+
+    public async getLogsAddress(): Promise<string> {
+        const prefix: string = this.docker.getContainerPrefix();
+        const logsPorts: ContainerPorts = await this.docker.getContainerPorts(`${prefix}_logs`);
+        const peerRequestHost: string = Docker.fixHost(logsPorts['80/tcp'][0].HostIp);
+        const peerRequestPort: string = logsPorts['80/tcp'][0].HostPort;
         return `${peerRequestHost}:${peerRequestPort}`;
     }
 
@@ -241,7 +251,11 @@ export class FabricRuntime extends EventEmitter {
                 return;
             }
         }
+    }
 
+    public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
+        const logsAddress: string = await this.getLogsAddress();
+        CommandUtil.sendRequestWithOutput(`http://${logsAddress}/logs`, outputAdapter);
     }
 
     private setBusy(busy: boolean): void {
@@ -249,7 +263,7 @@ export class FabricRuntime extends EventEmitter {
         this.emit('busy', busy);
     }
 
-    private setState( state: FabricRuntimeState): void {
+    private setState(state: FabricRuntimeState): void {
         this.state = state;
     }
 
@@ -281,6 +295,7 @@ export class FabricRuntime extends EventEmitter {
             PEER_CHAINCODE_PORT: this.runtimeRegistryEntry.ports.peerChaincode,
             PEER_EVENT_HUB_PORT: this.runtimeRegistryEntry.ports.peerEventHub,
             COUCH_DB_PORT: this.runtimeRegistryEntry.ports.couchDB,
+            LOGS_PORT: this.runtimeRegistryEntry.ports.logs
         });
 
         if (process.platform === 'win32') {

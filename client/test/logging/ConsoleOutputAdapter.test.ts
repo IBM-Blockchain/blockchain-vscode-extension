@@ -16,9 +16,10 @@ import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { LogType } from '../../src/logging/OutputAdapter';
 
 chai.should();
-
+// tslint:disable no-unused-expression
 describe('ConsoleOutputAdapter', () => {
 
     const outputAdapter: ConsoleOutputAdapter = ConsoleOutputAdapter.instance();
@@ -36,20 +37,19 @@ describe('ConsoleOutputAdapter', () => {
 
         it('should log to the console', () => {
             const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'log');
-            outputAdapter.log('hello world');
-            consoleLogStub.should.have.been.calledOnceWithExactly('hello world');
+            outputAdapter.log(LogType.INFO, 'hello', 'hello world');
+            consoleLogStub.should.have.been.calledTwice;
+            consoleLogStub.firstCall.should.have.been.calledWithExactly('hello');
+            consoleLogStub.should.have.been.calledWithExactly('hello world');
+        });
+
+        it('should log to the error console', () => {
+            const consoleLogStub: sinon.SinonStub = sandbox.stub(console, 'error');
+            outputAdapter.log(LogType.ERROR, 'hello', 'hello world');
+            consoleLogStub.should.have.been.calledTwice;
+            consoleLogStub.firstCall.should.have.been.calledWithExactly('hello');
+            consoleLogStub.should.have.been.calledWithExactly('hello world');
         });
 
     });
-
-    describe('#error', () => {
-
-        it('should log to the console', () => {
-            const consoleErrorStub: sinon.SinonStub = sandbox.stub(console, 'error');
-            outputAdapter.error('hello world');
-            consoleErrorStub.should.have.been.calledOnceWithExactly('hello world');
-        });
-
-    });
-
 });

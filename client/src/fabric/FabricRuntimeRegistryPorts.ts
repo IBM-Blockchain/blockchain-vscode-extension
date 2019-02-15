@@ -19,4 +19,5 @@ export class FabricRuntimeRegistryPorts {
     public peerEventHub: number;
     public certificateAuthority: number;
     public couchDB: number;
+    public logs: number;
 }
