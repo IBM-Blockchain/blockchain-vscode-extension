@@ -34,7 +34,7 @@ import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactor
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
@@ -126,7 +126,7 @@ describe('ConnectCommand', () => {
             mockRuntime.isRunning.resolves(true);
             mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('local_fabric').returns(mockRuntime);
 
-            logSpy = mySandBox.spy(VSCodeOutputAdapter.instance(), 'log');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             mockRuntime.getConnectionProfilePath.resolves(path.join(rootPath, '../../basic-network/connection.json'));
             walletGenerator = await FabricWalletGenerator.instance();
 

@@ -16,23 +16,21 @@
 
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
-import { ConnectionTreeItem } from '../explorer/model/ConnectionTreeItem';
 
 export async function exportConnectionDetails(): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
 
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (!workspaceFolders || workspaceFolders.length === 0) {
-        VSCodeOutputAdapter.instance().log(LogType.ERROR, 'A folder must be open to export connection details to');
+        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'A folder must be open to export connection details to');
         return;
     } else if (workspaceFolders.length > 1) {
         const chosenFolder: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('Choose which folder to save the connection profile to');
@@ -46,7 +44,7 @@ export async function exportConnectionDetails(): Promise<void> {
     }
 
     try {
-        await fabricRuntime.exportConnectionDetails(VSCodeOutputAdapter.instance(), dir);
+        await fabricRuntime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), dir);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, 'Issue exporting connection details, see output channel for more information');
         return;

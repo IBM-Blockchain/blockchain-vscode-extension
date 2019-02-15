@@ -39,7 +39,7 @@ import { ConnectedTreeItem } from '../../src/explorer/model/ConnectedTreeItem';
 import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
 import { GatewayPropertyTreeItem } from '../../src/explorer/model/GatewayPropertyTreeItem';
 import { LocalGatewayTreeItem } from '../../src/explorer/model/LocalGatewayTreeItem';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
@@ -457,7 +457,7 @@ describe('BlockchainNetworkExplorer', () => {
             });
 
             it('should handle errors thrown when connection fails', async () => {
-                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
+                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
@@ -493,7 +493,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
+                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
 
@@ -522,7 +522,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
+                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
 

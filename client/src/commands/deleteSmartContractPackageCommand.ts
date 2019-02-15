@@ -17,12 +17,12 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function deleteSmartContractPackage(packageTreeItem: PackageTreeItem): Promise<{} | void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteSmartContractPackage`);
     let packagesToDelete: PackageRegistryEntry[];
     if (packageTreeItem) {

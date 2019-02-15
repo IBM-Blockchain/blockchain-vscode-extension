@@ -18,14 +18,12 @@ import * as fs from 'fs-extra';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as dateFormat from 'dateformat';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
@@ -35,7 +33,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
     private runtime: FabricRuntime;
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
             this.runtime = FabricRuntimeManager.instance().get('local_fabric');
 

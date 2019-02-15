@@ -14,14 +14,16 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as child_process from 'child_process';
+import * as request from 'request';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../src/util/CommandUtil';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { OutputAdapter, LogType } from '../../src/logging/OutputAdapter';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
@@ -107,7 +109,7 @@ describe('CommandUtil Tests', () => {
         it('should send a command and get output with custom output adapter', async () => {
             const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
 
-            const output: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
 
             const cmd: string = process.platform === 'win32' ? 'cmd' : 'echo';
@@ -130,11 +132,11 @@ describe('CommandUtil Tests', () => {
         it('should send a command and handle error code', async () => {
             const spawnSpy: sinon.SinonSpy = mySandBox.spy(child_process, 'spawn');
             if (process.platform === 'win32') {
-                await CommandUtil.sendCommandWithOutput('cmd', [ '/c', 'echo stdout && echo stderr >&2 && exit 1']).should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, echo stdout && echo stderr >&2 && exit 1" return code 1`);
+                await CommandUtil.sendCommandWithOutput('cmd', ['/c', 'echo stdout && echo stderr >&2 && exit 1']).should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, echo stdout && echo stderr >&2 && exit 1" return code 1`);
                 spawnSpy.should.have.been.calledOnce;
                 spawnSpy.should.have.been.calledWith('cmd', ['/c', 'echo stdout && echo stderr >&2 && exit 1']);
             } else {
-                await CommandUtil.sendCommandWithOutput('/bin/sh', [ '-c', 'echo stdout && echo stderr >&2 && false']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "-c, echo stdout && echo stderr >&2 && false" return code 1`);
+                await CommandUtil.sendCommandWithOutput('/bin/sh', ['-c', 'echo stdout && echo stderr >&2 && false']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "-c, echo stdout && echo stderr >&2 && false" return code 1`);
                 spawnSpy.should.have.been.calledOnce;
                 spawnSpy.should.have.been.calledWith('/bin/sh', ['-c', 'echo stdout && echo stderr >&2 && false']);
             }
@@ -143,7 +145,7 @@ describe('CommandUtil Tests', () => {
 
     describe('sendCommandWithOutputAndProgress', () => {
 
-        const outputAdapter: OutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: OutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         let sendCommandWithOutputStub: sinon.SinonStub;
         let withProgressSpy: sinon.SinonSpy;
 
@@ -158,7 +160,48 @@ describe('CommandUtil Tests', () => {
             sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('npm', ['install'], '/some/dir', { DOGE: 'WOW' }, outputAdapter, true);
             withProgressSpy.should.have.been.calledOnce;
         });
-
     });
 
+    describe('sendRequestWithOutput', () => {
+        let outputSpy: sinon.SinonSpy;
+
+        const outputAdapter: OutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
+
+        beforeEach(() => {
+            outputSpy = mySandBox.spy(outputAdapter, 'log');
+        });
+
+        it('should send a request', () => {
+            const onStub: sinon.SinonStub = mySandBox.stub();
+            onStub.yields('some output').returns({ on: mySandBox.stub() });
+            mySandBox.stub(request, 'get').returns({ on: onStub });
+
+            CommandUtil.sendRequestWithOutput('http://localhost:8000/logs', outputAdapter);
+            outputSpy.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, 'some output');
+        });
+
+        it('should send a request that errors', () => {
+            const onStub: sinon.SinonStub = mySandBox.stub();
+            const errorStub: sinon.SinonStub = mySandBox.stub();
+            errorStub.yields('some error');
+            onStub.returns({ on: mySandBox.stub() }).returns({ on: errorStub });
+            mySandBox.stub(request, 'get').returns({ on: onStub });
+
+            CommandUtil.sendRequestWithOutput('http://localhost:8000/logs', outputAdapter);
+            outputSpy.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'some error');
+        });
+
+        it('should  send output with default adapter', () => {
+            const consoleSpy: sinon.SinonSpy = mySandBox.spy(console, 'log');
+            const onStub: sinon.SinonStub = mySandBox.stub();
+            onStub.yields('some output').returns({ on: mySandBox.stub() });
+            mySandBox.stub(request, 'get').returns({ on: onStub });
+
+            CommandUtil.sendRequestWithOutput('http://localhost:8000/logs');
+            outputSpy.should.not.have.been.called;
+            consoleSpy.should.have.been.called;
+        });
+    });
 });

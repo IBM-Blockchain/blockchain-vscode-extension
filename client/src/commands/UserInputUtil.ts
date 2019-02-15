@@ -23,7 +23,7 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { MetadataUtil } from '../util/MetadataUtil';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
@@ -324,7 +324,7 @@ export class UserInputUtil {
     }
 
     public static async browseEdit(placeHolder: string, connectionName: string, canSelectFolders?: boolean, filters?: any): Promise<string> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const options: string[] = [this.BROWSE_LABEL, this.EDIT_LABEL];
         if (placeHolder.includes('certificate') || placeHolder.includes('private key')) {
@@ -373,7 +373,7 @@ export class UserInputUtil {
     }
 
     public static async openUserSettings(gatewayName: string): Promise<void> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let settingsPath: string;
 
@@ -456,7 +456,7 @@ export class UserInputUtil {
     }
 
     public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string, fabricConnection?: IFabricConnection): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         let connection: IFabricConnection;
         if (!fabricConnection) {
 
@@ -528,7 +528,7 @@ export class UserInputUtil {
         const connection: IFabricConnection = fabricConnectionManager.getConnection();
 
         if (!connection) {
-            VSCodeOutputAdapter.instance().log(LogType.ERROR, 'No connection to a blockchain found');
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'No connection to a blockchain found');
             return;
         }
 

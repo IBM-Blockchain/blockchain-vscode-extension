@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -26,7 +25,7 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import * as myExtension from '../../src/extension';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
@@ -71,7 +70,7 @@ describe('EditGatewayCommand', () => {
         updateFabricGatewayRegistryStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
         walletGenerator = await FabricWalletGenerator.instance();
-        logSpy = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log');
+        logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
     afterEach(() => {
@@ -139,7 +138,7 @@ describe('EditGatewayCommand', () => {
             });
 
             it('should update connection profile and then the wallet path', async () => {
-                const showOutputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'show');
+                const showOutputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
                 mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);

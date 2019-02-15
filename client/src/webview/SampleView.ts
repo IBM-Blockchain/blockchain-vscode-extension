@@ -14,7 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { CommandUtil } from '../util/CommandUtil';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -147,7 +147,7 @@ export class SampleView {
     }
 
     public static async cloneRepository(repoName: string, recloning: boolean = false): Promise<void> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const repository: any = await this.getRepository(repoName);
         const url: string = repository.remote;
@@ -265,7 +265,7 @@ export class SampleView {
         // Execute any commands that are meant to run after the sample is opened.
         if (onOpen) {
             for (const item of onOpen) {
-                const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+                const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
                 outputAdapter.log(LogType.INFO, null, `Starting command "${item.command}" with arguments "${item.arguments}" for sample "${sampleName}"`);
                 await CommandUtil.sendCommandWithOutputAndProgress(item.command, item.arguments, item.message, folderUri.fsPath, null, outputAdapter);
                 outputAdapter.log(LogType.INFO, null, `Finished command "${item.command}" with arguments "${item.arguments}" for sample "${sampleName}"`);
@@ -379,7 +379,7 @@ export class SampleView {
     }
 
     public static async cloneAndOpenRepository(repoName: string, samplePath: string, branch: string, workspaceLabel: string): Promise<vscode.Uri> {
-        const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         // Find out where sample repository is
         const repositoryRegistry: RepositoryRegistry = new RepositoryRegistry();

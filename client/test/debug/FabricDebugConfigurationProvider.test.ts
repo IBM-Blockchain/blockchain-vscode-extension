@@ -22,7 +22,7 @@ import * as path from 'path';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
@@ -274,7 +274,7 @@ describe('FabricDebugConfigurationProvider', () => {
         it('should give an error if runtime isnt running', async () => {
             runtimeStub.isRunning.returns(false);
 
-            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -288,7 +288,7 @@ describe('FabricDebugConfigurationProvider', () => {
         it('should give an error if runtime isn\'t in development mode', async () => {
             runtimeStub.isDevelopmentMode.returns(false);
 
-            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const otherErrorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -304,7 +304,7 @@ describe('FabricDebugConfigurationProvider', () => {
             commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const errorSpy: sinon.SinonSpy = mySandbox.spy(vscode.window, 'showErrorMessage');
-            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.not.exist(config);
 
@@ -464,7 +464,7 @@ describe('FabricDebugConfigurationProvider', () => {
             const error: Error = new Error('some error');
             readJsonStub.rejects(error);
 
-            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeOutputAdapter.instance(), 'log');
+            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
 

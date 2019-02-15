@@ -26,7 +26,7 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
@@ -61,7 +61,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             _package.version = '0.0.1';
             packagesStub.resolves([_package]);
 
-            logStub = mySandBox.stub(VSCodeOutputAdapter.instance(), 'log').resolves();
+            logStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
         });
 
         afterEach(async () => {

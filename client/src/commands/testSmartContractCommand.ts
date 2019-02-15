@@ -19,7 +19,7 @@ import * as path from 'path';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
@@ -35,7 +35,7 @@ export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeIte
     let channelName: string;
     let chaincodeName: string;
     let chaincodeVersion: string;
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `testSmartContractCommand`);
 
     // If called from the command palette, ask for instantiated smart contract to test
@@ -257,7 +257,7 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
 }
 
 async function removeTestFile(fileToRemove: string): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     console.log('Something went wrong, so cleaning up and removing test file:', fileToRemove);
 
@@ -272,7 +272,7 @@ async function removeTestFile(fileToRemove: string): Promise<void> {
 }
 
 async function installNodeModules(dir: string, language: string): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {

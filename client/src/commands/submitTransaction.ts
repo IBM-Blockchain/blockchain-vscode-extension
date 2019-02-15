@@ -17,12 +17,13 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
 import { Reporter } from '../util/Reporter';
-import { VSCodeOutputAdapter } from '../logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 
 export async function submitTransaction(transactionTreeItem?: TransactionTreeItem): Promise<void> {
-    const outputAdapter: VSCodeOutputAdapter = VSCodeOutputAdapter.instance();
+    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'submitTransaction');
     let smartContract: string;
     let transactionName: string;
@@ -78,6 +79,7 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
         try {
             progress.report({message: `Submitting transaction ${transactionName}`});
             outputAdapter.log(LogType.INFO, undefined, `Submitting transaction ${transactionName} with args ${args}`);
+            VSCodeBlockchainDockerOutputAdapter.instance().show();
             await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
             Reporter.instance().sendTelemetryEvent('submit transaction');
             outputAdapter.log(LogType.SUCCESS, 'Successfully submitted transaction');

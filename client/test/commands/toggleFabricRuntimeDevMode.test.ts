@@ -19,7 +19,7 @@ import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { VSCodeOutputAdapter } from '../../src/logging/VSCodeOutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
@@ -68,7 +68,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         nodes = allChildren[2] as NodesTreeItem;
         const peers: BlockchainTreeItem[] = await provider.getChildren(nodes);
         peerTreeItem = peers[0] as PeerTreeItem;
-        logSpy = sandbox.stub(VSCodeOutputAdapter.instance(), 'log');
+        logSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
     afterEach(async () => {
@@ -106,7 +106,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         sandbox.stub(runtime, 'isRunning').resolves(true);
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
     });
@@ -117,7 +117,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         sandbox.stub(runtime, 'isRunning').resolves(true);
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeOutputAdapter.instance());
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
     });
