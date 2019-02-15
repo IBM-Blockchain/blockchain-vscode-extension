@@ -72,14 +72,14 @@ describe('BlockchainRuntimeExplorer', () => {
 
             let mySandBox: sinon.SinonSandbox;
             let getConnectionStub: sinon.SinonStub;
-            let errorSpy: sinon.SinonSpy;
+            let logSpy: sinon.SinonSpy;
             let isRunningStub: sinon.SinonStub;
             let runtime: FabricRuntime;
 
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
                 getConnectionStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getConnection');
-                errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+                logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 runtime = await FabricRuntimeManager.instance().get('local_fabric');
                 isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
@@ -112,14 +112,13 @@ describe('BlockchainRuntimeExplorer', () => {
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 await blockchainRuntimeExplorerProvider.getChildren();
 
-                errorSpy.should.have.been.calledWith('Error populating Local Fabric Control Panel: some error');
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error');
             });
 
             it('should handle errors thrown when connection fails', async () => {
                 getConnectionStub.onCall(0).rejects({ message: 'some error' });
                 isRunningStub.resolves(true);
 
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
 
                 await blockchainRuntimeExplorerProvider.getChildren();
@@ -129,9 +128,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             it('should error if gRPC cant connect to Fabric', async () => {
                 isRunningStub.resolves(true);
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
@@ -146,9 +143,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             it('should error if getAllChannelsForPeer errors with message when populating channels view', async () => {
                 isRunningStub.resolves(true);
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
@@ -162,9 +157,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             it('should error if getAllChannelsForPeer errors without a message when populating organizations view', async () => {
                 isRunningStub.resolves(true);
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws('an error with no message');
@@ -178,9 +171,7 @@ describe('BlockchainRuntimeExplorer', () => {
 
             it('should error if populating nodes view fails', async () => {
                 isRunningStub.resolves(true);
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.throws({ message: 'some error' });
 
@@ -198,13 +189,13 @@ describe('BlockchainRuntimeExplorer', () => {
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
             let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
-            let errorSpy: sinon.SinonSpy;
+            let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
 
                 mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isDevelopmentMode').returns(false);
-                errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+                logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();
 
@@ -301,12 +292,9 @@ describe('BlockchainRuntimeExplorer', () => {
                 channelTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
-
             });
 
             it('should show peers (nodes) correctly', async () => {
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);
 
@@ -322,12 +310,10 @@ describe('BlockchainRuntimeExplorer', () => {
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
 
-                logSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
             it('should error if there is a problem with displaying instantiated chaincodes', async () => {
-
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 fabricConnection.getInstantiatedChaincode.withArgs('channelOne').rejects({ message: 'some error' });
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -354,8 +340,6 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should create the installed chaincode tree correctly', async () => {
-
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
@@ -392,8 +376,6 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should handle no installed chaincodes', async () => {
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
                 fabricConnection.getInstalledChaincode.withArgs('peerOne').resolves(new Map<string, Array<string>>());
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -425,8 +407,6 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should handle errror getting installed chaincodes', async () => {
-
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 fabricConnection.getInstalledChaincode.withArgs('peerOne').rejects({ message: 'some error' });
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -449,9 +429,6 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should create instantiated chaincode correctly', async () => {
-
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(4);
@@ -485,8 +462,6 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should show organizations correctly', async () => {
-
-                const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);

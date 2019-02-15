@@ -46,8 +46,6 @@ describe('testSmartContractCommand', () => {
     let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
     let fabricRuntimeConnectionMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
     let executeCommandStub: sinon.SinonStub;
-    let errorSpy: sinon.SinonSpy;
-    let infoSpy: sinon.SinonSpy;
     let logSpy: sinon.SinonSpy;
     let fsRemoveStub: sinon.SinonStub;
     let reporterStub: sinon.SinonStub;
@@ -99,8 +97,6 @@ describe('testSmartContractCommand', () => {
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
-            infoSpy = mySandBox.spy(vscode.window, 'showInformationMessage');
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
@@ -333,7 +329,7 @@ describe('testSmartContractCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             showLanguageQuickPickStub.should.not.have.been.called;
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         it('should handle getting empty metadata', async () => {
@@ -353,9 +349,9 @@ describe('testSmartContractCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.have.been.called;
-            errorSpy.should.have.been.calledTwice;
-            errorSpy.should.have.been.calledWith(`No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
-            errorSpy.should.have.been.calledWith(`Populated metadata required for generating smart contract tests, see previous error`);
+            logSpy.should.have.been.calledThrice;
+            logSpy.should.have.been.calledWith(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Populated metadata required for generating smart contract tests, see previous error`);
             showLanguageQuickPickStub.should.not.have.been.called;
         });
 
@@ -409,7 +405,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const args: string[] = [''];`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         it('should show an error message if the user has no workspaces open', async () => {
@@ -499,7 +495,7 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub.should.have.been.calledWith(secondTestUri.fsPath);
             showTextDocumentStub.should.have.been.calledTwice;
             sendCommandStub.should.have.been.calledOnce;
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
 
             const firstTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
             firstTemplateData.includes('my-contract').should.be.true;
@@ -605,7 +601,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionOne.name).should.be.true;
             templateData.includes(transactionTwo.name).should.be.true;
             templateData.includes(transactionThree.name).should.be.true;
-            errorSpy.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         it('should generate a copy of the test file and name it correctly if the smart contract namespace isnt defined', async () => {

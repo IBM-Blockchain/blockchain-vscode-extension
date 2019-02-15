@@ -27,6 +27,7 @@ import { Reporter } from '../src/util/Reporter';
 import { BlockchainNetworkExplorerProvider } from '../src/explorer/BlockchainNetworkExplorer';
 import { SampleView } from '../src/webview/SampleView';
 import { ExtensionCommands } from '../ExtensionCommands';
+import { LogType } from '../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -69,11 +70,11 @@ describe('Extension Tests', () => {
     it('should check all the commands are registered', async () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
-        const blockchainCommands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('blockchain');
+        const commands: Array<string> = allCommands.filter((command: string) => {
+            return command.startsWith('blockchain') || command.startsWith('extensionHome');
         });
 
-        blockchainCommands.should.deep.equal([
+        commands.should.deep.equal([
             'blockchainAPackageExplorer.focus',
             'blockchainARuntimeExplorer.focus',
             'blockchainExplorer.focus',
@@ -101,7 +102,8 @@ describe('Extension Tests', () => {
             ExtensionCommands.EDIT_GATEWAY,
             ExtensionCommands.TEST_SMART_CONTRACT,
             ExtensionCommands.SUBMIT_TRANSACTION,
-            ExtensionCommands.UPGRADE_SMART_CONTRACT
+            ExtensionCommands.UPGRADE_SMART_CONTRACT,
+            ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
 
@@ -136,6 +138,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);
     });
@@ -212,7 +215,7 @@ describe('Extension Tests', () => {
     it('should handle any errors when installing dependencies', async () => {
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const showErrorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
+        const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
@@ -220,13 +223,13 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        showErrorStub.should.have.been.calledWith('Failed to activate extension: open output view');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to activate extension: open output view');
     });
 
-    it('should handle any errors when installing dependencies and show output log', async () => {
+    it('should handle any errors when installing dependencies', async () => {
         const dependencyManager: DependencyManager = DependencyManager.instance();
 
-        const showErrorStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('open output view');
+        const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
         mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
@@ -234,7 +237,7 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        showErrorStub.should.have.been.calledWith('Failed to activate extension: open output view');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to activate extension: open output view');
     });
 
     it('should deactivate extension', async () => {

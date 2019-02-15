@@ -68,7 +68,8 @@
             "blockchainConnectionsExplorer.editGatewayEntry",
             "blockchainConnectionsExplorer.testSmartContractEntry",
             "blockchainConnectionsExplorer.submitTransactionEntry",
-            "blockchainExplorer.upgradeSmartContractEntry"
+            "blockchainExplorer.upgradeSmartContractEntry",
+            "extensionHome.open"
         ]
     },
     "main": "./out/src/extension",
@@ -605,9 +606,9 @@
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
-        "fabric-ca-client": "1.4.1-snapshot.14",
-        "fabric-client": "1.4.1-snapshot.14",
-        "fabric-network": "1.4.1-snapshot.14"
+        "fabric-ca-client": "1.4.1-snapshot.17",
+        "fabric-client": "1.4.1-snapshot.17",
+        "fabric-network": "1.4.1-snapshot.19"
     },
     "nativeDependencies": {
         "grpc": {

@@ -83,11 +83,11 @@ describe('BlockchainNetworkExplorer', () => {
     describe('constructor', () => {
 
         let mySandBox: sinon.SinonSandbox;
-        let errorSpy: sinon.SinonSpy;
+        let logSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
-            errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
         afterEach(() => {
@@ -114,7 +114,7 @@ describe('BlockchainNetworkExplorer', () => {
             // Need to ensure the event handler gets a chance to run.
             await new Promise((resolve: any): any => setTimeout(resolve, 50));
             blockchainNetworkExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
-            errorSpy.should.have.been.calledOnceWithExactly('Error handling connected event: wow such error');
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'Error handling connected event: wow such error', 'Error handling connected event: Error: wow such error');
         });
 
         it('should register for disconnected events from the connection manager', async () => {
@@ -135,7 +135,7 @@ describe('BlockchainNetworkExplorer', () => {
             // Need to ensure the event handler gets a chance to run.
             await new Promise((resolve: any): any => setTimeout(resolve, 50));
             blockchainNetworkExplorerProvider.disconnect.should.have.been.calledOnceWithExactly();
-            errorSpy.should.have.been.calledOnceWithExactly('Error handling disconnected event: wow such error');
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'Error handling disconnected event: wow such error', 'Error handling disconnected event: Error: wow such error');
         });
     });
 
@@ -145,12 +145,12 @@ describe('BlockchainNetworkExplorer', () => {
 
             let mySandBox: sinon.SinonSandbox;
             let getConnectionStub: sinon.SinonStub;
-            let errorSpy: sinon.SinonSpy;
+            let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
                 getConnectionStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnection');
-                errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+                logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();
             });
@@ -330,7 +330,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 await blockchainNetworkExplorerProvider.getChildren();
 
-                errorSpy.should.have.been.calledWith('some error');
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'some error');
             });
 
             it('should handle errors populating the tree with localGatewayTreeItems', async () => {
@@ -353,7 +353,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
 
-                errorSpy.should.have.been.calledWith('Error populating Blockchain Explorer View: some error');
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Blockchain Explorer View: some error');
             });
 
             it('should display managed runtimes with single identities', async () => {
@@ -457,26 +457,24 @@ describe('BlockchainNetworkExplorer', () => {
             });
 
             it('should handle errors thrown when connection fails', async () => {
-                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
-                getConnectionStub.onCall(1).throws({ message: 'cannot connect'});
+                getConnectionStub.onCall(1).throws({ message: 'cannot connect' });
 
                 const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').resolves();
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 await blockchainNetworkExplorerProvider.getChildren();
 
                 disconnnectStub.should.have.been.calledOnce;
-                logStub.should.have.been.calledWith(LogType.ERROR, `cannot connect`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `cannot connect`);
             });
 
             it('should error if getAllChannelsForPeer fails', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
@@ -493,19 +491,15 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
                 await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
-                logStub.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error creating channel map: some error`);
-
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error creating channel map: some error`);
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
@@ -522,13 +516,10 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
-                const logStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
                 await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
-                logStub.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Cannot connect to Fabric: Received http2 header with status: 503`);
-
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Cannot connect to Fabric: Received http2 header with status: 503`);
             });
         });
 
@@ -540,11 +531,11 @@ describe('BlockchainNetworkExplorer', () => {
             let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
             let registryEntry: FabricGatewayRegistryEntry;
             let getGatewayRegistryEntryStub: sinon.SinonStub;
-            let errorSpy: sinon.SinonSpy;
+            let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
-                errorSpy = mySandBox.spy(vscode.window, 'showErrorMessage');
+                logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();
 
@@ -722,7 +713,7 @@ describe('BlockchainNetworkExplorer', () => {
                 const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 channels.length.should.equal(2);
-                errorSpy.should.have.been.calledWith('Error getting instantiated smart contracts for channel channelOne some error');
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'Error getting instantiated smart contracts for channel channelOne some error');
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -764,7 +755,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedTreeItemTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedTreeItemTwo.channel.label.should.equal('channelTwo');
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
             it('should create instantiated chaincode correctly', async () => {
@@ -802,7 +793,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedChaincodeItemTwo.version.should.equal('0.10');
                 instantiatedChaincodeItemTwo.contracts.should.deep.equal([]);
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
             it('should create the contract tree correctly', async () => {
@@ -839,7 +830,7 @@ describe('BlockchainNetworkExplorer', () => {
                 contractsTwo.should.deep.equal([]);
                 instantiatedChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
             it('should show the transactions and not contracts if the contract name is empty', async () => {
@@ -886,7 +877,7 @@ describe('BlockchainNetworkExplorer', () => {
                 transactions[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 transactions[1].contractName.should.equal('');
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
             it('should show the transactions and not contracts if there is only one contract', async () => {
@@ -927,7 +918,7 @@ describe('BlockchainNetworkExplorer', () => {
                 transactions[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 transactions[1].contractName.should.equal('my-contract');
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
 
             it('should create the transactions correctly', async () => {
@@ -982,7 +973,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 instantiatedChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
-                errorSpy.should.not.have.been.called;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
         });
     });

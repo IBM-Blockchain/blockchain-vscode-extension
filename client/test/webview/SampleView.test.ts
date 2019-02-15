@@ -686,8 +686,7 @@ describe('SampleView', () => {
 
         it('should clone a repository and save to disk', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
-            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').returns(undefined);
+            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'add').resolves();
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
@@ -700,15 +699,14 @@ describe('SampleView', () => {
 
             await SampleView.cloneRepository(repositoryName);
 
-            outputAdapterStub.should.have.been.calledTwice;
+            outputAdapterSpy.should.have.been.calledTwice;
             repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
-            outputAdapterStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
+            outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
         });
 
         it('should stop if user cancels dialog', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
-            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage');
+            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'add');
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves();
@@ -719,15 +717,14 @@ describe('SampleView', () => {
             });
             await SampleView.cloneRepository(repositoryName);
 
-            outputAdapterStub.should.not.have.been.called;
+            outputAdapterSpy.should.not.have.been.called;
             sendCommandWithProgressStub.should.not.have.been.called;
             repositoryRegistryStub.should.not.have.been.called;
-            showInformationMessageStub.should.not.have.been.called;
         });
 
         it('should throw an error if repository cannot be cloned', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
+            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
 
@@ -740,13 +737,12 @@ describe('SampleView', () => {
 
             await SampleView.cloneRepository(repositoryName);
 
-            outputAdapterStub.should.have.been.calledOnceWithExactly(LogType.ERROR, `Could not clone sample: ${error.message}`);
+            outputAdapterSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Could not clone sample: ${error.message}`);
         });
 
         it('should reclone a repository and update the repository registry', async () => {
 
-            const outputAdapterStub: sinon.SinonStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
-            const showInformationMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInformationMessage').returns(undefined);
+            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const repositoryRegistryStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'update').resolves();
 
             mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
@@ -758,9 +754,9 @@ describe('SampleView', () => {
 
             await SampleView.cloneRepository(repositoryName, true);
 
-            outputAdapterStub.should.have.been.calledTwice;
+            outputAdapterSpy.should.have.been.calledTwice;
             repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
-            outputAdapterStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
+            outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
         });
 
     });
@@ -897,8 +893,7 @@ describe('SampleView', () => {
         it(`should show error if the repository isn't in the user settings`, async () => {
 
             repositoryRegistryGetStub.returns(undefined);
-
-            const showErrorMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             getRepository.resolves({
                 name: 'hyperledger/fabric-samples',
@@ -915,13 +910,13 @@ describe('SampleView', () => {
             await SampleView.openFile(repositoryName, 'FabCar', 'contracts', 'FabCar Contract', 'TypeScript');
 
             repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
-            showErrorMessageStub.should.have.been.calledOnceWithExactly('The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.');
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.');
             cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/typescript', 'master', 'fabcar-contract-typescript');
         });
 
         it('should delete the repository from the user settings if the directory cannot be found on disk', async () => {
             const repositoryRegistryDeleteStub: sinon.SinonStub = mySandBox.stub(RepositoryRegistry.prototype, 'delete').resolves();
-            const showErrorMessageStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             getRepository.resolves({
                 name: 'hyperledger/fabric-samples',
@@ -939,9 +934,8 @@ describe('SampleView', () => {
             repositoryRegistryGetStub.should.have.been.calledOnceWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             repositoryRegistryDeleteStub.should.have.been.calledOnceWithExactly(repositoryName);
-            showErrorMessageStub.should.have.been.calledOnceWithExactly(`The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
             cloneAndOpenRepositorySpy.should.have.been.calledOnceWithExactly(repositoryName, 'chaincode/fabcar/javascript', 'master', 'fabcar-contract-javascript');
-
         });
 
         it('should return if user doesnt select how to open files', async () => {

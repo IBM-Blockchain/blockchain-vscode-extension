@@ -27,6 +27,8 @@ import { TestUtil } from '../../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../../ExtensionCommands';
+import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../../src/logging/OutputAdapter';
 
 const should: Chai.Should = chai.should();
 
@@ -303,7 +305,7 @@ describe('RuntimeTreeItem', () => {
                 walletPath: 'walletPath'
             }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
-            const showErrorMessageSpy: sinon.SinonSpy = sandbox.spy(vscode.window, 'showErrorMessage');
+            const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -314,8 +316,8 @@ describe('RuntimeTreeItem', () => {
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
                 });
-                showErrorMessageSpy.should.have.been.calledOnceWithExactly('such error');
-                showErrorMessageSpy.resetHistory();
+                logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'such error', 'Error: such error');
+                logSpy.resetHistory();
             }
         });
     });
