@@ -162,7 +162,7 @@ To make iterative changes to your smart contract while debugging, after making y
 
 ## Connecting to your own Hyperledger Fabric instance
 
-Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. From v0.2.0+, you can use a file system wallet to import identities to connect with. Alternatively, provide a name, certificate and privateKey and the extension will generate a new file system wallet. In either case, this file system wallet can be used by your Blockchain applications. 
+Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. From v0.2.0+, you can use a file system wallet to import identities to connect with. Alternatively, provide a name, user certificate and privateKey and the extension will generate a new file system wallet. In either case, this file system wallet can be used by your Blockchain applications. 
 
 > ⚠ Please note: v0.3.0 has restructured fabric connections to fabric gateways, so you will need to add any connections created with previous releases again in order to use them. 
 
