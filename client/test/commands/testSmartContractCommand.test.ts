@@ -76,7 +76,7 @@ describe('testSmartContractCommand', () => {
     let getRegistryStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
-    let workspaceConfigurationGetStub: sinon.SinonStub ;
+    let workspaceConfigurationGetStub: sinon.SinonStub;
     let fakeMetadata: any;
     let transactionOne: any;
     let transactionTwo: any;
@@ -109,7 +109,7 @@ describe('testSmartContractCommand', () => {
             fabricClientConnectionMock.instantiateChaincode.resolves();
             fakeMetadata = {
                 contracts: {
-                    'my-contract' : {
+                    'my-contract': {
                         name: 'my-contract',
                         transactions: [
                             {
@@ -118,7 +118,13 @@ describe('testSmartContractCommand', () => {
                                     {
                                         name: 'eggs',
                                         schema: {
-                                            type: 'object'
+                                            type: 'string'
+                                        }
+                                    },
+                                    {
+                                        name: 'cake',
+                                        schema: {
+                                            type: 'number'
                                         }
                                     },
                                     {
@@ -240,12 +246,13 @@ describe('testSmartContractCommand', () => {
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`getContract('${smartContractName.replace(`"`, '')}', 'my-contract')`).should.be.true;
             templateData.includes('require').should.be.true;
-            templateData.includes(`const args = [''];`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const args = [ JSON.stringify(${transactionOne.parameters[0].name.replace(`"`, '')})`).should.be.true;
+            templateData.includes(`const args = [];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = '';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')} = 0;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')} = true;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})];`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
@@ -277,12 +284,13 @@ describe('testSmartContractCommand', () => {
             templateData.includes('walletPath').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
-            templateData.includes(`const args: string[] = [''];`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')}: ${transactionOne.parameters[2].schema.type.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const args: string[] = [ JSON.stringify(${transactionOne.parameters[0].name.replace(`"`, '')})`).should.be.true;
+            templateData.includes(`const args: string[] = [];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')} = '';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')}: ${transactionOne.parameters[1].schema.type.replace(`""`, '')} = 0;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')}: ${transactionOne.parameters[3].schema.type.replace(`"`, '')} = true;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const args: string[] = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -338,7 +346,7 @@ describe('testSmartContractCommand', () => {
             fabricClientConnectionMock.getMetadata.resolves(
                 {
                     contracts: {
-                        'my-contract' : {
+                        'my-contract': {
                             name: 'my-contract',
                             transactions: [],
                         }
@@ -368,7 +376,7 @@ describe('testSmartContractCommand', () => {
             fabricClientConnectionMock.getMetadata.resolves(
                 {
                     contracts: {
-                        '' : {
+                        '': {
                             name: '',
                             transactions: [
                                 {
@@ -402,7 +410,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`getContract('${smartContractName.replace(`"`, '')}')`).should.be.true;
-            templateData.includes(`const args: string[] = [''];`).should.be.true;
+            templateData.includes(`const args: string[] = [];`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -444,7 +452,7 @@ describe('testSmartContractCommand', () => {
 
             const morefakeMetadata: any = {
                 contracts: {
-                    'my-contract' : {
+                    'my-contract': {
                         name: 'my-contract',
                         transactions: [
                             {
@@ -453,7 +461,7 @@ describe('testSmartContractCommand', () => {
                                     {
                                         name: 'eggs',
                                         schema: {
-                                            type: 'object'
+                                            type: 'string'
                                         }
                                     },
                                     {
@@ -467,7 +475,7 @@ describe('testSmartContractCommand', () => {
                             }
                         ]
                     },
-                    'my-other-contract' : {
+                    'my-other-contract': {
                         name: 'my-other-contract',
                         transactions: [
                             {
@@ -504,7 +512,7 @@ describe('testSmartContractCommand', () => {
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
-            firstTemplateData.includes(`const args = [''];`).should.be.true;
+            firstTemplateData.includes(`const args = [];`).should.be.true;
 
             const secondTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
             secondTemplateData.includes('my-other-contract').should.be.true;
@@ -512,7 +520,7 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].name).should.be.true;
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
-            secondTemplateData.includes(`const args = [''];`).should.be.true;
+            secondTemplateData.includes(`const args = [];`).should.be.true;
         });
 
         it('should handle errors with creating the template data', async () => {
@@ -572,12 +580,13 @@ describe('testSmartContractCommand', () => {
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
-            templateData.includes(`const args = [''];`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')};`).should.be.true;
-            templateData.includes(`const args = [ JSON.stringify(${transactionOne.parameters[0].name.replace(`"`, '')})`).should.be.true;
+            templateData.includes(`const args = [];`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = '';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')} = 0;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')} = true;`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})`).should.be.true;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
         });
@@ -608,7 +617,7 @@ describe('testSmartContractCommand', () => {
             fabricClientConnectionMock.getMetadata.resolves(
                 {
                     contracts: {
-                        '' : {
+                        '': {
                             name: '',
                             transactions: [
                                 {
@@ -804,7 +813,7 @@ describe('testSmartContractCommand', () => {
             fabricRuntimeConnectionMock.instantiateChaincode.resolves();
             fakeMetadata = {
                 contracts: {
-                    'my-contract' : {
+                    'my-contract': {
                         name: 'my-contract',
                         transactions: [
                             {
@@ -908,7 +917,5 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });
-
     });
-
 });
