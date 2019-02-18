@@ -9,6 +9,9 @@ The IBM Blockchain Platform extension has been created to assist users in develo
 ## Contact Us
 If you have find any problems or want to make suggestions for future features please create [issues and suggestions on Github](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues). For any questions please [create a question on Stack Overflow](https://stackoverflow.com/questions/tagged/ibp-vscode-extension).
 
+## Tutorial
+Follow our [Tutorial](https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract) and learn how to develop, test and deploy smart contracts using VSCode.
+
 ## Installation
 
 **[Install the IBM Blockchain Platform extension here](vscode:extension/IBMBlockchain.ibm-blockchain-platform)**
