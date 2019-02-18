@@ -173,7 +173,7 @@ async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
     let workspaceFolder: vscode.WorkspaceFolder;
     workspaceFolderOptions = await UserInputUtil.getWorkspaceFolders();
     if (workspaceFolderOptions.length === 0) {
-        const message: string = `Issue determining available workspace folders. Please open the workspace that you want to be packaged.`;
+        const message: string = `Issue determining available smart contracts. Please open the smart contract you want to be packaged.`;
         throw new Error(message);
     }
 
