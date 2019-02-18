@@ -31,7 +31,7 @@ import { FabricClientConnection } from '../../src/fabric/FabricClientConnection'
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { CommandUtil } from '../../src/util/CommandUtil';
-import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -57,7 +57,7 @@ describe('testSmartContractCommand', () => {
     let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
     let fabricConnectionManager: FabricConnectionManager;
     let chaincodes: any[];
-    let instantiatedSmartContract: InstantiatedChaincodeTreeItem;
+    let instantiatedSmartContract: InstantiatedContractTreeItem;
     let smartContractName: string;
     let smartContractLabel: string;
     const rootPath: string = vscode.Uri.file(path.dirname(__dirname)).fsPath;
@@ -179,7 +179,7 @@ describe('testSmartContractCommand', () => {
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
             const channelChildren: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
             chaincodes = channelChildren[0].chaincodes;
-            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
+            instantiatedSmartContract = chaincodes[0] as InstantiatedContractTreeItem;
 
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
@@ -849,7 +849,7 @@ describe('testSmartContractCommand', () => {
             allChildren = await blockchainNetworkExplorerProvider.getChildren();
             const channelChildren: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
             chaincodes = channelChildren[0].chaincodes;
-            instantiatedSmartContract = chaincodes[0] as InstantiatedChaincodeTreeItem;
+            instantiatedSmartContract = chaincodes[0] as InstantiatedContractTreeItem;
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs

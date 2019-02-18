@@ -38,8 +38,9 @@ import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentit
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 
-const should: Chai.Should = chai.should();
+chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -319,8 +320,8 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             smartContractsChildren.length.should.equal(2);
             smartContractsChildren[0].label.should.equal('Instantiated');
 
-            let instantiatedChaincodesItems: InstantiatedChaincodeTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
-            const teardownSmartContractItem: InstantiatedChaincodeTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedChaincodeTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
+            let instantiatedChaincodesItems: InstantiatedContractTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
+            const teardownSmartContractItem: InstantiatedContractTreeItem = instantiatedChaincodesItems.find((instantiatedChaincodesItem: InstantiatedContractTreeItem) => instantiatedChaincodesItem.label === 'teardownSmartContract@0.0.1');
             teardownSmartContractItem.should.not.be.undefined;
 
             // Disconnect from the Fabric runtime.
@@ -351,7 +352,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             smartContractsChildren.length.should.equal(2);
             smartContractsChildren[0].label.should.equal('Instantiated');
 
-            instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
             // should just be the one to click to instantiate
             instantiatedChaincodesItems.length.should.equal(1);
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -384,6 +385,10 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 });
 
                 instantiatedSmartContract.should.not.be.null;
+
+                await integrationTestUtil.connectToFabric('local_fabric');
+                await integrationTestUtil.submitTransactionToChaincode(smartContractName, '0.0.1', 'transaction1', 'hello,world');
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
 
                 let installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
 

@@ -29,15 +29,16 @@ import { BlockchainNetworkExplorerProvider } from '../../src/explorer/Blockchain
 import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
-import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
+import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
+import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 
 chai.use(sinonChai);
-const should: Chai.Should = chai.should();
+chai.should();
 
 describe('SubmitTransactionCommand', () => {
     let mySandBox: sinon.SinonSandbox;
@@ -197,12 +198,12 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
-        it('should submit transaction through the tree', async () => {
+        it('should submit transaction through the tree (transaction item)', async () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            const instantiatedChainCodes: Array<InstantiatedContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
 
             const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<TransactionTreeItem>;
@@ -215,6 +216,49 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
+        });
+
+        it('should submit transaction through the tree (chaincode item)', async () => {
+            fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
+
+            const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+
+            const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
+
+            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            instantiatedChainCodes.length.should.equal(1);
+
+            showInputBoxStub.onFirstCall().resolves('transaction1');
+            showInputBoxStub.onSecondCall().resolves('arg1,arg2,arg3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, instantiatedChainCodes[0]);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3']);
+
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+        });
+
+        it('should handle cancelling when submitting transaction through the tree (chaincode item)', async () => {
+            fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
+
+            const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+
+            const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
+
+            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            instantiatedChainCodes.length.should.equal(1);
+
+            showInputBoxStub.onFirstCall().resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, instantiatedChainCodes[0]);
+
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
         });
 
         it('should submit the smart contract through the command with function but no args', async () => {
