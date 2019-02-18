@@ -22,6 +22,8 @@ cd ./client
 npm install --no-optional
 npm install --ignore-scripts
 
+npm audit
+
 npm run compile
 
 if [ "${TASK}" == "unit" ]; then

@@ -246,7 +246,23 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
 
-    public async submitTransaction(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
+    public async submitTransactionToChaincode(name: string, version: string, fcn: string, args: string): Promise<void> {
+        this.showInstantiatedSmartContractsStub.resolves({
+            label: `${name}@${version}`,
+            data: { name: name, channel: 'mychannel', version: version }
+        });
+
+        this.showTransactionStub.resolves({
+            label: null,
+            data: { name: fcn, contract: null }
+        });
+
+        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+
+        await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+    }
+
+    public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
         this.showInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }

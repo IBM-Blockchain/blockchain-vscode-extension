@@ -1111,6 +1111,26 @@ describe('userInputUtil', () => {
             await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
             logSpy.should.have.been.calledWith(LogType.ERROR, `No connection to a blockchain found`);
         });
+
+        it('should ask for a function name if there is no metadata', async () => {
+            fabricConnectionStub.getMetadata.resolves(null);
+            mySandBox.stub(vscode.window, 'showInputBox').resolves('suchFunc');
+            const result: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
+            result.should.deep.equal({
+                data: {
+                    contract: null,
+                    name: 'suchFunc'
+                },
+                label: null
+            });
+        });
+
+        it('should handle cancelling the function name prompt if there is no metadata', async () => {
+            fabricConnectionStub.getMetadata.resolves(null);
+            mySandBox.stub(vscode.window, 'showInputBox').resolves();
+            const result: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
+            should.equal(result, undefined);
+        });
     });
 
     describe('showInstallableSmartContractsQuickPick', () => {

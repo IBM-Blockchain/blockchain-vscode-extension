@@ -38,9 +38,12 @@ import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/Instan
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { stringify } from 'querystring';
+import { MetadataUtil } from '../../src/util/MetadataUtil';
+import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 
 chai.use(sinonChai);
-const should: Chai.Should = chai.should();
+chai.should();
 
 class TestFabricConnection extends FabricConnection {
 
@@ -224,6 +227,9 @@ describe('BlockchainRuntimeExplorer', () => {
                 fabricConnection.getInstantiatedChaincode.withArgs('channelTwo').resolves([{
                     name: 'cake-network',
                     version: '0.10'
+                }, {
+                    name: 'legacy-network',
+                    version: '2.34'
                 }]);
 
                 fabricConnection.getOrganizations.withArgs('channelOne').resolves([
@@ -245,6 +251,11 @@ describe('BlockchainRuntimeExplorer', () => {
                 const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
                 mySandBox.stub(fabricRuntimeManager.get('local_fabric'), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+
+                const getTransactionNamesStub: sinon.SinonStub = mySandBox.stub(MetadataUtil, 'getTransactionNames');
+                getTransactionNamesStub.withArgs(sinon.match.any, 'biscuit-network', sinon.match.any).resolves(new Map<string, string[]>());
+                getTransactionNamesStub.withArgs(sinon.match.any, 'cake-network', sinon.match.any).resolves(new Map<string, string[]>());
+                getTransactionNamesStub.withArgs(sinon.match.any, 'legacy-network', sinon.match.any).resolves(null);
             });
 
             afterEach(() => {
@@ -401,7 +412,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 installCommandTreeItem.label.should.equal('+ Install');
 
                 const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                instantiatedChaincodes.length.should.equal(3);
+                instantiatedChaincodes.length.should.equal(4);
 
                 logSpy.should.not.have.been.called;
             });
@@ -423,7 +434,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 installCommandTreeItem.label.should.equal('+ Install');
 
                 const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                instantiatedChaincodes.length.should.equal(3);
+                instantiatedChaincodes.length.should.equal(4);
 
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating installed smart contracts view: some error`, `Error populating installed smart contracts view: some error`);
             });
@@ -439,18 +450,23 @@ describe('BlockchainRuntimeExplorer', () => {
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
                 const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
-                instantiatedChaincodes.length.should.equal(3);
-                const instantiatedChaincodeOne: InstantiatedChaincodeTreeItem = instantiatedChaincodes[0] as InstantiatedChaincodeTreeItem;
+                instantiatedChaincodes.length.should.equal(4);
+                const instantiatedChaincodeOne: InstantiatedContractTreeItem = instantiatedChaincodes[0] as InstantiatedContractTreeItem;
                 instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
+                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-contract-item');
                 instantiatedChaincodeOne.label.should.equal('biscuit-network@0.7');
                 instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne');
-                const instantiatedChaincodeTwo: InstantiatedChaincodeTreeItem = instantiatedChaincodes[1] as InstantiatedChaincodeTreeItem;
+                const instantiatedChaincodeTwo: InstantiatedContractTreeItem = instantiatedChaincodes[1] as InstantiatedContractTreeItem;
                 instantiatedChaincodeTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
+                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-contract-item');
                 instantiatedChaincodeTwo.label.should.equal('cake-network@0.10');
-                instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne');
-                const instantiateCommandTreeItem: InstantiateCommandTreeItem = instantiatedChaincodes[2] as InstantiateCommandTreeItem;
+                instantiatedChaincodeTwo.tooltip.should.equal('Instantiated on: channelTwo');
+                const instantiatedChaincodeThree: InstantiatedChaincodeTreeItem = instantiatedChaincodes[2] as InstantiatedChaincodeTreeItem;
+                instantiatedChaincodeThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                instantiatedChaincodeThree.contextValue.should.equal('blockchain-instantiated-chaincode-item');
+                instantiatedChaincodeThree.label.should.equal('legacy-network@2.34');
+                instantiatedChaincodeThree.tooltip.should.equal('Instantiated on: channelTwo');
+                const instantiateCommandTreeItem: InstantiateCommandTreeItem = instantiatedChaincodes[3] as InstantiateCommandTreeItem;
                 instantiateCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiateCommandTreeItem.contextValue.should.equal('blockchain-runtime-instantiate-command-item');
                 instantiateCommandTreeItem.label.should.equal('+ Instantiate');

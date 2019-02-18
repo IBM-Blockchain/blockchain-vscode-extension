@@ -43,6 +43,8 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ConnectionTreeItem } from './model/ConnectionTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
+import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
 
 export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
 
@@ -125,7 +127,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                     const channelElement: ChannelTreeItem = element as ChannelTreeItem;
 
                     if (channelElement.chaincodes.length > 0) {
-                        const instantiatedChaincodes: Array<InstantiatedChaincodeTreeItem> = await this.createInstantiatedChaincodeTree(element as ChannelTreeItem);
+                        const instantiatedChaincodes: Array<InstantiatedTreeItem> = await this.createInstantiatedChaincodeTree(element as ChannelTreeItem);
                         this.tree.push(...instantiatedChaincodes);
                     }
                 }
@@ -143,8 +145,8 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 }
 
                 // This won't be called before connecting to a gatewawy
-                if (element instanceof InstantiatedChaincodeTreeItem) {
-                    this.tree = await this.createContractTree(element as InstantiatedChaincodeTreeItem);
+                if (element instanceof InstantiatedContractTreeItem) {
+                    this.tree = await this.createContractTree(element as InstantiatedContractTreeItem);
                 }
 
                 // This won't be called before connecting to a gatewawy
@@ -289,18 +291,22 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async createInstantiatedChaincodeTree(channelTreeElement: ChannelTreeItem): Promise<Array<InstantiatedChaincodeTreeItem>> {
+    private async createInstantiatedChaincodeTree(channelTreeElement: ChannelTreeItem): Promise<Array<InstantiatedTreeItem>> {
         console.log('createInstantiatedChaincodeTree', channelTreeElement);
-        const tree: Array<InstantiatedChaincodeTreeItem> = [];
+        const tree: Array<InstantiatedTreeItem> = [];
 
         for (const instantiatedChaincode of channelTreeElement.chaincodes) {
             const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const contracts: Array<string> = await MetadataUtil.getContractNames(connection, instantiatedChaincode.name, channelTreeElement.label);
+            if (!contracts) {
+                tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, vscode.TreeItemCollapsibleState.None, contracts, true));
+                continue;
+            }
             let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
             if (contracts.length === 0) {
                 collapsedState = vscode.TreeItemCollapsibleState.None;
             }
-            tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
+            tree.push(new InstantiatedContractTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
         }
 
         return tree;

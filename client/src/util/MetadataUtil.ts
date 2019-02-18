@@ -19,8 +19,11 @@ import { LogType } from '../logging/OutputAdapter';
 // Functions for parsing metadata object
 export class MetadataUtil {
 
-    public static async getTransactionNames(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]>> {
+    public static async getTransactionNames(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]> | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
+        if (!metadataTransactions) {
+            return null;
+        }
 
         const transactionNames: Map<string, string[]> = new Map();
         for (const [name, transactionObj] of metadataTransactions) {
@@ -33,8 +36,11 @@ export class MetadataUtil {
         return transactionNames;
     }
 
-    public static async getContractNames(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[]> {
+    public static async getContractNames(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[] | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
+        if (!metadataTransactions) {
+            return null;
+        }
 
         const contractNames: string[] = [];
         for (const name of metadataTransactions.keys()) {
@@ -45,7 +51,7 @@ export class MetadataUtil {
 
     }
 
-    public static async getTransactions(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]>> {
+    public static async getTransactions(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]> | null> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let metadataObj: any = {
@@ -72,6 +78,7 @@ export class MetadataUtil {
             }
         } catch (error) {
             outputAdapter.log(LogType.WARNING, null, `Could not get metadata for smart contract ${instantiatedChaincodeName}. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript. Error: ${error.message}`);
+            return null;
         }
 
         return contractsMap;

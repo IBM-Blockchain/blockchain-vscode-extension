@@ -529,6 +529,14 @@ export class UserInputUtil {
 
         const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [];
         const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        if (!transactionNamesMap) {
+            const transactionName: string = await UserInputUtil.showInputBox('What function do you want to call?');
+            if (!transactionName) {
+                return;
+            }
+            return { label: null, data: { name: transactionName, contract: null }};
+        }
+
         for (const [name, transactionArray] of transactionNamesMap) {
             for (const transaction of transactionArray) {
                 const data: { name: string, contract: string } = { name: transaction, contract: name };

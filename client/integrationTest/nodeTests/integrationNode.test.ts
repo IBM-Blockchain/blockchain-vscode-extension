@@ -32,7 +32,7 @@ import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { IntegrationTestUtil } from '../integrationTestUtil';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
@@ -144,7 +144,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 smartContractsChildren[0].label.should.equal('Instantiated');
                 smartContractsChildren[1].label.should.equal('Installed');
 
-                let instantiatedChaincodesItems: Array<InstantiatedChaincodeTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+                let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
 
                 let instantiatedSmartContract: BlockchainTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
@@ -182,7 +182,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 smartContractsChildren[0].label.should.equal('Instantiated');
                 smartContractsChildren[1].label.should.equal('Installed');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
@@ -210,7 +210,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 channels.length.should.equal(1);
                 channels[0].label.should.equal('mychannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channels[0]) as Array<InstantiatedChaincodeTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
@@ -278,9 +278,9 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
 
-                const instantiatedChaincodesItems: Array<InstantiatedChaincodeTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channels[0]) as Array<InstantiatedChaincodeTreeItem>;
+                const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
-                const instantiatedSmartContract: InstantiatedChaincodeTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                const instantiatedSmartContract: InstantiatedContractTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
@@ -325,7 +325,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
-        await integrationTestUtil.submitTransaction(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
+        await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
         testRunResult.includes('success for transaction').should.be.true;
         testRunResult.includes('1 passing').should.be.true;
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
