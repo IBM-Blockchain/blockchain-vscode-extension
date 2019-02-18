@@ -19,6 +19,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
+import * as fabricClientCA from 'fabric-ca-client';
 import { Gateway, Wallet, FileSystemWallet } from 'fabric-network';
 import { Channel, Peer } from 'fabric-client';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -58,6 +59,7 @@ describe('FabricConnection', () => {
     let fabricContractStub: any;
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
     let fabricTransactionStub: any;
+    let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
     const mockIdentityName: string = 'admin';
 
@@ -96,6 +98,9 @@ describe('FabricConnection', () => {
         fabricGatewayStub = mySandBox.createStubInstance(Gateway);
 
         fabricClientStub.getMspid.returns('myMSPId');
+        fabricCAStub = mySandBox.createStubInstance(fabricClientCA);
+        fabricCAStub.enroll.returns({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
+        fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
 
@@ -821,6 +826,13 @@ describe('FabricConnection', () => {
             getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
             fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
             await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
+        });
+    });
+
+    describe('enroll', () => {
+        it('should enroll an identity', async () => {
+            const result: {certificate: string, privateKey: string} =  await fabricConnection.enroll('myId', 'mySecret');
+            result.should.deep.equal({certificate : 'myCert', privateKey: 'myKey'});
         });
     });
 });

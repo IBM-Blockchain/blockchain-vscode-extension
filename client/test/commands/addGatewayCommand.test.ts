@@ -81,6 +81,8 @@ describe('AddGatewayCommand', () => {
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
             browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
 
+            showInputBoxStub.onThirdCall().resolves('myMSPID');
+
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
@@ -176,6 +178,8 @@ describe('AddGatewayCommand', () => {
             showInputBoxStub.onCall(2).resolves(identityName);
             browseEditStub.onCall(3).resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
             browseEditStub.onCall(4).resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
+
+            showInputBoxStub.onCall(3).resolves('myMSPID');
 
             const testFabricWallet: FabricWallet = new FabricWallet('myGateway2', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
@@ -391,43 +395,6 @@ describe('AddGatewayCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
         });
 
-        it('should handle no client section defined in the connection.json of the network', async () => {
-            identityName = 'greenConga';
-            mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
-
-            showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-            showIdentityOptionsStub.onFirstCall().resolves(UserInputUtil.CERT_KEY);
-            showInputBoxStub.onSecondCall().resolves(identityName);
-            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
-            browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
-
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-
-            const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
-
-            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects( {message: `Client.createUser parameter 'opts mspid' is required`} );
-            showInputBoxStub.onThirdCall().resolves('Org1MSP');
-            importStub.callThrough();
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
-
-            gateways.length.should.equal(1);
-            gateways[0].should.deep.equal({
-                name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/emptyWallet')
-            });
-
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            showInputBoxStub.should.have.been.calledThrice;
-            importStub.should.have.been.calledTwice;
-        });
-
         it('should handle the user cancelling providing the mspid', async () => {
             identityName = 'greenConga';
             mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
@@ -444,7 +411,7 @@ describe('AddGatewayCommand', () => {
             const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects( {message: `Client.createUser parameter 'opts mspid' is required`} );
+            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects({ message: `Client.createUser parameter 'opts mspid' is required` });
             showInputBoxStub.onThirdCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -461,7 +428,7 @@ describe('AddGatewayCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             showInputBoxStub.should.have.been.calledThrice;
-            importStub.should.have.been.calledOnce;
+            importStub.should.not.have.been.called;
         });
 
         it('should handle the wallet import failing for some other reason', async () => {
@@ -475,12 +442,14 @@ describe('AddGatewayCommand', () => {
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/certificate'));
             browseEditStub.onThirdCall().resolves(path.join(rootPath, '../../test/data/connectionOne/credentials/privateKey'));
 
+            showInputBoxStub.onThirdCall().resolves('myMSPID');
+
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).throws( new Error('some other reason'));
+            const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).throws(new Error('some other reason'));
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -495,7 +464,7 @@ describe('AddGatewayCommand', () => {
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to add a new connection: some other reason', 'Failed to add a new connection: Error: some other reason');
-            showInputBoxStub.should.have.been.calledTwice;
+            showInputBoxStub.should.have.been.calledThrice;
             importStub.should.have.been.calledOnce;
         });
     });

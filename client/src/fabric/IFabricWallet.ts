@@ -15,10 +15,11 @@
 
 export interface IFabricWallet {
 
-    importIdentity(connectionProfile: object, certificate: string, privateKey: string, identityName: string, mspid?: string): Promise<void>;
+    importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void>;
+
+    exists(identityName: string): Promise<boolean>;
 
     getIdentityNames(): Promise<string[]>;
 
     getWalletPath(): string;
-
 }

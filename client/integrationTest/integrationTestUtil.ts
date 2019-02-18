@@ -112,6 +112,8 @@ export class IntegrationTestUtil {
         this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
 
+        this.inputBoxStub.withArgs('Enter a mspid').resolves('Org1MSP');
+
         this.browseEditStub.withArgs('Browse for a certificate file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
             canSelectFiles: true,
             canSelectFolders: false,

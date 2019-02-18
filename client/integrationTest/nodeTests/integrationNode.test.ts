@@ -145,8 +145,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 runtime.isRunning().should.eventually.be.true;
                 runtime.isDevelopmentMode().should.be.false;
 
-                await integrationTestUtil.connectToFabric('local_fabric');
-
                 const smartContractName: string = `my${language}SC`;
 
                 let testRunResult: string;
@@ -181,6 +179,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 });
 
                 installedSmartContract.should.not.be.null;
+
+                await integrationTestUtil.connectToFabric('local_fabric');
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'local_fabric');
                 testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
@@ -252,8 +252,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 runtime.isRunning().should.eventually.be.true;
                 runtime.isDevelopmentMode().should.be.false;
 
-                await integrationTestUtil.connectToFabric('local_fabric');
-
                 mySandBox.stub(UserInputUtil, 'showFolderOptions').withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
                 await SampleView.cloneAndOpenRepository('hyperledger/fabric-samples', `chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`);
 
@@ -268,7 +266,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await integrationTestUtil.instantiateSmartContract(`fabcar-contract-${languageLowerCase}`, '1.0.0', 'initLedger');
 
-                const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+                let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
                 const smartContractsChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
 
                 smartContractsChildren.length.should.equal(2);
@@ -290,6 +288,16 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 });
 
                 installedSmartContract.should.not.be.null;
+
+                await integrationTestUtil.connectToFabric('local_fabric');
+
+                allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+
+                allChildren.length.should.equal(3);
+
+                allChildren[0].label.should.equal('Connected via gateway: local_fabric');
+                allChildren[1].label.should.equal('Using ID: Admin@org1.example.com');
+                allChildren[2].label.should.equal('Channels');
 
                 // Submit some transactions and then check the results
                 logSpy.resetHistory();

@@ -38,7 +38,6 @@ import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/Instan
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { stringify } from 'querystring';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 
@@ -116,17 +115,6 @@ describe('BlockchainRuntimeExplorer', () => {
                 await blockchainRuntimeExplorerProvider.getChildren();
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error');
-            });
-
-            it('should handle errors thrown when connection fails', async () => {
-                getConnectionStub.onCall(0).rejects({ message: 'some error' });
-                isRunningStub.resolves(true);
-
-                const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
-
-                await blockchainRuntimeExplorerProvider.getChildren();
-
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error', 'Error populating Local Fabric Control Panel: some error');
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {

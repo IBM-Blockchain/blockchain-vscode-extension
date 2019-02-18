@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 'use strict';
-import * as Client from 'fabric-client';
 import { FileSystemWallet, X509WalletMixin, IdentityInfo} from 'fabric-network';
 import { IFabricWallet} from './IFabricWallet';
 
@@ -27,12 +26,7 @@ export class FabricWallet extends FileSystemWallet implements IFabricWallet {
         this.connectionName = connectionName;
     }
 
-    public async importIdentity(connectionProfile: object, certificate: string, privateKey: string, identityName: string, mspid?: string): Promise<void> {
-
-        if (!mspid) {
-            const client: Client = await Client.loadFromConfig(connectionProfile);
-            mspid = client.getMspid();
-        }
+    public async importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void> {
 
         const wallet: FileSystemWallet = new FileSystemWallet(this.walletPath);
         await wallet.import(identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));

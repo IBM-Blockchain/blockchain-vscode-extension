@@ -39,18 +39,10 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
             await fs.ensureDir(walletPath);
         }
 
-        const walletToReturn: FabricWallet = new FabricWallet(connectionName, walletPath);
-        return walletToReturn;
-
+        return new FabricWallet(connectionName, walletPath);
     }
 
     public getNewWallet(connectionName: string, walletPath: string): FabricWallet {
         return new FabricWallet(connectionName, walletPath);
     }
-
-    public async getIdentityNames(connectionName: string, walletPath: string): Promise<string[]> {
-        const wallet: FabricWallet = this.getNewWallet(connectionName, walletPath);
-        return await wallet.getIdentityNames();
-    }
-
 }

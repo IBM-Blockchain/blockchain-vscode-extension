@@ -45,4 +45,6 @@ export interface IFabricConnection {
     getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 
     submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<string | undefined>;
+
+    enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
 }

@@ -95,7 +95,8 @@ describe('AddGatewayIdentityCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            inputBoxStub.resolves(identityName);
+            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onSecondCall().resolves('myMSPID');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
@@ -147,7 +148,8 @@ describe('AddGatewayIdentityCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            inputBoxStub.resolves('blueConga');
+            inputBoxStub.onFirstCall().resolves('blueConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
             browseEditStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
@@ -166,7 +168,8 @@ describe('AddGatewayIdentityCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            inputBoxStub.resolves('violetConga');
+            inputBoxStub.onFirstCall().resolves('violetConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves();
 
@@ -182,7 +185,9 @@ describe('AddGatewayIdentityCommand', () => {
 
         it('should be able to add a identity from the tree', async () => {
             identityName = 'blackConga';
-            inputBoxStub.resolves(identityName);
+            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
@@ -214,6 +219,29 @@ describe('AddGatewayIdentityCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Blockchain gateway must be completed first!');
+        });
+
+        it('should test a can be cancelled when enter mspid', async () => {
+            identityName = 'greenConga';
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myGatewayB',
+                data: FabricGatewayRegistry.instance().get('myGatewayB')
+            });
+
+            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onSecondCall().resolves();
+
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
+
+            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
+            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+            identities.length.should.equal(2);
         });
     });
 });
