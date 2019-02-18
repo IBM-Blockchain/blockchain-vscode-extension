@@ -643,7 +643,7 @@ describe('FabricRuntime', () => {
                 certificateAuthorities: {
                     'ca.org1.example.com': {
                         url: 'http://127.0.0.1:12348',
-                        caName: 'ca.org1.example.com'
+                        caName: 'ca.example.com'
                     }
                 }
             });
