@@ -16,6 +16,6 @@
 
 import { InstantiatedTreeItem } from './InstantiatedTreeItem';
 
-export class InstantiatedChaincodeTreeItem extends InstantiatedTreeItem {
-    contextValue: string = 'blockchain-instantiated-chaincode-item';
+export class InstantiatedContractTreeItem extends InstantiatedTreeItem {
+    contextValue: string = 'blockchain-instantiated-contract-item';
 }

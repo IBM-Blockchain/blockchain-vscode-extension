@@ -22,13 +22,13 @@ import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
-import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
+import { InstantiatedContractTreeItem } from '../explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
-export async function testSmartContract(chaincode?: InstantiatedChaincodeTreeItem): Promise<void> {
+export async function testSmartContract(chaincode?: InstantiatedContractTreeItem): Promise<void> {
 
     let chaincodeLabel: string;
     let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}>;

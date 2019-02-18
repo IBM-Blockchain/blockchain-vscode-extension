@@ -40,6 +40,8 @@ import { InstantiateCommandTreeItem } from './runtimeOps/InstantiateCommandTreeI
 import { InstallCommandTreeItem } from './runtimeOps/InstallCommandTreeItem';
 import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { MetadataUtil } from '../util/MetadataUtil';
+import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -57,6 +59,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     constructor() {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         FabricRuntimeManager.instance().get('local_fabric').on('busy', () => {
+            // tslint:disable-next-line: no-floating-promises
             this.refresh();
         });
     }
@@ -295,7 +298,12 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 const peers: Array<string> = channelMap.get(channel);
                 const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None);
                 for (const chaincode of chaincodes) {
-                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    const transactions: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincode.name, channel);
+                    if (!transactions) {
+                        tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    } else {
+                        tree.push(new InstantiatedContractTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
+                    }
                 }
             }
         } catch (error) {
