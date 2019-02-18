@@ -17,13 +17,13 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { InstantiatedChaincodeTreeItem } from '../explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -34,7 +34,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
     let contractName: string;
     let contractVersion: string;
 
-    if ((treeItem instanceof InstantiatedChaincodeTreeItem)) {
+    if ((treeItem instanceof InstantiatedTreeItem)) {
         // Called on instantiated chaincode tree item
         contractName = treeItem.name;
         contractVersion = treeItem.version;

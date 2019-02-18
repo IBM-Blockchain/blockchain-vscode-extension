@@ -25,6 +25,7 @@ export abstract class BlockchainTreeItem extends vscode.TreeItem {
     }
 
     refresh(): void {
+        // tslint:disable-next-line: no-floating-promises
         this.provider.refresh(this);
     }
 }
