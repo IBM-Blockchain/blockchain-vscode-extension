@@ -345,7 +345,12 @@
                 {
                     "command": "blockchainAPackageExplorer.packageSmartContractProjectEntry",
                     "when": "view == blockchainAPackageExplorer",
-                    "group": "navigation"
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchain.createSmartContractProjectEntry",
+                    "when": "view == blockchainAPackageExplorer",
+                    "group": "blockchain"
                 },
                 {
                     "command": "blockchainExplorer.startFabricRuntime",
