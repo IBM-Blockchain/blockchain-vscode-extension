@@ -21,15 +21,16 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 
-export async function submitTransaction(transactionTreeItem?: TransactionTreeItem): Promise<void> {
+export async function submitTransaction(treeItem?: InstantiatedTreeItem | TransactionTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'submitTransaction');
     let smartContract: string;
     let transactionName: string;
     let channelName: string;
     let namespace: string;
-    if (!transactionTreeItem) {
+    if (!treeItem) {
         if (!FabricConnectionManager.instance().getConnection()) {
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
             if (!FabricConnectionManager.instance().getConnection()) {
@@ -53,11 +54,18 @@ export async function submitTransaction(transactionTreeItem?: TransactionTreeIte
             transactionName = chosenTransaction.data.name;
             namespace = chosenTransaction.data.contract;
         }
+    } else if (treeItem instanceof InstantiatedTreeItem) {
+        channelName = treeItem.channel.label;
+        smartContract = treeItem.name;
+        transactionName = await UserInputUtil.showInputBox('What function do you want to call?');
+        if (!transactionName) {
+            return;
+        }
     } else {
-        smartContract = transactionTreeItem.chaincodeName;
-        transactionName = transactionTreeItem.name;
-        channelName = transactionTreeItem.channelName;
-        namespace = transactionTreeItem.contractName;
+        smartContract = treeItem.chaincodeName;
+        transactionName = treeItem.name;
+        channelName = treeItem.channelName;
+        namespace = treeItem.contractName;
     }
 
     let args: Array<string> = [];

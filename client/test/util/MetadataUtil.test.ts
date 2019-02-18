@@ -135,16 +135,28 @@ describe('Metadata Util tests', () => {
          logSpy.should.not.have.been.called;
     });
 
+    it('should return null if no transaction names', async () => {
+        fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
+        const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
+        should.equal(names, null);
+    });
+
     it('should return the Transaction objects', async () => {
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         transactionsMap.should.deep.equal(testMap);
         logSpy.should.not.have.been.called;
     });
 
+    it('should return null if no transaction objects', async () => {
+        fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        should.equal(transactionsMap, null);
+    });
+
     it('should handle error getting metadata', async () => {
         fabricClientConnectionMock.getMetadata.rejects({message: `some error`});
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel');
-        transactionsMap.size.should.equal(0);
+        should.equal(transactionsMap, null);
         logSpy.should.have.been.calledOnceWithExactly(LogType.WARNING, null, sinon.match(/Could not get metadata for smart contract chaincode.*some error/));
     });
 

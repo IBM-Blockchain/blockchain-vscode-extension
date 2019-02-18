@@ -432,11 +432,15 @@
                 },
                 {
                     "command": "blockchainConnectionsExplorer.testSmartContractEntry",
-                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-contract-item"
                 },
                 {
                     "command": "blockchainConnectionsExplorer.submitTransactionEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-transaction-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.submitTransactionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {
                     "command": "blockchainExplorer.upgradeSmartContractEntry",
