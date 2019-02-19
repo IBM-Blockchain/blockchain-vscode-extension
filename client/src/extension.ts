@@ -23,7 +23,6 @@ import { addGatewayIdentity } from './commands/addGatewayIdentityCommand';
 import { connect } from './commands/connectCommand';
 import { createSmartContractProject } from './commands/createSmartContractProjectCommand';
 import { packageSmartContract } from './commands/packageSmartContractCommand';
-
 import { VSCodeBlockchainOutputAdapter } from './logging/VSCodeBlockchainOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
@@ -43,7 +42,7 @@ import { editGatewayCommand } from './commands/editGatewayCommand';
 import { teardownFabricRuntime } from './commands/teardownFabricRuntime';
 import { exportSmartContractPackage } from './commands/exportSmartContractPackageCommand';
 import { PackageTreeItem } from './explorer/model/PackageTreeItem';
-import { FabricDebugConfigurationProvider } from './debug/FabricDebugConfigurationProvider';
+import { FabricNodeDebugConfigurationProvider } from './debug/FabricNodeDebugConfigurationProvider';
 import { FabricConnectionManager } from './fabric/FabricConnectionManager';
 import { PackageRegistryEntry } from './packages/PackageRegistryEntry';
 import { testSmartContract } from './commands/testSmartContractCommand';
@@ -53,7 +52,6 @@ import { upgradeSmartContract } from './commands/upgradeCommand';
 import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
 import { exportConnectionDetails } from './commands/exportConnectionDetailsCommand';
 import { LogType } from './logging/OutputAdapter';
-
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
 import { BlockchainRuntimeExplorerProvider } from './explorer/BlockchainRuntimeExplorer';
@@ -64,6 +62,7 @@ import { ExtensionCommands } from '../ExtensionCommands';
 import { version as currentExtensionVersion } from '../package.json';
 import { InstantiatedContractTreeItem } from './explorer/model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './explorer/model/InstantiatedTreeItem';
+import { FabricGoDebugConfigurationProvider } from './debug/FabricGoDebugConfigurationProvider';
 
 let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -166,9 +165,10 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
     disposeExtension(context);
 
-    const provider: FabricDebugConfigurationProvider = new FabricDebugConfigurationProvider();
-    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', provider));
-    context.subscriptions.push(provider);
+    const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
+    const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:go', goDebugProvider));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainExplorer', blockchainNetworkExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainARuntimeExplorer', blockchainRuntimeExplorerProvider));

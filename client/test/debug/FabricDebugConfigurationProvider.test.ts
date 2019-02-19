@@ -18,7 +18,6 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -28,12 +27,32 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
+import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
+
+class TestFabricDebugConfigurationProvider extends FabricDebugConfigurationProvider {
+
+    public chaincodeName: string = 'mySmartContract';
+
+    protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
+        return this.chaincodeName;
+    }
+
+    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+        const chaincodeAddress: string = await this.getChaincodeAddress();
+        return Object.assign(config, {
+            type: 'fake',
+            name: 'Fake Debug',
+            request: 'launch',
+            args: [ chaincodeAddress ]
+        });
+    }
+
+}
 
 // tslint:disable no-unused-expression
 describe('FabricDebugConfigurationProvider', () => {
@@ -42,7 +61,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
         let mySandbox: sinon.SinonSandbox;
         let clock: sinon.SinonFakeTimers;
-        let fabricDebugConfig: FabricDebugConfigurationProvider;
+        let fabricDebugConfig: TestFabricDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
@@ -56,13 +75,14 @@ describe('FabricDebugConfigurationProvider', () => {
         let getConnectionStub: sinon.SinonStub;
         let date: Date;
         let formattedDate: string;
+        let startDebuggingStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
             date = new Date();
             formattedDate = dateFormat(date, 'yyyymmddHHMM');
-            fabricDebugConfig = new FabricDebugConfigurationProvider();
+            fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
@@ -91,14 +111,9 @@ describe('FabricDebugConfigurationProvider', () => {
             }`);
 
             debugConfig = {
-                type: 'fabric:node',
+                type: 'fabric:fake',
                 name: 'Launch Program'
             };
-
-            debugConfig.request = 'myLaunch';
-            debugConfig.program = 'myProgram';
-            debugConfig.cwd = 'myCwd';
-            debugConfig.args = ['start', '--peer.address', 'localhost:12345'];
 
             findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
 
@@ -108,19 +123,21 @@ describe('FabricDebugConfigurationProvider', () => {
             packageEntry.name = 'banana';
             packageEntry.version = 'vscode-13232112018';
             packageEntry.path = path.join('myPath');
-            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).resolves(packageEntry);
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves(packageEntry);
             commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, null, sinon.match.any).resolves({
                 name: 'test-package@0.0.1',
                 path: 'some/path',
                 version: '0.0.1'
             });
-            commandStub.withArgs('blockchainExplorer.connectEntry', sinon.match.any);
+            commandStub.withArgs(ExtensionCommands.CONNECT, sinon.match.any);
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            getConnectionStub = mySandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+            getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+
+            startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
         });
 
         afterEach(() => {
@@ -129,155 +146,77 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should create a debug configuration', async () => {
-
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345']
+                args: ['127.0.0.1:54321']
             });
-        });
-
-        it('should add start arg if not in there', async () => {
-
-            debugConfig.args = ['--peer.address', 'localhost:12345'];
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['--peer.address', 'localhost:12345', 'start']
-            });
-        });
-
-        it('should set program if not set', async () => {
-
-            debugConfig.program = null;
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345']
-            });
-        });
-
-        it('should add cwd if not set', async () => {
-
-            debugConfig.cwd = null;
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345']
-            });
+            commandStub.should.have.been.calledThrice;
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', 'vscode-debug-197001010000');
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
         });
 
         it('should add in env properties if not defined', async () => {
             debugConfig.env = null;
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345']
+                args: ['127.0.0.1:54321']
             });
+            commandStub.should.have.been.calledThrice;
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', 'vscode-debug-197001010000');
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
         });
 
         it('should add CORE_CHAINCODE_ID_NAME to an existing env', async () => {
             debugConfig.env = { myProperty: 'myValue' };
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, myProperty: 'myValue' },
-                args: ['start', '--peer.address', 'localhost:12345']
+                args: ['127.0.0.1:54321']
             });
+            commandStub.should.have.been.calledThrice;
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', 'vscode-debug-197001010000');
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
         });
 
         it('should use CORE_CHAINCODE_ID_NAME if defined', async () => {
             debugConfig.env = { CORE_CHAINCODE_ID_NAME: 'myContract:myVersion' };
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: 'myContract:myVersion' },
-                args: ['start', '--peer.address', 'localhost:12345']
-            });
-        });
-
-        it('should add args if not defined', async () => {
-            debugConfig.args = null;
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', '127.0.0.1:54321']
-            });
-        });
-
-        it('should add more args if some args exist', async () => {
-            debugConfig.args = ['--myArgs', 'myValue'];
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
-            });
-        });
-
-        it('should add in request if not defined', async () => {
-            debugConfig.request = null;
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            config.should.deep.equal({
-                type: 'node2',
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
                 request: 'launch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345']
+                env: { CORE_CHAINCODE_ID_NAME: `myContract:myVersion` },
+                args: ['127.0.0.1:54321']
             });
+            commandStub.should.have.been.calledThrice;
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'myContract', 'myVersion');
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+        });
+
+        it('should not run if the chaincode name is not provided', async () => {
+            fabricDebugConfig.chaincodeName = undefined;
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.not.have.been.called;
+            commandStub.should.not.have.been.called;
         });
 
         it('should give an error if runtime isnt running', async () => {
@@ -305,7 +244,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with packaging', async () => {
-            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).resolves();
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves();
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -335,7 +274,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with installing', async () => {
-            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -344,175 +283,6 @@ describe('FabricDebugConfigurationProvider', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: some error');
         });
 
-        it('should debug typescript', async () => {
-            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345'],
-                outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')]
-            });
-        });
-
-        it('should debug JavaScript contract which has TypeScript tests', async () => {
-            const loadJsonSpy: sinon.SinonSpy = mySandbox.spy(ExtensionUtil, 'loadJSON');
-
-            findFilesStub.resolves([]);
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`},
-                args: ['start', '--peer.address', 'localhost:12345']
-            });
-
-            loadJsonSpy.should.not.have.been.calledWith(workspaceFolder, 'tsconfig.json');
-        });
-
-        it('should use the tsconfig for the configuration', async () => {
-
-            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
-
-            const fakeConfig: object = {
-                compilerOptions: {
-                    outDir: 'dist'
-                }
-            };
-
-            readJsonStub.resolves(fakeConfig);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345'],
-                outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
-                preLaunchTask: 'tsc: build - tsconfig.json'
-            });
-        });
-
-        it('should not update the directory if it is an absolute path', async () => {
-
-            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
-
-            const fakeConfig: object = {
-                compilerOptions: {
-                    outDir: path.join(__dirname, 'mypath')
-                }
-            };
-
-            readJsonStub.resolves(fakeConfig);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345'],
-                outFiles: [path.join(workspaceFolder.uri.fsPath, '**/*.js')],
-                preLaunchTask: 'tsc: build - tsconfig.json'
-            });
-        });
-
-        it('should update path if not absolute path', async () => {
-
-            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
-
-            const fakeConfig: object = {
-                compilerOptions: {
-                    outDir: './dist'
-                }
-            };
-
-            readJsonStub.resolves(fakeConfig);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345'],
-                outFiles: [path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
-                preLaunchTask: 'tsc: build - tsconfig.json'
-            });
-        });
-
-        it('should add to outfile if already set', async () => {
-
-            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
-
-            debugConfig.outFiles = ['cake'];
-
-            const fakeConfig: object = {
-                compilerOptions: {
-                    outDir: 'dist'
-                }
-            };
-
-            readJsonStub.resolves(fakeConfig);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            config.should.deep.equal({
-                type: 'node2',
-                request: 'myLaunch',
-                name: 'Launch Program',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['start', '--peer.address', 'localhost:12345'],
-                outFiles: ['cake', path.join(workspaceFolder.uri.fsPath, 'dist', '**/*.js')],
-                preLaunchTask: 'tsc: build - tsconfig.json'
-            });
-        });
-
-        it('should handle error from reading config file', async () => {
-            findFilesStub.resolves([vscode.Uri.file('tsconfig.ts')]);
-
-            const error: Error = new Error('Error reading package.json from project some error');
-            readJsonStub.rejects(error);
-
-            const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            should.not.exist(config);
-            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to launch debug: ${error.message}`);
-        });
     });
 
-    describe('dispose', () => {
-        it('should dispose the config', () => {
-            const fabricDebugConfig: FabricDebugConfigurationProvider = new FabricDebugConfigurationProvider();
-            try {
-                fabricDebugConfig.dispose();
-            } catch (error) {
-                throw new Error('should not get here');
-            }
-        });
-    });
 });
