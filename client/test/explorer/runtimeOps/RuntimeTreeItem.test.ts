@@ -97,7 +97,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
+            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
                 command: ExtensionCommands.START_FABRIC,
                 title: '',
@@ -120,7 +120,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
+            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
                 command: ExtensionCommands.START_FABRIC,
                 title: '',
@@ -139,7 +139,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local_fabric runtime is starting... ◐');
+            treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
@@ -154,7 +154,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local_fabric runtime is stopping... ◐');
+            treeItem.label.should.equal('Local Fabric runtime is stopping... ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
@@ -169,7 +169,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local_fabric runtime is restarting... ◐');
+            treeItem.label.should.equal('Local Fabric runtime is restarting... ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
@@ -186,7 +186,7 @@ describe('RuntimeTreeItem', () => {
             });
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
-                treeItem.label.should.equal(`Local_fabric runtime is starting... ${state}`);
+                treeItem.label.should.equal(`Local Fabric runtime is starting... ${state}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -221,7 +221,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
+            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
                 command: ExtensionCommands.START_FABRIC,
                 title: '',
@@ -234,7 +234,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local_fabric runtime is starting... ◐');
+            treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
@@ -257,7 +257,7 @@ describe('RuntimeTreeItem', () => {
             });
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
-                treeItem.label.should.equal(`Local_fabric runtime is starting... ${state}`);
+                treeItem.label.should.equal(`Local Fabric runtime is starting... ${state}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -276,7 +276,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local_fabric runtime is starting... ◐');
+            treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
             should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
             isBusyStub.returns(false);
@@ -284,7 +284,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local fabric runtime is stopped. Click to start.');
+            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
             treeItem.command.should.deep.equal({
                 command: ExtensionCommands.START_FABRIC,
                 title: '',
@@ -311,7 +311,7 @@ describe('RuntimeTreeItem', () => {
             });
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
-                treeItem.label.should.equal(`Local_fabric runtime is starting... ${state}`);
+                treeItem.label.should.equal(`Local Fabric runtime is starting... ${state}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);

@@ -105,7 +105,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             isRunning.should.equal(false);
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
-            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             if (runtime.isDevelopmentMode()) {
                 await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
             }
@@ -122,7 +122,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
 
             allChildren.length.should.equal(1);
-            allChildren[0].label.should.equal('Local fabric runtime is stopped. Click to start.');
+            allChildren[0].label.should.equal('Local Fabric runtime is stopped. Click to start.');
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
@@ -199,7 +199,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             runtime.isDevelopmentMode().should.be.false;
 
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
-            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
@@ -231,7 +231,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             runtime.isDevelopmentMode().should.be.false;
 
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
-            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
@@ -274,7 +274,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             runtime.isDevelopmentMode().should.be.false;
 
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
-            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
+            const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);

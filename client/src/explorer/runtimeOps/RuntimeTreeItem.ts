@@ -68,7 +68,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
-            newLabel = `Local_fabric runtime is ${this.runtime.getState()}... `;
+            newLabel = `Local Fabric runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
             newCommand = null;
             newContextLabel = 'blockchain-runtime-item-busy';
@@ -88,7 +88,7 @@ export class RuntimeTreeItem extends ConnectionTreeItem {
         } else {
             // Not running!
             this.disableBusyTicker();
-            newLabel = 'Local fabric runtime is stopped. Click to start.';
+            newLabel = 'Local Fabric runtime is stopped. Click to start.';
             this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
             newCommand = {
                 command: ExtensionCommands.START_FABRIC,
