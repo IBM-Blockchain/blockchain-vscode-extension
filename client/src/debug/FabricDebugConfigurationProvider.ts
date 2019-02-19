@@ -65,7 +65,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 newVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             }
 
-            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, newVersion) as PackageRegistryEntry;
+            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, null, newVersion) as PackageRegistryEntry;
             if (!newPackage) {
                 // package command failed
                 return;

@@ -262,6 +262,33 @@ describe('packageSmartContract', () => {
             executeTaskStub.should.have.not.been.called;
         });
 
+        it('should package the JavaScript project with specified folder and name', async () => {
+            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain');
+
+            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('dogechain');
+            pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.not.been.called;
+        });
+
         it('should package the JavaScript project with specified folder and version', async () => {
             await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
             const testIndex: number = 0;
@@ -272,13 +299,40 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], '0.0.3');
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], null, '0.0.3');
 
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
             pkg.getName().should.equal('javascriptProject');
             pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.not.been.called;
+        });
+
+        it('should package the JavaScript project with specified folder, name and version', async () => {
+            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folders[testIndex], 'dogechain', '1.2.3');
+
+            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('dogechain');
+            pkg.getVersion().should.equal('1.2.3');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
                 'src/chaincode.js',
@@ -381,6 +435,100 @@ describe('packageSmartContract', () => {
             executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
         });
 
+        it('should package the Go project with specified name', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('0.0.3');
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
+
+            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('dogechain');
+            pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('golang');
+            pkg.getFileNames().should.deep.equal([
+                'src/goProject/chaincode.go'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
+        it('should package the Go project with specified version', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
+
+            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('myProject');
+            pkg.getVersion().should.equal('1.2.3');
+            pkg.getType().should.equal('golang');
+            pkg.getFileNames().should.deep.equal([
+                'src/goProject/chaincode.go'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
+        it('should package the Go project with specified name and version', async () => {
+            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
+
+            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('dogechain');
+            pkg.getVersion().should.equal('1.2.3');
+            pkg.getType().should.equal('golang');
+            pkg.getFileNames().should.deep.equal([
+                'src/goProject/chaincode.go'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
         it('should use the GOPATH if set', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', true, false);
 
@@ -437,6 +585,100 @@ describe('packageSmartContract', () => {
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
             pkg.getName().should.equal('myProject');
             pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('java');
+            pkg.getFileNames().should.deep.equal([
+                'src/build.gradle',
+                'src/chaincode.java'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
+        it('should package the Java (Gradle) project with specified name', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain');
+
+            const pkgFile: string = path.join(fileDest, 'dogechain@0.0.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('dogechain');
+            pkg.getVersion().should.equal('0.0.3');
+            pkg.getType().should.equal('java');
+            pkg.getFileNames().should.deep.equal([
+                'src/build.gradle',
+                'src/chaincode.java'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
+        it('should package the Java (Gradle) project with specified version', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
+
+            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('myProject');
+            pkg.getVersion().should.equal('1.2.3');
+            pkg.getType().should.equal('java');
+            pkg.getFileNames().should.deep.equal([
+                'src/build.gradle',
+                'src/chaincode.java'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.been.calledOnce;
+            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+        });
+
+        it('should package the Java (Gradle) project with specified name and version', async () => {
+            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('dogechain');
+            showInputStub.onSecondCall().resolves('1.2.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, 'dogechain', '1.2.3');
+
+            const pkgFile: string = path.join(fileDest, 'dogechain@1.2.3.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('dogechain');
+            pkg.getVersion().should.equal('1.2.3');
             pkg.getType().should.equal('java');
             pkg.getFileNames().should.deep.equal([
                 'src/build.gradle',

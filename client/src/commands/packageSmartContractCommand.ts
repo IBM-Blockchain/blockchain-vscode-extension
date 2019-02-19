@@ -27,7 +27,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
  * This will be used in other files to call the command to package a smart contract project.
  */
-export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, version?: string): Promise<PackageRegistryEntry> {
+export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<PackageRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'packageSmartContract');
 
@@ -59,20 +59,15 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, v
 
         // Determine the package name and version.
         if (language === 'golang') {
-            properties = await golangPackageAndVersion();
+            properties = await golangPackageAndVersion(overrideName, overrideVersion);
         } else if (language === 'java') {
-            properties = await javaPackageAndVersion();
+            properties = await javaPackageAndVersion(overrideName, overrideVersion);
         } else {
-            properties = await packageJsonNameAndVersion(workspace);
+            properties = await packageJsonNameAndVersion(workspace, overrideName, overrideVersion);
         }
         if (!properties) {
             // User cancelled.
             return;
-        }
-
-        if (version) {
-            // update version to our custom one (used for debugging the contract)
-            properties.workspacePackageVersion = version;
         }
 
     } catch (err) {
@@ -236,14 +231,21 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
  * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
  * @returns {string, string}An object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method.
  */
-async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const workspacePackage: string = path.join(workspaceDir.uri.fsPath, '/package.json');
     const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);
     const workspacePackageObj: any = JSON.parse(workspacePackageContents.toString('utf8'));
-    const workspacePackageName: string = workspacePackageObj.name;
-    const workspacePackageVersion: string = workspacePackageObj.version;
+    let workspacePackageName: string = workspacePackageObj.name;
+    let workspacePackageVersion: string = workspacePackageObj.version;
+
+    if (overrideName) {
+        workspacePackageName = overrideName;
+    }
+    if (overrideVersion) {
+        workspacePackageVersion = overrideVersion;
+    }
 
     if (!workspacePackageName || !workspacePackageVersion) {
         const message: string = 'Please enter a package name and/or package version into your package.json';
@@ -257,17 +259,23 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder): 
  * (as java projects do not contain a package.json file), and returns an object containing both these values.
  * @returns {string, string} Returns an object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method
  */
-async function javaPackageAndVersion(): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+async function javaPackageAndVersion(overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
 
-    const workspacePackageName: string = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
+    let workspacePackageName: string = overrideName;
     if (!workspacePackageName) {
-        // User has cancelled the input box
-        return;
+        workspacePackageName = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
+        if (!workspacePackageName) {
+            // User has cancelled the input box
+            return;
+        }
     }
-    const workspacePackageVersion: string = await UserInputUtil.showInputBox('Enter a version for your Java package'); // Getting the specified name and package from the user
+    let workspacePackageVersion: string = overrideVersion;
     if (!workspacePackageVersion) {
-        // User has cancelled the input box
-        return;
+        workspacePackageVersion = await UserInputUtil.showInputBox('Enter a version for your Java package'); // Getting the specified name and package from the user
+        if (!workspacePackageVersion) {
+            // User has cancelled the input box
+            return;
+        }
     }
 
     return {workspacePackageName, workspacePackageVersion};
@@ -278,17 +286,23 @@ async function javaPackageAndVersion(): Promise<{ workspacePackageName: string, 
  * (as golang projects do not contain a package.json file), and returns an object containing both these values.
  * @returns {string, string} Returns an object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method
  */
-async function golangPackageAndVersion(): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
+async function golangPackageAndVersion(overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
 
-    const workspacePackageName: string = await UserInputUtil.showInputBox('Enter a name for your Go package'); // Getting the specified name and package from the user
+    let workspacePackageName: string = overrideName;
     if (!workspacePackageName) {
-        // User has cancelled the input box
-        return;
+        workspacePackageName = await UserInputUtil.showInputBox('Enter a name for your Go package'); // Getting the specified name and package from the user
+        if (!workspacePackageName) {
+            // User has cancelled the input box
+            return;
+        }
     }
-    const workspacePackageVersion: string = await UserInputUtil.showInputBox('Enter a version for your Go package'); // Getting the specified name and package from the user
+    let workspacePackageVersion: string = overrideVersion;
     if (!workspacePackageVersion) {
-        // User has cancelled the input box
-        return;
+        workspacePackageVersion = await UserInputUtil.showInputBox('Enter a version for your Go package'); // Getting the specified name and package from the user
+        if (!workspacePackageVersion) {
+            // User has cancelled the input box
+            return;
+        }
     }
 
     return {workspacePackageName, workspacePackageVersion};
