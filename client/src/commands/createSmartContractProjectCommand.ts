@@ -94,20 +94,19 @@ export async function createSmartContractProject(generator: string = 'fabric:con
 
     smartContractLanguage = smartContractLanguage.toLowerCase();
 
-    // Prompt the user for a file system folder
+    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
     const openDialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: false,
         canSelectFolders: true,
-        openLabel: 'Open'
+        canSelectMany: false,
+        openLabel: 'Save',
+        filters: undefined
     };
 
-    // see method comment for details of this workaround
-    await UserInputUtil.delayWorkaround(500);
-    const folderSelect: vscode.Uri[] | undefined = await vscode.window.showOpenDialog(openDialogOptions);
-    if (!folderSelect) {  // undefined if the user cancels the open dialog box
+    const folderUri: vscode.Uri = await UserInputUtil.browseEdit('Choose the location to save the smart contract', quickPickItems, openDialogOptions, undefined, true) as vscode.Uri;
+    if (!folderUri) {
         return;
     }
-
-    const folderUri: vscode.Uri = folderSelect[0];
     const folderPath: string = folderUri.fsPath;
     const folderName: string = path.basename(folderPath);
 

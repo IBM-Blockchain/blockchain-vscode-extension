@@ -91,12 +91,33 @@ export class IntegrationTestUtil {
         }
 
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
-        this.browseEditStub.withArgs('Enter a file path to a connection profile file', 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
+
+        this.browseEditStub.withArgs('Enter a file path to a connection profile file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: 'Select',
+            filters: {
+                'Connection Profiles' : ['json', 'yaml', 'yml']
+            }
+        }, 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
-        this.browseEditStub.withArgs('Browse for a certificate file', 'myGateway').resolves(this.certPath);
-        this.browseEditStub.withArgs('Browse for a private key file', 'myGateway').resolves(this.keyPath);
 
+        this.browseEditStub.withArgs('Browse for a certificate file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: 'Select',
+            filters: undefined
+        }, 'myGateway').resolves(this.certPath);
+        this.browseEditStub.withArgs('Browse for a private key file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: 'Select',
+            filters: undefined
+        }, 'myGateway').resolves(this.keyPath);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
         this.gatewayRegistry.exists('myGateway').should.be.true;
@@ -134,9 +155,14 @@ export class IntegrationTestUtil {
         }
 
         const uri: vscode.Uri = vscode.Uri.file(this.testContractDir);
-        const uriArr: Array<vscode.Uri> = [uri];
-        const openDialogStub: sinon.SinonStub = this.mySandBox.stub(vscode.window, 'showOpenDialog');
-        openDialogStub.resolves(uriArr);
+
+        this.browseEditStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: 'Save',
+            filters: undefined
+        }, undefined, true).resolves(uri);
 
         let generator: string;
         if (type === 'Go' || type === 'Java') {
