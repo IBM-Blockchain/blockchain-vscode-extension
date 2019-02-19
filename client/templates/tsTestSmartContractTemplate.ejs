@@ -44,12 +44,11 @@ describe('<%=chaincodeLabel%>' , () => {
             connectionProfile = JSON.parse(connectionProfileContents);
         } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
             connectionProfile = yaml.safeLoad(connectionProfileContents);
-        };
+        }
 
         const identities: fabricNetwork.IdentityInfo[] = await fabricWallet.list();
         // TODO: edit to use different identities in wallet
         identityName = identities[0].label;
-
     });
 
     beforeEach(async () => {
@@ -77,17 +76,26 @@ describe('<%=chaincodeLabel%>' , () => {
         // TODO: populate transaction parameters
             <%_ let params = []; _%>
             <%_ transaction.parameters.forEach((parameter) => { _%>
-                <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
-                <%_ if (parameter.schema && parameter.schema['type']) { _%>
-        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema['type'].replace(`"`,'')%>;
+                <%_ if (parameter.schema && parameter.schema.type) { _%>
+                    <%_ if (parameter.schema.type === 'string') { _%>
+                        <%_  params.push(` ${parameter.name.replace(`"`,'')}`) _%>
+        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = '';
+                    <%_ } else if (parameter.schema.type === 'number') { _%>
+                        <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
+        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = 0;
+                    <%_ } else if (parameter.schema.type === 'boolean') { _%>
+                        <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
+        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = true;
+                    <%_ } _%>
                 <%_ } else { _%>
-        const <%=parameter.name.replace(`"`,'')%>;
+                    <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
+        const <%=parameter.name.replace(`"`,'')%> = {};
                 <%_ } _%>
             <%_ }) _%>
         const args: string[] = [<%=params%>];
         <%_ } else { _%>
         // TODO: Update with parameters of transaction
-        const args: string[] = [''];
+        const args: string[] = [];
         <%_ } _%>
 
         const response: Buffer = await submitTransaction('<%=transaction.name%>', args);
@@ -112,7 +120,7 @@ describe('<%=chaincodeLabel%>' , () => {
         const parsedURL: URL = new URL(url);
         const localhosts: string[] = [
             'localhost',
-            '127.0.0.1'
+            '127.0.0.1',
         ];
         return localhosts.indexOf(parsedURL.hostname) !== -1;
     }

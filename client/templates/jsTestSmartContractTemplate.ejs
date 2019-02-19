@@ -78,13 +78,26 @@ describe('<%=chaincodeLabel%>' , () => {
         // TODO: populate transaction parameters
             <%_ let params = []; _%>
             <%_ transaction.parameters.forEach((parameter) => { _%>
-                <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
-        const <%=parameter.name.replace(`"`,'')%>;
+                <%_ if (parameter.schema && parameter.schema.type) { _%>
+                    <%_ if (parameter.schema.type === 'string') { _%>
+                        <%_  params.push(` ${parameter.name.replace(`"`,'')}`) _%>
+        const <%=parameter.name.replace(`"`,'')%> = '';
+                    <%_ } else if (parameter.schema.type === 'number') { _%>
+                        <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
+        const <%=parameter.name.replace(`"`,'')%> = 0;
+                    <%_ } else if (parameter.schema.type === 'boolean') { _%>
+                        <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
+        const <%=parameter.name.replace(`"`,'')%> = true;
+                    <%_ } _%>
+                <%_ } else { _%>
+                    <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
+        const <%=parameter.name.replace(`"`,'')%> = {};
+                <%_ } _%>
             <%_ }) _%>
         const args = [<%=params%>];
         <%_ } else { _%>
         // TODO: Update with parameters of transaction
-        const args = [''];
+        const args = [];
         <%_ } _%>
 
         const response = await submitTransaction('<%=transaction.name%>', args); // Returns buffer of transaction return value
