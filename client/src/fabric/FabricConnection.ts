@@ -75,7 +75,7 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getOrganizations', channelName);
         const network: Network = await this.gateway.getNetwork(channelName);
         const channel: Client.Channel = network.getChannel();
-        const orgs: any[] = await channel.getOrganizations();
+        const orgs: any[] = channel.getOrganizations();
         return orgs;
     }
 
@@ -248,11 +248,20 @@ export abstract class FabricConnection implements IFabricConnection {
         return metadataObject;
     }
 
-    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<void> {
+    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<string | undefined> {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(chaincodeName, namespace);
 
-        await smartContract.submitTransaction(transactionName, ...args);
+        const response: Buffer = await smartContract.submitTransaction(transactionName, ...args);
+
+        if (response.buffer.byteLength === 0) {
+            // If the transaction returns no data
+            return undefined;
+        } else {
+            // Turn the response into a string
+            const result: any = response.toString('utf8');
+            return result;
+        }
 
     }
 
