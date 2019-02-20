@@ -173,24 +173,26 @@ describe('CommandUtil Tests', () => {
 
         it('should send a request', () => {
             const onStub: sinon.SinonStub = mySandBox.stub();
-            onStub.yields('some output').returns({ on: mySandBox.stub() });
+            onStub.yields('   some output \n some more output').returns({ on: mySandBox.stub() });
             mySandBox.stub(request, 'get').returns({ on: onStub });
 
             CommandUtil.sendRequestWithOutput('http://localhost:8000/logs', outputAdapter);
-            outputSpy.should.have.been.calledOnce;
-            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, 'some output');
+            outputSpy.should.have.been.calledTwice;
+            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, 'some output ');
+            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, 'some more output');
         });
 
         it('should send a request that errors', () => {
             const onStub: sinon.SinonStub = mySandBox.stub();
             const errorStub: sinon.SinonStub = mySandBox.stub();
-            errorStub.yields('some error');
+            errorStub.yields('   some error \r some more error');
             onStub.returns({ on: mySandBox.stub() }).returns({ on: errorStub });
             mySandBox.stub(request, 'get').returns({ on: onStub });
 
             CommandUtil.sendRequestWithOutput('http://localhost:8000/logs', outputAdapter);
-            outputSpy.should.have.been.calledOnce;
-            outputSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'some error');
+            outputSpy.should.have.been.calledTwice;
+            outputSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'some error ');
+            outputSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'some more error');
         });
 
         it('should  send output with default adapter', () => {

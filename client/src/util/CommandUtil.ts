@@ -29,7 +29,7 @@ export class CommandUtil {
 
     // Send shell command
     public static async sendCommand(command: string, cwd?: string): Promise<string> {
-        const result: childProcessPromise.childProcessPromise = await exec(command, {cwd: cwd});
+        const result: childProcessPromise.childProcessPromise = await exec(command, { cwd: cwd });
         return result.stdout.trim();
     }
 
@@ -39,7 +39,7 @@ export class CommandUtil {
             title: 'Blockchain Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{ message: string }>): Promise<string> => {
-            progress.report({message});
+            progress.report({ message });
             return this.sendCommand(command, cwd);
         });
     }
@@ -82,7 +82,7 @@ export class CommandUtil {
             title: 'Blockchain Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{ message: string }>): Promise<void> => {
-            progress.report({message});
+            progress.report({ message });
             await this.sendCommandWithOutput(command, args, cwd, env, outputAdapter, shell);
         });
     }
@@ -93,10 +93,18 @@ export class CommandUtil {
         }
         request.get(url)
             .on('data', (response: request.Response) => {
-                outputAdapter.log(LogType.INFO, undefined, response.toString());
+                const str: string = stripAnsi(response.toString());
+                str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => {
+                    line = line.replace(/^[\s]+/, '');
+                    outputAdapter.log(LogType.INFO, undefined, line);
+                });
             })
             .on('error', (error: any) => {
-                outputAdapter.log(LogType.ERROR, undefined, error.toString());
+                const str: string = stripAnsi(error.toString());
+                str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => {
+                    line = line.replace(/^[\s]+/, '');
+                    outputAdapter.log(LogType.ERROR, undefined, line);
+                });
             });
     }
 }
