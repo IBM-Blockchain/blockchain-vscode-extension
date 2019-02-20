@@ -27,7 +27,7 @@ import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
-export class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
+export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
     private PREFIX: string = 'vscode-debug';
     private runtime: FabricRuntime;
@@ -53,19 +53,22 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 config.env = {};
             }
 
-            let newVersion: string;
+            let chaincodeName: string;
+            let chaincodeVersion: string;
             if (!config.env.CORE_CHAINCODE_ID_NAME) {
-
-                const chaincodeInfo: { name: string, version: string } = await ExtensionUtil.getContractNameAndVersion(folder);
-
-                newVersion = this.getNewVersion();
-
-                config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeInfo.name}:${newVersion}`;
+                chaincodeName = await this.getChaincodeName(folder);
+                if (!chaincodeName) {
+                    // User probably cancelled the prompt for the name.
+                    return;
+                }
+                chaincodeVersion = this.getNewVersion();
+                config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
             } else {
-                newVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+                chaincodeName = config.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+                chaincodeVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             }
 
-            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, null, newVersion) as PackageRegistryEntry;
+            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, chaincodeName, chaincodeVersion) as PackageRegistryEntry;
             if (!newPackage) {
                 // package command failed
                 return;
@@ -82,72 +85,32 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
                 return;
             }
 
-            config.type = 'node2';
+            // Allow the language specific class to resolve the configuration.
+            const resolvedConfig: vscode.DebugConfiguration = await this.resolveDebugConfigurationInner(folder, config, token);
 
-            if (!config.request) {
-                config.request = 'launch';
-            }
+            // Launch a *new* debug session with the resolved configuration.
+            // If we leave the name in there, it uses the *old* launch.json configuration with the *new* debug
+            // configuration provider, for example a fabric:go configuration with the go debug configuration
+            // provider. This results in errors and we need to just force it to use our configuration as-is.
+            delete resolvedConfig.name;
+            vscode.debug.startDebugging(folder, resolvedConfig);
 
-            if (!config.program) {
-                config.program = path.join(folder.uri.fsPath, 'node_modules', '.bin', 'fabric-chaincode-node');
-            }
+            // Cancel the current debug session - the user will never know!
+            return undefined;
 
-            // Search for a TsConfig file. If we find one, then assume the project is a TypeScript project.
-            const tsProject: Array<vscode.Uri> = await vscode.workspace.findFiles(new vscode.RelativePattern(folder, '**/tsconfig.json'), '**/node_modules/**', 1);
-
-            if (tsProject.length > 0) {
-                // Asssume it's a TypeScript project
-                let dir: string = '';
-                const tsConfigPath: string = tsProject[0].fsPath;
-                const tsConfig: any = await fs.readJSON(tsConfigPath);
-
-                if (tsConfig && tsConfig.compilerOptions && tsConfig.compilerOptions.outDir) {
-                    const outDir: string = tsConfig.compilerOptions.outDir;
-                    if (!path.isAbsolute(outDir)) {
-                        dir = outDir;
-                        if (dir.indexOf('./') === 0) {
-                            dir = dir.substr(2);
-                        }
-                    }
-                    config.preLaunchTask = 'tsc: build - tsconfig.json';
-                }
-
-                const outFilesPath: string = path.join(folder.uri.fsPath, dir, '**/*.js');
-
-                if (config.outFiles) {
-                    config.outFiles.push(outFilesPath);
-                } else {
-                    config.outFiles = [outFilesPath];
-                }
-            }
-
-            if (!config.cwd) {
-                config.cwd = folder.uri.fsPath;
-            }
-
-            if (!config.args) {
-                config.args = [];
-            }
-
-            if (!config.args.includes('start')) {
-                config.args.push('start');
-            }
-
-            if (!config.args.includes('--peer.address')) {
-                const peerAddress: string = await this.runtime.getChaincodeAddress();
-                config.args.push('--peer.address', peerAddress);
-            }
-
-            return config;
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Failed to launch debug: ${error.message}`);
             return;
         }
     }
 
-    // tslint:disable-next-line no-empty
-    public dispose(): void {
+    protected abstract async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string>;
+
+    protected async getChaincodeAddress(): Promise<string> {
+        return this.runtime.getChaincodeAddress();
     }
+
+    protected abstract async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration>;
 
     private getNewVersion(): string {
         const date: Date = new Date();
@@ -161,7 +124,7 @@ export class FabricDebugConfigurationProvider implements vscode.DebugConfigurati
         connectionRegistry.managedRuntime = true;
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
-        const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
         if (!connection) {
             // either the user cancelled or there was an error so don't carry on
             return [];
