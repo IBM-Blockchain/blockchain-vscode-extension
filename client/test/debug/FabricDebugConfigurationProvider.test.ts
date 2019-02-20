@@ -108,7 +108,7 @@ describe('FabricDebugConfigurationProvider', () => {
             packageEntry.name = 'banana';
             packageEntry.version = 'vscode-13232112018';
             packageEntry.path = path.join('myPath');
-            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves(packageEntry);
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).resolves(packageEntry);
             commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, null, sinon.match.any).resolves({
                 name: 'test-package@0.0.1',
                 path: 'some/path',
@@ -305,7 +305,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with packaging', async () => {
-            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves();
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).resolves();
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -335,7 +335,7 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with installing', async () => {
-            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
+            commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
