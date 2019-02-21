@@ -88,9 +88,18 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
             progress.report({message: `Submitting transaction ${transactionName}`});
             outputAdapter.log(LogType.INFO, undefined, `Submitting transaction ${transactionName} with args ${args}`);
             VSCodeBlockchainDockerOutputAdapter.instance().show();
-            await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
+            const result: string | undefined = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
+
             Reporter.instance().sendTelemetryEvent('submit transaction');
-            outputAdapter.log(LogType.SUCCESS, 'Successfully submitted transaction');
+
+            let message: string;
+            if (result === undefined) {
+                message = `No value returned from ${transactionName}`;
+            } else {
+                message = `Returned value from ${transactionName}: ${result}`;
+            }
+            outputAdapter.log(LogType.SUCCESS, 'Successfully submitted transaction', message);
+            outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error submitting transaction: ${error.message}`);
         }

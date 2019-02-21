@@ -280,5 +280,33 @@ describe('SubmitTransactionCommand', () => {
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
         });
+
+        it('should handle a defined transaction response', async () => {
+            const result: string = '{"hello":"world"}';
+            const outputAdapterShowSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
+            fabricClientConnectionMock.submitTransaction.resolves(result);
+            showInputBoxStub.onFirstCall().resolves('');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
+            showInputBoxStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction', `Returned value from transaction1: ${result}`);
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+            outputAdapterShowSpy.should.have.been.calledOnce;
+        });
+
+        it('should handle an undefined transaction response', async () => {
+            const result: string = undefined;
+            const outputAdapterShowSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
+            fabricClientConnectionMock.submitTransaction.resolves(result);
+            showInputBoxStub.onFirstCall().resolves('');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
+            showInputBoxStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction', `No value returned from transaction1`);
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+            outputAdapterShowSpy.should.have.been.calledOnce;
+        });
     });
 });

@@ -25,6 +25,7 @@ export class RepositoryRegistry extends FabricRegistry<RepositoryRegistryEntry> 
         try {
             return super.get(name);
         } catch (error) {
+            console.log('What is the error', error, name);
             throw new Error(`Entry "${name}" in blockchain repositories does not exist`);
         }
 
