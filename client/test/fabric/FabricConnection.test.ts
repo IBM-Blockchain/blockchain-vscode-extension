@@ -708,11 +708,51 @@ describe('FabricConnection', () => {
     });
 
     describe('submitTransaction', () => {
-        it('should submit a transaction', async () => {
-            fabricContractStub.submitTransaction.resolves();
+        it('should handle no response from a submitted transaction', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricContractStub.submitTransaction.resolves(buffer);
 
-            await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
             fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle a returned string response from a submitted transaction', async () => {
+            const buffer: Buffer = Buffer.from('hello world');
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            result.should.equal('hello world');
+        });
+
+        it('should handle a returned empty string response from a submitted transaction', async () => {
+            const buffer: Buffer = Buffer.from('');
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle a returned array from a submitted transaction', async () => {
+
+            const buffer: Buffer = Buffer.from(JSON.stringify(['hello', 'world']));
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, '["hello","world"]');
+        });
+
+        it('should handle returned object from a submitted transaction', async () => {
+
+            const buffer: Buffer = Buffer.from(JSON.stringify({hello: 'world'}));
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, '{"hello":"world"}');
         });
     });
 
