@@ -139,7 +139,11 @@
             {
                 "command": "extensionHome.open",
                 "title": "View Homepage",
-                "category": "IBM Blockchain Platform"
+                "category": "IBM Blockchain Platform",
+                "icon": {
+                    "light": "resources/icon_light.svg",
+                    "dark": "resources/icon_dark.svg"
+                }
             },
             {
                 "command": "blockchainConnectionsExplorer.refreshEntry",
@@ -292,6 +296,14 @@
             }
         ],
         "menus": {
+            "editor/title": [
+                {
+                    "when": "!false",
+                    "command": "extensionHome.open",
+                    "alt": "extensionHome.open",
+                    "group": "navigation"
+                }
+            ],
             "commandPalette": [
                 {
                     "command": "blockchainExplorer.startFabricRuntime"
