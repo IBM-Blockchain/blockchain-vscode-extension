@@ -291,9 +291,9 @@ describe('ConnectCommand', () => {
             connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
             const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
-            mySandBox.stub(walletGenerator, 'getIdentityNames').resolves(['Admin@org1.example.com']);
+            mySandBox.stub(walletGenerator, 'getNewWallet').returns(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(['Admin@org1.example.com']);
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-            mySandBox.stub(testFabricWallet, 'getWalletPath').returns('some/new/wallet/path');
             connection.walletPath = testFabricWallet.walletPath;
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
@@ -323,15 +323,17 @@ describe('ConnectCommand', () => {
             });
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
+            const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            startCommandStub.callThrough();
+            startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             quickPickStub.should.have.been.calledOnce;
-            mockRuntime.start.should.have.been.calledOnce;
+            startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'startFabricRuntime');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
         });
 
         it('should send a telemetry event if the extension is for production', async () => {

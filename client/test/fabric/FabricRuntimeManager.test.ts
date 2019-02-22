@@ -15,7 +15,7 @@
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -30,7 +30,7 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
 
-chai.should();
+const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('FabricRuntimeManager', () => {
@@ -72,6 +72,7 @@ describe('FabricRuntimeManager', () => {
     describe('getConnection', () => {
         it('should return the connection if there is a connection', async () => {
             runtimeManager['connection'] = connection;
+            runtimeManager['connectingPromise'] = undefined;
 
             const result: IFabricConnection = await runtimeManager.getConnection();
             result.should.deep.equal(connection);
@@ -79,21 +80,210 @@ describe('FabricRuntimeManager', () => {
 
         it('should connect if not connection', async () => {
             runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = undefined;
             await runtimeManager.add('local_fabric');
             const runtime: FabricRuntime = runtimeManager.get('local_fabric');
-            sandbox.stub(runtime, 'getConnectionProfile');
             sandbox.stub(runtimeManager, 'get').returns(runtime);
             sandbox.stub(runtime, 'startLogs');
             connection.connect.resolves();
+            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
             sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-            const walletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            walletStub.importIdentity.resolves();
-            sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(walletStub);
+            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            runtimeWalletStub.exists.resolves(false);
+            runtimeWalletStub.importIdentity.resolves();
+            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            gatewayWalletStub.exists.resolves(false);
+            gatewayWalletStub.importIdentity.resolves();
+
+            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(sinon.match.instanceOf(FabricWallet), 'Admin@org1.example.com');
+            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
+            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
+            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
             runtime.startLogs.should.have.been.called;
             result.should.deep.equal(connection);
+        });
+
+        it('should not import runtime identity if already exists', async () => {
+            runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            sandbox.stub(runtime, 'startLogs');
+            connection.connect.resolves();
+            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
+            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+
+            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            runtimeWalletStub.exists.resolves(true);
+            runtimeWalletStub.importIdentity.resolves();
+            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            gatewayWalletStub.exists.resolves(false);
+            gatewayWalletStub.importIdentity.resolves();
+
+            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+
+            const result: IFabricConnection = await runtimeManager.getConnection();
+            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
+            runtimeWalletStub.importIdentity.should.not.have.been.called;
+            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
+            runtime.startLogs.should.have.been.called;
+            result.should.deep.equal(connection);
+        });
+
+        it('should not import gateway identity if already exists', async () => {
+            runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            sandbox.stub(runtime, 'startLogs');
+            connection.connect.resolves();
+            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
+            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+
+            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            runtimeWalletStub.exists.resolves(false);
+            runtimeWalletStub.importIdentity.resolves();
+            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            gatewayWalletStub.exists.resolves(true);
+            gatewayWalletStub.importIdentity.resolves();
+
+            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            const result: IFabricConnection = await runtimeManager.getConnection();
+
+            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
+            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
+            gatewayWalletStub.importIdentity.should.not.have.been.called;
+            runtime.startLogs.should.have.been.called;
+            result.should.deep.equal(connection);
+        });
+
+        it('should not connect if already connecting', async () => {
+            runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = Promise.resolve(connection);
+            connection.connect.resolves();
+
+            await runtimeManager.getConnection();
+
+            connection.connect.should.not.have.been.called;
+        });
+
+        it('should disconnect if runtime stopped', async () => {
+            runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            sandbox.stub(runtime, 'startLogs');
+
+            connection.connect.resolves();
+            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
+            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            runtimeWalletStub.exists.resolves(false);
+            runtimeWalletStub.importIdentity.resolves();
+            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            gatewayWalletStub.exists.resolves(false);
+            gatewayWalletStub.importIdentity.resolves();
+
+            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+
+            const result: IFabricConnection = await runtimeManager.getConnection();
+            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
+            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
+            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
+            runtime.startLogs.should.have.been.called;
+            result.should.deep.equal(connection);
+
+            runtime.setState(FabricRuntimeState.STOPPED);
+            runtime.emit('busy', false);
+
+            connection.disconnect.should.have.been.called;
+            should.not.exist(runtimeManager['connection']);
+        });
+
+        it('should not discconect if no connection if runtime stopped', async () => {
+            runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            sandbox.stub(runtime, 'startLogs');
+
+            connection.connect.resolves();
+            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
+            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            runtimeWalletStub.exists.resolves(false);
+            runtimeWalletStub.importIdentity.resolves();
+            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            gatewayWalletStub.exists.resolves(false);
+            gatewayWalletStub.importIdentity.resolves();
+
+            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+
+            const result: IFabricConnection = await runtimeManager.getConnection();
+            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
+            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
+            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
+            runtime.startLogs.should.have.been.called;
+            result.should.deep.equal(connection);
+
+            runtimeManager['connection'] = undefined;
+            runtime.setState(FabricRuntimeState.STOPPED);
+            runtime.emit('busy', false);
+
+            connection.disconnect.should.not.have.been.called;
+            should.not.exist(runtimeManager['connection']);
+        });
+
+        it('should do nothing if started', async () => {
+            runtimeManager['connection'] = undefined;
+            runtimeManager['connectingPromise'] = undefined;
+            await runtimeManager.add('local_fabric');
+            const runtime: FabricRuntime = runtimeManager.get('local_fabric');
+            sandbox.stub(runtimeManager, 'get').returns(runtime);
+            sandbox.stub(runtime, 'startLogs');
+
+            connection.connect.resolves();
+            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
+            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
+            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            runtimeWalletStub.exists.resolves(false);
+            runtimeWalletStub.importIdentity.resolves();
+            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            gatewayWalletStub.exists.resolves(false);
+            gatewayWalletStub.importIdentity.resolves();
+
+            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+
+            const result: IFabricConnection = await runtimeManager.getConnection();
+            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
+            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
+            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
+            runtime.startLogs.should.have.been.called;
+            result.should.deep.equal(connection);
+
+            runtime.setState(FabricRuntimeState.STARTED);
+            runtime.emit('busy', false);
+
+            connection.disconnect.should.not.have.been.called;
+            runtimeManager['connection'].should.exist;
         });
     });
 

@@ -14,6 +14,7 @@
 'use strict';
 
 import * as Client from 'fabric-client';
+import * as ClientCA from 'fabric-ca-client';
 import { Gateway, Network, Contract, GatewayOptions, FileSystemWallet, IdentityInfo } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -233,7 +234,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const metadataString: string = metadataBuffer.toString();
         let metadataObject: any = {
             contracts: {
-                '' : {
+                '': {
                     name: '',
                     transactions: [],
                 }
@@ -338,6 +339,11 @@ export abstract class FabricConnection implements IFabricConnection {
         return result;
     }
 
+    public async enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+        const enrollment: ClientCA.IEnrollResponse = await this.gateway.getClient().getCertificateAuthority().enroll({ enrollmentID, enrollmentSecret });
+        return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
+    }
+
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
@@ -357,7 +363,7 @@ export abstract class FabricConnection implements IFabricConnection {
         await this.gateway.connect(connectionProfile, options);
 
         const identities: IdentityInfo[] = await wallet.list();
-        const identity: IdentityInfo = identities.find( (identityToSearch: IdentityInfo) => {
+        const identity: IdentityInfo = identities.find((identityToSearch: IdentityInfo) => {
             return identityToSearch.label === identityName;
         });
 

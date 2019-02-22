@@ -464,33 +464,6 @@ describe('EditGatewayCommand', () => {
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit gateway: ${error.message}`, `Failed to edit gateway: ${error.toString()}`);
             });
 
-            it('should handle no client section defined in the connection.json of the network', async () => {
-                const error: Error = new Error(`Client.createUser parameter 'opts mspid' is required`);
-                mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
-                mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);
-                mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
-                showGatewayQuickPickStub.resolves({label: 'myConnection', data: {connectionProfilePath: '/some/path', walletPath: ''}});
-                quickPickStub.resolves('Identity');
-                showInputBoxStub.onCall(0).resolves('purpleConga');
-                browseEditStub.onCall(0).resolves('/some/certificatePath');
-                browseEditStub.onCall(1).resolves('/some/keyPath');
-                mySandBox.stub(ExtensionUtil, 'readConnectionProfile').resolves('something');
-                mySandBox.stub(fs, 'readFile').resolves('somethingElse');
-
-                const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
-                mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
-                const importIdentityStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects(error);
-                showInputBoxStub.onCall(1).resolves('Org1MSP');
-                importIdentityStub.onCall(1).resolves();
-
-                await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
-                updateFabricGatewayRegistryStub.should.have.been.calledOnce;
-                updateFabricGatewayRegistryStub.getCall(0).should.have.been.calledWith({connectionProfilePath: '/some/path', walletPath: 'some/new/wallet/path'});
-                logSpy.should.have.been.calledTwice;
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
-                importIdentityStub.should.have.been.calledTwice;
-            });
-
             it('should handle the user cancelling providing the mspid', async () => {
                 mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);
@@ -510,7 +483,7 @@ describe('EditGatewayCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
                 updateFabricGatewayRegistryStub.should.not.have.been.called;
-                importIdentityStub.should.have.been.calledOnce;
+                importIdentityStub.should.not.have.been.called;
                 logSpy.should.have.been.calledOnce;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
@@ -523,6 +496,7 @@ describe('EditGatewayCommand', () => {
                 showGatewayQuickPickStub.resolves({label: 'myGateway', data: {connectionProfilePath: '/some/path', walletPath: ''}});
                 quickPickStub.resolves('Identity');
                 showInputBoxStub.onCall(0).resolves('purpleConga');
+                showInputBoxStub.onCall(1).resolves('myMSPID');
                 browseEditStub.onCall(0).resolves('/some/certificatePath');
                 browseEditStub.onCall(1).resolves('/some/keyPath');
                 mySandBox.stub(ExtensionUtil, 'readConnectionProfile').resolves('something');
@@ -530,16 +504,15 @@ describe('EditGatewayCommand', () => {
 
                 const testFabricWallet: FabricWallet = new FabricWallet('myGateway', 'some/new/wallet/path');
                 mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
-                const importIdentityStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects(error);
+                const importIdentityStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').rejects(error);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
                 updateFabricGatewayRegistryStub.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to edit gateway: ${error.message}`, `Failed to edit gateway: ${error.toString()}`);
                 importIdentityStub.should.have.been.calledOnce;
-                showInputBoxStub.should.have.been.calledOnce;
+                showInputBoxStub.should.have.been.calledTwice;
             });
-
         });
 
         describe('called from tree by clicking or right-clicking and editing', () => {

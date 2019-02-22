@@ -36,7 +36,9 @@ const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPri
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
+    STARTED = 'started',
     STOPPING = 'stopping',
+    STOPPED = 'stopped',
     RESTARTING = 'restarting',
 }
 
@@ -73,6 +75,12 @@ export class FabricRuntime extends EventEmitter {
             await this.startInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -83,6 +91,12 @@ export class FabricRuntime extends EventEmitter {
             await this.stopInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -93,6 +107,12 @@ export class FabricRuntime extends EventEmitter {
             await this.teardownInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -104,6 +124,12 @@ export class FabricRuntime extends EventEmitter {
             await this.startInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -242,9 +268,12 @@ export class FabricRuntime extends EventEmitter {
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
         const runtimePath: string = path.join(homeExtDir, this.name);
+        // Need to remove the secret wallet as well
+        const secretRuntimePath: string = path.join(homeExtDir, this.name + '-ops');
 
         try {
             await fs.remove(runtimePath);
+            await fs.remove(secretRuntimePath);
         } catch (error) {
             if (!error.message.includes('ENOENT: no such file or directory')) {
                 outputAdapter.log(LogType.ERROR, `Error removing runtime connection details: ${error.message}`, `Error removing runtime connection details: ${error.toString()}`);
@@ -258,13 +287,13 @@ export class FabricRuntime extends EventEmitter {
         CommandUtil.sendRequestWithOutput(`http://${logsAddress}/logs`, outputAdapter);
     }
 
+    public setState(state: FabricRuntimeState): void {
+        this.state = state;
+    }
+
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
-    }
-
-    private setState(state: FabricRuntimeState): void {
-        this.state = state;
     }
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {

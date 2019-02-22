@@ -375,10 +375,9 @@ describe('BlockchainNetworkExplorer', () => {
                 mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
 
                 const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
-                const walletGenerator: FabricWalletGenerator = await FabricWalletGenerator.instance();
                 mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-                mySandBox.stub(walletGenerator, 'getIdentityNames').resolves(['Admin@org1.example.com']);
-                mySandBox.stub(testFabricWallet, 'getWalletPath').returns(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+                mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet').returns(testFabricWallet);
+                mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(['Admin@org1.example.com']);
 
                 const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
@@ -408,6 +407,50 @@ describe('BlockchainNetworkExplorer', () => {
                 identity.command.should.deep.equal(myCommand);
                 identity.label.should.equal('Admin@org1.example.com');
                 identity.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+            });
+
+            it('should display managed runtimes with no identities', async () => {
+                mySandBox.stub(FabricGatewayHelper, 'isCompleted').returns(true);
+
+                const runtimes: any = [{
+                    name: 'myRuntime',
+                    developmentMode: false
+                }];
+
+                // reset the available gateways
+                await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update('fabric.runtimes', runtimes, vscode.ConfigurationTarget.Global);
+
+                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+                mockRuntime.getName.returns('myRuntime');
+                mockRuntime.isBusy.returns(false);
+                mockRuntime.isRunning.resolves(true);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('myRuntime').returns(mockRuntime);
+
+                const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+                const walletGenerator: FabricWalletGenerator = await FabricWalletGenerator.instance();
+                mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+                mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([]);
+
+                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                await new Promise((resolve: any): any => {
+                    setTimeout(resolve, 0);
+                });
+
+                const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+                gateway.name = 'myRuntime';
+                gateway.managedRuntime = true;
+                gateway.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
+
+                allChildren.length.should.equal(1);
+                allChildren[0].should.be.an.instanceOf(LocalGatewayTreeItem);
+                const localGatewayTreeItem: LocalGatewayTreeItem = allChildren[0] as LocalGatewayTreeItem;
+                localGatewayTreeItem.label.should.equal('myRuntime  ●');
+                localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                localGatewayTreeItem.gateway.should.deep.equal(gateway);
+                const gatewayChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(localGatewayTreeItem);
+                gatewayChildren.length.should.equal(0);
             });
 
             it('should detect uncompleted gateway', async () => {

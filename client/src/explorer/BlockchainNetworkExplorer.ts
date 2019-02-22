@@ -172,7 +172,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         return this.tree;
     }
 
-    public async createGatewayUncompleteTree(element: GatewayTreeItem|LocalGatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
+    public async createGatewayUncompleteTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
         console.log('createGatewayUncompleteTree', element);
 
         let profileLabel: string = 'Connection Profile';
@@ -240,11 +240,15 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
                 const walletPath: string = fabricWallet.getWalletPath();
                 gateway.walletPath = walletPath;
 
+                const identityNames: Array<string> = await fabricWallet.getIdentityNames();
+
+                const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+
                 const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                     this,
                     gateway.name,
                     gateway,
-                    vscode.TreeItemCollapsibleState.Expanded,
+                    treeState,
                     undefined
                 );
 
@@ -392,14 +396,14 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         });
     }
 
-    private async createGatewayIdentityTree(element: GatewayTreeItem|LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
+    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
         console.log('createConnectionIdentityTree', element);
 
         const tree: Array<GatewayIdentityTreeItem> = [];
 
         // get identityNames in the wallet
-        const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(element.gateway.name, element.gateway.walletPath);
+        const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.name, element.gateway.walletPath);
+        const identityNames: string[] = await wallet.getIdentityNames();
 
         for (const identityName of identityNames) {
             const command: vscode.Command = {

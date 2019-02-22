@@ -112,7 +112,6 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
             if (isRunning && !isBusy) {
                 this.tree = await this.createConnectedTree();
-                await FabricRuntimeManager.instance().getConnection();
             } else {
                 this.tree = await this.createConnectionTree();
             }
@@ -132,24 +131,20 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
         const runtimeRegistryEntry: FabricRuntimeRegistryEntry = this.runtimeRegistryManager.get('local_fabric');
 
-        try {
-            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            connection.name = runtimeRegistryEntry.name;
-            connection.managedRuntime = true;
+        const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+        connection.name = runtimeRegistryEntry.name;
+        connection.managedRuntime = true;
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
-                runtimeRegistryEntry.name,
-                connection,
-                vscode.TreeItemCollapsibleState.None,
-                {
-                    command: 'blockchainARuntimeExplorer.startFabricRuntime',
-                    title: '',
-                    arguments: []
-                });
-            tree.push(treeItem);
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating Local Fabric Control Panel: ${error.message}`, `Error populating Local Fabric Control Panel: ${error.toString()}`);
-        }
+        const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
+            runtimeRegistryEntry.name,
+            connection,
+            vscode.TreeItemCollapsibleState.None,
+            {
+                command: 'blockchainARuntimeExplorer.startFabricRuntime',
+                title: '',
+                arguments: []
+            });
+        tree.push(treeItem);
 
         return tree;
     }

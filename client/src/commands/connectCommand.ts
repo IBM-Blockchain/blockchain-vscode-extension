@@ -62,16 +62,17 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         runtimeData = 'managed runtime';
 
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+        const identityNames: string[] = await wallet.getIdentityNames();
         identityName = identityNames[0];
-
     } else {
         const connectionData: { connectionProfilePath: string, walletPath: string } = {
             connectionProfilePath: gatewayRegistryEntry.connectionProfilePath,
             walletPath: gatewayRegistryEntry.walletPath
         };
 
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+        wallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+
+        const identityNames: string[] = await wallet.getIdentityNames();
 
         if (identityNames.length === 0) {
             outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + gatewayRegistryEntry.walletPath);
@@ -90,7 +91,6 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         }
 
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
-        wallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
     }
 
     try {
