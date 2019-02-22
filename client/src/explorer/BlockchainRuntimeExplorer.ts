@@ -42,6 +42,7 @@ import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
+import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -57,7 +58,6 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     private runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
 
     constructor() {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         FabricRuntimeManager.instance().get('local_fabric').on('busy', () => {
             // tslint:disable-next-line: no-floating-promises
             this.refresh();
@@ -243,6 +243,12 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 const peerTreeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(this, peer, chaincodes, vscode.TreeItemCollapsibleState.None, true);
                 tree.push(peerTreeItem);
             }
+
+            // Push Certificate Authority tree item
+            const certificateAuthorityName: any = connection.getCertificateAuthorityName();
+            const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
+            tree.push(caTreeItem);
+
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating nodes view: ${error.message}`, `Error populating nodes view: ${error.toString()}`);
             return tree;
