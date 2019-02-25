@@ -68,6 +68,7 @@
             "blockchainConnectionsExplorer.editGatewayEntry",
             "blockchainConnectionsExplorer.testSmartContractEntry",
             "blockchainConnectionsExplorer.submitTransactionEntry",
+            "blockchainConnectionsExplorer.evaluateTransactionEntry",
             "blockchainExplorer.upgradeSmartContractEntry",
             "extensionHome.open"
         ]
@@ -290,6 +291,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "blockchainConnectionsExplorer.evaluateTransactionEntry",
+                "title": "Evaluate Transaction",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
                 "title": "Export Connection Details",
                 "category": "IBM Blockchain Platform"
@@ -452,6 +458,14 @@
                 },
                 {
                     "command": "blockchainConnectionsExplorer.submitTransactionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.evaluateTransactionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-transaction-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.evaluateTransactionEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {

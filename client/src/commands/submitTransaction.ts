@@ -23,9 +23,18 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 
-export async function submitTransaction(treeItem?: InstantiatedTreeItem | TransactionTreeItem): Promise<void> {
+export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, 'submitTransaction');
+    let action: string;
+    let actioning: string;
+    if (evaluate) {
+        action = 'evaluate';
+        actioning = 'evaluating';
+    } else {
+        action = 'submit';
+        actioning = 'submitting';
+    }
+    outputAdapter.log(LogType.INFO, undefined, `${action}Transaction`);
     let smartContract: string;
     let transactionName: string;
     let channelName: string;
@@ -39,7 +48,7 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
             }
         }
 
-        const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose a smart contract to submit a transaction to', null);
+        const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
         if (!chosenSmartContract) {
             return;
         }
@@ -47,7 +56,7 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
         channelName = chosenSmartContract.data.channel;
         smartContract = chosenSmartContract.data.name;
 
-        const chosenTransaction: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('Choose a transaction to submit', smartContract, channelName);
+        const chosenTransaction: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick(`Choose a transaction to ${action}`, smartContract, channelName);
         if (!chosenTransaction) {
             return;
         } else {
@@ -57,7 +66,7 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
     } else if (treeItem instanceof InstantiatedTreeItem) {
         channelName = treeItem.channel.label;
         smartContract = treeItem.name;
-        transactionName = await UserInputUtil.showInputBox('What function do you want to call?');
+        transactionName = await UserInputUtil.showInputBox(`What transaction do you want to ${action}?`);
         if (!transactionName) {
             return;
         }
@@ -69,7 +78,7 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
     }
 
     let args: Array<string> = [];
-    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
+    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (comma seperated)');
     if (argsString === undefined) {
         return;
     } else if (argsString === '') {
@@ -85,12 +94,18 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
     }, async (progress: vscode.Progress<{ message: string }>) => {
 
         try {
-            progress.report({message: `Submitting transaction ${transactionName}`});
-            outputAdapter.log(LogType.INFO, undefined, `Submitting transaction ${transactionName} with args ${args}`);
+            progress.report({message: `${actioning} transaction ${transactionName}`});
+            outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args}`);
             VSCodeBlockchainDockerOutputAdapter.instance().show();
-            const result: string | undefined = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
+            let result: string | undefined;
+            if (evaluate) {
+                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, true);
 
-            Reporter.instance().sendTelemetryEvent('submit transaction');
+            } else {
+                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
+            }
+
+            Reporter.instance().sendTelemetryEvent(`${action} transaction`);
 
             let message: string;
             if (result === undefined) {
@@ -98,10 +113,10 @@ export async function submitTransaction(treeItem?: InstantiatedTreeItem | Transa
             } else {
                 message = `Returned value from ${transactionName}: ${result}`;
             }
-            outputAdapter.log(LogType.SUCCESS, 'Successfully submitted transaction', message);
+            outputAdapter.log(LogType.SUCCESS, `Successful ${action}Transaction`, message);
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error submitting transaction: ${error.message}`);
+            outputAdapter.log(LogType.ERROR, `Error ${actioning} transaction: ${error.message}`);
         }
     });
 }
