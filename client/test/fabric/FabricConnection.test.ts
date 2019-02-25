@@ -844,4 +844,31 @@ describe('FabricConnection', () => {
             fabricConnection.getCertificateAuthorityName().should.equal('ca-name');
         });
     });
+    describe('getOrderers', () => {
+        it('should get orderers', async () => {
+            fabricClientStub.getChannel.onFirstCall().returns({
+                getOrderers: mySandBox.stub().returns([
+                    {
+                        getName: mySandBox.stub().returns('orderer1')
+                    }
+                ])
+            });
+            fabricClientStub.getChannel.onSecondCall().returns({
+                getOrderers: mySandBox.stub().returns([
+                    {
+                        getName: mySandBox.stub().returns('orderer2')
+                    }
+                ])
+            });
+            fabricChannelStub.getOrderers.onFirstCall().returns([new fabricClient.Orderer('grpc://url1')]);
+            fabricChannelStub.getOrderers.onSecondCall().returns([new fabricClient.Orderer('grpc://url2')]);
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+            const getAllChannelsForPeer: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeer.withArgs('peerOne').resolves(['channel1']);
+            getAllChannelsForPeer.withArgs('peerTwo').resolves(['channel2']);
+            const orderers: Set<string> = await fabricConnection.getOrderers();
+            orderers.has('orderer1').should.equal(true);
+            orderers.has('orderer2').should.equal(true);
+        });
+    });
 });

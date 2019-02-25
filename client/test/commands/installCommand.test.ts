@@ -80,6 +80,7 @@ describe('InstallCommand', () => {
             fabricClientConnectionMock.connect.resolves();
             fabricClientConnectionMock.installChaincode.resolves();
             fabricClientConnectionMock.getInstalledChaincode.resolves(new Map<string, Array<string>>());
+            fabricClientConnectionMock.getOrderers.resolves(new Set(['orderer1']));
             const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricClientConnectionMock as any) as FabricConnection );
 

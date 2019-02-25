@@ -351,6 +351,27 @@ export abstract class FabricConnection implements IFabricConnection {
         return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
     }
 
+    public async getOrderers(): Promise<Set<string>> {
+
+        const ordererSet: Set<string> = new Set();
+        const allPeerNames: Array<string> = this.getAllPeerNames();
+
+        for (const peer of allPeerNames) {
+            const channels: string[] = await this.getAllChannelsForPeer(peer);
+            for (const _channelName of channels) {
+
+                const channel: Client.Channel = await this.getChannel(_channelName);
+                const orderers: Client.Orderer[] = channel.getOrderers();
+
+                for (const orderer of orderers) {
+                    ordererSet.add(orderer.getName());
+                }
+            }
+        }
+
+        return ordererSet;
+    }
+
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);

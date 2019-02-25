@@ -41,6 +41,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
+import { OrdererTreeItem } from '../../src/explorer/runtimeOps/OrdererTreeItem';
 
 chai.use(sinonChai);
 chai.should();
@@ -235,6 +236,8 @@ describe('BlockchainRuntimeExplorer', () => {
                     }
                 ]);
 
+                fabricConnection.getOrderers.resolves(new Set(['orderer1']));
+
                 blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
@@ -301,7 +304,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 allChildren.length.should.equal(4);
 
                 const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
-                items.length.should.equal(3);
+                items.length.should.equal(4);
                 const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerOne.contextValue.should.equal('blockchain-peer-item');
@@ -316,6 +319,11 @@ describe('BlockchainRuntimeExplorer', () => {
                 ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
                 ca.label.should.equal('ca-name');
+
+                const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
+                orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer.label.should.equal('orderer1');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });

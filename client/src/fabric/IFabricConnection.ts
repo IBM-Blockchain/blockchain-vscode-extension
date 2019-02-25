@@ -15,6 +15,7 @@
 
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
+import { Orderer } from 'fabric-client';
 
 export interface IFabricConnection {
 
@@ -35,6 +36,8 @@ export interface IFabricConnection {
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
+
+    getOrderers(): Promise<Set<string>>;
 
     installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
 
