@@ -43,6 +43,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
+import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -249,6 +250,11 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
             tree.push(caTreeItem);
 
+            const orderers: Set<string> = await this.getOrderers();
+            for (const orderer of orderers.keys()) {
+                tree.push(new OrdererTreeItem(this, orderer));
+            }
+
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating nodes view: ${error.message}`, `Error populating nodes view: ${error.toString()}`);
             return tree;
@@ -344,5 +350,12 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             tree.push(new InstallCommandTreeItem(this, command));
         }
         return tree;
+    }
+
+    private async getOrderers(): Promise<Set<string>> {
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const ordererSet: Set<string> = await connection.getOrderers();
+
+        return ordererSet;
     }
 }

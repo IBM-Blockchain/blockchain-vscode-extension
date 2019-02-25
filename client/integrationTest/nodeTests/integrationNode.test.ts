@@ -41,6 +41,7 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -165,9 +166,10 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 smartContractsChildren[1].label.should.equal('Installed');
 
                 const nodesChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<SmartContractsTreeItem>;
-                nodesChildren.length.should.equal(2);
+                nodesChildren.length.should.equal(3);
                 nodesChildren[0].label.should.equal('peer0.org1.example.com');
                 nodesChildren[1].label.should.equal('ca.example.com');
+                nodesChildren[2].label.should.equal('orderer.example.com');
 
                 let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
 
@@ -279,9 +281,10 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 smartContractsChildren[1].label.should.equal('Installed');
 
                 const nodesChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<SmartContractsTreeItem>;
-                nodesChildren.length.should.equal(2);
+                nodesChildren.length.should.equal(3);
                 nodesChildren[0].label.should.equal('peer0.org1.example.com');
                 nodesChildren[1].label.should.equal('ca.example.com');
+                nodesChildren[2].label.should.equal('orderer.example.com');
 
                 const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
 
