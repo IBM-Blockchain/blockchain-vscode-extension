@@ -40,6 +40,7 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
+import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 
 chai.use(sinonChai);
 chai.should();
@@ -294,20 +295,27 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should show peers (nodes) correctly', async () => {
+                fabricConnection.getCertificateAuthorityName.returns('ca-name');
+
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);
 
-                const peers: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
-                peers.length.should.equal(2);
-                const peerOne: PeerTreeItem = peers[0] as PeerTreeItem;
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
+                items.length.should.equal(3);
+                const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerOne.contextValue.should.equal('blockchain-peer-item');
                 peerOne.label.should.equal('peerOne');
 
-                const peerTwo: PeerTreeItem = peers[1] as PeerTreeItem;
+                const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
                 peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
+
+                const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
+                ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
+                ca.label.should.equal('ca-name');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });

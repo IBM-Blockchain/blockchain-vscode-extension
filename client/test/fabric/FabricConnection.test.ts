@@ -835,4 +835,13 @@ describe('FabricConnection', () => {
             result.should.deep.equal({certificate : 'myCert', privateKey: 'myKey'});
         });
     });
+
+    describe('getCertificateAuthorityName', () => {
+        it('should get the certificate authority name', async () => {
+            fabricClientStub.getCertificateAuthority.returns({
+                getCaName: mySandBox.stub().returns('ca-name')
+            });
+            fabricConnection.getCertificateAuthorityName().should.equal('ca-name');
+        });
+    });
 });

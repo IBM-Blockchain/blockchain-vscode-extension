@@ -80,6 +80,13 @@ export abstract class FabricConnection implements IFabricConnection {
         return orgs;
     }
 
+    public getCertificateAuthorityName(): string {
+        const client: Client = this.gateway.getClient();
+        const certificateAuthority: any = client.getCertificateAuthority();
+        const certificateAuthorityName: string = certificateAuthority.getCaName();
+        return certificateAuthorityName;
+    }
+
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
         console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin

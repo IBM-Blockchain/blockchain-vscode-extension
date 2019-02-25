@@ -30,6 +30,8 @@ export interface IFabricConnection {
 
     getOrganizations(channelName: string): Promise<Array<string>>;
 
+    getCertificateAuthorityName(): string;
+
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
