@@ -87,11 +87,12 @@ export class CommandUtil {
         });
     }
 
-    public static sendRequestWithOutput(url: string, outputAdapter?: OutputAdapter): void {
+    public static sendRequestWithOutput(url: string, outputAdapter?: OutputAdapter): request.Request {
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
-        request.get(url)
+
+        return request.get(url)
             .on('data', (response: request.Response) => {
                 const str: string = stripAnsi(response.toString());
                 str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => {
@@ -106,5 +107,9 @@ export class CommandUtil {
                     outputAdapter.log(LogType.ERROR, undefined, line);
                 });
             });
+    }
+
+    public static abortRequest(requestToAbort: request.Request): void {
+        requestToAbort.abort();
     }
 }
