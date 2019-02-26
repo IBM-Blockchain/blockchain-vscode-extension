@@ -256,11 +256,16 @@ export abstract class FabricConnection implements IFabricConnection {
         return metadataObject;
     }
 
-    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<string | undefined> {
+    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined> {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(chaincodeName, namespace);
 
-        const response: Buffer = await smartContract.submitTransaction(transactionName, ...args);
+        let response: Buffer;
+        if (evaluate) {
+            response = await smartContract.evaluateTransaction(transactionName, ...args);
+        } else {
+            response = await smartContract.submitTransaction(transactionName, ...args);
+        }
 
         if (response.buffer.byteLength === 0) {
             // If the transaction returns no data

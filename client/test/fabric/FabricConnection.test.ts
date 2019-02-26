@@ -759,6 +759,15 @@ describe('FabricConnection', () => {
             fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
             should.equal(result, '{"hello":"world"}');
         });
+
+        it('should evaluate a transaction if specified', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricContractStub.evaluateTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', true);
+            fabricContractStub.evaluateTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, undefined);
+        });
     });
 
     describe('disconnect', () => {

@@ -42,6 +42,7 @@ export class ExtensionCommands {
     static readonly EXPORT_CONNECTION_DETAILS: string = 'blockchainConnectionsExplorer.exportConnectionDetailsEntry';
     static readonly REFRESH_GATEWAYS: string = 'blockchainConnectionsExplorer.refreshEntry';
     static readonly SUBMIT_TRANSACTION: string = 'blockchainConnectionsExplorer.submitTransactionEntry';
+    static readonly EVALUATE_TRANSACTION: string = 'blockchainConnectionsExplorer.evaluateTransactionEntry';
     static readonly TEST_SMART_CONTRACT: string = 'blockchainConnectionsExplorer.testSmartContractEntry';
 
     // NO VIEW

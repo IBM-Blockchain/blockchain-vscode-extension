@@ -101,6 +101,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.EDIT_GATEWAY,
             ExtensionCommands.TEST_SMART_CONTRACT,
             ExtensionCommands.SUBMIT_TRANSACTION,
+            ExtensionCommands.EVALUATE_TRANSACTION,
             ExtensionCommands.UPGRADE_SMART_CONTRACT,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
@@ -136,6 +137,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.EDIT_GATEWAY}`,
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
+            `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`

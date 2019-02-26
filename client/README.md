@@ -74,6 +74,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Start Fabric Runtime | Start a Hyperledger Fabric instance |
 | Stop Fabric Runtime | Stop a Hyperledger Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
+| Evaluate Transaction | Evaluate a smart contract transaction |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
 | Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |

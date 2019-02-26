@@ -293,7 +293,7 @@ export class IntegrationTestUtil {
             data: { name: fcn, contract: null }
         });
 
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (comma seperated)').resolves(args);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
@@ -309,7 +309,7 @@ export class IntegrationTestUtil {
             data: { name: transaction, contract: contractName }
         });
 
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (comma seperated)').resolves(args);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }

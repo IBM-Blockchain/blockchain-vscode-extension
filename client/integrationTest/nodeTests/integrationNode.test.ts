@@ -317,7 +317,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await integrationTestUtil.submitTransactionToContract(`fabcar-contract-${languageLowerCase}`, '1.0.0', 'queryCar', 'CAR0', 'FabCar');
 
                 const message: string = `"{\\"color\\":\\"blue\\",\\"docType\\":\\"car\\",\\"make\\":\\"Toyota\\",\\"model\\":\\"Prius\\",\\"owner\\":\\"Tomoko\\"}"`;
-                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction', `Returned value from queryCar: ${message}`);
+                logSpy.should.have.been.calledThrice;
+                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction', `Returned value from queryCar: ${message}`);
 
             }).timeout(0);
         });
