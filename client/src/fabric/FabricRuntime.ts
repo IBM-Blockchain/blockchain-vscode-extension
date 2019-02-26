@@ -23,6 +23,7 @@ import { EventEmitter } from 'events';
 import { Docker, ContainerPorts } from '../docker/Docker';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { LogType } from '../logging/OutputAdapter';
+import * as request from 'request';
 
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
@@ -50,6 +51,8 @@ export class FabricRuntime extends EventEmitter {
     private name: string;
     private busy: boolean = false;
     private state: FabricRuntimeState;
+
+    private logsRequest: request.Request;
 
     constructor() {
         super();
@@ -121,6 +124,7 @@ export class FabricRuntime extends EventEmitter {
         try {
             this.setBusy(true);
             this.setState(FabricRuntimeState.RESTARTING);
+            this.stopLogs();
             await this.stopInner(outputAdapter);
             await this.startInner(outputAdapter);
         } finally {
@@ -285,7 +289,13 @@ export class FabricRuntime extends EventEmitter {
 
     public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
         const logsAddress: string = await this.getLogsAddress();
-        CommandUtil.sendRequestWithOutput(`http://${logsAddress}/logs`, outputAdapter);
+        this.logsRequest = CommandUtil.sendRequestWithOutput(`http://${logsAddress}/logs`, outputAdapter);
+    }
+
+    public stopLogs(): void {
+        if (this.logsRequest) {
+            CommandUtil.abortRequest(this.logsRequest);
+        }
     }
 
     public setState(state: FabricRuntimeState): void {
@@ -312,10 +322,12 @@ export class FabricRuntime extends EventEmitter {
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
+        this.stopLogs();
         await this.execute('stop', outputAdapter);
     }
 
     private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
+        this.stopLogs();
         await this.execute('teardown', outputAdapter);
         await this.deleteConnectionDetails(outputAdapter);
     }

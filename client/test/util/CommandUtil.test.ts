@@ -206,4 +206,17 @@ describe('CommandUtil Tests', () => {
             consoleSpy.should.have.been.called;
         });
     });
+
+    describe('abortRequest', () => {
+        it('should abort the request', () => {
+
+            const requestStub: any = {
+                abort: mySandBox.stub()
+            };
+
+            CommandUtil.abortRequest(requestStub);
+
+            requestStub.abort.should.have.been.called;
+        });
+    });
 });
