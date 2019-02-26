@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
@@ -37,7 +36,6 @@ describe('toggleFabricRuntimeDevMode', () => {
 
     let sandbox: sinon.SinonSandbox;
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
     let logSpy: sinon.SinonSpy;
@@ -59,10 +57,8 @@ describe('toggleFabricRuntimeDevMode', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
-        await runtimeManager.add('local_fabric');
-        runtime = runtimeManager.get('local_fabric');
+        await runtimeManager.add();
+        runtime = runtimeManager.getRuntime();
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
         nodes = allChildren[2] as NodesTreeItem;
@@ -74,8 +70,6 @@ describe('toggleFabricRuntimeDevMode', () => {
     afterEach(async () => {
         sandbox.restore();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
     });
 
     it('should enable development mode and not restart a stopped Fabric runtime when run from the command', async () => {

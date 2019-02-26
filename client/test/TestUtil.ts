@@ -24,7 +24,7 @@ export class TestUtil {
             await ExtensionUtil.activateExtension();
         } else {
             const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-            myExtension.registerCommands(context);
+            await myExtension.registerCommands(context);
         }
     }
     static async storeExtensionDirectoryConfig(): Promise<void> {
@@ -45,12 +45,12 @@ export class TestUtil {
     }
 
     static async storeRuntimesConfig(): Promise<void> {
-        this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get('fabric.runtimes');
+        this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get('fabric.runtime');
         console.log('Storing user runtimes:', this.USER_RUNTIMES_CONFIG);
     }
     static async restoreRuntimesConfig(): Promise<void> {
         console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
-        await vscode.workspace.getConfiguration().update('fabric.runtimes', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.runtime', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
     static async storeRepositoriesConfig(): Promise<void> {

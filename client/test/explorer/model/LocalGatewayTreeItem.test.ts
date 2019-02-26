@@ -13,20 +13,17 @@
 */
 
 import * as vscode from 'vscode';
+import * as chai from 'chai';
+import * as sinon from 'sinon';
 import { getBlockchainNetworkExplorerProvider } from '../../../src/extension';
 import { LocalGatewayTreeItem } from '../../../src/explorer/model/LocalGatewayTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../src/fabric/FabricRuntime';
-import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry';
 import { FabricGatewayRegistry } from '../../../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
-
-import * as chai from 'chai';
-import * as sinon from 'sinon';
-import { BlockchainTreeItem } from '../../../src/explorer/model/BlockchainTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../src/logging/OutputAdapter';
 
@@ -35,7 +32,6 @@ const should: Chai.Should = chai.should();
 describe('LocalGatewayTreeItem', () => {
 
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let connection: FabricGatewayRegistryEntry;
 
@@ -59,16 +55,14 @@ describe('LocalGatewayTreeItem', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await gatewayRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
 
         connection = new FabricGatewayRegistryEntry();
         connection.name = 'local_fabric';
         connection.managedRuntime = true;
 
         provider = getBlockchainNetworkExplorerProvider();
-        await runtimeManager.add('local_fabric');
-        localGateway = runtimeManager.get('local_fabric');
+        await runtimeManager.add();
+        localGateway = runtimeManager.getRuntime();
         sandbox = sinon.createSandbox();
         clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
     });
@@ -78,8 +72,6 @@ describe('LocalGatewayTreeItem', () => {
         clock.restore();
         sandbox.restore();
         await gatewayRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
     });
 
     describe('#constructor', () => {

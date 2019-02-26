@@ -73,7 +73,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = true;
 
-            mySandbox.stub(FabricRuntimeManager.instance(), 'get').returns(runtimeStub);
+            mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
             mySandbox.stub(FabricGatewayRegistry.instance(), 'get').returns(registryEntry);
 
             workspaceFolder = {

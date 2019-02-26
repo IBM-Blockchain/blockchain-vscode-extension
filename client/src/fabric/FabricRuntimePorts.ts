@@ -12,17 +12,12 @@
  * limitations under the License.
 */
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
-import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
-
-export class FabricRuntimeRegistryEntry extends FabricRegistryEntry {
-
-    public developmentMode: boolean;
-    public ports?: FabricRuntimeRegistryPorts;
-
-    constructor(fields?: FabricRuntimeRegistryEntry) {
-        super();
-        Object.assign(this, fields);
-    }
-
+export class FabricRuntimePorts {
+    public orderer: number;
+    public peerRequest: number;
+    public peerChaincode: number;
+    public peerEventHub: number;
+    public certificateAuthority: number;
+    public couchDB: number;
+    public logs: number;
 }

@@ -14,14 +14,13 @@
 
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
-import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
+import * as vscode from 'vscode';
+import { FabricRuntimePorts } from './FabricRuntimePorts';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import { EventEmitter } from 'events';
 import { Docker, ContainerPorts } from '../docker/Docker';
-import * as vscode from 'vscode';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { LogType } from '../logging/OutputAdapter';
 
@@ -44,15 +43,17 @@ export enum FabricRuntimeState {
 
 export class FabricRuntime extends EventEmitter {
 
-    private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+    public developmentMode: boolean;
+    public ports?: FabricRuntimePorts;
+
     private docker: Docker;
     private name: string;
     private busy: boolean = false;
     private state: FabricRuntimeState;
 
-    constructor(private runtimeRegistryEntry: FabricRuntimeRegistryEntry) {
+    constructor() {
         super();
-        this.name = runtimeRegistryEntry.name;
+        this.name = 'local_fabric';
         this.docker = new Docker(this.name);
     }
 
@@ -199,12 +200,12 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public isDevelopmentMode(): boolean {
-        return this.runtimeRegistryEntry.developmentMode;
+        return this.developmentMode;
     }
 
     public async setDevelopmentMode(developmentMode: boolean): Promise<void> {
-        this.runtimeRegistryEntry.developmentMode = developmentMode;
-        await this.runtimeRegistry.update(this.runtimeRegistryEntry);
+        this.developmentMode = developmentMode;
+        await this.updateUserSettings();
     }
 
     public async getChaincodeAddress(): Promise<string> {
@@ -289,6 +290,15 @@ export class FabricRuntime extends EventEmitter {
 
     public setState(state: FabricRuntimeState): void {
         this.state = state;
+
+    }
+
+    public async updateUserSettings(): Promise<void> {
+        const runtimeObject: any = {
+            ports: this.ports,
+            developmentMode: this.isDevelopmentMode(),
+        };
+        await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeObject, vscode.ConfigurationTarget.Global);
     }
 
     private setBusy(busy: boolean): void {
@@ -317,14 +327,14 @@ export class FabricRuntime extends EventEmitter {
 
         const env: any = Object.assign({}, process.env, {
             COMPOSE_PROJECT_NAME: this.docker.getContainerPrefix(),
-            CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net',
-            CERTIFICATE_AUTHORITY_PORT: this.runtimeRegistryEntry.ports.certificateAuthority,
-            ORDERER_PORT: this.runtimeRegistryEntry.ports.orderer,
-            PEER_REQUEST_PORT: this.runtimeRegistryEntry.ports.peerRequest,
-            PEER_CHAINCODE_PORT: this.runtimeRegistryEntry.ports.peerChaincode,
-            PEER_EVENT_HUB_PORT: this.runtimeRegistryEntry.ports.peerEventHub,
-            COUCH_DB_PORT: this.runtimeRegistryEntry.ports.couchDB,
-            LOGS_PORT: this.runtimeRegistryEntry.ports.logs
+            CORE_CHAINCODE_MODE: this.developmentMode ? 'dev' : 'net',
+            CERTIFICATE_AUTHORITY_PORT: this.ports.certificateAuthority,
+            ORDERER_PORT: this.ports.orderer,
+            PEER_REQUEST_PORT: this.ports.peerRequest,
+            PEER_CHAINCODE_PORT: this.ports.peerChaincode,
+            PEER_EVENT_HUB_PORT: this.ports.peerEventHub,
+            COUCH_DB_PORT: this.ports.couchDB,
+            LOGS_PORT: this.ports.logs
         });
 
         if (process.platform === 'win32') {

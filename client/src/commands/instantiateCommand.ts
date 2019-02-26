@@ -40,14 +40,17 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         peers = new Set(channelTreeItem.peers);
     } else {
         // Called from command palette or Instantiated runtime tree item
-        const isRunning: boolean = await FabricRuntimeManager.instance().get('local_fabric').isRunning();
+        const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
         if (!isRunning) {
             // Start local_fabric to connect
             await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
+                // Start local_fabric failed so return
+                return;
+            }
         }
 
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on', connection);
+        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
         if (!chosenChannel) {
             return;
         }

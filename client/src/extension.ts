@@ -28,6 +28,7 @@ import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
 import { ExtensionUtil } from './util/ExtensionUtil';
 import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
+import { FabricRuntime} from './fabric/FabricRuntime';
 import { startFabricRuntime } from './commands/startFabricRuntime';
 import { stopFabricRuntime } from './commands/stopFabricRuntime';
 import { restartFabricRuntime } from './commands/restartFabricRuntime';
@@ -112,11 +113,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (!hasNativeDependenciesInstalled) {
             await dependancyManager.installNativeDependencies();
         }
-        outputAdapter.log(LogType.INFO, undefined, 'Migrating local fabric configuration');
-        await migrateLocalFabricConfiguration();
+        outputAdapter.log(LogType.INFO, undefined, 'Ensuring local runtime exists in runtime manager');
+        await ensureRuntimeExists();
 
-        outputAdapter.log(LogType.INFO, undefined, 'Ensuring local fabric exists in runtime manager');
-        await ensureLocalFabricExists();
+        outputAdapter.log(LogType.INFO, undefined, 'Migrating local runtime configuration');
+        await migrateRuntimeConfiguration();
 
         outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
         await registerCommands(context);
@@ -204,9 +205,10 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
-        if (e.affectsConfiguration('fabric.gateways') || e.affectsConfiguration('fabric.runtimes')) {
+        if (e.affectsConfiguration('fabric.gateways') || e.affectsConfiguration('fabric.runtime')) {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
             } catch (error) {
                 // ignore error this only happens in tests
             }
@@ -228,17 +230,17 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     }
 }
 
-export async function migrateLocalFabricConfiguration(): Promise<void> {
+export async function migrateRuntimeConfiguration(): Promise<void> {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     await runtimeManager.migrate();
 }
 
-export async function ensureLocalFabricExists(): Promise<void> {
+export async function ensureRuntimeExists(): Promise<void> {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    if (runtimeManager.exists('local_fabric')) {
+    if (runtimeManager.exists()) {
         return;
     }
-    await runtimeManager.add('local_fabric');
+    await runtimeManager.add();
 }
 
 function disposeExtension(context: vscode.ExtensionContext): void {

@@ -49,13 +49,17 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
     if (gatewayRegistryEntry.managedRuntime) {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.get(gatewayRegistryEntry.name);
+        const runtime: FabricRuntime = runtimeManager.getRuntime();
         const running: boolean = await runtime.isRunning();
         if (!running) {
             await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            if (!(await runtimeManager.getRuntime().isRunning())) {
+                // Start local_fabric failed so return
+                return;
+            }
         }
 
-        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
+        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
 
         gatewayRegistryEntry.walletPath = wallet.getWalletPath();
         gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();

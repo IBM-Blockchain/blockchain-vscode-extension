@@ -20,13 +20,12 @@ import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { IFabricConnection } from '../fabric/IFabricConnection';
-import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
-import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricRuntime } from '../fabric/FabricRuntime';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -49,7 +48,7 @@ export class UserInputUtil {
     static readonly WALLET: string = 'Use an existing wallet on my file system';
     static readonly CERT_KEY: string = 'Create a new wallet for an identity with a certificate and private key';
 
-    public static showGatewayQuickPickBox(prompt: string, showManagedRuntimes?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
+    public static showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -58,22 +57,19 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        const managedRuntimes: Array<FabricGatewayRegistryEntry> = [];
-        if (showManagedRuntimes) {
-            // Allow users to choose from managed runtimes
-            const runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
-            const allRuntimes: FabricRuntimeRegistryEntry[] = runtimeRegistryManager.getAll();
-            for (const runtime of allRuntimes) {
-                const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-                connection.name = runtime.name;
-                connection.managedRuntime = true;
-                managedRuntimes.push(connection);
-            }
+        const allGateways: Array<FabricGatewayRegistryEntry> = [];
+
+        let connection: FabricGatewayRegistryEntry;
+        if (showManagedRuntime) {
+            // Allow users to choose local_fabric
+            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+            connection = new FabricGatewayRegistryEntry();
+            connection.name = runtime.getName();
+            connection.managedRuntime = true;
+            allGateways.push(connection);
         }
 
-        const allGateways: Array<FabricGatewayRegistryEntry> = [];
         allGateways.push(...gateways);
-        allGateways.push(...managedRuntimes);
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
             return { label: gateway.name, data: gateway };
@@ -163,18 +159,8 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async showPeerQuickPickBox(prompt: string, fabricConnection?: IFabricConnection): Promise<string | undefined> {
-        let connection: IFabricConnection;
-        if (!fabricConnection) {
-            const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-            connection = fabricConnectionManager.getConnection();
-            if (!connection) {
-                throw new Error('No connection to a blockchain found');
-            }
-        } else {
-            connection = fabricConnection;
-        }
-
+    public static async showPeerQuickPickBox(prompt: string): Promise<string | undefined> {
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
         const peerNames: Array<string> = connection.getAllPeerNames();
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -188,10 +174,6 @@ export class UserInputUtil {
 
     public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Set<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        if (!connection) {
-            throw new Error('No connection to a blockchain found');
-        }
-
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
 
         // Get all installed smart contracts
@@ -219,7 +201,7 @@ export class UserInputUtil {
         // We need to find out the instantiated smart contracts so that we can filter them from being shown. This is because they should be shown in the 'Upgrade Smart Contract' instead.
         // First, we need to create a list of channels
 
-        const channels: Array<IBlockchainQuickPickItem<Set<string>>> = await this.getChannels(connection);
+        const channels: Array<IBlockchainQuickPickItem<Set<string>>> = await this.getChannels();
 
         // Next, we get all the instantiated smart contracts
         const allSmartContracts: any[] = [];
@@ -269,8 +251,8 @@ export class UserInputUtil {
         return await vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showChannelQuickPickBox(prompt: string, connection?: IFabricConnection): Promise<IBlockchainQuickPickItem<Set<string>> | undefined> {
-        const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = await UserInputUtil.getChannels(connection);
+    public static async showChannelQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Set<string>> | undefined> {
+        const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = await this.getChannels();
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -401,21 +383,9 @@ export class UserInputUtil {
         return new Promise((resolve: any): any => setTimeout(resolve, ms));
     }
 
-    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string, fabricConnection?: IFabricConnection): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        let connection: IFabricConnection;
-        if (!fabricConnection) {
-
-            const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-            connection = fabricConnectionManager.getConnection();
-            if (!connection) {
-                outputAdapter.log(LogType.ERROR, 'No connection to a blockchain found');
-                return;
-            }
-
-        } else {
-            connection = fabricConnection;
-        }
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
 
         let channels: Array<string> = [];
         if (!channelName) {
@@ -511,9 +481,6 @@ export class UserInputUtil {
     public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         // Get connection
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        if (!connection) {
-            throw new Error('No connection to a blockchain found');
-        }
 
         const quickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         // Get packaged contracts
@@ -638,18 +605,8 @@ export class UserInputUtil {
         }
     }
 
-    private static async getChannels(fabricConnection?: IFabricConnection): Promise<Array<IBlockchainQuickPickItem<Set<string>>>> {
-        let connection: IFabricConnection;
-
-        if (!fabricConnection) {
-            const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-            connection = fabricConnectionManager.getConnection();
-            if (!connection) {
-                throw new Error('No connection to a blockchain found');
-            }
-        } else {
-            connection = fabricConnection;
-        }
+    private static async getChannels(): Promise<Array<IBlockchainQuickPickItem<Set<string>>>> {
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
 
         const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = [];
         const peerNames: Array<string> = connection.getAllPeerNames();

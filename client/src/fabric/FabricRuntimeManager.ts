@@ -13,10 +13,7 @@
 */
 
 import { FabricRuntime, FabricRuntimeState } from './FabricRuntime';
-import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
-import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
-import { FabricGatewayRegistry } from './FabricGatewayRegistry';
-import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
+import { FabricRuntimePorts } from './FabricRuntimePorts';
 import { IFabricConnection } from './IFabricConnection';
 import { FabricConnectionFactory } from './FabricConnectionFactory';
 import { IFabricWallet } from './IFabricWallet';
@@ -34,9 +31,7 @@ export class FabricRuntimeManager {
 
     private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
-    private connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
-    private runtimes: Map<string, FabricRuntime> = new Map<string, FabricRuntime>();
+    private runtime: FabricRuntime;
 
     private connection: IFabricConnection;
 
@@ -62,84 +57,37 @@ export class FabricRuntimeManager {
         return this.connectingPromise;
     }
 
-    public getAll(): FabricRuntime[] {
-        const runtimeRegistryEntries: FabricRuntimeRegistryEntry[] = this.runtimeRegistry.getAll();
-        return runtimeRegistryEntries.map((runtimeRegistryEntry: FabricRuntimeRegistryEntry) => {
-            const name: string = runtimeRegistryEntry.name;
-            let runtime: FabricRuntime = this.runtimes.get(name);
-            if (!runtime) {
-                runtime = new FabricRuntime(runtimeRegistryEntry);
-                this.runtimes.set(name, runtime);
-            }
-            return runtime;
-        });
+    public getRuntime(): FabricRuntime {
+        return this.runtime;
     }
 
-    public get(name: string): FabricRuntime {
-        const runtimeRegistryEntry: FabricRuntimeRegistryEntry = this.runtimeRegistry.get(name);
-        let runtime: FabricRuntime = this.runtimes.get(name);
-        if (!runtime) {
-            runtime = new FabricRuntime(runtimeRegistryEntry);
-            this.runtimes.set(name, runtime);
-        }
-        return runtime;
+    public exists(): boolean {
+        return (this.runtime ? true : false);
     }
 
-    public exists(name: string): boolean {
-        return this.runtimeRegistry.exists(name);
-    }
-
-    public async add(name: string): Promise<void> {
+    public async add(): Promise<void> {
 
         // Generate a range of ports for this Fabric runtime.
-        const ports: FabricRuntimeRegistryPorts = await this.generatePortConfiguration();
-
-        // Add the Fabric runtime to the runtime registry.
-        const runtimeRegistryEntry: FabricRuntimeRegistryEntry = new FabricRuntimeRegistryEntry();
-        runtimeRegistryEntry.name = name;
-        runtimeRegistryEntry.developmentMode = false;
-        runtimeRegistryEntry.ports = ports;
-        await this.runtimeRegistry.add(runtimeRegistryEntry);
+        const ports: FabricRuntimePorts = await this.generatePortConfiguration();
 
         // Add the Fabric runtime to the internal cache.
-        const runtime: FabricRuntime = new FabricRuntime(runtimeRegistryEntry);
-        this.runtimes.set(name, runtime);
-
-    }
-
-    public async delete(name: string): Promise<void> {
-
-        // Remove the Fabric runtime.
-        await this.runtimeRegistry.delete(name);
-
-        // Remove the Fabric connection.
-        if (this.connectionRegistry.exists(name)) {
-            await this.connectionRegistry.delete(name);
-        }
-
-        // Delete the Fabric runtime from the internal cache.
-        this.runtimes.delete(name);
-
-    }
-
-    public async clear(): Promise<void> {
-        this.runtimes.clear();
+        this.runtime = new FabricRuntime();
+        this.runtime.ports = ports;
+        this.runtime.developmentMode = false;
+        await this.runtime.updateUserSettings();
     }
 
     public async migrate(): Promise<void> {
-        const runtimeRegistryEntries: FabricRuntimeRegistryEntry[] = this.runtimeRegistry.getAll();
-        for (const runtimeRegistryEntry of runtimeRegistryEntries) {
-            // logs was added after so could have been migrated but not have been set
-            if (!runtimeRegistryEntry.ports || !runtimeRegistryEntry.ports.logs) {
-                runtimeRegistryEntry.ports = await this.generatePortConfiguration();
-            }
-            await this.runtimeRegistry.update(runtimeRegistryEntry);
+        // logs was added after so could have been migrated but not have been set
+        if (!this.runtime.ports || !this.runtime.ports.logs) {
+            this.runtime.ports = await this.generatePortConfiguration();
+            await this.runtime.updateUserSettings();
         }
     }
 
-    private async generatePortConfiguration(): Promise<FabricRuntimeRegistryPorts> {
+    private async generatePortConfiguration(): Promise<FabricRuntimePorts> {
         const startPort: number = this.getStartPort();
-        const ports: FabricRuntimeRegistryPorts = new FabricRuntimeRegistryPorts();
+        const ports: FabricRuntimePorts = new FabricRuntimePorts();
         const [
             orderer,
             peerRequest,
@@ -161,12 +109,8 @@ export class FabricRuntimeManager {
 
     private getStartPort(): number {
         let startPort: number = 17050;
-        const runtimeRegistryEntries: FabricRuntimeRegistryEntry[] = this.runtimeRegistry.getAll();
-        for (const runtimeRegistryEntry of runtimeRegistryEntries) {
-            if (!runtimeRegistryEntry.ports) {
-                continue;
-            }
-            const highestPort: number = this.getHighestPort(runtimeRegistryEntry.ports);
+        if (this.runtime && this.runtime.ports) {
+            const highestPort: number = this.getHighestPort(this.runtime.ports);
             if (highestPort > startPort) {
                 startPort = highestPort + 1;
             }
@@ -174,7 +118,7 @@ export class FabricRuntimeManager {
         return startPort;
     }
 
-    private getHighestPort(ports: FabricRuntimeRegistryPorts): number {
+    private getHighestPort(ports: FabricRuntimePorts): number {
         let port: number = 0;
         const portNames: string[] = Object.keys(ports);
         for (const portName of portNames) {
@@ -192,7 +136,7 @@ export class FabricRuntimeManager {
         const enrollmentID: string = 'admin';
         const enrollmentSecret: string = 'adminpw';
 
-        const runtime: FabricRuntime = this.get('local_fabric');
+        const runtime: FabricRuntime = this.getRuntime();
         // register for events to disconnect
         runtime.on('busy', () => {
             if (runtime.getState() === FabricRuntimeState.STOPPED) {
@@ -227,7 +171,7 @@ export class FabricRuntimeManager {
 
         if (!otherAdminExists) {
             const enrollment: { certificate: string, privateKey: string } = await connection.enroll(enrollmentID, enrollmentSecret);
-            gatewayWallet.importIdentity(enrollment.certificate, enrollment.privateKey, identityName, mspid);
+            await gatewayWallet.importIdentity(enrollment.certificate, enrollment.privateKey, identityName, mspid);
         }
 
         const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();

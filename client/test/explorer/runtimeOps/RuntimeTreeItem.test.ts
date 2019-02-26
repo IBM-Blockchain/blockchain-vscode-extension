@@ -18,7 +18,6 @@ import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/RuntimeTreeIte
 import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../../src/fabric/FabricRuntime';
-import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry';
 import { FabricGatewayRegistry } from '../../../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
@@ -35,7 +34,6 @@ const should: Chai.Should = chai.should();
 describe('RuntimeTreeItem', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let connection: FabricGatewayRegistryEntry;
 
@@ -59,16 +57,14 @@ describe('RuntimeTreeItem', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
 
         connection = new FabricGatewayRegistryEntry();
-        connection.name = 'myRuntime';
+        connection.name = 'local_fabric';
         connection.managedRuntime = true;
 
         provider = getBlockchainNetworkExplorerProvider();
-        await runtimeManager.add('myRuntime');
-        runtime = runtimeManager.get('myRuntime');
+        await runtimeManager.add();
+        runtime = runtimeManager.getRuntime();
         sandbox = sinon.createSandbox();
         clock = sinon.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     });
@@ -78,8 +74,6 @@ describe('RuntimeTreeItem', () => {
         clock.restore();
         sandbox.restore();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
     });
 
     describe('#constructor', () => {
@@ -88,8 +82,8 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isCreated').returns(false);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricGatewayRegistryEntry({
-                name: 'myRuntime',
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
+                name: 'local_fabric',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
                 walletPath: 'walletPath'
@@ -111,8 +105,8 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricGatewayRegistryEntry({
-                name: 'myRuntime',
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
+                name: 'local_fabric',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
                 walletPath: 'walletPath'
@@ -135,7 +129,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isRunning').resolves(false);
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -150,7 +144,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isRunning').resolves(false);
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STOPPING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -165,7 +159,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isRunning').resolves(false);
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.RESTARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -180,7 +174,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isRunning').resolves(false);
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -198,11 +192,11 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isCreated').returns(true);
             sandbox.stub(runtime, 'isBusy').returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(true);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('myRuntime  ●');
+            treeItem.label.should.equal('local_fabric  ●');
             treeItem.command.should.deep.equal({
                 command: ExtensionCommands.CONNECT,
                 title: '',
@@ -217,7 +211,7 @@ describe('RuntimeTreeItem', () => {
             isBusyStub.returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -245,7 +239,7 @@ describe('RuntimeTreeItem', () => {
             isBusyStub.returns(false);
             sandbox.stub(runtime, 'isRunning').resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -272,7 +266,7 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
             sandbox.stub(runtime, 'isRunning').resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -298,8 +292,8 @@ describe('RuntimeTreeItem', () => {
             sandbox.stub(runtime, 'isBusy').returns(true);
             sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
             sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'myRuntime', new FabricGatewayRegistryEntry({
-                name: 'myRuntime',
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
+                name: 'local_fabric',
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
                 walletPath: 'walletPath'

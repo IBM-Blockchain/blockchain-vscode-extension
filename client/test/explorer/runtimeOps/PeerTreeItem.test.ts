@@ -18,7 +18,6 @@ import { PeerTreeItem } from '../../../src/explorer/runtimeOps/PeerTreeItem';
 import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../src/fabric/FabricRuntime';
-import { FabricRuntimeRegistry } from '../../../src/fabric/FabricRuntimeRegistry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -31,7 +30,6 @@ const should: Chai.Should = chai.should();
 
 describe('PeerTreeItem', () => {
 
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
     let sandbox: sinon.SinonSandbox;
@@ -52,19 +50,15 @@ describe('PeerTreeItem', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
 
         provider = getBlockchainNetworkExplorerProvider();
-        await runtimeManager.add('local_fabric');
-        runtime = runtimeManager.get('local_fabric');
+        await runtimeManager.add();
+        runtime = runtimeManager.getRuntime();
         sandbox = sinon.createSandbox();
     });
 
     afterEach(async () => {
         sandbox.restore();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
     });
 
     describe('#constructor', () => {

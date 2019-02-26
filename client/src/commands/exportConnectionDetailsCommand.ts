@@ -25,7 +25,7 @@ import { LogType } from '../logging/OutputAdapter';
 export async function exportConnectionDetails(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-    const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
