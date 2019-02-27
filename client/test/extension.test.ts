@@ -29,7 +29,6 @@ import { SampleView } from '../src/webview/SampleView';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../src/logging/OutputAdapter';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
@@ -96,6 +95,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.EXPORT_CONNECTION_DETAILS,
             ExtensionCommands.DELETE_SMART_CONTRACT,
             ExtensionCommands.EXPORT_SMART_CONTRACT,
+            ExtensionCommands.IMPORT_SMART_CONTRACT,
             ExtensionCommands.INSTALL_SMART_CONTRACT,
             ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
             ExtensionCommands.EDIT_GATEWAY,
@@ -126,6 +126,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.PACKAGE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.DELETE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.EXPORT_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.IMPORT_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.REFRESH_LOCAL_OPS}`,
             `onCommand:${ExtensionCommands.START_FABRIC}`,
             `onCommand:${ExtensionCommands.STOP_FABRIC}`,
