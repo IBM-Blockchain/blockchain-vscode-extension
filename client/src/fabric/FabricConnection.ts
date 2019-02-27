@@ -377,6 +377,17 @@ export abstract class FabricConnection implements IFabricConnection {
         return ordererSet;
     }
 
+    public async register(enrollmentID: string, affiliation: string): Promise<string> {
+        const request: ClientCA.IRegisterRequest = {
+            enrollmentID: enrollmentID,
+            affiliation: affiliation,
+            role: 'client'
+        };
+        const registrar: Client.User = await this.gateway.getCurrentIdentity();
+        const secret: string = await this.gateway.getClient().getCertificateAuthority().register(request, registrar);
+        return secret;
+    }
+
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);

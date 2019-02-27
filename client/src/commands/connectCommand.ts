@@ -66,8 +66,18 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         runtimeData = 'managed runtime';
 
-        const identityNames: string[] = await wallet.getIdentityNames();
-        identityName = identityNames[0];
+        if (!identityName) {
+            const identityNames: string[] = await wallet.getIdentityNames();
+            if (identityNames.length > 1) {
+                identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
+                if (!identityName) {
+                    return;
+                }
+            } else {
+                identityName = identityNames[0];
+            }
+        }
+
     } else {
         const connectionData: { connectionProfilePath: string, walletPath: string } = {
             connectionProfilePath: gatewayRegistryEntry.connectionProfilePath,

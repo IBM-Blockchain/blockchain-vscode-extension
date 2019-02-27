@@ -32,6 +32,8 @@ export class FabricRuntimeManager {
 
     private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
+    public gatewayWallet: IFabricWallet; // Used to enroll admin and other identities (registered with ca)
+
     private runtime: FabricRuntime;
 
     private connection: IFabricConnection;
@@ -223,6 +225,7 @@ export class FabricRuntimeManager {
 
         // enroll a user
         const gatewayWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(runtime.getName());
+        this.gatewayWallet = gatewayWallet;
 
         const otherAdminExists: boolean = await gatewayWallet.exists(identityName);
 

@@ -360,6 +360,48 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
+        it('should create, and connect with, a new identity from the local_fabric CA', async () => {
+            // Start the Fabric runtime, and ensure that it is in the right state.
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            runtime.isRunning().should.eventually.be.true;
+            runtime.isDevelopmentMode().should.be.false;
+
+            // Create a new identity from the certificate authority
+            const otherUserName: string = 'otherUser';
+            await integrationTestUtil.createCAIdentity(otherUserName);
+
+            // Connect using it
+            integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(otherUserName);
+            await integrationTestUtil.connectToFabric('local_fabric');
+
+            // Confirm the connected view is correct
+            const allConnectedTreeItems: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+            allConnectedTreeItems.length.should.equal(3);
+            allConnectedTreeItems[0].label.should.equal('Connected via gateway: local_fabric');
+            allConnectedTreeItems[1].label.should.equal(`Using ID: ${otherUserName}`);
+            const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allConnectedTreeItems[2]) as Array<ChannelTreeItem>;
+            channels.length.should.equal(1);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+
+            // Create another identity
+            const anotherIdentityName: string = 'anotherOne';
+            await integrationTestUtil.createCAIdentity(anotherIdentityName);
+
+            // Confirm they both exist in the tree
+            const unconnectedTreeItems: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+            unconnectedTreeItems.length.should.equal(1);
+            unconnectedTreeItems[0]['name'].should.equal('local_fabric');
+            const gatewayIdentities: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(unconnectedTreeItems[0]) as Array<GatewayIdentityTreeItem>;
+            gatewayIdentities.length.should.equal(3);
+            gatewayIdentities[0].label.should.equal('Admin@org1.example.com');
+            gatewayIdentities[1].label.should.equal(anotherIdentityName);
+            gatewayIdentities[2].label.should.equal(otherUserName);
+
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+
+        }).timeout(0);
+
         ['Go', 'Java'].forEach((language: string) => {
 
             it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and upgrade it`, async () => {
@@ -460,7 +502,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
         it('should create the unconnected tree', async () => {
             await integrationTestUtil.createFabricConnection();
-            const allChildren: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<ChannelTreeItem>;
+            const allChildren: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
 
             allChildren.length.should.equal(2);
             allChildren[0]['name'].should.equal('local_fabric');
@@ -469,7 +511,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             const localFabricChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[0]) as Array<GatewayIdentityTreeItem>;
 
-            localFabricChildren.length.should.equal(1);
+            localFabricChildren.length.should.equal(3);
             localFabricChildren[0].label.should.equal('Admin@org1.example.com');
 
             const otherChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[1]) as Array<GatewayIdentityTreeItem>;
@@ -478,7 +520,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
-        it('should connect to a real fabric', async () => {
+        it('should connect to a real fabric gateway', async () => {
             await integrationTestUtil.createFabricConnection();
 
             await integrationTestUtil.connectToFabric('myGateway');
