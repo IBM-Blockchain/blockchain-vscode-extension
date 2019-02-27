@@ -13,6 +13,12 @@
 */
 'use strict';
 
+// Note: vscode-nls *MUST* be configured before loading any other modules
+// to ensure loadMessageBundle is not called before vscode-nls has been
+// configured
+import * as nls from 'vscode-nls';
+nls.config({ messageFormat: nls.MessageFormat.both })();
+
 import * as vscode from 'vscode';
 import { Reporter } from './util/Reporter';
 import { BlockchainNetworkExplorerProvider } from './explorer/BlockchainNetworkExplorer';

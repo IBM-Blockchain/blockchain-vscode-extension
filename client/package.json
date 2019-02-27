@@ -190,7 +190,7 @@
             },
             {
                 "command": "blockchain.createSmartContractProjectEntry",
-                "title": "Create Smart Contract Project",
+                "title": "%blockchain.createSmartContractProjectEntry.title%",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -769,7 +769,7 @@
         ]
     },
     "scripts": {
-        "vscode:prepublish": "npm run compile",
+        "vscode:prepublish": "npm run compile && npm run localize",
         "package": "node ./node_modules/vsce/out/vsce package",
         "compile": "rimraf out && tsc -p ./",
         "watch": "rimraf out && tsc -watch -p ./",
@@ -784,7 +784,8 @@
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/tests/integration.test.ts' 'integrationTest/nodeTests/integrationNode.test.ts'",
         "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
         "productionFlag": "node ../.travis/rewritePackageJson.js publish",
-        "integrationTests": "./integrationTest/scripts/start-integration-tests.sh && npm run compile"
+        "integrationTests": "./integrationTest/scripts/start-integration-tests.sh && npm run compile",
+        "localize": "vscl out/src/**/*.js"
     },
     "devDependencies": {
         "@types/chai": "4.1.4",
@@ -820,6 +821,7 @@
         "typescript": "3.0.1",
         "vsce": "^1.46.0",
         "vscode": "1.1.29",
+        "vscode-nls-dev": "^3.2.5",
         "yo": "^2.0.5"
     },
     "dependencies": {
@@ -838,6 +840,7 @@
         "strip-ansi": "^4.0.0",
         "uuid": "^3.3.2",
         "vscode-extension-telemetry": "0.0.20",
+        "vscode-nls": "^4.0.0",
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
@@ -886,6 +889,7 @@
             ".DS_Store",
             "config/.DS_Store",
             "test/.DS_Store",
+            "i18n/README.md",
             "integrationTest/data",
             "integrationTest/tmp",
             "integrationTest/nodeTests/data",
