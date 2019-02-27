@@ -445,6 +445,14 @@
                     "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-instantiated-item"
                 },
                 {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-instantiated-contract-item"
+                },
+                {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
                     "command": "blockchainConnectionsExplorer.editGatewayEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-gateway-item"
                 },
