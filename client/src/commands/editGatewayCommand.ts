@@ -203,7 +203,9 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabric
     if (!result) {
         return;
     }
-    gateway.connectionProfilePath = result;
+
+    // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+    gateway.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gateway.name, result);
     await fabricGatewayRegistry.update(gateway);
     outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
@@ -273,7 +275,7 @@ async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegi
         if (!ccpResult) {
             return;
         }
-        gateway.connectionProfilePath = ccpResult;
+        gateway.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gateway.name, ccpResult);
         await fabricGatewayRegistry.update(gateway);
         outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }
@@ -306,7 +308,7 @@ async function editIdentity(gateway: FabricGatewayRegistryEntry, fabricGatewayRe
             // Connection Profile is needed to import identity so throw error if not given
             throw new Error('Connection Profile required to import identity to file system wallet');
         }
-        gateway.connectionProfilePath = result;
+        gateway.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gateway.name, result);
         await fabricGatewayRegistry.update(gateway);
         outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }

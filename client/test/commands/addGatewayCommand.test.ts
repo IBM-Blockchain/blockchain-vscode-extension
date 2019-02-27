@@ -41,6 +41,7 @@ describe('AddGatewayCommand', () => {
     let showIdentityOptionsStub: sinon.SinonStub;
     const rootPath: string = path.dirname(__dirname);
     let identityName: string;
+    let copyConnectionProfileStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -62,6 +63,9 @@ describe('AddGatewayCommand', () => {
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
             browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             showIdentityOptionsStub = mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
+            copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
+            copyConnectionProfileStub.onFirstCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
+            copyConnectionProfileStub.onSecondCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'));
 
         });
 
@@ -97,7 +101,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: path.join(rootPath, '../../test/data/walletDir/emptyWallet')
             });
 
@@ -121,7 +125,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
@@ -142,7 +146,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
 
@@ -165,7 +169,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
@@ -209,12 +213,12 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
             gateways[1].should.deep.equal({
                 name: 'myGateway2',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'),
                 walletPath: path.join(rootPath, '../../test/data/walletDir/emptyWallet')
             });
 
@@ -281,7 +285,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
         });
@@ -301,7 +305,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
             browseEditStub.should.have.been.calledOnce;
@@ -323,7 +327,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
             browseEditStub.should.have.been.calledTwice;
@@ -345,7 +349,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
         });
@@ -365,7 +369,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
         });
@@ -428,7 +432,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
 
@@ -465,7 +469,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
 

@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import {UserInputUtil} from './UserInputUtil';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -63,7 +64,8 @@ export async function addGateway(): Promise<{} | void> {
             return Promise.resolve();
         }
 
-        fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
+        // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(connectionName, connectionProfilePath);
         await fabricGatewayRegistry.update(fabricGatewayEntry);
 
         // Ask the user whether they want to provide a wallet or certficate and privateKey file paths
