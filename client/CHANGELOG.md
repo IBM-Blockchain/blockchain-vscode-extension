@@ -133,3 +133,26 @@
 * ReadMe updates (550, 551, 552)
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-45.png)
+
+## 0.3.1: February 28th 2019
+
+* Added new "Local Fabric" output channel view for docker logs [#179](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/179)
+* Enabled transaction submission for Go and Java smart contracts [#605](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/605)
+* Enabled debugging of Go smart contracts [#616](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/616)
+* Added "Evaluate Transaction" command [#656](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/656)
+* Show responses for submit and evaluating transactions [#392](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/392)
+* Added button for "Create Smart Contract" command [#608](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/608)
+* Added button for discovering homepage [#599](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/599)
+* Update to use to latest 1.4.1 build for instantiate fix [#587](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/587)
+* Enroll admin identity for local fabric runtime [#596](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/596)
+* Copy gateway connection profile to extension directory [#630](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/630)
+* Display certificate authority for local fabric runtime [#637](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/637)
+* Display orderer for local fabric runtime [#622](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/622)
+* Allow package command to accept name and version [#616](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/616)
+* Improved logging [#479](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/479)
+* Fixed bug with smart contract test and discovery [#576](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/576)
+* Fixed duplicate home pages issue [#503](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/503)
+* Fixed issue with TypeScript tests present in a JavaScript smart contract [#581](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/581)
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-46.png)
