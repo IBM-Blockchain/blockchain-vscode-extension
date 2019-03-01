@@ -247,13 +247,6 @@ describe('Extension Tests', () => {
         await vscode.commands.executeCommand('blockchain.refreshEntry').should.be.rejectedWith(`command 'blockchain.refreshEntry' not found`);
     });
 
-    it('should migrate any Fabric runtime configuration', async () => {
-        const migrateSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'migrate');
-        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await myExtension.activate(context);
-        migrateSpy.should.have.been.calledOnce;
-    });
-
     it('should create a new local_fabric if one does not exist', async () => {
         // Runtime is created upon extension activation, so need to stub the exists function
         mySandBox.stub(runtimeManager, 'exists').returns(false);
