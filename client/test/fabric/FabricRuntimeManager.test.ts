@@ -36,7 +36,7 @@ describe('FabricRuntimeManager', () => {
     let connection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
 
     let sandbox: sinon.SinonSandbox;
-
+    let findFreePortStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
     let workspaceConfigurationGetStub: sinon.SinonStub;
@@ -294,6 +294,7 @@ describe('FabricRuntimeManager', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
+            findFreePortStub = sandbox.stub(FabricRuntimeManager, 'findFreePort');
 
         });
 
@@ -303,7 +304,7 @@ describe('FabricRuntimeManager', () => {
             workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({});
 
             // Runtime is created upon extension activation
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
+            findFreePortStub.resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
             await runtimeManager.add();
             runtimeManager.exists().should.be.true;
             const runtime: FabricRuntime = runtimeManager.getRuntime();
@@ -320,7 +321,8 @@ describe('FabricRuntimeManager', () => {
             });
         });
 
-        it('should migrate the existing runtime to the new user setting value', async () => {
+        it('should migrate the existing runtime to the new user setting value and add a logs port', async () => {
+            findFreePortStub.resolves([111]);
             workspaceConfigurationGetStub.withArgs('fabric.runtimes').returns([
                 {
                     name: 'local_fabric',
@@ -331,7 +333,6 @@ describe('FabricRuntimeManager', () => {
                         peerEventHub: 444,
                         certificateAuthority: 333,
                         couchDB: 222,
-                        logs: 111
                     },
                     developmentMode: false
                 },
@@ -366,7 +367,7 @@ describe('FabricRuntimeManager', () => {
                 couchDB: 222,
                 logs: 111
             });
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').should.not.have.been.called;
+            findFreePortStub.should.have.been.calledOnce;
         });
 
         it('should use the runtime defined in fabric.runtime', async () => {
@@ -396,7 +397,7 @@ describe('FabricRuntimeManager', () => {
                 couchDB: 666,
                 logs: 777
             });
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').should.not.have.been.called;
+            findFreePortStub.should.not.have.been.called;
         });
 
     });
