@@ -133,10 +133,23 @@ export class FabricRuntimeManager {
                 if (oldRuntime.name === 'local_fabric') {
                     runtimeToCopy.ports = oldRuntime.ports;
                     runtimeToCopy.developmentMode = oldRuntime.developmentMode;
+
+                    // Generate a log port
+                    runtimeToCopy.ports.logs = await this.generateLogPort();
+
+                    // Update the new user settings
                     await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeToCopy, vscode.ConfigurationTarget.Global);
                 }
             }
         }
+
+    }
+
+    private async generateLogPort(): Promise<number> {
+
+        const freep: number[] = await FabricRuntimeManager.findFreePort(17050, null, null, 1);
+
+        return freep[0];
 
     }
 
