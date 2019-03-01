@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 
+import * as vscode from 'vscode';
 import { FabricRuntime, FabricRuntimeState } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
 import { IFabricConnection } from './IFabricConnection';
@@ -67,26 +68,79 @@ export class FabricRuntimeManager {
 
     public async add(): Promise<void> {
 
-        // Generate a range of ports for this Fabric runtime.
-        const ports: FabricRuntimePorts = await this.generatePortConfiguration();
+        // Copy old local_fabric runtime to new fabric.runtime setting
+        await this.migrate();
 
-        // Add the Fabric runtime to the internal cache.
-        this.runtime = new FabricRuntime();
-        this.runtime.ports = ports;
-        this.runtime.developmentMode = false;
-        await this.runtime.updateUserSettings();
-    }
+        // only generate a range of ports if it doesn't already exist
+        const runtimeObject: any = this.readRuntimeUserSettings();
+        if (runtimeObject.ports && runtimeObject.developmentMode !== undefined) {
+            this.runtime = new FabricRuntime();
+            this.runtime.ports = runtimeObject.ports;
+            this.runtime.developmentMode = runtimeObject.developmentMode;
+        } else {
+            // Generate a range of ports for this Fabric runtime.
+            const ports: FabricRuntimePorts = await this.generatePortConfiguration();
 
-    public async migrate(): Promise<void> {
-        // logs was added after so could have been migrated but not have been set
-        if (!this.runtime.ports || !this.runtime.ports.logs) {
-            this.runtime.ports = await this.generatePortConfiguration();
+            // Add the Fabric runtime to the internal cache.
+            this.runtime = new FabricRuntime();
+            this.runtime.ports = ports;
+            this.runtime.developmentMode = false;
             await this.runtime.updateUserSettings();
         }
     }
 
+    private readRuntimeUserSettings(): any {
+        const runtimeSettings: any = vscode.workspace.getConfiguration().get('fabric.runtime') as {
+            ports: {
+                orderer: number,
+                peerRequest: number,
+                peerChaincode: number,
+                peerEventHub: number,
+                certificateAuthority: number,
+                couchDB: number,
+                logs: number
+            },
+            developmentMode: boolean
+        };
+        if (runtimeSettings.ports) {
+            const runtimeObject: any = {
+                ports: {
+                    orderer: runtimeSettings.ports.orderer,
+                    peerRequest: runtimeSettings.ports.peerRequest,
+                    peerChaincode: runtimeSettings.ports.peerChaincode,
+                    peerEventHub: runtimeSettings.ports.peerEventHub,
+                    certificateAuthority: runtimeSettings.ports.certificateAuthority,
+                    couchDB: runtimeSettings.ports.couchDB,
+                    logs: runtimeSettings.ports.logs
+                },
+                developmentMode: runtimeSettings.developmentMode
+            };
+            return runtimeObject;
+        } else {
+            return {};
+        }
+    }
+
+    private async migrate(): Promise<void> {
+        const oldRuntimeSettings: any[] = vscode.workspace.getConfiguration().get('fabric.runtimes');
+        const runtimeObj: any = await this.readRuntimeUserSettings();
+        if (oldRuntimeSettings && !runtimeObj.ports) {
+            const runtimeToCopy: any = {
+                ports: {},
+                developmentMode: false
+            };
+            for (const oldRuntime of oldRuntimeSettings) {
+                if (oldRuntime.name === 'local_fabric') {
+                    runtimeToCopy.ports = oldRuntime.ports;
+                    runtimeToCopy.developmentMode = oldRuntime.developmentMode;
+                    await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeToCopy, vscode.ConfigurationTarget.Global);
+                }
+            }
+        }
+
+    }
+
     private async generatePortConfiguration(): Promise<FabricRuntimePorts> {
-        const startPort: number = this.getStartPort();
         const ports: FabricRuntimePorts = new FabricRuntimePorts();
         const [
             orderer,
@@ -96,7 +150,7 @@ export class FabricRuntimeManager {
             certificateAuthority,
             couchDB,
             logs
-        ]: number[] = await FabricRuntimeManager.findFreePort(startPort, null, null, 7);
+        ]: number[] = await FabricRuntimeManager.findFreePort(17050, null, null, 7);
         ports.orderer = orderer;
         ports.peerRequest = peerRequest;
         ports.peerChaincode = peerChaincode;
@@ -105,29 +159,6 @@ export class FabricRuntimeManager {
         ports.couchDB = couchDB;
         ports.logs = logs;
         return ports;
-    }
-
-    private getStartPort(): number {
-        let startPort: number = 17050;
-        if (this.runtime && this.runtime.ports) {
-            const highestPort: number = this.getHighestPort(this.runtime.ports);
-            if (highestPort > startPort) {
-                startPort = highestPort + 1;
-            }
-        }
-        return startPort;
-    }
-
-    private getHighestPort(ports: FabricRuntimePorts): number {
-        let port: number = 0;
-        const portNames: string[] = Object.keys(ports);
-        for (const portName of portNames) {
-            const thisPort: number = ports[portName];
-            if (thisPort > port) {
-                port = thisPort;
-            }
-        }
-        return port;
     }
 
     private async getConnectionInner(): Promise<IFabricConnection> {
