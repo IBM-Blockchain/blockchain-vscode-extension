@@ -400,5 +400,51 @@ describe('FabricRuntimeManager', () => {
             findFreePortStub.should.not.have.been.called;
         });
 
+        it('should generate a logs port that is higher than the others', async () => {
+            findFreePortStub.resolves([17086]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtimes').returns([
+                {
+                    name: 'local_fabric',
+                    ports: {
+                        orderer: 17080,
+                        peerRequest: 17081,
+                        peerChaincode: 17082,
+                        peerEventHub: 17083,
+                        certificateAuthority: 17084,
+                        couchDB: 17085,
+                    },
+                    developmentMode: false
+                }
+            ]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({
+                ports: {
+                    orderer: 17080,
+                    peerRequest: 17081,
+                    peerChaincode: 17082,
+                    peerEventHub: 17083,
+                    certificateAuthority: 17084,
+                    couchDB: 17085,
+                    logs: 17086
+                },
+                developmentMode: false
+            });
+            await runtimeManager.add();
+            runtimeManager.exists().should.be.true;
+            const runtime: FabricRuntime = runtimeManager.getRuntime();
+            runtime.getName().should.equal('local_fabric');
+            runtime.isDevelopmentMode().should.be.false;
+            runtime.ports.should.deep.equal({
+                orderer: 17080,
+                peerRequest: 17081,
+                peerChaincode: 17082,
+                peerEventHub: 17083,
+                certificateAuthority: 17084,
+                couchDB: 17085,
+                logs: 17086
+            });
+            findFreePortStub.should.have.been.calledOnceWithExactly(17086, null, null, 1);
+        });
+
     });
 });
