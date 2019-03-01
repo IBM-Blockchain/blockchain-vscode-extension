@@ -32,7 +32,7 @@
         "Debuggers",
         "Other"
     ],
-    "generatorFabricVersion": "~0.0.13",
+    "generatorFabricVersion": "~0.0.16",
     "activationEvents": [
         "*"
     ],
