@@ -35,7 +35,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-            this.runtime = FabricRuntimeManager.instance().get('local_fabric');
+            this.runtime = FabricRuntimeManager.instance().getRuntime();
 
             const isRunning: boolean = await this.runtime.isRunning();
 

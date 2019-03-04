@@ -49,29 +49,34 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
     if (gatewayRegistryEntry.managedRuntime) {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.get(gatewayRegistryEntry.name);
+        const runtime: FabricRuntime = runtimeManager.getRuntime();
         const running: boolean = await runtime.isRunning();
         if (!running) {
             await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            if (!(await runtimeManager.getRuntime().isRunning())) {
+                // Start local_fabric failed so return
+                return;
+            }
         }
 
-        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
+        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
 
         gatewayRegistryEntry.walletPath = wallet.getWalletPath();
         gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         runtimeData = 'managed runtime';
 
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+        const identityNames: string[] = await wallet.getIdentityNames();
         identityName = identityNames[0];
-
     } else {
         const connectionData: { connectionProfilePath: string, walletPath: string } = {
             connectionProfilePath: gatewayRegistryEntry.connectionProfilePath,
             walletPath: gatewayRegistryEntry.walletPath
         };
 
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+        wallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+
+        const identityNames: string[] = await wallet.getIdentityNames();
 
         if (identityNames.length === 0) {
             outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + gatewayRegistryEntry.walletPath);
@@ -90,7 +95,6 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         }
 
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
-        wallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
     }
 
     try {

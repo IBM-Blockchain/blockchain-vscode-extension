@@ -42,7 +42,7 @@ export class PeerTreeItem extends BlockchainTreeItem {
         super(provider, peerName, collapsibleState);
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        this.runtime = runtimeManager.get('local_fabric');
+        this.runtime = runtimeManager.getRuntime();
 
         if (removeIcon) {
             this.iconPath = null;
@@ -61,6 +61,7 @@ export class PeerTreeItem extends BlockchainTreeItem {
 
     private async updateProperties(): Promise<void> {
         const developmentMode: boolean = this.runtime.isDevelopmentMode();
+        await this.runtime.updateUserSettings();
         let newLabel: string = this.peerName;
 
         if (developmentMode) {

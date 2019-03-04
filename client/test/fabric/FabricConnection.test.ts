@@ -19,6 +19,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
+import * as fabricClientCA from 'fabric-ca-client';
 import { Gateway, Wallet, FileSystemWallet } from 'fabric-network';
 import { Channel, Peer } from 'fabric-client';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -58,6 +59,7 @@ describe('FabricConnection', () => {
     let fabricContractStub: any;
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
     let fabricTransactionStub: any;
+    let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
     const mockIdentityName: string = 'admin';
 
@@ -96,6 +98,9 @@ describe('FabricConnection', () => {
         fabricGatewayStub = mySandBox.createStubInstance(Gateway);
 
         fabricClientStub.getMspid.returns('myMSPId');
+        fabricCAStub = mySandBox.createStubInstance(fabricClientCA);
+        fabricCAStub.enroll.returns({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
+        fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
 
@@ -708,11 +713,60 @@ describe('FabricConnection', () => {
     });
 
     describe('submitTransaction', () => {
-        it('should submit a transaction', async () => {
-            fabricContractStub.submitTransaction.resolves();
+        it('should handle no response from a submitted transaction', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricContractStub.submitTransaction.resolves(buffer);
 
-            await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
             fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle a returned string response from a submitted transaction', async () => {
+            const buffer: Buffer = Buffer.from('hello world');
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            result.should.equal('hello world');
+        });
+
+        it('should handle a returned empty string response from a submitted transaction', async () => {
+            const buffer: Buffer = Buffer.from('');
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle a returned array from a submitted transaction', async () => {
+
+            const buffer: Buffer = Buffer.from(JSON.stringify(['hello', 'world']));
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, '["hello","world"]');
+        });
+
+        it('should handle returned object from a submitted transaction', async () => {
+
+            const buffer: Buffer = Buffer.from(JSON.stringify({hello: 'world'}));
+            fabricContractStub.submitTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
+            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, '{"hello":"world"}');
+        });
+
+        it('should evaluate a transaction if specified', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricContractStub.evaluateTransaction.resolves(buffer);
+
+            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', true);
+            fabricContractStub.evaluateTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            should.equal(result, undefined);
         });
     });
 
@@ -781,6 +835,49 @@ describe('FabricConnection', () => {
             getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
             fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
             await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
+        });
+    });
+
+    describe('enroll', () => {
+        it('should enroll an identity', async () => {
+            const result: {certificate: string, privateKey: string} =  await fabricConnection.enroll('myId', 'mySecret');
+            result.should.deep.equal({certificate : 'myCert', privateKey: 'myKey'});
+        });
+    });
+
+    describe('getCertificateAuthorityName', () => {
+        it('should get the certificate authority name', async () => {
+            fabricClientStub.getCertificateAuthority.returns({
+                getCaName: mySandBox.stub().returns('ca-name')
+            });
+            fabricConnection.getCertificateAuthorityName().should.equal('ca-name');
+        });
+    });
+    describe('getOrderers', () => {
+        it('should get orderers', async () => {
+            fabricClientStub.getChannel.onFirstCall().returns({
+                getOrderers: mySandBox.stub().returns([
+                    {
+                        getName: mySandBox.stub().returns('orderer1')
+                    }
+                ])
+            });
+            fabricClientStub.getChannel.onSecondCall().returns({
+                getOrderers: mySandBox.stub().returns([
+                    {
+                        getName: mySandBox.stub().returns('orderer2')
+                    }
+                ])
+            });
+            fabricChannelStub.getOrderers.onFirstCall().returns([new fabricClient.Orderer('grpc://url1')]);
+            fabricChannelStub.getOrderers.onSecondCall().returns([new fabricClient.Orderer('grpc://url2')]);
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+            const getAllChannelsForPeer: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeer.withArgs('peerOne').resolves(['channel1']);
+            getAllChannelsForPeer.withArgs('peerTwo').resolves(['channel2']);
+            const orderers: Set<string> = await fabricConnection.getOrderers();
+            orderers.has('orderer1').should.equal(true);
+            orderers.has('orderer2').should.equal(true);
         });
     });
 });

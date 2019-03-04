@@ -17,7 +17,7 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 
 export async function openFabricRuntimeTerminal(): Promise<void> {
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     const name: string = `Fabric runtime - ${runtime.getName()}`;
     const shellPath: string = 'docker';

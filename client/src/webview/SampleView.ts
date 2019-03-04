@@ -154,18 +154,24 @@ export class SampleView {
 
         const defaultPath: string = path.join(os.homedir(), repoName);
 
-        const saveDirectory: vscode.Uri | undefined = await vscode.window.showSaveDialog({
+        const savePath: vscode.Uri | undefined = await vscode.window.showSaveDialog({
             defaultUri: vscode.Uri.file(defaultPath),
             saveLabel: 'Clone Repository'
         });
-        if (!saveDirectory) {
+        if (!savePath) {
             return;
         }
 
         // Create the command. Checkout a branch if given.
-        const command: string = `git clone ${url} ${saveDirectory.fsPath}`;
+
+        // Get save directory location name
+        const index: number = savePath.fsPath.lastIndexOf(path.sep);
+        const saveDir: string = savePath.fsPath.substring(index + 1);
+
+        const command: string = `git clone ${url} ${saveDir}`;
+        console.log('Attempting to clone to:', savePath.fsPath);
         try {
-            const cloneOutput: string = await CommandUtil.sendCommandWithProgress(command, undefined, `Cloning ${repoName} repository`);
+            const cloneOutput: string = await CommandUtil.sendCommandWithProgress(command, path.dirname(savePath.fsPath), `Cloning ${repoName} repository`);
             outputAdapter.log(LogType.INFO, undefined, cloneOutput);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Could not clone sample: ${error.message}`);
@@ -177,12 +183,12 @@ export class SampleView {
         if (recloning) {
             await repositoryRegistry.update({
                 name: repoName,
-                path: saveDirectory.fsPath
+                path: savePath.fsPath
             });
         } else {
             await repositoryRegistry.add({
                 name: repoName,
-                path: saveDirectory.fsPath
+                path: savePath.fsPath
             });
         }
         outputAdapter.log(LogType.SUCCESS, `Successfully cloned repository!`);

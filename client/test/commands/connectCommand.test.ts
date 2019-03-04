@@ -27,8 +27,6 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
-import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { Reporter } from '../../src/util/Reporter';
@@ -108,18 +106,12 @@ describe('ConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionSingle);
             await FabricGatewayRegistry.instance().add(connectionMultiple);
 
-            const runtimeRegistry: FabricRuntimeRegistryEntry = new FabricRuntimeRegistryEntry({
-                name: 'local_fabric',
-                developmentMode: false
-            });
-            await FabricRuntimeRegistry.instance().clear();
-            await FabricRuntimeRegistry.instance().add(runtimeRegistry);
-
             mockRuntime = sinon.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns('local_fabric');
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'get').withArgs('local_fabric').returns(mockRuntime);
+            mockRuntime.start.resolves();
+            mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             mockRuntime.getConnectionProfilePath.resolves(path.join(rootPath, '../../basic-network/connection.json'));
@@ -137,7 +129,7 @@ describe('ConnectCommand', () => {
             mySandBox.restore();
         });
 
-        it('should test the a fabric can be connected to from the command', async () => {
+        it('should test a fabric gateway can be connected to from the command', async () => {
             quickPickStub.resolves({
                 label: 'myGatewayA',
                 data: FabricGatewayRegistry.instance().get('myGatewayA')
@@ -150,7 +142,7 @@ describe('ConnectCommand', () => {
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
 
-        it('should test the a fabric can be connected to from the command with multiple identities', async () => {
+        it('should test that a fabric can be connected to from the command with multiple identities', async () => {
             quickPickStub.onFirstCall().resolves({
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
@@ -192,7 +184,7 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
         });
 
-        it('should test the a fabric with a single identity can be connected to from the tree', async () => {
+        it('should test that a fabric with a single identity can be connected to from the tree', async () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -208,7 +200,7 @@ describe('ConnectCommand', () => {
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
         });
 
-        it('should test the a fabric with multiple identities can be connected to from the tree', async () => {
+        it('should test that a fabric with multiple identities can be connected to from the tree', async () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -291,9 +283,9 @@ describe('ConnectCommand', () => {
             connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
             const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
-            mySandBox.stub(walletGenerator, 'getIdentityNames').resolves(['Admin@org1.example.com']);
+            mySandBox.stub(walletGenerator, 'getNewWallet').returns(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(['Admin@org1.example.com']);
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-            mySandBox.stub(testFabricWallet, 'getWalletPath').returns('some/new/wallet/path');
             connection.walletPath = testFabricWallet.walletPath;
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
@@ -308,7 +300,7 @@ describe('ConnectCommand', () => {
         });
 
         it('should start a stopped fabric runtime before connecting', async () => {
-            mockRuntime.isRunning.resolves(false);
+            mockRuntime.isRunning.onCall(0).resolves(false);
             const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = 'local_fabric';
             connection.managedRuntime = true;
@@ -323,15 +315,42 @@ describe('ConnectCommand', () => {
             });
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
+            const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            startCommandStub.callThrough();
+            startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             quickPickStub.should.have.been.calledOnce;
-            mockRuntime.start.should.have.been.calledOnce;
+            startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'startFabricRuntime');
-            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
+        });
+
+        it('should stop if starting the fabric runtime failed', async () => {
+            mockRuntime.isRunning.resolves(false);
+            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            connection.name = 'local_fabric';
+            connection.managedRuntime = true;
+            connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
+            quickPickStub.resolves({
+                label: 'local_fabric',
+                data: connection
+            });
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            startCommandStub.callThrough();
+            startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+            quickPickStub.should.have.been.calledOnce;
+            startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
+            connectStub.should.not.have.been.called;
+            logSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
+
         });
 
         it('should send a telemetry event if the extension is for production', async () => {

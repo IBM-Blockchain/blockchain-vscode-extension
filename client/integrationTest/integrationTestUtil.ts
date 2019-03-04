@@ -34,6 +34,14 @@ chai.use(chaiAsPromised);
 
 export class IntegrationTestUtil {
 
+    public static async deleteSampleDirectory(): Promise<void> {
+        const sampleDir: string = path.join(__dirname, '..', '..', 'integrationTest', 'data', 'fabric-samples');
+        const sampleDirExists: boolean = await fs.pathExists(sampleDir);
+        if (sampleDirExists) {
+            await fs.remove(sampleDir);
+        }
+    }
+
     public mySandBox: sinon.SinonSandbox;
     public testContractName: string;
     public testContractDir: string;
@@ -103,6 +111,8 @@ export class IntegrationTestUtil {
         }, 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
+
+        this.inputBoxStub.withArgs('Enter a mspid').resolves('Org1MSP');
 
         this.browseEditStub.withArgs('Browse for a certificate file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
             canSelectFiles: true,
@@ -176,7 +186,7 @@ export class IntegrationTestUtil {
         }
     }
 
-    public async packageSmartContract(version: string = '0.0.1'): Promise<void> {
+    public async packageSmartContract(version: string = '0.0.1', overrideName?: string): Promise<void> {
         let workspaceFiles: vscode.Uri[];
         if (this.testContractType === 'JavaScript') {
             this.workspaceFolder = { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(this.testContractDir) };
@@ -197,7 +207,7 @@ export class IntegrationTestUtil {
         }
         this.getWorkspaceFoldersStub.returns([this.workspaceFolder]);
 
-        await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+        await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, undefined, overrideName);
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {
@@ -220,7 +230,7 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
     }
 
-    public async instantiateSmartContract(name: string, version: string): Promise<void> {
+    public async instantiateSmartContract(name: string, version: string, transaction: string = 'instantiate', args: string = ''): Promise<void> {
         this.showChannelStub.resolves('mychannel');
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
@@ -238,8 +248,8 @@ export class IntegrationTestUtil {
             }
         });
 
-        this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
+        this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
         await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     }
 
@@ -283,7 +293,7 @@ export class IntegrationTestUtil {
             data: { name: fcn, contract: null }
         });
 
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (comma seperated)').resolves(args);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
@@ -299,7 +309,7 @@ export class IntegrationTestUtil {
             data: { name: transaction, contract: contractName }
         });
 
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (comma seperated)').resolves(args);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }

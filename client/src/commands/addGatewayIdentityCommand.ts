@@ -79,11 +79,16 @@ export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
     const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
 
-    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(gatewayRegistryEntry.connectionProfilePath);
     const certificate: string = await fs.readFile(certPath, 'utf8');
     const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
-    await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
+    const mspid: string = await UserInputUtil.showInputBox('Enter a mspid');
+    if (!mspid) {
+        // User cancelled entering mspid
+        return;
+    }
+
+    await wallet.importIdentity(certificate, privateKey, identityName, mspid);
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway '${gatewayRegistryEntry.name}'`);
 }

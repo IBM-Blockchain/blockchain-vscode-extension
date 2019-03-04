@@ -17,14 +17,12 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricWallet } from '../fabric/IFabricWallet';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
-    const runtime: FabricRuntime = FabricRuntimeManager.instance().get('local_fabric');
+    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
@@ -34,11 +32,8 @@ export async function startFabricRuntime(): Promise<void> {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
         await runtime.start(outputAdapter);
 
-        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime['name']);
-        const connectionProfile: any = await runtime.getConnectionProfile();
-        const certificate: string = await runtime.getCertificate();
-        const privateKey: string = await runtime.getPrivateKey();
-        await runtimeWallet.importIdentity(connectionProfile, certificate, privateKey, 'Admin@org1.example.com');
+        // ensure the wallets are populated properly before the gateway view uses it
+        await FabricRuntimeManager.instance().getConnection();
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);

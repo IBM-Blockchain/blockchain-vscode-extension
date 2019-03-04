@@ -14,16 +14,16 @@
 
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
-import { FabricRuntimeRegistry } from './FabricRuntimeRegistry';
+import * as vscode from 'vscode';
+import { FabricRuntimePorts } from './FabricRuntimePorts';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import { EventEmitter } from 'events';
 import { Docker, ContainerPorts } from '../docker/Docker';
-import * as vscode from 'vscode';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { LogType } from '../logging/OutputAdapter';
+import * as request from 'request';
 
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
@@ -36,21 +36,27 @@ const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPri
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
+    STARTED = 'started',
     STOPPING = 'stopping',
+    STOPPED = 'stopped',
     RESTARTING = 'restarting',
 }
 
 export class FabricRuntime extends EventEmitter {
 
-    private runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
+    public developmentMode: boolean;
+    public ports?: FabricRuntimePorts;
+
     private docker: Docker;
     private name: string;
     private busy: boolean = false;
     private state: FabricRuntimeState;
 
-    constructor(private runtimeRegistryEntry: FabricRuntimeRegistryEntry) {
+    private logsRequest: request.Request;
+
+    constructor() {
         super();
-        this.name = runtimeRegistryEntry.name;
+        this.name = 'local_fabric';
         this.docker = new Docker(this.name);
     }
 
@@ -73,6 +79,12 @@ export class FabricRuntime extends EventEmitter {
             await this.startInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -83,6 +95,12 @@ export class FabricRuntime extends EventEmitter {
             await this.stopInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -93,6 +111,12 @@ export class FabricRuntime extends EventEmitter {
             await this.teardownInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -100,10 +124,17 @@ export class FabricRuntime extends EventEmitter {
         try {
             this.setBusy(true);
             this.setState(FabricRuntimeState.RESTARTING);
+            this.stopLogs();
             await this.stopInner(outputAdapter);
             await this.startInner(outputAdapter);
         } finally {
             this.setBusy(false);
+            const running: boolean = await this.isRunning();
+            if (running) {
+                this.setState(FabricRuntimeState.STARTED);
+            } else {
+                this.setState(FabricRuntimeState.STOPPED);
+            }
         }
     }
 
@@ -173,12 +204,12 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public isDevelopmentMode(): boolean {
-        return this.runtimeRegistryEntry.developmentMode;
+        return this.developmentMode;
     }
 
     public async setDevelopmentMode(developmentMode: boolean): Promise<void> {
-        this.runtimeRegistryEntry.developmentMode = developmentMode;
-        await this.runtimeRegistry.update(this.runtimeRegistryEntry);
+        this.developmentMode = developmentMode;
+        await this.updateUserSettings();
     }
 
     public async getChaincodeAddress(): Promise<string> {
@@ -242,9 +273,12 @@ export class FabricRuntime extends EventEmitter {
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
         const runtimePath: string = path.join(homeExtDir, this.name);
+        // Need to remove the secret wallet as well
+        const secretRuntimePath: string = path.join(homeExtDir, this.name + '-ops');
 
         try {
             await fs.remove(runtimePath);
+            await fs.remove(secretRuntimePath);
         } catch (error) {
             if (!error.message.includes('ENOENT: no such file or directory')) {
                 outputAdapter.log(LogType.ERROR, `Error removing runtime connection details: ${error.message}`, `Error removing runtime connection details: ${error.toString()}`);
@@ -255,16 +289,31 @@ export class FabricRuntime extends EventEmitter {
 
     public async startLogs(outputAdapter: OutputAdapter): Promise<void> {
         const logsAddress: string = await this.getLogsAddress();
-        CommandUtil.sendRequestWithOutput(`http://${logsAddress}/logs`, outputAdapter);
+        this.logsRequest = CommandUtil.sendRequestWithOutput(`http://${logsAddress}/logs`, outputAdapter);
+    }
+
+    public stopLogs(): void {
+        if (this.logsRequest) {
+            CommandUtil.abortRequest(this.logsRequest);
+        }
+    }
+
+    public setState(state: FabricRuntimeState): void {
+        this.state = state;
+
+    }
+
+    public async updateUserSettings(): Promise<void> {
+        const runtimeObject: any = {
+            ports: this.ports,
+            developmentMode: this.isDevelopmentMode(),
+        };
+        await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeObject, vscode.ConfigurationTarget.Global);
     }
 
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
-    }
-
-    private setState(state: FabricRuntimeState): void {
-        this.state = state;
     }
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
@@ -273,10 +322,12 @@ export class FabricRuntime extends EventEmitter {
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
+        this.stopLogs();
         await this.execute('stop', outputAdapter);
     }
 
     private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
+        this.stopLogs();
         await this.execute('teardown', outputAdapter);
         await this.deleteConnectionDetails(outputAdapter);
     }
@@ -288,14 +339,14 @@ export class FabricRuntime extends EventEmitter {
 
         const env: any = Object.assign({}, process.env, {
             COMPOSE_PROJECT_NAME: this.docker.getContainerPrefix(),
-            CORE_CHAINCODE_MODE: this.runtimeRegistryEntry.developmentMode ? 'dev' : 'net',
-            CERTIFICATE_AUTHORITY_PORT: this.runtimeRegistryEntry.ports.certificateAuthority,
-            ORDERER_PORT: this.runtimeRegistryEntry.ports.orderer,
-            PEER_REQUEST_PORT: this.runtimeRegistryEntry.ports.peerRequest,
-            PEER_CHAINCODE_PORT: this.runtimeRegistryEntry.ports.peerChaincode,
-            PEER_EVENT_HUB_PORT: this.runtimeRegistryEntry.ports.peerEventHub,
-            COUCH_DB_PORT: this.runtimeRegistryEntry.ports.couchDB,
-            LOGS_PORT: this.runtimeRegistryEntry.ports.logs
+            CORE_CHAINCODE_MODE: this.developmentMode ? 'dev' : 'net',
+            CERTIFICATE_AUTHORITY_PORT: this.ports.certificateAuthority,
+            ORDERER_PORT: this.ports.orderer,
+            PEER_REQUEST_PORT: this.ports.peerRequest,
+            PEER_CHAINCODE_PORT: this.ports.peerChaincode,
+            PEER_EVENT_HUB_PORT: this.ports.peerEventHub,
+            COUCH_DB_PORT: this.ports.couchDB,
+            LOGS_PORT: this.ports.logs
         });
 
         if (process.platform === 'win32') {

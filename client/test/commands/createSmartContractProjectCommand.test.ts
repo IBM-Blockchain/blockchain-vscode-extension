@@ -247,15 +247,6 @@ describe('CreateSmartContractProjectCommand', () => {
         logSpy.should.have.been.calledWith(LogType.ERROR, 'npm is required before creating a smart contract project');
     });
 
-    it('should show error is yo is not installed and not wanted', async () => {
-        // yo not installed and not wanted
-        sendCommandStub.withArgs('npm --version').resolves('6.4.1');
-        sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
-        quickPickStub.resolves(UserInputUtil.NO);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
-    });
-
     it('should show error message if generator-fabric fails to install', async () => {
         // generator-fabric not installed and wanted but fails to install
         sendCommandStub.withArgs('npm --version').resolves('6.4.1');
@@ -268,7 +259,6 @@ describe('CreateSmartContractProjectCommand', () => {
         }));
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').rejects(new Error('such error'));
         sendCommandStub.withArgs('npm install -g generator-fabric').rejects(new Error('such error'));
-        quickPickStub.resolves(UserInputUtil.YES);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing generator-fabric module: such error');
     });
@@ -276,8 +266,7 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should install yo if not installed', async () => {
         sendCommandStub.withArgs('npm --version').resolves('6.4.1');
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
-        quickPickStub.onCall(0).resolves(UserInputUtil.YES);
-        quickPickStub.onCall(1).resolves();
+        quickPickStub.onCall(0).resolves();
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         sendCommandStub.should.have.been.calledWithExactly('npm install -g yo');
     });
@@ -292,8 +281,7 @@ describe('CreateSmartContractProjectCommand', () => {
             }
         }));
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long generator-fabric').rejects(new Error('such error'));
-        quickPickStub.onCall(0).resolves(UserInputUtil.YES);
-        quickPickStub.onCall(1).resolves();
+        quickPickStub.onCall(0).resolves();
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         sendCommandStub.should.have.been.calledWithExactly('npm install -g generator-fabric');
     });
@@ -347,7 +335,6 @@ describe('CreateSmartContractProjectCommand', () => {
         sendCommandStub.withArgs('npm --version').resolves('6.4.1');
         sendCommandStub.withArgs('npm ls --depth=0 --global --json --long yo').rejects(new Error('such error'));
         sendCommandStub.withArgs('npm install -g yo').rejects(new Error('such error'));
-        quickPickStub.resolves(UserInputUtil.YES);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue installing yo node module: such error');
     });

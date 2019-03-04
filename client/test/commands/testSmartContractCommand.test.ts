@@ -82,7 +82,19 @@ describe('testSmartContractCommand', () => {
     let transactionTwo: any;
     let transactionThree: any;
     let packageJSONPath: vscode.Uri;
-
+    const tsConfigContents: any = {
+        compilerOptions: {
+          declaration: true,
+          module: 'commonjs',
+          moduleResolution: 'node',
+          outDir: 'dist',
+          sourceMap: true,
+          target: 'es2017'
+        },
+        exclude: ['node_modules'],
+        include: ['./functionalTests/**/*']
+    };
+    const tsConfigFormat: any = { spaces: '\t' };
     before(async () => {
         await TestUtil.setupTests();
     });
@@ -373,6 +385,7 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
+            const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
             fabricClientConnectionMock.getMetadata.resolves(
                 {
                     contracts: {
@@ -413,6 +426,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const args: string[] = [];`).should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
+            writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
@@ -762,15 +776,17 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
+
             showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-
+            const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.not.have.been.called;
+            writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha, ts-node, typescript`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });
 
@@ -786,13 +802,67 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
+            const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.have.been.called;
+            writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha, ts-node, typescript`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+        });
+
+        it('should error if tsconfig.json file cannot be created', async () => {
+            const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
+
+            workspaceConfigurationGetStub.onCall(0).returns(undefined);
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves('TypeScript');
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            const error: Error = new Error('failed for some reason');
+            mySandBox.stub(fs, 'writeJson').throws(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            workspaceConfigurationUpdateStub.should.have.been.called;
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.ERROR, 'Unable to create tsconfig.json file: failed for some reason', `Unable to create tsconfig.json file: ${error.toString()}`);
+        });
+
+        it('should warn the user if tsconfig.json file already exists', async () => {
+            const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
+
+            workspaceConfigurationGetStub.onCall(0).returns(undefined);
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            showLanguageQuickPickStub.resolves('TypeScript');
+            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.onFirstCall().resolves(false);
+            pathExistsStub.onSecondCall().resolves(true);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            const writeJsonSpy: sinon.SinonSpy = mySandBox.spy(fs, 'writeJson');
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            workspaceConfigurationUpdateStub.should.have.been.called;
+            writeJsonSpy.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.WARNING, 'Unable to create tsconfig.json file as it already exists');
+            logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });
 
     });

@@ -19,7 +19,4 @@ export interface IFabricWalletGenerator {
     createLocalWallet(connectionName: string): Promise<IFabricWallet>;
 
     getNewWallet(connectionName: string, walletPath: string): IFabricWallet;
-
-    getIdentityNames(connectionName: string, walletPath: string): Promise<string[]>;
-
 }

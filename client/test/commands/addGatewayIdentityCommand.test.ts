@@ -28,8 +28,8 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { ConnectionTreeItem } from '../../src/explorer/model/ConnectionTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 
 chai.should();
 chai.use(sinonChai);
@@ -95,7 +95,8 @@ describe('AddGatewayIdentityCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            inputBoxStub.resolves(identityName);
+            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onSecondCall().resolves('myMSPID');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
@@ -103,9 +104,9 @@ describe('AddGatewayIdentityCommand', () => {
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+            const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
+            gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
             identities[2].command.command.should.equal(ExtensionCommands.CONNECT);
@@ -118,9 +119,9 @@ describe('AddGatewayIdentityCommand', () => {
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+            const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
+            gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -135,9 +136,9 @@ describe('AddGatewayIdentityCommand', () => {
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+            const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
+            gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -147,16 +148,17 @@ describe('AddGatewayIdentityCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            inputBoxStub.resolves('blueConga');
+            inputBoxStub.onFirstCall().resolves('blueConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
             browseEditStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+            const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
+            gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -166,7 +168,8 @@ describe('AddGatewayIdentityCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            inputBoxStub.resolves('violetConga');
+            inputBoxStub.onFirstCall().resolves('violetConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves();
 
@@ -174,22 +177,24 @@ describe('AddGatewayIdentityCommand', () => {
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionTreeItem: ConnectionTreeItem = allChildren[2] as ConnectionTreeItem;
-            connectionTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionTreeItem);
+            const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
+            gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
         it('should be able to add a identity from the tree', async () => {
             identityName = 'blackConga';
-            inputBoxStub.resolves(identityName);
+            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
-            const connectionToAddTo: ConnectionTreeItem = allChildren[1] as ConnectionTreeItem;
+            const connectionToAddTo: GatewayTreeItem = allChildren[1] as GatewayTreeItem;
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, connectionToAddTo);
 
             connectionToAddTo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
@@ -214,6 +219,29 @@ describe('AddGatewayIdentityCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Blockchain gateway must be completed first!');
+        });
+
+        it('should test a can be cancelled when enter mspid', async () => {
+            identityName = 'greenConga';
+            mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+                label: 'myGatewayB',
+                data: FabricGatewayRegistry.instance().get('myGatewayB')
+            });
+
+            inputBoxStub.onFirstCall().resolves(identityName);
+            inputBoxStub.onSecondCall().resolves();
+
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
+            browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
+
+            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
+            gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            identities.length.should.equal(2);
         });
     });
 });

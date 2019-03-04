@@ -30,9 +30,13 @@ export interface IFabricConnection {
 
     getOrganizations(channelName: string): Promise<Array<string>>;
 
+    getCertificateAuthorityName(): string;
+
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
+
+    getOrderers(): Promise<Set<string>>;
 
     installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
 
@@ -44,5 +48,7 @@ export interface IFabricConnection {
 
     getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 
-    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<void>;
+    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined>;
+
+    enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
 }

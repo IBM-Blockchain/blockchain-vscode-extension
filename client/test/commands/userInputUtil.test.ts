@@ -16,8 +16,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../../src/commands/UserInputUtil';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
-import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -41,7 +39,6 @@ describe('userInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let quickPickStub: sinon.SinonStub;
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
     let gatewayEntryOne: FabricGatewayRegistryEntry;
@@ -89,12 +86,12 @@ describe('userInputUtil', () => {
 
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
+        // await TestUtil.storeRuntimesConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreRuntimesConfig();
+        // await TestUtil.restoreRuntimesConfig();
     });
 
     beforeEach(async () => {
@@ -115,10 +112,6 @@ describe('userInputUtil', () => {
         await gatewayRegistry.clear();
         await gatewayRegistry.add(gatewayEntryOne);
         await gatewayRegistry.add(gatewayEntryTwo);
-
-        await runtimeRegistry.clear();
-        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric1', developmentMode: false }));
-        await runtimeRegistry.add(new FabricRuntimeRegistryEntry({ name: 'local_fabric2', developmentMode: true }));
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
@@ -144,11 +137,12 @@ describe('userInputUtil', () => {
         getLocalFabricConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
+
+        FabricRuntimeManager.instance().exists().should.be.true;
     });
 
     afterEach(async () => {
         mySandBox.restore();
-        await runtimeRegistry.clear();
         process.env = env;
     });
 
@@ -173,10 +167,9 @@ describe('userInputUtil', () => {
             managedRuntime.name = 'local_fabric';
             managedRuntime.managedRuntime = true;
 
-            mySandBox.stub(FabricRuntimeRegistry.instance(), 'getAll').returns([managedRuntime]);
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true);
-            quickPickStub.should.have.been.calledWith([{ label: gatewayEntryOne.name, data: gatewayEntryOne }, { label: managedRuntime.name, data: managedRuntime }]);
+            quickPickStub.should.have.been.calledWith([{ label: managedRuntime.name, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
         });
     });
 
@@ -280,17 +273,6 @@ describe('userInputUtil', () => {
             result.should.equal('myPeerOne');
         });
 
-        it('should handle no connection', async () => {
-            getConnectionStub.returns(null);
-            getLocalFabricConnectionStub.returns(null);
-            await UserInputUtil.showPeerQuickPickBox('Choose a peer').should.be.rejectedWith(/No connection to a blockchain found/);
-        });
-
-        it('should take a connection as an argument', async () => {
-            quickPickStub.resolves('myPeerOne');
-            const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer', fabricConnectionStub);
-            result.should.equal('myPeerOne');
-        });
     });
 
     describe('showSmartContractPackagesQuickPickBox', () => {
@@ -361,21 +343,9 @@ describe('userInputUtil', () => {
                 placeHolder: 'Choose a channel'
             });
         });
-
-        it('should handle no connection', async () => {
-            getConnectionStub.returns(null);
-            await UserInputUtil.showChannelQuickPickBox('Choose a channel').should.be.rejectedWith(/No connection to a blockchain found/);
-        });
     });
 
     describe('showChaincodeAndVersionQuickPick', () => {
-
-        it('should handle no connection', async () => {
-            getConnectionStub.returns(null);
-            getLocalFabricConnectionStub.returns(null);
-            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', new Set<string>()).should.be.rejectedWith(/No connection to a blockchain found/);
-
-        });
 
         it('should show chaincode and version quick pick', async () => {
             const packagedOne: PackageRegistryEntry = new PackageRegistryEntry({
@@ -502,6 +472,7 @@ describe('userInputUtil', () => {
         });
 
     });
+
     describe('showGeneratorOptions', () => {
         it('should show generator conflict options in quickpick box', async () => {
             quickPickStub.resolves('Overwrite file');
@@ -1055,49 +1026,6 @@ describe('userInputUtil', () => {
                 });
         });
 
-        it('should take a connection as an argument', async () => {
-            quickPickStub.resolves({
-                label: 'biscuit-network@0.0.1',
-                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
-            });
-
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', null, fabricConnectionStub);
-            result.should.deep.equal({
-                label: 'biscuit-network@0.0.1',
-                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
-            });
-
-            quickPickStub.should.have.been.calledWith([
-                {
-                    label: 'biscuit-network@0.0.1',
-                    data: {
-                        name: 'biscuit-network',
-                        channel: 'channelOne',
-                        version: '0.0.1'
-                    }
-                },
-                {
-                    label: 'cake-network@0.0.3',
-                    data: {
-                        name: 'cake-network',
-                        channel: 'channelOne',
-                        version: '0.0.3'
-                    }
-                }], {
-                    ignoreFocusOut: true,
-                    canPickMany: false,
-                    placeHolder: 'Please choose instantiated smart contract to test'
-                });
-        });
-
-        it('should handle no connection', async () => {
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            getConnectionStub.returns(null);
-            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', null);
-            logSpy.should.have.been.calledWith(LogType.ERROR, `No connection to a blockchain found`);
-
-        });
-
         it('should handle no instantiated chaincodes in connection', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricConnectionStub.getInstantiatedChaincode.returns([]);
@@ -1359,12 +1287,6 @@ describe('userInputUtil', () => {
                     data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri } }
                 }
             ]);
-        });
-
-        it('showing installable contracts should handle no connection', async () => {
-            getConnectionStub.returns(null);
-            getLocalFabricConnectionStub.returns(null);
-            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne'])).should.be.rejectedWith(/No connection to a blockchain found/);
         });
 
     });

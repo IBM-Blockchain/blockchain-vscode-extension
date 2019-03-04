@@ -223,12 +223,47 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         return;
     }
 
-    // If TypeScript, update JavaScript Test Runner user settings
+    // If TypeScript, update JavaScript Test Runner user settings and create tsconfig.json
     if (testLanguage === 'TypeScript') {
         const runnerArgs: string = vscode.workspace.getConfiguration().get('javascript-test-runner.additionalArgs') as string;
         if (!runnerArgs || !runnerArgs.includes('-r ts-node/register')) {
             // If the user has removed JavaScript Test Runner since generating tests, this update will silently fail
             await vscode.workspace.getConfiguration().update('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global);
+        }
+
+        // Setup Tsconfig path
+        const tsConfigPath: string = path.join(localSmartContractDirectory, 'tsconfig.json');
+
+        // Tsconfig file content
+        const tsConfigContents: any = {
+            compilerOptions: {
+                outDir: 'dist',
+                target: 'es2017',
+                moduleResolution: 'node',
+                module: 'commonjs',
+                declaration: true,
+                sourceMap: true
+            },
+            include: [
+                './functionalTests/**/*'
+            ],
+            exclude: [
+                'node_modules'
+            ]
+        };
+
+        // Try to create tsconfig.json file
+        try {
+            const tsConfigExists: boolean = await fs.pathExists(tsConfigPath);
+            if (!tsConfigExists) {
+                await fs.writeJson(tsConfigPath, tsConfigContents, {spaces: '\t'});
+            } else {
+                // Assume that the users tsconfig.json file is compatible, but don't error
+                outputAdapter.log(LogType.WARNING, `Unable to create tsconfig.json file as it already exists`);
+            }
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Unable to create tsconfig.json file: ${error.message}`, `Unable to create tsconfig.json file: ${error.toString()}`);
+            return;
         }
     }
 
@@ -276,8 +311,8 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0 @types/mocha', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha, ts-node, typescript');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0 @types/mocha ts-node typescript', dir, 'Installing npm and package dependencies in smart contract project');
     } else {
         outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0');
         npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0', dir, 'Installing npm and package dependencies in smart contract project');

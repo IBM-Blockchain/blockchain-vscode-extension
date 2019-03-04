@@ -32,36 +32,48 @@ describe('FabricWalletGenerator', () => {
     let ensureDirStub: sinon.SinonStub;
     let pathExistsStub: sinon.SinonStub;
 
-    beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
+    describe('createLocalWallet', () => {
 
-        mySandBox.stub(UserInputUtil, 'getDirPath').resolves(path.join(rootPath, '../../test/data/walletDir'));
-        ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
-        pathExistsStub = mySandBox.stub(fs, 'pathExists');
+        beforeEach(async () => {
+            mySandBox = sinon.createSandbox();
+
+            mySandBox.stub(UserInputUtil, 'getDirPath').resolves(path.join(rootPath, '../../test/data/walletDir'));
+            ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
+            pathExistsStub = mySandBox.stub(fs, 'pathExists');
+        });
+
+        afterEach(async () => {
+            mySandBox.restore();
+        });
+
+        it('should create a local file system wallet', async () => {
+            pathExistsStub.resolves(false);
+
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
+            wallet.connectionName.should.equal('CongaConnection');
+            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
+            ensureDirStub.should.have.been.calledOnce;
+
+        });
+
+        it('should not overwrite an existing file system wallet', async () => {
+            pathExistsStub.resolves(true);
+
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
+            wallet.connectionName.should.equal('CongaConnection');
+            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
+            ensureDirStub.should.not.have.been.called;
+
+        });
     });
 
-    afterEach(async () => {
-        mySandBox.restore();
+    describe('getNewWallet', () => {
+        it('should get a new wallet', () => {
+            const walletPath: string = path.join(rootPath, '../../test/data/walletDir/myWallet/wallet');
+            const wallet: FabricWallet = FabricWalletGenerator.instance().getNewWallet('myWallet', walletPath);
+
+            wallet.connectionName.should.equal('myWallet');
+            wallet.walletPath.should.equal(walletPath);
+        });
     });
-
-    it('should create a local file system wallet', async () => {
-        pathExistsStub.resolves(false);
-
-        const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
-        wallet.connectionName.should.equal('CongaConnection');
-        wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
-        ensureDirStub.should.have.been.calledOnce;
-
-    });
-
-    it('should not overwrite an existing file system wallet', async () => {
-        pathExistsStub.resolves(true);
-
-        const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
-        wallet.connectionName.should.equal('CongaConnection');
-        wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
-        ensureDirStub.should.not.have.been.called;
-
-    });
-
 });

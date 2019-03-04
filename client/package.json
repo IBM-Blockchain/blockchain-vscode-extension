@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.3.1",
+    "version": "0.3.2",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -32,7 +32,7 @@
         "Debuggers",
         "Other"
     ],
-    "generatorFabricVersion": "~0.0.13",
+    "generatorFabricVersion": "~0.0.16",
     "activationEvents": [
         "*"
     ],
@@ -68,6 +68,7 @@
             "blockchainConnectionsExplorer.editGatewayEntry",
             "blockchainConnectionsExplorer.testSmartContractEntry",
             "blockchainConnectionsExplorer.submitTransactionEntry",
+            "blockchainConnectionsExplorer.evaluateTransactionEntry",
             "blockchainExplorer.upgradeSmartContractEntry",
             "extensionHome.open"
         ]
@@ -108,10 +109,10 @@
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
                 },
-                "fabric.runtimes": {
-                    "type": "array",
-                    "default": [],
-                    "description": "Configurations for managed Blockchain network runtimes"
+                "fabric.runtime": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Configurations for the local Blockchain managed runtime"
                 },
                 "blockchain.ext.directory": {
                     "type": "string",
@@ -139,7 +140,11 @@
             {
                 "command": "extensionHome.open",
                 "title": "View Homepage",
-                "category": "IBM Blockchain Platform"
+                "category": "IBM Blockchain Platform",
+                "icon": {
+                    "light": "resources/icon_light.svg",
+                    "dark": "resources/icon_dark.svg"
+                }
             },
             {
                 "command": "blockchainConnectionsExplorer.refreshEntry",
@@ -286,12 +291,25 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "blockchainConnectionsExplorer.evaluateTransactionEntry",
+                "title": "Evaluate Transaction",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
                 "title": "Export Connection Details",
                 "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
+            "editor/title": [
+                {
+                    "when": "!false",
+                    "command": "extensionHome.open",
+                    "alt": "extensionHome.open",
+                    "group": "navigation"
+                }
+            ],
             "commandPalette": [
                 {
                     "command": "blockchainExplorer.startFabricRuntime"
@@ -427,6 +445,14 @@
                     "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-instantiated-item"
                 },
                 {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-instantiated-contract-item"
+                },
+                {
+                    "command": "blockchainExplorer.upgradeSmartContractEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
                     "command": "blockchainConnectionsExplorer.editGatewayEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-gateway-item"
                 },
@@ -440,6 +466,14 @@
                 },
                 {
                     "command": "blockchainConnectionsExplorer.submitTransactionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.evaluateTransactionEntry",
+                    "when": "view == blockchainExplorer && viewItem == blockchain-transaction-item"
+                },
+                {
+                    "command": "blockchainConnectionsExplorer.evaluateTransactionEntry",
                     "when": "view == blockchainExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {

@@ -138,15 +138,23 @@ describe('SubmitTransactionCommand', () => {
             mySandBox.restore();
         });
 
-        it('should submit the smart contract through the command', async () => {
+        it('should submit the smart contract transaction through the command', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
 
-        it('should sumbit the smart contract through the command when not connected', async () => {
+        it('should evaluate the smart contract transaction through the command', async () => {
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', true);
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful evaluateTransaction');
+            reporterStub.should.have.been.calledWith('evaluate transaction');
+        });
+
+        it('should submit the smart contract transaction through the command when not connected', async () => {
             getConnectionStub.onCall(2).returns(null);
             getConnectionStub.onCall(3).returns(fabricClientConnectionMock);
 
@@ -154,14 +162,14 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
             dockerLogsOutputSpy.should.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             reporterStub.should.have.been.calledWith('submit transaction');
         });
 
         it('should handle connecting being cancelled', async () => {
             getConnectionStub.onCall(2).returns(null);
             getConnectionStub.onCall(3).returns(null);
-            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             reporterStub.should.not.have.been.called;
@@ -178,13 +186,13 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
-        it('should handle error from submitting transaction', async () => {
+        it('should handle error from evaluating transaction', async () => {
             fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error' });
 
-            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
 
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error submitting transaction: some error');
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', true);
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.have.been.called;
         });
@@ -213,12 +221,12 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3'], 'my-contract');
 
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
         });
 
-        it('should submit transaction through the tree (chaincode item)', async () => {
+        it('should evaluate transaction through the tree (chaincode item)', async () => {
             fabricClientConnectionMock.getMetadata.rejects(new Error('no metadata here jack'));
 
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
@@ -231,12 +239,12 @@ describe('SubmitTransactionCommand', () => {
             showInputBoxStub.onFirstCall().resolves('transaction1');
             showInputBoxStub.onSecondCall().resolves('arg1,arg2,arg3');
 
-            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, instantiatedChainCodes[0]);
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, instantiatedChainCodes[0]);
 
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3']);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3'], undefined, true);
 
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
-            reporterStub.should.have.been.calledWith('submit transaction');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful evaluateTransaction');
+            reporterStub.should.have.been.calledWith('evaluate transaction');
             dockerLogsOutputSpy.should.have.been.called;
         });
 
@@ -256,7 +264,7 @@ describe('SubmitTransactionCommand', () => {
 
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
 
-            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
         });
@@ -266,7 +274,7 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
             showInputBoxStub.should.have.been.calledOnce;
-            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
         });
@@ -276,9 +284,37 @@ describe('SubmitTransactionCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
-            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
             reporterStub.should.not.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should handle a defined transaction response', async () => {
+            const result: string = '{"hello":"world"}';
+            const outputAdapterShowSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
+            fabricClientConnectionMock.submitTransaction.resolves(result);
+            showInputBoxStub.onFirstCall().resolves('');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
+            showInputBoxStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction', `Returned value from transaction1: ${result}`);
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+            outputAdapterShowSpy.should.have.been.calledOnce;
+        });
+
+        it('should handle an undefined transaction response', async () => {
+            const result: string = undefined;
+            const outputAdapterShowSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
+            fabricClientConnectionMock.submitTransaction.resolves(result);
+            showInputBoxStub.onFirstCall().resolves('');
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', true);
+            showInputBoxStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful evaluateTransaction', `No value returned from transaction1`);
+            reporterStub.should.have.been.calledWith('evaluate transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+            outputAdapterShowSpy.should.have.been.calledOnce;
         });
     });
 });

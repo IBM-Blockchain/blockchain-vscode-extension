@@ -34,10 +34,14 @@ import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { SampleView } from '../../src/webview/SampleView';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { CommandUtil } from '../../src/util/CommandUtil';
+import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
+import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -60,6 +64,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeExtensionDirectoryConfig();
+        await TestUtil.storeRepositoriesConfig();
 
         VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
@@ -72,14 +77,24 @@ describe('Integration Tests for Node Smart Contracts', () => {
         if (exists) {
             await fs.remove(packageDir);
         }
+
+        await vscode.workspace.getConfiguration().update('blockchain.repositories', [], vscode.ConfigurationTarget.Global);
+        sinon.stub(vscode.window, 'showSaveDialog').withArgs({
+            defaultUri: sinon.match.any,
+            saveLabel: 'Clone Repository'
+        }).resolves(vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'integrationTest', 'data', 'fabric-samples')));
+        await SampleView.cloneRepository('hyperledger/fabric-samples', false);
     });
 
-    after(async () => {
+    after(async function(): Promise<void> {
+        this.timeout(600000);
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
+        await IntegrationTestUtil.deleteSampleDirectory();
         VSCodeBlockchainOutputAdapter.instance().setConsole(false);
         await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreRepositoriesConfig();
     });
 
     describe('local fabric', () => {
@@ -91,12 +106,20 @@ describe('Integration Tests for Node Smart Contracts', () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // Ensure that the Fabric runtime is in the right state.
-            runtime = runtimeManager.get('local_fabric');
+            runtime = runtimeManager.getRuntime();
 
             let isRunning: boolean = await runtime.isRunning();
             if (isRunning) {
                 await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
                 isRunning = await runtime.isRunning();
+            }
+
+            // If we don't teardown the existing Fabric, we're told that the package is already installed
+            mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+            try {
+                await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+            } catch (error) {
+                // If the Fabric is already torn down, do nothing
             }
 
             isRunning.should.equal(false);
@@ -123,8 +146,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 runtime.isRunning().should.eventually.be.true;
                 runtime.isDevelopmentMode().should.be.false;
 
-                await integrationTestUtil.connectToFabric('local_fabric');
-
                 const smartContractName: string = `my${language}SC`;
 
                 let testRunResult: string;
@@ -144,6 +165,12 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 smartContractsChildren[0].label.should.equal('Instantiated');
                 smartContractsChildren[1].label.should.equal('Installed');
 
+                const nodesChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<SmartContractsTreeItem>;
+                nodesChildren.length.should.equal(3);
+                nodesChildren[0].label.should.equal('peer0.org1.example.com');
+                nodesChildren[1].label.should.equal('ca.example.com');
+                nodesChildren[2].label.should.equal('orderer.example.com');
+
                 let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
 
                 let instantiatedSmartContract: BlockchainTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
@@ -159,6 +186,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 });
 
                 installedSmartContract.should.not.be.null;
+
+                await integrationTestUtil.connectToFabric('local_fabric');
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'local_fabric');
                 testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
@@ -220,6 +249,77 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await checkGeneratedSmartContractAndSubmitTransaction(language, smartContractName, testRunResult);
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            }).timeout(0);
+
+            it(`should install and instantiate the ${language} FabCar sample and submit transactions`, async () => {
+
+                const languageLowerCase: string = language.toLowerCase();
+
+                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                runtime.isRunning().should.eventually.be.true;
+                runtime.isDevelopmentMode().should.be.false;
+
+                mySandBox.stub(UserInputUtil, 'showFolderOptions').withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+                await SampleView.cloneAndOpenRepository('hyperledger/fabric-samples', `chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`);
+
+                integrationTestUtil.testContractType = language;
+                integrationTestUtil.testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'data', `fabric-samples`, 'chaincode', 'fabcar', languageLowerCase);
+
+                await CommandUtil.sendCommandWithOutput('npm', ['install'], integrationTestUtil.testContractDir, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
+
+                await integrationTestUtil.packageSmartContract('1.0.0', `fabcar-contract-${languageLowerCase}`);
+
+                await integrationTestUtil.installSmartContract(`fabcar-contract-${languageLowerCase}`, '1.0.0');
+
+                await integrationTestUtil.instantiateSmartContract(`fabcar-contract-${languageLowerCase}`, '1.0.0', 'initLedger');
+
+                let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+                const smartContractsChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;
+
+                smartContractsChildren.length.should.equal(2);
+                smartContractsChildren[0].label.should.equal('Instantiated');
+                smartContractsChildren[1].label.should.equal('Installed');
+
+                const nodesChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<SmartContractsTreeItem>;
+                nodesChildren.length.should.equal(3);
+                nodesChildren[0].label.should.equal('peer0.org1.example.com');
+                nodesChildren[1].label.should.equal('ca.example.com');
+                nodesChildren[2].label.should.equal('orderer.example.com');
+
+                const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
+
+                const instantiatedSmartContract: BlockchainTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                    return _instantiatedSmartContract.label === `fabcar-contract-${languageLowerCase}@1.0.0`;
+                });
+
+                instantiatedSmartContract.should.not.be.null;
+
+                const installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
+
+                const installedSmartContract: BlockchainTreeItem = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
+                    return _installedSmartContract.label === `fabcar-contract-${languageLowerCase} v1.0.0`;
+                });
+
+                installedSmartContract.should.not.be.null;
+
+                await integrationTestUtil.connectToFabric('local_fabric');
+
+                allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+
+                allChildren.length.should.equal(3);
+
+                allChildren[0].label.should.equal('Connected via gateway: local_fabric');
+                allChildren[1].label.should.equal('Using ID: Admin@org1.example.com');
+                allChildren[2].label.should.equal('Channels');
+
+                // Submit some transactions and then check the results
+                logSpy.resetHistory();
+                await integrationTestUtil.submitTransactionToContract(`fabcar-contract-${languageLowerCase}`, '1.0.0', 'queryCar', 'CAR0', 'FabCar');
+
+                const message: string = `"{\\"color\\":\\"blue\\",\\"docType\\":\\"car\\",\\"make\\":\\"Toyota\\",\\"model\\":\\"Prius\\",\\"owner\\":\\"Tomoko\\"}"`;
+                logSpy.should.have.been.calledThrice;
+                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction', `Returned value from queryCar: ${message}`);
+
             }).timeout(0);
         });
     });

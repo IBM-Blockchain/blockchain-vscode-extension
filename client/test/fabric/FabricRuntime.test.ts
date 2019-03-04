@@ -17,8 +17,6 @@ import { Container, Volume } from 'dockerode';
 import ContainerImpl = require('dockerode/lib/container');
 import VolumeImpl = require('dockerode/lib/volume');
 import * as child_process from 'child_process';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
-import { FabricRuntimeRegistryEntry } from '../../src/fabric/FabricRuntimeRegistryEntry';
 import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
 
 import * as chai from 'chai';
@@ -41,10 +39,8 @@ describe('FabricRuntime', () => {
 
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const rootPath: string = path.dirname(__dirname);
 
-    let runtimeRegistryEntry: FabricRuntimeRegistryEntry;
     let runtime: FabricRuntime;
     let sandbox: sinon.SinonSandbox;
     let mockPeerContainer: sinon.SinonStubbedInstance<Container>;
@@ -110,11 +106,8 @@ describe('FabricRuntime', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        await runtimeRegistry.clear();
-        runtimeRegistryEntry = new FabricRuntimeRegistryEntry();
-        runtimeRegistryEntry.name = 'runtime1';
-        runtimeRegistryEntry.developmentMode = false;
-        runtimeRegistryEntry.ports = {
+        runtime = new FabricRuntime();
+        runtime.ports = {
             orderer: 12347,
             peerRequest: 12345,
             peerChaincode: 54321,
@@ -123,8 +116,7 @@ describe('FabricRuntime', () => {
             couchDB: 12349,
             logs: 12387
         };
-        await runtimeRegistry.add(runtimeRegistryEntry);
-        runtime = new FabricRuntime(runtimeRegistryEntry);
+        runtime.developmentMode = false;
         sandbox = sinon.createSandbox();
 
         const docker: Dockerode = (runtime as any).docker['docker'];
@@ -132,9 +124,9 @@ describe('FabricRuntime', () => {
         mockPeerInspect = {
             NetworkSettings: {
                 Ports: {
-                    '7051/tcp': [{HostIp: '0.0.0.0', HostPort: '12345'}],
-                    '7052/tcp': [{HostIp: '0.0.0.0', HostPort: '54321'}],
-                    '7053/tcp': [{HostIp: '0.0.0.0', HostPort: '12346'}]
+                    '7051/tcp': [{ HostIp: '0.0.0.0', HostPort: '12345' }],
+                    '7052/tcp': [{ HostIp: '0.0.0.0', HostPort: '54321' }],
+                    '7053/tcp': [{ HostIp: '0.0.0.0', HostPort: '12346' }]
                 }
             },
             State: {
@@ -146,7 +138,7 @@ describe('FabricRuntime', () => {
         mockOrdererInspect = {
             NetworkSettings: {
                 Ports: {
-                    '7050/tcp': [{HostIp: '127.0.0.1', HostPort: '12347'}]
+                    '7050/tcp': [{ HostIp: '127.0.0.1', HostPort: '12347' }]
                 }
             },
             State: {
@@ -158,7 +150,7 @@ describe('FabricRuntime', () => {
         mockCAInspect = {
             NetworkSettings: {
                 Ports: {
-                    '7054/tcp': [{HostIp: '127.0.0.1', HostPort: '12348'}]
+                    '7054/tcp': [{ HostIp: '127.0.0.1', HostPort: '12348' }]
                 }
             },
             State: {
@@ -170,7 +162,7 @@ describe('FabricRuntime', () => {
         mockCouchInspect = {
             NetworkSettings: {
                 Ports: {
-                    '5984/tcp': [{HostIp: '127.0.0.1', HostPort: '12349'}]
+                    '5984/tcp': [{ HostIp: '127.0.0.1', HostPort: '12349' }]
                 }
             },
             State: {
@@ -183,7 +175,7 @@ describe('FabricRuntime', () => {
         mockLogsInspect = {
             NetworkSettings: {
                 Ports: {
-                    '80/tcp': [{HostIp: '0.0.0.0', HostPort: 12387}]
+                    '80/tcp': [{ HostIp: '0.0.0.0', HostPort: 12387 }]
                 }
             },
             State: {
@@ -192,22 +184,22 @@ describe('FabricRuntime', () => {
         };
         mockLogsContainer.inspect.resolves(mockLogsInspect);
         const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
-        getContainerStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchContainer);
-        getContainerStub.withArgs('fabricvscoderuntime1_logs').returns(mockLogsContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_peer0.org1.example.com').returns(mockPeerContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_orderer.example.com').returns(mockOrdererContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_ca.example.com').returns(mockCAContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_couchdb').returns(mockCouchContainer);
+        getContainerStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsContainer);
         mockPeerVolume = sinon.createStubInstance(VolumeImpl);
         mockOrdererVolume = sinon.createStubInstance(VolumeImpl);
         mockCAVolume = sinon.createStubInstance(VolumeImpl);
         mockCouchVolume = sinon.createStubInstance(VolumeImpl);
         mockLogsVolume = sinon.createStubInstance(VolumeImpl);
         const getVolumeStub: sinon.SinonStub = sandbox.stub(docker, 'getVolume');
-        getVolumeStub.withArgs('fabricvscoderuntime1_peer0.org1.example.com').returns(mockPeerVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_orderer.example.com').returns(mockOrdererVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_ca.example.com').returns(mockCAVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_couchdb').returns(mockCouchVolume);
-        getVolumeStub.withArgs('fabricvscoderuntime1_logs').returns(mockLogsVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_peer0.org1.example.com').returns(mockPeerVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_orderer.example.com').returns(mockOrdererVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_ca.example.com').returns(mockCAVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_couchdb').returns(mockCouchVolume);
+        getVolumeStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsVolume);
 
         runtimeDir = path.join(rootPath, '..', 'data');
         getDirPathStub = sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
@@ -218,14 +210,13 @@ describe('FabricRuntime', () => {
     });
 
     afterEach(async () => {
-        await runtimeRegistry.clear();
         sandbox.restore();
     });
 
     describe('#getName', () => {
 
         it('should return the name of the runtime', () => {
-            runtime.getName().should.equal('runtime1');
+            runtime.getName().should.equal('local_fabric');
         });
     });
 
@@ -257,11 +248,29 @@ describe('FabricRuntime', () => {
             (runtime as any).state = FabricRuntimeState.RESTARTING;
             runtime.getState().should.equal(FabricRuntimeState.RESTARTING);
         });
+
+        it('should return stopped if the runtime is stopped', () => {
+            (runtime as any).state = FabricRuntimeState.STOPPED;
+            runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+        });
+
+        it('should return started if the runtime is started', () => {
+            (runtime as any).state = FabricRuntimeState.STARTED;
+            runtime.getState().should.equal(FabricRuntimeState.STARTED);
+        });
     });
 
     ['start', 'stop', 'teardown'].forEach((verb: string) => {
 
         describe(`#${verb}`, () => {
+
+            let setStateSpy: sinon.SinonSpy;
+            let stopLogsStub: sinon.SinonStub;
+
+            beforeEach(() => {
+                setStateSpy = sandbox.spy(runtime, 'setState');
+                stopLogsStub = sandbox.stub(runtime, 'stopLogs');
+            });
 
             it(`should execute the ${verb}.sh script and handle success for non-development mode (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
@@ -273,11 +282,15 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should execute the ${verb}.sh script and handle success for development mode (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
-                runtimeRegistryEntry.developmentMode = true;
+                runtime.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                 spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
@@ -286,6 +299,10 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should execute the ${verb}.sh script and handle an error (Linux/MacOS)`, async () => {
@@ -297,6 +314,10 @@ describe('FabricRuntime', () => {
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should execute the ${verb}.sh script using a custom output adapter (Linux/MacOS)`, async () => {
@@ -309,6 +330,10 @@ describe('FabricRuntime', () => {
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should publish busy events and set state before and after handling success (Linux/MacOS)`, async () => {
@@ -319,15 +344,30 @@ describe('FabricRuntime', () => {
                     return mockSuccessCommand();
                 });
                 runtime.on('busy', eventStub);
+
+                if (verb === 'start') {
+                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                } else {
+                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                }
+
                 await runtime[verb]();
                 eventStub.should.have.been.calledTwice;
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
                 if (verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTING);
+                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+
                 } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPING);
+                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -338,16 +378,31 @@ describe('FabricRuntime', () => {
                 spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
                     return mockFailureCommand();
                 });
+
+                if (verb === 'start') {
+                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                } else {
+                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                }
                 runtime.on('busy', eventStub);
+
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
                 eventStub.should.have.been.calledTwice;
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
                 if (verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTING);
+                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+
                 } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPING);
+                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -361,11 +416,15 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should execute the ${verb}.cmd script and handle success for development mode (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
-                runtimeRegistryEntry.developmentMode = true;
+                runtime.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
                 spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
@@ -374,6 +433,10 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should execute the ${verb}.cmd script and handle an error (Windows)`, async () => {
@@ -385,6 +448,10 @@ describe('FabricRuntime', () => {
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
             });
 
             it(`should execute the ${verb}.cmd script using a custom output adapter (Windows)`, async () => {
@@ -397,7 +464,11 @@ describe('FabricRuntime', () => {
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-            }).timeout(4000);
+
+                if (verb !== 'start') {
+                    stopLogsStub.should.have.been.called;
+                }
+            });
 
             it(`should publish busy events and set state before and after handling success (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
@@ -406,6 +477,13 @@ describe('FabricRuntime', () => {
                 spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
                     return mockSuccessCommand();
                 });
+
+                if (verb === 'start') {
+                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                } else {
+                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                }
+
                 runtime.on('busy', eventStub);
                 await runtime[verb]();
                 eventStub.should.have.been.calledTwice;
@@ -413,9 +491,17 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledWithExactly(false);
 
                 if (verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTING);
+                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+
                 } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPING);
+                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -427,15 +513,30 @@ describe('FabricRuntime', () => {
                     return mockFailureCommand();
                 });
                 runtime.on('busy', eventStub);
+
+                if (verb === 'start') {
+                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                } else {
+                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                }
+
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
                 eventStub.should.have.been.calledTwice;
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
                 if (verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTING);
+                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+
                 } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPING);
+                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                    setStateSpy.should.have.been.calledTwice;
+                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+                    stopLogsStub.should.have.been.called;
                 }
             });
 
@@ -443,6 +544,12 @@ describe('FabricRuntime', () => {
     });
 
     describe('#restart', () => {
+
+        let stopLogsStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            stopLogsStub = sandbox.stub(runtime, 'stopLogs');
+        });
 
         it('should execute the start.sh and stop.sh scripts and handle success (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
@@ -457,6 +564,8 @@ describe('FabricRuntime', () => {
             spawnStub.should.have.been.calledTwice;
             spawnStub.should.have.been.calledWith('/bin/sh', ['start.sh'], sinon.match.any);
             spawnStub.should.have.been.calledWith('/bin/sh', ['stop.sh'], sinon.match.any);
+
+            stopLogsStub.should.have.been.called;
         });
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Linux/MacOS)', async () => {
@@ -476,6 +585,7 @@ describe('FabricRuntime', () => {
             outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
             outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
+            stopLogsStub.should.have.been.called;
         });
 
         it('should publish busy events and set state before and after handling success (Linux/MacOS)', async () => {
@@ -489,15 +599,21 @@ describe('FabricRuntime', () => {
                 return mockSuccessCommand();
             });
             runtime.on('busy', eventStub);
+            sandbox.stub(runtime, 'isRunning').resolves(true);
+            const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart();
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
 
-            runtime.getState().should.equal(FabricRuntimeState.RESTARTING);
+            setStateSpy.should.have.been.calledTwice;
+            setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
+            setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+            runtime.getState().should.equal(FabricRuntimeState.STARTED);
+            stopLogsStub.should.have.been.called;
         });
 
-        it('should publish busy events and set state before and after handling an error (Linux/MacOS)', async () => {
+        it('should publish busy events and set state before and after handling an error, failure to stop (Linux/MacOS)', async () => {
             sandbox.stub(process, 'platform').value('linux');
             const eventStub: sinon.SinonStub = sinon.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
@@ -508,12 +624,43 @@ describe('FabricRuntime', () => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
+            sandbox.stub(runtime, 'isRunning').resolves(true);
+            const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "stop.sh" return code 1`);
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
 
-            runtime.getState().should.equal(FabricRuntimeState.RESTARTING);
+            setStateSpy.should.have.been.calledTwice;
+            setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
+            setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+            runtime.getState().should.equal(FabricRuntimeState.STARTED);
+            stopLogsStub.should.have.been.called;
+        });
+
+        it('should publish busy events and set state before and after handling an error, failure to start (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', ['start.sh'], sinon.match.any).callsFake(() => {
+                return mockFailureCommand();
+            });
+            spawnStub.withArgs('/bin/sh', ['stop.sh'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            runtime.on('busy', eventStub);
+            sandbox.stub(runtime, 'isRunning').resolves(false);
+            const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
+            await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "start.sh" return code 1`);
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+
+            setStateSpy.should.have.been.calledTwice;
+            setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
+            setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+            runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+            stopLogsStub.should.have.been.called;
         });
 
         it('should execute the start.cmd and stop.cmd scripts and handle success (Windows)', async () => {
@@ -529,6 +676,7 @@ describe('FabricRuntime', () => {
             spawnStub.should.have.been.calledTwice;
             spawnStub.should.have.been.calledWith('cmd', ['/c', 'start.cmd'], sinon.match.any);
             spawnStub.should.have.been.calledWith('cmd', ['/c', 'stop.cmd'], sinon.match.any);
+            stopLogsStub.should.have.been.called;
         });
 
         it('should execute the start.sh and stop.sh scripts using a custom output adapter (Windows)', async () => {
@@ -547,7 +695,8 @@ describe('FabricRuntime', () => {
             outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
             outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
-        }).timeout(4000);
+            stopLogsStub.should.have.been.called;
+        });
 
         it('should publish busy events and set state before and after handling success (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
@@ -560,15 +709,21 @@ describe('FabricRuntime', () => {
                 return mockSuccessCommand();
             });
             runtime.on('busy', eventStub);
+            sandbox.stub(runtime, 'isRunning').resolves(true);
+            const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart();
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
 
-            runtime.getState().should.equal(FabricRuntimeState.RESTARTING);
+            setStateSpy.should.have.been.calledTwice;
+            setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
+            setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+            runtime.getState().should.equal(FabricRuntimeState.STARTED);
+            stopLogsStub.should.have.been.called;
         });
 
-        it('should publish busy events and set state before and after handling an error (Windows)', async () => {
+        it('should publish busy events and set state before and after handling an error, on stopping (Windows)', async () => {
             sandbox.stub(process, 'platform').value('win32');
             const eventStub: sinon.SinonStub = sinon.stub();
             const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
@@ -579,12 +734,43 @@ describe('FabricRuntime', () => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
+            sandbox.stub(runtime, 'isRunning').resolves(true);
+            const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, stop.cmd" return code 1`);
             eventStub.should.have.been.calledTwice;
             eventStub.should.have.been.calledWithExactly(true);
             eventStub.should.have.been.calledWithExactly(false);
 
-            runtime.getState().should.equal(FabricRuntimeState.RESTARTING);
+            setStateSpy.should.have.been.calledTwice;
+            setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
+            setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+            runtime.getState().should.equal(FabricRuntimeState.STARTED);
+            stopLogsStub.should.have.been.called;
+        });
+
+        it('should publish busy events and set state before and after handling an error, on starting (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            const eventStub: sinon.SinonStub = sinon.stub();
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('cmd', ['/c', 'start.cmd'], sinon.match.any).callsFake(() => {
+                return mockFailureCommand();
+            });
+            spawnStub.withArgs('cmd', ['/c', 'stop.cmd'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            runtime.on('busy', eventStub);
+            sandbox.stub(runtime, 'isRunning').resolves(false);
+            const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
+            await runtime.restart().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, start.cmd" return code 1`);
+            eventStub.should.have.been.calledTwice;
+            eventStub.should.have.been.calledWithExactly(true);
+            eventStub.should.have.been.calledWithExactly(false);
+
+            setStateSpy.should.have.been.calledTwice;
+            setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.RESTARTING);
+            setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+            runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+            stopLogsStub.should.have.been.called;
         });
     });
 
@@ -682,7 +868,7 @@ describe('FabricRuntime', () => {
 
         it('should get the runtime connection profile path', async () => {
             const connectionPath: string = await runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'runtime1', 'connection.json'));
+            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'local_fabric', 'connection.json'));
         });
 
     });
@@ -789,12 +975,12 @@ describe('FabricRuntime', () => {
     describe('#isDevelopmentMode', () => {
 
         it('should return false if the runtime is in development mode', () => {
-            runtimeRegistryEntry.developmentMode = false;
+            runtime.developmentMode = false;
             runtime.isDevelopmentMode().should.be.false;
         });
 
         it('should return true if the runtime is in development mode', () => {
-            runtimeRegistryEntry.developmentMode = true;
+            runtime.developmentMode = true;
             runtime.isDevelopmentMode().should.be.true;
         });
     });
@@ -802,14 +988,12 @@ describe('FabricRuntime', () => {
     describe('#setDevelopmentMode', () => {
         it('should set the runtime development mode to false', async () => {
             await runtime.setDevelopmentMode(false);
-            const updatedRuntimeRegistryEntry: FabricRuntimeRegistryEntry = await runtimeRegistry.get('runtime1');
-            updatedRuntimeRegistryEntry.developmentMode.should.be.false;
+            runtime.developmentMode.should.be.false;
         });
 
         it('should set the runtime development mode to true', async () => {
             await runtime.setDevelopmentMode(true);
-            const updatedRuntimeRegistryEntry: FabricRuntimeRegistryEntry = await runtimeRegistry.get('runtime1');
-            updatedRuntimeRegistryEntry.developmentMode.should.be.true;
+            runtime.developmentMode.should.be.true;
         });
     });
 
@@ -830,14 +1014,14 @@ describe('FabricRuntime', () => {
     describe('#getPeerContainerName', () => {
         it('should get the chaincode address', () => {
             const result: string = runtime.getPeerContainerName();
-            result.should.equal('fabricvscoderuntime1_peer0.org1.example.com');
+            result.should.equal('fabricvscodelocalfabric_peer0.org1.example.com');
         });
     });
 
     describe('#exportConnectionDetails', () => {
 
         beforeEach(async () => {
-            connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
@@ -851,7 +1035,7 @@ describe('FabricRuntime', () => {
 
         it('should save runtime connection details to a specified place', async () => {
             runtimeDir = 'myPath';
-            connectionProfilePath = path.join(runtimeDir, 'runtime1', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
 
             await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
             ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
@@ -861,12 +1045,12 @@ describe('FabricRuntime', () => {
         });
 
         it('should show an error message if we fail to save connection details to disk', async () => {
-            writeFileStub.onCall(0).rejects({message: 'oops'});
+            writeFileStub.onCall(0).rejects({ message: 'oops' });
 
             await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
             ensureFileStub.should.have.been.calledOnce;
             writeFileStub.should.have.been.calledOnce;
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'runtime1')} with error: oops`);
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
         });
     });
 
@@ -874,7 +1058,7 @@ describe('FabricRuntime', () => {
 
         beforeEach(async () => {
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            runtimeDetailsDir = path.join(runtimeDir, 'runtime1');
+            runtimeDetailsDir = path.join(runtimeDir, 'local_fabric');
 
         });
 
@@ -885,14 +1069,14 @@ describe('FabricRuntime', () => {
         });
 
         it('should show an error message if we fail to delete the connection details', async () => {
-            removeStub.onCall(0).rejects({message: 'oops'});
+            removeStub.onCall(0).rejects({ message: 'oops' });
 
             await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
             errorSpy.should.have.been.calledWith(LogType.ERROR, `Error removing runtime connection details: oops`), `Error removing runtime connection details: oops`;
         });
 
         it('should not show an error message if the runtime connection details folder doesnt exist', async () => {
-            removeStub.onCall(0).rejects({message: 'ENOENT: no such file or directory'});
+            removeStub.onCall(0).rejects({ message: 'ENOENT: no such file or directory' });
 
             await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
             errorSpy.should.not.have.been.called;
@@ -907,6 +1091,25 @@ describe('FabricRuntime', () => {
             await runtime.startLogs(VSCodeBlockchainDockerOutputAdapter.instance());
 
             sendRequest.should.have.been.calledWith('http://localhost:12387/logs', VSCodeBlockchainDockerOutputAdapter.instance());
+        });
+    });
+
+    describe('#stopLogs', () => {
+        it('should stop the logs', () => {
+            const abortRequestStub: sinon.SinonStub = sandbox.stub(CommandUtil, 'abortRequest');
+
+            runtime['logsRequest'] = { abort: sandbox.stub() };
+            runtime.stopLogs();
+
+            abortRequestStub.should.have.been.calledWith(runtime['logsRequest']);
+        });
+
+        it('should not stop the logs if no request', () => {
+            const abortRequestStub: sinon.SinonStub = sandbox.stub(CommandUtil, 'abortRequest');
+
+            runtime.stopLogs();
+
+            abortRequestStub.should.not.have.been.called;
         });
     });
 });

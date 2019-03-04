@@ -14,6 +14,7 @@
 'use strict';
 
 import * as Client from 'fabric-client';
+import * as ClientCA from 'fabric-ca-client';
 import { Gateway, Network, Contract, GatewayOptions, FileSystemWallet, IdentityInfo } from 'fabric-network';
 import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -75,8 +76,15 @@ export abstract class FabricConnection implements IFabricConnection {
         console.log('getOrganizations', channelName);
         const network: Network = await this.gateway.getNetwork(channelName);
         const channel: Client.Channel = network.getChannel();
-        const orgs: any[] = await channel.getOrganizations();
+        const orgs: any[] = channel.getOrganizations();
         return orgs;
+    }
+
+    public getCertificateAuthorityName(): string {
+        const client: Client = this.gateway.getClient();
+        const certificateAuthority: any = client.getCertificateAuthority();
+        const certificateAuthorityName: string = certificateAuthority.getCaName();
+        return certificateAuthorityName;
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
@@ -233,7 +241,7 @@ export abstract class FabricConnection implements IFabricConnection {
         const metadataString: string = metadataBuffer.toString();
         let metadataObject: any = {
             contracts: {
-                '' : {
+                '': {
                     name: '',
                     transactions: [],
                 }
@@ -248,11 +256,25 @@ export abstract class FabricConnection implements IFabricConnection {
         return metadataObject;
     }
 
-    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string): Promise<void> {
+    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined> {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(chaincodeName, namespace);
 
-        await smartContract.submitTransaction(transactionName, ...args);
+        let response: Buffer;
+        if (evaluate) {
+            response = await smartContract.evaluateTransaction(transactionName, ...args);
+        } else {
+            response = await smartContract.submitTransaction(transactionName, ...args);
+        }
+
+        if (response.buffer.byteLength === 0) {
+            // If the transaction returns no data
+            return undefined;
+        } else {
+            // Turn the response into a string
+            const result: any = response.toString('utf8');
+            return result;
+        }
 
     }
 
@@ -329,6 +351,32 @@ export abstract class FabricConnection implements IFabricConnection {
         return result;
     }
 
+    public async enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+        const enrollment: ClientCA.IEnrollResponse = await this.gateway.getClient().getCertificateAuthority().enroll({ enrollmentID, enrollmentSecret });
+        return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
+    }
+
+    public async getOrderers(): Promise<Set<string>> {
+
+        const ordererSet: Set<string> = new Set();
+        const allPeerNames: Array<string> = this.getAllPeerNames();
+
+        for (const peer of allPeerNames) {
+            const channels: string[] = await this.getAllChannelsForPeer(peer);
+            for (const _channelName of channels) {
+
+                const channel: Client.Channel = await this.getChannel(_channelName);
+                const orderers: Client.Orderer[] = channel.getOrderers();
+
+                for (const orderer of orderers) {
+                    ordererSet.add(orderer.getName());
+                }
+            }
+        }
+
+        return ordererSet;
+    }
+
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
@@ -348,7 +396,7 @@ export abstract class FabricConnection implements IFabricConnection {
         await this.gateway.connect(connectionProfile, options);
 
         const identities: IdentityInfo[] = await wallet.list();
-        const identity: IdentityInfo = identities.find( (identityToSearch: IdentityInfo) => {
+        const identity: IdentityInfo = identities.find((identityToSearch: IdentityInfo) => {
             return identityToSearch.label === identityName;
         });
 

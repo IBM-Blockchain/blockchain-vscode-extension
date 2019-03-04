@@ -29,7 +29,7 @@ import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { GatewayPropertyTreeItem } from '../explorer/model/GatewayPropertyTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
-export async function editGatewayCommand(treeItem: GatewayPropertyTreeItem | GatewayTreeItem): Promise < {} | void > {
+export async function editGatewayCommand(treeItem: GatewayPropertyTreeItem | GatewayTreeItem): Promise<{} | void> {
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `editGateway ${treeItem}`);
@@ -102,27 +102,20 @@ export async function editGatewayCommand(treeItem: GatewayPropertyTreeItem | Gat
 
 async function addIdentitytoNewWallet(gateway: FabricGatewayRegistryEntry, identityName: string, certPath: string, keyPath: string): Promise<string> {
 
-    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(gateway.connectionProfilePath);
     const certificate: string = await fs.readFile(certPath, 'utf8');
     const privateKey: string = await fs.readFile(keyPath, 'utf8');
 
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
     const wallet: IFabricWallet = await FabricWalletGenerator.createLocalWallet(gateway.name);
     try {
-        await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName);
-    } catch (error) {
-        if (error.message.includes(`Client.createUser parameter 'opts mspid' is required`)) {
-            // Error thrown when the client section is missing from the connection profile, so ask the user for it
-            const mspid: string = await UserInputUtil.showInputBox('Client section of the connection profile does not specify mspid. Please enter mspid:');
-            if (!mspid) {
-                // User cancelled entering mspid
-                return;
-            }
-            await wallet.importIdentity(connectionProfile, certificate, privateKey, identityName, mspid);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-        } else {
-            throw error;
+        const mspid: string = await UserInputUtil.showInputBox('Please enter a mspid:');
+        if (!mspid) {
+            // User cancelled entering mspid
+            return;
         }
+        await wallet.importIdentity(certificate, privateKey, identityName, mspid);
+    } catch (error) {
+        throw error;
     }
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     return wallet.getWalletPath();
@@ -133,7 +126,7 @@ async function getIdentity(connectionName: string): Promise<any> {
         identityName: '',
         certificatePath: '',
         privateKeyPath: '',
-   };
+    };
 
     result.identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
     if (!result.identityName) {
@@ -210,11 +203,13 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, fabric
     if (!result) {
         return;
     }
-    gateway.connectionProfilePath = result;
+
+    // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+    gateway.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gateway.name, result);
     await fabricGatewayRegistry.update(gateway);
     outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
-    if (!FabricGatewayHelper.walletPathComplete(gateway) ) {
+    if (!FabricGatewayHelper.walletPathComplete(gateway)) {
         // Ask method to import identity
         const answer: string = await UserInputUtil.showAddIdentityOptionsQuickPick('Chose a method for importing identity to connect with:');
         if (!answer) {
@@ -280,7 +275,7 @@ async function editWallet(gateway: FabricGatewayRegistryEntry, fabricGatewayRegi
         if (!ccpResult) {
             return;
         }
-        gateway.connectionProfilePath = ccpResult;
+        gateway.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gateway.name, ccpResult);
         await fabricGatewayRegistry.update(gateway);
         outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }
@@ -313,7 +308,7 @@ async function editIdentity(gateway: FabricGatewayRegistryEntry, fabricGatewayRe
             // Connection Profile is needed to import identity so throw error if not given
             throw new Error('Connection Profile required to import identity to file system wallet');
         }
-        gateway.connectionProfilePath = result;
+        gateway.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gateway.name, result);
         await fabricGatewayRegistry.update(gateway);
         outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }

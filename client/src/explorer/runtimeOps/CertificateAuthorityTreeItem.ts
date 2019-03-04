@@ -12,15 +12,15 @@
  * limitations under the License.
 */
 'use strict';
+import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
-import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 
-export class ConnectionTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-connection-item';
+export class CertificateAuthorityTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-certificate-authority-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
-        super(provider, label, collapsableState);
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string) {
+        super(provider, name, vscode.TreeItemCollapsibleState.None);
+
     }
 }

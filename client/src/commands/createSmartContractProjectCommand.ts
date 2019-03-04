@@ -50,15 +50,6 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         return;
     }
 
-    // if yo/generator fabric are missing, ask if we can install them
-    if (dependencies.missingDependencies()) {
-        const installPermission: string = await UserInputUtil.showQuickPickYesNo('Can this extension install missing npm packages before proceeding?');
-        if (installPermission !== UserInputUtil.YES) {
-            outputAdapter.log(LogType.ERROR, 'npm modules: yo and generator-fabric are required before creating a smart contract project');
-            return;
-        }
-    }
-
     // Install missing node modules
     if (dependencies.missingDependencies()) {
         const successful: boolean = await installGeneratorDependenciesWithProgress(dependencies);

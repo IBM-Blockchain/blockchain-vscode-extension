@@ -38,9 +38,10 @@ import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/Instan
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { stringify } from 'querystring';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
+import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
+import { OrdererTreeItem } from '../../src/explorer/runtimeOps/OrdererTreeItem';
 
 chai.use(sinonChai);
 chai.should();
@@ -84,8 +85,8 @@ describe('BlockchainRuntimeExplorer', () => {
                 getConnectionStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getConnection');
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-                runtime = await FabricRuntimeManager.instance().get('local_fabric');
-                isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+                runtime = await FabricRuntimeManager.instance().getRuntime();
+                isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
                 await ExtensionUtil.activateExtension();
             });
 
@@ -118,15 +119,13 @@ describe('BlockchainRuntimeExplorer', () => {
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error');
             });
 
-            it('should handle errors thrown when connection fails', async () => {
-                getConnectionStub.onCall(0).rejects({ message: 'some error' });
-                isRunningStub.resolves(true);
+            it('should handle errors populating the tree ', async () => {
+                isRunningStub.rejects({ message: 'some error' });
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
-
                 await blockchainRuntimeExplorerProvider.getChildren();
 
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error', 'Error populating Local Fabric Control Panel: some error');
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Local Fabric Control Panel: some error');
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {
@@ -197,7 +196,7 @@ describe('BlockchainRuntimeExplorer', () => {
             beforeEach(async () => {
                 mySandBox = sinon.createSandbox();
 
-                mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isDevelopmentMode').returns(false);
+                mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isDevelopmentMode').returns(false);
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();
@@ -246,10 +245,12 @@ describe('BlockchainRuntimeExplorer', () => {
                     }
                 ]);
 
+                fabricConnection.getOrderers.resolves(new Set(['orderer1']));
+
                 blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
-                mySandBox.stub(fabricRuntimeManager.get('local_fabric'), 'isRunning').resolves(true);
+                mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
                 const getTransactionNamesStub: sinon.SinonStub = mySandBox.stub(MetadataUtil, 'getTransactionNames');
@@ -306,20 +307,32 @@ describe('BlockchainRuntimeExplorer', () => {
             });
 
             it('should show peers (nodes) correctly', async () => {
+                fabricConnection.getCertificateAuthorityName.returns('ca-name');
+
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);
 
-                const peers: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
-                peers.length.should.equal(2);
-                const peerOne: PeerTreeItem = peers[0] as PeerTreeItem;
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
+                items.length.should.equal(4);
+                const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
                 peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerOne.contextValue.should.equal('blockchain-peer-item');
                 peerOne.label.should.equal('peerOne');
 
-                const peerTwo: PeerTreeItem = peers[1] as PeerTreeItem;
+                const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
                 peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
+
+                const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
+                ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
+                ca.label.should.equal('ca-name');
+
+                const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
+                orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer.label.should.equal('orderer1');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
@@ -558,7 +571,7 @@ describe('BlockchainRuntimeExplorer', () => {
         });
 
         it('should get a tree item', async () => {
-            mySandBox.stub(FabricRuntimeManager.instance().get('local_fabric'), 'isRunning').resolves(false);
+            mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
             const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();
 

@@ -12,19 +12,12 @@
  * limitations under the License.
 */
 
-import { FabricRuntimeRegistryEntry } from './FabricRuntimeRegistryEntry';
-import { FabricRegistry } from './FabricRegistry';
-
-export class FabricRuntimeRegistry extends FabricRegistry<FabricRuntimeRegistryEntry> {
-
-    public static instance(): FabricRuntimeRegistry {
-        return FabricRuntimeRegistry._instance;
-    }
-
-    private static _instance: FabricRuntimeRegistry = new FabricRuntimeRegistry();
-
-    private constructor() {
-        super('fabric.runtimes');
-    }
-
+export class FabricRuntimePorts {
+    public orderer: number;
+    public peerRequest: number;
+    public peerChaincode: number;
+    public peerEventHub: number;
+    public certificateAuthority: number;
+    public couchDB: number;
+    public logs: number;
 }

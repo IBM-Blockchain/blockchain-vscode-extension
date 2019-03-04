@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricRuntimeRegistry } from '../../src/fabric/FabricRuntimeRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
@@ -36,7 +35,6 @@ describe('teardownFabricRuntime', () => {
 
     let sandbox: sinon.SinonSandbox;
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeRegistry: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
@@ -56,10 +54,8 @@ describe('teardownFabricRuntime', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
-        await runtimeManager.add('local_fabric');
-        runtime = runtimeManager.get('local_fabric');
+        await runtimeManager.add();
+        runtime = runtimeManager.getRuntime();
         const provider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
@@ -68,8 +64,6 @@ describe('teardownFabricRuntime', () => {
     afterEach(async () => {
         sandbox.restore();
         await connectionRegistry.clear();
-        await runtimeRegistry.clear();
-        await runtimeManager.clear();
     });
 
     it('should teardown a Fabric runtime', async () => {

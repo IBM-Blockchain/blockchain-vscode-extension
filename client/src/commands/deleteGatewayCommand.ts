@@ -24,7 +24,7 @@ import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, `deleteGateway ${gatewayTreeItem}`);
+    outputAdapter.log(LogType.INFO, undefined, `deleteGateway`);
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     if (!gatewayTreeItem) {
         const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to delete', false);
@@ -42,15 +42,10 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{
         return;
     }
 
-    // If extension owns the wallet, delete the containing folder, which deletes the wallet and identities
-    if (gatewayRegistryEntry.walletPath.includes('fabric-vscode')) {
-
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const gatewayPath: string = path.join(homeExtDir, gatewayRegistryEntry.name);
-        await fs.remove(gatewayPath);
-
-    }
+    const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+    const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+    const gatewayPath: string = path.join(homeExtDir, gatewayRegistryEntry.name);
+    await fs.remove(gatewayPath);
 
     await FabricGatewayRegistry.instance().delete(gatewayRegistryEntry.name);
     outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${gatewayRegistryEntry.name} gateway`);

@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import {UserInputUtil} from './UserInputUtil';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -21,7 +22,6 @@ import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import * as fs from 'fs-extra';
-import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
@@ -64,7 +64,8 @@ export async function addGateway(): Promise<{} | void> {
             return Promise.resolve();
         }
 
-        fabricGatewayEntry.connectionProfilePath = connectionProfilePath;
+        // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(connectionName, connectionProfilePath);
         await fabricGatewayRegistry.update(fabricGatewayEntry);
 
         // Ask the user whether they want to provide a wallet or certficate and privateKey file paths
@@ -103,7 +104,7 @@ async function getIdentity(connectionName: string): Promise<any> {
         identityName: '',
         certificatePath: '',
         privateKeyPath: '',
-   };
+    };
 
     // Ask for an identity name
     result.identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
@@ -146,25 +147,19 @@ async function createWalletAndImport(fabricGatewayEntry: FabricGatewayRegistryEn
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
     wallet = await FabricWalletGenerator.createLocalWallet(fabricGatewayEntry.name);
 
-    const connectionProfile: object = await ExtensionUtil.readConnectionProfile(fabricGatewayEntry.connectionProfilePath);
     const certificate: string = await fs.readFile(identityObject.certificatePath, 'utf8');
     const privateKey: string = await fs.readFile(identityObject.privateKeyPath, 'utf8');
     try {
-        await wallet.importIdentity(connectionProfile, certificate, privateKey, identityObject.identityName);
-    } catch (error) {
-        if (error.message.includes(`Client.createUser parameter 'opts mspid' is required`)) {
-            // Error thrown when the client section is missing from the connection profile, so ask the user for it
-            const mspid: string = await UserInputUtil.showInputBox('Client section of the connection profile does not specify mspid. Please enter mspid:');
-            if (!mspid) {
-                // User cancelled entering mspid
-                return Promise.resolve();
-            }
-            await wallet.importIdentity(connectionProfile, certificate, privateKey, identityObject.identityName, mspid);
-        } else {
-            throw error;
+
+        const mspid: string = await UserInputUtil.showInputBox('Enter a mspid');
+        if (!mspid) {
+            // User cancelled entering mspid
+            return;
         }
+        await wallet.importIdentity(certificate, privateKey, identityObject.identityName, mspid);
+    } catch (error) {
+        throw error;
     }
 
     fabricGatewayEntry.walletPath = wallet.getWalletPath();
-
 }

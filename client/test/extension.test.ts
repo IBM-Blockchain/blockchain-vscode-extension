@@ -56,19 +56,14 @@ describe('Extension Tests', () => {
         const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
         mySandBox = sinon.createSandbox();
-        if (runtimeManager.exists('local_fabric')) {
-            await runtimeManager.delete('local_fabric');
-        }
         await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
     });
 
     afterEach(async () => {
         const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
         mySandBox.restore();
-        if (runtimeManager.exists('local_fabric')) {
-            await runtimeManager.delete('local_fabric');
-        }
     });
 
     it('should check all the commands are registered', async () => {
@@ -106,6 +101,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.EDIT_GATEWAY,
             ExtensionCommands.TEST_SMART_CONTRACT,
             ExtensionCommands.SUBMIT_TRANSACTION,
+            ExtensionCommands.EVALUATE_TRANSACTION,
             ExtensionCommands.UPGRADE_SMART_CONTRACT,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
@@ -141,6 +137,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.EDIT_GATEWAY}`,
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
+            `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
@@ -172,18 +169,18 @@ describe('Extension Tests', () => {
 
     it('should refresh the tree when a runtime is added', async () => {
 
-        await vscode.workspace.getConfiguration().update('fabric.runtimes', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
 
         const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
 
         const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
         const myRuntime: any = {
-            name: 'myRuntime',
+            name: 'local_fabric',
             developmentMode: false
         };
 
-        await vscode.workspace.getConfiguration().update('fabric.runtimes', [myRuntime], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update('fabric.runtime', myRuntime, vscode.ConfigurationTarget.Global);
 
         treeSpy.should.have.been.called;
     });
@@ -250,23 +247,18 @@ describe('Extension Tests', () => {
         await vscode.commands.executeCommand('blockchain.refreshEntry').should.be.rejectedWith(`command 'blockchain.refreshEntry' not found`);
     });
 
-    it('should migrate any Fabric runtime configuration', async () => {
-        const migrateSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'migrate');
-        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await myExtension.activate(context);
-        migrateSpy.should.have.been.calledOnce;
-    });
-
     it('should create a new local_fabric if one does not exist', async () => {
+        // Runtime is created upon extension activation, so need to stub the exists function
+        mySandBox.stub(runtimeManager, 'exists').returns(false);
         const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
-        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        addSpy.should.have.been.calledOnceWithExactly('local_fabric');
+        addSpy.should.have.been.calledOnce;
     });
 
     it('should not create a new local_fabric if one already exists', async () => {
-        await runtimeManager.add('local_fabric');
+        // Runtime is created upon extension activation, so no need to add it again
         const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
@@ -374,7 +366,7 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledOnce;
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
     });
 
@@ -386,7 +378,7 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.have.been.calledOnceWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommand.should.not.have.been.called;
     });
 
 });

@@ -23,8 +23,6 @@ import { GatewayTreeItem } from './model/GatewayTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeRegistryEntry } from '../fabric/FabricRuntimeRegistryEntry';
-import { FabricRuntimeRegistry } from '../fabric/FabricRuntimeRegistry';
 import { TransactionTreeItem } from './model/TransactionTreeItem';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { ConnectedTreeItem } from './model/ConnectedTreeItem';
@@ -32,7 +30,6 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
@@ -41,7 +38,6 @@ import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { GatewayPropertyTreeItem } from './model/GatewayPropertyTreeItem';
 import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { ConnectionTreeItem } from './model/ConnectionTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
@@ -58,8 +54,6 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
     private fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-
-    private runtimeRegistryManager: FabricRuntimeRegistry = FabricRuntimeRegistry.instance();
 
     constructor() {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -172,7 +166,7 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         return this.tree;
     }
 
-    public async createGatewayUncompleteTree(element: GatewayTreeItem|LocalGatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
+    public async createGatewayUncompleteTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
         console.log('createGatewayUncompleteTree', element);
 
         let profileLabel: string = 'Connection Profile';
@@ -226,56 +220,41 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
 
         const allGateways: FabricGatewayRegistryEntry[] = this.fabricGatewayRegistry.getAll();
 
-        const allRuntimes: FabricRuntimeRegistryEntry[] = this.runtimeRegistryManager.getAll();
+        try {
+            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
-        for (const runtimeEntry of allRuntimes) {
-            try {
-                const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-                gateway.name = runtimeEntry.name;
-                gateway.managedRuntime = true;
+            const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gateway.name = runtime.getName();
+            gateway.managedRuntime = true;
 
-                const runtime: FabricRuntime = FabricRuntimeManager.instance().get(runtimeEntry.name);
+            const fabricWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(gateway.name);
+            const walletPath: string = fabricWallet.getWalletPath();
+            gateway.walletPath = walletPath;
 
-                const fabricWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
-                const walletPath: string = fabricWallet.getWalletPath();
-                gateway.walletPath = walletPath;
+            const identityNames: Array<string> = await fabricWallet.getIdentityNames();
 
-                const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
-                    this,
-                    gateway.name,
-                    gateway,
-                    vscode.TreeItemCollapsibleState.Expanded,
-                    undefined
-                );
+            const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
-                tree.push(treeItem);
+            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
+                this,
+                gateway.name,
+                gateway,
+                treeState,
+                undefined
+            );
 
-            } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Error populating Blockchain Explorer View: ${error.message}`, `Error populating Blockchain Explorer View: ${error.toString()}`);
-            }
+            tree.push(treeItem);
+
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error populating Blockchain Explorer View: ${error.message}`, `Error populating Blockchain Explorer View: ${error.toString()}`);
         }
 
         for (const gateway of allGateways) {
-            // Cleanup any managed runtimes which shouldn't be in the fabric.gateways
-            if (gateway.managedRuntime) {
-                await this.fabricGatewayRegistry.delete(gateway.name); // Delete managed runtime
-                continue; // Iterate to next connection
-            }
-
-            const command: vscode.Command = undefined;
-
-            if (!FabricGatewayHelper.isCompleted(gateway)) {
-                tree.push(new GatewayTreeItem(this,
-                    gateway.name,
-                    gateway,
-                    vscode.TreeItemCollapsibleState.Expanded));
-            } else {
-                tree.push(new GatewayTreeItem(this,
-                    gateway.name,
-                    gateway,
-                    vscode.TreeItemCollapsibleState.Expanded,
-                    command));
-            }
+            tree.push(new GatewayTreeItem(this,
+                gateway.name,
+                gateway,
+                vscode.TreeItemCollapsibleState.Expanded)
+            );
         }
 
         tree.sort((connectionA: GatewayTreeItem, connectionB: GatewayTreeItem) => {
@@ -392,14 +371,14 @@ export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProv
         });
     }
 
-    private async createGatewayIdentityTree(element: GatewayTreeItem|LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
+    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
         console.log('createConnectionIdentityTree', element);
 
         const tree: Array<GatewayIdentityTreeItem> = [];
 
         // get identityNames in the wallet
-        const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const identityNames: string[] = await FabricWalletGenerator.getIdentityNames(element.gateway.name, element.gateway.walletPath);
+        const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.name, element.gateway.walletPath);
+        const identityNames: string[] = await wallet.getIdentityNames();
 
         for (const identityName of identityNames) {
             const command: vscode.Command = {

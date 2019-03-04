@@ -11,18 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
+import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import * as vscode from 'vscode';
+import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
-import { FabricRuntimeRegistryPorts } from './FabricRuntimeRegistryPorts';
+export class OrdererTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-orderer-item';
 
-export class FabricRuntimeRegistryEntry extends FabricRegistryEntry {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string) {
+        super(provider, name, vscode.TreeItemCollapsibleState.None);
 
-    public developmentMode: boolean;
-    public ports?: FabricRuntimeRegistryPorts;
-
-    constructor(fields?: FabricRuntimeRegistryEntry) {
-        super();
-        Object.assign(this, fields);
     }
-
 }
