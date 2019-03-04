@@ -64,6 +64,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Export Connection Details | Export connection details for the a Hyperledger Fabric instance |
 | Export Package | Export an already-packaged smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
+| Import Package | Import a smart contract package |
 | Install Smart Contract | Install a smart contract package onto a peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!* |
 | Open Fabric Runtime Terminal | Open a terminal with access to the Fabric runtime (peer CLI) |
