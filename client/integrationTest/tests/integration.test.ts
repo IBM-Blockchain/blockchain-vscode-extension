@@ -401,7 +401,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 let installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
 
                 let installedSmartContract: BlockchainTreeItem = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
-                    return _installedSmartContract.label === `${smartContractName} v0.0.1`;
+                    return _installedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 installedSmartContract.should.not.be.null;
@@ -431,7 +431,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 installedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
 
                 installedSmartContract = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
-                    return _installedSmartContract.label === `${smartContractName} v0.0.2`;
+                    return _installedSmartContract.label === `${smartContractName}@0.0.2`;
                 });
 
                 installedSmartContract.should.not.be.null;

@@ -182,7 +182,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 let installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
 
                 let installedSmartContract: BlockchainTreeItem = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
-                    return _installedSmartContract.label === `${smartContractName} v0.0.1`;
+                    return _installedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 installedSmartContract.should.not.be.null;
@@ -222,7 +222,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 installedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
 
                 installedSmartContract = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
-                    return _installedSmartContract.label === `${smartContractName} v0.0.2`;
+                    return _installedSmartContract.label === `${smartContractName}@0.0.2`;
                 });
 
                 installedSmartContract.should.not.be.null;
@@ -297,7 +297,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 const installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]);
 
                 const installedSmartContract: BlockchainTreeItem = installedChaincodesItems.find((_installedSmartContract: BlockchainTreeItem) => {
-                    return _installedSmartContract.label === `fabcar-contract-${languageLowerCase} v1.0.0`;
+                    return _installedSmartContract.label === `fabcar-contract-${languageLowerCase}@1.0.0`;
                 });
 
                 installedSmartContract.should.not.be.null;
