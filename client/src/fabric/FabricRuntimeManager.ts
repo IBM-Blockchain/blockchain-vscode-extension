@@ -134,8 +134,9 @@ export class FabricRuntimeManager {
                     runtimeToCopy.ports = oldRuntime.ports;
                     runtimeToCopy.developmentMode = oldRuntime.developmentMode;
 
-                    // Generate a log port
-                    runtimeToCopy.ports.logs = await this.generateLogPort();
+                    // Generate a logs port
+                    const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
+                    runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
 
                     // Update the new user settings
                     await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeToCopy, vscode.ConfigurationTarget.Global);
@@ -145,12 +146,24 @@ export class FabricRuntimeManager {
 
     }
 
-    private async generateLogPort(): Promise<number> {
+    private async generateLogsPort(highestPort: number): Promise<number> {
 
-        const freep: number[] = await FabricRuntimeManager.findFreePort(17050, null, null, 1);
+        const freep: number[] = await FabricRuntimeManager.findFreePort(highestPort + 1, null, null, 1);
 
         return freep[0];
 
+    }
+
+    private getHighestPort(ports: FabricRuntimePorts): number {
+        let port: number = 17050;
+        const portNames: string[] = Object.keys(ports);
+        for (const portName of portNames) {
+            const thisPort: number = ports[portName];
+            if (thisPort > port) {
+                port = thisPort;
+            }
+        }
+        return port;
     }
 
     private async generatePortConfiguration(): Promise<FabricRuntimePorts> {
