@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import * as nls from 'vscode-nls';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
@@ -25,6 +26,8 @@ import * as util from 'util';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LogType } from '../logging/OutputAdapter';
 import * as semver from 'semver';
+
+const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
 class GeneratorDependencies {
     needYo: boolean = false;
@@ -77,7 +80,8 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         return;
     }
 
-    smartContractLanguage = await UserInputUtil.showLanguagesQuickPick('Choose smart contract language (Esc to cancel)', smartContractLanguageOptions);
+    const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
+    smartContractLanguage = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, smartContractLanguageOptions);
     if (!smartContractLanguage) {
         // User has cancelled the QuickPick box
         return;

@@ -29,3 +29,4 @@ tslint.json
 coverconfig.json
 .istanbul.yml
 media/**
+i18n/**
