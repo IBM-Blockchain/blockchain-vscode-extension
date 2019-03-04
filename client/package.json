@@ -57,6 +57,7 @@
             "blockchainAPackageExplorer.packageSmartContractProjectEntry",
             "blockchainAPackageExplorer.deleteSmartContractPackageEntry",
             "blockchainAPackageExplorer.exportSmartContractPackageEntry",
+            "blockchainAPackageExplorer.importSmartContractPackageEntry",
             "blockchainARuntimeExplorer.refreshEntry",
             "blockchainExplorer.startFabricRuntime",
             "blockchainExplorer.stopFabricRuntime",
@@ -271,6 +272,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "blockchainAPackageExplorer.importSmartContractPackageEntry",
+                "title": "Import Package",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "blockchainConnectionsExplorer.editGatewayEntry",
                 "title": "Edit Gateway",
                 "category": "IBM Blockchain Platform"
@@ -367,6 +373,11 @@
                 },
                 {
                     "command": "blockchain.createSmartContractProjectEntry",
+                    "when": "view == blockchainAPackageExplorer",
+                    "group": "blockchain"
+                },
+                {
+                    "command": "blockchainAPackageExplorer.importSmartContractPackageEntry",
                     "when": "view == blockchainAPackageExplorer",
                     "group": "blockchain"
                 },
