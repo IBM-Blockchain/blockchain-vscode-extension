@@ -19,6 +19,7 @@ export class ExtensionCommands {
     static readonly EXPORT_SMART_CONTRACT: string = 'blockchainAPackageExplorer.exportSmartContractPackageEntry';
     static readonly REFRESH_PACKAGES: string = 'blockchainAPackageExplorer.refreshEntry';
     static readonly PACKAGE_SMART_CONTRACT: string = 'blockchainAPackageExplorer.packageSmartContractProjectEntry';
+    static readonly IMPORT_SMART_CONTRACT: string = 'blockchainAPackageExplorer.importSmartContractPackageEntry';
 
     // LOCAL OPS VIEW
     static readonly INSTALL_SMART_CONTRACT: string = 'blockchainExplorer.installSmartContractEntry';
