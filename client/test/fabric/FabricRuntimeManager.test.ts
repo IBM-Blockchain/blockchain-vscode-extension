@@ -20,13 +20,11 @@ import { TestUtil } from '../TestUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { IFabricConnection } from '../../src/fabric/IFabricConnection';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
-import { FabricRuntimePorts } from '../../src/fabric/FabricRuntimePorts';
 
 const should: Chai.Should = chai.should();
 
@@ -38,6 +36,10 @@ describe('FabricRuntimeManager', () => {
     let connection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
 
     let sandbox: sinon.SinonSandbox;
+    let findFreePortStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
+    let workspaceConfigurationUpdateStub: sinon.SinonStub;
+    let workspaceConfigurationGetStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeGatewaysConfig();
@@ -54,7 +56,6 @@ describe('FabricRuntimeManager', () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         connection = sinon.createStubInstance(FabricRuntimeConnection);
-        await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
 
     });
 
@@ -284,69 +285,166 @@ describe('FabricRuntimeManager', () => {
 
     describe('#add', () => {
 
-        it('should add a runtime to the runtime manager', async () => {
+        beforeEach(async () => {
+            workspaceConfigurationUpdateStub = sandbox.stub();
+            workspaceConfigurationGetStub = sandbox.stub();
+
+            getConfigurationStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+            findFreePortStub = sandbox.stub(FabricRuntimeManager, 'findFreePort');
+
+        });
+
+        it('should add a runtime to the runtime manager if one does not exist', async () => {
+            workspaceConfigurationGetStub.withArgs('fabric.runtimes').onCall(0).returns([]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({});
+
             // Runtime is created upon extension activation
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').resolves([17057, 17058, 17059, 17060, 17061, 17062, 17063]);
+            findFreePortStub.resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
             await runtimeManager.add();
             runtimeManager.exists().should.be.true;
             const runtime: FabricRuntime = runtimeManager.getRuntime();
             runtime.getName().should.equal('local_fabric');
             runtime.isDevelopmentMode().should.be.false;
             runtime.ports.should.deep.equal({
-                certificateAuthority: 17061,
-                couchDB: 17062,
-                orderer: 17057,
-                peerChaincode: 17059,
-                peerEventHub: 17060,
-                peerRequest: 17058,
-                logs: 17063
+                certificateAuthority: 17054,
+                couchDB: 17055,
+                orderer: 17050,
+                peerChaincode: 17052,
+                peerEventHub: 17053,
+                peerRequest: 17051,
+                logs: 17056
             });
         });
 
-    });
-
-    describe('#migrate', () => {
-
-        it('should do nothing if an existing runtime has a port configuration', async () => {
-            const existingRuntime: FabricRuntime = runtimeManager.getRuntime();
-            await runtimeManager.migrate();
+        it('should migrate the existing runtime to the new user setting value and add a logs port', async () => {
+            findFreePortStub.resolves([111]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtimes').returns([
+                {
+                    name: 'local_fabric',
+                    ports: {
+                        orderer: 777,
+                        peerRequest: 666,
+                        peerChaincode: 555,
+                        peerEventHub: 444,
+                        certificateAuthority: 333,
+                        couchDB: 222,
+                    },
+                    developmentMode: false
+                },
+                {
+                    somethingelse: 'somethingThatShouldntExist',
+                }
+            ]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({
+                ports: {
+                    orderer: 777,
+                    peerRequest: 666,
+                    peerChaincode: 555,
+                    peerEventHub: 444,
+                    certificateAuthority: 333,
+                    couchDB: 222,
+                    logs: 111
+                },
+                developmentMode: false
+            });
+            await runtimeManager.add();
+            runtimeManager.exists().should.be.true;
             const runtime: FabricRuntime = runtimeManager.getRuntime();
-            existingRuntime.ports.should.deep.equal(runtime.ports);
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').should.not.have.been.called;
-        });
-
-        it('should add a port configuration to an existing runtime without one', async () => {
-            runtimeManager['runtime'].ports = new FabricRuntimePorts();
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').withArgs(17050, null, null, 7).resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
-
-            await runtimeManager.migrate();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
+            runtime.getName().should.equal('local_fabric');
+            runtime.isDevelopmentMode().should.be.false;
             runtime.ports.should.deep.equal({
-                    certificateAuthority: 17054,
-                    couchDB: 17055,
-                    orderer: 17050,
-                    peerChaincode: 17052,
-                    peerEventHub: 17053,
-                    peerRequest: 17051,
-                    logs: 17056
+                orderer: 777,
+                peerRequest: 666,
+                peerChaincode: 555,
+                peerEventHub: 444,
+                certificateAuthority: 333,
+                couchDB: 222,
+                logs: 111
             });
+            findFreePortStub.should.have.been.calledOnce;
         });
 
-        it('should update if doesn\'t have logs section', async () => {
-            runtimeManager['runtime'].ports.logs = undefined;
-            sandbox.stub(FabricRuntimeManager, 'findFreePort').resolves([17056, 17057, 17058, 17059, 17060, 17061, 17062]);
-
-            await runtimeManager.migrate();
+        it('should use the runtime defined in fabric.runtime', async () => {
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').returns({
+                ports: {
+                    orderer: 111,
+                    peerRequest: 222,
+                    peerChaincode: 333,
+                    peerEventHub: 444,
+                    certificateAuthority: 555,
+                    couchDB: 666,
+                    logs: 777
+                },
+                developmentMode: true
+            });
+            await runtimeManager.add();
+            runtimeManager.exists().should.be.true;
             const runtime: FabricRuntime = runtimeManager.getRuntime();
+            runtime.getName().should.equal('local_fabric');
+            runtime.isDevelopmentMode().should.be.true;
             runtime.ports.should.deep.equal({
-                certificateAuthority: 17060,
-                couchDB: 17061,
-                orderer: 17056,
-                peerChaincode: 17058,
-                peerEventHub: 17059,
-                peerRequest: 17057,
-                logs: 17062
+                orderer: 111,
+                peerRequest: 222,
+                peerChaincode: 333,
+                peerEventHub: 444,
+                certificateAuthority: 555,
+                couchDB: 666,
+                logs: 777
             });
+            findFreePortStub.should.not.have.been.called;
         });
+
+        it('should generate a logs port that is higher than the others', async () => {
+            findFreePortStub.resolves([17086]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtimes').returns([
+                {
+                    name: 'local_fabric',
+                    ports: {
+                        orderer: 17080,
+                        peerRequest: 17081,
+                        peerChaincode: 17082,
+                        peerEventHub: 17083,
+                        certificateAuthority: 17084,
+                        couchDB: 17085,
+                    },
+                    developmentMode: false
+                }
+            ]);
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
+            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({
+                ports: {
+                    orderer: 17080,
+                    peerRequest: 17081,
+                    peerChaincode: 17082,
+                    peerEventHub: 17083,
+                    certificateAuthority: 17084,
+                    couchDB: 17085,
+                    logs: 17086
+                },
+                developmentMode: false
+            });
+            await runtimeManager.add();
+            runtimeManager.exists().should.be.true;
+            const runtime: FabricRuntime = runtimeManager.getRuntime();
+            runtime.getName().should.equal('local_fabric');
+            runtime.isDevelopmentMode().should.be.false;
+            runtime.ports.should.deep.equal({
+                orderer: 17080,
+                peerRequest: 17081,
+                peerChaincode: 17082,
+                peerEventHub: 17083,
+                certificateAuthority: 17084,
+                couchDB: 17085,
+                logs: 17086
+            });
+            findFreePortStub.should.have.been.calledOnceWithExactly(17086, null, null, 1);
+        });
+
     });
 });
