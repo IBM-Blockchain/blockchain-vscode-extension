@@ -34,6 +34,9 @@
         "max-line-length": false,
         "no-string-literal": false,
         "no-use-before-declare": true,
+        "no-unused-variable": {
+            "severity": "error"
+        },
         "object-literal-sort-keys": false,
         "object-literal-shorthand": false,
         "ordered-imports": false,
