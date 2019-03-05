@@ -375,22 +375,22 @@ describe('BlockchainRuntimeExplorer', () => {
                 const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
                 installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractOne.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractOne.label.should.equal('sample-car-network v1.0');
+                installedContractOne.label.should.equal('sample-car-network@1.0');
                 installedContractOne.tooltip.should.equal('Installed on: peerOne');
                 const installedContractTwo: InstantiateCommandTreeItem = installedContractsTree[1] as InstantiateCommandTreeItem;
                 installedContractTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractTwo.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractTwo.label.should.equal('sample-car-network v1.2');
+                installedContractTwo.label.should.equal('sample-car-network@1.2');
                 installedContractTwo.tooltip.should.equal('Installed on: peerOne');
                 const installedContractThree: InstantiateCommandTreeItem = installedContractsTree[2] as InstantiateCommandTreeItem;
                 installedContractThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractThree.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractThree.label.should.equal('sample-food-network v0.6');
+                installedContractThree.label.should.equal('sample-food-network@0.6');
                 installedContractThree.tooltip.should.equal('Installed on: peerOne');
                 const installedContractFour: InstantiateCommandTreeItem = installedContractsTree[3] as InstantiateCommandTreeItem;
                 installedContractFour.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractFour.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractFour.label.should.equal('biscuit-network v0.7');
+                installedContractFour.label.should.equal('biscuit-network@0.7');
                 const installCommandTreeItem: InstantiateCommandTreeItem = installedContractsTree[4] as InstantiateCommandTreeItem;
                 installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
@@ -417,7 +417,7 @@ describe('BlockchainRuntimeExplorer', () => {
                 const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
                 installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 installedContractOne.contextValue.should.equal('blockchain-runtime-installed-chaincode-item');
-                installedContractOne.label.should.equal('biscuit-network v0.7');
+                installedContractOne.label.should.equal('biscuit-network@0.7');
 
                 const installCommandTreeItem: InstantiateCommandTreeItem = installedContractsTree[1] as InstantiateCommandTreeItem;
                 installCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
