@@ -382,7 +382,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren[1].label.should.equal('Using ID: greenConga');
                 allChildren[2].label.should.equal('Channels');
 
-                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                let channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
@@ -418,18 +418,25 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 newConnectedGateway[1].label.should.equal('Using ID: greenConga');
                 newConnectedGateway[2].label.should.equal('Channels');
 
-                const newChannels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
-                newChannels.length.should.equal(2);
-                newChannels[0].label.should.equal('mychannel');
-                newChannels[1].label.should.equal('myotherchannel');
+                channels = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
+                channels.length.should.equal(2);
+                channels[0].label.should.equal('mychannel');
+                channels[1].label.should.equal('myotherchannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newChannels[0]) as Array<InstantiatedContractTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 instantiatedSmartContract.should.not.be.null;
+
+                // Try to add new identity to gateway using enrollment id and secret
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+                await integrationTestUtil.addIdentityToGateway('admin', 'adminpw'); // Unlimited enrollments
+                const gateways: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+                const gateway: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(gateways[1]) as Array<GatewayTreeItem>;
+                gateway[1].label.should.equal('redConga');
 
                 // Should now be able to delete the gateway
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);

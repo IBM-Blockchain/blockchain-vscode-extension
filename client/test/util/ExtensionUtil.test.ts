@@ -102,10 +102,8 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            const loadJsonStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
-
-            ExtensionUtil.getContractNameAndVersion(workspaceFolder).should.eventually.equal({});
-
+            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
+            should.equal(await ExtensionUtil.getContractNameAndVersion(workspaceFolder), undefined);
         });
     });
 });

@@ -29,6 +29,7 @@ import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -1358,5 +1359,171 @@ describe('userInputUtil', () => {
                 canPickMany: false,
             });
         });
+    });
+
+    describe('addIdentityMethod', () => {
+
+        it('should ask how to add an identity', async () => {
+            quickPickStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            const result: string = await UserInputUtil.addIdentityMethod();
+
+            result.should.equal(UserInputUtil.ADD_CERT_KEY_OPTION);
+            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION], {
+                placeHolder: 'Choose a method for adding an identity',
+                ignoreFocusOut: true,
+                canPickMany: false
+            });
+        });
+    });
+
+    describe('getCertKey', () => {
+
+        it('should cancel adding certificate path', async () => {
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            };
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            browseEditStub.onCall(0).resolves();
+            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey('myGateway');
+
+            should.equal(result, undefined);
+            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+
+        });
+
+        it('should stop if certificate is invalid', async () => {
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            };
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            browseEditStub.onCall(0).resolves('/some/path');
+
+            const error: Error = new Error('Could not validate certificate: invalid PEM');
+            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws(error);
+
+            await UserInputUtil.getCertKey('myGateway').should.be.rejectedWith(error);
+
+            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
+        });
+
+        it('should cancel adding private key path', async () => {
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            };
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            browseEditStub.onCall(0).resolves('/some/path');
+            browseEditStub.onCall(1).resolves();
+            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().returns(undefined);
+
+            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey('myGateway');
+
+            should.equal(result, undefined);
+            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
+        });
+
+        it('should stop if private key is invalid', async () => {
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            };
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            browseEditStub.onCall(0).resolves('/some/cert');
+            browseEditStub.onCall(1).resolves('/some/key');
+
+            const error: Error = new Error('Could not validate private key: invalid PEM');
+            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM');
+            validPem.onFirstCall().returns(undefined);
+            validPem.onSecondCall().throws(error);
+
+            await UserInputUtil.getCertKey('myGateway').should.be.rejectedWith(error);
+
+            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
+            validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
+        });
+
+        it('should return certificate and private key paths', async () => {
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                filters: undefined
+            };
+            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            browseEditStub.onCall(0).resolves('/some/cert');
+            browseEditStub.onCall(1).resolves('/some/key');
+
+            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').returns(undefined);
+
+            const {certificatePath, privateKeyPath } = await UserInputUtil.getCertKey('myGateway');
+            certificatePath.should.equal('/some/cert');
+            privateKeyPath.should.equal('/some/key');
+
+            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
+            validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
+        });
+    });
+
+    describe('getEnrollIdSecret', () => {
+
+        it('should cancel entering enrollment ID', async () => {
+            const showInputBox: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+            showInputBox.onCall(0).resolves();
+
+            const result: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            should.equal(result, undefined);
+            showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
+        });
+
+        it('should cancel entering enrollment secret', async () => {
+            const showInputBox: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+            showInputBox.onCall(0).resolves('some_id');
+            showInputBox.onCall(1).resolves();
+
+            const result: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            should.equal(result, undefined);
+            showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
+            showInputBox.getCall(1).should.have.been.calledWithExactly('Enter enrollment secret');
+        });
+
+        it('should get enrollment id and secret', async () => {
+            const showInputBox: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showInputBox');
+            showInputBox.onCall(0).resolves('some_id');
+            showInputBox.onCall(1).resolves('some_secret');
+
+            const {enrollmentID, enrollmentSecret} = await UserInputUtil.getEnrollIdSecret();
+            enrollmentID.should.equal('some_id');
+            enrollmentSecret.should.equal('some_secret');
+            showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
+            showInputBox.getCall(1).should.have.been.calledWithExactly('Enter enrollment secret');
+        });
+
     });
 });
