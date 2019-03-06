@@ -25,6 +25,10 @@ const fabricNetwork = require('fabric-network');
 const fs = require('fs-extra');
 const yaml = require('js-yaml');
 const URL = require('url');
+<%_ if (connectionProfileHome || walletHome) {-%>
+const os = require('os');
+const path = require('path');
+<%_ }-%>
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -32,14 +36,25 @@ describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
 describe('<%=chaincodeLabel%>' , () => {
 <%_ } _%>
 
+    <%_ if (connectionProfileHome || walletHome) {-%>
+    const homedir = os.homedir();
+    <%_ }-%>
+    <%_ if (walletHome) { _%>
+    const walletPath = <%-walletPath%>;
+    <%_ } else { _%>
+    const walletPath = '<%-walletPath%>';
+    <%_ } _%>    
     const gateway = new fabricNetwork.Gateway();
-    const wallet = new fabricNetwork.FileSystemWallet('<%=walletPath%>');
+    const wallet = new fabricNetwork.FileSystemWallet(walletPath);
     let connectionProfile;
     let identityName;
 
     before(async () => {
-        const connectionProfilePath = '<%=connectionProfilePath%>';
-
+        <%_ if (connectionProfileHome) { _%>
+        const connectionProfilePath = <%-connectionProfilePath%>;
+        <%_ } else { _%>
+        const connectionProfilePath = '<%-connectionProfilePath%>';
+        <%_ } _%>
         const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
         if (connectionProfilePath.endsWith('.json')) {
             connectionProfile = JSON.parse(connectionProfileContents);
@@ -117,8 +132,8 @@ describe('<%=chaincodeLabel%>' , () => {
         return responseBuffer;
     }
 
-     // Checks if URL is localhost
-     function isLocalhostURL(url) {
+    // Checks if URL is localhost
+    function isLocalhostURL(url) {
         const parsedURL = URL.parse(url);
         const localhosts = [
             'localhost',
