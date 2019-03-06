@@ -392,4 +392,10 @@ export class IntegrationTestUtil {
 
         return this.writePackageJson(packageJson);
     }
+
+    public async updateConnectionProfile(): Promise<void> {
+        const fabricGatewayEntry: FabricGatewayRegistryEntry = this.gatewayRegistry.get('myGateway');
+        fabricGatewayEntry.connectionProfilePath = path.join(__dirname, '../../integrationTest/data/connection/connection.yaml');
+        await this.gatewayRegistry.update(fabricGatewayEntry);
+    }
 }

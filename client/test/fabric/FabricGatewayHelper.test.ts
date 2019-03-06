@@ -16,6 +16,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
@@ -117,137 +118,105 @@ describe('FabricGatewayHelper', () => {
         let getDirPathStub: sinon.SinonStub;
         let pathExistsStub: sinon.SinonStub;
         let ensureDirStub: sinon.SinonStub;
-        let readJsonStub: sinon.SinonStub;
         let readFileStub: sinon.SinonStub;
         let writeFileStub: sinon.SinonStub;
         let isAbsoluteStub: sinon.SinonStub;
-        let connectionProfileJsonPem: any;
-        let connectionProfileJsonPath: any;
 
+        let tlsPemLocation: string;
+        let tlsPemJson: string;
+        let tlsPemStringified: any;
+
+        let tlsPathLocation: string;
+        let tlsPathJson: string;
+        let tlsPathStringified: any;
+
+        let yamlPathLocation: string;
+        let yamlPathData: string;
+
+        let rootPath: string;
+        rootPath = path.dirname(__dirname);
+
+        before( async () => {
+            tlsPemLocation = path.join(rootPath, '../../test/data/connectionTlsPem/connection.json');
+            tlsPemJson = await fs.readFile(tlsPemLocation, 'utf8');
+            const parsedTlsPemJson: any = JSON.parse(tlsPemJson);
+            tlsPemStringified = JSON.stringify(parsedTlsPemJson, null, 4);
+
+            tlsPathLocation = path.join(rootPath, '../../test/data/connectionTlsPath/connection.json');
+            tlsPathJson = await fs.readFile(tlsPathLocation, 'utf8');
+            const parsedTlsPathJson: any = JSON.parse(tlsPathJson);
+            tlsPathStringified = JSON.stringify(parsedTlsPathJson, null, 4);
+
+            yamlPathLocation = path.join(rootPath, '../../test/data/connectionYaml/tlsConnectionProfilePath.yml');
+            yamlPathData = await fs.readFile(yamlPathLocation, 'utf8');
+        });
         beforeEach( async () => {
             getDirPathStub = mySandBox.stub(UserInputUtil, 'getDirPath');
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
             ensureDirStub = mySandBox.stub(fs, 'ensureDir');
-            readJsonStub = mySandBox.stub(fs, 'readJson');
             readFileStub = mySandBox.stub(fs, 'readFile');
             writeFileStub = mySandBox.stub(fs, 'writeFile');
             isAbsoluteStub = mySandBox.stub(path, 'isAbsolute');
-            connectionProfileJsonPem = {
-                peers: {
-                    peer0: {
-                        tlsCACerts: {
-                            pem: 'CERT_HERE'
-                        }
-                    }
-                },
-                orderers: {
-                    orderer0: {
-                        tlsCACerts: {
-                            pem: 'CERT_HERE'
-                        }
-                    }
-                },
-                certificateAuthorities: {
-                    ca0: {
-                        tlsCACerts: {
-                            pem: 'CERT_HERE'
-                        }
-                    }
-                }
-            };
-            connectionProfileJsonPath = {
-                peers: {
-                    peer0: {
-                        tlsCACerts: {
-                            path: 'path'
-                        }
-                    }
-                },
-                orderers: {
-                    orderer0: {
-                        tlsCACerts: {
-                            path: 'path'
-                        }
-                    }
-                },
-                certificateAuthorities: {
-                    ca0: {
-                        tlsCACerts: {
-                            path: 'path'
-                        }
-                    }
-                }
-            };
-
         });
 
         it('should copy a connection profile and do nothing if TLS certs are inline', async () => {
-            const connectionProfilePath: string = '';
             getDirPathStub.resolves('fabric-vscode');
             pathExistsStub.resolves(true);
-            readJsonStub.resolves(connectionProfileJsonPem);
+            readFileStub.onFirstCall().resolves(tlsPemJson);
             writeFileStub.resolves();
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPemLocation);
 
             getDirPathStub.should.have.been.calledOnce;
             pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
             ensureDirStub.should.not.have.been.called;
-            readJsonStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
-            readFileStub.should.not.have.been.called;
-            const stringifiedJson: string = JSON.stringify(connectionProfileJsonPem);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), stringifiedJson);
+            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPemLocation, 'utf8');
+            writeFileStub.should.have.been.calledOnceWith(path.join('fabric-vscode', gatewayName, 'connection.json'), tlsPemStringified);
 
             result.should.equal(path.join('fabric-vscode', gatewayName, 'connection.json'));
         });
 
         it('should copy a connection profile and ensure the destination directory exists', async () => {
-            const connectionProfilePath: string = '';
             getDirPathStub.resolves('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
-            readJsonStub.resolves(connectionProfileJsonPem);
+            readFileStub.onFirstCall().resolves(tlsPemJson);
             writeFileStub.resolves();
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPemLocation);
 
             getDirPathStub.should.have.been.calledOnce;
             pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
             ensureDirStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
-            readJsonStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
-            readFileStub.should.not.have.been.called;
-            const stringifiedJson: string = JSON.stringify(connectionProfileJsonPem);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), stringifiedJson);
+            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPemLocation, 'utf8');
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), tlsPemStringified);
 
             result.should.equal(path.join('fabric-vscode', gatewayName, 'connection.json'));
         });
 
         it('should copy a connection profile and change absolute paths', async () => {
-            const connectionProfilePath: string = '';
             getDirPathStub.resolves('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
-            readJsonStub.resolves(connectionProfileJsonPath);
+            readFileStub.onFirstCall().resolves(tlsPathJson);
             isAbsoluteStub.returns(true);
             readFileStub.resolves('CERT_HERE');
             writeFileStub.resolves();
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation);
 
             getDirPathStub.should.have.been.calledOnce;
             pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
             ensureDirStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
-            readJsonStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
-            readFileStub.should.have.been.calledThrice;
+            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
+            readFileStub.getCalls().length.should.equal(4);
             isAbsoluteStub.should.have.been.calledThrice;
-            const stringifiedJson: string = JSON.stringify(connectionProfileJsonPem);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), stringifiedJson);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), tlsPemStringified);
 
             result.should.equal(path.join('fabric-vscode', gatewayName, 'connection.json'));
         });
 
         it('should continue if property doesn\'nt exist in connection profile', async () => {
-            const connectionProfilePath: string = '';
             const connectionProfileObject: any = {
                 peers: {
                     peer0: {
@@ -264,73 +233,103 @@ describe('FabricGatewayHelper', () => {
                     }
                 }
             };
+            const stringifiedObject: string = JSON.stringify(connectionProfileObject);
             getDirPathStub.resolves('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
-            readJsonStub.resolves(connectionProfileObject);
-            isAbsoluteStub.returns(true);
             readFileStub.resolves('CERT_HERE');
+            readFileStub.onFirstCall().resolves(stringifiedObject);
+            isAbsoluteStub.returns(true);
             writeFileStub.resolves();
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, 'connection.json');
 
             getDirPathStub.should.have.been.calledOnce;
             pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
             ensureDirStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
-            readJsonStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
-            readFileStub.should.have.been.calledTwice;
+            readFileStub.getCall(0).should.have.been.calledWithExactly('connection.json', 'utf8');
+            readFileStub.should.have.been.calledThrice;
             isAbsoluteStub.should.have.been.calledTwice;
             const stringifiedJson: string = JSON.stringify(connectionProfileObject);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), stringifiedJson);
+
+            connectionProfileObject.peers['peer0']['tlsCACerts'].path = undefined;
+            connectionProfileObject.peers['peer0']['tlsCACerts'].pem = 'CERT_HERE';
+
+            connectionProfileObject.certificateAuthorities['ca0']['tlsCACerts'].path = undefined;
+            connectionProfileObject.certificateAuthorities['ca0']['tlsCACerts'].pem = 'CERT_HERE';
+
+            const newStringifiedObject: any = JSON.stringify(connectionProfileObject, null, 4);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), newStringifiedObject);
 
             result.should.equal(path.join('fabric-vscode', gatewayName, 'connection.json'));
         });
 
         it('should copy a connection profile and change relative paths', async () => {
-            const connectionProfilePath: string = path.join('hello', 'world');
             getDirPathStub.resolves('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
-            readJsonStub.resolves(connectionProfileJsonPath);
+            readFileStub.onFirstCall().resolves(tlsPathJson);
             isAbsoluteStub.returns(false);
             readFileStub.resolves('CERT_HERE');
             writeFileStub.resolves();
 
-            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation);
 
             getDirPathStub.should.have.been.calledOnce;
             pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
             ensureDirStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
-            readJsonStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
-            readFileStub.should.have.been.calledThrice;
+            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
+            readFileStub.getCalls().length.should.equal(4);
             isAbsoluteStub.should.have.been.calledThrice;
-            const stringifiedJson: string = JSON.stringify(connectionProfileJsonPem);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), stringifiedJson);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), tlsPemStringified);
 
             result.should.equal(path.join('fabric-vscode', gatewayName, 'connection.json'));
         });
 
         it('should handle any errors thrown', async () => {
-            const connectionProfilePath: string = path.join('hello', 'world');
             getDirPathStub.resolves('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
-            readJsonStub.resolves(connectionProfileJsonPath);
-            isAbsoluteStub.returns(false);
             readFileStub.resolves('CERT_HERE');
+            readFileStub.onFirstCall().resolves(tlsPathJson);
+            isAbsoluteStub.returns(false);
             const error: Error = new Error('Errored for some reason');
             writeFileStub.throws(error);
 
-            await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath).should.be.rejectedWith(error);
+            await FabricGatewayHelper.copyConnectionProfile(gatewayName, tlsPathLocation).should.be.rejectedWith(error);
 
             getDirPathStub.should.have.been.calledOnce;
             pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
             ensureDirStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
-            readJsonStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
-            readFileStub.should.have.been.calledThrice;
+            readFileStub.getCall(0).should.have.been.calledWithExactly(tlsPathLocation, 'utf8');
+            readFileStub.getCalls().length.should.equal(4);
             isAbsoluteStub.should.have.been.calledThrice;
-            const stringifiedJson: string = JSON.stringify(connectionProfileJsonPem);
-            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), stringifiedJson);
+            writeFileStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName, 'connection.json'), tlsPemStringified);
+        });
+
+        it('should copy a connection profile and change relative paths for a YAML file', async () => {
+            getDirPathStub.resolves('fabric-vscode');
+            pathExistsStub.resolves(false);
+            ensureDirStub.resolves();
+            readFileStub.onFirstCall().resolves(yamlPathData);
+            isAbsoluteStub.returns(false);
+            readFileStub.resolves('CERT_HERE');
+            writeFileStub.resolves();
+            const yamlDumpStub: sinon.SinonStub = mySandBox.stub(yaml, 'dump').returns('hello_world');
+
+            const result: string = await FabricGatewayHelper.copyConnectionProfile(gatewayName, yamlPathLocation);
+
+            getDirPathStub.should.have.been.calledOnce;
+            pathExistsStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
+            ensureDirStub.should.have.been.calledOnceWithExactly(path.join('fabric-vscode', gatewayName));
+            readFileStub.getCall(0).should.have.been.calledWithExactly(yamlPathLocation, 'utf8');
+            readFileStub.getCalls().length.should.equal(4);
+            isAbsoluteStub.should.have.been.calledThrice;
+
+            yamlDumpStub.should.have.been.calledOnce;
+            writeFileStub.should.have.been.calledOnceWith(path.join('fabric-vscode', gatewayName, 'connection.yml'), 'hello_world');
+
+            result.should.equal(path.join('fabric-vscode', gatewayName, 'connection.yml'));
         });
     });
 

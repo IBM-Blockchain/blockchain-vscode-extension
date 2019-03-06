@@ -161,7 +161,6 @@ describe('AddGatewayCommand', () => {
             showIdentityOptionsStub.onFirstCall().resolves(UserInputUtil.WALLET);
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/walletDir/wallet'));
 
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             let gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
@@ -190,23 +189,6 @@ describe('AddGatewayCommand', () => {
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            executeCommandSpy.callCount.should.equal(14);
-
-            let calledWithValue: string;
-            for (let x: number = 0; x < 7; x++) {
-                if (x % 7 === 0) {
-                    // Call 0, 7
-                    calledWithValue = ExtensionCommands.ADD_GATEWAY;
-                } else if (x > 0 && x % 2 === 0) {
-                    // Call 2, 4, 6
-                    calledWithValue = ExtensionCommands.REFRESH_LOCAL_OPS;
-                } else {
-                    // Call 1, 3, 5
-                    calledWithValue = ExtensionCommands.REFRESH_GATEWAYS;
-                }
-                executeCommandSpy.getCall(x).should.have.been.calledWith(calledWithValue);
-            }
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
 
@@ -240,9 +222,6 @@ describe('AddGatewayCommand', () => {
             const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
 
             gateways.length.should.equal(0);
-
-            executeCommandSpy.callCount.should.equal(1);
-            executeCommandSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.ADD_GATEWAY);
         });
 
         it('should test a connection can be cancelled when adding profile', async () => {

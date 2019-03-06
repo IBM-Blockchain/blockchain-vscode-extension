@@ -75,7 +75,10 @@ export async function addGateway(): Promise<{} | void> {
             return Promise.resolve();
         } else if (answer === UserInputUtil.CERT_KEY) {
             identityObject = await getIdentity(connectionName);
-
+            if (!identityObject) {
+                // Either a certificate or private key wasn't given
+                return;
+            }
             await createWalletAndImport(fabricGatewayEntry, identityObject);
 
             await fabricGatewayRegistry.update(fabricGatewayEntry);
@@ -84,7 +87,8 @@ export async function addGateway(): Promise<{} | void> {
         } else {
 
             openDialogOptions.filters = undefined;
-
+            openDialogOptions.canSelectFiles = false;
+            openDialogOptions.canSelectFolders = true;
             // User has a wallet - get the path
             const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, connectionName) as string;
             if (!walletPath) {
