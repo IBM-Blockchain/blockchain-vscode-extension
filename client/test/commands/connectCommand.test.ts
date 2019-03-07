@@ -39,6 +39,7 @@ import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -69,14 +70,13 @@ describe('ConnectCommand', () => {
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
         let connectionSingle: FabricGatewayRegistryEntry;
-        let quickPickStub: sinon.SinonStub;
+        let choseIdentityQuickPick: sinon.SinonStub;
+        let choseGatewayQuickPick: sinon.SinonStub;
         let identity: IdentityInfo;
         let walletGenerator: FabricWalletGenerator;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
-
-            quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
 
             mockConnection = sinon.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
@@ -122,6 +122,12 @@ describe('ConnectCommand', () => {
                 identifier: 'identifier',
                 mspId: 'Org1MSP'
             };
+            choseIdentityQuickPick = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').resolves(identity.label);
+            choseGatewayQuickPick = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves({
+                label: 'myGatewayA',
+                data: FabricGatewayRegistry.instance().get('myGatewayA')
+            });
+
         });
 
         afterEach(async () => {
@@ -130,61 +136,55 @@ describe('ConnectCommand', () => {
         });
 
         it('should test a fabric gateway can be connected to from the command', async () => {
-            quickPickStub.resolves({
-                label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
-            });
-
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
         });
 
-        it('should test that a fabric can be connected to from the command with multiple identities', async () => {
-            quickPickStub.onFirstCall().resolves({
+        it('should test that a fabric gateway with multiple identities can be connected to from the quick pick', async () => {
+            choseGatewayQuickPick.resolves({
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
-            quickPickStub.onSecondCall().resolves({
-                label: 'Admin@org1.example.com',
-                data: {
-                    label: 'Admin@org1.example.com',
-                    identifer: 'identifier',
-                    mspid: 'Org1MSP'
-                }
-            });
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+            choseIdentityQuickPick.should.have.been.calledOnce;
+            mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
         });
 
-        it('should do nothing if the user cancels choosing a connection', async () => {
+        it('should do nothing if the user cancels choosing a gateway', async () => {
             const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            quickPickStub.onFirstCall().resolves();
+            choseGatewayQuickPick.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             refreshSpy.callCount.should.equal(1);
             refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT);
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockConnection.connect.should.not.have.been.called;
         });
 
         it('should do nothing if the user cancels choosing the identity to connect with', async () => {
-            quickPickStub.onFirstCall().resolves({
+            choseGatewayQuickPick.resolves({
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
-            quickPickStub.onSecondCall().resolves();
+            choseIdentityQuickPick.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+            mockConnection.connect.should.not.have.been.called;
         });
 
-        it('should test that a fabric with a single identity can be connected to from the tree', async () => {
+        it('should test that a fabric gateway with a single identity can be connected to from the tree', async () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -198,9 +198,11 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(gatewayIdentity.command.command, ...gatewayIdentity.command.arguments);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
         });
 
-        it('should test that a fabric with multiple identities can be connected to from the tree', async () => {
+        it('should test that a fabric gateway with multiple identities can be connected to from the tree', async () => {
             const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
 
@@ -213,13 +215,16 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(myIdentityItem.command.command, ...myIdentityItem.command.arguments);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), 'Test@org1.example.com');
         });
 
         it('should handle no identities found in wallet', async () => {
             connectionSingle.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
             await FabricGatewayRegistry.instance().update(connectionSingle);
 
-            quickPickStub.onFirstCall().resolves({
+            // Populate the quick pick box with the updated registry entry
+            choseGatewayQuickPick.resolves({
                 label: 'myGatewayA',
                 data: FabricGatewayRegistry.instance().get('myGatewayA')
             });
@@ -230,20 +235,8 @@ describe('ConnectCommand', () => {
         });
 
         it('should handle error from connecting', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            await blockchainNetworkExplorerProvider.getChildren();
-
             const error: Error = new Error('some error');
             mockConnection.connect.rejects(error);
-
-            quickPickStub.onFirstCall().resolves({
-                label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
-            });
-            quickPickStub.onSecondCall().resolves({
-                label: 'Admin@org1.example.com',
-                data: identity
-            });
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -259,10 +252,11 @@ describe('ConnectCommand', () => {
             connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
             const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
             connection.walletPath = testFabricWallet.walletPath;
 
-            quickPickStub.resolves({
+            choseGatewayQuickPick.resolves({
                 label: 'local_fabric',
                 data: connection
             });
@@ -272,6 +266,36 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockRuntimeConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
+        });
+
+        it('should connect to a managed runtime with multiple identities, using a quick pick', async () => {
+            const testIdentityName: string = 'tester2';
+            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            connection.name = 'local_fabric';
+            connection.managedRuntime = true;
+            connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
+            const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
+            mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label, 'tester', testIdentityName]);
+            mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
+            connection.walletPath = testFabricWallet.walletPath;
+
+            choseGatewayQuickPick.resolves({
+                label: 'local_fabric',
+                data: connection
+            });
+
+            choseIdentityQuickPick.resolves(testIdentityName);
+
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+            connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+            choseIdentityQuickPick.should.have.been.called;
+            mockRuntimeConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
         });
 
         it('should connect to a managed runtime from the tree', async () => {
@@ -284,7 +308,7 @@ describe('ConnectCommand', () => {
             const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
             mySandBox.stub(walletGenerator, 'getNewWallet').returns(testFabricWallet);
-            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(['Admin@org1.example.com']);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
             connection.walletPath = testFabricWallet.walletPath;
 
@@ -297,6 +321,8 @@ describe('ConnectCommand', () => {
             await vscode.commands.executeCommand(identityToConnect.command.command, ...identityToConnect.command.arguments);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockRuntimeConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
         });
 
         it('should start a stopped fabric runtime before connecting', async () => {
@@ -307,9 +333,10 @@ describe('ConnectCommand', () => {
             connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
             const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
             mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
             connection.walletPath = testFabricWallet.walletPath;
-            quickPickStub.resolves({
+            choseGatewayQuickPick.resolves({
                 label: 'local_fabric',
                 data: connection
             });
@@ -320,9 +347,11 @@ describe('ConnectCommand', () => {
             startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-            quickPickStub.should.have.been.calledOnce;
+            choseGatewayQuickPick.should.have.been.calledOnce;
             startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+            choseIdentityQuickPick.should.not.have.been.called;
+            mockRuntimeConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
@@ -334,7 +363,7 @@ describe('ConnectCommand', () => {
             connection.name = 'local_fabric';
             connection.managedRuntime = true;
             connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
-            quickPickStub.resolves({
+            choseGatewayQuickPick.resolves({
                 label: 'local_fabric',
                 data: connection
             });
@@ -345,7 +374,7 @@ describe('ConnectCommand', () => {
             startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-            quickPickStub.should.have.been.calledOnce;
+            choseGatewayQuickPick.should.have.been.calledOnce;
             startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             connectStub.should.not.have.been.called;
             logSpy.should.have.been.calledOnce;
@@ -353,14 +382,32 @@ describe('ConnectCommand', () => {
 
         });
 
+        it('should handle the user cancelling an identity to chose from when connecting to a fabric runtime', async () => {
+            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            connection.name = 'local_fabric';
+            connection.managedRuntime = true;
+            connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
+            const testFabricWallet: FabricWallet = new FabricWallet('myConnection', 'some/new/wallet/path');
+            mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label, 'otherOne', 'anotherOne']);
+            mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
+            connection.walletPath = testFabricWallet.walletPath;
+
+            choseGatewayQuickPick.resolves({
+                label: 'local_fabric',
+                data: connection
+            });
+            choseIdentityQuickPick.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+            choseIdentityQuickPick.should.have.been.called;
+            mockRuntimeConnection.connect.should.not.have.been.called;
+        });
+
         it('should send a telemetry event if the extension is for production', async () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
-
-            quickPickStub.resolves({
-                label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
-            });
 
             mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
@@ -373,10 +420,6 @@ describe('ConnectCommand', () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
             mockConnection.isIBPConnection.returns(true);
-            quickPickStub.resolves({
-                label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
-            });
 
             mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 
@@ -389,10 +432,6 @@ describe('ConnectCommand', () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
             mockConnection.isIBPConnection.returns(false);
-            quickPickStub.resolves({
-                label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
-            });
 
             mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
 

@@ -51,4 +51,6 @@ export interface IFabricConnection {
     submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined>;
 
     enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
+
+    register(enrollmentID: string, affiliation: string): Promise<string>;
 }

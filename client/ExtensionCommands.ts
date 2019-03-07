@@ -32,6 +32,7 @@ export class ExtensionCommands {
     static readonly TEARDOWN_FABRIC: string = 'blockchainExplorer.teardownFabricRuntime';
     static readonly TOGGLE_FABRIC_DEV_MODE: string = 'blockchainExplorer.toggleFabricRuntimeDevMode';
     static readonly UPGRADE_SMART_CONTRACT: string = 'blockchainExplorer.upgradeSmartContractEntry';
+    static readonly CREATE_NEW_IDENTITY: string = 'blockchainExplorer.createNewIdentityEntry';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'blockchainConnectionsExplorer.addGatewayEntry';
