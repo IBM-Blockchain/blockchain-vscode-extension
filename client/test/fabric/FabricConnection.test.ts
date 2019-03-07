@@ -100,9 +100,11 @@ describe('FabricConnection', () => {
         fabricClientStub.getMspid.returns('myMSPId');
         fabricCAStub = mySandBox.createStubInstance(fabricClientCA);
         fabricCAStub.enroll.returns({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
+        fabricCAStub.register.resolves('its a secret');
         fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
         fabricGatewayStub.getClient.returns(fabricClientStub);
         fabricGatewayStub.connect.resolves();
+        fabricGatewayStub.getCurrentIdentity.resolves({});
 
         const eventHandlerOptions: any = {
             commitTimeout: 30,
@@ -878,6 +880,13 @@ describe('FabricConnection', () => {
             const orderers: Set<string> = await fabricConnection.getOrderers();
             orderers.has('orderer1').should.equal(true);
             orderers.has('orderer2').should.equal(true);
+        });
+    });
+
+    describe('register', () => {
+        it('should register a new user and return a secret', async () => {
+            const secret: string = await fabricConnection.register('enrollThis', 'departmentE');
+            secret.should.deep.equal('its a secret');
         });
     });
 });

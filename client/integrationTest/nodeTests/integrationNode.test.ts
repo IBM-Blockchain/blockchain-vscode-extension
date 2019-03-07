@@ -187,6 +187,12 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 installedSmartContract.should.not.be.null;
 
+                // Create a new identity from the certificate authority
+                const otherUserName: string = 'otherUser';
+                await integrationTestUtil.createCAIdentity(otherUserName);
+
+                // Connect using it
+                integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(otherUserName);
                 await integrationTestUtil.connectToFabric('local_fabric');
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'local_fabric');
@@ -232,7 +238,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren.length.should.equal(3);
 
                 allChildren[0].label.should.equal('Connected via gateway: local_fabric');
-                allChildren[1].label.should.equal('Using ID: Admin@org1.example.com');
+                allChildren[1].label.should.equal(`Using ID: ${otherUserName}`);
                 allChildren[2].label.should.equal('Channels');
 
                 const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
@@ -324,7 +330,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         });
     });
 
-    describe('other fabric', () => {
+    describe('other fabric gateway', () => {
         beforeEach(async function(): Promise<void> {
             this.timeout(600000);
             delete process.env.GOPATH;

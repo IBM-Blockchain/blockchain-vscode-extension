@@ -103,6 +103,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.SUBMIT_TRANSACTION,
             ExtensionCommands.EVALUATE_TRANSACTION,
             ExtensionCommands.UPGRADE_SMART_CONTRACT,
+            ExtensionCommands.CREATE_NEW_IDENTITY,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -140,6 +141,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
             `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);

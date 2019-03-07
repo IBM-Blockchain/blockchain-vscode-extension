@@ -128,6 +128,7 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
+        fabricConnectionStub.getCertificateAuthorityName.resolves('ca.example.cake.com');
 
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
 
@@ -859,6 +860,20 @@ describe('userInputUtil', () => {
             showOpenDialogSpy.should.not.have.been.called;
 
             openUserSettingsStub.should.have.been.calledOnceWithExactly('connection');
+        });
+    });
+
+    describe('showCertificateAuthorityQuickPickBox', () => {
+        it('should get and show the certificate authority names', async () => {
+            quickPickStub.resolves('ca.example.cake.com');
+            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please chose a CA');
+
+            result.should.deep.equal('ca.example.cake.com');
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Please chose a CA'
+            });
         });
     });
 

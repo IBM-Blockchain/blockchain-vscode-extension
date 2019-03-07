@@ -68,6 +68,8 @@ export class IntegrationTestUtil {
     public getConfigurationStub: sinon.SinonStub;
     public showIdentityOptionsStub: sinon.SinonStub;
     public showGatewayQuickPickStub: sinon.SinonStub;
+    public showCertificateAuthorityQuickPickStub: sinon.SinonStub;
+    public showIdentitiesQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -91,6 +93,8 @@ export class IntegrationTestUtil {
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
         this.showIdentityOptionsStub = this.mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
         this.showGatewayQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
+        this.showCertificateAuthorityQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox');
+        this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
     }
 
     public async createFabricConnection(): Promise<void> {
@@ -362,6 +366,12 @@ export class IntegrationTestUtil {
         }
         const testResult: string = await CommandUtil.sendCommand(testCommand, this.testContractDir);
         return testResult;
+    }
+
+    public async createCAIdentity(name: string): Promise<void> {
+        this.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.example.com');
+        this.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
     }
 
     public async getRawPackageJson(): Promise<any> {

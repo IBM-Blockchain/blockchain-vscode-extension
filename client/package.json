@@ -71,6 +71,7 @@
             "blockchainConnectionsExplorer.submitTransactionEntry",
             "blockchainConnectionsExplorer.evaluateTransactionEntry",
             "blockchainExplorer.upgradeSmartContractEntry",
+            "blockchainExplorer.createNewIdentityEntry",
             "extensionHome.open"
         ]
     },
@@ -305,6 +306,11 @@
                 "command": "blockchainConnectionsExplorer.exportConnectionDetailsEntry",
                 "title": "Export Connection Details",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "blockchainExplorer.createNewIdentityEntry",
+                "title": "Create New Identity",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -490,6 +496,10 @@
                 {
                     "command": "blockchainExplorer.upgradeSmartContractEntry",
                     "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
+                    "command": "blockchainExplorer.createNewIdentityEntry",
+                    "when": "view == blockchainARuntimeExplorer && viewItem == blockchain-runtime-certificate-authority-item"
                 }
             ]
         },

@@ -592,6 +592,20 @@ export class UserInputUtil {
         }
     }
 
+    public static async showCertificateAuthorityQuickPickBox(prompt: string): Promise<string | undefined> {
+        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const caNameOption: string = connection.getCertificateAuthorityName();
+        const caNames: string[] = [caNameOption];
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(caNames, quickPickOptions);
+    }
+
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
             return document.isDirty;

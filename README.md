@@ -63,6 +63,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Identity To Wallet | Add an identity to be used when connecting to a Hyperledger Fabric gateway  |
 | Connect Via Gateway | Connect to a Hyperledger Fabric blockchain using a gateway |
 | Create Smart Contract Project | Create a new JavaScript or TypeScript smart contract project |
+| Create New Identity | Create, register and enroll a new identity from the runtime certificate authority |
 | Debug | Debug a Smart Contract |
 | Delete Gateway | Delete a Hyperledger Fabric instance gateway |
 | Delete Package | Delete a smart contract package |
