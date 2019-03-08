@@ -19,6 +19,7 @@ import * as chai from 'chai';
 import * as ejs from 'ejs';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as os from 'os';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
@@ -254,6 +255,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
+            templateData.includes('homedir').should.be.false;
             templateData.includes('walletPath').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`getContract('${smartContractName.replace(`"`, '')}', 'my-contract')`).should.be.true;
@@ -294,6 +296,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionThree.name).should.be.true;
             templateData.startsWith('/*').should.be.true;
             templateData.includes('walletPath').should.be.true;
+            templateData.includes('homedir').should.be.false;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`const args: string[] = [];`).should.be.true;
@@ -307,6 +310,28 @@ describe('testSmartContractCommand', () => {
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+        });
+
+        it('should provide a path.join if the wallet path contains the home directory', async () => {
+            mySandBox.stub(os, 'homedir').returns('homedir');
+            registryEntry.walletPath = 'homedir/walletPath';
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
+
+            templateData.includes(`path.join(homedir, 'walletPath')`).should.be.true;
+            registryEntry.walletPath = 'walletPath';
+        });
+
+        it('should provide a path.join if the connection profile path contains the home directory', async () => {
+            mySandBox.stub(os, 'homedir').returns('homedir');
+            registryEntry.connectionProfilePath = 'homedir/myPath';
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
+
+            templateData.includes(`path.join(homedir, 'myPath')`).should.be.true;
+            registryEntry.connectionProfilePath = 'myPath';
         });
 
         it('should ask the user for an instantiated smart contract to test if none selected', async () => {

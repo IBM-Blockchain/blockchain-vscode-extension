@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as ejs from 'ejs';
 import * as path from 'path';
+import * as os from 'os';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
@@ -121,13 +122,49 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
     const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
 
     for (const [name, transactionArray] of transactions) {
+        const homedir: string = os.homedir();
+        let connectionProfileHome: boolean;
+        let connectionProfilePathString: string;
+        let walletPathString: string;
+        let walletHome: boolean;
+        let pathWithoutHomeDir: string;
+
+        if ( fabricGatewayRegistryEntry.connectionProfilePath.includes(homedir)) {
+            connectionProfilePathString = 'path.join(homedir';
+            pathWithoutHomeDir = fabricGatewayRegistryEntry.connectionProfilePath.slice(homedir.length + 1);
+            pathWithoutHomeDir.split('/').forEach((item: string) => {
+                connectionProfilePathString += `, '${item}'`;
+            });
+            connectionProfilePathString += ')';
+            connectionProfileHome = true;
+        } else {
+            connectionProfilePathString = fabricGatewayRegistryEntry.connectionProfilePath;
+            connectionProfileHome = false;
+        }
+
+        if (fabricGatewayRegistryEntry.walletPath.includes(homedir)) {
+            walletPathString = 'path.join(homedir';
+
+            pathWithoutHomeDir = fabricGatewayRegistryEntry.walletPath.slice(homedir.length + 1);
+            pathWithoutHomeDir.split('/').forEach((item: string) => {
+                walletPathString += `, '${item}'`;
+            });
+
+            walletPathString += ')';
+            walletHome = true;
+        } else {
+            walletPathString = fabricGatewayRegistryEntry.walletPath;
+            walletHome = false;
+        }
         // Populate the template data
         const templateData: any = {
             contractName: name,
             chaincodeLabel: chaincodeLabel,
             transactions: transactionArray,
-            connectionProfilePath: fabricGatewayRegistryEntry.connectionProfilePath,
-            walletPath: fabricGatewayRegistryEntry.walletPath,
+            connectionProfileHome: connectionProfileHome,
+            connectionProfilePath: connectionProfilePathString,
+            walletPath: walletPathString,
+            walletHome: walletHome,
             chaincodeName: chaincodeName,
             chaincodeVersion: chaincodeVersion,
             channelName: channelName
