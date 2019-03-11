@@ -12,11 +12,18 @@
  * limitations under the License.
 */
 'use strict';
-import { IFabricWallet } from './IFabricWallet';
+import { FabricRegistry } from './FabricRegistry';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
-export interface IFabricWalletGenerator {
+export class FabricWalletRegistry extends FabricRegistry<FabricWalletRegistryEntry> {
 
-    createLocalWallet(gatewayName: string): Promise<IFabricWallet>;
+    public static instance(): FabricWalletRegistry {
+        return FabricWalletRegistry._instance;
+    }
 
-    getNewWallet(walletPath: string): IFabricWallet;
+    private static _instance: FabricWalletRegistry = new FabricWalletRegistry();
+
+    private constructor() {
+        super('fabric.wallets');
+    }
 }

@@ -551,7 +551,7 @@ export class UserInputUtil {
 
     }
 
-    public static async browseEdit(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, connectionName?: string, returnUri?: boolean): Promise<string | vscode.Uri> {
+    public static async browseEdit(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, gatewayName?: string, returnUri?: boolean): Promise<string | vscode.Uri> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         if (quickPickItems.includes(this.BROWSE_LABEL) && quickPickItems.includes(this.EDIT_LABEL)) {
@@ -584,7 +584,7 @@ export class UserInputUtil {
             } else { // result === this.EDIT_LABEL
 
                 // Edit in user settings
-                await this.openUserSettings(connectionName);
+                await this.openUserSettings(gatewayName);
             }
 
         } catch (error) {

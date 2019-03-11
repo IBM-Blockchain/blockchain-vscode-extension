@@ -25,6 +25,8 @@ import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 
 export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -75,8 +77,9 @@ export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<
     // Get the private key file path
     ParsedCertificate.validPEM(keyPath, 'private key');
 
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(gatewayRegistryEntry.name);
     const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-    const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+    const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(fabricWalletRegistryEntry.walletPath);
 
     const certificate: string = await fs.readFile(certPath, 'utf8');
     const privateKey: string = await fs.readFile(keyPath, 'utf8');

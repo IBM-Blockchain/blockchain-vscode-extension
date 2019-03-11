@@ -111,6 +111,11 @@
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
                 },
+                "fabric.wallets": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Wallets for connecting to a Blockchain network"
+                },
                 "fabric.runtime": {
                     "type": "object",
                     "default": {},

@@ -17,7 +17,6 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
@@ -46,18 +45,21 @@ describe('AddGatewayCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
+        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     describe('addGateway', () => {
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
-            // reset the available gateways
+            // reset the available gateways and wallets
             await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
@@ -89,7 +91,7 @@ describe('AddGatewayCommand', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
@@ -184,7 +186,7 @@ describe('AddGatewayCommand', () => {
 
             showInputBoxStub.onCall(3).resolves('myMSPID');
 
-            const testFabricWallet: FabricWallet = new FabricWallet('myGateway2', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
 
@@ -398,7 +400,7 @@ describe('AddGatewayCommand', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
             const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).rejects({ message: `Client.createUser parameter 'opts mspid' is required` });
@@ -436,7 +438,7 @@ describe('AddGatewayCommand', () => {
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            const testFabricWallet: FabricWallet = new FabricWallet('myGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
 
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
             const importStub: sinon.SinonStub = mySandBox.stub(testFabricWallet, 'importIdentity').onCall(0).throws(new Error('some other reason'));

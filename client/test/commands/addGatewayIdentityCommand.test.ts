@@ -30,6 +30,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 
 chai.should();
 chai.use(sinonChai);
@@ -39,10 +41,12 @@ describe('AddGatewayIdentityCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
+        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     describe('addGatewayIdentity', () => {
@@ -57,8 +61,9 @@ describe('AddGatewayIdentityCommand', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            // reset the available connections
+            // reset the stored gateways and wallets
             await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
@@ -77,6 +82,19 @@ describe('AddGatewayIdentityCommand', () => {
             await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(connectionOne);
             await FabricGatewayRegistry.instance().add(connectionTwo);
+
+            const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: connectionOne.name,
+                walletPath: walletPath
+            });
+            const connectionTwoWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: connectionTwo.name,
+                walletPath: walletPath
+            });
+
+            await FabricWalletRegistry.instance().clear();
+            await FabricWalletRegistry.instance().add(connectionOneWallet);
+            await FabricWalletRegistry.instance().add(connectionTwoWallet);
 
             browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             HelperStub = mySandBox.stub(FabricGatewayHelper, 'isCompleted').returns(true);
