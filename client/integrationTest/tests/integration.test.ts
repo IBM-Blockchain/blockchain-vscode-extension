@@ -519,33 +519,5 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             otherChildren[0].label.should.equal('greenConga');
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
-
-        it('should connect to a real fabric gateway', async () => {
-            await integrationTestUtil.createFabricConnection();
-
-            await integrationTestUtil.connectToFabric('myGateway');
-
-            const allChildren: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
-
-            allChildren.length.should.equal(3);
-
-            allChildren[0].label.should.equal('Connected via gateway: myGateway');
-            allChildren[1].label.should.equal('Using ID: greenConga');
-            allChildren[2].label.should.equal('Channels');
-
-            const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
-            channels.length.should.equal(2);
-            channels[0].label.should.equal('mychannel');
-            channels[1].label.should.equal('myotherchannel');
-
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
-            const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
-            const myGatewayItem: GatewayTreeItem = gatewayItems.find((value: BlockchainTreeItem) => value instanceof GatewayTreeItem && value.label.startsWith('myGateway')) as GatewayTreeItem;
-
-            showConfirmationWarningMessageStub.resolves(true);
-            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, myGatewayItem);
-            integrationTestUtil.gatewayRegistry.exists('myGateway').should.be.false;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR);
-        }).timeout(0);
     });
 });

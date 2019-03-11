@@ -1,0 +1,23 @@
+{
+    "peers": {
+        "peer0": {
+            "tlsCACerts": {
+                "path": "PATH_HERE"
+            }
+        }
+    },
+    "orderers": {
+        "orderer0": {
+            "tlsCACerts": {
+                "path": "PATH_HERE"
+            }
+        }
+    },
+    "certificateAuthorities": {
+        "ca0": {
+            "tlsCACerts": {
+                "path": "PATH_HERE"
+            }
+        }
+    }
+}

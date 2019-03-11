@@ -16,6 +16,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import * as yaml from 'js-yaml';
 import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class FabricGatewayHelper {
@@ -50,8 +51,20 @@ export class FabricGatewayHelper {
                 await fs.ensureDir(profileDirPath);
             }
 
+            const connectionProfileFile: string = await fs.readFile(connectionProfilePath, 'utf8');
+            let connectionProfile: any;
+            let profilePath: string;
+
+            if (connectionProfilePath.endsWith('.json')) {
+                connectionProfile = JSON.parse(connectionProfileFile);
+                profilePath = path.join(profileDirPath, 'connection.json');
+            } else {
+                // Assume its a yml/yaml file type
+                connectionProfile = yaml.safeLoad(connectionProfileFile);
+                profilePath = path.join(profileDirPath, 'connection.yml');
+            }
+
             // Read the given connection profile
-            const connectionProfile: any = await fs.readJson(connectionProfilePath);
 
             const properties: string[] = ['peers', 'orderers', 'certificateAuthorities'];
 
@@ -68,20 +81,25 @@ export class FabricGatewayHelper {
                             }
                             const tlsCertData: string = await fs.readFile(tlsPath, 'utf8');
                             connectionProfile[property][item].tlsCACerts.pem = tlsCertData;
-                            connectionProfile[property][item].tlsCACerts.path = undefined;
+
+                            // Delete the key
+                            delete connectionProfile[property][item].tlsCACerts.path;
                         }
                     }
                 }
             }
 
-            // Set the destination path
-            const profilePath: string = path.join(profileDirPath, 'connection.json');
+            let connectionProfileData: any;
 
-            // Create the connection profile JSON
-            const connectionProfileJson: any = JSON.stringify(connectionProfile);
+            if (connectionProfilePath.endsWith('.json')) {
+                connectionProfileData = JSON.stringify(connectionProfile, null, 4);
+            } else {
+                // Assume its a yml/yaml file type
+                connectionProfileData = yaml.dump(connectionProfile);
+            }
 
             // Write the new connection profile to the blockchain extension directory
-            await fs.writeFile(profilePath, connectionProfileJson);
+            await fs.writeFile(profilePath, connectionProfileData);
 
             return profilePath;
 
