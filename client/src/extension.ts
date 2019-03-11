@@ -74,6 +74,7 @@ import { FabricGoDebugConfigurationProvider } from './debug/FabricGoDebugConfigu
 import { importSmartContractPackageCommand } from './commands/importSmartContractPackageCommand';
 import { CertificateAuthorityTreeItem } from './explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { BlockchainWalletExplorerProvider } from './explorer/walletExplorer';
+import { FabricJavaDebugConfigurationProvider } from './debug/FabricJavaDebugConfigurationProvider';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -176,8 +177,10 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     disposeExtension(context);
 
     const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
+    const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
     const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:go', goDebugProvider));
+    context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:java', javaDebugProvider));
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('gatewaysExplorer', blockchainGatewayExplorerProvider));
