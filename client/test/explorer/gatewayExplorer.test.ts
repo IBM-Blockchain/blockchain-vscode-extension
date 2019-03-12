@@ -22,7 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -62,7 +62,7 @@ class TestFabricConnection extends FabricConnection {
 }
 
 // tslint:disable no-unused-expression
-describe('BlockchainNetworkExplorer', () => {
+describe('gatewayExplorer', () => {
 
     const rootPath: string = path.dirname(__dirname);
 
@@ -97,46 +97,46 @@ describe('BlockchainNetworkExplorer', () => {
         });
 
         it('should register for connected events from the connection manager', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'connect').resolves();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'disconnect').resolves();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
             const mockConnection: sinon.SinonStubbedInstance<TestFabricConnection> = sinon.createStubInstance(TestFabricConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
-            blockchainNetworkExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
+            blockchainGatewayExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
         });
 
         it('should display errors from connected events', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'connect').rejects(new Error('wow such error'));
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'disconnect').resolves();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').rejects(new Error('wow such error'));
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
             const mockConnection: sinon.SinonStubbedInstance<TestFabricConnection> = sinon.createStubInstance(TestFabricConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
             // Need to ensure the event handler gets a chance to run.
             await new Promise((resolve: any): any => setTimeout(resolve, 50));
-            blockchainNetworkExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
+            blockchainGatewayExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'Error handling connected event: wow such error', 'Error handling connected event: Error: wow such error');
         });
 
         it('should register for disconnected events from the connection manager', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'connect').resolves();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'disconnect').resolves();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('disconnected');
-            blockchainNetworkExplorerProvider.disconnect.should.have.been.calledOnceWithExactly();
+            blockchainGatewayExplorerProvider.disconnect.should.have.been.calledOnceWithExactly();
         });
 
         it('should display errors from disconnected events', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'connect').resolves();
-            mySandBox.stub(blockchainNetworkExplorerProvider, 'disconnect').rejects(new Error('wow such error'));
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
+            mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').rejects(new Error('wow such error'));
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('disconnected');
             // Need to ensure the event handler gets a chance to run.
             await new Promise((resolve: any): any => setTimeout(resolve, 50));
-            blockchainNetworkExplorerProvider.disconnect.should.have.been.calledOnceWithExactly();
+            blockchainGatewayExplorerProvider.disconnect.should.have.been.calledOnceWithExactly();
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'Error handling disconnected event: wow such error', 'Error handling disconnected event: Error: wow such error');
         });
     });
@@ -196,8 +196,8 @@ describe('BlockchainNetworkExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(5);
                 allChildren[1].label.should.equal('myGatewayA');
@@ -227,8 +227,8 @@ describe('BlockchainNetworkExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
                 const gateway: FabricGatewayRegistryEntry = FabricGatewayRegistry.instance().get('myGateway');
 
                 const myIdentityCommand: vscode.Command = {
@@ -243,7 +243,7 @@ describe('BlockchainNetworkExplorer', () => {
                 gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
                 gatewayTreeItem.gateway.should.deep.equal(gateway);
 
-                const identityChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+                const identityChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
                 identityChildren.length.should.equal(1);
 
                 const identityChildOne: GatewayIdentityTreeItem = identityChildren[0] as GatewayIdentityTreeItem;
@@ -279,8 +279,8 @@ describe('BlockchainNetworkExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
                 const gateway: FabricGatewayRegistryEntry = FabricGatewayRegistry.instance().get('myGateway');
 
                 allChildren.length.should.equal(2);
@@ -301,7 +301,7 @@ describe('BlockchainNetworkExplorer', () => {
                     arguments: [gateway, identities[1].label]
                 };
 
-                const identityChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+                const identityChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
                 identityChildren.length.should.equal(2);
 
                 const identityChildOne: GatewayIdentityTreeItem = identityChildren[0] as GatewayIdentityTreeItem;
@@ -330,12 +330,12 @@ describe('BlockchainNetworkExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
                 // @ts-ignore
-                mySandBox.stub(blockchainNetworkExplorerProvider, 'createConnectionTree').rejects({ message: 'some error' });
+                mySandBox.stub(blockchainGatewayExplorerProvider, 'createConnectionTree').rejects({ message: 'some error' });
 
-                await blockchainNetworkExplorerProvider.getChildren();
+                await blockchainGatewayExplorerProvider.getChildren();
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'some error');
             });
@@ -353,8 +353,8 @@ describe('BlockchainNetworkExplorer', () => {
 
                 mySandBox.stub(LocalGatewayTreeItem, 'newLocalGatewayTreeItem').rejects({ message: 'some error' });
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                await blockchainNetworkExplorerProvider.getChildren();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                await blockchainGatewayExplorerProvider.getChildren();
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Blockchain Explorer View: some error');
             });
@@ -370,8 +370,8 @@ describe('BlockchainNetworkExplorer', () => {
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testFabricWallet);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
                 });
@@ -392,7 +392,7 @@ describe('BlockchainNetworkExplorer', () => {
                 localGatewayTreeItem.label.should.equal('local_fabric  ●');
                 localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
                 localGatewayTreeItem.gateway.should.deep.equal(gateway);
-                const gatewayChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(localGatewayTreeItem);
+                const gatewayChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(localGatewayTreeItem);
                 gatewayChildren.length.should.equal(1);
                 const identity: GatewayIdentityTreeItem = gatewayChildren[0] as GatewayIdentityTreeItem;
                 identity.command.should.deep.equal(myCommand);
@@ -403,7 +403,7 @@ describe('BlockchainNetworkExplorer', () => {
             it('should detect uncompleted gateway', async () => {
                 FabricRuntimeManager.instance().exists().should.be.true;
 
-                const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const blockchainGatewayExplorer: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
                 const entry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 entry.name = 'uncompletedGateway';
@@ -414,7 +414,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-                const result: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren();
+                const result: BlockchainTreeItem[] = await blockchainGatewayExplorer.getChildren();
 
                 FabricRuntimeManager.instance().exists().should.be.true;
 
@@ -431,8 +431,8 @@ describe('BlockchainNetworkExplorer', () => {
                 getConnectionStub.onCall(1).throws({ message: 'cannot connect' });
 
                 const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').resolves();
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                await blockchainNetworkExplorerProvider.getChildren();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                await blockchainGatewayExplorerProvider.getChildren();
 
                 disconnnectStub.should.have.been.calledOnce;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `cannot connect`);
@@ -451,13 +451,13 @@ describe('BlockchainNetworkExplorer', () => {
                 registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-                const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider, 'disconnect');
+                const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider, 'disconnect');
 
-                const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+                const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
-                await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
+                await blockchainGatewayExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error creating channel map: some error`);
@@ -476,13 +476,13 @@ describe('BlockchainNetworkExplorer', () => {
                 registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-                const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider, 'disconnect');
+                const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider, 'disconnect');
 
-                const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+                const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
-                await blockchainNetworkExplorerProvider.getChildren(allChildren[2]);
+                await blockchainGatewayExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Cannot connect to Fabric: Received http2 header with status: 503`);
@@ -493,7 +493,7 @@ describe('BlockchainNetworkExplorer', () => {
 
             let mySandBox: sinon.SinonSandbox;
             let allChildren: Array<BlockchainTreeItem>;
-            let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
+            let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
             let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
             let registryEntry: FabricGatewayRegistryEntry;
             let getGatewayRegistryEntryStub: sinon.SinonStub;
@@ -567,7 +567,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);
 
-                blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+                blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
                 const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
 
@@ -576,7 +576,7 @@ describe('BlockchainNetworkExplorer', () => {
                 registryEntry.connectionProfilePath = 'myPath';
                 registryEntry.managedRuntime = false;
                 getGatewayRegistryEntryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
             });
 
             afterEach(() => {
@@ -592,7 +592,7 @@ describe('BlockchainNetworkExplorer', () => {
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 connectedItem.connection.name.should.equal('myGateway');
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 const channelOne: ChannelTreeItem = channels[0];
 
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -610,7 +610,7 @@ describe('BlockchainNetworkExplorer', () => {
             it('should update connected to context value if managed runtime', async () => {
                 registryEntry.managedRuntime = true;
                 getGatewayRegistryEntryStub.returns(registryEntry);
-                allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+                allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
@@ -620,7 +620,7 @@ describe('BlockchainNetworkExplorer', () => {
                 connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 connectedItem.connection.name.should.equal('myGateway');
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 const channelOne: ChannelTreeItem = channels[0];
 
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
@@ -639,9 +639,9 @@ describe('BlockchainNetworkExplorer', () => {
             it('should create channel children correctly', async () => {
 
                 allChildren.length.should.equal(3);
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channels[0]);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[0]);
                 channelChildrenOne.length.should.equal(1);
 
                 const instantiatedTreeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
@@ -652,7 +652,7 @@ describe('BlockchainNetworkExplorer', () => {
                 instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-contract-item');
                 instantiatedTreeItemOne.channel.label.should.equal('channelOne');
 
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channels[1]);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]);
                 channelChildrenTwo.length.should.equal(2);
 
                 const instantiatedTreeItemTwo: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
@@ -676,7 +676,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 fabricConnection.getAllPeerNames.returns([]);
 
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(3);
                 allChildren[0].label.should.equal('Connected via gateway: myGateway');
@@ -686,17 +686,17 @@ describe('BlockchainNetworkExplorer', () => {
 
                 fabricConnection.getInstantiatedChaincode.withArgs('channelOne').rejects({ message: 'some error' });
 
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
                 allChildren.length.should.equal(3);
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 channels.length.should.equal(2);
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'Error getting instantiated smart contracts for channel channelOne some error');
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
                 channelOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(0);
             });
 
@@ -704,10 +704,10 @@ describe('BlockchainNetworkExplorer', () => {
 
                 fabricConnection.getInstantiatedChaincode.withArgs('channelOne').resolves([]);
 
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
                 allChildren.length.should.equal(3);
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
@@ -715,7 +715,7 @@ describe('BlockchainNetworkExplorer', () => {
                 channelOne.contextValue.should.equal('blockchain-channel-item');
                 channelOne.label.should.equal('channelOne');
                 channelOne.peers.should.deep.equal(['peerOne']);
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(0);
 
                 const channelTwo: ChannelTreeItem = channels[1];
@@ -723,7 +723,7 @@ describe('BlockchainNetworkExplorer', () => {
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
                 channelTwo.peers.should.deep.equal(['peerOne', 'peerTwo']);
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
 
                 const instantiatedTreeItemTwo: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
@@ -747,14 +747,14 @@ describe('BlockchainNetworkExplorer', () => {
 
             it('should create instantiated chaincode correctly', async () => {
 
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
                 allChildren.length.should.equal(3);
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
 
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
 
                 const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
@@ -768,7 +768,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
 
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
 
                 const instantiatedChaincodeItemTwo: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
@@ -793,19 +793,19 @@ describe('BlockchainNetworkExplorer', () => {
             });
 
             it('should create the contract tree correctly', async () => {
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
                 allChildren.length.should.equal(3);
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
 
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
 
                 const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
 
-                const contractsOne: Array<ContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<ContractTreeItem>;
+                const contractsOne: Array<ContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<ContractTreeItem>;
                 contractsOne.length.should.equal(2);
                 contractsOne[0].label.should.equal('my-contract');
                 contractsOne[0].instantiatedChaincode.name.should.equal('biscuit-network');
@@ -818,11 +818,11 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
 
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
 
                 const instantiatedChaincodeItemTwo: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
-                const contractsTwo: Array<ContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodeItemTwo) as Array<ContractTreeItem>;
+                const contractsTwo: Array<ContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemTwo) as Array<ContractTreeItem>;
                 contractsTwo.should.deep.equal([]);
                 instantiatedChaincodeItemTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
 
@@ -848,19 +848,19 @@ describe('BlockchainNetworkExplorer', () => {
                     }
                 );
 
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
                 allChildren.length.should.equal(3);
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
 
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
 
                 const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
 
-                const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
+                const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
                 transactions.length.should.equal(2);
                 transactions[0].label.should.equal('tradeBiscuits');
                 transactions[0].chaincodeName.should.equal('biscuit-network');
@@ -896,12 +896,12 @@ describe('BlockchainNetworkExplorer', () => {
                 );
                 const channels: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
-                const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channels);
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[1]);
+                const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[1]);
 
                 const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
 
-                const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
+                const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
                 transactions.length.should.equal(2);
                 transactions[0].label.should.equal('garabaldi');
                 transactions[0].chaincodeName.should.equal('cake-network');
@@ -919,21 +919,21 @@ describe('BlockchainNetworkExplorer', () => {
 
             it('should create the transactions correctly', async () => {
 
-                allChildren = await blockchainNetworkExplorerProvider.getChildren();
+                allChildren = await blockchainGatewayExplorerProvider.getChildren();
                 allChildren.length.should.equal(3);
 
-                const channels: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
 
-                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelOne);
+                const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
 
                 const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
 
-                const contractsOne: Array<ContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<ContractTreeItem>;
+                const contractsOne: Array<ContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<ContractTreeItem>;
 
-                const transactionsOneMyContract: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(contractsOne[0]) as Array<TransactionTreeItem>;
+                const transactionsOneMyContract: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(contractsOne[0]) as Array<TransactionTreeItem>;
 
                 transactionsOneMyContract.length.should.equal(2);
                 transactionsOneMyContract[0].label.should.equal('tradeBiscuits');
@@ -947,7 +947,7 @@ describe('BlockchainNetworkExplorer', () => {
                 transactionsOneMyContract[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 transactionsOneMyContract[1].contractName.should.equal('my-contract');
 
-                const transactionsOneSomeOtherContract: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(contractsOne[1]) as Array<TransactionTreeItem>;
+                const transactionsOneSomeOtherContract: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(contractsOne[1]) as Array<TransactionTreeItem>;
                 transactionsOneSomeOtherContract.length.should.equal(2);
                 transactionsOneSomeOtherContract[0].label.should.equal('shortbread');
                 transactionsOneSomeOtherContract[0].chaincodeName.should.equal('biscuit-network');
@@ -962,7 +962,7 @@ describe('BlockchainNetworkExplorer', () => {
 
                 const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
 
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelTwo);
+                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
 
                 const instantiatedChaincodeItemTwo: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
@@ -990,9 +990,9 @@ describe('BlockchainNetworkExplorer', () => {
 
         it('should test the tree is refreshed when the refresh command is run', async () => {
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
 
@@ -1003,9 +1003,9 @@ describe('BlockchainNetworkExplorer', () => {
 
             const mockTreeItem: sinon.SinonStubbedInstance<GatewayTreeItem> = sinon.createStubInstance(GatewayTreeItem);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS, mockTreeItem);
 
@@ -1029,15 +1029,15 @@ describe('BlockchainNetworkExplorer', () => {
 
         it('should set the current client connection', async () => {
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
             const myConnection: TestFabricConnection = new TestFabricConnection();
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            await blockchainNetworkExplorerProvider.connect(myConnection);
+            await blockchainGatewayExplorerProvider.connect(myConnection);
 
             onDidChangeTreeDataSpy.should.have.been.called;
 
@@ -1063,13 +1063,13 @@ describe('BlockchainNetworkExplorer', () => {
         it('should disconnect the client connection', async () => {
             const myConnection: TestFabricConnection = new TestFabricConnection();
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainNetworkExplorerProvider['_onDidChangeTreeData'], 'fire');
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            await blockchainNetworkExplorerProvider.disconnect();
+            await blockchainGatewayExplorerProvider.disconnect();
 
             onDidChangeTreeDataSpy.should.have.been.called;
 
@@ -1110,10 +1110,10 @@ describe('BlockchainNetworkExplorer', () => {
 
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
-            const result: GatewayTreeItem = blockchainNetworkExplorerProvider.getTreeItem(allChildren[1]) as GatewayTreeItem;
+            const result: GatewayTreeItem = blockchainGatewayExplorerProvider.getTreeItem(allChildren[1]) as GatewayTreeItem;
 
             result.label.should.equal('myGateway');
         });
@@ -1151,9 +1151,9 @@ describe('BlockchainNetworkExplorer', () => {
             mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(false);
             mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const gateway: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
-            const allChildren: Array<GatewayPropertyTreeItem> = await blockchainNetworkExplorerProvider.getChildren(gateway[1]) as Array<GatewayPropertyTreeItem>;
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const gateway: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
+            const allChildren: Array<GatewayPropertyTreeItem> = await blockchainGatewayExplorerProvider.getChildren(gateway[1]) as Array<GatewayPropertyTreeItem>;
             allChildren.length.should.equal(2);
             allChildren[0].label.should.equal('+ Connection Profile');
             allChildren[0].should.be.an.instanceOf(GatewayPropertyTreeItem);
@@ -1162,7 +1162,7 @@ describe('BlockchainNetworkExplorer', () => {
             allChildren[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
             allChildren[1].should.be.an.instanceOf(GatewayPropertyTreeItem);
 
-            const walletChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[1] as GatewayPropertyTreeItem);
+            const walletChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[1] as GatewayPropertyTreeItem);
             walletChildren.length.should.equal(1);
             walletChildren[0].label.should.equal('+ Identity');
             walletChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -1179,12 +1179,12 @@ describe('BlockchainNetworkExplorer', () => {
 
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-            const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorer: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
             mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);
 
-            const elements: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren();
-            const gatewayChildren: GatewayPropertyTreeItem[] = await blockchainNetworkExplorer.getChildren(elements[1]) as GatewayPropertyTreeItem[];
+            const elements: BlockchainTreeItem[] = await blockchainGatewayExplorer.getChildren();
+            const gatewayChildren: GatewayPropertyTreeItem[] = await blockchainGatewayExplorer.getChildren(elements[1]) as GatewayPropertyTreeItem[];
 
             gatewayChildren.length.should.equal(2);
             gatewayChildren[0].label.should.equal('✓ Connection Profile');
@@ -1194,7 +1194,7 @@ describe('BlockchainNetworkExplorer', () => {
             gatewayChildren[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
             gatewayChildren[1].should.be.an.instanceOf(GatewayPropertyTreeItem);
 
-            const walletChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorer.getChildren(gatewayChildren[1] as GatewayPropertyTreeItem);
+            const walletChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorer.getChildren(gatewayChildren[1] as GatewayPropertyTreeItem);
             walletChildren.length.should.equal(1);
             walletChildren[0].label.should.equal('+ Identity');
             walletChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -1211,12 +1211,12 @@ describe('BlockchainNetworkExplorer', () => {
 
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
-            const blockchainNetworkExplorer: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorer: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(false);
             mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(true);
 
-            const elements: BlockchainTreeItem[] = await blockchainNetworkExplorer.getChildren();
-            const gatewayChildren: GatewayPropertyTreeItem[] = await blockchainNetworkExplorer.getChildren(elements[1]) as GatewayPropertyTreeItem[];
+            const elements: BlockchainTreeItem[] = await blockchainGatewayExplorer.getChildren();
+            const gatewayChildren: GatewayPropertyTreeItem[] = await blockchainGatewayExplorer.getChildren(elements[1]) as GatewayPropertyTreeItem[];
 
             gatewayChildren[0].label.should.equal('+ Connection Profile');
             gatewayChildren[0].should.be.an.instanceOf(GatewayPropertyTreeItem);

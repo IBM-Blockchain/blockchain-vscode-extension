@@ -111,7 +111,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 path: 'some/path',
                 version: '0.0.1'
             });
-            commandStub.withArgs('blockchainExplorer.connectEntry', sinon.match.any);
+            commandStub.withArgs(ExtensionCommands.CONNECT, sinon.match.any);
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();

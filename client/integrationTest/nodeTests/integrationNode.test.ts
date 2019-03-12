@@ -236,7 +236,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 installedSmartContract.should.not.be.null;
 
-                allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+                allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
@@ -244,11 +244,11 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren[1].label.should.equal(`Using ID: ${otherUserName}`);
                 allChildren[2].label.should.equal('Channels');
 
-                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(1);
                 channels[0].label.should.equal('mychannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.2`;
@@ -313,7 +313,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await integrationTestUtil.connectToFabric('local_fabric');
 
-                allChildren = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+                allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
@@ -374,7 +374,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await fabricConnection.instantiateChaincode(smartContractName, '0.0.1', 'mychannel', 'instantiate', []);
 
-                const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+                const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
@@ -382,12 +382,12 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren[1].label.should.equal('Using ID: greenConga');
                 allChildren[2].label.should.equal('Channels');
 
-                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
 
-                let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
+                let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
                 let instantiatedSmartContract: InstantiatedContractTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
@@ -411,19 +411,19 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 // Connect to myGateway
                 await integrationTestUtil.connectToFabric('myGateway');
-                const newConnectedGateway: Array<BlockchainTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren();
+                const newConnectedGateway: Array<BlockchainTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
                 newConnectedGateway.length.should.equal(3);
 
                 newConnectedGateway[0].label.should.equal('Connected via gateway: myGateway');
                 newConnectedGateway[1].label.should.equal('Using ID: greenConga');
                 newConnectedGateway[2].label.should.equal('Channels');
 
-                const newChannels: Array<ChannelTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
+                const newChannels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
                 newChannels.length.should.equal(2);
                 newChannels[0].label.should.equal('mychannel');
                 newChannels[1].label.should.equal('myotherchannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainNetworkExplorerProvider().getChildren(newChannels[0]) as Array<InstantiatedContractTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newChannels[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
@@ -433,7 +433,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 // Should now be able to delete the gateway
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
-                const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainNetworkExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+                const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
                 const myGatewayItem: GatewayTreeItem = gatewayItems.find((value: BlockchainTreeItem) => value instanceof GatewayTreeItem && value.label.startsWith('myGateway')) as GatewayTreeItem;
 
                 mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);

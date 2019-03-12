@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { TestUtil } from '../TestUtil';
-import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
+import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -30,7 +30,7 @@ chai.use(sinonChai);
 chai.should();
 
 // tslint:disable no-unused-expression
-describe('BlockchainPackageExplorer', () => {
+describe('packageExplorer', () => {
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;

@@ -25,7 +25,7 @@ import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
@@ -60,7 +60,7 @@ describe('SubmitTransactionCommand', () => {
         let reporterStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
-        let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
+        let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -126,9 +126,9 @@ describe('SubmitTransactionCommand', () => {
             registryEntry.managedRuntime = false;
             mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-            blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            allChildren = await blockchainNetworkExplorerProvider.getChildren();
+            allChildren = await blockchainGatewayExplorerProvider.getChildren();
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
@@ -209,12 +209,12 @@ describe('SubmitTransactionCommand', () => {
         it('should submit transaction through the tree (transaction item)', async () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
-            const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
+            const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            const instantiatedChainCodes: Array<InstantiatedContractTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
+            const instantiatedChainCodes: Array<InstantiatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
 
-            const transactions: Array<TransactionTreeItem> = await blockchainNetworkExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<TransactionTreeItem>;
+            const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<TransactionTreeItem>;
             transactions.length.should.equal(3);
 
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, transactions[0]);
@@ -231,9 +231,9 @@ describe('SubmitTransactionCommand', () => {
 
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
-            const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
+            const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
 
             showInputBoxStub.onFirstCall().resolves('transaction1');
@@ -253,9 +253,9 @@ describe('SubmitTransactionCommand', () => {
 
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
-            const channelChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
+            const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainNetworkExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
+            const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
 
             showInputBoxStub.onFirstCall().resolves();

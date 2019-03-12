@@ -15,14 +15,13 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
+import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as myExtension from '../../src/extension';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { TestUtil } from '../TestUtil';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';

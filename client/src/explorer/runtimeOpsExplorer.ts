@@ -15,7 +15,6 @@
 // tslint:disable max-classes-per-file
 'use strict';
 import * as vscode from 'vscode';
-
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PeerTreeItem } from './runtimeOps/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
@@ -139,7 +138,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 connection,
                 vscode.TreeItemCollapsibleState.None,
                 {
-                    command: 'blockchainARuntimeExplorer.startFabricRuntime',
+                    command: ExtensionCommands.START_FABRIC,
                     title: '',
                     arguments: []
                 });

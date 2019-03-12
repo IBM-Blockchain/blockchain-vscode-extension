@@ -24,7 +24,7 @@ import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRe
 import { TestUtil } from './TestUtil';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { Reporter } from '../src/util/Reporter';
-import { BlockchainNetworkExplorerProvider } from '../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../src/explorer/gatewayExplorer';
 import { SampleView } from '../src/webview/SampleView';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../src/logging/OutputAdapter';
@@ -69,13 +69,13 @@ describe('Extension Tests', () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
         const commands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('blockchain') || command.startsWith('extensionHome');
+            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome');
         });
 
         commands.should.deep.equal([
-            'blockchainAPackageExplorer.focus',
-            'blockchainARuntimeExplorer.focus',
-            'blockchainExplorer.focus',
+            'aPackagesExplorer.focus',
+            'aRuntimeOpsExplorer.focus',
+            'gatewaysExplorer.focus',
             ExtensionCommands.REFRESH_GATEWAYS,
             ExtensionCommands.CONNECT,
             ExtensionCommands.DISCONNECT,
@@ -120,14 +120,18 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.CONNECT}`,
             `onCommand:${ExtensionCommands.DISCONNECT}`,
             `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
+            `onCommand:${ExtensionCommands.EDIT_GATEWAY}`,
+            `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
+            `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
             `onCommand:${ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT}`,
-            `onCommand:${ExtensionCommands.INSTALL_SMART_CONTRACT}`,
-            `onCommand:${ExtensionCommands.INSTANTIATE_SMART_CONTRACT}`,
-            `onCommand:${ExtensionCommands.REFRESH_PACKAGES}`,
             `onCommand:${ExtensionCommands.PACKAGE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.DELETE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.EXPORT_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.IMPORT_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.REFRESH_PACKAGES}`,
+            `onCommand:${ExtensionCommands.INSTALL_SMART_CONTRACT}`,
+            `onCommand:${ExtensionCommands.INSTANTIATE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.REFRESH_LOCAL_OPS}`,
             `onCommand:${ExtensionCommands.START_FABRIC}`,
             `onCommand:${ExtensionCommands.STOP_FABRIC}`,
@@ -136,10 +140,6 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.TOGGLE_FABRIC_DEV_MODE}`,
             `onCommand:${ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL}`,
             `onCommand:${ExtensionCommands.EXPORT_CONNECTION_DETAILS}`,
-            `onCommand:${ExtensionCommands.EDIT_GATEWAY}`,
-            `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
-            `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
-            `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
@@ -150,7 +150,7 @@ describe('Extension Tests', () => {
     it('should refresh the tree when a connection is added', async () => {
         await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
 
-        const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+        const treeDataProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
         const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
@@ -174,7 +174,7 @@ describe('Extension Tests', () => {
 
         await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
 
-        const treeDataProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+        const treeDataProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
         const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 

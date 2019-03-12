@@ -21,8 +21,9 @@ nls.config({ messageFormat: nls.MessageFormat.both })();
 
 import * as vscode from 'vscode';
 import { Reporter } from './util/Reporter';
-import { BlockchainNetworkExplorerProvider } from './explorer/BlockchainNetworkExplorer';
-import { BlockchainPackageExplorerProvider } from './explorer/BlockchainPackageExplorer';
+import { BlockchainGatewayExplorerProvider } from './explorer/gatewayExplorer';
+import { BlockchainPackageExplorerProvider } from './explorer/packageExplorer';
+import { BlockchainRuntimeExplorerProvider } from './explorer/runtimeOpsExplorer';
 import { addGateway } from './commands/addGatewayCommand';
 import { deleteGateway } from './commands/deleteGatewayCommand';
 import { addGatewayIdentity } from './commands/addGatewayIdentityCommand';
@@ -61,7 +62,6 @@ import { createNewIdentity } from './commands/createNewIdentityCommand';
 import { LogType } from './logging/OutputAdapter';
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
-import { BlockchainRuntimeExplorerProvider } from './explorer/BlockchainRuntimeExplorer';
 import { FabricGatewayRegistryEntry } from './fabric/FabricGatewayRegistryEntry';
 import { GatewayPropertyTreeItem } from './explorer/model/GatewayPropertyTreeItem';
 import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
@@ -73,7 +73,7 @@ import { FabricGoDebugConfigurationProvider } from './debug/FabricGoDebugConfigu
 import { importSmartContractPackageCommand } from './commands/importSmartContractPackageCommand';
 import { CertificateAuthorityTreeItem } from './explorer/runtimeOps/CertificateAuthorityTreeItem';
 
-let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
+let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
 
@@ -165,7 +165,7 @@ export async function deactivate(): Promise<void> {
  * Should only be called outside this file in tests
  */
 export async function registerCommands(context: vscode.ExtensionContext): Promise<void> {
-    blockchainNetworkExplorerProvider = new BlockchainNetworkExplorerProvider();
+    blockchainGatewayExplorerProvider = new BlockchainGatewayExplorerProvider();
     blockchainPackageExplorerProvider = new BlockchainPackageExplorerProvider();
     blockchainRuntimeExplorerProvider = new BlockchainRuntimeExplorerProvider();
 
@@ -176,10 +176,10 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:go', goDebugProvider));
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainExplorer', blockchainNetworkExplorerProvider));
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainARuntimeExplorer', blockchainRuntimeExplorerProvider));
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('blockchainAPackageExplorer', blockchainPackageExplorerProvider));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_GATEWAYS, (element: BlockchainTreeItem) => blockchainNetworkExplorerProvider.refresh(element)));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('gatewaysExplorer', blockchainGatewayExplorerProvider));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('aRuntimeOpsExplorer', blockchainRuntimeExplorerProvider));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_GATEWAYS, (element: BlockchainTreeItem) => blockchainGatewayExplorerProvider.refresh(element)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT, (gateway: FabricGatewayRegistryEntry, identityName: string) => connect(gateway, identityName)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT, () => FabricConnectionManager.instance().disconnect()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY, addGateway));
@@ -259,8 +259,8 @@ function disposeExtension(context: vscode.ExtensionContext): void {
 /*
  * Needed for testing
  */
-export function getBlockchainNetworkExplorerProvider(): BlockchainNetworkExplorerProvider {
-    return blockchainNetworkExplorerProvider;
+export function getBlockchainGatewayExplorerProvider(): BlockchainGatewayExplorerProvider {
+    return blockchainGatewayExplorerProvider;
 }
 
 export function getBlockchainRuntimeExplorerProvider(): BlockchainRuntimeExplorerProvider {

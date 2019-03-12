@@ -24,7 +24,7 @@ import { PackageTreeItem } from '../../src/explorer/model/PackageTreeItem';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainPackageExplorerProvider } from '../../src/explorer/BlockchainPackageExplorer';
+import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
