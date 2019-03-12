@@ -319,7 +319,7 @@
             },
             {
                 "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
-                "title": "Create Identity (register and enroll)",
+                "title": "Create New Identity",
                 "category": "IBM Blockchain Platform"
             }
         ],
@@ -513,6 +513,10 @@
                 {
                     "command": "gatewaysExplorer.evaluateTransactionEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.upgradeSmartContractEntry",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.createNewIdentityEntry",

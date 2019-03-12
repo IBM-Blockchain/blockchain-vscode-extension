@@ -479,14 +479,6 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 installedSmartContract.should.not.be.null;
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
-
-                // Try to add new identity to gateway using enrollment id and secret
-                await integrationTestUtil.createFabricConnection();
-                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
-                await integrationTestUtil.addIdentityToGateway('admin', 'adminpw'); // Unlimited enrollments
-                const gateways: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
-                const gateway: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(gateways[1]) as Array<GatewayTreeItem>;
-                gateway[1].label.should.equal('redConga');
             }).timeout(0);
         });
     });
@@ -523,9 +515,8 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             localFabricChildren[0].label.should.equal('Admin@org1.example.com');
 
             const otherChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[1]) as Array<GatewayIdentityTreeItem>;
-            otherChildren.length.should.equal(2);
+            otherChildren.length.should.equal(1);
             otherChildren[0].label.should.equal('greenConga');
-            otherChildren[1].label.should.equal('redConga');
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
     });

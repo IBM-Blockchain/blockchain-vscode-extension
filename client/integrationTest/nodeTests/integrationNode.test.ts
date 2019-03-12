@@ -41,8 +41,12 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 
+const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -378,7 +382,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren[1].label.should.equal('Using ID: greenConga');
                 allChildren[2].label.should.equal('Channels');
 
-                let channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
@@ -414,25 +418,18 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 newConnectedGateway[1].label.should.equal('Using ID: greenConga');
                 newConnectedGateway[2].label.should.equal('Channels');
 
-                channels = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
-                channels.length.should.equal(2);
-                channels[0].label.should.equal('mychannel');
-                channels[1].label.should.equal('myotherchannel');
+                const newChannels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
+                newChannels.length.should.equal(2);
+                newChannels[0].label.should.equal('mychannel');
+                newChannels[1].label.should.equal('myotherchannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newChannels[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 instantiatedSmartContract.should.not.be.null;
-
-                // Try to add new identity to gateway using enrollment id and secret
-                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
-                await integrationTestUtil.addIdentityToGateway('admin', 'adminpw'); // Unlimited enrollments
-                const gateways: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
-                const gateway: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(gateways[1]) as Array<GatewayTreeItem>;
-                gateway[1].label.should.equal('redConga');
 
                 // Should now be able to delete the gateway
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);

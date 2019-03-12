@@ -438,12 +438,11 @@ describe('gatewayExplorer', () => {
                 logSpy.should.have.been.calledWith(LogType.ERROR, `cannot connect`);
             });
 
-            it('should error if createChannelMap fails', async () => {
+            it('should error if getAllChannelsForPeer fails', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.createChannelMap.callThrough();
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
@@ -469,7 +468,6 @@ describe('gatewayExplorer', () => {
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.createChannelMap.callThrough();
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
@@ -567,18 +565,11 @@ describe('gatewayExplorer', () => {
                     }
                 );
 
-                const map: Map<string, Array<string>> = new Map<string, Array<string>>();
-                map.set('channelOne', ['peerOne']);
-                map.set('channelTwo', ['peerOne', 'peerTwo']);
-
-                fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
-                fabricConnection.createChannelMap.resolves(map);
-
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);
 
                 blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-                mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
+                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
 
                 registryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
@@ -1070,6 +1061,8 @@ describe('gatewayExplorer', () => {
         });
 
         it('should disconnect the client connection', async () => {
+            const myConnection: TestFabricConnection = new TestFabricConnection();
+
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
