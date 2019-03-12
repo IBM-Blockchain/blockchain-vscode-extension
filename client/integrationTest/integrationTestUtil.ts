@@ -337,19 +337,19 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
 
-    public async generateSmartContractTests(name: string, version: string, language: string, gatewayConnectionName: string): Promise<void> {
+    public async generateSmartContractTests(name: string, version: string, language: string, gatewayName: string): Promise<void> {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayConnectionName);
+            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
-            gatewayEntry.name = gatewayConnectionName;
+            gatewayEntry.name = gatewayName;
             gatewayEntry.managedRuntime = true;
         }
 
         this.showGatewayQuickPickStub.resolves({
-            label: gatewayConnectionName,
+            label: gatewayName,
             data: gatewayEntry
         });
 

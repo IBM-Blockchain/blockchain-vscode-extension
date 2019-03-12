@@ -49,7 +49,6 @@ describe('FabricWalletGenerator', () => {
             pathExistsStub.resolves(false);
 
             const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
-            wallet.connectionName.should.equal('CongaConnection');
             wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
             ensureDirStub.should.have.been.calledOnce;
 
@@ -59,7 +58,6 @@ describe('FabricWalletGenerator', () => {
             pathExistsStub.resolves(true);
 
             const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
-            wallet.connectionName.should.equal('CongaConnection');
             wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
             ensureDirStub.should.not.have.been.called;
 
@@ -69,9 +67,8 @@ describe('FabricWalletGenerator', () => {
     describe('getNewWallet', () => {
         it('should get a new wallet', () => {
             const walletPath: string = path.join(rootPath, '../../test/data/walletDir/myWallet/wallet');
-            const wallet: FabricWallet = FabricWalletGenerator.instance().getNewWallet('myWallet', walletPath);
+            const wallet: FabricWallet = FabricWalletGenerator.instance().getNewWallet(walletPath);
 
-            wallet.connectionName.should.equal('myWallet');
             wallet.walletPath.should.equal(walletPath);
         });
     });

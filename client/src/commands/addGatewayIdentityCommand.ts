@@ -17,6 +17,7 @@ import * as fs from 'fs-extra';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
@@ -24,113 +25,72 @@ import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
-import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 
-export async function addGatewayIdentity(gatewayItem: GatewayTreeItem | FabricGatewayRegistryEntry): Promise<{} | void | FabricGatewayRegistryEntry> {
+export async function addGatewayIdentity(gatewayItem: GatewayTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     outputAdapter.log(LogType.INFO, undefined, 'addGatewayIdentity');
 
-    if (gatewayItem instanceof GatewayTreeItem) {
+    if (gatewayItem) {
         gatewayRegistryEntry = gatewayItem.gateway;
-    } else if (!gatewayItem) {
+    } else {
         const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to add an identity to', false);
         if (!chosenEntry) {
             return;
         }
 
         gatewayRegistryEntry = chosenEntry.data;
-    } else {
-        gatewayRegistryEntry = gatewayItem;
     }
 
-    if (gatewayItem instanceof GatewayTreeItem || !gatewayItem) {
-        if (!FabricGatewayHelper.isCompleted(gatewayRegistryEntry)) {
-            outputAdapter.log(LogType.ERROR, 'Blockchain gateway must be completed first!');
-            return;
-        }
-    }
-
-    const identity: {identityName: string, mspid: string} = {
-        identityName: '',
-        mspid: ''
-    };
-
-    // Ask for an identity name
-    identity.identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
-    if (!identity.identityName) {
-        return Promise.resolve();
-    }
-
-    let certificate: string;
-    let privateKey: string;
-    let certificatePath: string;
-    let privateKeyPath: string;
-
-    // User selects if they want to add an identity using either a cert/key or an id/secret
-    const addIdentityMethod: string = await UserInputUtil.addIdentityMethod();
-    if (!addIdentityMethod) {
-        return Promise.resolve();
-    }
-    const mspID: string = await UserInputUtil.showInputBox('Enter MSP ID');
-    if (!mspID) {
-        // User cancelled entering mspid
-        return Promise.resolve();
-    }
-
-    if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
-        // User wants to add an identity by providing a certificate and private key
-        const certKey: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey(gatewayRegistryEntry.name);
-        if (!certKey) {
-            return Promise.resolve();
-        }
-        certificatePath = certKey.certificatePath;
-        privateKeyPath = certKey.privateKeyPath;
-    } else {
-        // User wants to add an identity by providing a enrollment id and secret
-        const enrollIdSecret: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
-        if (!enrollIdSecret) {
-            return Promise.resolve();
-        }
-
-        const enrollmentID: string = enrollIdSecret.enrollmentID;
-        const enrollmentSecret: string = enrollIdSecret.enrollmentSecret;
-
-        const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
-
-        const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
-        certificate = enrollment.certificate;
-        privateKey = enrollment.privateKey;
-    }
-
-    // Create a local wallet and import that identity
-    const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-
-    let wallet: IFabricWallet;
-    if (gatewayItem instanceof FabricGatewayRegistryEntry) {
-        wallet = await fabricWalletGenerator.createLocalWallet(gatewayRegistryEntry.name);
-    } else {
-        wallet = fabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
-    }
-
-    if (certificatePath && privateKeyPath) {
-        certificate = await fs.readFile(certificatePath, 'utf8');
-        privateKey = await fs.readFile(privateKeyPath, 'utf8');
-    }
-    // Else certificate and privateKey have already been read in FabricCertificateAuthority.enroll
-
-    try {
-        await wallet.importIdentity(certificate, privateKey, identity.identityName, mspID);
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Unable to add identity to gateway: ${error.message}`, `Unable to add identity to gateway: ${error.toString()}`);
+    if (!FabricGatewayHelper.isCompleted(gatewayRegistryEntry)) {
+        outputAdapter.log(LogType.ERROR, 'Blockchain gateway must be completed first!');
         return;
     }
 
-    if (gatewayItem instanceof FabricGatewayRegistryEntry) {
-        gatewayRegistryEntry.walletPath = wallet.getWalletPath();
-        return gatewayRegistryEntry;
+    // Get the name of the identity
+    const identityName: string = await UserInputUtil.showInputBox('Provide a name for the identity');
+    if (!identityName) {
+        return Promise.resolve();
     }
+
+    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    const openDialogOptions: vscode.OpenDialogOptions = {
+        canSelectFiles: true,
+        canSelectFolders: false,
+        canSelectMany: false,
+        openLabel: 'Select',
+        filters: undefined
+    };
+
+    // Get the certificate file path
+    const certPath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, gatewayRegistryEntry.name) as string;
+    if (!certPath) {
+        return Promise.resolve();
+    }
+    ParsedCertificate.validPEM(certPath, 'certificate');
+    const keyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, gatewayRegistryEntry.name) as string;
+    if (!keyPath) {
+        return Promise.resolve();
+    }
+    // Get the private key file path
+    ParsedCertificate.validPEM(keyPath, 'private key');
+
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(gatewayRegistryEntry.name);
+    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+    const wallet: IFabricWallet = FabricWalletGenerator.getNewWallet(fabricWalletRegistryEntry.walletPath);
+
+    const certificate: string = await fs.readFile(certPath, 'utf8');
+    const privateKey: string = await fs.readFile(keyPath, 'utf8');
+
+    const mspid: string = await UserInputUtil.showInputBox('Enter a mspid');
+    if (!mspid) {
+        // User cancelled entering mspid
+        return;
+    }
+
+    await wallet.importIdentity(certificate, privateKey, identityName, mspid);
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway '${gatewayRegistryEntry.name}'`);
 }

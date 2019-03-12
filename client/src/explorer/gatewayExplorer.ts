@@ -31,6 +31,8 @@ import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { IFabricWallet } from '../fabric/IFabricWallet';
@@ -126,7 +128,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     }
                 }
 
-                if (element instanceof ConnectedTreeItem && element.connectionName === 'Channels') {
+                if (element instanceof ConnectedTreeItem && element.label === 'Channels') {
                     try {
                         this.tree = await this.getChannelsTree();
                     } catch (error) {
@@ -343,7 +345,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         const tree: Array<GatewayIdentityTreeItem> = [];
 
         // get identityNames in the wallet
-        const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.name, element.gateway.walletPath);
+        const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.walletPath);
         const identityNames: string[] = await wallet.getIdentityNames();
 
         for (const identityName of identityNames) {

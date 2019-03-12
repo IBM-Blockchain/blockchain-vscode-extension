@@ -86,12 +86,14 @@ describe('userInputUtil', () => {
 
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
-        // await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
-        // await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     beforeEach(async () => {

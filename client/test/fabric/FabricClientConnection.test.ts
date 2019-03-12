@@ -73,7 +73,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = gatewayStub;
 
-            wallet = new FabricWallet('myConnection', connectionData.walletPath);
+            wallet = new FabricWallet(connectionData.walletPath);
         });
 
         it('should connect to a fabric', async () => {
@@ -98,7 +98,7 @@ describe('FabricClientConnection', () => {
             connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection.yaml'),
             walletPath: path.join(rootPath, '../../test/data/connectionYaml/wallet')
         };
-        wallet = new FabricWallet('myConnection', connectionYamlData.walletPath);
+        wallet = new FabricWallet(connectionYamlData.walletPath);
         fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionYamlData) as FabricClientConnection;
         fabricClientConnectionYaml['gateway'] = gatewayStub;
 
@@ -113,7 +113,7 @@ describe('FabricClientConnection', () => {
             connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/otherConnectionProfile.yml'),
             walletPath: path.join(rootPath, '../../test/data/connectionYaml/wallet')
         };
-        wallet = new FabricWallet('myConnection', otherConnectionYmlData.walletPath);
+        wallet = new FabricWallet(otherConnectionYmlData.walletPath);
         otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
         otherFabricClientConnectionYml['gateway'] = gatewayStub;
 
@@ -129,7 +129,7 @@ describe('FabricClientConnection', () => {
             connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
             walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
         };
-        wallet = new FabricWallet('myConnection', connectionData.walletPath);
+        wallet = new FabricWallet(connectionData.walletPath);
         fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
         fabricClientConnection['gateway'] = gatewayStub;
 
@@ -146,7 +146,7 @@ describe('FabricClientConnection', () => {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionYaml/connection'),
                 walletPath: path.join(rootPath, '../../test/data/connectionYaml/wallet')
             };
-            wallet = new FabricWallet('myConnection', connectionWrongData.walletPath);
+            wallet = new FabricWallet(connectionWrongData.walletPath);
             fabricClientConnectionWrong = FabricConnectionFactory.createFabricClientConnection(connectionWrongData) as FabricClientConnection;
             fabricClientConnectionWrong['gateway'] = gatewayStub;
 

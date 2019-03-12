@@ -36,10 +36,12 @@ describe('DeleteGatewayCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
+        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     describe('deleteGateway', () => {
@@ -50,14 +52,17 @@ describe('DeleteGatewayCommand', () => {
         let gateways: Array<any>;
         let myGatewayA: any;
         let myGatewayB: any;
+        let walletA: any;
+        let walletB: any;
         const rootPath: string = path.dirname(__dirname);
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
 
-            // reset the available gateways
+            // reset the available gateways and wallets
             await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
 
             gateways = [];
 
@@ -76,6 +81,18 @@ describe('DeleteGatewayCommand', () => {
             gateways.push(myGatewayB);
 
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
+
+            walletA = {
+                name: 'myGatewayA',
+                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+            };
+
+            walletB = {
+                name: 'myGatewayB',
+                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+            };
+
+            await vscode.workspace.getConfiguration().update('fabric.wallets', [walletA, walletB], vscode.ConfigurationTarget.Global);
 
             quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myGatewayB',
@@ -135,17 +152,21 @@ describe('DeleteGatewayCommand', () => {
 
         it('should delete the wallet and local connection directory if the extension owns the wallet directory', async () => {
 
-            const myConnectionC: any = {
-                name: 'myConnectionC',
+            const myGatewayC: any = {
+                name: 'myGatewayC',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                walletPath: 'fabric-vscode/myConnectionC/wallet'
+                walletPath: 'fabric-vscode/myGatewayC/wallet'
             };
-            gateways.push(myConnectionC);
+            gateways.push(myGatewayC);
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update('fabric.wallets', [{
+                walletPath: myGatewayC.walletPath,
+                name: myGatewayC.name
+            }], vscode.ConfigurationTarget.Global);
 
             quickPickStub.resolves({
-                label: 'myConnectionC',
-                data: FabricGatewayRegistry.instance().get('myConnectionC')
+                label: 'myGatewayC',
+                data: FabricGatewayRegistry.instance().get('myGatewayC')
             });
 
             const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves('fabric-vscode');
@@ -158,7 +179,7 @@ describe('DeleteGatewayCommand', () => {
             gateways[1].should.deep.equal(myGatewayB);
 
             getDirPathStub.should.have.been.calledOnce;
-            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'myConnectionC'));
+            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'myGatewayC'));
 
         });
     });

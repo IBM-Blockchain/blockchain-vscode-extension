@@ -17,13 +17,11 @@ import { IFabricWallet} from './IFabricWallet';
 
 export class FabricWallet extends FileSystemWallet implements IFabricWallet {
 
-    public connectionName: string;
     public walletPath: string;
 
-    constructor(connectionName: string, walletPath: string) {
+    constructor(walletPath: string) {
         super(walletPath);
         this.walletPath = walletPath;
-        this.connectionName = connectionName;
     }
 
     public async importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void> {
