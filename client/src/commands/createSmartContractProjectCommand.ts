@@ -72,7 +72,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
 
     let smartContractLanguageOptions: string[];
     let smartContractLanguage: string;
-    outputAdapter.log(LogType.INFO, 'Getting smart contract languages...');
+    
     try {
         smartContractLanguageOptions = await getSmartContractLanguageOptionsWithProgress();
     } catch (error) {
