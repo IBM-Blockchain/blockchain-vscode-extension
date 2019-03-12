@@ -15,9 +15,9 @@
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { getBlockchainNetworkExplorerProvider } from '../../../src/extension';
+import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { LocalGatewayTreeItem } from '../../../src/explorer/model/LocalGatewayTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../src/fabric/FabricRuntime';
 import { FabricGatewayRegistry } from '../../../src/fabric/FabricGatewayRegistry';
@@ -37,7 +37,7 @@ describe('LocalGatewayTreeItem', () => {
 
     let sandbox: sinon.SinonSandbox;
     let clock: sinon.SinonFakeTimers;
-    let provider: BlockchainNetworkExplorerProvider;
+    let provider: BlockchainGatewayExplorerProvider;
     let localGateway: FabricRuntime;
 
     before(async () => {
@@ -60,7 +60,7 @@ describe('LocalGatewayTreeItem', () => {
         connection.name = 'local_fabric';
         connection.managedRuntime = true;
 
-        provider = getBlockchainNetworkExplorerProvider();
+        provider = getBlockchainGatewayExplorerProvider();
         await runtimeManager.add();
         localGateway = runtimeManager.getRuntime();
         sandbox = sinon.createSandbox();

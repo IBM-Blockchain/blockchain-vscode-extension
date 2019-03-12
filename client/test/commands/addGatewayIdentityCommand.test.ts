@@ -25,7 +25,7 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -102,11 +102,11 @@ describe('AddGatewayIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
             gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
             identities[2].command.command.should.equal(ExtensionCommands.CONNECT);
@@ -117,11 +117,11 @@ describe('AddGatewayIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
             gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -134,11 +134,11 @@ describe('AddGatewayIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
             gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -154,11 +154,11 @@ describe('AddGatewayIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
             gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -175,11 +175,11 @@ describe('AddGatewayIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
             gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
 
@@ -191,14 +191,14 @@ describe('AddGatewayIdentityCommand', () => {
             browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'));
             browseEditStub.onSecondCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey'));
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
             const connectionToAddTo: GatewayTreeItem = allChildren[1] as GatewayTreeItem;
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, connectionToAddTo);
 
             connectionToAddTo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(connectionToAddTo);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(connectionToAddTo);
             identities.length.should.equal(3);
             identities[2].label.should.equal(identityName);
             identities[2].command.command.should.equal(ExtensionCommands.CONNECT);
@@ -236,11 +236,11 @@ describe('AddGatewayIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
             gatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
-            const identities: BlockchainTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(gatewayTreeItem);
+            const identities: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
             identities.length.should.equal(2);
         });
     });

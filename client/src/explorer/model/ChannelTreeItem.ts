@@ -15,7 +15,6 @@
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import * as vscode from 'vscode';
-import * as path from 'path';
 
 export class ChannelTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-channel-item';

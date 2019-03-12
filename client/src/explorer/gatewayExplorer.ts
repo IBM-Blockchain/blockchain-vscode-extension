@@ -42,7 +42,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
 
-export class BlockchainNetworkExplorerProvider implements BlockchainExplorerProvider {
+export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
     // only for testing so can get the updated tree
     public tree: Array<BlockchainTreeItem> = [];

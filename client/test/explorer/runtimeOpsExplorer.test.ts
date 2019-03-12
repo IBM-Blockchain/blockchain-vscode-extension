@@ -20,7 +20,7 @@ import * as sinonChai from 'sinon-chai';
 
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/BlockchainRuntimeExplorer';
+import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -58,7 +58,7 @@ class TestFabricConnection extends FabricConnection {
 }
 
 // tslint:disable no-unused-expression
-describe('BlockchainRuntimeExplorer', () => {
+describe('runtimeOpsExplorer', () => {
 
     before(async () => {
         await TestUtil.storeGatewaysConfig();
