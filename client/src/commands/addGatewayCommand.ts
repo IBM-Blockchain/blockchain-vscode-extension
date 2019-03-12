@@ -13,7 +13,6 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import {UserInputUtil} from './UserInputUtil';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -25,6 +24,8 @@ import * as fs from 'fs-extra';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -33,19 +34,24 @@ export async function addGateway(): Promise<{} | void> {
 
         let identityObject: any;
 
-        const connectionName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
-        if (!connectionName) {
+        const gatewayName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
+        if (!gatewayName) {
             return Promise.resolve();
         }
 
         // Create the connection immediately
         const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         fabricGatewayEntry.connectionProfilePath = FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT;
-        fabricGatewayEntry.name = connectionName;
+        fabricGatewayEntry.name = gatewayName;
         fabricGatewayEntry.walletPath = FabricGatewayHelper.WALLET_PATH_DEFAULT;
 
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         await fabricGatewayRegistry.add(fabricGatewayEntry);
+
+        const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+        fabricWalletRegistryEntry.name = fabricGatewayEntry.name;
+        await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
@@ -59,13 +65,13 @@ export async function addGateway(): Promise<{} | void> {
         };
 
         // Get the connection profile json file path
-        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, connectionName) as string;
+        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, gatewayName) as string;
         if (!connectionProfilePath) {
             return Promise.resolve();
         }
 
         // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
-        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(connectionName, connectionProfilePath);
+        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
         await fabricGatewayRegistry.update(fabricGatewayEntry);
 
         // Ask the user whether they want to provide a wallet or certficate and privateKey file paths
@@ -74,12 +80,13 @@ export async function addGateway(): Promise<{} | void> {
             // User cancelled, so do nothing
             return Promise.resolve();
         } else if (answer === UserInputUtil.CERT_KEY) {
-            identityObject = await getIdentity(connectionName);
+            identityObject = await getIdentity(gatewayName);
             if (!identityObject) {
                 // Either a certificate or private key wasn't given
                 return;
             }
-            await createWalletAndImport(fabricGatewayEntry, identityObject);
+
+            await createWalletAndImport(fabricGatewayEntry, identityObject, fabricWalletRegistryEntry);
 
             await fabricGatewayRegistry.update(fabricGatewayEntry);
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
@@ -90,12 +97,16 @@ export async function addGateway(): Promise<{} | void> {
             openDialogOptions.canSelectFiles = false;
             openDialogOptions.canSelectFolders = true;
             // User has a wallet - get the path
-            const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, connectionName) as string;
+            const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, gatewayName) as string;
             if (!walletPath) {
                 return Promise.resolve();
             }
             fabricGatewayEntry.walletPath = walletPath;
             await fabricGatewayRegistry.update(fabricGatewayEntry);
+
+            fabricWalletRegistryEntry.walletPath = walletPath;
+            await fabricWalletRegistry.update(fabricWalletRegistryEntry);
+
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
         }
     } catch (error) {
@@ -103,7 +114,7 @@ export async function addGateway(): Promise<{} | void> {
     }
 }
 
-async function getIdentity(connectionName: string): Promise<any> {
+async function getIdentity(gatewayName: string): Promise<any> {
     const result: any = {
         identityName: '',
         certificatePath: '',
@@ -126,14 +137,14 @@ async function getIdentity(connectionName: string): Promise<any> {
     };
 
     // Get the certificate file path
-    result.certificatePath = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, connectionName);
+    result.certificatePath = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, gatewayName);
     if (!result.certificatePath) {
         return Promise.resolve();
     }
     ParsedCertificate.validPEM(result.certificatePath, 'certificate');
 
     // Get the private key file path
-    result.privateKeyPath = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, connectionName);
+    result.privateKeyPath = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, gatewayName);
     if (!result.privateKeyPath) {
         return Promise.resolve();
     }
@@ -143,7 +154,7 @@ async function getIdentity(connectionName: string): Promise<any> {
 
 }
 
-async function createWalletAndImport(fabricGatewayEntry: FabricGatewayRegistryEntry, identityObject: any): Promise<void> {
+async function createWalletAndImport(fabricGatewayEntry: FabricGatewayRegistryEntry, identityObject: any, fabricWalletRegistryEntry: FabricWalletRegistryEntry): Promise<void> {
 
     let wallet: IFabricWallet;
 
@@ -165,5 +176,8 @@ async function createWalletAndImport(fabricGatewayEntry: FabricGatewayRegistryEn
         throw error;
     }
 
+    fabricWalletRegistryEntry.walletPath = wallet.getWalletPath();
+    const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+    await fabricWalletRegistry.update(fabricWalletRegistryEntry);
     fabricGatewayEntry.walletPath = wallet.getWalletPath();
 }

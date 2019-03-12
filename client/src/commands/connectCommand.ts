@@ -27,6 +27,8 @@ import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -84,7 +86,8 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
             walletPath: gatewayRegistryEntry.walletPath
         };
 
-        wallet = FabricWalletGenerator.getNewWallet(gatewayRegistryEntry.name, gatewayRegistryEntry.walletPath);
+        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(gatewayRegistryEntry.name);
+        wallet = FabricWalletGenerator.getNewWallet(fabricWalletRegistryEntry.walletPath);
 
         const identityNames: string[] = await wallet.getIdentityNames();
 

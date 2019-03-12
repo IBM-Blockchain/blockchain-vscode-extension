@@ -70,11 +70,13 @@ describe('gatewayExplorer', () => {
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     beforeEach(async () => {
@@ -155,7 +157,7 @@ describe('gatewayExplorer', () => {
                 getConnectionStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnection');
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-                testFabricWallet = new FabricWallet('local_fabric', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+                testFabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
                 mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
                 mySandBox.stub(testFabricWallet, 'getWalletPath').returns(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
                 mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves(['Admin@org1.example.com']);
@@ -1103,7 +1105,7 @@ describe('gatewayExplorer', () => {
 
             gateways.push(myGateway);
 
-            const testFabricWallet: FabricWallet = new FabricWallet('local_fabric', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
             mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testFabricWallet);
             mySandBox.stub(testFabricWallet, 'getWalletPath').returns(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
@@ -1126,7 +1128,7 @@ describe('gatewayExplorer', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            const testFabricWallet: FabricWallet = new FabricWallet('uncompletedGateway', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
             mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testFabricWallet);
             mySandBox.stub(testFabricWallet, 'getWalletPath').returns(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));

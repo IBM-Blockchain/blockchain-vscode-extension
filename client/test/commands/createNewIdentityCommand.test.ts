@@ -64,7 +64,7 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         caChoseStub = mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox').resolves('ca.name');
 
-        const testFabricWallet: FabricWallet = new FabricWallet('local_fabric', '/some/path');
+        const testFabricWallet: FabricWallet = new FabricWallet('/some/path');
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
         runtimeManager.gatewayWallet = testFabricWallet as IFabricWallet;

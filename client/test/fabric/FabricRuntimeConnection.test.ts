@@ -109,7 +109,7 @@ describe('FabricRuntimeConnection', () => {
         fabricRuntimeStub.getPrivateKey.resolves('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
         fabricRuntimeStub.getConnectionProfile.callThrough();
         fabricRuntimeStub.getCertificatePath.callThrough();
-        wallet = new FabricWallet('myConnection', walletPath);
+        wallet = new FabricWallet(walletPath);
 
         fabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection((fabricRuntimeStub as any) as FabricRuntime) as FabricRuntimeConnection;
 
