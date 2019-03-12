@@ -17,7 +17,7 @@
 import * as vscode from 'vscode';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
-import { GatewayIdentityTreeItem } from './model/GatewayIdentityTreeItem';
+import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { GatewayTreeItem } from './model/GatewayTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -373,10 +373,10 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         });
     }
 
-    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
+    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<IdentityTreeItem[]> {
         console.log('createConnectionIdentityTree', element);
 
-        const tree: Array<GatewayIdentityTreeItem> = [];
+        const tree: Array<IdentityTreeItem> = [];
 
         // get identityNames in the wallet
         const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.walletPath);
@@ -389,7 +389,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 arguments: [element.gateway, identityName]
             };
 
-            tree.push(new GatewayIdentityTreeItem(this, identityName, command));
+            tree.push(new IdentityTreeItem(this, identityName, command));
         }
 
         return tree;

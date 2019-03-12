@@ -69,13 +69,14 @@ describe('Extension Tests', () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
         const commands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome');
+            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer');
         });
 
         commands.should.deep.equal([
             'aPackagesExplorer.focus',
             'aRuntimeOpsExplorer.focus',
             'gatewaysExplorer.focus',
+            'walletExplorer.focus',
             ExtensionCommands.REFRESH_GATEWAYS,
             ExtensionCommands.CONNECT,
             ExtensionCommands.DISCONNECT,
@@ -104,6 +105,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.EVALUATE_TRANSACTION,
             ExtensionCommands.UPGRADE_SMART_CONTRACT,
             ExtensionCommands.CREATE_NEW_IDENTITY,
+            ExtensionCommands.REFRESH_WALLETS,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -142,6 +144,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.EXPORT_CONNECTION_DETAILS}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
+            `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);

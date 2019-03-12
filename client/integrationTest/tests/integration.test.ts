@@ -34,7 +34,7 @@ import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
-import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
+import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -392,7 +392,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const unconnectedTreeItems: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
             unconnectedTreeItems.length.should.equal(1);
             unconnectedTreeItems[0]['name'].should.equal('local_fabric');
-            const gatewayIdentities: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(unconnectedTreeItems[0]) as Array<GatewayIdentityTreeItem>;
+            const gatewayIdentities: Array<IdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(unconnectedTreeItems[0]) as Array<IdentityTreeItem>;
             gatewayIdentities.length.should.equal(3);
             gatewayIdentities[0].label.should.equal('Admin@org1.example.com');
             gatewayIdentities[1].label.should.equal(anotherIdentityName);
@@ -509,12 +509,12 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             allChildren[1].label.should.equal('myGateway');
 
-            const localFabricChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[0]) as Array<GatewayIdentityTreeItem>;
+            const localFabricChildren: Array<IdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[0]) as Array<IdentityTreeItem>;
 
             localFabricChildren.length.should.equal(3);
             localFabricChildren[0].label.should.equal('Admin@org1.example.com');
 
-            const otherChildren: Array<GatewayIdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[1]) as Array<GatewayIdentityTreeItem>;
+            const otherChildren: Array<IdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[1]) as Array<IdentityTreeItem>;
             otherChildren.length.should.equal(1);
             otherChildren[0].label.should.equal('greenConga');
             logSpy.should.not.have.been.calledWith(LogType.ERROR);

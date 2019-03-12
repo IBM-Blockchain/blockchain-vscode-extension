@@ -36,7 +36,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
-import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
+import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
@@ -210,7 +210,7 @@ describe('ConnectCommand', () => {
             const myConnectionItem: GatewayTreeItem = allChildren[1] as GatewayTreeItem;
 
             const gatewayChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem);
-            const gatewayIdentity: GatewayIdentityTreeItem = gatewayChildren[0] as GatewayIdentityTreeItem;
+            const gatewayIdentity: IdentityTreeItem = gatewayChildren[0] as IdentityTreeItem;
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
@@ -226,8 +226,8 @@ describe('ConnectCommand', () => {
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             const myConnectionItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
-            const allIdentityChildren: GatewayIdentityTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem) as GatewayIdentityTreeItem[];
-            const myIdentityItem: GatewayIdentityTreeItem = allIdentityChildren[1] as GatewayIdentityTreeItem;
+            const allIdentityChildren: IdentityTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem) as IdentityTreeItem[];
+            const myIdentityItem: IdentityTreeItem = allIdentityChildren[1] as IdentityTreeItem;
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
@@ -320,7 +320,7 @@ describe('ConnectCommand', () => {
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
                 const myConnectionItem: GatewayTreeItem = allChildren[0] as GatewayTreeItem;
                 const identityItems: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem);
-                const identityToConnect: GatewayIdentityTreeItem = identityItems[0] as GatewayIdentityTreeItem;
+                const identityToConnect: IdentityTreeItem = identityItems[0] as IdentityTreeItem;
 
                 await vscode.commands.executeCommand(identityToConnect.command.command, ...identityToConnect.command.arguments);
 

@@ -19,7 +19,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-import { GatewayIdentityTreeItem } from '../../src/explorer/model/GatewayIdentityTreeItem';
+import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
@@ -248,9 +248,9 @@ describe('gatewayExplorer', () => {
                 const identityChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
                 identityChildren.length.should.equal(1);
 
-                const identityChildOne: GatewayIdentityTreeItem = identityChildren[0] as GatewayIdentityTreeItem;
+                const identityChildOne: IdentityTreeItem = identityChildren[0] as IdentityTreeItem;
                 identityChildOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                identityChildOne.contextValue.should.equal('blockchain-gateway-identity-item');
+                identityChildOne.contextValue.should.equal('blockchain-identity-item');
                 identityChildOne.label.should.equal('Admin@org1.example.com');
                 identityChildOne.command.should.deep.equal(myIdentityCommand);
             });
@@ -306,15 +306,15 @@ describe('gatewayExplorer', () => {
                 const identityChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(gatewayTreeItem);
                 identityChildren.length.should.equal(2);
 
-                const identityChildOne: GatewayIdentityTreeItem = identityChildren[0] as GatewayIdentityTreeItem;
+                const identityChildOne: IdentityTreeItem = identityChildren[0] as IdentityTreeItem;
                 identityChildOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                identityChildOne.contextValue.should.equal('blockchain-gateway-identity-item');
+                identityChildOne.contextValue.should.equal('blockchain-identity-item');
                 identityChildOne.label.should.equal('Admin@org1.example.com');
                 identityChildOne.command.should.deep.equal(myCommandOne);
 
-                const identityChildTwo: GatewayIdentityTreeItem = identityChildren[1] as GatewayIdentityTreeItem;
+                const identityChildTwo: IdentityTreeItem = identityChildren[1] as IdentityTreeItem;
                 identityChildTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                identityChildTwo.contextValue.should.equal('blockchain-gateway-identity-item');
+                identityChildTwo.contextValue.should.equal('blockchain-identity-item');
                 identityChildTwo.label.should.equal('Test@org1.example.com');
                 identityChildTwo.command.should.deep.equal(myCommandTwo);
             });
@@ -396,7 +396,7 @@ describe('gatewayExplorer', () => {
                 localGatewayTreeItem.gateway.should.deep.equal(gateway);
                 const gatewayChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(localGatewayTreeItem);
                 gatewayChildren.length.should.equal(1);
-                const identity: GatewayIdentityTreeItem = gatewayChildren[0] as GatewayIdentityTreeItem;
+                const identity: IdentityTreeItem = gatewayChildren[0] as IdentityTreeItem;
                 identity.command.should.deep.equal(myCommand);
                 identity.label.should.equal('Admin@org1.example.com');
                 identity.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
