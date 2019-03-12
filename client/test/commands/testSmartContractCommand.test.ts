@@ -24,7 +24,7 @@ import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../src/util/Reporter';
@@ -55,7 +55,7 @@ describe('testSmartContractCommand', () => {
     let openTextDocumentStub: sinon.SinonStub;
     let showTextDocumentStub: sinon.SinonStub;
     let allChildren: Array<BlockchainTreeItem>;
-    let blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider;
+    let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
     let fabricConnectionManager: FabricConnectionManager;
     let chaincodes: any[];
     let instantiatedSmartContract: InstantiatedContractTreeItem;
@@ -194,9 +194,9 @@ describe('testSmartContractCommand', () => {
                 data: { name: 'wagonwheel', channel: 'myEnglishChannel', version: '0.0.1' }
             });
             // Explorer provider stuff
-            blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            const channelChildren: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            allChildren = await blockchainGatewayExplorerProvider.getChildren();
+            const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
             chaincodes = channelChildren[0].chaincodes;
             instantiatedSmartContract = chaincodes[0] as InstantiatedContractTreeItem;
 
@@ -949,9 +949,9 @@ describe('testSmartContractCommand', () => {
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
             // Explorer provider stuff
-            blockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            allChildren = await blockchainNetworkExplorerProvider.getChildren();
-            const channelChildren: Array<ChannelTreeItem> = await blockchainNetworkExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            allChildren = await blockchainGatewayExplorerProvider.getChildren();
+            const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
             chaincodes = channelChildren[0].chaincodes;
             instantiatedSmartContract = chaincodes[0] as InstantiatedContractTreeItem;
             smartContractLabel = instantiatedSmartContract.label;

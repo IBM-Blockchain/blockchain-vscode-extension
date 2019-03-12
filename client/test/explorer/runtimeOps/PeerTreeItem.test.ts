@@ -13,9 +13,9 @@
 */
 
 import * as vscode from 'vscode';
-import { getBlockchainNetworkExplorerProvider } from '../../../src/extension';
+import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { PeerTreeItem } from '../../../src/explorer/runtimeOps/PeerTreeItem';
-import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../src/fabric/FabricRuntime';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
@@ -33,7 +33,7 @@ describe('PeerTreeItem', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
     let sandbox: sinon.SinonSandbox;
-    let provider: BlockchainNetworkExplorerProvider;
+    let provider: BlockchainGatewayExplorerProvider;
     let runtime: FabricRuntime;
 
     before(async () => {
@@ -51,7 +51,7 @@ describe('PeerTreeItem', () => {
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
 
-        provider = getBlockchainNetworkExplorerProvider();
+        provider = getBlockchainGatewayExplorerProvider();
         await runtimeManager.add();
         runtime = runtimeManager.getRuntime();
         sandbox = sinon.createSandbox();

@@ -22,7 +22,7 @@ import { TestUtil } from '../TestUtil';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import * as myExtension from '../../src/extension';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
@@ -526,8 +526,8 @@ describe('EditGatewayCommand', () => {
 
         describe('called from tree by clicking or right-clicking and editing', () => {
             it('should open user settings if editing an uncompleted connection (by right-clicking and editing)', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const treeItem: GatewayTreeItem = new GatewayTreeItem(blockchainNetworkExplorerProvider, 'My Connection', {name: 'myConnection'} as FabricGatewayRegistryEntry, 2);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayTreeItem = new GatewayTreeItem(blockchainGatewayExplorerProvider, 'My Connection', {name: 'myConnection'} as FabricGatewayRegistryEntry, 2);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myConnection');
@@ -536,8 +536,8 @@ describe('EditGatewayCommand', () => {
             });
 
             it('should stop if a property for an uncompleted connection has been assigned data already', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainNetworkExplorerProvider, '✓ Connection Profile', {name: 'myConnection'} as FabricGatewayRegistryEntry, 0);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainGatewayExplorerProvider, '✓ Connection Profile', {name: 'myConnection'} as FabricGatewayRegistryEntry, 0);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
                 openUserSettingsStub.should.not.have.been.called;
@@ -547,8 +547,8 @@ describe('EditGatewayCommand', () => {
 
             it('should update a connection profile for an uncompleted connection when clicked on', async () => {
                 mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(true);
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Connection Profile', {name: 'myConnection', walletPath: 'some/otherPath'} as FabricGatewayRegistryEntry, 0);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainGatewayExplorerProvider, '+ Connection Profile', {name: 'myConnection', walletPath: 'some/otherPath'} as FabricGatewayRegistryEntry, 0);
                 browseEditStub.resolves('/some/path');
                 mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile').resolves(path.join('blockchain', 'extension', 'directory', 'myConnection', 'connection.json'));
 
@@ -561,8 +561,8 @@ describe('EditGatewayCommand', () => {
             it('should update a wallet path for an uncompleted connection when clicked on', async () => {
                 mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Wallet', {name: 'myConnection', connectionProfilePath: '/some/path'} as FabricGatewayRegistryEntry, 0);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainGatewayExplorerProvider, '+ Wallet', {name: 'myConnection', connectionProfilePath: '/some/path'} as FabricGatewayRegistryEntry, 0);
                 browseEditStub.resolves('/some/walletPath');
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
@@ -574,8 +574,8 @@ describe('EditGatewayCommand', () => {
             it('should update an identity for an uncompleted connection when clicked on', async () => {
                 mySandBox.stub(ParsedCertificate, 'validPEM').returns(null);
                 mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Identity', {name: 'myConnection', connectionProfilePath: '/some/path'} as FabricGatewayRegistryEntry, 0);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainGatewayExplorerProvider, '+ Identity', {name: 'myConnection', connectionProfilePath: '/some/path'} as FabricGatewayRegistryEntry, 0);
                 showInputBoxStub.resolves('blackConga');
                 browseEditStub.onCall(0).resolves('/some/certificatePath');
                 browseEditStub.onCall(1).resolves('/some/keyPath');
@@ -594,8 +594,8 @@ describe('EditGatewayCommand', () => {
             });
 
             it('should open in user settings', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainNetworkExplorerProvider, '+ Connection Profile', {name: 'myConnection'} as FabricGatewayRegistryEntry, 0);
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayPropertyTreeItem = new GatewayPropertyTreeItem(blockchainGatewayExplorerProvider, '+ Connection Profile', {name: 'myConnection'} as FabricGatewayRegistryEntry, 0);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
                 updateFabricGatewayRegistryStub.should.not.have.been.called;

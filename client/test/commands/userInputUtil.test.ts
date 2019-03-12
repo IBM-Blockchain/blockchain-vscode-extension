@@ -1045,7 +1045,7 @@ describe('userInputUtil', () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricConnectionStub.getInstantiatedChaincode.returns([]);
             await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'No instantiated chaincodes within connection');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
 
         });
     });

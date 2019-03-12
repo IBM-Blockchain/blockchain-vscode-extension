@@ -14,11 +14,11 @@
 
 import * as vscode from 'vscode';
 import { BlockchainTreeItem } from '../../../src/explorer/model/BlockchainTreeItem';
-import { getBlockchainNetworkExplorerProvider } from '../../../src/extension';
+import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { BlockchainNetworkExplorerProvider } from '../../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
 
 chai.should();
 
@@ -27,7 +27,7 @@ describe('BlockchainTreeItem', () => {
     class TestBlockchainTreeItem extends BlockchainTreeItem {
 
         constructor(label: string) {
-            super(getBlockchainNetworkExplorerProvider(), label, vscode.TreeItemCollapsibleState.None);
+            super(getBlockchainGatewayExplorerProvider(), label, vscode.TreeItemCollapsibleState.None);
         }
     }
 
@@ -53,7 +53,7 @@ describe('BlockchainTreeItem', () => {
     describe('#refresh', () => {
 
         it('should refresh the tree data provider', () => {
-            const treeDataProvider: BlockchainNetworkExplorerProvider = getBlockchainNetworkExplorerProvider();
+            const treeDataProvider: BlockchainGatewayExplorerProvider = getBlockchainGatewayExplorerProvider();
             const refreshStub: sinon.SinonStub = sandbox.stub(treeDataProvider, 'refresh');
             treeItem.refresh();
             refreshStub.should.have.been.calledOnceWithExactly(treeItem);

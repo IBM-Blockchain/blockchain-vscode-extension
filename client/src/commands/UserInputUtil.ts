@@ -408,7 +408,7 @@ export class UserInputUtil {
         }
 
         if (instantiatedChaincodes.length === 0) {
-            outputAdapter.log(LogType.ERROR, 'No instantiated chaincodes within connection');
+            outputAdapter.log(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
             return;
         }
 

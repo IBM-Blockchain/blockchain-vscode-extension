@@ -31,7 +31,7 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
@@ -136,7 +136,7 @@ describe('ConnectCommand', () => {
         });
 
         it('should test a fabric gateway can be connected to from the command', async () => {
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -151,7 +151,7 @@ describe('ConnectCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -185,15 +185,15 @@ describe('ConnectCommand', () => {
         });
 
         it('should test that a fabric gateway with a single identity can be connected to from the tree', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             const myConnectionItem: GatewayTreeItem = allChildren[1] as GatewayTreeItem;
 
-            const gatewayChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem);
+            const gatewayChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem);
             const gatewayIdentity: GatewayIdentityTreeItem = gatewayChildren[0] as GatewayIdentityTreeItem;
 
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(gatewayIdentity.command.command, ...gatewayIdentity.command.arguments);
 
@@ -203,14 +203,14 @@ describe('ConnectCommand', () => {
         });
 
         it('should test that a fabric gateway with multiple identities can be connected to from the tree', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             const myConnectionItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
-            const allIdentityChildren: GatewayIdentityTreeItem[] = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem) as GatewayIdentityTreeItem[];
+            const allIdentityChildren: GatewayIdentityTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem) as GatewayIdentityTreeItem[];
             const myIdentityItem: GatewayIdentityTreeItem = allIdentityChildren[1] as GatewayIdentityTreeItem;
 
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(myIdentityItem.command.command, ...myIdentityItem.command.arguments);
 
@@ -261,7 +261,7 @@ describe('ConnectCommand', () => {
                 data: connection
             });
 
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -289,7 +289,7 @@ describe('ConnectCommand', () => {
 
             choseIdentityQuickPick.resolves(testIdentityName);
 
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -299,7 +299,7 @@ describe('ConnectCommand', () => {
         });
 
         it('should connect to a managed runtime from the tree', async () => {
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = 'local_fabric';
@@ -312,10 +312,10 @@ describe('ConnectCommand', () => {
             mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
             connection.walletPath = testFabricWallet.walletPath;
 
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
             const myConnectionItem: GatewayTreeItem = allChildren[0] as GatewayTreeItem;
-            const identityItems: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem);
+            const identityItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem);
             const identityToConnect: GatewayIdentityTreeItem = identityItems[0] as GatewayIdentityTreeItem;
 
             await vscode.commands.executeCommand(identityToConnect.command.command, ...identityToConnect.command.arguments);
@@ -340,7 +340,7 @@ describe('ConnectCommand', () => {
                 label: 'local_fabric',
                 data: connection
             });
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             startCommandStub.callThrough();
@@ -367,7 +367,7 @@ describe('ConnectCommand', () => {
                 label: 'local_fabric',
                 data: connection
             });
-            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             startCommandStub.callThrough();
@@ -409,7 +409,7 @@ describe('ConnectCommand', () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
 
-            mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -421,7 +421,7 @@ describe('ConnectCommand', () => {
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
             mockConnection.isIBPConnection.returns(true);
 
-            mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
@@ -433,7 +433,7 @@ describe('ConnectCommand', () => {
             const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
             mockConnection.isIBPConnection.returns(false);
 
-            mySandBox.stub(myExtension.getBlockchainNetworkExplorerProvider(), 'connect');
+            mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 

@@ -23,7 +23,7 @@ import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { BlockchainNetworkExplorerProvider } from '../../src/explorer/BlockchainNetworkExplorer';
+import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
@@ -98,9 +98,9 @@ describe('DeleteGatewayCommand', () => {
         });
 
         it('should test a connection can be deleted from tree', async () => {
-            const blockchainNetworkExplorerProvider: BlockchainNetworkExplorerProvider = myExtension.getBlockchainNetworkExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
-            const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
+            const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             const connectionToDelete: BlockchainTreeItem = allChildren[1];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, connectionToDelete);
