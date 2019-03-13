@@ -106,6 +106,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.UPGRADE_SMART_CONTRACT,
             ExtensionCommands.CREATE_NEW_IDENTITY,
             ExtensionCommands.REFRESH_WALLETS,
+            ExtensionCommands.ADD_WALLET,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -145,6 +146,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
             `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
+            `onCommand:${ExtensionCommands.ADD_WALLET}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);

@@ -50,6 +50,7 @@ export class ExtensionCommands {
 
     // WALLET VIEW
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
+    static readonly ADD_WALLET: string = 'walletExplorer.addWalletEntry';
 
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';
