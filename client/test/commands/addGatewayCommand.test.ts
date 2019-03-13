@@ -245,10 +245,7 @@ describe('AddGatewayCommand', () => {
                 walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT
             });
 
-            executeCommandSpy.callCount.should.equal(3);
-            executeCommandSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.ADD_GATEWAY);
-            executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandSpy.getCall(2).should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
         });
 

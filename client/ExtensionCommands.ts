@@ -48,6 +48,9 @@ export class ExtensionCommands {
     static readonly EVALUATE_TRANSACTION: string = 'gatewaysExplorer.evaluateTransactionEntry';
     static readonly TEST_SMART_CONTRACT: string = 'gatewaysExplorer.testSmartContractEntry';
 
+    // WALLET VIEW
+    static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
+
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';
     static readonly OPEN_SAMPLE_PAGE: string = 'sample.open';

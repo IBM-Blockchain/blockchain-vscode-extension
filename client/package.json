@@ -73,6 +73,7 @@
             "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
             "aRuntimeOpsExplorer.createNewIdentityEntry",
+            "walletExplorer.refreshEntry",
             "extensionHome.open"
         ]
     },
@@ -100,6 +101,10 @@
                 {
                     "id": "gatewaysExplorer",
                     "name": "Fabric Gateways"
+                },
+                {
+                    "id": "walletExplorer",
+                    "name": "Fabric Wallets"
                 }
             ]
         },
@@ -326,6 +331,15 @@
                 "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
                 "title": "Create New Identity",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.refreshEntry",
+                "title": "Refresh Fabric Wallets",
+                "icon": {
+                    "light": "resources/light/refresh_light.svg",
+                    "dark": "resources/dark/refresh.svg"
+                },
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -432,6 +446,11 @@
                     "command": "aRuntimeOpsExplorer.teardownFabricRuntime",
                     "when": "view == aRuntimeOpsExplorer",
                     "group": "blockchain"
+                },
+                {
+                    "command": "walletExplorer.refreshEntry",
+                    "when": "view == walletExplorer",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [

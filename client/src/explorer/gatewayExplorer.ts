@@ -17,7 +17,7 @@
 import * as vscode from 'vscode';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
-import { GatewayIdentityTreeItem } from './model/GatewayIdentityTreeItem';
+import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { GatewayTreeItem } from './model/GatewayTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -241,7 +241,8 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 this,
                 gateway.name,
                 gateway,
-                treeState
+                treeState,
+                undefined
             );
 
             tree.push(treeItem);
@@ -276,7 +277,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         const tree: Array<InstantiatedTreeItem> = [];
 
         for (const instantiatedChaincode of channelTreeElement.chaincodes) {
-            const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const contracts: Array<string> = await MetadataUtil.getContractNames(connection, instantiatedChaincode.name, channelTreeElement.label);
             if (!contracts) {
                 tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, vscode.TreeItemCollapsibleState.None, contracts, true));
@@ -296,7 +297,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         console.log('createContractsTree', chainCodeElement);
         const tree: Array<any> = [];
         for (const contract of chainCodeElement.contracts) {
-            const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channel.label);
             const transactionNames: string[] = transactionNamesMap.get(contract);
             if (contract === '' || chainCodeElement.contracts.length === 1) {
@@ -326,7 +327,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             console.log('createConnectedTree');
             const tree: Array<BlockchainTreeItem> = [];
 
-            const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
             tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayRegistryEntry.name}`, gatewayRegistryEntry, 0));
             tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gatewayRegistryEntry, 0));
@@ -334,15 +335,48 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
             return tree;
         } catch (error) {
-            FabricConnectionManager.instance().disconnect();
+            await FabricConnectionManager.instance().disconnect();
             throw error;
         }
     }
 
-    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayIdentityTreeItem[]> {
+    private async createChannelMap(): Promise<Map<string, Array<string>>> {
+        console.log('createChannelMap');
+        const allPeerNames: Array<string> = await FabricConnectionManager.instance().getConnection().getAllPeerNames();
+
+        const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+        return allPeerNames.reduce((promise: Promise<void>, peerName: string) => {
+            return promise.then(() => {
+                return FabricConnectionManager.instance().getConnection().getAllChannelsForPeer(peerName);
+            }).then((channels: Array<any>) => {
+                channels.forEach((channelName: string) => {
+                    let peers: Array<string> = channelMap.get(channelName);
+                    if (peers) {
+                        peers.push(peerName);
+                        channelMap.set(channelName, peers);
+                    } else {
+                        peers = [peerName];
+                        channelMap.set(channelName, peers);
+                    }
+                });
+            }).catch((error: Error) => {
+                if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
+                    return Promise.reject(`Cannot connect to Fabric: ${error.message}`);
+                } else {
+                    return Promise.reject(`Error creating channel map: ${error.message}`);
+                }
+            });
+        }, Promise.resolve()).then(() => {
+            return channelMap;
+        }, (error: string) => {
+            throw new Error(error);
+        });
+    }
+
+    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<IdentityTreeItem[]> {
         console.log('createConnectionIdentityTree', element);
 
-        const tree: Array<GatewayIdentityTreeItem> = [];
+        const tree: Array<IdentityTreeItem> = [];
 
         // get identityNames in the wallet
         const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.walletPath);
@@ -355,7 +389,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 arguments: [element.gateway, identityName]
             };
 
-            tree.push(new GatewayIdentityTreeItem(this, identityName, command));
+            tree.push(new IdentityTreeItem(this, identityName, command));
         }
 
         return tree;
@@ -364,9 +398,8 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async getChannelsTree(): Promise<ChannelTreeItem[]> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-            const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
 
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
             const channels: Array<string> = Array.from(channelMap.keys());
 
             const tree: Array<ChannelTreeItem> = [];
@@ -375,7 +408,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 let chaincodes: Array<{ name: string, version: string }>;
                 const peers: Array<string> = channelMap.get(channel);
                 try {
-                    chaincodes = await connection.getInstantiatedChaincode(channel);
+                    chaincodes = await FabricConnectionManager.instance().getConnection().getInstantiatedChaincode(channel);
                     if (chaincodes.length > 0) {
                         tree.push(new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.Collapsed));
                     } else {
@@ -388,7 +421,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             }
             return tree;
         } catch (error) {
-            FabricConnectionManager.instance().disconnect();
+            await FabricConnectionManager.instance().disconnect();
 
             throw error;
         }
