@@ -506,7 +506,7 @@
         "debuggers": [
             {
                 "type": "fabric:go",
-                "label": "Debug a Hyperledger Fabric Smart Contract",
+                "label": "Fabric Smart Contract (Go)",
                 "runtime": "node",
                 "configurationAttributes": {
                     "launch": {
@@ -685,7 +685,7 @@
             },
             {
                 "type": "fabric:java",
-                "label": "Debug a Hyperledger Fabric Smart Contract",
+                "label": "Fabric Smart Contract (Java)",
                 "runtime": "node",
                 "configurationAttributes": {
                     "launch": {
@@ -850,7 +850,7 @@
             },
             {
                 "type": "fabric:node",
-                "label": "Debug a Hyperledger Fabric Smart Contract",
+                "label": "Fabric Smart Contract (Node.js)",
                 "runtime": "node",
                 "configurationAttributes": {
                     "launch": {
@@ -923,45 +923,45 @@
                     {
                         "type": "fabric:go",
                         "request": "launch",
-                        "name": "Debug Smart Contract"
+                        "name": "Launch Smart Contract"
                     },
                     {
                         "type": "fabric:java",
                         "request": "launch",
-                        "name": "Debug Smart Contract"
+                        "name": "Launch Smart Contract"
                     },
                     {
                         "type": "fabric:node",
                         "request": "launch",
-                        "name": "Debug Smart Contract"
+                        "name": "Launch Smart Contract"
                     }
                 ],
                 "configurationSnippets": [
                     {
-                        "label": "Fabric Debug (Go): Launch",
-                        "description": "A new configuration for 'debugging' a smart contract.",
+                        "label": "Fabric Smart Contract (Go): Launch",
+                        "description": "Launch a Fabric smart contract written in Go",
                         "body": {
                             "type": "fabric:go",
                             "request": "launch",
-                            "name": "Debug Smart Contract"
+                            "name": "Launch Smart Contract"
                         }
                     },
                     {
-                        "label": "Fabric Debug (Java): Launch",
-                        "description": "A new configuration for 'debugging' a smart contract.",
+                        "label": "Fabric Smart Contract (Java): Launch",
+                        "description": "Launch a Fabric smart contract written in Java",
                         "body": {
                             "type": "fabric:java",
                             "request": "launch",
-                            "name": "Debug Smart Contract"
+                            "name": "Launch Smart Contract"
                         }
                     },
                     {
-                        "label": "Fabric Debug (Node.js): Launch",
-                        "description": "A new configuration for 'debugging' a smart contract.",
+                        "label": "Fabric Smart Contract (Node.js): Launch",
+                        "description": "Launch a Fabric smart contract written in JavaScript or TypeScript",
                         "body": {
                             "type": "fabric:node",
                             "request": "launch",
-                            "name": "Debug Smart Contract"
+                            "name": "Launch Smart Contract"
                         }
                     }
                 ]

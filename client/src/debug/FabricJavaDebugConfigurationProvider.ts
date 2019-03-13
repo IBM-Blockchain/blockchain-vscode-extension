@@ -18,6 +18,16 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
+    public async provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
+        return [
+            {
+                type: 'fabric:java',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }
+        ];
+    }
+
     protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
         const name: string = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
         return name;
