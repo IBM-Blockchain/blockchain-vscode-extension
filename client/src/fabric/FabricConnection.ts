@@ -237,23 +237,27 @@ export abstract class FabricConnection implements IFabricConnection {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(instantiatedChaincodeName);
 
-        const metadataBuffer: Buffer = await smartContract.evaluateTransaction('org.hyperledger.fabric:GetMetadata');
-        const metadataString: string = metadataBuffer.toString();
-        let metadataObject: any = {
-            contracts: {
-                '': {
-                    name: '',
-                    transactions: [],
-                }
-            }
-        };
-
-        if (metadataString !== '') {
-            metadataObject = JSON.parse(metadataBuffer.toString());
+        let metadataBuffer: Buffer;
+        try {
+            metadataBuffer = await smartContract.evaluateTransaction('org.hyperledger.fabric:GetMetadata');
+        } catch (error) {
+            // This is the most likely case; smart contract does not support metadata.
+            throw new Error(`Transaction function "org.hyperledger.fabric:GetMetadata" returned an error: ${error.message}`);
         }
+        const metadataString: string = metadataBuffer.toString();
+        if (!metadataString) {
+            // This is the unusual case; the function name is ignored, or accepted, but an empty string is returned.
+            throw new Error(`Transaction function "org.hyperledger.fabric:GetMetadata" did not return any metadata`);
+        }
+        try {
+            const metadataObject: any = JSON.parse(metadataBuffer.toString());
 
-        console.log('Metadata object is:', metadataObject);
-        return metadataObject;
+            console.log('Metadata object is:', metadataObject);
+            return metadataObject;
+        } catch (error) {
+            // This is another unusual case; the function name is ignored, or accepted, but non-JSON data is returned.
+            throw new Error(`Transaction function "org.hyperledger.fabric:GetMetadata" did not return valid JSON metadata: ${error.message}`);
+        }
     }
 
     public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined> {
