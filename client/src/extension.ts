@@ -59,6 +59,7 @@ import { upgradeSmartContract } from './commands/upgradeCommand';
 import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
 import { exportConnectionDetails } from './commands/exportConnectionDetailsCommand';
 import { createNewIdentity } from './commands/createNewIdentityCommand';
+import { addWallet } from './commands/addWalletCommand';
 import { LogType } from './logging/OutputAdapter';
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
@@ -212,6 +213,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, (instantiatedChainCodeTreeItem?: InstantiatedTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_NEW_IDENTITY, (certificateAuthorityTreeItem?: CertificateAuthorityTreeItem) => createNewIdentity(certificateAuthorityTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_WALLETS, (element: BlockchainTreeItem) => blockchainWalletExplorerProvider.refresh(element)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET, () => addWallet()));
 
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => await HomeView.openHomePage(context)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));

@@ -73,6 +73,7 @@
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
             "aRuntimeOpsExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
+            "walletExplorer.addWalletEntry",
             "extensionHome.open"
         ]
     },
@@ -330,6 +331,15 @@
                     "dark": "resources/dark/refresh.svg"
                 },
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.addWalletEntry",
+                "title": "Add Wallet",
+                "icon": {
+                    "light": "resources/light/add_light.svg",
+                    "dark": "resources/dark/add.svg"
+                },
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -428,6 +438,11 @@
                 },
                 {
                     "command": "walletExplorer.refreshEntry",
+                    "when": "view == walletExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "walletExplorer.addWalletEntry",
                     "when": "view == walletExplorer",
                     "group": "navigation"
                 }
