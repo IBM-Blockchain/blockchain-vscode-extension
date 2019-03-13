@@ -13,7 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import {UserInputUtil} from './UserInputUtil';
+import { UserInputUtil } from './UserInputUtil';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
