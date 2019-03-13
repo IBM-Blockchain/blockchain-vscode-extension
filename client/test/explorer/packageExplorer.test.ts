@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as myExtension from '../../src/extension';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -55,6 +54,7 @@ describe('packageExplorer', () => {
         mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', testDir, true);
     });
 
     afterEach(async () => {
@@ -62,9 +62,6 @@ describe('packageExplorer', () => {
     });
 
     it('should show smart contract packages in the BlockchainPackageExplorer view', async () => {
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', testDir, true);
-
-        blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
         testPackages.length.should.equal(3);
         testPackages[0].label.should.equal('vscode-pkg-1@0.0.1');
@@ -81,8 +78,6 @@ describe('packageExplorer', () => {
     });
 
     it('should get a tree item in BlockchainPackageExplorer', async () => {
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', testDir, true);
-
         const testPackages: Array<PackageTreeItem> = await blockchainPackageExplorerProvider.getChildren() as Array<PackageTreeItem>;
 
         const firstTestPackage: PackageTreeItem = blockchainPackageExplorerProvider.getTreeItem(testPackages[0]) as PackageTreeItem;
