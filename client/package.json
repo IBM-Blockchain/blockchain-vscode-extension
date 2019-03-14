@@ -309,7 +309,7 @@
             },
             {
                 "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
-                "title": "Create New Identity",
+                "title": "Create Identity (register and enroll)",
                 "category": "IBM Blockchain Platform"
             }
         ],
