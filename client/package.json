@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -309,7 +309,7 @@
             },
             {
                 "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
-                "title": "Create New Identity",
+                "title": "Create Identity (register and enroll)",
                 "category": "IBM Blockchain Platform"
             }
         ],
