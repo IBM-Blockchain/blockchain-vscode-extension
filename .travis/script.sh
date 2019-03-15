@@ -67,9 +67,6 @@ elif [ "${TASK}" == "systestsNode" ]; then
 else
     if [ $TRAVIS_OS_NAME == "windows" ]; then
         export CODE_DOWNLOAD_URL="https://vscode-update.azurewebsites.net/1.31.0/win32-x64-archive/stable"
-        npm run pretest
-        npm run testWindows
-    else
-        npm test
     fi
+    npm test
 fi
