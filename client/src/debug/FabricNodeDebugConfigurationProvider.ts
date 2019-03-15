@@ -19,6 +19,16 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
+    public async provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
+        return [
+            {
+                type: 'fabric:node',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }
+        ];
+    }
+
     protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
         const { name } = await ExtensionUtil.getContractNameAndVersion(folder);
         return name;

@@ -34,6 +34,20 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('FabricNodeDebugConfigurationProvider', () => {
 
+    describe('provideDebugConfigurations', () => {
+
+        it('should provide a debug configuration', async () => {
+            const provider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
+            const config: any = await provider.provideDebugConfigurations(undefined);
+            config.should.deep.equal([{
+                type: 'fabric:node',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }]);
+        });
+
+    });
+
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;

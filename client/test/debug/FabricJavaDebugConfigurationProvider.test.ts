@@ -26,7 +26,6 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
-import { FabricGoDebugConfigurationProvider } from '../../src/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../src/debug/FabricJavaDebugConfigurationProvider';
 
@@ -35,6 +34,20 @@ chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('FabricJavaDebugConfigurationProvider', () => {
+
+    describe('provideDebugConfigurations', () => {
+
+        it('should provide a debug configuration', async () => {
+            const provider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
+            const config: any = await provider.provideDebugConfigurations(undefined);
+            config.should.deep.equal([{
+                type: 'fabric:java',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }]);
+        });
+
+    });
 
     describe('resolveDebugConfiguration', () => {
 
