@@ -28,18 +28,19 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { FabricGoDebugConfigurationProvider } from '../../src/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricJavaDebugConfigurationProvider } from '../../src/debug/FabricJavaDebugConfigurationProvider';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
-describe('FabricGoDebugConfigurationProvider', () => {
+describe('FabricJavaDebugConfigurationProvider', () => {
 
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;
         let clock: sinon.SinonFakeTimers;
-        let fabricDebugConfig: FabricGoDebugConfigurationProvider;
+        let fabricDebugConfig: FabricJavaDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
@@ -60,7 +61,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
             date = new Date();
             formattedDate = dateFormat(date, 'yyyymmddHHMM');
-            fabricDebugConfig = new FabricGoDebugConfigurationProvider();
+            fabricDebugConfig = new FabricJavaDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
@@ -89,15 +90,13 @@ describe('FabricGoDebugConfigurationProvider', () => {
             }`);
 
             debugConfig = {
-                type: 'fabric:go',
+                type: 'fabric:java',
                 name: 'Launch Program'
             };
 
             debugConfig.request = 'myLaunch';
-            debugConfig.program = 'myProgram';
             debugConfig.cwd = 'myCwd';
             debugConfig.args = ['--peer.address', 'localhost:12345'];
-            debugConfig.mode = 'auto';
 
             findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
 
@@ -123,7 +122,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
 
-            mySandbox.stub(UserInputUtil, 'showInputBox').withArgs('Enter a name for your Go package').resolves('mySmartContract');
+            mySandbox.stub(UserInputUtil, 'showInputBox').withArgs('Enter a name for your Java package').resolves('mySmartContract');
         });
 
         afterEach(() => {
@@ -136,44 +135,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
+                type: 'java',
                 request: 'myLaunch',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['--peer.address', 'localhost:12345']
-            });
-        });
-
-        it('should set mode if not set', async () => {
-
-            debugConfig.mode = null;
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
-                request: 'myLaunch',
-                program: 'myProgram',
-                cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
-                args: ['--peer.address', 'localhost:12345']
-            });
-        });
-
-        it('should set program if not set', async () => {
-
-            debugConfig.program = null;
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
-                request: 'myLaunch',
-                program: path.join(path.sep, 'myPath'),
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--peer.address', 'localhost:12345']
@@ -187,10 +150,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
+                type: 'java',
                 request: 'myLaunch',
-                program: 'myProgram',
                 cwd: path.sep + 'myPath',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--peer.address', 'localhost:12345']
@@ -203,10 +164,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
+                type: 'java',
                 request: 'myLaunch',
-                program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--peer.address', '127.0.0.1:54321']
@@ -219,10 +178,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
+                type: 'java',
                 request: 'myLaunch',
-                program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
@@ -235,10 +192,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'go',
-                mode: 'auto',
+                type: 'java',
                 request: 'launch',
-                program: 'myProgram',
                 cwd: 'myCwd',
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--peer.address', 'localhost:12345']

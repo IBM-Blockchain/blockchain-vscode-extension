@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -320,7 +320,7 @@
             },
             {
                 "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
-                "title": "Create New Identity",
+                "title": "Create Identity (register and enroll)",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -723,6 +723,171 @@
                 }
             },
             {
+                "type": "fabric:java",
+                "label": "Debug a Hyperledger Fabric Smart Contract",
+                "runtime": "node",
+                "configurationAttributes": {
+                    "launch": {
+                        "required": [
+                            "mainClass"
+                        ],
+                        "properties": {
+                            "projectName": {
+                                "type": "string",
+                                "description": "%java.debugger.launch.projectName.description%",
+                                "default": ""
+                            },
+                            "mainClass": {
+                                "type": "string",
+                                "description": "%java.debugger.launch.mainClass.description%",
+                                "default": ""
+                            },
+                            "args": {
+                                "type": [
+                                    "array",
+                                    "string"
+                                ],
+                                "description": "%java.debugger.launch.args.description%",
+                                "default": ""
+                            },
+                            "vmArgs": {
+                                "type": [
+                                    "array",
+                                    "string"
+                                ],
+                                "description": "%java.debugger.launch.vmArgs.description%",
+                                "default": ""
+                            },
+                            "modulePaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "%java.debugger.launch.modulePaths.description%",
+                                "default": []
+                            },
+                            "classPaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "%java.debugger.launch.classPaths.description%",
+                                "default": []
+                            },
+                            "sourcePaths": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "description": "%java.debugger.launch.sourcePaths.description%",
+                                "default": []
+                            },
+                            "encoding": {
+                                "type": "string",
+                                "description": "%java.debugger.launch.encoding.description%",
+                                "default": "UTF-8"
+                            },
+                            "cwd": {
+                                "type": "string",
+                                "description": "%java.debugger.launch.cwd.description%",
+                                "default": "${workspaceFolder}"
+                            },
+                            "env": {
+                                "type": "object",
+                                "description": "%java.debugger.launch.env.description%",
+                                "default": {}
+                            },
+                            "stopOnEntry": {
+                                "type": "boolean",
+                                "description": "%java.debugger.launch.stopOnEntry.description%",
+                                "default": true
+                            },
+                            "console": {
+                                "type": "string",
+                                "enum": [
+                                    "internalConsole",
+                                    "integratedTerminal",
+                                    "externalTerminal"
+                                ],
+                                "enumDescriptions": [
+                                    "%java.debugger.launch.internalConsole.description%",
+                                    "%java.debugger.launch.integratedTerminal.description%",
+                                    "%java.debugger.launch.externalTerminal.description%"
+                                ],
+                                "description": "%java.debugger.launch.console.description%",
+                                "default": "internalConsole"
+                            },
+                            "shortenCommandLine": {
+                                "type": "string",
+                                "enum": [
+                                    "none",
+                                    "jarmanifest",
+                                    "argfile",
+                                    "auto"
+                                ],
+                                "enumDescriptions": [
+                                    "%java.debugger.launch.shortenCommandLine.none%",
+                                    "%java.debugger.launch.shortenCommandLine.jarmanifest%",
+                                    "%java.debugger.launch.shortenCommandLine.argfile%",
+                                    "%java.debugger.launch.shortenCommandLine.auto%"
+                                ],
+                                "description": "%java.debugger.launch.shortenCommandLine.description%",
+                                "default": "auto"
+                            },
+                            "stepFilters": {
+                                "type": "object",
+                                "description": "%java.debugger.launch.stepFilters.description%",
+                                "default": {
+                                    "classNameFilters": [
+                                        "java.*",
+                                        "javax.*",
+                                        "com.sun.*",
+                                        "sun.*",
+                                        "sunw.*",
+                                        "org.omg.*"
+                                    ],
+                                    "skipSynthetics": false,
+                                    "skipStaticInitializers": false,
+                                    "skipConstructors": false
+                                },
+                                "properties": {
+                                    "classNameFilters": {
+                                        "type": "array",
+                                        "description": "%java.debugger.launch.classNameFilters.description%",
+                                        "item": {
+                                            "type": "string"
+                                        },
+                                        "default": [
+                                            "java.*",
+                                            "javax.*",
+                                            "com.sun.*",
+                                            "sun.*",
+                                            "sunw.*",
+                                            "org.omg.*"
+                                        ]
+                                    },
+                                    "skipSynthetics": {
+                                        "type": "boolean",
+                                        "description": "%java.debugger.launch.skipSynthetics.description%",
+                                        "default": true
+                                    },
+                                    "skipStaticInitializers": {
+                                        "type": "boolean",
+                                        "description": "%java.debugger.launch.skipStaticInitializers.description%",
+                                        "default": true
+                                    },
+                                    "skipConstructors": {
+                                        "type": "boolean",
+                                        "description": "%java.debugger.launch.skipConstructors.description%",
+                                        "default": true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
                 "type": "fabric:node",
                 "label": "Debug a Hyperledger Fabric Smart Contract",
                 "runtime": "node",
@@ -800,6 +965,11 @@
                         "name": "Debug Smart Contract"
                     },
                     {
+                        "type": "fabric:java",
+                        "request": "launch",
+                        "name": "Debug Smart Contract"
+                    },
+                    {
                         "type": "fabric:node",
                         "request": "launch",
                         "name": "Debug Smart Contract"
@@ -811,6 +981,15 @@
                         "description": "A new configuration for 'debugging' a smart contract.",
                         "body": {
                             "type": "fabric:go",
+                            "request": "launch",
+                            "name": "Debug Smart Contract"
+                        }
+                    },
+                    {
+                        "label": "Fabric Debug (Java): Launch",
+                        "description": "A new configuration for 'debugging' a smart contract.",
+                        "body": {
+                            "type": "fabric:java",
                             "request": "launch",
                             "name": "Debug Smart Contract"
                         }
@@ -899,7 +1078,7 @@
         "showdown": "^1.9.0",
         "strip-ansi": "^4.0.0",
         "uuid": "^3.3.2",
-        "vscode-extension-telemetry": "0.0.20",
+        "vscode-extension-telemetry": "0.1.1",
         "vscode-nls": "^4.0.0",
         "yeoman-environment": "^2.3.3"
     },

@@ -156,3 +156,15 @@
 
 
 ![conga comic](https://congacomic.github.io/assets/img/blockheight-46.png)
+
+## 0.3.2: March 14th 2019
+
+* Added "Import Package" command [#665](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/665)
+* Added "Create Identity (register and enroll)" command [#688](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/688)
+* Enabled debugging of Java smart contracts [#617](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/617)
+* Fixed bug with connecting with YAML connection profiles [#685](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/685)
+* Fixed bug with home directory path in smart contract tests [#692](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/692)
+* Fixed instantiated and installed smart contract tree labels not matching [#683](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/683)
+* Initial support for language translation [#679](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/679)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-47.png)

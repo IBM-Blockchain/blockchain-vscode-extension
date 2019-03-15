@@ -701,15 +701,29 @@ describe('FabricConnection', () => {
             testFunction.should.equal("wagonwheeling");
         });
 
-        it('should handle not getting any metadata', async () => {
+        it('should throw an error if an error is thrown by an instantiated smart contract', async () => {
+            fabricContractStub.evaluateTransaction.rejects(new Error('no such function!'));
+
+            await fabricConnection.getMetadata('myChaincode', 'channelConga')
+                .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" returned an error: no such function!/);
+        });
+
+        it('should throw an error if no metadata is returned by an instantiated smart contract', async () => {
             const fakeMetaData: string = '';
             const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
             fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
 
-            const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
-            // tslint:disable-next-line
-            const testFunctions: string[] = metadata.contracts[""].transactions;
-            testFunctions.should.deep.equal([]);
+            await fabricConnection.getMetadata('myChaincode', 'channelConga')
+                .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" did not return any metadata/);
+        });
+
+        it('should throw an error if non-JSON metadata is returned by an instantiated smart contract', async () => {
+            const fakeMetaData: string = '500 tokens to lulzwat@dogecorp.com';
+            const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
+            fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
+
+            await fabricConnection.getMetadata('myChaincode', 'channelConga')
+                .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" did not return valid JSON metadata/);
         });
 
     });
