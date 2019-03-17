@@ -327,6 +327,9 @@ async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<voi
         } else if (task.isBackground) {
             // We only want foreground tasks (not "npm watch").
             return false;
+        } else if (task.name.match(/watch/i)) {
+            // We don't want anything with "watch" in the name!
+            return false;
         } else {
             return true;
         }
