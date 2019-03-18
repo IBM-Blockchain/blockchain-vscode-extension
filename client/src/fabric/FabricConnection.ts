@@ -387,7 +387,7 @@ export abstract class FabricConnection implements IFabricConnection {
             affiliation: affiliation,
             role: 'client'
         };
-        const registrar: Client.User = await this.gateway.getCurrentIdentity();
+        const registrar: Client.User = this.gateway.getCurrentIdentity();
         const secret: string = await this.gateway.getClient().getCertificateAuthority().register(request, registrar);
         return secret;
     }

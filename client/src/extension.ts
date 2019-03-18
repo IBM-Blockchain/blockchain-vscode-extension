@@ -187,7 +187,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT, () => FabricConnectionManager.instance().disconnect()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY, addGateway));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_GATEWAY, (gateway: GatewayTreeItem) => deleteGateway(gateway)));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, (gateway: GatewayTreeItem) => addGatewayIdentity(gateway)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, (gatewayItem: GatewayTreeItem | FabricGatewayRegistryEntry) => addGatewayIdentity(gatewayItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, createSmartContractProject));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, (workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string) => packageSmartContract(workspace, overrideName, overrideVersion)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
