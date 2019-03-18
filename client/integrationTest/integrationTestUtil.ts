@@ -22,6 +22,7 @@ import { CommandUtil } from '../src/util/CommandUtil';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
+import { FabricWalletRegistry } from '../src/fabric/FabricWalletRegistry';
 import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
@@ -48,6 +49,7 @@ export class IntegrationTestUtil {
     public testContractType: string;
     public workspaceFolder: vscode.WorkspaceFolder;
     public gatewayRegistry: FabricGatewayRegistry;
+    public walletRegistry: FabricWalletRegistry;
     public packageRegistry: PackageRegistry;
     public keyPath: string;
     public certPath: string;
@@ -70,6 +72,7 @@ export class IntegrationTestUtil {
     public showGatewayQuickPickStub: sinon.SinonStub;
     public showCertificateAuthorityQuickPickStub: sinon.SinonStub;
     public showIdentitiesQuickPickStub: sinon.SinonStub;
+    public addIdentityMethodStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -83,6 +86,7 @@ export class IntegrationTestUtil {
         this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
         this.gatewayRegistry = FabricGatewayRegistry.instance();
+        this.walletRegistry = FabricWalletRegistry.instance();
         this.browseEditStub = this.mySandBox.stub(UserInputUtil, 'browseEdit');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
@@ -95,11 +99,15 @@ export class IntegrationTestUtil {
         this.showGatewayQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
         this.showCertificateAuthorityQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox');
         this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
+        this.addIdentityMethodStub = this.mySandBox.stub(UserInputUtil, 'addIdentityMethod');
     }
 
     public async createFabricConnection(): Promise<void> {
         if (this.gatewayRegistry.exists('myGateway')) {
             await this.gatewayRegistry.delete('myGateway');
+        }
+        if (this.walletRegistry.exists('myGateway')) {
+            await this.walletRegistry.delete('myGateway');
         }
 
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
@@ -116,7 +124,9 @@ export class IntegrationTestUtil {
         this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
 
-        this.inputBoxStub.withArgs('Enter a mspid').resolves('Org1MSP');
+        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+
+        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
 
         this.browseEditStub.withArgs('Browse for a certificate file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
             canSelectFiles: true,
@@ -147,6 +157,8 @@ export class IntegrationTestUtil {
             gatewayEntry.name = name;
             gatewayEntry.managedRuntime = true;
         }
+
+        this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with', ['greenConga', 'redConga']).resolves('greenConga');
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
     }
@@ -397,5 +409,24 @@ export class IntegrationTestUtil {
         const fabricGatewayEntry: FabricGatewayRegistryEntry = this.gatewayRegistry.get('myGateway');
         fabricGatewayEntry.connectionProfilePath = path.join(__dirname, '../../integrationTest/data/connection/connection.yaml');
         await this.gatewayRegistry.update(fabricGatewayEntry);
+    }
+
+    public async addIdentityToGateway(id: string, secret: string): Promise<void> {
+        const fabricGatewayEntry: FabricGatewayRegistryEntry = this.gatewayRegistry.get('myGateway');
+        this.showGatewayQuickPickStub.resolves({
+            label: 'myGateway',
+            data: fabricGatewayEntry
+        });
+
+        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('redConga');
+
+        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+
+        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
+
+        this.inputBoxStub.withArgs('Enter enrollment ID').resolves(id);
+        this.inputBoxStub.withArgs('Enter enrollment secret').resolves(secret);
+
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
     }
 }

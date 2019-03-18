@@ -17,7 +17,6 @@ Follow our [Tutorial](https://developer.ibm.com/tutorials/ibm-blockchain-platfor
 You will need the following installed in order to use the extension:
 - [VSCode version 1.31 or greater](https://code.visualstudio.com)
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
-- [Yeoman (yo) v2.x](http://yeoman.io/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 
@@ -33,14 +32,9 @@ If you are using Windows, you must also ensure the following:
   - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
 
-If you require sudo/root to install npm modules, the extension won't be able to automatically install the generator that is used to create a smart contract project. You will need to run the following command to install the dependencies:
-
-`npm install -g yo generator-fabric`
-
 You can check your installed versions by running the following commands from a terminal:
 - `node --version`
 - `npm --version`
-- `yo --version`
 - `docker --version`
 - `docker-compose --version`
 

@@ -15,6 +15,7 @@
 import * as vscode from 'vscode';
 import * as homeDir from 'home-dir';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -26,6 +27,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { FabricRuntime } from '../fabric/FabricRuntime';
+import { ParsedCertificate } from '../fabric/ParsedCertificate';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -45,8 +47,11 @@ export class UserInputUtil {
     static readonly BROWSE_LABEL: string = '📁 Browse';
     static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
-    static readonly WALLET: string = 'Use an existing wallet on my file system';
-    static readonly CERT_KEY: string = 'Create a new wallet for an identity with a certificate and private key';
+    static readonly WALLET: string = 'Specify an existing file system wallet';
+    static readonly CERT_KEY: string = 'Create a new wallet and add an identity';
+    static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
+    static readonly ADD_CERT_KEY_OPTION: string = 'Enter (1) an MSP ID and (2) paths to Certificate and Key files';
+    static readonly ADD_ID_SECRET_OPTION: string = 'Enter (1) an MSP ID and (2) an enrollment ID and secret';
 
     public static showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
@@ -604,6 +609,59 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(caNames, quickPickOptions);
+    }
+
+    public static async addIdentityMethod(): Promise<any> {
+        const options: Array<string> = [UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION];
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: UserInputUtil.ADD_IDENTITY_METHOD
+        };
+
+        return vscode.window.showQuickPick(options, quickPickOptions);
+    }
+
+    public static async getCertKey(gatewayName: string): Promise<{certificatePath: string, privateKeyPath: string}> {
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+        const openDialogOptions: vscode.OpenDialogOptions = {
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: 'Select',
+            filters: undefined
+        };
+
+        // Get the certificate file path
+        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, gatewayName) as string;
+        if (!certificatePath) {
+            return;
+        }
+        ParsedCertificate.validPEM(certificatePath, 'certificate');
+
+        // Get the private key file path
+        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, gatewayName) as string;
+        if (!privateKeyPath) {
+            return;
+        }
+        ParsedCertificate.validPEM(privateKeyPath, 'private key');
+
+        return {certificatePath, privateKeyPath};
+    }
+
+    public static async getEnrollIdSecret(): Promise<{enrollmentID: string, enrollmentSecret: string}> {
+
+        const enrollmentID: string = await UserInputUtil.showInputBox('Enter enrollment ID');
+        if (!enrollmentID) {
+            return;
+        }
+
+        const enrollmentSecret: string = await UserInputUtil.showInputBox('Enter enrollment secret');
+        if (!enrollmentSecret) {
+            return;
+        }
+
+        return {enrollmentID, enrollmentSecret};
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {
