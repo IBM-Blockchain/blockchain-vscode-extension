@@ -622,7 +622,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async getCertKey(connectionName: string): Promise<{certificatePath: string, privateKeyPath: string}> {
+    public static async getCertKey(gatewayName: string): Promise<{certificatePath: string, privateKeyPath: string}> {
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
@@ -633,14 +633,14 @@ export class UserInputUtil {
         };
 
         // Get the certificate file path
-        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, connectionName) as string;
+        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, gatewayName) as string;
         if (!certificatePath) {
             return;
         }
         ParsedCertificate.validPEM(certificatePath, 'certificate');
 
         // Get the private key file path
-        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, connectionName) as string;
+        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, gatewayName) as string;
         if (!privateKeyPath) {
             return;
         }

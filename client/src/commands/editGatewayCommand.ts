@@ -14,12 +14,8 @@
 'use strict';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
@@ -153,6 +149,10 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, output
     outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
     if (!FabricGatewayHelper.walletPathComplete(gateway)) {
+
+        const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricWalletRegistry.get(gateway.name);
+
         // Ask method to import identity
         let walletPath: string;
         const answer: string = await UserInputUtil.showAddIdentityOptionsQuickPick('Chose a method for importing identity to connect with:');
@@ -176,12 +176,9 @@ async function editConnectionProfile(gateway: FabricGatewayRegistryEntry, output
 
             await fabricGatewayRegistry.update(gateway);
         }
-        const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
-        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        fabricWalletRegistryEntry.walletPath = walletPath;
-        fabricWalletRegistryEntry.name = gateway.name;
-        await fabricWalletRegistry.update(fabricWalletRegistryEntry);
 
+        fabricWalletRegistryEntry.walletPath = gateway.walletPath;
+        await fabricWalletRegistry.update(fabricWalletRegistryEntry);
         outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
     }
 }
@@ -206,10 +203,8 @@ async function editWallet(gateway: FabricGatewayRegistryEntry, outputAdapter: VS
     await fabricGatewayRegistry.update(gateway);
 
     const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
-
-    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricWalletRegistry.get(gateway.name);
     fabricWalletRegistryEntry.walletPath = result;
-    fabricWalletRegistryEntry.name = gateway.name;
     await fabricWalletRegistry.update(fabricWalletRegistryEntry);
 
     outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
@@ -242,6 +237,12 @@ async function editIdentity(gateway: FabricGatewayRegistryEntry, outputAdapter: 
         return;
     }
     await fabricGatewayRegistry.update(gateway);
+
+    const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricWalletRegistry.get(gateway.name);
+    fabricWalletRegistryEntry.walletPath = gateway.walletPath;
+    await fabricWalletRegistry.update(fabricWalletRegistryEntry);
+
     outputAdapter.log(LogType.SUCCESS, 'Successfully updated gateway');
 
     if (!FabricGatewayHelper.connectionProfilePathComplete(gateway) ) {

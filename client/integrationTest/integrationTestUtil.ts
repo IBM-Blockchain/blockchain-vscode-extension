@@ -22,6 +22,7 @@ import { CommandUtil } from '../src/util/CommandUtil';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
+import { FabricWalletRegistry } from '../src/fabric/FabricWalletRegistry';
 import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
@@ -48,6 +49,7 @@ export class IntegrationTestUtil {
     public testContractType: string;
     public workspaceFolder: vscode.WorkspaceFolder;
     public gatewayRegistry: FabricGatewayRegistry;
+    public walletRegistry: FabricWalletRegistry;
     public packageRegistry: PackageRegistry;
     public keyPath: string;
     public certPath: string;
@@ -84,6 +86,7 @@ export class IntegrationTestUtil {
         this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
         this.gatewayRegistry = FabricGatewayRegistry.instance();
+        this.walletRegistry = FabricWalletRegistry.instance();
         this.browseEditStub = this.mySandBox.stub(UserInputUtil, 'browseEdit');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
@@ -102,6 +105,9 @@ export class IntegrationTestUtil {
     public async createFabricConnection(): Promise<void> {
         if (this.gatewayRegistry.exists('myGateway')) {
             await this.gatewayRegistry.delete('myGateway');
+        }
+        if (this.walletRegistry.exists('myGateway')) {
+            await this.walletRegistry.delete('myGateway');
         }
 
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');

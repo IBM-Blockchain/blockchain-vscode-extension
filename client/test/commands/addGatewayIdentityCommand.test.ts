@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as myExtension from '../../src/extension';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -165,7 +164,7 @@ describe('AddGatewayIdentityCommand', () => {
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-            executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGatewayIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway 'myGatewayA'`);
@@ -279,7 +278,7 @@ describe('AddGatewayIdentityCommand', () => {
 
             getCertKeyStub.should.have.been.calledOnceWithExactly('myGatewayB');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'blueConga', 'myMSPID');
-            executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGatewayIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway 'myGatewayB'`);
@@ -341,7 +340,7 @@ describe('AddGatewayIdentityCommand', () => {
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionTwo/connection.json'), 'enrollID', 'enrollSecret');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'blueConga', 'myMSPID');
-            executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGatewayIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway 'myGatewayB'`);
@@ -433,9 +432,23 @@ describe('AddGatewayIdentityCommand', () => {
         });
 
         it('should test an identity can be added when given a new gateway', async () => {
+            const newGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+                name: 'newGateway',
+                connectionProfilePath: 'connectionProfilePath',
+                managedRuntime: false,
+                walletPath: undefined
+            });
+
+            const newGatewayWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: newGateway.name,
+                walletPath: undefined
+            });
+
+            await FabricWalletRegistry.instance().add(newGatewayWallet);
+
             showGatewayQuickPickBoxStub.resolves({
-                label: 'myGatewayB',
-                data: FabricGatewayRegistry.instance().get('myGatewayB')
+                label: newGateway.name,
+                data: newGateway
             });
 
             inputBoxStub.onFirstCall().resolves('blueConga');
@@ -449,12 +462,6 @@ describe('AddGatewayIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
             enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
 
-            const newGateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
-                name: 'newGateway',
-                connectionProfilePath: 'connectionProfilePath',
-                managedRuntime: false,
-                walletPath: undefined
-            });
             const result: any = await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, newGateway);
 
             inputBoxStub.should.have.been.calledTwice;
@@ -463,7 +470,6 @@ describe('AddGatewayIdentityCommand', () => {
             enrollStub.should.have.been.calledOnceWith('connectionProfilePath', 'enrollID', 'enrollSecret');
 
             importIdentityStub.should.have.been.calledOnceWith('---CERT---', '---KEY---', 'blueConga', 'myMSPID');
-            executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGatewayIdentity');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway 'myGatewayB'`);
@@ -499,7 +505,7 @@ describe('AddGatewayIdentityCommand', () => {
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-            executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGatewayIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to gateway 'myGatewayA'`);
