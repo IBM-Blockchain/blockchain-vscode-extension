@@ -694,12 +694,12 @@
                         "properties": {
                             "projectName": {
                                 "type": "string",
-                                "description": "%java.debugger.launch.projectName.description%",
+                                "description": "The preferred project in which the debugger searches for classes. There could be duplicated class names in different projects. This setting also works when the debugger looks for the specified main class when launching a program. It is required for expression evaluation.",
                                 "default": ""
                             },
                             "mainClass": {
                                 "type": "string",
-                                "description": "%java.debugger.launch.mainClass.description%",
+                                "description": "The fully qualified class name (e.g. [java module name/]com.xyz.MainApp) or the java file path of the program entry.",
                                 "default": ""
                             },
                             "args": {
@@ -707,7 +707,7 @@
                                     "array",
                                     "string"
                                 ],
-                                "description": "%java.debugger.launch.args.description%",
+                                "description": "The command line arguments passed to the program.",
                                 "default": ""
                             },
                             "vmArgs": {
@@ -715,7 +715,7 @@
                                     "array",
                                     "string"
                                 ],
-                                "description": "%java.debugger.launch.vmArgs.description%",
+                                "description": "The extra options and system properties for the JVM (e.g. -Xms<size> -Xmx<size> -D<name>=<value>).",
                                 "default": ""
                             },
                             "modulePaths": {
@@ -723,7 +723,7 @@
                                 "items": {
                                     "type": "string"
                                 },
-                                "description": "%java.debugger.launch.modulePaths.description%",
+                                "description": "The modulepaths for launching the JVM. If not specified, the debugger will automatically resolve from current project.",
                                 "default": []
                             },
                             "classPaths": {
@@ -731,7 +731,7 @@
                                 "items": {
                                     "type": "string"
                                 },
-                                "description": "%java.debugger.launch.classPaths.description%",
+                                "description": "The classpaths for launching the JVM. If not specified, the debugger will automatically resolve from current project.",
                                 "default": []
                             },
                             "sourcePaths": {
@@ -739,27 +739,27 @@
                                 "items": {
                                     "type": "string"
                                 },
-                                "description": "%java.debugger.launch.sourcePaths.description%",
+                                "description": "The extra source directories of the program. The debugger looks for source code from project settings by default. This option allows the debugger to look for source code in extra directories.",
                                 "default": []
                             },
                             "encoding": {
                                 "type": "string",
-                                "description": "%java.debugger.launch.encoding.description%",
+                                "description": "The file.encoding setting for the JVM. If not specified, 'UTF-8' will be used. Possible values can be found in http://docs.oracle.com/javase/8/docs/technotes/guides/intl/encoding.doc.html.",
                                 "default": "UTF-8"
                             },
                             "cwd": {
                                 "type": "string",
-                                "description": "%java.debugger.launch.cwd.description%",
+                                "description": "The working directory of the program. Defaults to the current workspace root.",
                                 "default": "${workspaceFolder}"
                             },
                             "env": {
                                 "type": "object",
-                                "description": "%java.debugger.launch.env.description%",
+                                "description": "The extra environment variables for the program.",
                                 "default": {}
                             },
                             "stopOnEntry": {
                                 "type": "boolean",
-                                "description": "%java.debugger.launch.stopOnEntry.description%",
+                                "description": "Automatically pause the program after launching.",
                                 "default": true
                             },
                             "console": {
@@ -770,11 +770,11 @@
                                     "externalTerminal"
                                 ],
                                 "enumDescriptions": [
-                                    "%java.debugger.launch.internalConsole.description%",
-                                    "%java.debugger.launch.integratedTerminal.description%",
-                                    "%java.debugger.launch.externalTerminal.description%"
+                                    "VS Code debug console (input stream not supported).",
+                                    "VS Code integrated terminal.",
+                                    "External terminal that can be configured in user settings."
                                 ],
-                                "description": "%java.debugger.launch.console.description%",
+                                "description": "The specified console to launch the program.",
                                 "default": "internalConsole"
                             },
                             "shortenCommandLine": {
@@ -786,17 +786,17 @@
                                     "auto"
                                 ],
                                 "enumDescriptions": [
-                                    "%java.debugger.launch.shortenCommandLine.none%",
-                                    "%java.debugger.launch.shortenCommandLine.jarmanifest%",
-                                    "%java.debugger.launch.shortenCommandLine.argfile%",
-                                    "%java.debugger.launch.shortenCommandLine.auto%"
+                                    "Launch the program with the standard command line 'java [options] classname [args]'.",
+                                    "Generate the classpath parameters to a temporary classpath.jar file, and launch the program with the command line 'java -cp classpath.jar classname [args]'.",
+                                    "Generate the classpath parameters to a temporary argument file, and launch the program with the command line 'java @argfile [args]'. This value only applies to Java 9 and higher.",
+                                    "Automatically detect the command line length and determine whether to shorten the command line via an appropriate approach."
                                 ],
-                                "description": "%java.debugger.launch.shortenCommandLine.description%",
+                                "description": "When the project has long classpath or big VM arguments, the command line to launch the program may exceed the maximum command line string limitation allowed by the OS. This configuration item provides multiple approaches to shorten the command line.",
                                 "default": "auto"
                             },
                             "stepFilters": {
                                 "type": "object",
-                                "description": "%java.debugger.launch.stepFilters.description%",
+                                "description": "Skip specified classes or methods when stepping.",
                                 "default": {
                                     "classNameFilters": [
                                         "java.*",
@@ -813,7 +813,7 @@
                                 "properties": {
                                     "classNameFilters": {
                                         "type": "array",
-                                        "description": "%java.debugger.launch.classNameFilters.description%",
+                                        "description": "Skip the specified classes when stepping. Class names should be fully qualified. Wildcard is supported.",
                                         "item": {
                                             "type": "string"
                                         },
@@ -828,17 +828,17 @@
                                     },
                                     "skipSynthetics": {
                                         "type": "boolean",
-                                        "description": "%java.debugger.launch.skipSynthetics.description%",
+                                        "description": "Skip synthetic methods when stepping.",
                                         "default": true
                                     },
                                     "skipStaticInitializers": {
                                         "type": "boolean",
-                                        "description": "%java.debugger.launch.skipStaticInitializers.description%",
+                                        "description": "Skip static initializer methods when stepping.",
                                         "default": true
                                     },
                                     "skipConstructors": {
                                         "type": "boolean",
-                                        "description": "%java.debugger.launch.skipConstructors.description%",
+                                        "description": "Skip constructor methods when stepping.",
                                         "default": true
                                     }
                                 }
