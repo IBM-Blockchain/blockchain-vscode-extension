@@ -33,6 +33,15 @@ export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPic
     data: T;
 }
 
+export enum LanguageType {
+    CHAINCODE = 'chaincode',
+    CONTRACT = 'contract'
+}
+
+export interface LanguageQuickPickItem extends vscode.QuickPickItem {
+    type: LanguageType;
+}
+
 export class UserInputUtil {
 
     static readonly ADD_TO_WORKSPACE: string = 'Add to workspace';
@@ -284,14 +293,39 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static showLanguagesQuickPick(prompt: string, languages: Array<string>): Thenable<string | undefined> {
+    public static async showLanguagesQuickPick(prompt: string, chaincodeLanguages: Array<string>, contractLanguages: Array<string>): Promise<LanguageQuickPickItem | undefined> {
         const choseLanguageQuickPickOptions: vscode.QuickPickOptions = {
             placeHolder: prompt,
             ignoreFocusOut: true,
             matchOnDetail: true
         };
-
-        return vscode.window.showQuickPick(languages, choseLanguageQuickPickOptions);
+        const chaincodeQuickPickItems: Array<LanguageQuickPickItem> =
+            chaincodeLanguages
+                .filter((chaincodeLanguage: string) => contractLanguages.indexOf(chaincodeLanguage) === -1)
+                .sort()
+                .map((chaincodeLanguage: string) => {
+                    return {
+                        label: chaincodeLanguage,
+                        description: 'Low-level programming model',
+                        type: LanguageType.CHAINCODE
+                    };
+                });
+        const contractQuickPickItems: Array<LanguageQuickPickItem> =
+            contractLanguages
+                .sort()
+                .map((contractLanguage: string) => {
+                    return {
+                        label: contractLanguage,
+                        type: LanguageType.CONTRACT
+                    };
+                });
+        const quickPickItems: Array<LanguageQuickPickItem> = contractQuickPickItems.concat(chaincodeQuickPickItems);
+        const chosenItem: LanguageQuickPickItem = await vscode.window.showQuickPick<LanguageQuickPickItem>(quickPickItems, choseLanguageQuickPickOptions);
+        if (chosenItem) {
+            return chosenItem;
+        } else {
+            return undefined;
+        }
     }
 
     public static showGeneratorOptions(prompt: string): Thenable<string | undefined> {

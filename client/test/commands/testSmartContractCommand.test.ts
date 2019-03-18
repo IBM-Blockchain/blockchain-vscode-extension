@@ -22,7 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import * as os from 'os';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil, LanguageType } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import * as myExtension from '../../src/extension';
@@ -232,7 +232,7 @@ describe('testSmartContractCommand', () => {
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             // Other stubs
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
+            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
 
@@ -279,7 +279,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves('TypeScript');
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
@@ -407,7 +407,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves('TypeScript');
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
@@ -802,7 +802,7 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
 
-            showLanguageQuickPickStub.resolves('TypeScript');
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
@@ -824,7 +824,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves('TypeScript');
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
@@ -847,7 +847,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves('TypeScript');
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
@@ -872,7 +872,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves('TypeScript');
+            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
             pathExistsStub.onFirstCall().resolves(false);
             pathExistsStub.onSecondCall().resolves(true);
@@ -984,7 +984,7 @@ describe('testSmartContractCommand', () => {
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
+            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
