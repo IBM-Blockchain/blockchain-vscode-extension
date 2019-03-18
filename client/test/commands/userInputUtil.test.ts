@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil, IBlockchainQuickPickItem } from '../../src/commands/UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../src/commands/UserInputUtil';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -340,12 +340,54 @@ describe('userInputUtil', () => {
     });
 
     describe('showLanguagesQuickPick', () => {
-        it('should show the quick pick box with languages', async () => {
-            quickPickStub.resolves('javascript');
 
-            const result: string = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
-            result.should.equal('javascript');
+        it('should return undefined if the user cancels the quick pick box', async () => {
+            quickPickStub.resolves(undefined);
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['go', 'java'], ['javascript', 'typescript']);
+            should.equal(chosenItem, undefined);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
 
+        it('should display a list of chaincode languages', async () => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[], options: vscode.QuickPickOptions) => {
+                return items[0];
+            });
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['java', 'go'], []);
+            chosenItem.label.should.equal('go');
+            chosenItem.description.should.equal('Low-level programming model');
+            chosenItem.type.should.equal(LanguageType.CHAINCODE);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
+
+        it('should display a list of contract languages', async () => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[], options: vscode.QuickPickOptions) => {
+                return items[0];
+            });
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', [], ['typescript', 'javascript']);
+            chosenItem.label.should.equal('javascript');
+            chosenItem.type.should.equal(LanguageType.CONTRACT);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
+
+        it('should display a list of contract and chaincode languages', async () => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[], options: vscode.QuickPickOptions) => {
+                return items[0];
+            });
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['java', 'go'], ['typescript', 'javascript']);
+            chosenItem.label.should.equal('javascript');
+            chosenItem.type.should.equal(LanguageType.CONTRACT);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 placeHolder: 'Choose a language',
                 ignoreFocusOut: true,

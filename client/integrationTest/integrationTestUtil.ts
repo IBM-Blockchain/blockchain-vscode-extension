@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { CommandUtil } from '../src/util/CommandUtil';
-import { UserInputUtil } from '../src/commands/UserInputUtil';
+import { UserInputUtil, LanguageType } from '../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
 import { FabricWalletRegistry } from '../src/fabric/FabricWalletRegistry';
@@ -175,18 +175,26 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
     }
 
-    public async createSmartContract(name: string, type: string): Promise<void> {
-        this.showLanguagesQuickPickStub.resolves(type);
+    public async createSmartContract(name: string, language: string): Promise<void> {
+        let type: LanguageType;
+        if (language === 'Go' || language === 'Java') {
+            type = LanguageType.CHAINCODE;
+        } else if (language === 'JavaScript' || language === 'TypeScript') {
+            type = LanguageType.CONTRACT;
+        } else {
+            throw new Error(`You must update this test to support the ${language} language`);
+        }
+        this.showLanguagesQuickPickStub.resolves({ label: language, type });
         this.mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
         this.testContractName = name;
-        if (type === 'Go') {
+        if (language === 'Go') {
             process.env.GOPATH = path.join(__dirname, '..', '..', 'integrationTest', 'tmp');
             this.testContractDir = path.join(process.env.GOPATH, 'src', name);
         } else {
             this.testContractDir = path.join(__dirname, '..', '..', 'integrationTest', 'tmp', name);
         }
-        this.testContractType = type;
+        this.testContractType = language;
         const exists: boolean = await fs.pathExists(this.testContractDir);
         if (exists) {
             await fs.remove(this.testContractDir);
@@ -203,13 +211,13 @@ export class IntegrationTestUtil {
         }, undefined, true).resolves(uri);
 
         let generator: string;
-        if (type === 'Go' || type === 'Java') {
+        if (language === 'Go' || language === 'Java') {
             generator = 'fabric:chaincode';
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, generator);
 
-        if (type === 'JavaScript' || type === 'TypeScript') {
+        if (language === 'JavaScript' || language === 'TypeScript') {
             await CommandUtil.sendCommandWithOutput('npm', ['install'], this.testContractDir, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
         }
     }
@@ -364,7 +372,7 @@ export class IntegrationTestUtil {
             data: { name: name, channel: 'mychannel', version: version }
         });
 
-        this.showLanguagesQuickPickStub.resolves(language);
+        this.showLanguagesQuickPickStub.resolves({ label: language, type: LanguageType.CONTRACT });
         this.getWorkspaceFoldersStub.returns([this.workspaceFolder]);
         const packageJSONPath: string = path.join(this.testContractDir, 'package.json');
         this.findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
