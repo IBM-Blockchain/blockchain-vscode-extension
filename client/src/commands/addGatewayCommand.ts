@@ -89,6 +89,8 @@ export async function addGateway(): Promise<{} | void> {
             await createWalletAndImport(fabricGatewayEntry, identityObject, fabricWalletRegistryEntry);
 
             await fabricGatewayRegistry.update(fabricGatewayEntry);
+            fabricWalletRegistryEntry.walletPath = fabricGatewayEntry.walletPath;
+            await fabricWalletRegistry.update(fabricWalletRegistryEntry);
             outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
 
         } else {

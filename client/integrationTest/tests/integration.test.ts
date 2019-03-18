@@ -61,6 +61,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeExtensionDirectoryConfig();
+        await TestUtil.storeWalletsConfig();
 
         VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
@@ -81,6 +82,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         await TestUtil.restoreGatewaysConfig();
         await TestUtil.restoreRuntimesConfig();
         await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     describe('Ops View', () => {

@@ -31,7 +31,7 @@ describe('FabricWallet', () => {
     describe('importIdentity', () => {
 
         it('should import identity', async () => {
-            const wallet: FabricWallet = new FabricWallet('connectionName', 'path');
+            const wallet: FabricWallet = new FabricWallet('path');
             importStub.resolves();
             const createIdentityStub: sinon.SinonStub = mySandBox.stub(X509WalletMixin, 'createIdentity').returns({hello: 'world'});
 
@@ -45,7 +45,7 @@ describe('FabricWallet', () => {
     describe('getWalletPath', () => {
 
         it('should get wallet path', async () => {
-            const wallet: FabricWallet = new FabricWallet('connectionName', '/some/path');
+            const wallet: FabricWallet = new FabricWallet('/some/path');
 
             const result: string = wallet.getWalletPath();
             result.should.equal('/some/path');
@@ -55,7 +55,7 @@ describe('FabricWallet', () => {
     describe('getIdentityNames', () => {
 
         it('should import identity', async () => {
-            const wallet: FabricWallet = new FabricWallet('connectionName', 'path');
+            const wallet: FabricWallet = new FabricWallet('path');
             mySandBox.stub(wallet, 'list').resolves([
                 {
                     some: 'thing',
