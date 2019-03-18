@@ -185,6 +185,15 @@ describe('packageSmartContract', () => {
             task.isBackground = true;
             return task;
         });
+        const watchTasks: vscode.Task[] = [
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) }, 'javascriptProject watch task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject Watch task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject WATCH task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javaProject', uri: vscode.Uri.file(javaPath) }, 'javaProject WaTcH task', 'npm')
+        ].map((task: vscode.Task) => {
+            task.group = vscode.TaskGroup.Build;
+            return task;
+        });
 
         // These are the tasks we do want to execute.
         buildTasks = [
@@ -203,7 +212,7 @@ describe('packageSmartContract', () => {
         // Stub the list of tasks VSCode knows about.
         mySandBox.stub(vscode.tasks, 'fetchTasks').resolves(
             [unscopedTask, globalTask, workspaceTask, differentUriTask]
-                .concat(testTasks, backgroundTasks, buildTasks)
+                .concat(testTasks, backgroundTasks, watchTasks, buildTasks)
                 .filter((task: vscode.Task) => !!task)
         );
 
