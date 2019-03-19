@@ -76,6 +76,7 @@ import { CertificateAuthorityTreeItem } from './explorer/runtimeOps/CertificateA
 import { BlockchainWalletExplorerProvider } from './explorer/walletExplorer';
 import { FabricJavaDebugConfigurationProvider } from './debug/FabricJavaDebugConfigurationProvider';
 import { WalletTreeItem } from './explorer/wallets/WalletTreeItem';
+import { debugCommandList } from './commands/debugCommandListCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -218,6 +219,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_NEW_IDENTITY, (certificateAuthorityTreeItem?: CertificateAuthorityTreeItem) => createNewIdentity(certificateAuthorityTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_WALLETS, (element: BlockchainTreeItem) => blockchainWalletExplorerProvider.refresh(element)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET, () => addWallet()));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEBUG_COMMAND_LIST, () => debugCommandList()));
 
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => await HomeView.openHomePage(context)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));
@@ -240,6 +242,9 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
         if (e) {
             // Show any new transactions added to a contract, after 'reload debug' is executed.
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        } else {
+            // debug has stopped so set the context to false
+            await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
         }
     });
 

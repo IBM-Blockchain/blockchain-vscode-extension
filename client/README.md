@@ -15,7 +15,7 @@ Follow our [Tutorial](https://developer.ibm.com/tutorials/ibm-blockchain-platfor
 ## Requirements
 
 You will need the following installed in order to use the extension:
-- [VSCode version 1.31 or greater](https://code.visualstudio.com)
+- [VSCode version 1.32 or greater](https://code.visualstudio.com)
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
@@ -158,6 +158,7 @@ Debugging your smart contract allows you to run through the smart contract trans
 5. Package and install the smart contract by clicking the **play** button.
 6. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
 7. Click **Instantiate** in the `Local Fabric Ops` panel. In the `Fabric Gateways` panel, you can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
+8. To submit or evaluate a transaction click the blockchain icon on the debug toolbar.
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 

@@ -154,10 +154,11 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['127.0.0.1:54321']
             });
-            commandStub.should.have.been.calledThrice;
+            commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should add in env properties if not defined', async () => {
@@ -171,10 +172,11 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['127.0.0.1:54321']
             });
-            commandStub.should.have.been.calledThrice;
+            commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should add CORE_CHAINCODE_ID_NAME to an existing env', async () => {
@@ -188,10 +190,11 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, myProperty: 'myValue' },
                 args: ['127.0.0.1:54321']
             });
-            commandStub.should.have.been.calledThrice;
+            commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should use CORE_CHAINCODE_ID_NAME if defined', async () => {
@@ -205,10 +208,11 @@ describe('FabricDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `myContract:myVersion` },
                 args: ['127.0.0.1:54321']
             });
-            commandStub.should.have.been.calledThrice;
+            commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'myContract', 'myVersion');
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
         it('should not run if the chaincode name is not provided', async () => {
@@ -282,7 +286,5 @@ describe('FabricDebugConfigurationProvider', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: some error');
         });
-
     });
-
 });

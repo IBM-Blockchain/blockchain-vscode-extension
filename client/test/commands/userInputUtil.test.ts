@@ -34,12 +34,12 @@ import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistry
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
-
 describe('userInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
@@ -719,7 +719,7 @@ describe('userInputUtil', () => {
                 canSelectMany: false,
                 openLabel: 'Select',
                 filters: {
-                    'Connection Profiles' : ['json', 'yaml', 'yml']
+                    'Connection Profiles': ['json', 'yaml', 'yml']
                 }
             };
             const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
@@ -1032,7 +1032,7 @@ describe('userInputUtil', () => {
 
     describe('delayWorkaround', () => {
         beforeEach(() => {
-            this.clock = sinon.useFakeTimers({toFake: ['setTimeout']});
+            this.clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
         });
 
         afterEach(() => {
@@ -1417,7 +1417,7 @@ describe('userInputUtil', () => {
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 matchOnDetail: true,
                 placeHolder: 'choose option to add identity with',
-                ignoreFocusOut : true,
+                ignoreFocusOut: true,
                 canPickMany: false,
             });
         });
@@ -1487,7 +1487,7 @@ describe('userInputUtil', () => {
             };
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             browseEditStub.onCall(0).resolves();
-            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
+            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
             browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
@@ -1595,7 +1595,7 @@ describe('userInputUtil', () => {
             const showInputBox: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             showInputBox.onCall(0).resolves();
 
-            const result: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            const result: { enrollmentID: string, enrollmentSecret: string } = await UserInputUtil.getEnrollIdSecret();
             should.equal(result, undefined);
             showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
         });
@@ -1605,7 +1605,7 @@ describe('userInputUtil', () => {
             showInputBox.onCall(0).resolves('some_id');
             showInputBox.onCall(1).resolves();
 
-            const result: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            const result: { enrollmentID: string, enrollmentSecret: string } = await UserInputUtil.getEnrollIdSecret();
             should.equal(result, undefined);
             showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
             showInputBox.getCall(1).should.have.been.calledWithExactly('Enter enrollment secret');
@@ -1616,12 +1616,31 @@ describe('userInputUtil', () => {
             showInputBox.onCall(0).resolves('some_id');
             showInputBox.onCall(1).resolves('some_secret');
 
-            const {enrollmentID, enrollmentSecret} = await UserInputUtil.getEnrollIdSecret();
+            const { enrollmentID, enrollmentSecret } = await UserInputUtil.getEnrollIdSecret();
             enrollmentID.should.equal('some_id');
             enrollmentSecret.should.equal('some_secret');
             showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
             showInputBox.getCall(1).should.have.been.calledWithExactly('Enter enrollment secret');
         });
+    });
 
+    describe('showDebugCommandList', () => {
+        it('should show the list of commands', async () => {
+            quickPickStub.resolves({ label: 'Submit transaction', data: ExtensionCommands.SUBMIT_TRANSACTION });
+
+            const commands: Array<{ name: string, command: string }> = [
+                {
+                    name: 'Submit Transaction',
+                    command: ExtensionCommands.SUBMIT_TRANSACTION
+                },
+                {
+                    name: 'Evaluate Transaction',
+                    command: ExtensionCommands.EVALUATE_TRANSACTION
+                }
+            ];
+
+            const result: IBlockchainQuickPickItem<string> = await UserInputUtil.showDebugCommandList(commands, 'Choose a command to run');
+            result.should.deep.equal({ label: 'Submit transaction', data: ExtensionCommands.SUBMIT_TRANSACTION });
+        });
     });
 });

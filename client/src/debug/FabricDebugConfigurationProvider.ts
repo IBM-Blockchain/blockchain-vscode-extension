@@ -13,16 +13,12 @@
 */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs-extra';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as dateFormat from 'dateformat';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
-import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -93,6 +89,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             // configuration provider, for example a fabric:go configuration with the go debug configuration
             // provider. This results in errors and we need to just force it to use our configuration as-is.
             delete resolvedConfig.name;
+            await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
             vscode.debug.startDebugging(folder, resolvedConfig);
 
             // Cancel the current debug session - the user will never know!
@@ -131,5 +128,4 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         }
         return connection.getAllPeerNames();
     }
-
 }

@@ -21,7 +21,7 @@
     },
     "production": false,
     "engines": {
-        "vscode": "^1.31.0"
+        "vscode": "^1.32.0"
     },
     "repository": {
         "type": "git",
@@ -144,6 +144,15 @@
             }
         },
         "commands": [
+            {
+                "command": "debug.commandList",
+                "title": "Debug Command List",
+                "category": "IBM Blockchain Platform",
+                "icon": {
+                    "light": "resources/blockchain_marketplace.png",
+                    "dark": "resources/blockchain_marketplace.png"
+                }
+            },
             {
                 "command": "sample.open",
                 "title": "Open Sample",
@@ -350,6 +359,13 @@
                     "group": "navigation"
                 }
             ],
+            "debug/toolbar": [
+                {
+                    "command": "debug.commandList",
+                    "when": "blockchain-debug",
+                    "group": "blockchain"
+                }
+            ],
             "commandPalette": [
                 {
                     "command": "aRuntimeOpsExplorer.startFabricRuntime"
@@ -371,6 +387,10 @@
                 },
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "debug.commandList",
                     "when": "false"
                 }
             ],

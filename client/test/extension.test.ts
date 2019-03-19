@@ -378,7 +378,7 @@ describe('Extension Tests', () => {
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
     });
 
-    it('should ignore undefined emitted debug events', async () => {
+    it('should set blockchain-debug false when no debug session', async () => {
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
 
         const session: any = undefined;
@@ -386,7 +386,6 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.not.have.been.called;
+        executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
     });
-
 });
