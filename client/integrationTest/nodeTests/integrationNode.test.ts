@@ -41,12 +41,8 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
-import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 

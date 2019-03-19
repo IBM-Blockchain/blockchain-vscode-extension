@@ -23,10 +23,7 @@ import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../src/logging/OutputAdapter';
 
-import * as chai from 'chai';
 import * as sinon from 'sinon';
-
-const should: Chai.Should = chai.should();
 
 describe('PeerTreeItem', () => {
 

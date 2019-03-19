@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 import * as fs from 'fs-extra';
-import * as vscode from 'vscode';
 
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';

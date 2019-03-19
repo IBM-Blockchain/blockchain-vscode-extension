@@ -19,7 +19,6 @@ import * as sinon from 'sinon';
 import * as tmp from 'tmp';
 import * as sinonChai from 'sinon-chai';
 import * as fs_extra from 'fs-extra';
-import * as child_process from 'child_process';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { UserInputUtil, LanguageType, LanguageQuickPickItem } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
@@ -38,10 +37,8 @@ describe('CreateSmartContractProjectCommand', () => {
     // suite variables
     let mySandBox: sinon.SinonSandbox;
     let sendCommandStub: sinon.SinonStub;
-    let sendCommandWithOutputAndProgressStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
-    let openDialogStub: sinon.SinonStub;
     let browseEditStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let updateWorkspaceFoldersStub: sinon.SinonStub;
@@ -55,10 +52,10 @@ describe('CreateSmartContractProjectCommand', () => {
         mySandBox = sinon.createSandbox();
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
         sendCommandStub.withArgs('xcode-select -p').resolves('path');
-        sendCommandWithOutputAndProgressStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
+        mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-        openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
+        mySandBox.stub(vscode.window, 'showOpenDialog');
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
         const originalExecuteCommand: any = vscode.commands.executeCommand;
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');

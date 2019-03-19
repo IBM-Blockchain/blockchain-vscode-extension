@@ -39,7 +39,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
         it('should provide a debug configuration', async () => {
             const provider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
-            const config: any = await provider.provideDebugConfigurations(undefined);
+            const config: any = await provider.provideDebugConfigurations();
             config.should.deep.equal([{
                 type: 'fabric:java',
                 request: 'launch',
@@ -57,14 +57,10 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
-        let findFilesStub: sinon.SinonStub;
         let commandStub: sinon.SinonStub;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
-        let readFileStub: sinon.SinonStub;
-        let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
-        let getConnectionStub: sinon.SinonStub;
         let date: Date;
         let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
@@ -96,8 +92,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 uri: vscode.Uri.file('myPath')
             };
 
-            readJsonStub = mySandbox.stub(fs, 'readJSON');
-            readFileStub = mySandbox.stub(fs, 'readFile').resolves(`{
+            mySandbox.stub(fs, 'readJSON');
+            mySandbox.stub(fs, 'readFile').resolves(`{
                 "name": "mySmartContract",
                 "version": "0.0.1"
             }`);
@@ -111,7 +107,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             debugConfig.cwd = 'myCwd';
             debugConfig.args = ['--peer.address', 'localhost:12345'];
 
-            findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
+            mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
 
             commandStub = mySandbox.stub(vscode.commands, 'executeCommand');
 
@@ -131,7 +127,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+            mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
 

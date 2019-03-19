@@ -41,7 +41,6 @@ import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
 chai.use(require('chai-as-promised'));

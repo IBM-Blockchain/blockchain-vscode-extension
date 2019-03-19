@@ -13,15 +13,11 @@
 */
 
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
@@ -36,7 +32,6 @@ describe('restartFabricRuntime', () => {
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
-    let runtimeTreeItem: RuntimeTreeItem;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -55,9 +50,6 @@ describe('restartFabricRuntime', () => {
         await connectionRegistry.clear();
         await runtimeManager.add();
         runtime = runtimeManager.getRuntime();
-        const provider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-        const children: BlockchainTreeItem[] = await provider.getChildren();
-        runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
     });
 
     afterEach(async () => {

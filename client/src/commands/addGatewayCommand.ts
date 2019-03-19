@@ -13,15 +13,9 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import {UserInputUtil} from './UserInputUtil';
-import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { IFabricWallet } from '../fabric/IFabricWallet';
-import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import * as fs from 'fs-extra';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';

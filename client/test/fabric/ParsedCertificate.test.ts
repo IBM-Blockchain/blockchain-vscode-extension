@@ -78,7 +78,7 @@ describe('ParsedCertificate', () => {
 
         it('should validate certificate PEM', async () => {
             const readFileSyncStub: sinon.SinonStub = mySandBox.stub(fs, 'readFileSync').returns('loadedfile');
-            const CertificateStub: sinon.SinonStub = mySandBox.stub(Certificate, 'fromPEM').returns(undefined);
+            mySandBox.stub(Certificate, 'fromPEM').returns(undefined);
             const filePath: string = '/some/path';
             const type: string = 'certificate';
 
@@ -88,7 +88,7 @@ describe('ParsedCertificate', () => {
 
         it('should throw error if certificate PEM is invalid', async () => {
             const readFileSyncStub: sinon.SinonStub = mySandBox.stub(fs, 'readFileSync').returns('loadedfile');
-            const CertificateStub: sinon.SinonStub = mySandBox.stub(Certificate, 'fromPEM').throws({message: 'invalid body'});
+            mySandBox.stub(Certificate, 'fromPEM').throws({message: 'invalid body'});
             const filePath: string = '/some/path';
             const type: string = 'certificate';
 

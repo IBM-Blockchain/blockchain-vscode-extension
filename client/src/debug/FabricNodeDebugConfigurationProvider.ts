@@ -19,7 +19,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
-    public async provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
+    public async provideDebugConfigurations(): Promise<vscode.DebugConfiguration[]> {
         return [
             {
                 type: 'fabric:node',
@@ -34,7 +34,7 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
         return name;
     }
 
-    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
         config.type = 'node';
 
         if (!config.request) {
@@ -64,5 +64,4 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
 
         return config;
     }
-
 }

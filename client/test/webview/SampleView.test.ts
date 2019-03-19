@@ -135,7 +135,6 @@ describe('SampleView', () => {
     };
     let repositoryConfig: any;
     let images: any;
-    let executeSpy: sinon.SinonSpy;
     let createWebviewPanelStub: sinon.SinonStub;
     let context: vscode.ExtensionContext;
     let getSamplePageStub: sinon.SinonStub;
@@ -159,7 +158,7 @@ describe('SampleView', () => {
         context = {
             extensionPath: 'path'
         } as vscode.ExtensionContext;
-        executeSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        mySandBox.spy(vscode.commands, 'executeCommand');
 
         createWebviewPanelStub = mySandBox.stub(vscode.window, 'createWebviewPanel');
         createWebviewPanelStub.returns({
@@ -617,7 +616,7 @@ describe('SampleView', () => {
                 images: images
             };
 
-            const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({data: readme});
+            mySandBox.stub(Axios, 'get').resolves({data: readme});
 
             const error: Error = new Error('error happened');
             mySandBox.stub(ejs, 'renderFile').yields(error);

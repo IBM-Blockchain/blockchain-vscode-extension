@@ -48,7 +48,6 @@ describe('userInputUtil', () => {
 
     let getConnectionStub: sinon.SinonStub;
     let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
-    let getLocalFabricConnectionStub: sinon.SinonStub;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -136,7 +135,7 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
-        getLocalFabricConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
+        mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
 
@@ -331,7 +330,7 @@ describe('userInputUtil', () => {
         });
 
         it('should display a list of chaincode languages', async () => {
-            quickPickStub.callsFake(async (items: LanguageQuickPickItem[], options: vscode.QuickPickOptions) => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[]) => {
                 return items[0];
             });
             const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['java', 'go'], []);
@@ -346,7 +345,7 @@ describe('userInputUtil', () => {
         });
 
         it('should display a list of contract languages', async () => {
-            quickPickStub.callsFake(async (items: LanguageQuickPickItem[], options: vscode.QuickPickOptions) => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[]) => {
                 return items[0];
             });
             const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', [], ['typescript', 'javascript']);
@@ -360,7 +359,7 @@ describe('userInputUtil', () => {
         });
 
         it('should display a list of contract and chaincode languages', async () => {
-            quickPickStub.callsFake(async (items: LanguageQuickPickItem[], options: vscode.QuickPickOptions) => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[]) => {
                 return items[0];
             });
             const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['java', 'go'], ['typescript', 'javascript']);
@@ -735,7 +734,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -760,7 +760,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -785,7 +786,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -806,7 +808,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -814,7 +817,7 @@ describe('userInputUtil', () => {
         });
 
         it('should finish if cancels browse dialog', async () => {
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves();
+            mySandBox.stub(vscode.window, 'showOpenDialog').resolves();
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const placeHolder: string = 'Enter a file path to the connection profile json file';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];

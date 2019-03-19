@@ -31,7 +31,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
-import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricCertificateAuthority } from '../../src/fabric/FabricCertificateAuthority';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
@@ -39,7 +38,6 @@ import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 
 // tslint:disable no-unused-expression
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('AddGatewayIdentityCommand', () => {
@@ -69,8 +67,6 @@ describe('AddGatewayIdentityCommand', () => {
         let getEnrollIdSecretStub: sinon.SinonStub;
         let enrollStub: sinon.SinonStub;
         let executeCommandSpy: sinon.SinonSpy;
-        let createLocalWalletStub: sinon.SinonStub;
-        let getNewWalletStub: sinon.SinonStub;
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
@@ -107,8 +103,8 @@ describe('AddGatewayIdentityCommand', () => {
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             fabricWallet = new FabricWallet('fab_wallet', walletPath);
-            createLocalWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(fabricWallet);
-            getNewWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet').returns(fabricWallet);
+            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(fabricWallet);
+            mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet').returns(fabricWallet);
             importIdentityStub = mySandBox.stub(fabricWallet, 'importIdentity');
 
         });
@@ -132,8 +128,6 @@ describe('AddGatewayIdentityCommand', () => {
             getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
             enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-
-            const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
             inputBoxStub.should.have.been.calledTwice;

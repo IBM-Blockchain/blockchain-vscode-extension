@@ -239,8 +239,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 this,
                 gateway.name,
                 gateway,
-                treeState,
-                undefined
+                treeState
             );
 
             tree.push(treeItem);

@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as homeDir from 'home-dir';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';

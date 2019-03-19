@@ -569,7 +569,7 @@ describe('gatewayExplorer', () => {
 
                 blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
+                mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
 
                 registryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
@@ -1061,8 +1061,6 @@ describe('gatewayExplorer', () => {
         });
 
         it('should disconnect the client connection', async () => {
-            const myConnection: TestFabricConnection = new TestFabricConnection();
-
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
