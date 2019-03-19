@@ -1029,7 +1029,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
-        "generator-fabric": "0.0.19",
+        "generator-fabric": "0.0.20",
         "home-dir": "1.0.0",
         "shelljs": "^0.8.3",
         "showdown": "^1.9.0",
