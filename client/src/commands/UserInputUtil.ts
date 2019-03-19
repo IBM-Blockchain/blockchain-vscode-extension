@@ -494,7 +494,7 @@ export class UserInputUtil {
             if (!transactionName) {
                 return;
             }
-            return { label: null, data: { name: transactionName, contract: null }};
+            return { label: null, data: { name: transactionName, contract: null } };
         }
 
         for (const [name, transactionArray] of transactionNamesMap) {
@@ -582,7 +582,7 @@ export class UserInputUtil {
         const quickPickOptions: vscode.QuickPickOptions = {
             matchOnDetail: true,
             placeHolder: prompt,
-            ignoreFocusOut : true,
+            ignoreFocusOut: true,
             canPickMany: false,
         };
 
@@ -656,7 +656,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async getCertKey(connectionName: string): Promise<{certificatePath: string, privateKeyPath: string}> {
+    public static async getCertKey(connectionName: string): Promise<{ certificatePath: string, privateKeyPath: string }> {
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
@@ -680,10 +680,10 @@ export class UserInputUtil {
         }
         ParsedCertificate.validPEM(privateKeyPath, 'private key');
 
-        return {certificatePath, privateKeyPath};
+        return { certificatePath, privateKeyPath };
     }
 
-    public static async getEnrollIdSecret(): Promise<{enrollmentID: string, enrollmentSecret: string}> {
+    public static async getEnrollIdSecret(): Promise<{ enrollmentID: string, enrollmentSecret: string }> {
 
         const enrollmentID: string = await UserInputUtil.showInputBox('Enter enrollment ID');
         if (!enrollmentID) {
@@ -695,7 +695,25 @@ export class UserInputUtil {
             return;
         }
 
-        return {enrollmentID, enrollmentSecret};
+        return { enrollmentID, enrollmentSecret };
+    }
+
+    public static async showDebugCommandList(commands: Array<{ name: string, command: string }>, prompt: string): Promise<IBlockchainQuickPickItem<string>> {
+        const quickPickItems: IBlockchainQuickPickItem<string>[] = [];
+
+        for (const command of commands) {
+            quickPickItems.push(
+                { label: command.name, data: command.command }
+            );
+        }
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

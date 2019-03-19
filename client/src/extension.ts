@@ -73,6 +73,7 @@ import { FabricGoDebugConfigurationProvider } from './debug/FabricGoDebugConfigu
 import { importSmartContractPackageCommand } from './commands/importSmartContractPackageCommand';
 import { CertificateAuthorityTreeItem } from './explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { FabricJavaDebugConfigurationProvider } from './debug/FabricJavaDebugConfigurationProvider';
+import { debugCommandList } from './commands/debugCommandListCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -210,6 +211,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EVALUATE_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem) => submitTransaction(true, transactionTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, (instantiatedChainCodeTreeItem?: InstantiatedTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_NEW_IDENTITY, (certificateAuthorityTreeItem?: CertificateAuthorityTreeItem) => createNewIdentity(certificateAuthorityTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEBUG_COMMAND_LIST, () => debugCommandList()));
 
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => await HomeView.openHomePage(context)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));
@@ -231,6 +233,9 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
         if (e) {
             // Show any new transactions added to a contract, after 'reload debug' is executed.
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        } else {
+            // debug has stopped so set the context to false
+            await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
         }
     });
 
