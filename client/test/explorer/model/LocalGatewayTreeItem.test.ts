@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { LocalGatewayTreeItem } from '../../../src/explorer/model/LocalGatewayTreeItem';
@@ -26,8 +25,6 @@ import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../src/logging/OutputAdapter';
-
-const should: Chai.Should = chai.should();
 
 describe('LocalGatewayTreeItem', () => {
 
@@ -119,7 +116,6 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('local_fabric  ◐');
-            should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-local-gateway-item-busy');
         });
 
@@ -172,7 +168,6 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('local_fabric  ◐');
-            should.equal(treeItem.command, null);
             treeItem.contextValue.should.equal('blockchain-local-gateway-item-busy');
         });
 

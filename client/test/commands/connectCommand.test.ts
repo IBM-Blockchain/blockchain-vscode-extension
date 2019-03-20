@@ -41,7 +41,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
 chai.use(require('chai-as-promised'));

@@ -249,7 +249,7 @@ describe('runtimeOpsExplorer', () => {
 
                 blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-                const getConnectionStub: sinon.SinonStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
+                mySandBox.stub(fabricRuntimeManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
                 mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 

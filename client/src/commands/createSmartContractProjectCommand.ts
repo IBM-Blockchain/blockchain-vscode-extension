@@ -104,7 +104,7 @@ export async function createSmartContractProject(): Promise<void> {
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>, token: vscode.CancellationToken): Promise<void> => {
+        }, async (progress: vscode.Progress<{message: string}>): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
             await env.run(generator, runOptions);
         });

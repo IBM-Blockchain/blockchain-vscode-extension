@@ -22,7 +22,7 @@ export enum LogType {
 }
 
 export abstract class OutputAdapter {
-    public log(type: LogType, popupMessage: string, outputMessage?: string, skipNextLine?: boolean): void {
+    public log(type: LogType, popupMessage: string, outputMessage?: string): void {
         if (type === LogType.ERROR) {
             console.error(popupMessage);
             console.error(outputMessage);

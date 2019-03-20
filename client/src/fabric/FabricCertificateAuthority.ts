@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as yaml from 'js-yaml';
@@ -51,5 +50,4 @@ export class FabricCertificateAuthority {
             throw error;
         }
     }
-
 }

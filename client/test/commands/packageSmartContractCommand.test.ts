@@ -1006,7 +1006,6 @@ describe('packageSmartContract', () => {
 
         it('should handle error from get workspace folders', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
-            const testIndex: number = 0;
 
             folders.splice(1, folders.length - 1);
 

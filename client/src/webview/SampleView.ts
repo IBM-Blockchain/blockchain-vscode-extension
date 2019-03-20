@@ -76,7 +76,7 @@ export class SampleView {
             // Keep track of the panels open
             openPanels.push(panel);
 
-            panel.onDidChangeViewState(async (e: vscode.WebviewPanelOnDidChangeViewStateEvent) => {
+            panel.onDidChangeViewState(async () => {
                 // Whenever the View becomes active, rebuild the UI
                 panel.webview.html = await this.getContractSample(repoName, sampleName);
             });

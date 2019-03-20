@@ -19,12 +19,22 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
+    public async provideDebugConfigurations(): Promise<vscode.DebugConfiguration[]> {
+        return [
+            {
+                type: 'fabric:node',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }
+        ];
+    }
+
     protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
         const { name } = await ExtensionUtil.getContractNameAndVersion(folder);
         return name;
     }
 
-    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
         config.type = 'node';
 
         if (!config.request) {
@@ -54,5 +64,4 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
 
         return config;
     }
-
 }

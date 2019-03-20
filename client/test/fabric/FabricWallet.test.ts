@@ -14,7 +14,7 @@
 
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import * as sinon from 'sinon';
-import { FileSystemWallet, X509WalletMixin, Identity } from 'fabric-network';
+import { FileSystemWallet, X509WalletMixin } from 'fabric-network';
 
 describe('FabricWallet', () => {
     let mySandBox: sinon.SinonSandbox;

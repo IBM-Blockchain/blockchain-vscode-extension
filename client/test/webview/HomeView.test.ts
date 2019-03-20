@@ -233,7 +233,7 @@ describe('HomeView', () => {
         });
 
         mySandBox.stub(RepositoryRegistry.prototype, 'get').returns({name: 'repo1', path: 'path'});
-        const getContractSample: sinon.SinonStub = mySandBox.stub(SampleView, 'getSamplePage').resolves('<html>Sample Page</html>');
+        mySandBox.stub(SampleView, 'getSamplePage').resolves('<html>Sample Page</html>');
 
         await HomeView.openHomePage(context);
 

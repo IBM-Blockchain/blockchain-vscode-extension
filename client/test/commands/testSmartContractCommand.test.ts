@@ -69,7 +69,6 @@ describe('testSmartContractCommand', () => {
     let mockEditBuilder: any;
     let mockEditBuilderReplaceSpy: sinon.SinonSpy;
     let mockTextEditor: any;
-    let findFilesStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
@@ -233,7 +232,7 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
             packageJSONPath = vscode.Uri.file(path.join(testFileDir, 'package.json'));
-            findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
+            mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
@@ -719,7 +718,6 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
-            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
             mockTextEditor.edit.resolves(false);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -771,7 +769,6 @@ describe('testSmartContractCommand', () => {
             mockTextEditor.edit.resolves(false);
             fsRemoveStub.rejects({ message: 'ENOENT: no such file or directory' });
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
-            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
@@ -989,7 +986,7 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
             packageJSONPath = vscode.Uri.file(path.join(testFileDir, 'package.json'));
-            findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
+            mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);

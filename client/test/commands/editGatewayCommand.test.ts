@@ -43,7 +43,6 @@ describe('EditGatewayCommand', () => {
     let browseEditStub: sinon.SinonStub;
     let showIdentityOptionsStub: sinon.SinonStub;
     let updateFabricGatewayRegistryStub: sinon.SinonStub;
-    let showInputBoxStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let isCompletedStub: sinon.SinonStub;
     let copyConnectionProfileStub: sinon.SinonStub;
@@ -67,8 +66,6 @@ describe('EditGatewayCommand', () => {
         updateFabricGatewayRegistryStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
         isCompletedStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete');
         copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
-
-        showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 

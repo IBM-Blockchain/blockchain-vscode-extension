@@ -15,11 +15,8 @@
 import * as vscode from 'vscode';
 import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
 
-import * as chai from 'chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-
-const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('RepositoryRegistry', () => {

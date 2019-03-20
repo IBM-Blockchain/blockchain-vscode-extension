@@ -15,7 +15,6 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as vscode from 'vscode';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
