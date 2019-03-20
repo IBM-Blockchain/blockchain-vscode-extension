@@ -35,47 +35,6 @@ describe('FabricGatewayHelper', () => {
         mySandBox.restore();
     });
 
-    describe('isCompleted', () => {
-        it('should return false if connection profile is complete and wallet path is incomplete', async () => {
-           const connectionProfilePathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
-           const walletPathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);
-           const instance: any = {some: 'thing'};
-           const result: boolean = FabricGatewayHelper.isCompleted(instance);
-           result.should.equal(false);
-           connectionProfilePathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-           walletPathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-        });
-        it('should return false if connection profile is incomplete and wallet path is incomplete', async () => {
-            const connectionProfilePathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(false);
-            const walletPathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(false);
-            const instance: any = {some: 'thing'};
-            const result: boolean = FabricGatewayHelper.isCompleted(instance);
-            result.should.equal(false);
-            connectionProfilePathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-            walletPathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-         });
-
-        it('should return false if connection profile is incomplete and wallet path is complete', async () => {
-            const connectionProfilePathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(false);
-            const walletPathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(true);
-            const instance: any = {some: 'thing'};
-            const result: boolean = FabricGatewayHelper.isCompleted(instance);
-            result.should.equal(false);
-            connectionProfilePathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-            walletPathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-         });
-
-        it('should return true if connection profile is complete and wallet path is complete', async () => {
-            const connectionProfilePathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
-            const walletPathCompleteStub: sinon.SinonStub = mySandBox.stub(FabricGatewayHelper, 'walletPathComplete').returns(true);
-            const instance: any = {some: 'thing'};
-            const result: boolean = FabricGatewayHelper.isCompleted(instance);
-            result.should.equal(true);
-            connectionProfilePathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-            walletPathCompleteStub.should.have.been.calledOnceWithExactly(instance);
-         });
-    });
-
     describe('connectionProfilePathComplete', () => {
         it('should return false if connection profile is the default value', async () => {
            const instance: any = {connectionProfilePath: FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT};
@@ -90,24 +49,6 @@ describe('FabricGatewayHelper', () => {
         it('should return true if the connection profile is neither the default or an empty string', async () => {
             const instance: any = {connectionProfilePath: 'hello_world'};
             const result: boolean = FabricGatewayHelper.connectionProfilePathComplete(instance);
-            result.should.equal(true);
-        });
-    });
-
-    describe('walletPathComplete', () => {
-        it('should return false if the wallet path is the default value', async () => {
-           const instance: any = {walletPath: FabricGatewayHelper.WALLET_PATH_DEFAULT};
-           const result: boolean = FabricGatewayHelper.walletPathComplete(instance);
-           result.should.equal(false);
-        });
-        it('should return false if wallet path is an empty string', async () => {
-            const instance: any = {walletPath: ''};
-            const result: boolean = FabricGatewayHelper.walletPathComplete(instance);
-            result.should.equal(false);
-        });
-        it('should return true if the wallet path is neither the default or an empty string', async () => {
-            const instance: any = {walletPath: 'hello_world'};
-            const result: boolean = FabricGatewayHelper.walletPathComplete(instance);
             result.should.equal(true);
         });
     });

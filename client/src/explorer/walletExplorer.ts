@@ -25,6 +25,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../fabric/FabricRuntime';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -38,7 +40,6 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
     getTreeItem(element: BlockchainTreeItem): vscode.TreeItem {
-        console.log('BlockchainWalletExplorer: getTreeItem', element);
         return element;
     }
 
@@ -60,7 +61,6 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     }
 
     async refresh(element?: BlockchainTreeItem): Promise<void> {
-        console.log('BlockchainWalletExplorer: refresh');
         this._onDidChangeTreeData.fire(element);
     }
 
@@ -69,6 +69,21 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+        // Create the local_fabric wallet registry entry
+        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+
+        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+        // TODO: hardcoded
+        runtimeWalletRegistryEntry.name = 'local_wallet';
+        runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+
+        let identityNames: string[] = await runtimeWallet.getIdentityNames();
+
+        let treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+
+        tree.push(new WalletTreeItem(this, runtimeWalletRegistryEntry.name, identityNames, treeState));
+
         // Populate the tree with the name of each wallet
         for (const walletRegistryEntry of walletRegistryEntries) {
 
@@ -76,9 +91,9 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                 // get identityNames in the wallet
                 const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
                 const wallet: IFabricWallet = walletGenerator.getNewWallet(walletRegistryEntry.walletPath);
-                const identityNames: string[] = await wallet.getIdentityNames();
+                identityNames = await wallet.getIdentityNames();
 
-                const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+                treeState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
                 tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState));
             }
@@ -88,7 +103,6 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     }
 
     private async createIdentityTree(walletTreeItem: WalletTreeItem): Promise<BlockchainTreeItem[]> {
-        console.log('BlockchainWalletExplorer: createPackageTree');
         const tree: Array<BlockchainTreeItem> = [];
 
         // Populate the tree with the identity names

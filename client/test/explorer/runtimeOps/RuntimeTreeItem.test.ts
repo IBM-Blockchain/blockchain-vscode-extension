@@ -13,6 +13,8 @@
 */
 
 import * as vscode from 'vscode';
+import * as chai from 'chai';
+import * as sinon from 'sinon';
 import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
@@ -22,9 +24,6 @@ import { FabricGatewayRegistry } from '../../../src/fabric/FabricGatewayRegistry
 import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
-
-import * as chai from 'chai';
-import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../src/logging/OutputAdapter';
@@ -85,8 +84,7 @@ describe('RuntimeTreeItem', () => {
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
                 name: 'local_fabric',
                 managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                walletPath: 'walletPath'
+                connectionProfilePath: 'myPath'
             }), vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -108,8 +106,7 @@ describe('RuntimeTreeItem', () => {
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
                 name: 'local_fabric',
                 managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                walletPath: 'walletPath'
+                connectionProfilePath: 'myPath'
             }), vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -295,8 +292,7 @@ describe('RuntimeTreeItem', () => {
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
                 name: 'local_fabric',
                 managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                walletPath: 'walletPath'
+                connectionProfilePath: 'myPath'
             }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');

@@ -34,6 +34,7 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -73,8 +74,10 @@ describe('testSmartContractCommand', () => {
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
     let showLanguageQuickPickStub: sinon.SinonStub;
-    let registryEntry: FabricGatewayRegistryEntry;
-    let getRegistryStub: sinon.SinonStub;
+    let gatewayRegistryEntry: FabricGatewayRegistryEntry;
+    let walletRegistryEntry: FabricWalletRegistryEntry;
+    let getGatewayRegistryStub: sinon.SinonStub;
+    let getWalletRegistryStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
     let workspaceConfigurationGetStub: sinon.SinonStub;
@@ -172,12 +175,11 @@ describe('testSmartContractCommand', () => {
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'myConnection';
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = false;
-            registryEntry.walletPath = 'walletPath';
-            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(registryEntry);
+            gatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = 'myGateway';
+            gatewayRegistryEntry.connectionProfilePath = 'myPath';
+            gatewayRegistryEntry.managedRuntime = false;
+            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([
@@ -188,6 +190,11 @@ describe('testSmartContractCommand', () => {
                     channel: 'myEnglishChannel'
                 }
             ]);
+            // Wallet stubs
+            walletRegistryEntry = new FabricWalletRegistryEntry();
+            walletRegistryEntry.name = 'myWallet';
+            walletRegistryEntry.walletPath = 'walletPath';
+            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet').returns(walletRegistryEntry);
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
                 label: 'wagonwheel@0.0.1',
@@ -314,24 +321,22 @@ describe('testSmartContractCommand', () => {
 
         it('should provide a path.join if the wallet path contains the home directory', async () => {
             mySandBox.stub(os, 'homedir').returns('homedir');
-            registryEntry.walletPath = 'homedir/walletPath';
+            walletRegistryEntry.walletPath = 'homedir/walletPath';
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
 
             templateData.includes(`path.join(homedir, 'walletPath')`).should.be.true;
-            registryEntry.walletPath = 'walletPath';
         });
 
         it('should provide a path.join if the connection profile path contains the home directory', async () => {
             mySandBox.stub(os, 'homedir').returns('homedir');
-            registryEntry.connectionProfilePath = 'homedir/myPath';
+            gatewayRegistryEntry.connectionProfilePath = 'homedir/myPath';
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
 
             templateData.includes(`path.join(homedir, 'myPath')`).should.be.true;
-            registryEntry.connectionProfilePath = 'myPath';
         });
 
         it('should ask the user for an instantiated smart contract to test if none selected', async () => {
@@ -939,12 +944,17 @@ describe('testSmartContractCommand', () => {
                 }
             ]);
 
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'myConnection';
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = true;
-            registryEntry.walletPath = 'otherWalletPath';
-            getRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(registryEntry);
+            gatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = 'myConnection';
+            gatewayRegistryEntry.connectionProfilePath = 'myPath';
+            gatewayRegistryEntry.managedRuntime = true;
+            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+
+            // Wallet stubs
+            walletRegistryEntry = new FabricWalletRegistryEntry();
+            walletRegistryEntry.name = 'myWallet';
+            walletRegistryEntry.walletPath = 'walletPath';
+            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet').returns(walletRegistryEntry);
 
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
@@ -1002,7 +1012,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(fakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
             templateData.includes(fakeMetadata.contracts['my-contract'].transactions[2].name).should.be.true;
             templateData.startsWith('/*').should.be.true;
-            templateData.includes('otherWalletPath').should.be.true;
+            templateData.includes('walletPath').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             sendCommandStub.should.have.been.calledOnce;

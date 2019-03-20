@@ -24,7 +24,7 @@ import { LogType } from '../../logging/OutputAdapter';
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
     static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<LocalGatewayTreeItem> {
-        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState);
+        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState, command);
         await treeItem.updateProperties();
         return treeItem;
     }

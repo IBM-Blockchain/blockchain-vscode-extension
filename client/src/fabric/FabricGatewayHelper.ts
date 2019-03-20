@@ -23,20 +23,9 @@ export class FabricGatewayHelper {
     // Wanted to type with FabricGatewayRegistryEntry but it failed
 
     static readonly CONNECTION_PROFILE_PATH_DEFAULT: string = '<PATH_TO_CONNECTION_PROFILE_JSON>';
-    static readonly WALLET_PATH_DEFAULT: string = '<PATH_TO_WALLET>';
-
-    public static isCompleted(instance: any): boolean {
-        const connectionComplete: boolean = this.connectionProfilePathComplete(instance);
-        const walletPathComplete: boolean = this.walletPathComplete(instance);
-        return (connectionComplete && walletPathComplete);
-    }
 
     public static connectionProfilePathComplete(instance: any): boolean {
         return instance.connectionProfilePath !== this.CONNECTION_PROFILE_PATH_DEFAULT && instance.connectionProfilePath !== '';
-    }
-
-    public static walletPathComplete(instance: any): boolean {
-        return instance.walletPath !== this.WALLET_PATH_DEFAULT && instance.walletPath !== '';
     }
 
     public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: string): Promise<string> {

@@ -113,7 +113,7 @@ describe('createNewIdentityCommand', () => {
         importIdentityStub.should.have.been.calledOnce;
         mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
@@ -134,7 +134,7 @@ describe('createNewIdentityCommand', () => {
         importIdentityStub.should.have.been.calledOnce;
         mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
@@ -160,8 +160,8 @@ describe('createNewIdentityCommand', () => {
         importIdentityStub.should.have.been.calledTwice;
         mockFabricRuntimeConnection.disconnect.should.have.been.calledTwice;
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.callCount.should.equal(4);
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
@@ -188,7 +188,7 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-        executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
