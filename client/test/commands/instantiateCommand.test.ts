@@ -52,7 +52,6 @@ describe('InstantiateCommand', () => {
         let showChannelQuickPickStub: sinon.SinonStub;
         let showChaincodeAndVersionQuickPick: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
-        let getRuntimeConnectionStub: sinon.SinonStub;
         let isRunningStub: sinon.SinonStub;
 
         let allChildren: Array<BlockchainTreeItem>;
@@ -73,7 +72,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.instantiateChaincode.resolves();
 
             const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            getRuntimeConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves((fabricRuntimeMock));
+            mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves((fabricRuntimeMock));
             isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({

@@ -29,6 +29,7 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
+// tslint:disable no-use-before-declare
 describe('FabricConnection', () => {
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');

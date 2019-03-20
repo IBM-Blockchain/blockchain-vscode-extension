@@ -113,7 +113,9 @@ describe('Extension Tests', () => {
         const activationEvents: string[] = packageJSON.activationEvents;
 
         activationEvents.should.deep.equal([
-            `onView:blockchainExplorer`,
+            `onView:gatewayExplorer`,
+            `onView:aRuntimeOpsExplorer`,
+            `onView:aPackagesExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,
             `onCommand:${ExtensionCommands.DELETE_GATEWAY}`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY_IDENTITY}`,
@@ -348,7 +350,7 @@ describe('Extension Tests', () => {
     });
 
     it('should register and show sample page', async () => {
-        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         const openContractSampleStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openContractSample').resolves();
         await myExtension.activate(context);

@@ -67,7 +67,7 @@ describe('ExtensionUtil Tests', () => {
     describe('loadJSON', () => {
         it('should return parsed workspace package.json', async () => {
 
-            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves(`{
+            mySandBox.stub(fs, 'readFile').resolves(`{
                 "name": "mySmartContract",
                 "version": "0.0.1"
             }`);
@@ -81,7 +81,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').throws({message: 'Cannot read file'});
+            mySandBox.stub(fs, 'readFile').throws({message: 'Cannot read file'});
 
             await ExtensionUtil.loadJSON(workspaceFolder, 'package.json').should.be.rejectedWith('error reading package.json from project Cannot read file');
 
@@ -91,7 +91,7 @@ describe('ExtensionUtil Tests', () => {
     describe('getContractNameAndVersion', () => {
         it('should get contract name and version', async () => {
 
-            const loadJsonStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({name: 'projectName', version: '0.0.3'});
+            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({name: 'projectName', version: '0.0.3'});
 
             const result: any = await ExtensionUtil.getContractNameAndVersion(workspaceFolder);
             result.should.deep.equal({

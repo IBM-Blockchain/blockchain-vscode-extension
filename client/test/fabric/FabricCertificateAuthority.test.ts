@@ -14,14 +14,12 @@
 
 import { FabricCertificateAuthority } from '../../src/fabric/FabricCertificateAuthority';
 import * as FabricCAServices from 'fabric-ca-client';
-import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 
 // tslint:disable no-unused-expression
-const should: Chai.Should = chai.should();
 
 describe('FabricCertificateAuthority', () => {
     let mySandBox: sinon.SinonSandbox;

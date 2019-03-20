@@ -39,8 +39,6 @@ describe('FabricRuntimeConnection', () => {
 
     let gatewayStub: sinon.SinonStubbedInstance<Gateway>;
 
-    let rootPath: string;
-
     const walletPath: string = path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'walletDir', 'otherWallet');
     const basicNetworkConnectionProfile: any = {
         name: 'basic-network',
@@ -100,8 +98,6 @@ describe('FabricRuntimeConnection', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-
-        rootPath = path.dirname(__dirname);
 
         fabricRuntimeStub = sinon.createStubInstance(FabricRuntime);
         fabricRuntimeStub.getConnectionProfile.resolves(basicNetworkConnectionProfile);

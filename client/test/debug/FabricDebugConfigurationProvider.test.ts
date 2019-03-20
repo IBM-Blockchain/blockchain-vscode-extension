@@ -25,7 +25,6 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
@@ -38,15 +37,15 @@ class TestFabricDebugConfigurationProvider extends FabricDebugConfigurationProvi
 
     public chaincodeName: string = 'mySmartContract';
 
-    protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
+    protected async getChaincodeName(): Promise<string> {
         return this.chaincodeName;
     }
 
-    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
         const chaincodeAddress: string = await this.getChaincodeAddress();
         return Object.assign(config, {
             type: 'fake',
-            name: 'Fake Debug',
+            name: 'Fake Debug' + folder.name,
             request: 'launch',
             args: [ chaincodeAddress ]
         });
@@ -65,12 +64,9 @@ describe('FabricDebugConfigurationProvider', () => {
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
-        let findFilesStub: sinon.SinonStub;
         let commandStub: sinon.SinonStub;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
-        let readFileStub: sinon.SinonStub;
-        let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
         let getConnectionStub: sinon.SinonStub;
         let date: Date;
@@ -104,8 +100,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 uri: vscode.Uri.file('myPath')
             };
 
-            readJsonStub = mySandbox.stub(fs, 'readJSON');
-            readFileStub = mySandbox.stub(fs, 'readFile').resolves(`{
+            mySandbox.stub(fs, 'readJSON');
+            mySandbox.stub(fs, 'readFile').resolves(`{
                 "name": "mySmartContract",
                 "version": "0.0.1"
             }`);
@@ -115,7 +111,7 @@ describe('FabricDebugConfigurationProvider', () => {
                 name: 'Launch Program'
             };
 
-            findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
+            mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
 
             commandStub = mySandbox.stub(vscode.commands, 'executeCommand');
 

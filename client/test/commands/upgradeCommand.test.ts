@@ -51,10 +51,8 @@ describe('UpgradeCommand', () => {
         let showChannelQuickPickStub: sinon.SinonStub;
         let showChaincodeAndVersionQuickPick: sinon.SinonStub;
         let showInputBoxStub: sinon.SinonStub;
-        let showInstantiatedSmartContractsQuickPick: sinon.SinonStub;
         let allChildren: Array<BlockchainTreeItem>;
         let reporterStub: sinon.SinonStub;
-        let getRuntimeConnectionStub: sinon.SinonStub;
         let isRunningStub: sinon.SinonStub;
         let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
         let instantiatedSmartContractsList: BlockchainTreeItem[];
@@ -77,7 +75,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.resolves();
 
             const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            getRuntimeConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves(fabricRuntimeMock);
+            mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves(fabricRuntimeMock);
             isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
@@ -121,7 +119,7 @@ describe('UpgradeCommand', () => {
                 }
             );
 
-            showInstantiatedSmartContractsQuickPick = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs('Select the instantiated smart contract to upgrade', 'channelOne').resolves(
+            mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs('Select the instantiated smart contract to upgrade', 'channelOne').resolves(
                 { label: 'biscuit-network@0.0.1', data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' } }
             );
 

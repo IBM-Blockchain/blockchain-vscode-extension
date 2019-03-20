@@ -25,8 +25,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
-// tslint:disable no-unused-expression
-const should: Chai.Should = chai.should();
 chai.should();
 chai.use(sinonChai);
 
@@ -188,7 +186,7 @@ describe('AddGatewayCommand', () => {
 
             showInputBoxStub.onFirstCall().resolves();
 
-            const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            mySandBox.spy(vscode.commands, 'executeCommand');
 
             // execute a command to force the extension activation
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);

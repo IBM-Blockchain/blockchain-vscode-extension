@@ -33,7 +33,6 @@ import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 
 // tslint:disable no-unused-expression
-const should: Chai.Should = chai.should();
 chai.should();
 chai.use(sinonChai);
 

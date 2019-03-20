@@ -18,7 +18,7 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
-    public async provideDebugConfigurations(folder: vscode.WorkspaceFolder | undefined, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration[]> {
+    public async provideDebugConfigurations(): Promise<vscode.DebugConfiguration[]> {
         return [
             {
                 type: 'fabric:java',
@@ -28,12 +28,12 @@ export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurati
         ];
     }
 
-    protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
+    protected async getChaincodeName(): Promise<string> {
         const name: string = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
         return name;
     }
 
-    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
         config.type = 'java';
 
         if (!config.request) {
@@ -55,5 +55,4 @@ export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurati
 
         return config;
     }
-
 }

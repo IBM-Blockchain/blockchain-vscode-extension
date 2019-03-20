@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as fs from 'fs-extra';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
@@ -44,7 +43,6 @@ describe('EditGatewayCommand', () => {
     let browseEditStub: sinon.SinonStub;
     let showIdentityOptionsStub: sinon.SinonStub;
     let updateFabricGatewayRegistryStub: sinon.SinonStub;
-    let showInputBoxStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
 
     before(async () => {
@@ -64,7 +62,7 @@ describe('EditGatewayCommand', () => {
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit').resolves();
         showIdentityOptionsStub = mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
         updateFabricGatewayRegistryStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
-        showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+        mySandBox.stub(vscode.window, 'showInputBox');
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 

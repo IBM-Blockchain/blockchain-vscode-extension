@@ -130,7 +130,7 @@ if (process.env.WITHOUTCOVERAGE) {
         private matchFn: any = undefined;
         private instrumenter: any = undefined;
 
-        constructor(private options: ITestRunnerOptions, private testsRoot: string, private endRunCallback: any) {
+        constructor(private options: ITestRunnerOptions, private testsRoot: string, endRunCallback: any) {
             if (!options.relativeSourcePath) {
                 return endRunCallback('Error - relativeSourcePath must be defined for code coverage to work');
             }
