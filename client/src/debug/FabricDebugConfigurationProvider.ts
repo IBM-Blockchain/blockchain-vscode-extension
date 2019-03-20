@@ -64,6 +64,10 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 chaincodeVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             }
 
+            if (!config.env.CORE_CHAINCODE_EXECUTETIMEOUT) {
+                config.env.CORE_CHAINCODE_EXECUTETIMEOUT = '540s';
+            }
+
             const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, chaincodeName, chaincodeVersion) as PackageRegistryEntry;
             if (!newPackage) {
                 // package command failed
