@@ -148,7 +148,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
         });
@@ -163,7 +163,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
         });
@@ -177,7 +177,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', '127.0.0.1:54321']
             });
         });
@@ -191,7 +191,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -205,11 +205,9 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'launch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
         });
-
     });
-
 });
