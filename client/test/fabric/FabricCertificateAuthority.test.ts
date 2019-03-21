@@ -12,22 +12,24 @@
  * limitations under the License.
 */
 
-import { FabricCertificateAuthority } from '../../src/fabric/FabricCertificateAuthority';
+import { IFabricCertificateAuthority } from '../../src/fabric/IFabricCertificateAuthority';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as sinon from 'sinon';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricCertificateAuthorityFactory } from '../../src/fabric/FabricCertificateAuthorityFactory';
 
 // tslint:disable no-unused-expression
 
 describe('FabricCertificateAuthority', () => {
     let mySandBox: sinon.SinonSandbox;
-
     let readFileStub: sinon.SinonStub;
+    let fabricCertificateAuthority: IFabricCertificateAuthority;
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         readFileStub = mySandBox.stub(fs, 'readFile');
+        fabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
     });
 
     afterEach(() => {
@@ -54,7 +56,7 @@ describe('FabricCertificateAuthority', () => {
                     toBytes: (): string => '---KEY---'
                 }
             });
-            const {certificate, privateKey} = await FabricCertificateAuthority.enroll('connection.json', 'some_id', 'some_secret');
+            const {certificate, privateKey} = await fabricCertificateAuthority.enroll('connection.json', 'some_id', 'some_secret');
 
             enroll.should.have.been.calledWith({enrollmentID: 'some_id', enrollmentSecret: 'some_secret'});
             certificate.should.equal('---CERT---');
@@ -75,7 +77,7 @@ describe('FabricCertificateAuthority', () => {
                     toBytes: (): string => '---KEY---'
                 }
             });
-            const {certificate, privateKey} = await FabricCertificateAuthority.enroll('connection.yaml', 'some_id', 'some_secret');
+            const {certificate, privateKey} = await fabricCertificateAuthority.enroll('connection.yaml', 'some_id', 'some_secret');
 
             enroll.should.have.been.calledWith({enrollmentID: 'some_id', enrollmentSecret: 'some_secret'});
             certificate.should.equal('---CERT---');
@@ -89,7 +91,7 @@ describe('FabricCertificateAuthority', () => {
             readFileStub.rejects(error);
 
             const enroll: sinon.SinonSpy = mySandBox.spy(FabricCAServices.prototype, 'enroll');
-            await FabricCertificateAuthority.enroll('connection.yaml', 'some_id', 'some_secret').should.be.rejectedWith(error);
+            await fabricCertificateAuthority.enroll('connection.yaml', 'some_id', 'some_secret').should.be.rejectedWith(error);
 
             enroll.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Unable to enroll with certificate authority: ${error.message}`, `Unable to enroll with certificate authority: ${error.toString()}`);
