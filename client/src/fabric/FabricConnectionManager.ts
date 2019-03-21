@@ -15,6 +15,7 @@
 import { IFabricConnection } from './IFabricConnection';
 import { EventEmitter } from 'events';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
 export class FabricConnectionManager extends EventEmitter {
 
@@ -55,6 +56,14 @@ export class FabricConnectionManager extends EventEmitter {
             this.gatewayRegistryEntry = null;
         }
         this.emit('disconnected');
+    }
+
+    public getConnectionIdentity(): string {
+        return this.connection.identityName;
+    }
+
+    public getConnectionWallet(): FabricWalletRegistryEntry {
+        return this.connection.wallet;
     }
 
 }

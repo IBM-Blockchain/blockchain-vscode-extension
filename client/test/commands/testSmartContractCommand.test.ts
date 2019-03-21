@@ -22,7 +22,7 @@ import * as sinonChai from 'sinon-chai';
 import * as os from 'os';
 import { TestUtil } from '../TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { UserInputUtil, LanguageType } from '../../src/commands/UserInputUtil';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import * as myExtension from '../../src/extension';
@@ -34,6 +34,7 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -68,11 +69,15 @@ describe('testSmartContractCommand', () => {
     let mockEditBuilder: any;
     let mockEditBuilderReplaceSpy: sinon.SinonSpy;
     let mockTextEditor: any;
+    let findFilesStub: sinon.SinonStub;
     let readFileStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
     let sendCommandStub: sinon.SinonStub;
     let showLanguageQuickPickStub: sinon.SinonStub;
-    let registryEntry: FabricGatewayRegistryEntry;
+    let gatewayRegistryEntry: FabricGatewayRegistryEntry;
+    let walletRegistryEntry: FabricWalletRegistryEntry;
+    let getGatewayRegistryStub: sinon.SinonStub;
+    let getWalletRegistryStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
     let workspaceConfigurationGetStub: sinon.SinonStub;
@@ -167,18 +172,14 @@ describe('testSmartContractCommand', () => {
             transactionTwo = fakeMetadata.contracts['my-contract'].transactions[1];
             transactionThree = fakeMetadata.contracts['my-contract'].transactions[2];
             fabricClientConnectionMock.getMetadata.resolves(fakeMetadata);
-            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
-            map.set('myEnglishChannel', ['peerOne']);
-            fabricClientConnectionMock.createChannelMap.resolves(map);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'myConnection';
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = false;
-            registryEntry.walletPath = 'walletPath';
-            mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(registryEntry);
+            gatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = 'myGateway';
+            gatewayRegistryEntry.connectionProfilePath = 'myPath';
+            gatewayRegistryEntry.managedRuntime = false;
+            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([
@@ -189,6 +190,11 @@ describe('testSmartContractCommand', () => {
                     channel: 'myEnglishChannel'
                 }
             ]);
+            // Wallet stubs
+            walletRegistryEntry = new FabricWalletRegistryEntry();
+            walletRegistryEntry.name = 'myWallet';
+            walletRegistryEntry.walletPath = 'walletPath';
+            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet').returns(walletRegistryEntry);
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
                 label: 'wagonwheel@0.0.1',
@@ -227,13 +233,13 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
             packageJSONPath = vscode.Uri.file(path.join(testFileDir, 'package.json'));
-            mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
+            findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             // Other stubs
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
 
@@ -280,7 +286,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
@@ -315,24 +321,22 @@ describe('testSmartContractCommand', () => {
 
         it('should provide a path.join if the wallet path contains the home directory', async () => {
             mySandBox.stub(os, 'homedir').returns('homedir');
-            registryEntry.walletPath = 'homedir/walletPath';
+            walletRegistryEntry.walletPath = 'homedir/walletPath';
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
 
             templateData.includes(`path.join(homedir, 'walletPath')`).should.be.true;
-            registryEntry.walletPath = 'walletPath';
         });
 
         it('should provide a path.join if the connection profile path contains the home directory', async () => {
             mySandBox.stub(os, 'homedir').returns('homedir');
-            registryEntry.connectionProfilePath = 'homedir/myPath';
+            gatewayRegistryEntry.connectionProfilePath = 'homedir/myPath';
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
 
             templateData.includes(`path.join(homedir, 'myPath')`).should.be.true;
-            registryEntry.connectionProfilePath = 'myPath';
         });
 
         it('should ask the user for an instantiated smart contract to test if none selected', async () => {
@@ -345,7 +349,8 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should connect if there is no connection', async () => {
-            getConnectionStub.onCall(3).returns(null);
+            getConnectionStub.onCall(5).returns(null);
+            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
@@ -407,7 +412,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
@@ -714,6 +719,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
             mockTextEditor.edit.resolves(false);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -765,6 +771,7 @@ describe('testSmartContractCommand', () => {
             mockTextEditor.edit.resolves(false);
             fsRemoveStub.rejects({ message: 'ENOENT: no such file or directory' });
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
@@ -800,7 +807,7 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
 
-            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
@@ -822,7 +829,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
@@ -845,7 +852,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub.resolves('TypeScript');
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
@@ -870,7 +877,7 @@ describe('testSmartContractCommand', () => {
                 get: workspaceConfigurationGetStub,
                 update: workspaceConfigurationUpdateStub
             });
-            showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub.resolves('TypeScript');
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
             pathExistsStub.onFirstCall().resolves(false);
             pathExistsStub.onSecondCall().resolves(true);
@@ -936,15 +943,18 @@ describe('testSmartContractCommand', () => {
                     channel: 'myChannelTunnel'
                 }
             ]);
-            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
-            map.set('myChannelTunnel', ['peerThree']);
-            fabricRuntimeConnectionMock.createChannelMap.resolves(map);
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'myConnection';
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = true;
-            registryEntry.walletPath = 'otherWalletPath';
-            mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(registryEntry);
+
+            gatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = 'myConnection';
+            gatewayRegistryEntry.connectionProfilePath = 'myPath';
+            gatewayRegistryEntry.managedRuntime = true;
+            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+
+            // Wallet stubs
+            walletRegistryEntry = new FabricWalletRegistryEntry();
+            walletRegistryEntry.name = 'myWallet';
+            walletRegistryEntry.walletPath = 'walletPath';
+            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet').returns(walletRegistryEntry);
 
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
@@ -979,12 +989,12 @@ describe('testSmartContractCommand', () => {
             openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
             showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
             packageJSONPath = vscode.Uri.file(path.join(testFileDir, 'package.json'));
-            mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
+            findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
             workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves('JavaScript');
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
@@ -1002,7 +1012,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(fakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
             templateData.includes(fakeMetadata.contracts['my-contract'].transactions[2].name).should.be.true;
             templateData.startsWith('/*').should.be.true;
-            templateData.includes('otherWalletPath').should.be.true;
+            templateData.includes('walletPath').should.be.true;
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             sendCommandStub.should.have.been.calledOnce;

@@ -15,10 +15,13 @@
 
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
 export interface IFabricConnection {
 
     identityName: string;
+
+    wallet: FabricWalletRegistryEntry;
 
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 

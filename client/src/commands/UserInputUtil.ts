@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as homeDir from 'home-dir';
 import * as path from 'path';
-import * as fs from 'fs-extra';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -28,6 +27,10 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { IFabricWallet } from '../fabric/IFabricWallet';
+import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -334,7 +337,7 @@ export class UserInputUtil {
                 const gatewaysSection: string = '"fabric.gateways": [';
                 if (settingsText[index].includes(gatewaysSection)) {
                     // We've found fabric.gateways, so we'll assume that the gateway we're looking for will be the first result
-                    const gatewayEntry: string = '"name": "' + gatewayName + '",';
+                    const gatewayEntry: string = '"name": "' + gatewayName;
 
                     for (let gatewaysIndex: number = index; gatewaysIndex < settingsText.length; gatewaysIndex++) {
                         // Search for the specific gateway name and set the line number if found
@@ -611,6 +614,39 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(caNames, quickPickOptions);
     }
 
+    public static async showWalletsQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
+        const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
+
+        // Push local_fabric wallet
+        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+
+        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+        // TODO: hardcoded
+        runtimeWalletRegistryEntry.name = 'local_wallet';
+        runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+        walletQuickPickItems.push( {
+            label: runtimeWalletRegistryEntry.name,
+            data: runtimeWalletRegistryEntry
+        });
+
+        const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+        for (const walletRegistryEntry of wallets) {
+            walletQuickPickItems.push( {
+                label: walletRegistryEntry.name,
+                data: walletRegistryEntry
+            });
+        }
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(walletQuickPickItems, quickPickOptions);
+    }
+
     public static async addIdentityMethod(): Promise<any> {
         const options: Array<string> = [UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION];
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -622,8 +658,8 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async getCertKey(gatewayName: string): Promise<{certificatePath: string, privateKeyPath: string}> {
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    public static async getCertKey(): Promise<{certificatePath: string, privateKeyPath: string}> {
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
             canSelectFolders: false,
@@ -633,14 +669,14 @@ export class UserInputUtil {
         };
 
         // Get the certificate file path
-        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, gatewayName) as string;
+        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions) as string;
         if (!certificatePath) {
             return;
         }
         ParsedCertificate.validPEM(certificatePath, 'certificate');
 
         // Get the private key file path
-        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, gatewayName) as string;
+        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions) as string;
         if (!privateKeyPath) {
             return;
         }

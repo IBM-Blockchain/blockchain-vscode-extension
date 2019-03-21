@@ -80,8 +80,7 @@ describe('LocalGatewayTreeItem', () => {
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
                 name: 'local_fabric',
                 managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                walletPath: 'walletPath'
+                connectionProfilePath: 'myPath'
             }), vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -98,8 +97,7 @@ describe('LocalGatewayTreeItem', () => {
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
                 name: 'local_fabric',
                 managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                walletPath: 'walletPath'
+                connectionProfilePath: 'myPath'
             }), vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -255,8 +253,7 @@ describe('LocalGatewayTreeItem', () => {
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, 'local_fabric', new FabricGatewayRegistryEntry({
                 name: 'local_fabric',
                 managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                walletPath: 'walletPath'
+                connectionProfilePath: 'myPath'
             }), vscode.TreeItemCollapsibleState.None);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');

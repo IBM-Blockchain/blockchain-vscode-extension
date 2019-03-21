@@ -38,7 +38,6 @@ export class ExtensionCommands {
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
-    static readonly ADD_GATEWAY_IDENTITY: string = 'gatewaysExplorer.addGatewayIdentityEntry';
     static readonly CONNECT: string = 'gatewaysExplorer.connectEntry';
     static readonly DELETE_GATEWAY: string = 'gatewaysExplorer.deleteGatewayEntry';
     static readonly DISCONNECT: string = 'gatewaysExplorer.disconnectEntry';
@@ -51,6 +50,7 @@ export class ExtensionCommands {
     // WALLET VIEW
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
     static readonly ADD_WALLET: string = 'walletExplorer.addWalletEntry';
+    static readonly ADD_WALLET_IDENTITY: string = 'walletExplorer.addWalletIdentityEntry';
 
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';

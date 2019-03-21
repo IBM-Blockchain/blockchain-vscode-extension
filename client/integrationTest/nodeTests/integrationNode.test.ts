@@ -195,7 +195,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 // Connect using it
                 integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(otherUserName);
-                await integrationTestUtil.connectToFabric('local_fabric');
+                await integrationTestUtil.connectToFabric('local_fabric', 'local_wallet');
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'local_fabric');
                 testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
@@ -310,7 +310,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 installedSmartContract.should.not.be.null;
 
-                await integrationTestUtil.connectToFabric('local_fabric');
+                await integrationTestUtil.connectToFabric('local_fabric', 'local_wallet');
 
                 allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
@@ -354,13 +354,15 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await integrationTestUtil.createFabricConnection();
 
-                await integrationTestUtil.connectToFabric('myGateway');
+                await integrationTestUtil.addWallet('myWallet');
+                await integrationTestUtil.connectToFabric('myGateway', 'myWallet');
 
                 await integrationTestUtil.createSmartContract(smartContractName, language);
 
                 await integrationTestUtil.packageSmartContract();
 
                 const fabricConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+                should.exist(fabricConnection);
 
                 const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
@@ -381,7 +383,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren[1].label.should.equal('Using ID: greenConga');
                 allChildren[2].label.should.equal('Channels');
 
-                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                let channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
@@ -409,7 +411,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await integrationTestUtil.updateConnectionProfile();
 
                 // Connect to myGateway
-                await integrationTestUtil.connectToFabric('myGateway');
+                await integrationTestUtil.addWallet('myWallet');
+                await integrationTestUtil.connectToFabric('myGateway', 'myWallet');
                 const newConnectedGateway: Array<BlockchainTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
                 newConnectedGateway.length.should.equal(3);
 
@@ -417,18 +420,26 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 newConnectedGateway[1].label.should.equal('Using ID: greenConga');
                 newConnectedGateway[2].label.should.equal('Channels');
 
-                const newChannels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
-                newChannels.length.should.equal(2);
-                newChannels[0].label.should.equal('mychannel');
-                newChannels[1].label.should.equal('myotherchannel');
+                channels = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
+                channels.length.should.equal(2);
+                channels[0].label.should.equal('mychannel');
+                channels[1].label.should.equal('myotherchannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newChannels[0]) as Array<InstantiatedContractTreeItem>;
+                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
                 instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 instantiatedSmartContract.should.not.be.null;
+
+                // Try to add new identity to wallet using enrollment id and secret
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+                await integrationTestUtil.addIdentityToWallet('admin', 'adminpw', 'myWallet'); // Unlimited enrollments
+                // TODO: fix
+                // const gateways: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+                // const gateway: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(gateways[1]) as Array<GatewayTreeItem>;
+                // gateway[1].label.should.equal('redConga');
 
                 // Should now be able to delete the gateway
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);

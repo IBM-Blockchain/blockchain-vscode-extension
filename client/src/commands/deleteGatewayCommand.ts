@@ -21,8 +21,6 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
-
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteGateway`);
@@ -47,9 +45,9 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{
     const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
     const gatewayPath: string = path.join(homeExtDir, gatewayRegistryEntry.name);
     await fs.remove(gatewayPath);
+    // TODO: wallet might live here, don't delete it
 
     await FabricGatewayRegistry.instance().delete(gatewayRegistryEntry.name);
-    await FabricWalletRegistry.instance().delete(gatewayRegistryEntry.name);
     outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${gatewayRegistryEntry.name} gateway`);
     return;
 }

@@ -27,6 +27,7 @@ import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryE
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../ExtensionCommands';
+import { FabricWalletRegistryEntry } from '../src/fabric/FabricWalletRegistryEntry';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -73,6 +74,7 @@ export class IntegrationTestUtil {
     public showCertificateAuthorityQuickPickStub: sinon.SinonStub;
     public showIdentitiesQuickPickStub: sinon.SinonStub;
     public addIdentityMethodStub: sinon.SinonStub;
+    public showWalletsQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -100,16 +102,13 @@ export class IntegrationTestUtil {
         this.showCertificateAuthorityQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox');
         this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
         this.addIdentityMethodStub = this.mySandBox.stub(UserInputUtil, 'addIdentityMethod');
+        this.showWalletsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
     }
 
     public async createFabricConnection(): Promise<void> {
         if (this.gatewayRegistry.exists('myGateway')) {
             await this.gatewayRegistry.delete('myGateway');
         }
-        if (this.walletRegistry.exists('myGateway')) {
-            await this.walletRegistry.delete('myGateway');
-        }
-
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
 
         this.browseEditStub.withArgs('Enter a file path to a connection profile file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
@@ -121,43 +120,56 @@ export class IntegrationTestUtil {
                 'Connection Profiles' : ['json', 'yaml', 'yml']
             }
         }, 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
-        this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
-        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
-
-        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
-
-        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
-
-        this.browseEditStub.withArgs('Browse for a certificate file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: 'Select',
-            filters: undefined
-        }, 'myGateway').resolves(this.certPath);
-        this.browseEditStub.withArgs('Browse for a private key file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: 'Select',
-            filters: undefined
-        }, 'myGateway').resolves(this.keyPath);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
         this.gatewayRegistry.exists('myGateway').should.be.true;
     }
 
-    public async connectToFabric(name: string): Promise<void> {
+    public async addWallet(name: string): Promise<void> {
+        if (this.walletRegistry.exists(name)) {
+            await this.walletRegistry.delete(name);
+        }
+        this.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
+
+        this.browseEditStub.withArgs('Enter a file path to a wallet directory', [UserInputUtil.BROWSE_LABEL], {
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: 'Select',
+        }).resolves(path.join(__dirname, '../../integrationTest/data/myWallet'));
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+
+        this.walletRegistry.exists(name).should.be.true;
+    }
+
+    public async connectToFabric(name: string, walletName: string): Promise<void> {
+        // TODO: pass in name of identity to connect with
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(name);
+            gatewayEntry = this.gatewayRegistry.get(name);
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = name;
             gatewayEntry.managedRuntime = true;
         }
 
+        let walletEntry: FabricWalletRegistryEntry;
+
+        try {
+            walletEntry = this.walletRegistry.get(walletName);
+        } catch (error) {
+            walletEntry = new FabricWalletRegistryEntry();
+            walletEntry.name = 'local_wallet';
+            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_fabric/wallet');
+        }
+
+        this.showWalletsQuickPickStub.resolves({
+            name: walletEntry.name,
+            data: walletEntry
+        });
+
+        this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with', ['greenConga']).resolves('greenConga');
         this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with', ['greenConga', 'redConga']).resolves('greenConga');
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
@@ -424,22 +436,34 @@ export class IntegrationTestUtil {
         await this.gatewayRegistry.update(fabricGatewayEntry);
     }
 
-    public async addIdentityToGateway(id: string, secret: string): Promise<void> {
+    public async addIdentityToWallet(id: string, secret: string, walletName: string): Promise<void> {
+        let walletEntry: FabricWalletRegistryEntry;
+
+        try {
+            walletEntry = this.walletRegistry.get(walletName);
+        } catch (error) {
+            walletEntry = new FabricWalletRegistryEntry();
+            walletEntry.name = 'local_wallet';
+            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_fabric/wallet');
+        }
+
+        this.showWalletsQuickPickStub.resolves({
+            name: walletEntry.name,
+            data: walletEntry
+        });
+
+        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('redConga');
+        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
+        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
         const fabricGatewayEntry: FabricGatewayRegistryEntry = this.gatewayRegistry.get('myGateway');
         this.showGatewayQuickPickStub.resolves({
             label: 'myGateway',
             data: fabricGatewayEntry
         });
 
-        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('redConga');
-
-        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-
-        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
-
         this.inputBoxStub.withArgs('Enter enrollment ID').resolves(id);
         this.inputBoxStub.withArgs('Enter enrollment secret').resolves(secret);
 
-        await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
     }
 }

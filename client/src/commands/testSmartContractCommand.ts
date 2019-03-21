@@ -28,6 +28,7 @@ import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 
 export async function testSmartContract(chaincode?: InstantiatedContractTreeItem): Promise<void> {
 
@@ -120,7 +121,9 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         return;
     }
 
-    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+    const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = fabricConnectionManager.getGatewayRegistryEntry();
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
 
     for (const [name, transactionArray] of transactions) {
         const homedir: string = os.homedir();
@@ -143,10 +146,10 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
             connectionProfileHome = false;
         }
 
-        if (fabricGatewayRegistryEntry.walletPath.includes(homedir)) {
+        if (fabricWalletRegistryEntry.walletPath.includes(homedir)) {
             walletPathString = 'path.join(homedir';
 
-            pathWithoutHomeDir = fabricGatewayRegistryEntry.walletPath.slice(homedir.length + 1);
+            pathWithoutHomeDir = fabricWalletRegistryEntry.walletPath.slice(homedir.length + 1);
             pathWithoutHomeDir.split('/').forEach((item: string) => {
                 walletPathString += `, '${item}'`;
             });
@@ -154,7 +157,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
             walletPathString += ')';
             walletHome = true;
         } else {
-            walletPathString = fabricGatewayRegistryEntry.walletPath;
+            walletPathString = fabricWalletRegistryEntry.walletPath;
             walletHome = false;
         }
         // Populate the template data
