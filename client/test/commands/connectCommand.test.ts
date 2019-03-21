@@ -14,13 +14,12 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-
-import * as myExtension from '../../src/extension';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { IdentityInfo } from 'fabric-network';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import * as myExtension from '../../src/extension';
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { IdentityInfo } from 'fabric-network';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -36,7 +35,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
-import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
@@ -78,6 +76,7 @@ describe('ConnectCommand', () => {
         let connectionSingleWallet: FabricWalletRegistryEntry;
         let choseIdentityQuickPick: sinon.SinonStub;
         let choseGatewayQuickPick: sinon.SinonStub;
+        let choseWalletQuickPick: sinon.SinonStub;
         let identity: IdentityInfo;
         let walletGenerator: FabricWalletGenerator;
 
@@ -97,15 +96,13 @@ describe('ConnectCommand', () => {
             connectionSingle = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
-                walletPath: path.join(rootPath, '../../test/data/walletDir/otherWallet')
+                managedRuntime: false
             });
 
             connectionMultiple = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                managedRuntime: false,
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                managedRuntime: false
             });
 
             await FabricGatewayRegistry.instance().clear();
@@ -113,12 +110,12 @@ describe('ConnectCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionMultiple);
 
             connectionSingleWallet = new FabricWalletRegistryEntry({
-                name: 'myGatewayA',
+                name: 'myGatewayAWallet',
                 walletPath: path.join(rootPath, '../../test/data/walletDir/otherWallet')
             });
 
             connectionMultipleWallet = new FabricWalletRegistryEntry({
-                name: 'myGatewayB',
+                name: 'myGatewayBWallet',
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
@@ -147,6 +144,10 @@ describe('ConnectCommand', () => {
                 label: 'myGatewayA',
                 data: FabricGatewayRegistry.instance().get('myGatewayA')
             });
+            choseWalletQuickPick = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').resolves({
+                label: 'myGatewayAWallet',
+                data: FabricWalletRegistry.instance().get('myGatewayAWallet')
+            });
 
         });
 
@@ -171,6 +172,11 @@ describe('ConnectCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
 
+            choseWalletQuickPick.resolves({
+                label: 'myGatewayBWallet',
+                data: FabricWalletRegistry.instance().get('myGatewayBWallet')
+            });
+
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
@@ -189,13 +195,31 @@ describe('ConnectCommand', () => {
 
             refreshSpy.callCount.should.equal(1);
             refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT);
+            choseWalletQuickPick.should.not.have.been.called;
+            mockConnection.connect.should.not.have.been.called;
+        });
+
+        it('should do nothing if the user cancels choosing a wallet to connect with', async () => {
+            const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+            choseWalletQuickPick.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+            refreshSpy.callCount.should.equal(1);
+            refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT);
             choseIdentityQuickPick.should.not.have.been.called;
             mockConnection.connect.should.not.have.been.called;
         });
+
         it('should do nothing if the user cancels choosing the identity to connect with', async () => {
             choseGatewayQuickPick.resolves({
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
+            });
+            choseWalletQuickPick.resolves({
+                label: 'myGatewayBWallet',
+                data: FabricWalletRegistry.instance().get('myGatewayBWallet')
             });
             choseIdentityQuickPick.resolves();
 
@@ -209,12 +233,9 @@ describe('ConnectCommand', () => {
 
             const myConnectionItem: GatewayTreeItem = allChildren[1] as GatewayTreeItem;
 
-            const gatewayChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem);
-            const gatewayIdentity: IdentityTreeItem = gatewayChildren[0] as IdentityTreeItem;
-
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand(gatewayIdentity.command.command, ...gatewayIdentity.command.arguments);
+            await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
             choseIdentityQuickPick.should.not.have.been.called;
@@ -226,34 +247,29 @@ describe('ConnectCommand', () => {
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             const myConnectionItem: GatewayTreeItem = allChildren[2] as GatewayTreeItem;
-            const allIdentityChildren: IdentityTreeItem[] = await blockchainGatewayExplorerProvider.getChildren(myConnectionItem) as IdentityTreeItem[];
-            const myIdentityItem: IdentityTreeItem = allIdentityChildren[1] as IdentityTreeItem;
 
             const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand(myIdentityItem.command.command, ...myIdentityItem.command.arguments);
+            await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
             connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
             choseIdentityQuickPick.should.not.have.been.called;
-            mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), 'Test@org1.example.com');
+            mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), 'Admin@org1.example.com');
         });
 
         it('should handle no identities found in wallet', async () => {
-            connectionSingle.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
-            await FabricGatewayRegistry.instance().update(connectionSingle);
-
             connectionSingleWallet.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
             await FabricWalletRegistry.instance().update(connectionSingleWallet);
 
-            // Populate the quick pick box with the updated registry entry
-            choseGatewayQuickPick.resolves({
-                label: 'myGatewayA',
-                data: FabricGatewayRegistry.instance().get('myGatewayA')
+            // Populate the quick pick box with the updated wallet registry entry
+            choseWalletQuickPick.resolves({
+                label: 'myGatewayAWallet',
+                data: FabricWalletRegistry.instance().get('myGatewayAWallet')
             });
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + connectionSingleWallet.name);
         });
 
         it('should handle error from connecting', async () => {
@@ -279,14 +295,20 @@ describe('ConnectCommand', () => {
                 connection.managedRuntime = true;
                 connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
                 testFabricWallet = new FabricWallet('some/new/wallet/path');
-                mySandBox.stub(walletGenerator, 'createLocalWallet').resolves(testFabricWallet);
+                mySandBox.stub(walletGenerator, 'getNewWallet').returns(testFabricWallet);
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
-                mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-                connection.walletPath = testFabricWallet.walletPath;
 
                 choseGatewayQuickPick.resolves({
                     label: 'local_fabric',
                     data: connection
+                });
+
+                choseWalletQuickPick.resolves({
+                    label: 'local_wallet',
+                    data: new FabricWalletRegistryEntry({
+                        name: 'local_wallet',
+                        walletPath: 'some/new/wallet/path'
+                    })
                 });
 
                 connectStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
@@ -314,15 +336,11 @@ describe('ConnectCommand', () => {
             });
 
             it('should connect to a managed runtime from the tree', async () => {
-                mySandBox.stub(walletGenerator, 'getNewWallet').returns(testFabricWallet);
-
                 const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
                 const myConnectionItem: GatewayTreeItem = allChildren[0] as GatewayTreeItem;
-                const identityItems: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren(myConnectionItem);
-                const identityToConnect: IdentityTreeItem = identityItems[0] as IdentityTreeItem;
 
-                await vscode.commands.executeCommand(identityToConnect.command.command, ...identityToConnect.command.arguments);
+                await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
@@ -362,7 +380,7 @@ describe('ConnectCommand', () => {
 
             });
 
-            it('should handle the user cancelling an identity to chose from when connecting to a fabric runtime', async () => {
+            it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
                 getIdentitiesStub.resolves([identity.label, 'otherOne', 'anotherOne']);
                 choseIdentityQuickPick.resolves();
 

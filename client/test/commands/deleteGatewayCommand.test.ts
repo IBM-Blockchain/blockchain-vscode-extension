@@ -18,7 +18,6 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
 import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
@@ -36,12 +35,10 @@ describe('DeleteGatewayCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
-        await TestUtil.restoreWalletsConfig();
     });
 
     describe('deleteGateway', () => {
@@ -52,8 +49,6 @@ describe('DeleteGatewayCommand', () => {
         let gateways: Array<any>;
         let myGatewayA: any;
         let myGatewayB: any;
-        let walletA: any;
-        let walletB: any;
         const rootPath: string = path.dirname(__dirname);
 
         beforeEach(async () => {
@@ -62,37 +57,22 @@ describe('DeleteGatewayCommand', () => {
 
             // reset the available gateways and wallets
             await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
-            await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
 
             gateways = [];
 
             myGatewayA = {
                 name: 'myGatewayA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json')
             };
             gateways.push(myGatewayA);
 
             myGatewayB = {
                 name: 'myGatewayB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
             };
             gateways.push(myGatewayB);
 
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
-
-            walletA = {
-                name: 'myGatewayA',
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
-            };
-
-            walletB = {
-                name: 'myGatewayB',
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
-            };
-
-            await vscode.workspace.getConfiguration().update('fabric.wallets', [walletA, walletB], vscode.ConfigurationTarget.Global);
 
             quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myGatewayB',
@@ -150,19 +130,13 @@ describe('DeleteGatewayCommand', () => {
             gateways[1].should.deep.equal(myGatewayB);
         });
 
-        it('should delete the wallet and local connection directory if the extension owns the wallet directory', async () => {
-
+        it('should delete the local gateway directory if the extension owns it', async () => {
             const myGatewayC: any = {
                 name: 'myGatewayC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                walletPath: 'fabric-vscode/myGatewayC/wallet'
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
             };
             gateways.push(myGatewayC);
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
-            await vscode.workspace.getConfiguration().update('fabric.wallets', [{
-                walletPath: myGatewayC.walletPath,
-                name: myGatewayC.name
-            }], vscode.ConfigurationTarget.Global);
 
             quickPickStub.resolves({
                 label: 'myGatewayC',

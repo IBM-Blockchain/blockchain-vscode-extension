@@ -30,6 +30,10 @@ import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -41,10 +45,13 @@ describe('userInputUtil', () => {
     let mySandBox: sinon.SinonSandbox;
     let quickPickStub: sinon.SinonStub;
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+    const walletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
 
     let gatewayEntryOne: FabricGatewayRegistryEntry;
     let gatewayEntryTwo: FabricGatewayRegistryEntry;
     let identities: string[];
+    let walletEntryOne: FabricWalletRegistryEntry;
+    let walletEntryTwo: FabricWalletRegistryEntry;
 
     let getConnectionStub: sinon.SinonStub;
     let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
@@ -105,7 +112,6 @@ describe('userInputUtil', () => {
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
         gatewayEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
-        gatewayEntryOne.walletPath = path.join(rootPath, '../../test/data/connectionOne/wallet');
         identities = ['Admin@org1.example.com', 'Test@org1.example.com'];
 
         gatewayEntryTwo = new FabricGatewayRegistryEntry();
@@ -115,6 +121,20 @@ describe('userInputUtil', () => {
         await gatewayRegistry.clear();
         await gatewayRegistry.add(gatewayEntryOne);
         await gatewayRegistry.add(gatewayEntryTwo);
+
+        walletEntryOne = new FabricWalletRegistryEntry({
+            name: 'purpleWallet',
+            walletPath: '/some/path'
+        });
+
+        walletEntryTwo = new FabricWalletRegistryEntry({
+            name: 'blueWallet',
+            walletPath: '/some/other/path'
+        });
+
+        await walletRegistry.clear();
+        await walletRegistry.add(walletEntryOne);
+        await walletRegistry.add(walletEntryTwo);
 
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
@@ -869,13 +889,13 @@ describe('userInputUtil', () => {
     describe('showCertificateAuthorityQuickPickBox', () => {
         it('should get and show the certificate authority names', async () => {
             quickPickStub.resolves('ca.example.cake.com');
-            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please chose a CA');
+            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please choose a CA');
 
             result.should.deep.equal('ca.example.cake.com');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
-                placeHolder: 'Please chose a CA'
+                placeHolder: 'Please choose a CA'
             });
         });
     });
@@ -1361,6 +1381,42 @@ describe('userInputUtil', () => {
         });
     });
 
+    describe('showWalletsQuickPickBox', () => {
+
+        it('should show wallets to select', async () => {
+            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
+            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+
+            quickPickStub.resolves({
+                    label: walletEntryOne.name,
+                    data: walletEntryOne
+            });
+            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet');
+
+            result.label.should.equal(walletEntryOne.name);
+            result.data.should.deep.equal(walletEntryOne);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a wallet'
+            });
+        });
+
+        it('should allow the user to select the in house wallet', async () => {
+            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
+            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+
+            const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'local_wallet',
+                walletPath: 'some/local/path'
+            });
+
+            quickPickStub.resolves();
+            await UserInputUtil.showWalletsQuickPickBox('Choose a wallet');
+            quickPickStub.should.have.been.calledWith([{ label: localWalletEntry.name, data: localWalletEntry }, { label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }]);
+        });
+    });
+
     describe('addIdentityMethod', () => {
 
         it('should ask how to add an identity', async () => {
@@ -1379,7 +1435,7 @@ describe('userInputUtil', () => {
     describe('getCertKey', () => {
 
         it('should cancel adding certificate path', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1389,15 +1445,15 @@ describe('userInputUtil', () => {
             };
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             browseEditStub.onCall(0).resolves();
-            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey('myGateway');
+            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
-            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
 
         });
 
         it('should stop if certificate is invalid', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1411,14 +1467,14 @@ describe('userInputUtil', () => {
             const error: Error = new Error('Could not validate certificate: invalid PEM');
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws(error);
 
-            await UserInputUtil.getCertKey('myGateway').should.be.rejectedWith(error);
+            await UserInputUtil.getCertKey().should.be.rejectedWith(error);
 
-            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
         });
 
         it('should cancel adding private key path', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1431,16 +1487,16 @@ describe('userInputUtil', () => {
             browseEditStub.onCall(1).resolves();
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().returns(undefined);
 
-            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey('myGateway');
+            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
-            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
-            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
+            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
             validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
         });
 
         it('should stop if private key is invalid', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1457,16 +1513,16 @@ describe('userInputUtil', () => {
             validPem.onFirstCall().returns(undefined);
             validPem.onSecondCall().throws(error);
 
-            await UserInputUtil.getCertKey('myGateway').should.be.rejectedWith(error);
+            await UserInputUtil.getCertKey().should.be.rejectedWith(error);
 
-            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
-            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
+            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
             validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
             validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
         });
 
         it('should return certificate and private key paths', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1480,12 +1536,12 @@ describe('userInputUtil', () => {
 
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').returns(undefined);
 
-            const {certificatePath, privateKeyPath } = await UserInputUtil.getCertKey('myGateway');
+            const {certificatePath, privateKeyPath } = await UserInputUtil.getCertKey();
             certificatePath.should.equal('/some/cert');
             privateKeyPath.should.equal('/some/key');
 
-            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
-            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
+            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
             validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
             validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
         });

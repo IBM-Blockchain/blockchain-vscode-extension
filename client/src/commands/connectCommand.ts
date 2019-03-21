@@ -28,15 +28,12 @@ import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `connect`);
 
     let runtimeData: string;
-    let wallet: IFabricWallet;
-    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
 
     if (!gatewayRegistryEntry) {
         const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to connect with', true);
@@ -45,6 +42,32 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         }
 
         gatewayRegistryEntry = chosenEntry.data;
+    }
+
+    // Choose a wallet to connect with
+    const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with');
+    if (!chosenWallet) {
+        return;
+    }
+
+    // Get the wallet
+    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+    let wallet: IFabricWallet;
+    wallet = FabricWalletGenerator.getNewWallet(chosenWallet.data.walletPath);
+
+    // Get the identities
+    const identityNames: string[] = await wallet.getIdentityNames();
+    if (identityNames.length > 1) {
+        identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
+        if (!identityName) {
+            // User cancelled selecting an identity
+            return;
+        }
+    } else if (identityNames.length === 0) {
+        outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + chosenWallet.data.name);
+        return;
+    } else {
+        identityName = identityNames[0];
     }
 
     let connection: IFabricConnection;
@@ -61,57 +84,20 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
             }
         }
 
-        wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
-
-        gatewayRegistryEntry.walletPath = wallet.getWalletPath();
         gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         runtimeData = 'managed runtime';
-
-        if (!identityName) {
-            const identityNames: string[] = await wallet.getIdentityNames();
-            if (identityNames.length > 1) {
-                identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
-                if (!identityName) {
-                    return;
-                }
-            } else {
-                identityName = identityNames[0];
-            }
-        }
-
     } else {
-        const connectionData: { connectionProfilePath: string, walletPath: string } = {
-            connectionProfilePath: gatewayRegistryEntry.connectionProfilePath,
-            walletPath: gatewayRegistryEntry.walletPath
+        const connectionData: { connectionProfilePath: string } = {
+            connectionProfilePath: gatewayRegistryEntry.connectionProfilePath
         };
-
-        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(gatewayRegistryEntry.name);
-        wallet = FabricWalletGenerator.getNewWallet(fabricWalletRegistryEntry.walletPath);
-
-        const identityNames: string[] = await wallet.getIdentityNames();
-
-        if (identityNames.length === 0) {
-            outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + gatewayRegistryEntry.walletPath);
-            return;
-
-        } else if (identityNames.length === 1) {
-            identityName = identityNames[0];
-
-        } else {
-            if (!identityName) {
-                identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
-                if (!identityName) {
-                    return;
-                }
-            }
-        }
-
         connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
     }
 
     try {
         await connection.connect(wallet, identityName);
+        connection.wallet = chosenWallet.data;
+        connection.identityName = identityName;
         FabricConnectionManager.instance().connect(connection, gatewayRegistryEntry);
 
         outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayRegistryEntry.name}`, `Connecting to ${gatewayRegistryEntry.name}`);

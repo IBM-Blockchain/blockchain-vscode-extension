@@ -79,7 +79,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         // Import the new identity to the gateway wallet (no -ops in the name)
         await wallet.importIdentity(details.certificate, details.privateKey, identityName, mspid);
 
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
         outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
 
         await connection.disconnect();

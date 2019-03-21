@@ -19,9 +19,6 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
-import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -33,19 +30,13 @@ export async function addGateway(): Promise<{} | void> {
             return Promise.resolve();
         }
 
-        // Create the connection immediately
-        let fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+        // Create the gateway registry entry immediately
+        const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         fabricGatewayEntry.connectionProfilePath = FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT;
         fabricGatewayEntry.name = gatewayName;
-        fabricGatewayEntry.walletPath = FabricGatewayHelper.WALLET_PATH_DEFAULT;
 
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         await fabricGatewayRegistry.add(fabricGatewayEntry);
-
-        const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
-        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        fabricWalletRegistryEntry.name = fabricGatewayEntry.name;
-        await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
@@ -68,41 +59,7 @@ export async function addGateway(): Promise<{} | void> {
         fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
         await fabricGatewayRegistry.update(fabricGatewayEntry);
 
-        // Ask the user whether they want to provide a wallet or certficate and privateKey file paths
-        const answer: string = await UserInputUtil.showAddIdentityOptionsQuickPick('Chose a method for importing identity to connect with:');
-        if (!answer) {
-            // User cancelled, so do nothing
-            return Promise.resolve();
-        } else if (answer === UserInputUtil.CERT_KEY) {
-
-            fabricGatewayEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, fabricGatewayEntry) as FabricGatewayRegistryEntry;
-
-            if (!fabricGatewayEntry) {
-                return Promise.resolve();
-            }
-            await fabricGatewayRegistry.update(fabricGatewayEntry);
-            fabricWalletRegistryEntry.walletPath = fabricGatewayEntry.walletPath;
-            await fabricWalletRegistry.update(fabricWalletRegistryEntry);
-            outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
-
-        } else {
-
-            openDialogOptions.filters = undefined;
-            openDialogOptions.canSelectFiles = false;
-            openDialogOptions.canSelectFolders = true;
-            // User has a wallet - get the path
-            const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, gatewayName) as string;
-            if (!walletPath) {
-                return Promise.resolve();
-            }
-            fabricGatewayEntry.walletPath = walletPath;
-            await fabricGatewayRegistry.update(fabricGatewayEntry);
-
-            fabricWalletRegistryEntry.walletPath = walletPath;
-            await fabricWalletRegistry.update(fabricWalletRegistryEntry);
-
-            outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
-        }
+        outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
     }

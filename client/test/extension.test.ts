@@ -82,7 +82,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.DISCONNECT,
             ExtensionCommands.ADD_GATEWAY,
             ExtensionCommands.DELETE_GATEWAY,
-            ExtensionCommands.ADD_GATEWAY_IDENTITY,
+            ExtensionCommands.ADD_WALLET_IDENTITY,
             ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
             ExtensionCommands.PACKAGE_SMART_CONTRACT,
             ExtensionCommands.REFRESH_PACKAGES,
@@ -119,7 +119,6 @@ describe('Extension Tests', () => {
             `onView:blockchainExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,
             `onCommand:${ExtensionCommands.DELETE_GATEWAY}`,
-            `onCommand:${ExtensionCommands.ADD_GATEWAY_IDENTITY}`,
             `onCommand:${ExtensionCommands.CONNECT}`,
             `onCommand:${ExtensionCommands.DISCONNECT}`,
             `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
@@ -147,6 +146,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
             `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
             `onCommand:${ExtensionCommands.ADD_WALLET}`,
+            `onCommand:${ExtensionCommands.ADD_WALLET_IDENTITY}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);

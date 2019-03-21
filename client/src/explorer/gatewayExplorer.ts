@@ -17,7 +17,6 @@
 import * as vscode from 'vscode';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
-import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { GatewayTreeItem } from './model/GatewayTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -30,12 +29,8 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
-import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
-import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { GatewayPropertyTreeItem } from './model/GatewayPropertyTreeItem';
 import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
@@ -106,15 +101,8 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         try {
 
             if (element) {
-                if ((element instanceof GatewayTreeItem || element instanceof LocalGatewayTreeItem) && FabricGatewayHelper.isCompleted(element.gateway)) {
-                    this.tree = await this.createGatewayIdentityTree(element as GatewayTreeItem); // Identities for completed gateway
-                }
-                if (element instanceof GatewayTreeItem && !FabricGatewayHelper.isCompleted(element.gateway)) {
-                    this.tree = await this.createGatewayUncompleteTree(element as GatewayTreeItem); // Uncomplete gateway, wallet and connection profile are required
-                }
-
-                if (element instanceof GatewayPropertyTreeItem && element.label.includes('Wallet') && !FabricGatewayHelper.walletPathComplete(element.gateway)) {
-                    this.tree = await this.createWalletUncompleteTree(element as GatewayPropertyTreeItem); // Incomplete wallet
+                if (element instanceof GatewayTreeItem && !FabricGatewayHelper.connectionProfilePathComplete(element.gateway)) {
+                    this.tree = await this.createGatewayUncompleteTree(element as GatewayTreeItem); // Uncomplete gateway, connection profile is needed
                 }
 
                 // This won't be called before connecting to a gatewawy
@@ -168,48 +156,16 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         return this.tree;
     }
 
-    public async createGatewayUncompleteTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
+    public async createGatewayUncompleteTree(element: GatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
         console.log('createGatewayUncompleteTree', element);
-
-        let profileLabel: string = 'Connection Profile';
-        let walletLabel: string = 'Wallet';
-
-        profileLabel = ((FabricGatewayHelper.connectionProfilePathComplete(element.gateway)) ? '✓ ' : '+ ') + profileLabel;
-        walletLabel = ((FabricGatewayHelper.walletPathComplete(element.gateway)) ? '✓ ' : '+ ') + walletLabel;
-
-        let command: vscode.Command;
-        let treeState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
-
         const tree: GatewayPropertyTreeItem[] = [];
 
-        for (const label of [profileLabel, walletLabel]) {
-            if (label === '+ Wallet') {
-                treeState = vscode.TreeItemCollapsibleState.Collapsed;
-            }
-            command = {
-                command: ExtensionCommands.EDIT_GATEWAY,
-                title: '',
-                arguments: [{ label: label, gateway: element.gateway }]
-            };
-            tree.push(new GatewayPropertyTreeItem(this, label, element.gateway, treeState, command));
-        }
-
-        return tree;
-    }
-
-    public async createWalletUncompleteTree(element: GatewayPropertyTreeItem): Promise<GatewayPropertyTreeItem[]> {
-        console.log('createWalletUncompleteTree', element);
-
-        const identityLabel: string = '+ Identity';
-        let command: vscode.Command;
-        const tree: GatewayPropertyTreeItem[] = [];
-
-        command = {
+        const command: vscode.Command = {
             command: ExtensionCommands.EDIT_GATEWAY,
             title: '',
-            arguments: [{ label: identityLabel, gateway: element.gateway }]
+            arguments: [{ label: '+ Connection Profile', gateway: element.gateway }]
         };
-        tree.push(new GatewayPropertyTreeItem(this, identityLabel, element.gateway, vscode.TreeItemCollapsibleState.None, command));
+        tree.push(new GatewayPropertyTreeItem(this, '+ Connection Profile', element.gateway, vscode.TreeItemCollapsibleState.None, command));
 
         return tree;
     }
@@ -229,20 +185,18 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             gateway.name = runtime.getName();
             gateway.managedRuntime = true;
 
-            const fabricWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(gateway.name);
-            const walletPath: string = fabricWallet.getWalletPath();
-            gateway.walletPath = walletPath;
-
-            const identityNames: Array<string> = await fabricWallet.getIdentityNames();
-
-            const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+            const command: vscode.Command = {
+                command: ExtensionCommands.CONNECT,
+                title: '',
+                arguments: [gateway]
+            };
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                 this,
                 gateway.name,
                 gateway,
-                treeState,
-                undefined
+                vscode.TreeItemCollapsibleState.None,
+                command
             );
 
             tree.push(treeItem);
@@ -252,10 +206,23 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         }
 
         for (const gateway of allGateways) {
+
+            let treeState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
+
+            if (!FabricGatewayHelper.connectionProfilePathComplete(gateway)) {
+                treeState = vscode.TreeItemCollapsibleState.Expanded;
+            }
+
+            const command: vscode.Command = {
+                command: ExtensionCommands.CONNECT,
+                title: '',
+                arguments: [gateway]
+            };
             tree.push(new GatewayTreeItem(this,
                 gateway.name,
                 gateway,
-                vscode.TreeItemCollapsibleState.Expanded)
+                treeState,
+                command)
             );
         }
 
@@ -371,28 +338,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         }, (error: string) => {
             throw new Error(error);
         });
-    }
-
-    private async createGatewayIdentityTree(element: GatewayTreeItem | LocalGatewayTreeItem): Promise<IdentityTreeItem[]> {
-        console.log('createConnectionIdentityTree', element);
-
-        const tree: Array<IdentityTreeItem> = [];
-
-        // get identityNames in the wallet
-        const wallet: IFabricWallet = FabricWalletGeneratorFactory.createFabricWalletGenerator().getNewWallet(element.gateway.walletPath);
-        const identityNames: string[] = await wallet.getIdentityNames();
-
-        for (const identityName of identityNames) {
-            const command: vscode.Command = {
-                command: ExtensionCommands.CONNECT,
-                title: '',
-                arguments: [element.gateway, identityName]
-            };
-
-            tree.push(new IdentityTreeItem(this, identityName, command));
-        }
-
-        return tree;
     }
 
     private async getChannelsTree(): Promise<ChannelTreeItem[]> {

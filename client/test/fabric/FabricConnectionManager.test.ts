@@ -18,6 +18,7 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 
 const should: Chai.Should = chai.should();
 
@@ -93,6 +94,30 @@ describe('FabricConnectionManager', () => {
             connectionManager.disconnect();
             should.equal(connectionManager.getConnection(), null);
             listenerStub.should.have.been.calledOnceWithExactly();
+        });
+
+    });
+
+    describe('#getConnectionIdentity', () => {
+
+        it('should get the name of the identity used to connect', () => {
+            mockFabricConnection.identityName = 'admin@conga';
+            connectionManager['connection'] = ((mockFabricConnection as any) as FabricConnection);
+            connectionManager.getConnectionIdentity().should.equal('admin@conga');
+        });
+
+    });
+
+    describe('#getConnectionWallet', () => {
+
+        it('should get the wallet registry entry used to connect', () => {
+            const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'congaWallet',
+                walletPath: '/some/path'
+            });
+            mockFabricConnection.wallet = walletRegistryEntry;
+            connectionManager['connection'] = ((mockFabricConnection as any) as FabricConnection);
+            connectionManager.getConnectionWallet().should.deep.equal(walletRegistryEntry);
         });
 
     });

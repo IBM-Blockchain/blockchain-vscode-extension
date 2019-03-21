@@ -18,8 +18,6 @@ export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
 
     public connectionProfilePath: string;
 
-    public walletPath: string;
-
     public managedRuntime: boolean;
 
     constructor(fields?: FabricGatewayRegistryEntry) {

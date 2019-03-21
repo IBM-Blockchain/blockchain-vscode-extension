@@ -31,7 +31,7 @@ export async function addWallet(): Promise<void> {
             // User cancelled dialog box
             return Promise.resolve();
         }
-        // TODO: correct user flows for different methods to add a wallet
+        // TODO: add extra user flows for adding ids into new wallets
         // User has a wallet - get the path - ask them to browse for it
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {

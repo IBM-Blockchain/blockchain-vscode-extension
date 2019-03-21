@@ -23,10 +23,12 @@ import { LogType, OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { FabricWallet } from './FabricWallet';
 import { URL } from 'url';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
 export abstract class FabricConnection implements IFabricConnection {
 
     public identityName: string;
+    public wallet: FabricWalletRegistryEntry;
 
     private mspid: string;
     private gateway: Gateway = new Gateway();
@@ -415,8 +417,8 @@ export abstract class FabricConnection implements IFabricConnection {
             return identityToSearch.label === identityName;
         });
 
+        // TODO: remove this?
         this.mspid = identity.mspId;
-        this.identityName = identity.label;
     }
 
     private isLocalhostURL(url: string): boolean {

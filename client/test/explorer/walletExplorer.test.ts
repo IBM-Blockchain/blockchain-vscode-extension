@@ -41,6 +41,7 @@ describe('walletExplorer', () => {
     let blueWalletEntry: FabricWalletRegistryEntry;
     let greenWalletEntry: FabricWalletRegistryEntry;
     let getIdentityNamesStub: sinon.SinonStub;
+    let getLocalWalletIdentityNamesStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -67,6 +68,10 @@ describe('walletExplorer', () => {
         const testFabricWallet: FabricWallet = new FabricWallet('some/path');
         getIdentityNamesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames');
         mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testFabricWallet);
+        const localWallet: FabricWallet = new FabricWallet('/some/local/path');
+        getLocalWalletIdentityNamesStub = mySandBox.stub(localWallet, 'getIdentityNames').resolves(['yellowConga', 'orangeConga']);
+        mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'createLocalWallet').resolves(localWallet);
+        await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
     });
 
     afterEach(async () => {
@@ -79,15 +84,32 @@ describe('walletExplorer', () => {
         await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        wallets.length.should.equal(2);
-        wallets[0].label.should.equal(blueWalletEntry.name);
-        wallets[1].label.should.equal(greenWalletEntry.name);
-        wallets[1].identities.should.deep.equal([]);
+        wallets.length.should.equal(3);
+        wallets[0].label.should.equal('local_wallet');
+        wallets[1].label.should.equal(blueWalletEntry.name);
+        wallets[2].label.should.equal(greenWalletEntry.name);
+        wallets[2].identities.should.deep.equal([]);
 
-        const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
+        const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[1]) as Array<IdentityTreeItem>;
         blueWalletIdentities.length.should.equal(2);
         blueWalletIdentities[0].label.should.equal('violetConga');
         blueWalletIdentities[1].label.should.equal('purpleConga');
+        logSpy.should.not.have.been.calledWith(LogType.ERROR);
+
+        const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
+        localWalletIdentities.length.should.equal(2);
+        localWalletIdentities[0].label.should.equal('yellowConga');
+        localWalletIdentities[1].label.should.equal('orangeConga');
+        logSpy.should.not.have.been.calledWith(LogType.ERROR);
+    });
+
+    it('should handle no identities in the local wallet', async () => {
+        getLocalWalletIdentityNamesStub.resolves([]);
+        const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+
+        wallets.length.should.equal(1);
+        wallets[0].label.should.equal('local_wallet');
+        wallets[0].identities.should.deep.equal([]);
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
@@ -104,13 +126,13 @@ describe('walletExplorer', () => {
         await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(wallets[0]) as WalletTreeItem;
+        const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(wallets[1]) as WalletTreeItem;
         blueWallet.label.should.equal('blueWallet');
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
     it('should handle errors when populating the BlockchainWalletExplorer view', async () => {
-        getIdentityNamesStub.rejects( { message: 'something bad has happened' } );
+        getLocalWalletIdentityNamesStub.rejects( { message: 'something bad has happened' } );
 
         await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error displaying Fabric Wallets: something bad has happened', 'Error displaying Fabric Wallets: something bad has happened');
@@ -125,9 +147,9 @@ describe('walletExplorer', () => {
         await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry, purpleWallet], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
-        wallets.length.should.equal(2);
-        wallets[0].label.should.equal(blueWalletEntry.name);
-        wallets[1].label.should.equal(greenWalletEntry.name);
+        wallets.length.should.equal(3);
+        wallets[1].label.should.equal(blueWalletEntry.name);
+        wallets[2].label.should.equal(greenWalletEntry.name);
     });
 
 });

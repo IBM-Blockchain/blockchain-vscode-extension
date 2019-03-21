@@ -45,7 +45,6 @@
         "onCommand": [
             "gatewaysExplorer.addGatewayEntry",
             "gatewaysExplorer.deleteGatewayEntry",
-            "gatewaysExplorer.addGatewayIdentityEntry",
             "gatewaysExplorer.connectEntry",
             "gatewaysExplorer.disconnectEntry",
             "gatewaysExplorer.refreshEntry",
@@ -73,6 +72,7 @@
             "aRuntimeOpsExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
             "walletExplorer.addWalletEntry",
+            "walletExplorer.addWalletIdentityEntry",
             "extensionHome.open"
         ]
     },
@@ -196,7 +196,7 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "gatewaysExplorer.addGatewayIdentityEntry",
+                "command": "walletExplorer.addWalletIdentityEntry",
                 "title": "Add Identity To Wallet",
                 "category": "IBM Blockchain Platform"
             },
@@ -452,8 +452,8 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
                 },
                 {
-                    "command": "gatewaysExplorer.addGatewayIdentityEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
+                    "command": "walletExplorer.addWalletIdentityEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
                 },
                 {
                     "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
