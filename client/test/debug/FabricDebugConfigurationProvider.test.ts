@@ -147,7 +147,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -165,7 +165,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -175,7 +175,7 @@ describe('FabricDebugConfigurationProvider', () => {
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
 
-        it('should add CORE_CHAINCODE_ID_NAME to an existing env', async () => {
+        it('should add CORE_CHAINCODE_ID_NAME, and CORE_CHAINCODE_EXECUTETIMEOUT to an existing env', async () => {
             debugConfig.env = { myProperty: 'myValue' };
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -183,7 +183,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, myProperty: 'myValue' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s', myProperty: 'myValue' },
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -201,11 +201,29 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `myContract:myVersion` },
+                env: { CORE_CHAINCODE_ID_NAME: `myContract:myVersion`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s'  },
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'myContract', 'myVersion');
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should use CORE_CHAINCODE_EXECUTETIMEOUT if defined', async () => {
+            debugConfig.env = { CORE_CHAINCODE_EXECUTETIMEOUT: '10s' };
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: { CORE_CHAINCODE_EXECUTETIMEOUT: '10s', CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                args: ['127.0.0.1:54321']
+            });
+            commandStub.callCount.should.equal(4);
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
