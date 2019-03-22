@@ -28,6 +28,8 @@ import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -38,6 +40,8 @@ describe('teardownFabricRuntime', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
     let runtimeTreeItem: RuntimeTreeItem;
+    let gatewayRegistyEntry: FabricGatewayRegistryEntry;
+    let getRegistryEntryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -59,6 +63,14 @@ describe('teardownFabricRuntime', () => {
         const provider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
+
+        gatewayRegistyEntry = new FabricGatewayRegistryEntry();
+        gatewayRegistyEntry.managedRuntime = false;
+        gatewayRegistyEntry.connectionProfilePath = 'myPath';
+        gatewayRegistyEntry.name = 'local_fabric';
+        gatewayRegistyEntry.walletPath = 'myWalletPath';
+
+        getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
     });
 
     afterEach(async () => {
@@ -67,11 +79,28 @@ describe('teardownFabricRuntime', () => {
     });
 
     it('should teardown a Fabric runtime', async () => {
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
         const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
         warningStub.should.have.been.calledOnce;
         teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);
+    });
+
+    it('should teardown a Fabric runtime and disconnect', async () => {
+        gatewayRegistyEntry.managedRuntime = true;
+        getRegistryEntryStub.returns(gatewayRegistyEntry);
+
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+        warningStub.should.have.been.calledOnce;
+        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
     });
 
     it('should handle cancel from confirmation message', async () => {
