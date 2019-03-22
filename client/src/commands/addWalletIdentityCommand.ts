@@ -26,8 +26,9 @@ import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricCertificateAuthority } from '../fabric/FabricCertificateAuthority';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
+import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
 
 export async function addWalletIdentity(walletTreeItem: WalletTreeItem): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -116,7 +117,9 @@ export async function addWalletIdentity(walletTreeItem: WalletTreeItem): Promise
         const enrollmentID: string = enrollIdSecret.enrollmentID;
         const enrollmentSecret: string = enrollIdSecret.enrollmentSecret;
 
-        const enrollment: {certificate: string, privateKey: string} = await FabricCertificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
+        const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
+
+        const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
         certificate = enrollment.certificate;
         privateKey = enrollment.privateKey;
     }

@@ -32,9 +32,9 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricCertificateAuthority } from '../../src/fabric/FabricCertificateAuthority';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { FabricCertificateAuthorityFactory } from '../../src/fabric/FabricCertificateAuthorityFactory';
 
 // tslint:disable no-unused-expression
 
@@ -99,7 +99,8 @@ describe('AddGatewayIdentityCommand', () => {
             getCertKeyStub = mySandBox.stub(UserInputUtil, 'getCertKey');
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
             getEnrollIdSecretStub = mySandBox.stub(UserInputUtil, 'getEnrollIdSecret');
-            enrollStub = mySandBox.stub(FabricCertificateAuthority, 'enroll');
+
+            enrollStub = mySandBox.stub(FabricCertificateAuthorityFactory.createCertificateAuthority(), 'enroll');
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             fabricWallet = new FabricWallet('fab_wallet', walletPath);
