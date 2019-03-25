@@ -11,24 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
 
-export enum LogType {
-    SUCCESS = 'SUCCESS',
-    ERROR = 'ERROR',
-    INFO = 'INFO',
-    IMPORTANT = 'IMPORTANT',
-    YEOMAN = 'YEOMAN',
-    WARNING = 'WARNING'
-}
+export interface IFabricCertificateAuthority {
 
-export abstract class OutputAdapter {
-    public log(type: LogType, popupMessage: string, outputMessage?: string): void {
-        if (type === LogType.ERROR) {
-            console.error(popupMessage);
-            console.error(outputMessage);
-        } else {
-            console.log(popupMessage);
-            console.log(outputMessage);
-        }
-    }
+    enroll(connectionProfilePath: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
 }

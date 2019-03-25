@@ -116,7 +116,9 @@ describe('Extension Tests', () => {
         const activationEvents: string[] = packageJSON.activationEvents;
 
         activationEvents.should.deep.equal([
-            `onView:blockchainExplorer`,
+            `onView:gatewayExplorer`,
+            `onView:aRuntimeOpsExplorer`,
+            `onView:aPackagesExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,
             `onCommand:${ExtensionCommands.DELETE_GATEWAY}`,
             `onCommand:${ExtensionCommands.CONNECT}`,
@@ -353,7 +355,7 @@ describe('Extension Tests', () => {
     });
 
     it('should register and show sample page', async () => {
-        const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         const openContractSampleStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openContractSample').resolves();
         await myExtension.activate(context);
@@ -378,7 +380,7 @@ describe('Extension Tests', () => {
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
     });
 
-    it('should ignore undefined emitted debug events', async () => {
+    it('should set blockchain-debug false when no debug session', async () => {
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
 
         const session: any = undefined;
@@ -386,7 +388,6 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.not.have.been.called;
+        executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
     });
-
 });

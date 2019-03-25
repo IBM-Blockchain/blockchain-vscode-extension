@@ -11,24 +11,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
 
-export enum LogType {
-    SUCCESS = 'SUCCESS',
-    ERROR = 'ERROR',
-    INFO = 'INFO',
-    IMPORTANT = 'IMPORTANT',
-    YEOMAN = 'YEOMAN',
-    WARNING = 'WARNING'
-}
+import { IFabricCertificateAuthority } from './IFabricCertificateAuthority';
 
-export abstract class OutputAdapter {
-    public log(type: LogType, popupMessage: string, outputMessage?: string): void {
-        if (type === LogType.ERROR) {
-            console.error(popupMessage);
-            console.error(outputMessage);
-        } else {
-            console.log(popupMessage);
-            console.log(outputMessage);
+export class FabricCertificateAuthorityFactory {
+
+    public static createCertificateAuthority(): IFabricCertificateAuthority {
+        if (!this.FabricCertificateAuthority) {
+            this.FabricCertificateAuthority = require('./FabricCertificateAuthority');
         }
+
+        return this.FabricCertificateAuthority.FabricCertificateAuthority.instance();
+
     }
+
+    private static FabricCertificateAuthority: any;
+
 }

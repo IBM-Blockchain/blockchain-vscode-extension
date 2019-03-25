@@ -21,7 +21,6 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
 

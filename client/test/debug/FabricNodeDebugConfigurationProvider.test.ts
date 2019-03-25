@@ -34,6 +34,20 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('FabricNodeDebugConfigurationProvider', () => {
 
+    describe('provideDebugConfigurations', () => {
+
+        it('should provide a debug configuration', async () => {
+            const provider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
+            const config: any = await provider.provideDebugConfigurations();
+            config.should.deep.equal([{
+                type: 'fabric:node',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }]);
+        });
+
+    });
+
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;
@@ -42,14 +56,10 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
-        let findFilesStub: sinon.SinonStub;
         let commandStub: sinon.SinonStub;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
-        let readFileStub: sinon.SinonStub;
-        let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
-        let getConnectionStub: sinon.SinonStub;
         let date: Date;
         let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
@@ -81,8 +91,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 uri: vscode.Uri.file('myPath')
             };
 
-            readJsonStub = mySandbox.stub(fs, 'readJSON');
-            readFileStub = mySandbox.stub(fs, 'readFile').resolves(`{
+            mySandbox.stub(fs, 'readJSON');
+            mySandbox.stub(fs, 'readFile').resolves(`{
                 "name": "mySmartContract",
                 "version": "0.0.1"
             }`);
@@ -97,7 +107,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             debugConfig.cwd = 'myCwd';
             debugConfig.args = ['start', '--peer.address', 'localhost:12345'];
 
-            findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
+            mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
 
             commandStub = mySandbox.stub(vscode.commands, 'executeCommand');
 
@@ -117,7 +127,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+            mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
         });
@@ -136,7 +146,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -152,7 +162,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
         });
@@ -168,7 +178,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -184,7 +194,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
@@ -199,7 +209,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -214,7 +224,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -229,11 +239,9 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'launch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
         });
-
     });
-
 });

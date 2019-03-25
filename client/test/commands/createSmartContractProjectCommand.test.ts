@@ -19,9 +19,8 @@ import * as sinon from 'sinon';
 import * as tmp from 'tmp';
 import * as sinonChai from 'sinon-chai';
 import * as fs_extra from 'fs-extra';
-import * as child_process from 'child_process';
 import { CommandUtil } from '../../src/util/CommandUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { UserInputUtil, LanguageType, LanguageQuickPickItem } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
@@ -38,10 +37,8 @@ describe('CreateSmartContractProjectCommand', () => {
     // suite variables
     let mySandBox: sinon.SinonSandbox;
     let sendCommandStub: sinon.SinonStub;
-    let sendCommandWithOutputAndProgressStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
-    let openDialogStub: sinon.SinonStub;
     let browseEditStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let updateWorkspaceFoldersStub: sinon.SinonStub;
@@ -55,10 +52,10 @@ describe('CreateSmartContractProjectCommand', () => {
         mySandBox = sinon.createSandbox();
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
         sendCommandStub.withArgs('xcode-select -p').resolves('path');
-        sendCommandWithOutputAndProgressStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
+        mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-        openDialogStub = mySandBox.stub(vscode.window, 'showOpenDialog');
+        mySandBox.stub(vscode.window, 'showOpenDialog');
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
         const originalExecuteCommand: any = vscode.commands.executeCommand;
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -77,164 +74,129 @@ describe('CreateSmartContractProjectCommand', () => {
         mySandBox.restore();
     });
 
-    // Define assertion
-    it('should start a typescript smart contract project, in a new window', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
+    const testLanguageItems: LanguageQuickPickItem[] = [
+        { label: 'TypeScript', type: LanguageType.CONTRACT },
+        { label: 'Go', type: LanguageType.CHAINCODE }
+    ];
 
-        quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-        browseEditStub.resolves(uri);
+    for (const testLanguageItem of testLanguageItems) {
 
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
-        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
-        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON: any = JSON.parse(fileContents);
-        smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledTwice;
-        executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
-        packageJSON.name.should.equal(path.basename(uri.fsPath));
-        packageJSON.version.should.equal('0.0.1');
-        packageJSON.description.should.equal('My Smart Contract');
-        packageJSON.author.should.equal('John Doe');
-        packageJSON.license.should.equal('Apache-2.0');
-    });
+        async function checkTypeScriptSmartContract(): Promise<void> {
+            const pathToCheck: string = path.join(uri.fsPath, 'package.json');
+            const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+            const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
+            const packageJSON: any = JSON.parse(fileContents);
+            smartContractExists.should.be.true;
+            packageJSON.name.should.equal(path.basename(uri.fsPath));
+            packageJSON.version.should.equal('0.0.1');
+            packageJSON.description.should.equal('My Smart Contract');
+            packageJSON.author.should.equal('John Doe');
+            packageJSON.license.should.equal('Apache-2.0');
+        }
 
-    it('should start a typescript smart contract project, in current window', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
+        async function checkGoSmartContract(): Promise<void> {
+            const pathToCheck: string = path.join(uri.fsPath, 'main.go');
+            const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
+            smartContractExists.should.be.true;
+        }
 
-        quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+        async function checkSmartContract(): Promise<void> {
+            if (testLanguageItem.label === 'TypeScript') {
+                return checkTypeScriptSmartContract();
+            } else if (testLanguageItem.label === 'Go') {
+                return checkGoSmartContract();
+            } else {
+                throw new Error(`You must update this test to support the ${testLanguageItem.label} language`);
+            }
+        }
 
-        browseEditStub.resolves(uri);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
-        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
-        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON: any = JSON.parse(fileContents);
-        smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledTwice;
-        executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
-        packageJSON.name.should.equal(path.basename(uri.fsPath));
-        packageJSON.version.should.equal('0.0.1');
-        packageJSON.description.should.equal('My Smart Contract');
-        packageJSON.author.should.equal('John Doe');
-        packageJSON.license.should.equal('Apache-2.0');
-    });
+        it(`should start a ${testLanguageItem.label} smart contract project, in a new window`, async () => {
+            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
+            browseEditStub.resolves(uri);
 
-    it('should start a typescript smart contract project, in current window with unsaved files and save', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            await checkSmartContract();
+        });
 
-        quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-        quickPickStub.onThirdCall().resolves(UserInputUtil.YES);
+        it(`should start a ${testLanguageItem.label} smart contract project, in current window`, async () => {
+            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
-        browseEditStub.resolves(uri);
-        const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
+            browseEditStub.resolves(uri);
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            await checkSmartContract();
+        });
 
-        await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
+        it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and save`, async () => {
+            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+            quickPickStub.onThirdCall().resolves(UserInputUtil.YES);
 
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
-        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
-        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON: any = JSON.parse(fileContents);
-        smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledTwice;
-        executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
-        saveDialogStub.should.have.been.calledWith(true);
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
-        packageJSON.name.should.equal(path.basename(uri.fsPath));
-        packageJSON.version.should.equal('0.0.1');
-        packageJSON.description.should.equal('My Smart Contract');
-        packageJSON.author.should.equal('John Doe');
-        packageJSON.license.should.equal('Apache-2.0');
-    });
+            browseEditStub.resolves(uri);
+            const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
 
-    it('should start a typescript smart contract project, in current window with unsaved files and not save', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
+            await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
-        quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
-        quickPickStub.onThirdCall().resolves(UserInputUtil.NO);
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
+            saveDialogStub.should.have.been.calledWith(true);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            await checkSmartContract();
+        });
 
-        browseEditStub.resolves(uri);
-        const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll');
+        it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and not save`, async () => {
+            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
+            quickPickStub.onThirdCall().resolves(UserInputUtil.NO);
 
-        await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
+            browseEditStub.resolves(uri);
+            const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll');
 
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
-        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
-        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON: any = JSON.parse(fileContents);
-        smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledTwice;
-        executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
-        saveDialogStub.should.not.have.been.called;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
-        packageJSON.name.should.equal(path.basename(uri.fsPath));
-        packageJSON.version.should.equal('0.0.1');
-        packageJSON.description.should.equal('My Smart Contract');
-        packageJSON.author.should.equal('John Doe');
-        packageJSON.license.should.equal('Apache-2.0');
-    });
+            await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
-    it('should start a typescript smart contract project, in a new workspace with no folders', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
+            saveDialogStub.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            await checkSmartContract();
+        });
 
-        quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
+        it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with no folders`, async () => {
+            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-        browseEditStub.resolves(uri);
-        mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
+            browseEditStub.resolves(uri);
+            mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
-        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
-        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON: any = JSON.parse(fileContents);
-        smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledOnce;
-        updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
-        packageJSON.name.should.equal(path.basename(uri.fsPath));
-        packageJSON.version.should.equal('0.0.1');
-        packageJSON.description.should.equal('My Smart Contract');
-        packageJSON.author.should.equal('John Doe');
-        packageJSON.license.should.equal('Apache-2.0');
-    });
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledOnce;
+            updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            await checkSmartContract();
+        });
 
-    it('should start a typescript smart contract project, in a new workspace with folders', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
+        it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with folders`, async () => {
+            quickPickStub.onFirstCall().resolves(testLanguageItem);
+            quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-        quickPickStub.onFirstCall().resolves('TypeScript');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            browseEditStub.resolves(uri);
+            await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+            executeCommandStub.should.have.been.calledOnce;
+            updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
+            await checkSmartContract();
+        });
 
-        browseEditStub.resolves(uri);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        const pathToCheck: string = path.join(uri.fsPath, 'package.json');
-        const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
-        const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
-        const packageJSON: any = JSON.parse(fileContents);
-        smartContractExists.should.be.true;
-        executeCommandStub.should.have.been.calledOnce;
-        updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
-        packageJSON.name.should.equal(path.basename(uri.fsPath));
-        packageJSON.version.should.equal('0.0.1');
-        packageJSON.description.should.equal('My Smart Contract');
-        packageJSON.author.should.equal('John Doe');
-        packageJSON.license.should.equal('Apache-2.0');
-    });
+    }
 
     it('should show error message if we fail to create a smart contract', async () => {
         const mockEnv: any = {
@@ -243,7 +205,7 @@ describe('CreateSmartContractProjectCommand', () => {
             run: sinon.stub().yields(new Error('such error'))
         };
         mySandBox.stub(yeoman, 'createEnv').returns(mockEnv);
-        quickPickStub.onCall(0).resolves('JavaScript');
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         quickPickStub.onCall(1).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
         browseEditStub.resolves(uri);
@@ -252,10 +214,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels the open dialog', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
-
-        quickPickStub.onCall(0).resolves('JavaScript');
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
 
         browseEditStub.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
@@ -265,9 +224,7 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels the open project ', async () => {
-        // We actually want to execute the command!
-        sendCommandStub.restore();
-        quickPickStub.onCall(0).resolves('JavaScript');
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         quickPickStub.onCall(1).resolves();
         browseEditStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
@@ -277,7 +234,6 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     it('should not do anything if the user cancels chosing a smart contract language', async () => {
-        sendCommandStub.restore();
         quickPickStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         quickPickStub.should.have.been.calledOnce;
@@ -290,9 +246,7 @@ describe('CreateSmartContractProjectCommand', () => {
         getPackageJSONStub.onCall(1).returns({production: true}); // For the reporter!
         const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-        sendCommandStub.restore();
-
-        quickPickStub.onFirstCall().resolves('TypeScript');
+        quickPickStub.onFirstCall().resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
         quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
         browseEditStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);

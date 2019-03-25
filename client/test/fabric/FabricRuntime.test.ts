@@ -60,7 +60,6 @@ describe('FabricRuntime', () => {
     let mockLogsVolume: sinon.SinonStubbedInstance<Volume>;
     let connectionProfilePath: string;
     let runtimeDetailsDir: string;
-    let getDirPathStub: sinon.SinonStub;
     let ensureFileStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
     let copyStub: sinon.SinonStub;
@@ -202,7 +201,7 @@ describe('FabricRuntime', () => {
         getVolumeStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsVolume);
 
         runtimeDir = path.join(rootPath, '..', 'data');
-        getDirPathStub = sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
+        sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
         ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
         writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
         copyStub = sandbox.stub(fs, 'copySync').resolves();

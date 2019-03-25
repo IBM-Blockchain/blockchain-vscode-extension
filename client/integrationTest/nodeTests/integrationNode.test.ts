@@ -43,9 +43,9 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('Integration Tests for Node Smart Contracts', () => {

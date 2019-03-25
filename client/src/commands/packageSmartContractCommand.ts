@@ -192,7 +192,6 @@ async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
  * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory.
  */
 async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<ChaincodeType> {
-    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     // Is this a Node.js smart contract (JavaScript, TypeScript, etc)?
     const packageJsonFile: string = path.join(workspaceDir.uri.fsPath, 'package.json');
@@ -232,7 +231,6 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
  * @returns {string, string}An object with the workspacePackageName and workspacePackageVersion which will be used in the createPackageDir() method.
  */
 async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<{ workspacePackageName: string, workspacePackageVersion: string }> {
-    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const workspacePackage: string = path.join(workspaceDir.uri.fsPath, '/package.json');
     const workspacePackageContents: Buffer = await fs.readFile(workspacePackage);

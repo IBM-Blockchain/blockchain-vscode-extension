@@ -19,7 +19,7 @@ import * as vscode from 'vscode';
 export class ChannelTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-channel-item';
 
-    constructor(provider: BlockchainExplorerProvider, private readonly channelName: string, public readonly peers: Array<string>, public readonly chaincodes: Array<any>, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
+    constructor(provider: BlockchainExplorerProvider, channelName: string, public readonly peers: Array<string>, public readonly chaincodes: Array<any>, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, channelName, collapsibleState);
     }
 }

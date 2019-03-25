@@ -18,7 +18,7 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
-import { UserInputUtil } from './UserInputUtil';
+import { UserInputUtil, LanguageQuickPickItem } from './UserInputUtil';
 import * as yeoman from 'yeoman-environment';
 import { YeomanAdapter } from '../util/YeomanAdapter';
 import * as util from 'util';
@@ -29,7 +29,7 @@ import * as GeneratorFabricPackageJSON from 'generator-fabric/package.json';
 
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
-export async function createSmartContractProject(generator: string = 'fabric:contract'): Promise<void> {
+export async function createSmartContractProject(): Promise<void> {
     console.log('create Smart Contract Project');
     // Create and show output channel
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -43,16 +43,18 @@ export async function createSmartContractProject(generator: string = 'fabric:con
         }
     }
 
+    const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
     const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
 
     const smartContractLanguagePrompt: string = localize('smartContractLanguage.prompt', 'Choose smart contract language (Esc to cancel)');
-    let smartContractLanguage: string = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, smartContractLanguageOptions);
-    if (!smartContractLanguage) {
+    const smartContractLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick(smartContractLanguagePrompt, chaincodeLanguageOptions, smartContractLanguageOptions);
+    if (!smartContractLanguageItem) {
         // User has cancelled the QuickPick box
         return;
     }
 
-    smartContractLanguage = smartContractLanguage.toLowerCase();
+    const generator: string = `fabric:${smartContractLanguageItem.type.toLowerCase()}`;
+    const smartContractLanguage: string = smartContractLanguageItem.label.toLowerCase();
 
     const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
     const openDialogOptions: vscode.OpenDialogOptions = {
@@ -102,7 +104,7 @@ export async function createSmartContractProject(generator: string = 'fabric:con
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>, token: vscode.CancellationToken): Promise<void> => {
+        }, async (progress: vscode.Progress<{message: string}>): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
             await env.run(generator, runOptions);
         });
@@ -119,6 +121,10 @@ export async function createSmartContractProject(generator: string = 'fabric:con
     }
 
 } // end of createSmartContractProject function
+
+function getChaincodeLanguageOptions(): string[] {
+    return GeneratorFabricPackageJSON.chaincodeLanguages;
+}
 
 function getSmartContractLanguageOptions(): string[] {
     return GeneratorFabricPackageJSON.contractLanguages;

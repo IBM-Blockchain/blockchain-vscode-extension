@@ -26,7 +26,6 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
-import { FabricGoDebugConfigurationProvider } from '../../src/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../src/debug/FabricJavaDebugConfigurationProvider';
 
@@ -36,6 +35,20 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('FabricJavaDebugConfigurationProvider', () => {
 
+    describe('provideDebugConfigurations', () => {
+
+        it('should provide a debug configuration', async () => {
+            const provider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
+            const config: any = await provider.provideDebugConfigurations();
+            config.should.deep.equal([{
+                type: 'fabric:java',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }]);
+        });
+
+    });
+
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;
@@ -44,14 +57,10 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let workspaceFolder: any;
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
-        let findFilesStub: sinon.SinonStub;
         let commandStub: sinon.SinonStub;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
-        let readFileStub: sinon.SinonStub;
-        let readJsonStub: sinon.SinonStub;
         let registryEntry: FabricGatewayRegistryEntry;
-        let getConnectionStub: sinon.SinonStub;
         let date: Date;
         let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
@@ -83,8 +92,8 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 uri: vscode.Uri.file('myPath')
             };
 
-            readJsonStub = mySandbox.stub(fs, 'readJSON');
-            readFileStub = mySandbox.stub(fs, 'readFile').resolves(`{
+            mySandbox.stub(fs, 'readJSON');
+            mySandbox.stub(fs, 'readFile').resolves(`{
                 "name": "mySmartContract",
                 "version": "0.0.1"
             }`);
@@ -98,7 +107,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             debugConfig.cwd = 'myCwd';
             debugConfig.args = ['--peer.address', 'localhost:12345'];
 
-            findFilesStub = mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
+            mySandbox.stub(vscode.workspace, 'findFiles').resolves([]);
 
             commandStub = mySandbox.stub(vscode.commands, 'executeCommand');
 
@@ -118,7 +127,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
-            getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+            mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
 
@@ -138,7 +147,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
         });
@@ -153,7 +162,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
         });
@@ -167,7 +176,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', '127.0.0.1:54321']
             });
         });
@@ -181,7 +190,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'myLaunch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
             });
         });
@@ -195,11 +204,9 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 type: 'java',
                 request: 'launch',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
         });
-
     });
-
 });

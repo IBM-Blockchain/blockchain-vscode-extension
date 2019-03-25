@@ -12,15 +12,12 @@
  * limitations under the License.
 */
 
-import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
-
-const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('FabricGatewayHelper', () => {
@@ -69,7 +66,6 @@ describe('FabricGatewayHelper', () => {
 
         let tlsPathLocation: string;
         let tlsPathJson: string;
-        let tlsPathStringified: any;
 
         let yamlPathLocation: string;
         let yamlPathData: string;
@@ -85,8 +81,6 @@ describe('FabricGatewayHelper', () => {
 
             tlsPathLocation = path.join(rootPath, '../../test/data/connectionTlsPath/connection.json');
             tlsPathJson = await fs.readFile(tlsPathLocation, 'utf8');
-            const parsedTlsPathJson: any = JSON.parse(tlsPathJson);
-            tlsPathStringified = JSON.stringify(parsedTlsPathJson, null, 4);
 
             yamlPathLocation = path.join(rootPath, '../../test/data/connectionYaml/tlsConnectionProfilePath.yml');
             yamlPathData = await fs.readFile(yamlPathLocation, 'utf8');
@@ -191,7 +185,6 @@ describe('FabricGatewayHelper', () => {
             readFileStub.getCall(0).should.have.been.calledWithExactly('connection.json', 'utf8');
             readFileStub.should.have.been.calledThrice;
             isAbsoluteStub.should.have.been.calledTwice;
-            const stringifiedJson: string = JSON.stringify(connectionProfileObject);
 
             connectionProfileObject.peers['peer0']['tlsCACerts'].path = undefined;
             connectionProfileObject.peers['peer0']['tlsCACerts'].pem = 'CERT_HERE';

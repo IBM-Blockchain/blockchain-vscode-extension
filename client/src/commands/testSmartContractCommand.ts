@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import * as ejs from 'ejs';
 import * as path from 'path';
 import * as os from 'os';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -81,15 +81,16 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
     }
 
     // Ask the user which language to write the tests in
-    const testLanguage: string = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', ['JavaScript', 'TypeScript']);
-    let testFileSuiffix: string;
-    if (testLanguage === 'JavaScript') {
-        testFileSuiffix = 'js';
-    } else if (testLanguage === 'TypeScript') {
-        testFileSuiffix = 'ts';
-    } else {
+    const languagesToSuffixes: object = {
+        JavaScript: 'js',
+        TypeScript: 'ts'
+    };
+    const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
+    if (!testLanguageItem) {
         return;
     }
+    const testLanguage: string = testLanguageItem.label;
+    const testFileSuiffix: string = languagesToSuffixes[testLanguage];
 
     // Only generate the test file(s) if the smart contract is open in the workspace
     const workspaceFolders: Array<vscode.WorkspaceFolder> = await UserInputUtil.getWorkspaceFolders();

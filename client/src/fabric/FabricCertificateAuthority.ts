@@ -12,16 +12,22 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as FabricCAServices from 'fabric-ca-client';
 import * as yaml from 'js-yaml';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { IFabricCertificateAuthority } from './IFabricCertificateAuthority';
 
-export class FabricCertificateAuthority {
+export class FabricCertificateAuthority implements IFabricCertificateAuthority {
 
-    public static async enroll(connectionProfilePath: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+    public static instance(): FabricCertificateAuthority {
+        return FabricCertificateAuthority._instance;
+    }
+
+    private static _instance: FabricCertificateAuthority = new FabricCertificateAuthority();
+
+    public async enroll(connectionProfilePath: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
 
@@ -51,5 +57,4 @@ export class FabricCertificateAuthority {
             throw error;
         }
     }
-
 }

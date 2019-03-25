@@ -27,7 +27,7 @@ import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 export class RuntimeTreeItem extends BlockchainTreeItem {
 
     static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
-        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState);
+        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState, command);
         await treeItem.updateProperties();
         return treeItem;
     }

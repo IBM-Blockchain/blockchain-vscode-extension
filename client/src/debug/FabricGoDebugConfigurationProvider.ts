@@ -18,12 +18,22 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class FabricGoDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
-    protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
+    public async provideDebugConfigurations(): Promise<vscode.DebugConfiguration[]> {
+        return [
+            {
+                type: 'fabric:go',
+                request: 'launch',
+                name: 'Launch Smart Contract'
+            }
+        ];
+    }
+
+    protected async getChaincodeName(): Promise<string> {
         const name: string = await UserInputUtil.showInputBox('Enter a name for your Go package'); // Getting the specified name and package from the user
         return name;
     }
 
-    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
+    protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
         config.type = 'go';
 
         if (!config.request) {
