@@ -29,6 +29,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -72,12 +73,13 @@ describe('FabricDebugConfigurationProvider', () => {
         let date: Date;
         let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
+        let packageAndInstallQuestionStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
             date = new Date();
-            formattedDate = dateFormat(date, 'yyyymmddHHMM');
+            formattedDate = dateFormat(date, 'yyyymmddHHMMss');
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -129,11 +131,13 @@ describe('FabricDebugConfigurationProvider', () => {
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
-            mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
+            mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
 
             getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
+
+            packageAndInstallQuestionStub = mySandbox.stub(UserInputUtil, 'packageAndInstallQuestion');
         });
 
         afterEach(() => {
@@ -142,6 +146,12 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should create a debug configuration', async () => {
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
+
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -159,7 +169,11 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should add in env properties if not defined', async () => {
             debugConfig.env = null;
-
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -177,7 +191,11 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should add CORE_CHAINCODE_ID_NAME, and CORE_CHAINCODE_EXECUTETIMEOUT to an existing env', async () => {
             debugConfig.env = { myProperty: 'myValue' };
-
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -195,7 +213,11 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should use CORE_CHAINCODE_ID_NAME if defined', async () => {
             debugConfig.env = { CORE_CHAINCODE_ID_NAME: 'myContract:myVersion' };
-
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -213,7 +235,11 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should use CORE_CHAINCODE_EXECUTETIMEOUT if defined', async () => {
             debugConfig.env = { CORE_CHAINCODE_EXECUTETIMEOUT: '10s' };
-
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -231,6 +257,11 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should not run if the chaincode name is not provided', async () => {
             fabricDebugConfig.chaincodeName = undefined;
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
@@ -239,7 +270,11 @@ describe('FabricDebugConfigurationProvider', () => {
 
         it('should give an error if runtime isnt running', async () => {
             runtimeStub.isRunning.returns(false);
-
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
@@ -250,6 +285,11 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should give an error if runtime isn\'t in development mode', async () => {
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             runtimeStub.isDevelopmentMode.returns(false);
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -262,6 +302,11 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with packaging', async () => {
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).resolves();
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -272,6 +317,11 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with installing', async () => {
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             commandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, sinon.match.any, sinon.match.any, sinon.match.any).resolves();
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -282,6 +332,11 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle connecting failing', async () => {
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             getConnectionStub.returns(undefined);
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -292,6 +347,11 @@ describe('FabricDebugConfigurationProvider', () => {
         });
 
         it('should handle errors with installing', async () => {
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
             commandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT, sinon.match.any, sinon.match.any).rejects({message: 'some error'});
 
             const logSpy: sinon.SinonSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -299,6 +359,82 @@ describe('FabricDebugConfigurationProvider', () => {
             should.not.exist(config);
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to launch debug: some error');
+        });
+
+        it(`should cancel debug if user doesn't select whether to package and install or not`, async () => {
+            packageAndInstallQuestionStub.resolves();
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.not.have.been.called;
+            commandStub.callCount.should.equal(0);
+        });
+
+        it('should not package and install and should get a new version', async () => {
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves([]);
+
+            packageAndInstallQuestionStub.resolves({
+                label: 'No',
+                data: false,
+                description: `Resume from a previous debug session`
+            });
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                args: ['127.0.0.1:54321']
+            });
+
+            commandStub.callCount.should.equal(1);
+
+            commandStub.should.not.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
+            commandStub.should.not.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.not.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should not package and install and should use the version of an already instantiated chaincode', async () => {
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves([{name: 'mySmartContract', version: 'should-use-this'}]);
+
+            packageAndInstallQuestionStub.resolves({
+                label: 'No',
+                data: false,
+                description: `Resume from a previous debug session`
+            });
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:should-use-this`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                args: ['127.0.0.1:54321']
+            });
+
+            commandStub.callCount.should.equal(1);
+
+            commandStub.should.not.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `should-use-this`);
+            commandStub.should.not.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.not.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should cancel if no peers are returned to install on', async () => {
+            mockRuntimeConnection.getAllPeerNames.resolves([]);
+
+            packageAndInstallQuestionStub.resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.not.have.been.called;
+            commandStub.callCount.should.equal(2);
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
         });
     });
 });

@@ -904,4 +904,77 @@ describe('FabricConnection', () => {
             secret.should.deep.equal('its a secret');
         });
     });
+
+    describe('createChannelMap', () => {
+
+        it('should create channel map', async () => {
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+
+            const _map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            _map.set('channel1', ['peerOne']);
+            _map.set('channel2', ['peerTwo']);
+
+            const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
+            map.should.deep.equal(_map);
+        });
+
+        it('should add any peers to channel map if the channel already exists', async () => {
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+            const getAllChannelsForPeerStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
+            getAllChannelsForPeerStub.withArgs('peerOne').returns(['channel1', 'channel2']);
+            getAllChannelsForPeerStub.withArgs('peerTwo').returns(['channel2']);
+
+            const _map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            _map.set('channel1', ['peerOne']);
+            _map.set('channel2', ['peerOne', 'peerTwo']);
+
+            const map: Map<string, Array<string>> = await fabricConnection.createChannelMap();
+            map.should.deep.equal(_map);
+        });
+
+        it('should handle gRPC connection errors', async () => {
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
+
+            const error: Error = new Error('Received http2 header with status: 503');
+            mySandBox.stub(fabricConnection, 'getAllChannelsForPeer').throws(error);
+
+            await fabricConnection.createChannelMap().should.be.rejectedWith(`Cannot connect to Fabric: ${error.message}`);
+        });
+
+        it('should handle any other errors', async () => {
+            const error: Error = new Error('some error');
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').throws(error);
+
+            await fabricConnection.createChannelMap().should.be.rejectedWith(`Error creating channel map: ${error.message}`);
+        });
+    });
+
+    describe('getAllInstantiatedChaincodes', () => {
+
+        it('should get all instantiated chaincodes', async () => {
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('channel1', ['peerOne']);
+            map.set('channel2', ['peerOne', 'peerTwo']);
+            mySandBox.stub(fabricConnection, 'createChannelMap').resolves(map);
+
+            const getInstantiatedChaincodeStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
+            getInstantiatedChaincodeStub.withArgs('channel1').resolves([{name: 'a_chaincode', version: '0.0.1'}, {name: 'another_chaincode', version: '0.0.7'}]);
+            getInstantiatedChaincodeStub.withArgs('channel2').resolves([{name: 'another_chaincode', version: '0.0.7'}]);
+
+            const instantiatedChaincodes: Array<{name: string, version: string}> = await fabricConnection.getAllInstantiatedChaincodes();
+
+            instantiatedChaincodes.should.deep.equal([{name: 'a_chaincode', version: '0.0.1'}, {name: 'another_chaincode', version: '0.0.7'}]);
+        });
+
+        it('should handle any errors', async () => {
+            const error: Error = new Error('Could not create channel map');
+            mySandBox.stub(fabricConnection, 'createChannelMap').rejects(error);
+
+            await fabricConnection.getAllInstantiatedChaincodes().should.be.rejectedWith(`Could not get all instantiated chaincodes: ${error}`);
+        });
+
+    });
 });

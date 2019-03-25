@@ -438,11 +438,12 @@ describe('gatewayExplorer', () => {
                 logSpy.should.have.been.calledWith(LogType.ERROR, `cannot connect`);
             });
 
-            it('should error if getAllChannelsForPeer fails', async () => {
+            it('should error if createChannelMap fails', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
+                fabricConnection.createChannelMap.callThrough();
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
@@ -468,6 +469,7 @@ describe('gatewayExplorer', () => {
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
+                fabricConnection.createChannelMap.callThrough();
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
@@ -564,6 +566,13 @@ describe('gatewayExplorer', () => {
                         }
                     }
                 );
+
+                const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+                map.set('channelOne', ['peerOne']);
+                map.set('channelTwo', ['peerOne', 'peerTwo']);
+
+                fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
+                fabricConnection.createChannelMap.resolves(map);
 
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);
 

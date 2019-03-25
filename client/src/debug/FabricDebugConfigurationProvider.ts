@@ -22,6 +22,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { UserInputUtil, IBlockchainQuickPickItem } from '../commands/UserInputUtil';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -49,15 +50,48 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 config.env = {};
             }
 
+            // Check if the user wants to package and install their contract
+            const packageInstall: IBlockchainQuickPickItem<boolean> = await UserInputUtil.packageAndInstallQuestion();
+            if (packageInstall === undefined) {
+                return;
+            }
+
             let chaincodeName: string;
             let chaincodeVersion: string;
             if (!config.env.CORE_CHAINCODE_ID_NAME) {
+
                 chaincodeName = await this.getChaincodeName(folder);
+
                 if (!chaincodeName) {
                     // User probably cancelled the prompt for the name.
                     return;
                 }
-                chaincodeVersion = this.getNewVersion();
+
+                // Get instantiated chaincode. Check if chaincode exists with chaincodeName already.
+
+                const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+                if (!connection) {
+                    return;
+                }
+
+                // If the user doesn't want to package and install
+                if (packageInstall.data === false) {
+                    const chaincodes: Array<{name: string, version: string}> = await connection.getAllInstantiatedChaincodes();
+
+                    const chaincode: {name: string, version: string} = chaincodes.find((_chaincode: {name: string, version: string}) => {
+                        return _chaincode.name === chaincodeName;
+                    });
+
+                    if (chaincode) {
+                        chaincodeVersion = chaincode.version;
+                    }
+                }
+
+                // If a chaincode does not exist with that name, get a new verison.
+                if (!chaincodeVersion) {
+                    chaincodeVersion = this.getNewVersion();
+                }
+
                 config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
             } else {
                 chaincodeName = config.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
@@ -68,21 +102,24 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 config.env.CORE_CHAINCODE_EXECUTETIMEOUT = '540s';
             }
 
-            const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, chaincodeName, chaincodeVersion) as PackageRegistryEntry;
-            if (!newPackage) {
-                // package command failed
-                return;
-            }
+            // Only need to package and install the first time they run debug OR if they change their instantiation function
+            if (packageInstall.data === true) {
+                const newPackage: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, folder, chaincodeName, chaincodeVersion) as PackageRegistryEntry;
+                if (!newPackage) {
+                    // package command failed
+                    return;
+                }
 
-            const peersToIntallOn: Array<string> = await this.getPeersToInstallOn();
-            if (peersToIntallOn.length === 0) {
-                return;
-            }
+                const peersToIntallOn: Array<string> = await this.getPeersToInstallOn();
+                if (peersToIntallOn.length === 0) {
+                    return;
+                }
 
-            const packageEntry: {} = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(peersToIntallOn), newPackage);
-            if (!packageEntry) {
-                // install command failed
-                return;
+                const packageEntry: {} = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(peersToIntallOn), newPackage);
+                if (!packageEntry) {
+                    // install command failed
+                    return;
+                }
             }
 
             // Allow the language specific class to resolve the configuration.
@@ -115,7 +152,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
     private getNewVersion(): string {
         const date: Date = new Date();
-        const formattedDate: string = dateFormat(date, 'yyyymmddHHMM');
+        const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
         return `${this.PREFIX}-${formattedDate}`;
     }
 
@@ -126,10 +163,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
         const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        if (!connection) {
-            // either the user cancelled or there was an error so don't carry on
-            return [];
-        }
         return connection.getAllPeerNames();
     }
 }
