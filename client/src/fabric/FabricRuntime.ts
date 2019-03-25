@@ -273,11 +273,14 @@ export class FabricRuntime extends EventEmitter {
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
         const runtimePath: string = path.join(homeExtDir, this.name);
+        // TODO: hardcoded name
+        const walletPath: string = path.join(homeExtDir, 'local_wallet');
         // Need to remove the secret wallet as well
-        const secretRuntimePath: string = path.join(homeExtDir, this.name + '-ops');
+        const secretRuntimePath: string = path.join(homeExtDir, 'local_wallet' + '-ops');
 
         try {
             await fs.remove(runtimePath);
+            await fs.remove(walletPath);
             await fs.remove(secretRuntimePath);
         } catch (error) {
             if (!error.message.includes('ENOENT: no such file or directory')) {
