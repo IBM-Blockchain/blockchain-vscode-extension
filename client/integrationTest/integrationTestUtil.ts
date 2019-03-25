@@ -113,15 +113,7 @@ export class IntegrationTestUtil {
         }
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
 
-        this.browseEditStub.withArgs('Enter a file path to a connection profile file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: 'Select',
-            filters: {
-                'Connection Profiles' : ['json', 'yaml', 'yml']
-            }
-        }, 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
+        this.browseEditStub.resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
         this.gatewayRegistry.exists('myGateway').should.be.true;

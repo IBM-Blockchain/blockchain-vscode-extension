@@ -32,24 +32,6 @@ describe('FabricGatewayHelper', () => {
         mySandBox.restore();
     });
 
-    describe('connectionProfilePathComplete', () => {
-        it('should return false if connection profile is the default value', async () => {
-           const instance: any = {connectionProfilePath: FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT};
-           const result: boolean = FabricGatewayHelper.connectionProfilePathComplete(instance);
-           result.should.equal(false);
-        });
-        it('should return false if connection profile is an empty string', async () => {
-            const instance: any = {connectionProfilePath: ''};
-            const result: boolean = FabricGatewayHelper.connectionProfilePathComplete(instance);
-            result.should.equal(false);
-        });
-        it('should return true if the connection profile is neither the default or an empty string', async () => {
-            const instance: any = {connectionProfilePath: 'hello_world'};
-            const result: boolean = FabricGatewayHelper.connectionProfilePathComplete(instance);
-            result.should.equal(true);
-        });
-    });
-
     describe('copyConnectionProfile', () => {
         const gatewayName: string = 'myGateway';
 

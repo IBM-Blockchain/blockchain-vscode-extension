@@ -96,7 +96,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     } else {
         // User wants to add an identity by providing a enrollment id and secret
         // Ask them what gateway they want to use
-        // TODO: only show completed connections - this will change with wallet association code
+        // TODO: check for associated gateway
         const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', true);
         if (!chosenEntry) {
             return Promise.resolve();

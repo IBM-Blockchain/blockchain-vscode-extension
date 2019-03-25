@@ -23,7 +23,6 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -57,7 +56,6 @@ describe('AddWalletIdentityCommand', () => {
 
     describe('addWalletIdentity', () => {
         let mySandBox: sinon.SinonSandbox;
-        let HelperStub: sinon.SinonStub;
         let inputBoxStub: sinon.SinonStub;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
@@ -106,7 +104,6 @@ describe('AddWalletIdentityCommand', () => {
             await FabricWalletRegistry.instance().clear();
             await FabricWalletRegistry.instance().add(connectionOneWallet);
 
-            HelperStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -320,21 +317,6 @@ describe('AddWalletIdentityCommand', () => {
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
-        });
-
-        xit('should show an error if connection is not complete', async () => {
-            HelperStub.returns(false);
-            showGatewayQuickPickBoxStub.resolves({
-                label: 'myGateway',
-                data: {
-                    connectionProfilePath: FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT,
-                    name: 'myConnection',
-                }
-            });
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
-
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Blockchain gateway must be completed first!');
         });
 
         describe('called from WalletTreeItem', () => {
