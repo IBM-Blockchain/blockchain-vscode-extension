@@ -31,7 +31,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricCertificateAuthority } from '../../src/fabric/FabricCertificateAuthority';
+import { FabricCertificateAuthorityFactory } from '../../src/fabric/FabricCertificateAuthorityFactory';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
@@ -40,8 +40,6 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 // tslint:disable no-unused-expression
-
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('AddWalletIdentityCommand', () => {
@@ -75,7 +73,6 @@ describe('AddWalletIdentityCommand', () => {
         let executeCommandSpy: sinon.SinonSpy;
         let createLocalWalletStub: sinon.SinonStub;
         let getNewWalletStub: sinon.SinonStub;
-        let browseEditStub: sinon.SinonStub;
         let showWalletsQuickPickStub: sinon.SinonStub;
 
         beforeEach(async () => {
@@ -109,7 +106,6 @@ describe('AddWalletIdentityCommand', () => {
             await FabricWalletRegistry.instance().clear();
             await FabricWalletRegistry.instance().add(connectionOneWallet);
 
-            browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             HelperStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
@@ -118,12 +114,14 @@ describe('AddWalletIdentityCommand', () => {
             getCertKeyStub = mySandBox.stub(UserInputUtil, 'getCertKey');
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
             getEnrollIdSecretStub = mySandBox.stub(UserInputUtil, 'getEnrollIdSecret');
-            enrollStub = mySandBox.stub(FabricCertificateAuthority, 'enroll');
+            enrollStub = mySandBox.stub(FabricCertificateAuthorityFactory.createCertificateAuthority(), 'enroll');
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             fabricWallet = new FabricWallet(walletPath);
-            createLocalWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(fabricWallet);
-            getNewWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet').returns(fabricWallet);
+            createLocalWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
+            createLocalWalletStub.resolves(fabricWallet);
+            getNewWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet');
+            getNewWalletStub.returns(fabricWallet);
             importIdentityStub = mySandBox.stub(fabricWallet, 'importIdentity');
             showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
 

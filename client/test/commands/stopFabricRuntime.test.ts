@@ -13,20 +13,18 @@
 */
 
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -36,7 +34,8 @@ describe('stopFabricRuntime', () => {
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
-    let runtimeTreeItem: RuntimeTreeItem;
+    let gatewayRegistyEntry: FabricGatewayRegistryEntry;
+    let getRegistryEntryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -55,9 +54,13 @@ describe('stopFabricRuntime', () => {
         await connectionRegistry.clear();
         await runtimeManager.add();
         runtime = runtimeManager.getRuntime();
-        const provider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-        const children: BlockchainTreeItem[] = await provider.getChildren();
-        runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
+
+        gatewayRegistyEntry = new FabricGatewayRegistryEntry();
+        gatewayRegistyEntry.managedRuntime = false;
+        gatewayRegistyEntry.connectionProfilePath = 'myPath';
+        gatewayRegistyEntry.name = 'local_fabric';
+
+        getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
     });
 
     afterEach(async () => {
@@ -72,6 +75,18 @@ describe('stopFabricRuntime', () => {
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         executeCommandSpy.should.have.been.calledThrice;
         executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);
     });
 
+    it('should stop a Fabric runtime, disconnect from gateway and refresh the view', async () => {
+        gatewayRegistyEntry.managedRuntime = true;
+        getRegistryEntryStub.returns(gatewayRegistyEntry);
+
+        const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+    });
 });

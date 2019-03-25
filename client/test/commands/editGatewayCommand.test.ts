@@ -38,10 +38,8 @@ chai.use(sinonChai);
 describe('EditGatewayCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let openUserSettingsStub: sinon.SinonStub;
-    let quickPickStub: sinon.SinonStub;
     let showGatewayQuickPickStub: sinon.SinonStub;
     let browseEditStub: sinon.SinonStub;
-    let showIdentityOptionsStub: sinon.SinonStub;
     let updateFabricGatewayRegistryStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
@@ -60,10 +58,8 @@ describe('EditGatewayCommand', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         openUserSettingsStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
-        quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
         showGatewayQuickPickStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
         browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit').resolves();
-        showIdentityOptionsStub = mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
         updateFabricGatewayRegistryStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
         isCompletedStub = mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete');
         copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');

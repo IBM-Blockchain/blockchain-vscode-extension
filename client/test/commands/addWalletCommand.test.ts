@@ -24,7 +24,6 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 
 // tslint:disable no-unused-expression
-const should: Chai.Should = chai.should();
 chai.should();
 chai.use(sinonChai);
 
