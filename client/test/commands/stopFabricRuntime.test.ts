@@ -59,7 +59,6 @@ describe('stopFabricRuntime', () => {
         gatewayRegistyEntry.managedRuntime = false;
         gatewayRegistyEntry.connectionProfilePath = 'myPath';
         gatewayRegistyEntry.name = 'local_fabric';
-        gatewayRegistyEntry.walletPath = 'myWalletPath';
 
         getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
     });

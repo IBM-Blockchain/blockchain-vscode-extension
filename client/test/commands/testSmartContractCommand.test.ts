@@ -178,7 +178,8 @@ describe('testSmartContractCommand', () => {
             gatewayRegistryEntry.name = 'myGateway';
             gatewayRegistryEntry.connectionProfilePath = 'myPath';
             gatewayRegistryEntry.managedRuntime = false;
-            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry');
+            getGatewayRegistryStub.returns(gatewayRegistryEntry);
             fabricClientConnectionMock.getAllPeerNames.returns(['peerOne']);
             fabricClientConnectionMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myEnglishChannel']);
             fabricClientConnectionMock.getInstantiatedChaincode.resolves([
@@ -193,7 +194,8 @@ describe('testSmartContractCommand', () => {
             walletRegistryEntry = new FabricWalletRegistryEntry();
             walletRegistryEntry.name = 'myWallet';
             walletRegistryEntry.walletPath = 'walletPath';
-            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet').returns(walletRegistryEntry);
+            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet');
+            getWalletRegistryStub.returns(walletRegistryEntry);
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
                 label: 'wagonwheel@0.0.1',
