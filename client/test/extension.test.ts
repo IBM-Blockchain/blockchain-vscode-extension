@@ -119,6 +119,7 @@ describe('Extension Tests', () => {
             `onView:gatewayExplorer`,
             `onView:aRuntimeOpsExplorer`,
             `onView:aPackagesExplorer`,
+            `onView:walletExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,
             `onCommand:${ExtensionCommands.DELETE_GATEWAY}`,
             `onCommand:${ExtensionCommands.CONNECT}`,

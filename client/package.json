@@ -42,7 +42,8 @@
         "onView": [
             "gatewayExplorer",
             "aRuntimeOpsExplorer",
-            "aPackagesExplorer"
+            "aPackagesExplorer",
+            "walletExplorer"
         ],
         "onCommand": [
             "gatewaysExplorer.addGatewayEntry",

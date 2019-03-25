@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil, IBlockchainQuickPickItem } from '../../src/commands/UserInputUtil';
+import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem, LanguageType } from '../../src/commands/UserInputUtil';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -34,12 +34,12 @@ import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistry
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
-
 describe('userInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
@@ -55,7 +55,6 @@ describe('userInputUtil', () => {
 
     let getConnectionStub: sinon.SinonStub;
     let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
-    let getLocalFabricConnectionStub: sinon.SinonStub;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -158,7 +157,7 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
-        getLocalFabricConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
+        mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
 
@@ -340,12 +339,54 @@ describe('userInputUtil', () => {
     });
 
     describe('showLanguagesQuickPick', () => {
-        it('should show the quick pick box with languages', async () => {
-            quickPickStub.resolves('javascript');
 
-            const result: string = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['javascript', 'typescript', 'go']);
-            result.should.equal('javascript');
+        it('should return undefined if the user cancels the quick pick box', async () => {
+            quickPickStub.resolves(undefined);
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['go', 'java'], ['javascript', 'typescript']);
+            should.equal(chosenItem, undefined);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
 
+        it('should display a list of chaincode languages', async () => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[]) => {
+                return items[0];
+            });
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['java', 'go'], []);
+            chosenItem.label.should.equal('go');
+            chosenItem.description.should.equal('Low-level programming model');
+            chosenItem.type.should.equal(LanguageType.CHAINCODE);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
+
+        it('should display a list of contract languages', async () => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[]) => {
+                return items[0];
+            });
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', [], ['typescript', 'javascript']);
+            chosenItem.label.should.equal('javascript');
+            chosenItem.type.should.equal(LanguageType.CONTRACT);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                placeHolder: 'Choose a language',
+                ignoreFocusOut: true,
+                matchOnDetail: true
+            });
+        });
+
+        it('should display a list of contract and chaincode languages', async () => {
+            quickPickStub.callsFake(async (items: LanguageQuickPickItem[]) => {
+                return items[0];
+            });
+            const chosenItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose a language', ['java', 'go'], ['typescript', 'javascript']);
+            chosenItem.label.should.equal('javascript');
+            chosenItem.type.should.equal(LanguageType.CONTRACT);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 placeHolder: 'Choose a language',
                 ignoreFocusOut: true,
@@ -677,7 +718,7 @@ describe('userInputUtil', () => {
                 canSelectMany: false,
                 openLabel: 'Select',
                 filters: {
-                    'Connection Profiles' : ['json', 'yaml', 'yml']
+                    'Connection Profiles': ['json', 'yaml', 'yml']
                 }
             };
             const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
@@ -715,7 +756,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -740,7 +782,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -765,7 +808,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -786,7 +830,8 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+
+            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
 
@@ -794,7 +839,7 @@ describe('userInputUtil', () => {
         });
 
         it('should finish if cancels browse dialog', async () => {
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves();
+            mySandBox.stub(vscode.window, 'showOpenDialog').resolves();
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const placeHolder: string = 'Enter a file path to the connection profile json file';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
@@ -990,7 +1035,7 @@ describe('userInputUtil', () => {
 
     describe('delayWorkaround', () => {
         beforeEach(() => {
-            this.clock = sinon.useFakeTimers({toFake: ['setTimeout']});
+            this.clock = sinon.useFakeTimers({ toFake: ['setTimeout'] });
         });
 
         afterEach(() => {
@@ -1365,16 +1410,16 @@ describe('userInputUtil', () => {
 
     });
 
-    describe('showAddIdentityOptionsQuickPick', () => {
+    describe('showAddWalletOptionsQuickPick', () => {
 
-        it('should show options to add identity in the quick pick box', async () => {
-            quickPickStub.resolves(UserInputUtil.CERT_KEY);
-            const result: string = await UserInputUtil.showAddIdentityOptionsQuickPick('choose option to add identity with');
+        it('should show options to add wallet in the quick pick box', async () => {
+            quickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
+            const result: string = await UserInputUtil.showAddWalletOptionsQuickPick('choose option to add wallet with');
 
-            result.should.equal(UserInputUtil.CERT_KEY);
+            result.should.equal(UserInputUtil.WALLET_NEW_ID);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 matchOnDetail: true,
-                placeHolder: 'choose option to add identity with',
+                placeHolder: 'choose option to add wallet with',
                 ignoreFocusOut : true,
                 canPickMany: false,
             });
@@ -1445,7 +1490,7 @@ describe('userInputUtil', () => {
             };
             const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
             browseEditStub.onCall(0).resolves();
-            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
+            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
             browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
@@ -1553,7 +1598,7 @@ describe('userInputUtil', () => {
             const showInputBox: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             showInputBox.onCall(0).resolves();
 
-            const result: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            const result: { enrollmentID: string, enrollmentSecret: string } = await UserInputUtil.getEnrollIdSecret();
             should.equal(result, undefined);
             showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
         });
@@ -1563,7 +1608,7 @@ describe('userInputUtil', () => {
             showInputBox.onCall(0).resolves('some_id');
             showInputBox.onCall(1).resolves();
 
-            const result: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            const result: { enrollmentID: string, enrollmentSecret: string } = await UserInputUtil.getEnrollIdSecret();
             should.equal(result, undefined);
             showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
             showInputBox.getCall(1).should.have.been.calledWithExactly('Enter enrollment secret');
@@ -1574,12 +1619,31 @@ describe('userInputUtil', () => {
             showInputBox.onCall(0).resolves('some_id');
             showInputBox.onCall(1).resolves('some_secret');
 
-            const {enrollmentID, enrollmentSecret} = await UserInputUtil.getEnrollIdSecret();
+            const { enrollmentID, enrollmentSecret } = await UserInputUtil.getEnrollIdSecret();
             enrollmentID.should.equal('some_id');
             enrollmentSecret.should.equal('some_secret');
             showInputBox.getCall(0).should.have.been.calledWithExactly('Enter enrollment ID');
             showInputBox.getCall(1).should.have.been.calledWithExactly('Enter enrollment secret');
         });
+    });
 
+    describe('showDebugCommandList', () => {
+        it('should show the list of commands', async () => {
+            quickPickStub.resolves({ label: 'Submit transaction', data: ExtensionCommands.SUBMIT_TRANSACTION });
+
+            const commands: Array<{ name: string, command: string }> = [
+                {
+                    name: 'Submit Transaction',
+                    command: ExtensionCommands.SUBMIT_TRANSACTION
+                },
+                {
+                    name: 'Evaluate Transaction',
+                    command: ExtensionCommands.EVALUATE_TRANSACTION
+                }
+            ];
+
+            const result: IBlockchainQuickPickItem<string> = await UserInputUtil.showDebugCommandList(commands, 'Choose a command to run');
+            result.should.deep.equal({ label: 'Submit transaction', data: ExtensionCommands.SUBMIT_TRANSACTION });
+        });
     });
 });

@@ -28,6 +28,8 @@ import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../src/fabric/FabricWalletRegistryEntry';
+import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
+import { IFabricConnection } from '../src/fabric/IFabricConnection';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -69,7 +71,7 @@ export class IntegrationTestUtil {
     public workspaceConfigurationUpdateStub: sinon.SinonStub;
     public workspaceConfigurationGetStub: sinon.SinonStub;
     public getConfigurationStub: sinon.SinonStub;
-    public showIdentityOptionsStub: sinon.SinonStub;
+    public showAddWalletOptionsQuickPickStub: sinon.SinonStub;
     public showGatewayQuickPickStub: sinon.SinonStub;
     public showCertificateAuthorityQuickPickStub: sinon.SinonStub;
     public showIdentitiesQuickPickStub: sinon.SinonStub;
@@ -97,7 +99,7 @@ export class IntegrationTestUtil {
         this.showTransactionStub = this.mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
-        this.showIdentityOptionsStub = this.mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
+        this.showAddWalletOptionsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick');
         this.showGatewayQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
         this.showCertificateAuthorityQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox');
         this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
@@ -129,14 +131,16 @@ export class IntegrationTestUtil {
         if (this.walletRegistry.exists(name)) {
             await this.walletRegistry.delete(name);
         }
-        this.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
+        this.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET);
+
+        const walletPath: vscode.Uri = vscode.Uri.file( path.join(__dirname, '../../integrationTest/data/myWallet') );
 
         this.browseEditStub.withArgs('Enter a file path to a wallet directory', [UserInputUtil.BROWSE_LABEL], {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: 'Select',
-        }).resolves(path.join(__dirname, '../../integrationTest/data/myWallet'));
+        }, undefined, true).resolves(walletPath);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
         this.walletRegistry.exists(name).should.be.true;
@@ -161,7 +165,7 @@ export class IntegrationTestUtil {
         } catch (error) {
             walletEntry = new FabricWalletRegistryEntry();
             walletEntry.name = 'local_wallet';
-            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_fabric/wallet');
+            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_wallet');
         }
 
         this.showWalletsQuickPickStub.resolves({
@@ -173,6 +177,9 @@ export class IntegrationTestUtil {
         this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with', ['greenConga', 'redConga']).resolves('greenConga');
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
+
+        const fabricConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+        should.exist(fabricConnection);
     }
 
     public async createSmartContract(name: string, language: string): Promise<void> {
@@ -444,7 +451,7 @@ export class IntegrationTestUtil {
         } catch (error) {
             walletEntry = new FabricWalletRegistryEntry();
             walletEntry.name = 'local_wallet';
-            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_fabric/wallet');
+            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_wallet');
         }
 
         this.showWalletsQuickPickStub.resolves({
@@ -453,7 +460,7 @@ export class IntegrationTestUtil {
         });
 
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves('redConga');
-        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
+        this.inputBoxStub.withArgs('Enter MSPID').resolves('Org1MSP');
         this.addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
         const fabricGatewayEntry: FabricGatewayRegistryEntry = this.gatewayRegistry.get('myGateway');
         this.showGatewayQuickPickStub.resolves({

@@ -92,8 +92,8 @@ describe('FabricRuntimeManager', () => {
             gatewayWalletStub.importIdentity.resolves();
 
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
@@ -122,8 +122,8 @@ describe('FabricRuntimeManager', () => {
             gatewayWalletStub.importIdentity.resolves();
 
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
@@ -152,8 +152,8 @@ describe('FabricRuntimeManager', () => {
             gatewayWalletStub.importIdentity.resolves();
 
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
             const result: IFabricConnection = await runtimeManager.getConnection();
 
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
@@ -192,8 +192,8 @@ describe('FabricRuntimeManager', () => {
             gatewayWalletStub.importIdentity.resolves();
 
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
@@ -228,8 +228,8 @@ describe('FabricRuntimeManager', () => {
             gatewayWalletStub.importIdentity.resolves();
 
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
@@ -265,8 +265,8 @@ describe('FabricRuntimeManager', () => {
             gatewayWalletStub.importIdentity.resolves();
 
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
+            createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
+            createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
             const result: IFabricConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');

@@ -440,6 +440,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
                 instantiatedSmartContract.should.not.be.null;
 
+                integrationTestUtil.showIdentitiesQuickPickStub.resolves('Admin@org1.example.com');
                 await integrationTestUtil.connectToFabric('local_fabric', 'local_wallet');
                 await integrationTestUtil.submitTransactionToChaincode(smartContractName, '0.0.1', 'transaction1', 'hello,world');
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);

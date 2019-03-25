@@ -211,7 +211,7 @@ export class FabricRuntimeManager {
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
 
         // our secret wallet
-        const runtimeWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(runtime.getName() + '-ops');
+        const runtimeWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet('local_wallet' + '-ops');
 
         const adminExists: boolean = await runtimeWallet.exists(identityName);
 
@@ -224,7 +224,7 @@ export class FabricRuntimeManager {
         await connection.connect(runtimeWallet, identityName);
 
         // enroll a user
-        const gatewayWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(runtime.getName());
+        const gatewayWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet('local_wallet');
         this.gatewayWallet = gatewayWallet;
 
         const otherAdminExists: boolean = await gatewayWallet.exists(identityName);
