@@ -28,12 +28,10 @@ import { TestUtil } from '../TestUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { ConnectedTreeItem } from '../../src/explorer/model/ConnectedTreeItem';
 import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
-import { GatewayPropertyTreeItem } from '../../src/explorer/model/GatewayPropertyTreeItem';
 import { LocalGatewayTreeItem } from '../../src/explorer/model/LocalGatewayTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -213,7 +211,6 @@ describe('gatewayExplorer', () => {
             });
 
             it('should handle errors populating the tree with localGatewayTreeItems', async () => {
-                mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(true);
 
                 const runtime: any = {
                     name: 'local_fabric',
@@ -260,25 +257,6 @@ describe('gatewayExplorer', () => {
                 localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 localGatewayTreeItem.gateway.should.deep.equal(gateway);
                 localGatewayTreeItem.command.should.deep.equal(myCommand);
-            });
-
-            it('should detect uncompleted gateway', async () => {
-                FabricRuntimeManager.instance().exists().should.be.true;
-
-                const blockchainGatewayExplorer: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-
-                const entry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-                entry.name = 'uncompletedGateway';
-                entry.connectionProfilePath = FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT;
-
-                await vscode.workspace.getConfiguration().update('fabric.gateways', [entry], vscode.ConfigurationTarget.Global);
-
-                const result: BlockchainTreeItem[] = await blockchainGatewayExplorer.getChildren();
-
-                FabricRuntimeManager.instance().exists().should.be.true;
-
-                result[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded); // Should be an expanded tree item
-                result[1].label.should.equal('uncompletedGateway');
             });
 
             it('should handle errors thrown when connection fails', async () => {
@@ -963,40 +941,6 @@ describe('gatewayExplorer', () => {
             const result: GatewayTreeItem = blockchainGatewayExplorerProvider.getTreeItem(allChildren[1]) as GatewayTreeItem;
 
             result.label.should.equal('myGateway');
-        });
-    });
-
-    describe('createGatewayUncompleteTree', () => {
-
-        let mySandBox: sinon.SinonSandbox;
-
-        beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-            await ExtensionUtil.activateExtension();
-        });
-
-        afterEach(() => {
-            mySandBox.restore();
-        });
-
-        it('should show uncompleted gateway', async () => {
-            const gateways: Array<any> = [];
-            gateways.push({
-                name: 'myGatewayA',
-                connectionProfilePath: FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT
-            });
-
-            await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
-
-            mySandBox.stub(FabricGatewayHelper, 'connectionProfilePathComplete').returns(false);
-
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-            const gateway: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
-            const allChildren: Array<GatewayPropertyTreeItem> = await blockchainGatewayExplorerProvider.getChildren(gateway[1]) as Array<GatewayPropertyTreeItem>;
-            allChildren.length.should.equal(1);
-            allChildren[0].label.should.equal('+ Connection Profile');
-            allChildren[0].should.be.an.instanceOf(GatewayPropertyTreeItem);
-            allChildren[0].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
         });
     });
 });
