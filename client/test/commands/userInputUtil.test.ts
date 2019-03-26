@@ -1410,17 +1410,17 @@ describe('userInputUtil', () => {
 
     });
 
-    describe('showAddIdentityOptionsQuickPick', () => {
+    describe('showAddWalletOptionsQuickPick', () => {
 
-        it('should show options to add identity in the quick pick box', async () => {
-            quickPickStub.resolves(UserInputUtil.CERT_KEY);
-            const result: string = await UserInputUtil.showAddIdentityOptionsQuickPick('choose option to add identity with');
+        it('should show options to add wallet in the quick pick box', async () => {
+            quickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
+            const result: string = await UserInputUtil.showAddWalletOptionsQuickPick('choose option to add wallet with');
 
-            result.should.equal(UserInputUtil.CERT_KEY);
+            result.should.equal(UserInputUtil.WALLET_NEW_ID);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 matchOnDetail: true,
-                placeHolder: 'choose option to add identity with',
-                ignoreFocusOut: true,
+                placeHolder: 'choose option to add wallet with',
+                ignoreFocusOut : true,
                 canPickMany: false,
             });
         });

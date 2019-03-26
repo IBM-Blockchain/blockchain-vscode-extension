@@ -48,8 +48,8 @@ describe('FabricWalletGenerator', () => {
         it('should create a local file system wallet', async () => {
             pathExistsStub.resolves(false);
 
-            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
-            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaWallet');
+            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaWallet'));
             ensureDirStub.should.have.been.calledOnce;
 
         });
@@ -57,8 +57,8 @@ describe('FabricWalletGenerator', () => {
         it('should not overwrite an existing file system wallet', async () => {
             pathExistsStub.resolves(true);
 
-            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaConnection');
-            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaConnection/wallet'));
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaWallet');
+            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaWallet'));
             ensureDirStub.should.not.have.been.called;
 
         });

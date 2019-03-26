@@ -25,8 +25,6 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -70,8 +68,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
         // Create the local_fabric wallet registry entry
-        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
         // TODO: hardcoded

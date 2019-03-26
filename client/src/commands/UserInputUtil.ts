@@ -60,10 +60,10 @@ export class UserInputUtil {
     static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
     static readonly WALLET: string = 'Specify an existing file system wallet';
-    static readonly CERT_KEY: string = 'Create a new wallet and add an identity';
+    static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
-    static readonly ADD_CERT_KEY_OPTION: string = 'Enter (1) an MSP ID and (2) paths to Certificate and Key files';
-    static readonly ADD_ID_SECRET_OPTION: string = 'Enter (1) an MSP ID and (2) an enrollment ID and secret';
+    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
+    static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
 
     public static showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
@@ -580,8 +580,8 @@ export class UserInputUtil {
         }
     }
 
-    public static async showAddIdentityOptionsQuickPick(prompt: string): Promise<string | undefined> {
-        const addIdentityOptions: Array<string> = [this.WALLET, this.CERT_KEY];
+    public static async showAddWalletOptionsQuickPick(prompt: string): Promise<string | undefined> {
+        const addIdentityOptions: Array<string> = [this.WALLET, this.WALLET_NEW_ID];
         const quickPickOptions: vscode.QuickPickOptions = {
             matchOnDetail: true,
             placeHolder: prompt,
@@ -652,8 +652,7 @@ export class UserInputUtil {
         const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
 
         // Push local_fabric wallet
-        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(runtime.getName());
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
         // TODO: hardcoded
