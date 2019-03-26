@@ -39,7 +39,7 @@ describe('CreateSmartContractProjectCommand', () => {
     let sendCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
-    let browseEditStub: sinon.SinonStub;
+    let browseStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let updateWorkspaceFoldersStub: sinon.SinonStub;
     let uri: vscode.Uri;
@@ -56,7 +56,7 @@ describe('CreateSmartContractProjectCommand', () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
         mySandBox.stub(vscode.window, 'showOpenDialog');
-        browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+        browseStub = mySandBox.stub(UserInputUtil, 'browse');
         const originalExecuteCommand: any = vscode.commands.executeCommand;
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
         executeCommandStub.callsFake(async function fakeExecuteCommand(command: string): Promise<any> {
@@ -113,7 +113,7 @@ describe('CreateSmartContractProjectCommand', () => {
         it(`should start a ${testLanguageItem.label} smart contract project, in a new window`, async () => {
             quickPickStub.onFirstCall().resolves(testLanguageItem);
             quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledTwice;
@@ -126,7 +126,7 @@ describe('CreateSmartContractProjectCommand', () => {
             quickPickStub.onFirstCall().resolves(testLanguageItem);
             quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
 
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledTwice;
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
@@ -139,7 +139,7 @@ describe('CreateSmartContractProjectCommand', () => {
             quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
             quickPickStub.onThirdCall().resolves(UserInputUtil.YES);
 
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll').resolves(true);
 
             await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
@@ -157,7 +157,7 @@ describe('CreateSmartContractProjectCommand', () => {
             quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_CURRENT_WINDOW);
             quickPickStub.onThirdCall().resolves(UserInputUtil.NO);
 
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             const saveDialogStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'saveAll');
 
             await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
@@ -174,7 +174,7 @@ describe('CreateSmartContractProjectCommand', () => {
             quickPickStub.onFirstCall().resolves(testLanguageItem);
             quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
@@ -188,7 +188,7 @@ describe('CreateSmartContractProjectCommand', () => {
             quickPickStub.onFirstCall().resolves(testLanguageItem);
             quickPickStub.onSecondCall().resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
             executeCommandStub.should.have.been.calledOnce;
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
@@ -208,7 +208,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         quickPickStub.onCall(1).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
 
-        browseEditStub.resolves(uri);
+        browseStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue creating smart contract project: such error');
     });
@@ -216,9 +216,9 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should not do anything if the user cancels the open dialog', async () => {
         quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
 
-        browseEditStub.resolves();
+        browseStub.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        browseEditStub.should.have.been.calledOnce;
+        browseStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
     });
@@ -226,9 +226,9 @@ describe('CreateSmartContractProjectCommand', () => {
     it('should not do anything if the user cancels the open project ', async () => {
         quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         quickPickStub.onCall(1).resolves();
-        browseEditStub.resolves(uri);
+        browseStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        browseEditStub.should.have.been.calledOnce;
+        browseStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledOnce;
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
     });
@@ -237,7 +237,7 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         quickPickStub.should.have.been.calledOnce;
-        browseEditStub.should.not.have.been.called;
+        browseStub.should.not.have.been.called;
     });
 
     it('should send a telemetry event if the extension is for production', async () => {
@@ -248,7 +248,7 @@ describe('CreateSmartContractProjectCommand', () => {
 
         quickPickStub.onFirstCall().resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
         quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-        browseEditStub.resolves(uri);
+        browseStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         reporterStub.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
     });

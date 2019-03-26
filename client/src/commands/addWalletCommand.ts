@@ -52,7 +52,7 @@ export async function addWallet(): Promise<void> {
                 canSelectMany: false,
                 openLabel: 'Select',
             };
-            walletUri = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, undefined, true) as vscode.Uri;
+            walletUri = await UserInputUtil.browse('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, true) as vscode.Uri;
             if (!walletUri) {
                 // User cancelled dialog box
                 return Promise.resolve();

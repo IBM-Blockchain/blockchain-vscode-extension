@@ -51,6 +51,7 @@ export class ExtensionCommands {
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
     static readonly ADD_WALLET: string = 'walletExplorer.addWalletEntry';
     static readonly ADD_WALLET_IDENTITY: string = 'walletExplorer.addWalletIdentityEntry';
+    static readonly EDIT_WALLET: string = 'walletExplorer.editWalletEntry';
 
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';

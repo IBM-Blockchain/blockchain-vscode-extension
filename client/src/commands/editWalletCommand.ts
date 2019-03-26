@@ -15,30 +15,29 @@
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
+import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 
-export async function editGatewayCommand(treeItem: GatewayTreeItem): Promise<void> {
+export async function editWalletCommand(treeItem: WalletTreeItem): Promise<void> {
 
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    outputAdapter.log(LogType.INFO, undefined, `editGateway`);
+    outputAdapter.log(LogType.INFO, undefined, `editWallet`);
 
-    let gateway: FabricGatewayRegistryEntry;
+    let walletName: string;
 
     if (!treeItem) {
         // If called from command palette
-        // Ask for gateway
-        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to edit', false);
-        if (!chosenGateway) {
+        // Ask for wallet to edit
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet that you want to edit', false);
+        if (!chosenWallet) {
             return;
         }
-        gateway = chosenGateway.data;
+        walletName = chosenWallet.data.name;
     } else {
         // If called using tree item
-        gateway = treeItem.gateway;
-
+        walletName = treeItem.name;
     }
-    await UserInputUtil.openUserSettings(gateway.name);
+    await UserInputUtil.openUserSettings(walletName, true);
     return;
 
 }

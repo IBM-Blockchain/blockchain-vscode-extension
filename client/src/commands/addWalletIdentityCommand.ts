@@ -20,37 +20,38 @@ import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricCertificateAuthority } from '../fabric/FabricCertificateAuthority';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
+import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
+import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 
-export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<{} | void> {
+export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabricWallet): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
     const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
     let wallet: IFabricWallet;
 
-    if (walletItem && walletItem instanceof WalletTreeItem) {
+    if (walletItem && walletItem instanceof BlockchainTreeItem) {
         // can't get it from the registry if it's local_fabric because it doesn't exist
         // TODO: hardcoded name
-        if (walletItem.name === 'local_wallet') {
+        if (walletItem.label === 'local_wallet') {
             wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
         } else {
-            const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletItem.name);
+            const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletItem.label);
             wallet = fabricWalletGenerator.getNewWallet(walletRegistryEntry.walletPath);
         }
-    } else if (walletItem && !(walletItem instanceof WalletTreeItem) ) {
+    } else if (walletItem && !(walletItem instanceof BlockchainTreeItem) ) {
         // called from addWallet command - walletItem is IFabricWallet
         wallet = walletItem;
     } else {
         // Called from the command palette
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to add identity to');
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to add identity to', true);
         if (!chosenWallet) {
             return Promise.resolve();
         }
@@ -118,7 +119,9 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         const enrollmentID: string = enrollIdSecret.enrollmentID;
         const enrollmentSecret: string = enrollIdSecret.enrollmentSecret;
 
-        const enrollment: {certificate: string, privateKey: string} = await FabricCertificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
+        const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
+
+        const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
         certificate = enrollment.certificate;
         privateKey = enrollment.privateKey;
     }

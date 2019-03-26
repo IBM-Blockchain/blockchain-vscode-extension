@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { WalletTreeItem } from './wallets/WalletTreeItem';
+import { LocalWalletTreeItem } from './wallets/LocalWalletTreeItem';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
@@ -45,7 +46,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         console.log('BlockchainWalletExplorer: getChildren');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-            if (element instanceof WalletTreeItem) {
+            if (element instanceof WalletTreeItem || element instanceof LocalWalletTreeItem) {
                 this.tree = await this.createIdentityTree(element);
             } else {
                 // Get the wallets from the registry and create a wallet tree
@@ -79,7 +80,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         let treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
-        tree.push(new WalletTreeItem(this, runtimeWalletRegistryEntry.name, identityNames, treeState));
+        tree.push(new LocalWalletTreeItem(this, runtimeWalletRegistryEntry.name, identityNames, treeState));
 
         // Populate the tree with the name of each wallet
         for (const walletRegistryEntry of walletRegistryEntries) {

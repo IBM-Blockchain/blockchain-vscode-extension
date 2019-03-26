@@ -35,7 +35,7 @@ describe('AddGatewayCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;
-    let browseEditStub: sinon.SinonStub;
+    let browseStub: sinon.SinonStub;
     let copyConnectionProfileStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
 
@@ -57,7 +57,7 @@ describe('AddGatewayCommand', () => {
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
-            browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+            browseStub = mySandBox.stub(UserInputUtil, 'browse');
             copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
             copyConnectionProfileStub.onFirstCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
             copyConnectionProfileStub.onSecondCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'));
@@ -70,7 +70,7 @@ describe('AddGatewayCommand', () => {
 
         it('should test a gateway can be added', async () => {
             showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -90,14 +90,14 @@ describe('AddGatewayCommand', () => {
         it('should test multiple gateways can be added', async () => {
             // Stub first gateway details
             showInputBoxStub.onFirstCall().resolves('myGatewayOne'); // First gateway name
-            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json')); // First gateway connection profile
+            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json')); // First gateway connection profile
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             // Stub second gateway details
             showInputBoxStub.reset();
             showInputBoxStub.onFirstCall().resolves('myGatewayTwo'); // Second gateway name
-            browseEditStub.reset();
-            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json')); // Second gateway connection profile
+            browseStub.reset();
+            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionTwo/connection.json')); // Second gateway connection profile
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -134,11 +134,11 @@ describe('AddGatewayCommand', () => {
 
         it('should test adding a gateway can be cancelled when giving a connection profile', async () => {
             showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseEditStub.onFirstCall().resolves();
+            browseStub.onFirstCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            browseEditStub.should.have.been.calledOnce;
+            browseStub.should.have.been.calledOnce;
             const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
@@ -146,7 +146,7 @@ describe('AddGatewayCommand', () => {
 
         it('should handle errors when adding a gateway', async () => {
             showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
             mySandBox.stub(FabricGatewayRegistry.instance(), 'add').rejects({ message: 'already exists'});
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);

@@ -48,7 +48,6 @@ export class UserInputUtil {
     static readonly FORCE_FILES: string = 'Force all files to overwrite';
     static readonly ABORT_GENERATOR: string = 'Abort generator';
     static readonly BROWSE_LABEL: string = '📁 Browse';
-    static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
     static readonly WALLET: string = 'Specify an existing file system wallet';
     static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
@@ -308,7 +307,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async openUserSettings(gatewayName: string): Promise<void> {
+    public static async openUserSettings(name: string, searchWallets?: boolean): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let settingsPath: string;
@@ -334,15 +333,18 @@ export class UserInputUtil {
 
             // Find the user settings line number
             for (let index: number = 0; index < settingsText.length; index++) {
-                const gatewaysSection: string = '"fabric.gateways": [';
-                if (settingsText[index].includes(gatewaysSection)) {
-                    // We've found fabric.gateways, so we'll assume that the gateway we're looking for will be the first result
-                    const gatewayEntry: string = '"name": "' + gatewayName;
+                let section: string = '"fabric.gateways": [';
+                if (searchWallets) {
+                    section = '"fabric.wallets": [';
+                }
+                if (settingsText[index].includes(section)) {
+                    // We've found the section
+                    const entry: string = '"name": "' + name;
 
-                    for (let gatewaysIndex: number = index; gatewaysIndex < settingsText.length; gatewaysIndex++) {
-                        // Search for the specific gateway name and set the line number if found
-                        if (settingsText[gatewaysIndex].includes(gatewayEntry)) {
-                            highlightStart = gatewaysIndex;
+                    for (let searchIndex: number = index; searchIndex < settingsText.length; searchIndex++) {
+                        // Search for the specific name and set the line number if found
+                        if (settingsText[searchIndex].includes(entry)) {
+                            highlightStart = searchIndex;
                             break;
                         }
                     }
@@ -355,14 +357,14 @@ export class UserInputUtil {
             }
 
             if (!highlightStart) {
-                outputAdapter.log(LogType.ERROR, `Could not find gateway in user settings`);
+                outputAdapter.log(LogType.ERROR, `Could not find ${name} entry in user settings`);
                 await vscode.window.showTextDocument(document);
                 return;
             }
 
             // Define the section to highlight
-            const startLine: number = highlightStart - 2;
-            const endLine: number = highlightStart + 3;
+            const startLine: number = highlightStart;
+            const endLine: number = highlightStart + 2;
 
             // Show the user settings and highlight the connection
             await vscode.window.showTextDocument(document, {
@@ -559,20 +561,14 @@ export class UserInputUtil {
 
     }
 
-    public static async browseEdit(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, gatewayName?: string, returnUri?: boolean): Promise<string | vscode.Uri> {
+    public static async browse(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
-        if (quickPickItems.includes(this.BROWSE_LABEL) && quickPickItems.includes(this.EDIT_LABEL)) {
-            if (placeHolder.includes('certificate') || placeHolder.includes('private key')) {
-                quickPickItems.pop();
-            }
-        }
 
         try {
             const result: string = await vscode.window.showQuickPick(quickPickItems, { placeHolder });
             if (!result) {
                 return;
-            } else if (result === this.BROWSE_LABEL) {
+            } else { // result === this.BROWSE_LABEL
                 // Browse file and get path
                 // work around for #135
                 await UserInputUtil.delayWorkaround(500);
@@ -589,12 +585,7 @@ export class UserInputUtil {
                     return fileBrowser[0].fsPath;
                 }
 
-            } else { // result === this.EDIT_LABEL
-
-                // Edit in user settings
-                await this.openUserSettings(gatewayName);
             }
-
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
@@ -614,20 +605,22 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(caNames, quickPickOptions);
     }
 
-    public static async showWalletsQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
+    public static async showWalletsQuickPickBox(prompt: string, showLocalWallet?: boolean): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
         const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
 
-        // Push local_fabric wallet
-        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
+        if (showLocalWallet) {
+            // Push local_fabric wallet
+            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
 
-        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        // TODO: hardcoded
-        runtimeWalletRegistryEntry.name = 'local_wallet';
-        runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
-        walletQuickPickItems.push( {
-            label: runtimeWalletRegistryEntry.name,
-            data: runtimeWalletRegistryEntry
-        });
+            const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+            // TODO: hardcoded
+            runtimeWalletRegistryEntry.name = 'local_wallet';
+            runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+            walletQuickPickItems.push( {
+                label: runtimeWalletRegistryEntry.name,
+                data: runtimeWalletRegistryEntry
+            });
+        }
 
         const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
         for (const walletRegistryEntry of wallets) {
@@ -668,14 +661,14 @@ export class UserInputUtil {
         };
 
         // Get the certificate file path
-        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions) as string;
+        const certificatePath: string = await UserInputUtil.browse('Browse for a certificate file', quickPickItems, openDialogOptions) as string;
         if (!certificatePath) {
             return;
         }
         ParsedCertificate.validPEM(certificatePath, 'certificate');
 
         // Get the private key file path
-        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions) as string;
+        const privateKeyPath: string = await UserInputUtil.browse('Browse for a private key file', quickPickItems, openDialogOptions) as string;
         if (!privateKeyPath) {
             return;
         }
