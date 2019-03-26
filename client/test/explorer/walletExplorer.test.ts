@@ -22,11 +22,13 @@ import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
+import { LocalWalletTreeItem } from '../../src/explorer/wallets/LocalWalletTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
+import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 
 chai.use(sinonChai);
 chai.should();
@@ -83,29 +85,31 @@ describe('walletExplorer', () => {
         getIdentityNamesStub.onCall(1).resolves([]);
         await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
 
-        const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
         wallets.length.should.equal(3);
         wallets[0].label.should.equal('local_wallet');
         wallets[1].label.should.equal(blueWalletEntry.name);
         wallets[2].label.should.equal(greenWalletEntry.name);
-        wallets[2].identities.should.deep.equal([]);
 
         const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[1]) as Array<IdentityTreeItem>;
         blueWalletIdentities.length.should.equal(2);
         blueWalletIdentities[0].label.should.equal('violetConga');
         blueWalletIdentities[1].label.should.equal('purpleConga');
-        logSpy.should.not.have.been.calledWith(LogType.ERROR);
 
         const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
         localWalletIdentities.length.should.equal(2);
         localWalletIdentities[0].label.should.equal('yellowConga');
         localWalletIdentities[1].label.should.equal('orangeConga');
+
+        const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<WalletTreeItem>;
+        emptyWalletIdentites.should.deep.equal([]);
+
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });
 
     it('should handle no identities in the local wallet', async () => {
         getLocalWalletIdentityNamesStub.resolves([]);
-        const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
+        const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
 
         wallets.length.should.equal(1);
         wallets[0].label.should.equal('local_wallet');

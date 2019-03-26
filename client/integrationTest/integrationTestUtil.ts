@@ -61,7 +61,7 @@ export class IntegrationTestUtil {
     public getWorkspaceFoldersStub: sinon.SinonStub;
     public findFilesStub: sinon.SinonStub;
     public inputBoxStub: sinon.SinonStub;
-    public browseEditStub: sinon.SinonStub;
+    public browseStub: sinon.SinonStub;
     public showPeerQuickPickStub: sinon.SinonStub;
     public showInstallableStub: sinon.SinonStub;
     public showChannelStub: sinon.SinonStub;
@@ -91,7 +91,7 @@ export class IntegrationTestUtil {
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
         this.gatewayRegistry = FabricGatewayRegistry.instance();
         this.walletRegistry = FabricWalletRegistry.instance();
-        this.browseEditStub = this.mySandBox.stub(UserInputUtil, 'browseEdit');
+        this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
         this.showInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
@@ -113,7 +113,7 @@ export class IntegrationTestUtil {
         }
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
 
-        this.browseEditStub.resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
+        this.browseStub.resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
         this.gatewayRegistry.exists('myGateway').should.be.true;
@@ -127,12 +127,12 @@ export class IntegrationTestUtil {
 
         const walletPath: vscode.Uri = vscode.Uri.file( path.join(__dirname, '../../integrationTest/data/myWallet') );
 
-        this.browseEditStub.withArgs('Enter a file path to a wallet directory', [UserInputUtil.BROWSE_LABEL], {
+        this.browseStub.withArgs('Enter a file path to a wallet directory', [UserInputUtil.BROWSE_LABEL], {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: 'Select',
-        }, undefined, true).resolves(walletPath);
+        }, true).resolves(walletPath);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
         this.walletRegistry.exists(name).should.be.true;
@@ -201,13 +201,13 @@ export class IntegrationTestUtil {
 
         const uri: vscode.Uri = vscode.Uri.file(this.testContractDir);
 
-        this.browseEditStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
+        this.browseStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: 'Save',
             filters: undefined
-        }, undefined, true).resolves(uri);
+        }, true).resolves(uri);
 
         let generator: string;
         if (language === 'Go' || language === 'Java') {

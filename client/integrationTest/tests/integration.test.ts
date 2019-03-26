@@ -39,7 +39,7 @@ import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
-import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
+import { LocalWalletTreeItem } from '../../src/explorer/wallets/LocalWalletTreeItem';
 
 chai.should();
 chai.use(sinonChai);
@@ -489,7 +489,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 await integrationTestUtil.createFabricConnection();
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
                 await integrationTestUtil.addIdentityToWallet('admin', 'adminpw', 'local_wallet'); // Unlimited enrollments
-                const wallets: Array<WalletTreeItem> = await myExtension.getBlockchainWalletExplorerProvider().getChildren() as Array<WalletTreeItem>;
+                const wallets: Array<LocalWalletTreeItem> = await myExtension.getBlockchainWalletExplorerProvider().getChildren() as Array<LocalWalletTreeItem>;
                 const identities: Array<IdentityTreeItem> = await myExtension.getBlockchainWalletExplorerProvider().getChildren(wallets[0]) as Array<IdentityTreeItem>;
                 identities[1].label.should.equal('anotherOne');
             }).timeout(0);

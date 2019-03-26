@@ -35,7 +35,7 @@ describe('AddWalletCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;
-    let browseEditStub: sinon.SinonStub;
+    let browseStub: sinon.SinonStub;
     let choseWalletAddMethod: sinon.SinonStub;
     let uri: vscode.Uri;
     let getNewWallet: sinon.SinonStub;
@@ -60,7 +60,7 @@ describe('AddWalletCommand', () => {
 
         await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
-        browseEditStub = mySandBox.stub(UserInputUtil, 'browseEdit');
+        browseStub = mySandBox.stub(UserInputUtil, 'browse');
         choseWalletAddMethod = mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick');
         uri = vscode.Uri.file(tmp.dirSync().name);
         testWallet = new FabricWallet(uri.fsPath);
@@ -81,7 +81,7 @@ describe('AddWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
         showInputBoxStub.should.not.have.been.called;
-        browseEditStub.should.not.have.been.called;
+        browseStub.should.not.have.been.called;
         logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
     });
 
@@ -89,7 +89,7 @@ describe('AddWalletCommand', () => {
 
         it('should add a new wallet by providing a wallet path', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET);
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             getIdentitiesStub.resolves(['someName', 'anotherName']);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
@@ -106,7 +106,7 @@ describe('AddWalletCommand', () => {
 
         it('should handle the user cancelling providing a wallet path', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET);
-            browseEditStub.resolves();
+            browseStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
@@ -115,7 +115,7 @@ describe('AddWalletCommand', () => {
 
         it('should not allow the user to add an empty directory as a wallet', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET);
-            browseEditStub.resolves(uri);
+            browseStub.resolves(uri);
             getIdentitiesStub.resolves([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
@@ -136,7 +136,7 @@ describe('AddWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
-            browseEditStub.should.not.have.been.called;
+            browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
             const wallets: Array<any> = vscode.workspace.getConfiguration().get('fabric.wallets');
             wallets.length.should.equal(1);
@@ -152,7 +152,7 @@ describe('AddWalletCommand', () => {
             showInputBoxStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
-            browseEditStub.should.not.have.been.called;
+            browseStub.should.not.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
         });
 
@@ -167,7 +167,7 @@ describe('AddWalletCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
             fsRemoveStub.should.have.been.calledOnceWithExactly(uri.fsPath);
-            browseEditStub.should.not.have.been.called;
+            browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
         });

@@ -35,6 +35,7 @@ import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
+import { LocalWalletTreeItem } from '../../src/explorer/wallets/LocalWalletTreeItem';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
@@ -372,7 +373,7 @@ describe('AddWalletIdentityCommand', () => {
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[0] as WalletTreeItem;
+                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
 
                 await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
 

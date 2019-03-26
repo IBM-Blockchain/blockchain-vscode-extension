@@ -107,6 +107,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.CREATE_NEW_IDENTITY,
             ExtensionCommands.REFRESH_WALLETS,
             ExtensionCommands.ADD_WALLET,
+            ExtensionCommands.EDIT_WALLET,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -150,6 +151,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
             `onCommand:${ExtensionCommands.ADD_WALLET}`,
             `onCommand:${ExtensionCommands.ADD_WALLET_IDENTITY}`,
+            `onCommand:${ExtensionCommands.EDIT_WALLET}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);
