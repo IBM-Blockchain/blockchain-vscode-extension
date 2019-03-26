@@ -86,26 +86,6 @@ describe('AddGatewayCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
         });
 
-        it('should test a partially completed gateway can be added', async () => {
-            showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseEditStub.onFirstCall().resolves();
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
-
-            gateways.length.should.equal(1);
-            gateways[0].should.deep.equal({
-                name: 'myGateway',
-                connectionProfilePath: FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT
-            });
-
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            copyConnectionProfileStub.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
-            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
-        });
-
         it('should test multiple gateways can be added', async () => {
             // Stub first gateway details
             showInputBoxStub.onFirstCall().resolves('myGatewayOne'); // First gateway name
@@ -147,12 +127,25 @@ describe('AddGatewayCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
-
             gateways.length.should.equal(0);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
+        });
+
+        it('should test adding a gateway can be cancelled when giving a connection profile', async () => {
+            showInputBoxStub.onFirstCall().resolves('myGateway');
+            browseEditStub.onFirstCall().resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            browseEditStub.should.have.been.calledOnce;
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
+            gateways.length.should.equal(0);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
         });
 
         it('should handle errors when adding a gateway', async () => {
             showInputBoxStub.onFirstCall().resolves('myGateway');
+            browseEditStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
             mySandBox.stub(FabricGatewayRegistry.instance(), 'add').rejects({ message: 'already exists'});
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -160,7 +153,6 @@ describe('AddGatewayCommand', () => {
             const gateways: Array<any> = vscode.workspace.getConfiguration().get('fabric.gateways');
 
             gateways.length.should.equal(0);
-            copyConnectionProfileStub.should.not.have.been.called;
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: already exists`);

@@ -31,8 +31,6 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
-import { GatewayPropertyTreeItem } from './model/GatewayPropertyTreeItem';
 import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -101,10 +99,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         try {
 
             if (element) {
-                if (element instanceof GatewayTreeItem && !FabricGatewayHelper.connectionProfilePathComplete(element.gateway)) {
-                    this.tree = await this.createGatewayUncompleteTree(element as GatewayTreeItem); // Uncomplete gateway, connection profile is needed
-                }
-
                 // This won't be called before connecting to a gatewawy
                 if (element instanceof ChannelTreeItem) {
                     this.tree = [];
@@ -156,20 +150,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         return this.tree;
     }
 
-    public async createGatewayUncompleteTree(element: GatewayTreeItem): Promise<GatewayPropertyTreeItem[]> {
-        console.log('createGatewayUncompleteTree', element);
-        const tree: GatewayPropertyTreeItem[] = [];
-
-        const command: vscode.Command = {
-            command: ExtensionCommands.EDIT_GATEWAY,
-            title: '',
-            arguments: [{ label: '+ Connection Profile', gateway: element.gateway }]
-        };
-        tree.push(new GatewayPropertyTreeItem(this, '+ Connection Profile', element.gateway, vscode.TreeItemCollapsibleState.None, command));
-
-        return tree;
-    }
-
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
         console.log('createdConnectionTree');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -207,12 +187,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
         for (const gateway of allGateways) {
 
-            let treeState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
-
-            if (!FabricGatewayHelper.connectionProfilePathComplete(gateway)) {
-                treeState = vscode.TreeItemCollapsibleState.Expanded;
-            }
-
             const command: vscode.Command = {
                 command: ExtensionCommands.CONNECT,
                 title: '',
@@ -221,7 +195,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             tree.push(new GatewayTreeItem(this,
                 gateway.name,
                 gateway,
-                treeState,
+                vscode.TreeItemCollapsibleState.None,
                 command)
             );
         }

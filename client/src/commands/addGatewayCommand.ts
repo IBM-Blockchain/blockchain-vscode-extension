@@ -30,15 +30,7 @@ export async function addGateway(): Promise<{} | void> {
             return Promise.resolve();
         }
 
-        // Create the gateway registry entry immediately
-        const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-        fabricGatewayEntry.connectionProfilePath = FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT;
-        fabricGatewayEntry.name = gatewayName;
-
-        const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-        await fabricGatewayRegistry.add(fabricGatewayEntry);
-
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
             canSelectFolders: false,
@@ -55,9 +47,13 @@ export async function addGateway(): Promise<{} | void> {
             return Promise.resolve();
         }
 
+        const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
         fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
-        await fabricGatewayRegistry.update(fabricGatewayEntry);
+        fabricGatewayEntry.name = gatewayName;
+
+        const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+        await fabricGatewayRegistry.add(fabricGatewayEntry);
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
     } catch (error) {

@@ -22,12 +22,6 @@ import { UserInputUtil } from '../commands/UserInputUtil';
 export class FabricGatewayHelper {
     // Wanted to type with FabricGatewayRegistryEntry but it failed
 
-    static readonly CONNECTION_PROFILE_PATH_DEFAULT: string = '<PATH_TO_CONNECTION_PROFILE_JSON>';
-
-    public static connectionProfilePathComplete(instance: any): boolean {
-        return instance.connectionProfilePath !== this.CONNECTION_PROFILE_PATH_DEFAULT && instance.connectionProfilePath !== '';
-    }
-
     public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: string): Promise<string> {
         try {
 
