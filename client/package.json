@@ -76,6 +76,7 @@
             "walletExplorer.refreshEntry",
             "walletExplorer.addWalletEntry",
             "walletExplorer.addWalletIdentityEntry",
+            "walletExplorer.editWalletEntry",
             "extensionHome.open"
         ]
     },
@@ -351,6 +352,11 @@
                     "dark": "resources/dark/add.svg"
                 },
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.editWalletEntry",
+                "title": "Edit Wallet",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -479,6 +485,10 @@
                     "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
                 },
                 {
+                    "command": "walletExplorer.addWalletIdentityEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-local-wallet-item"
+                },
+                {
                     "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
                     "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
                 },
@@ -561,6 +571,10 @@
                 {
                     "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                },
+                {
+                    "command": "walletExplorer.editWalletEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
                 }
             ]
         },

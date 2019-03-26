@@ -42,15 +42,15 @@ export async function addGateway(): Promise<{} | void> {
         };
 
         // Get the connection profile json file path
-        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, gatewayName) as string;
+        const connectionProfilePath: string = await UserInputUtil.browse('Enter a file path to a connection profile file', quickPickItems, openDialogOptions) as string;
         if (!connectionProfilePath) {
             return Promise.resolve();
         }
 
         const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
-        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
         fabricGatewayEntry.name = gatewayName;
+        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
 
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         await fabricGatewayRegistry.add(fabricGatewayEntry);

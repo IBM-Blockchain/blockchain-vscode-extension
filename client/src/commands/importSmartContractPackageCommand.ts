@@ -33,7 +33,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         filters: { Packages: ['cds'] }
     };
 
-    const packagePath: string = await UserInputUtil.browseEdit('Browse for a package to import', quickPickItems, openDialogOptions) as string;
+    const packagePath: string = await UserInputUtil.browse('Browse for a package to import', quickPickItems, openDialogOptions) as string;
 
     if (!packagePath) {
         return;
