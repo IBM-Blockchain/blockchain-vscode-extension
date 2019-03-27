@@ -55,7 +55,7 @@ describe('DeleteGatewayCommand', () => {
             mySandBox = sinon.createSandbox();
             warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
 
-            // reset the available gateways and wallets
+            // reset the available gateways
             await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
 
             gateways = [];
