@@ -34,7 +34,7 @@ export class ExtensionCommands {
     static readonly TOGGLE_FABRIC_DEV_MODE: string = 'aRuntimeOpsExplorer.toggleFabricRuntimeDevMode';
     static readonly UPGRADE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'aRuntimeOpsExplorer.createNewIdentityEntry';
-    static readonly EXPORT_CONNECTION_DETAILS: string = 'aRuntimeOpsExplorer.exportConnectionDetailsEntry';
+    static readonly EXPORT_CONNECTION_PROFILE: string = 'aRuntimeOpsExplorer.exportConnectionProfileEntry';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';

@@ -47,11 +47,6 @@ describe('FabricConnection', () => {
             this['gateway'] = fabricGatewayStub;
             await this.connectInner(this.connectionProfile, wallet, identityName);
         }
-
-        async getConnectionDetails(): Promise<any> {
-            return;
-        }
-
     }
 
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;

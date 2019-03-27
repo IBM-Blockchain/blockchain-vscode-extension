@@ -62,7 +62,6 @@ describe('FabricRuntime', () => {
     let runtimeDetailsDir: string;
     let ensureFileStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
-    let copyStub: sinon.SinonStub;
     let removeStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
     let runtimeDir: string;
@@ -204,7 +203,6 @@ describe('FabricRuntime', () => {
         sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
         ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
         writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
-        copyStub = sandbox.stub(fs, 'copySync').resolves();
         removeStub = sandbox.stub(fs, 'remove').resolves();
     });
 
@@ -1017,39 +1015,37 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#exportConnectionDetails', () => {
+    describe('#exportConnectionProfile', () => {
 
         beforeEach(async () => {
             connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
-        it('should save runtime connection details to disk', async () => {
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
+        it('should save runtime connection profile to disk', async () => {
+            await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance());
+            ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            copyStub.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
         });
 
-        it('should save runtime connection details to a specified place', async () => {
+        it('should save runtime connection profile to a specified place', async () => {
             runtimeDir = 'myPath';
             connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
 
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
-            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
+            await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
+            ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            copyStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
         it('should show an error message if we fail to save connection details to disk', async () => {
             writeFileStub.onCall(0).rejects({ message: 'oops' });
 
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
-            ensureFileStub.should.have.been.calledOnce;
+            await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
+            ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection profile in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
         });
     });
 
