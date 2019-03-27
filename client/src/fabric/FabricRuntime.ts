@@ -233,7 +233,7 @@ export class FabricRuntime extends EventEmitter {
         return `${prefix}_peer0.org1.example.com`;
     }
 
-    public async exportConnectionDetails(outputAdapter: OutputAdapter, dir?: string): Promise<void> {
+    public async exportConnectionProfile(outputAdapter: OutputAdapter, dir?: string): Promise<void> {
 
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
@@ -241,17 +241,14 @@ export class FabricRuntime extends EventEmitter {
 
         const connectionProfileObj: any = await this.getConnectionProfile();
         const connectionProfile: string = JSON.stringify(connectionProfileObj, null, 4);
-        let newWalletPath: string;
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const runtimeWalletPath: string = path.join(homeExtDir, this.name, 'wallet');
 
         if (!dir) {
             dir = path.join(homeExtDir, this.name);
         } else {
             dir = path.join(dir, this.name);
-            newWalletPath = path.join(dir, 'wallet');
         }
 
         const connectionProfilePath: string = path.join(dir, 'connection.json');
@@ -259,11 +256,8 @@ export class FabricRuntime extends EventEmitter {
         try {
             await fs.ensureFileSync(connectionProfilePath);
             await fs.writeFileSync(connectionProfilePath, connectionProfile);
-            if (newWalletPath) {
-                await fs.copySync(runtimeWalletPath, newWalletPath);
-            }
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Issue saving runtime connection details in directory ${dir} with error: ${error.message}`);
+            outputAdapter.log(LogType.ERROR, `Issue saving runtime connection profile in directory ${dir} with error: ${error.message}`);
             throw new Error(error);
         }
     }
@@ -321,7 +315,7 @@ export class FabricRuntime extends EventEmitter {
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('start', outputAdapter);
-        await this.exportConnectionDetails(outputAdapter);
+        await this.exportConnectionProfile(outputAdapter);
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {

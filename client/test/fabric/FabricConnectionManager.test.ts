@@ -30,10 +30,6 @@ describe('FabricConnectionManager', () => {
             return;
         }
 
-        async getConnectionDetails(): Promise<any> {
-            return;
-        }
-
     }
 
     const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
