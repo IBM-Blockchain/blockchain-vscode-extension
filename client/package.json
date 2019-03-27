@@ -70,7 +70,7 @@
             "aRuntimeOpsExplorer.teardownFabricRuntime",
             "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
             "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
-            "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
+            "aRuntimeOpsExplorer.exportConnectionProfileEntry",
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
             "aRuntimeOpsExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
@@ -326,8 +326,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
-                "title": "Export Connection Details",
+                "command": "aRuntimeOpsExplorer.exportConnectionProfileEntry",
+                "title": "Export Connection Profile",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -513,7 +513,7 @@
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
+                    "command": "aRuntimeOpsExplorer.exportConnectionProfileEntry",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
                 },
                 {
