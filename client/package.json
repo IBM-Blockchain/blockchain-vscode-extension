@@ -515,10 +515,6 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-chaincode-item"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.upgradeSmartContractEntry",
-                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-instantiated-chaincode-item"
-                },
-                {
                     "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-certificate-authority-item"
                 }
