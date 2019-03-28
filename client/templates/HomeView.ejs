@@ -12,8 +12,8 @@
             font-family:'IBM Plex Sans', Arial, Helvetica, sans-serif;
             display: flex;
             padding: 40px;
-            font-size: 13px;
-            letter-spacing:0.05px;
+            font-size: 14px;
+            letter-spacing:0.01px;
         }
 
         a {
@@ -26,25 +26,45 @@
         }
 
         p {
-            margin-top: 6px;
-            margin-bottom: 6px;
+            margin-top: 4px;
+            margin-bottom: 4px;
         }
 
         h1{
-            font-size:24px;
+            font-size:28px;
             letter-spacing:0.06px;
-            font-weight:600;
+            font-weight: lighter
         }
 
         h2 {
-            font-size: 16px;
-            letter-spacing:0.05px;
-            font-weight: 600;
+            font-size: 14px;
+            letter-spacing:0.01px;
+            font-weight: bold;
         }
 
         h3 {
             font-size: 16px;
             letter-spacing:0.06px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 16px;
+        }
+
+        li {
+            margin-bottom: 16px;
+        }
+
+        li:before {
+            content: "-";
+            margin-right: 8px;
+            position: absolute;
+        }
+
+        li div {
+            position: relative;
+            margin-left: 16px;
         }
 
         /*
@@ -64,16 +84,17 @@
             display:flex;
             flex-direction:row;
             align-items:baseline;
-            margin-bottom:20px;
+            margin-bottom: 16px;
         }
 
         #extension-name-container{
             flex-shrink:1;
-            padding-right:20px;
+            padding-right: 16px;
         }
 
         #extension-name{
             display:inline;
+            font-size: 36px;
         }
 
         #extension-version-container{
@@ -84,45 +105,85 @@
             display: inline;
         }
 
-        #home-content{
+        #home-content {
             flex:1;
             display:flex;
-            flex-direction: row;
+            flex-direction: column;
         }
 
-        #content-left{
-            flex:1;
-            padding-right:20px;
+        #content-top, #content-middle, #content-bottom  {
+            display: flex;
+            margin-bottom: 32px;
         }
 
-        #getting-started-title{
-            margin:0px 0px 10px 0px;
+        #content-top-right, #content-middle-right, #content-bottom-right {
+            flex: 1;
+            max-width: 300px;
         }
 
-        #getting-started-sub-text{
+        #content-top-left, #content-middle-left, #content-bottom-left {
+            flex: 2;
+            max-width: 500px;
+            margin-right:32px;
+        }
+
+        #content-top-left > * {
+            padding-right: 16px;
+        }
+
+        #about-title {
+            margin: 0px 0px 8px 0px;
+        }
+
+        #about-sub-text {
             margin-top: 0;
         }
 
-        #getting-started-commands{
-            margin-top:15px;
+        #capabilities {
+            margin-top: 16px;
         }
 
-        #view-readme{
-            margin-top: 20px;
-            margin-bottom: 15px;
-        }
-        #samples-panel{
-            margin-left:-15px;
-            border-radius:5px;
-            padding:5px 15px 5px 15px;
+        .panel {
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
-        #samples-title{
-            margin-top:10px;
+        .panel-header {
+            padding: 4px 16px 0 16px;
         }
 
-        #samples-sub-text{
-            margin-bottom: 0;
+        .panel-top {
+            flex: 1;
+            padding: 16px 16px 4px 16px;
+        }
+
+        .panel-title {
+            margin-top: 8px;
+            padding-bottom: 8px;
+            margin-bottom: 4px;
+        }
+
+        .panel-sub-text {
+            margin-bottom: 16px;
+        }
+
+        .panel-bottom {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .panel-button {
+            background-color: #0F6FFF;
+            padding: 16px;
+            color: #F3F3F3;
+        }
+
+        .panel-button:hover {
+            background-color: #054ADA;
+            text-decoration: none;
+            color: #F3F3F3;
         }
 
         #sample-header{
@@ -130,23 +191,51 @@
         }
 
         #repository-name{
-            margin-top:5px;
-            margin-bottom:5px;
+            margin-top: 4px;
+            margin-bottom: 4px;
             font-weight:100;
             font-style:italic;
             letter-spacing:0.06px;
         }
 
         #sample-description{
-            margin-bottom:20px;
+            margin-bottom: 16px;
         }
 
-        #content-right{
-            flex:1;
+        .panel-top .docLink {
+            margin-bottom: 16px;
+            margin-left: 32px;
+            position: relative;
         }
 
-        #help-title{
-            margin:0px;
+        .docLink.github-icon:before {
+            content: " ";
+            width:16px;
+            height:16px;
+            display: inline-block;
+            margin-right: 16px;
+            position: absolute;
+            left: -31px;
+        }
+
+        .docLink.document-icon:before {
+            content: " ";
+            width:16px;
+            height:16px;
+            display: inline-block;
+            margin-right: 16px;
+            position: absolute;
+            left: -34px;
+        }
+
+        .docLink.search-icon:before {
+            content: " ";
+            width:16px;
+            height:16px;
+            display: inline-block;
+            margin-right: 16px;
+            position: absolute;
+            left: -29px;
         }
 
         /*
@@ -155,16 +244,40 @@
         ##############################################
         */
 
-        body.vscode-dark{
+        body.vscode-dark h1{
             color: #ffffff;
         }
 
-        body.vscode-dark #samples-panel {
-            background-color: #282828;
+        body.vscode-dark h2 {
+            color: #F3F3F3;
+        }
+
+        body.vscode-dark {
+            color: #BEBEBE;
+        }
+
+        body.vscode-dark .panel {
+            background-color: #13171A;
+        }
+
+        body.vscode-dark .panel-header {
+            background-color: #373D42;
         }
 
         body.vscode-dark #repository-name {
             color: #B1B1B1;
+        }
+
+        body.vscode-dark .docLink.github-icon:before {
+            background: url(<%= images.githubDark %>) no-repeat right center;
+        }
+
+        body.vscode-dark .docLink.document-icon:before {
+            background: url(<%= images.documentDark %>) no-repeat right center;
+        }
+
+        body.vscode-dark .docLink.search-icon:before {
+            background: url(<%= images.searchDark %>) no-repeat right center;
         }
 
         /*
@@ -177,12 +290,24 @@
             color: #000000;
         }
 
-        body.vscode-light #samples-panel {
+        body.vscode-light .panel {
             background-color: #F3F3F3;
         }
 
-        body.vscode-dark #repository-name {
-            color: #F3F3F3;
+        body.vscode-light .panel-header {
+            border-bottom: 1px solid #DCDCDC;
+        }
+
+        body.vscode-light .docLink.github-icon:before {
+            background: url(<%= images.githubLight %>) no-repeat right center;
+        }
+
+        body.vscode-light .docLink.document-icon:before {
+            background: url(<%= images.documentLight %>) no-repeat right center;
+        }
+
+        body.vscode-light .docLink.search-icon:before {
+            background: url(<%= images.searchLight %>) no-repeat right center;
         }
     </style>
 </head>
@@ -198,98 +323,77 @@
             </div>
         </div>
         <div id="home-content">
+            <div id="content-top">
+                <div id="content-top-left">
+                    <h1 id="about-title">Welcome</h2>
+                    <p id="about-sub-text">This extension helps you develop and deploy smart contracts:</p>
 
-            <div id="content-left">
-                <h2 id="getting-started-title">Getting Started</h2>
-                <p id="getting-started-sub-text">Common commands for a smart contract development workflow.</p>
-                Click to execute commands, or follow along with our <a href="https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract/">developer tutorial</a> online.
-
-                <div id="getting-started-commands">
-
-                <p>
-                    <a href="command:<%=commands.CREATE_SMART_CONTRACT_PROJECT%>">
-                        Create a new smart contract project
-                    </a>
-                </p>
-                <p>
-                    <a href="command:<%=commands.PACKAGE_SMART_CONTRACT%>">
-                        Package a smart contract project</a></p>
-                <p>
-                    <a href="command:<%=commands.INSTALL_SMART_CONTRACT%>">
-                        Install a smart contract package
-                    </a>
-                </p>
-                <p>
-                    <a href="command:<%=commands.INSTANTIATE_SMART_CONTRACT%>">
-                        Instantiate a smart contract
-                    </a>
-                </p>
-                <p>
-                    <a href="command:<%=commands.TEST_SMART_CONTRACT%>">
-                        Test a smart contract
-                    </a>
-                </p>
-                <p>
-                    <a href="command:<%=commands.UPGRADE_SMART_CONTRACT%>">
-                        Upgrade a smart contract
-                    </a>
-                </p>
-
-                <p id="view-readme">
-                    View the <a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features">Readme</a> for all of the commands.
-                </p>
+                    <div id="capabilities">
+                        <ul>
+                            <li><div>Create a new smart contract project</div></li>
+                            <li><div>Run and debug your smart contract using a local instance of Hyperledger Fabric</div></li>
+                            <li><div>Deploy your project to your network on the IBM Blockchain Platform <a href="https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview">IBM Cloud</a> or <a href="https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-icp-about#overview" >IBM Cloud Private</a> for a smooth integration and workflow between components</div></li>
+                            <li><div>Develop client applications that will interact with your deployed smart contracts</div></li>
+                        </ul>
+                    </div>
                 </div>
-                <br>
+                <div id="content-top-right"></div>
+            </div>
+            <div id="content-middle">
+                <div id="content-middle-left">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Learn the ropes</h2>
+                        </div>
+                        <div class=panel-top>
+                            <p class="panel-sub-text">Get started developing, debugging and deploying your smart contracts</p>
+                        </div>
+                        <div class=panel-bottom>
+                            <a class="panel-button" href="https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract">Follow tutorial</a>
+                        </div>
+                    </div>
+                </div>
+                <div id="content-middle-right">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Help and Support</h2>
+                        </div>
+                        <div class="panel-top">
+                            <p class="docLink document-icon">Read the <a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features">documentation</a>
+                            <p class="docLink github-icon">Raise a <a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension" onclick="#">GitHub</a> issue</p>
+                            <p class="docLink search-icon">Search <a href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension" onclick="#">Stack Overflow</a></p>
+                        </div>
+                    </div>
+                </div>
 
-                <div id="samples-panel">
+            </div>
+            <div id="content-bottom">
+                <div id="content-bottom-left">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">Explore sample code</h2>
+                        </div>
+                        <div class=panel-top>
+                            <p class="panel-sub-text">Our curated set of samples will show you best-practice across a varity of use-cases, and teach you to use Fabric concepts from the simple to the complex.</p>
 
-                    <h2 id="samples-title">Samples</h2>
-
-                    <p id="samples-sub-text">Best-practice examples of smart contracts, client applications and more.</p>
-                    <br>
-
-                    <!-- We will probably want to change this at some point to only list 3-5 samples.
-                    Might want to add a flag in the repositories.json to help populate this in future.-->
-                    <% for (const repository of repositories) { %>
-                        <% for (const sample of repository.samples) { %>
-                            <h3 id="sample-header">
-                                <a href='command:<%=commands.OPEN_SAMPLE_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,sample.name])); %>'><%=sample.name%></a>
-                            </h3>
-                            <h4 id="repository-name"><%=repository.name%></h4>
-                            <p id="sample-description"><%=sample.description%></p>
-                        <% } %>
-                    <% } %>
-
+                            <!-- We will probably want to change this at some point to only list 3-5 samples.
+                            Might want to add a flag in the repositories.json to help populate this in future.-->
+                            <% for (const repository of repositories) { %>
+                                <% for (const sample of repository.samples) { %>
+                                    <h3 id="sample-header">
+                                        <a href='command:<%=commands.OPEN_SAMPLE_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,sample.name])); %>'><%=sample.name%></a>
+                                    </h3>
+                                    <h4 id="repository-name"><%=repository.name%></h4>
+                                    <p id="sample-description"><%=sample.description%></p>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+                <div id="content-bottom-right">
                 </div>
             </div>
-            <div id="content-right">
-                <h2 id="help-title">Help</h2>
-                <p><a href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension" onclick="#">Stack Overflow</a></p>
-                <p><a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension" onclick="#">GitHub Repository</a></p>
-                <br>
-            </div>
-
-            <br>
-
         </div>
     </div>
-    <script>
-
-        const vscode = acquireVsCodeApi();
-        function executeCommand(executeCommand) {
-            vscode.postMessage({
-                command: 'command',
-                executeCommand: executeCommand
-            })
-        }
-        function openSample(repoName, sampleName) {
-            vscode.postMessage({
-                command: 'openSample',
-                repoName: repoName,
-                sampleName: sampleName
-            });
-        }
-    </script>
 </body>
-
 </html>
