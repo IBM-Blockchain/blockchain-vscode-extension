@@ -22,7 +22,7 @@ chai.should();
 
 describe('RepositoryRegistryEntry', () => {
 
-    const registry: RepositoryRegistry = new RepositoryRegistry();
+    const registry: RepositoryRegistry = RepositoryRegistry.instance();
 
     before(async () => {
         await TestUtil.storeGatewaysConfig();

@@ -167,6 +167,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "tutorial.open",
+                "title": "Open Tutorial",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "extensionHome.open",
                 "title": "View Homepage",
                 "category": "IBM Blockchain Platform",
@@ -420,6 +425,10 @@
                 },
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "tutorial.open",
                     "when": "false"
                 },
                 {
@@ -1217,7 +1226,8 @@
             "templates/tsTestSmartContractTemplate.ejs",
             "templates/jsTestSmartContractTemplate.ejs",
             "templates/HomeView.ejs",
-            "templates/SampleView.ejs"
+            "templates/SampleView.ejs",
+            "tutorials"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

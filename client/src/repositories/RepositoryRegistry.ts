@@ -17,7 +17,13 @@ import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
 
 export class RepositoryRegistry extends FabricRegistry<RepositoryRegistryEntry> {
 
-    constructor() {
+    public static instance(): RepositoryRegistry {
+        return RepositoryRegistry._instance;
+    }
+
+    private static _instance: RepositoryRegistry = new RepositoryRegistry();
+
+    private constructor() {
         super('blockchain.repositories');
     }
 

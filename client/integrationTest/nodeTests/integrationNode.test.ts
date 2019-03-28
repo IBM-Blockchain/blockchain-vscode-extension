@@ -56,6 +56,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let runtime: FabricRuntime;
 
+    let sampleView: SampleView;
+
     before(async function(): Promise<void> {
         this.timeout(600000);
 
@@ -83,7 +85,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
             defaultUri: sinon.match.any,
             saveLabel: 'Clone Repository'
         }).resolves(vscode.Uri.file(path.join(__dirname, '..', '..', '..', 'integrationTest', 'data', 'fabric-samples')));
-        await SampleView.cloneRepository('hyperledger/fabric-samples', false);
+        sampleView = new SampleView(null, 'hyperledger/fabric-samples', 'FabCar');
+        await sampleView['cloneRepository'](false);
     });
 
     after(async function(): Promise<void> {
@@ -270,7 +273,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 runtime.isDevelopmentMode().should.be.false;
 
                 integrationTestUtil.showFolderOptions.withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
-                await SampleView.cloneAndOpenRepository('hyperledger/fabric-samples', `chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`);
+
+                await sampleView['cloneAndOpenRepository'](`chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`);
 
                 integrationTestUtil.testContractType = language;
                 integrationTestUtil.testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'data', `fabric-samples`, 'chaincode', 'fabcar', languageLowerCase);

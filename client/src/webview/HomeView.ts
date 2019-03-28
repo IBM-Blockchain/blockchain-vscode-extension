@@ -16,67 +16,23 @@ import * as vscode from 'vscode';
 import * as ejs from 'ejs';
 import * as path from 'path';
 import { ExtensionUtil } from '../util/ExtensionUtil';
-import { SampleView } from './SampleView';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { View } from './View';
 
-let openPanels: Array<vscode.WebviewPanel> = [];
+export class HomeView extends View {
 
-export class HomeView {
-
-    static async openHomePage(context: vscode.ExtensionContext): Promise<any> {
-
-        // Check to see if the panel is already open
-
-        openPanels = openPanels.filter((_panel: vscode.WebviewPanel) => {
-            return _panel['_isDisposed'] !== true;
-        });
-
-        let panel: vscode.WebviewPanel = openPanels.find((tempPanel: vscode.WebviewPanel) => {
-            return tempPanel.title === `IBM Blockchain Platform Home`;
-        });
-
-        if (panel) {
-            // Focus on the panel if it is already open
-            panel.reveal(undefined);
-        } else {
-
-            // Create the Home panel
-            panel = vscode.window.createWebviewPanel(
-                'extensionHome', // Identifies the type of the webview. Used internally
-                'IBM Blockchain Platform Home', // Title of the panel displayed to the user
-                vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-                {
-                    enableScripts: true,
-                    retainContextWhenHidden: true,
-                    enableCommandUris: true,
-                    localResourceRoots: [
-                        vscode.Uri.file(path.join(context.extensionPath, 'resources'))
-                    ]
-                },
-            );
-
-            const extensionPath: string = ExtensionUtil.getExtensionPath();
-            const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
-
-            panel.iconPath = panelIcon;
-
-            // Set the webview's html
-            panel.webview.html = await this.getExtensionHomepage();
-
-            // Keep track of the panels open
-            openPanels.push(panel);
-
-            // Reset when the current panel is closed
-            panel.onDidDispose(() => {
-                // Delete the closed panel from the list of open panels
-                openPanels = openPanels.filter((tempPanel: vscode.WebviewPanel) => {
-                    return tempPanel.title !== `IBM Blockchain Platform Home`;
-                });
-            }, null, context.subscriptions);
-        }
+    constructor(context: vscode.ExtensionContext) {
+        super(context, 'extensionHome', 'IBM Blockchain Platform Home');
     }
 
-    static async getHomePage(options: any): Promise<any> {
+    async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
+        const extensionPath: string = ExtensionUtil.getExtensionPath();
+        const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
+
+        panel.iconPath = panelIcon;
+    }
+
+    async getHomePage(options: any): Promise<any> {
         const templatePath: string = path.join(__dirname, '..', '..', '..', 'templates', 'HomeView.ejs');
         return await new Promise((resolve: any, reject: any): any => {
             ejs.renderFile(templatePath, options, { async: true }, (error: any, data: string) => {
@@ -90,7 +46,7 @@ export class HomeView {
         });
     }
 
-    static async getExtensionHomepage(): Promise<string> {
+    async getHTMLString(): Promise<string> {
         const packageJson: any = await ExtensionUtil.getPackageJSON();
         const extensionVersion: string = packageJson.version;
         const extensionPath: string = ExtensionUtil.getExtensionPath();
@@ -114,18 +70,19 @@ export class HomeView {
             searchLight: searchLight
         };
 
-        const repositories: any[] = await SampleView.getRepositories();
+        const repositories: any[] = await this.getRepositories();
 
         const options: any = {
             extensionVersion: extensionVersion,
-            commands: {
-                OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE
+            commands : {
+                OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE,
+                OPEN_TUTORIAL_PAGE: ExtensionCommands.OPEN_TUTORIAL_PAGE
             },
             images: images,
             repositories: repositories
         };
 
-        const homeString: string = await HomeView.getHomePage(options);
+        const homeString: string = await this.getHomePage(options);
         return homeString;
     }
 }

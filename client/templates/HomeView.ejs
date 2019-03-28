@@ -348,9 +348,14 @@
                         <div class=panel-top>
                             <p class="panel-sub-text">Get started developing, debugging and deploying your smart contracts</p>
                         </div>
-                        <div class=panel-bottom>
-                            <a class="panel-button" href="https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract">Follow tutorial</a>
-                        </div>
+                        <!-- TODO: remove this when not needed -->
+                        <% for (const repository of repositories) { %>
+                            <% for (const tutorial of repository.tutorials) { %>
+                                <div class=panel-bottom>
+                                    <a class="panel-button" href='command:<%=commands.OPEN_TUTORIAL_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,tutorial.name])); %>'>Beginner tutorial</a>
+                                </div>
+                            <% } %>
+                        <% } %>
                     </div>
                 </div>
                 <div id="content-middle-right">
@@ -381,7 +386,7 @@
                             <% for (const repository of repositories) { %>
                                 <% for (const sample of repository.samples) { %>
                                     <h3 id="sample-header">
-                                        <a href='command:<%=commands.OPEN_SAMPLE_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,sample.name])); %>'><%=sample.name%></a>
+                                        <a href='command:<%=commands.OPEN_SAMPLE_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,sample.name])); %>' title="Open <%=sample.name%> sample"><%=sample.name%></a>
                                     </h3>
                                     <h4 id="repository-name"><%=repository.name%></h4>
                                     <p id="sample-description"><%=sample.description%></p>
