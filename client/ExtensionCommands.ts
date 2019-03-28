@@ -53,6 +53,7 @@ export class ExtensionCommands {
     static readonly ADD_WALLET_IDENTITY: string = 'walletExplorer.addWalletIdentityEntry';
     static readonly EDIT_WALLET: string = 'walletExplorer.editWalletEntry';
     static readonly REMOVE_WALLET: string = 'walletExplorer.removeWalletEntry';
+    static readonly DELETE_IDENTITY: string = 'walletExplorer.deleteIdentityEntry';
 
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';
