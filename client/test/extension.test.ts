@@ -109,6 +109,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.ADD_WALLET,
             ExtensionCommands.EDIT_WALLET,
             ExtensionCommands.REMOVE_WALLET,
+            ExtensionCommands.DELETE_IDENTITY,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -154,6 +155,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.ADD_WALLET_IDENTITY}`,
             `onCommand:${ExtensionCommands.EDIT_WALLET}`,
             `onCommand:${ExtensionCommands.REMOVE_WALLET}`,
+            `onCommand:${ExtensionCommands.DELETE_IDENTITY}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);

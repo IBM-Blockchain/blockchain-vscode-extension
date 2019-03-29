@@ -78,6 +78,7 @@
             "walletExplorer.addWalletIdentityEntry",
             "walletExplorer.editWalletEntry",
             "walletExplorer.removeWalletEntry",
+            "walletExplorer.deleteIdentityEntry",
             "extensionHome.open"
         ]
     },
@@ -363,6 +364,11 @@
                 "command": "walletExplorer.removeWalletEntry",
                 "title": "Remove Wallet",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.deleteIdentityEntry",
+                "title": "Delete Identity",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -585,6 +591,10 @@
                 {
                     "command": "walletExplorer.removeWalletEntry",
                     "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
+                },
+                {
+                    "command": "walletExplorer.deleteIdentityEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-identity-item"
                 }
             ]
         },

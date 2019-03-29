@@ -94,12 +94,16 @@ describe('walletExplorer', () => {
         const blueWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[1]) as Array<IdentityTreeItem>;
         blueWalletIdentities.length.should.equal(2);
         blueWalletIdentities[0].label.should.equal('violetConga');
+        blueWalletIdentities[0].walletName.should.equal(blueWalletEntry.name);
         blueWalletIdentities[1].label.should.equal('purpleConga');
+        blueWalletIdentities[1].walletName.should.equal(blueWalletEntry.name);
 
         const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
         localWalletIdentities.length.should.equal(2);
         localWalletIdentities[0].label.should.equal('yellowConga');
+        localWalletIdentities[0].walletName.should.equal('local_wallet');
         localWalletIdentities[1].label.should.equal('orangeConga');
+        localWalletIdentities[1].walletName.should.equal('local_wallet');
 
         const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<WalletTreeItem>;
         emptyWalletIdentites.should.deep.equal([]);
