@@ -105,7 +105,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         // Populate the tree with the identity names
         for (const identityName of walletTreeItem.identities) {
-            tree.push(new IdentityTreeItem(this, identityName, undefined));
+            tree.push(new IdentityTreeItem(this, identityName, walletTreeItem.name));
         }
         return tree;
     }
