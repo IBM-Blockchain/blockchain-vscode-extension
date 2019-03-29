@@ -14,7 +14,6 @@
 'use strict';
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
@@ -28,6 +27,7 @@ import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -70,7 +70,7 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         identityName = identityNames[0];
     }
 
-    let connection: IFabricConnection;
+    let connection: IFabricClientConnection;
     if (gatewayRegistryEntry.managedRuntime) {
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
@@ -85,14 +85,13 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         }
 
         gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
-        connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         runtimeData = 'managed runtime';
-    } else {
-        const connectionData: { connectionProfilePath: string } = {
-            connectionProfilePath: gatewayRegistryEntry.connectionProfilePath
-        };
-        connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
     }
+
+    const connectionData: { connectionProfilePath: string } = {
+        connectionProfilePath: gatewayRegistryEntry.connectionProfilePath
+    };
+    connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
 
     try {
         await connection.connect(wallet, identityName);

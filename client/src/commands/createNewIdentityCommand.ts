@@ -18,11 +18,11 @@ import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/Certificate
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -53,7 +53,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         return;
     }
 
-    let connection: IFabricConnection;
+    let connection: IFabricRuntimeConnection;
 
     try {
         const mspid: string = 'Org1MSP';

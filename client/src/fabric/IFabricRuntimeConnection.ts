@@ -17,7 +17,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
-export interface IFabricConnection {
+export interface IFabricRuntimeConnection {
 
     identityName: string;
 

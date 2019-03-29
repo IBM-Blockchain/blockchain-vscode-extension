@@ -15,12 +15,12 @@
 import * as vscode from 'vscode';
 import { FabricRuntime, FabricRuntimeState } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { IFabricConnection } from './IFabricConnection';
 import { FabricConnectionFactory } from './FabricConnectionFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
+import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 
 export class FabricRuntimeManager {
 
@@ -36,14 +36,14 @@ export class FabricRuntimeManager {
 
     private runtime: FabricRuntime;
 
-    private connection: IFabricConnection;
+    private connection: IFabricRuntimeConnection;
 
-    private connectingPromise: Promise<IFabricConnection>;
+    private connectingPromise: Promise<IFabricRuntimeConnection>;
 
     private constructor() {
     }
 
-    public async getConnection(): Promise<IFabricConnection> {
+    public async getConnection(): Promise<IFabricRuntimeConnection> {
         if (this.connectingPromise) {
             return this.connectingPromise;
         }
@@ -52,7 +52,7 @@ export class FabricRuntimeManager {
             return this.connection;
         }
 
-        this.connectingPromise = this.getConnectionInner().then((connection: IFabricConnection) => {
+        this.connectingPromise = this.getConnectionInner().then((connection: IFabricRuntimeConnection) => {
             this.connectingPromise = undefined;
             return connection;
         });
@@ -189,7 +189,7 @@ export class FabricRuntimeManager {
         return ports;
     }
 
-    private async getConnectionInner(): Promise<IFabricConnection> {
+    private async getConnectionInner(): Promise<IFabricRuntimeConnection> {
         const identityName: string = 'Admin@org1.example.com';
         const mspid: string = 'Org1MSP';
         const enrollmentID: string = 'admin';
@@ -207,7 +207,7 @@ export class FabricRuntimeManager {
             }
         });
 
-        const connection: IFabricConnection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
+        const connection: IFabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
 
         // our secret wallet

@@ -12,14 +12,14 @@
  * limitations under the License.
 */
 'use strict';
-import {IFabricConnection} from '../fabric/IFabricConnection';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 // Functions for parsing metadata object
 export class MetadataUtil {
 
-    public static async getTransactionNames(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]> | null> {
+    public static async getTransactionNames(connection: IFabricClientConnection, instantiatedChaincodeName: string, channelName: string): Promise<Map<string, string[]> | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
         if (!metadataTransactions) {
             return null;
@@ -36,7 +36,7 @@ export class MetadataUtil {
         return transactionNames;
     }
 
-    public static async getContractNames(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[] | null> {
+    public static async getContractNames(connection: IFabricClientConnection, instantiatedChaincodeName: string, channelName: string): Promise<string[] | null> {
         const metadataTransactions: Map<string, any[]> = await this.getTransactions(connection, instantiatedChaincodeName, channelName);
         if (!metadataTransactions) {
             return null;
@@ -51,7 +51,7 @@ export class MetadataUtil {
 
     }
 
-    public static async getTransactions(connection: IFabricConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]> | null> {
+    public static async getTransactions(connection: IFabricClientConnection, instantiatedChaincodeName: string, channelName: string, checkForEmpty?: boolean): Promise<Map<string, any[]> | null> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let metadataObj: any = {
