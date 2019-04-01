@@ -39,7 +39,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         // Determine the directory that will contain the packages and ensure it exists.
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const pkgDir: string = path.join(extDir, 'packages');
-        resolvedPkgDir = await UserInputUtil.getDirPath(pkgDir);
+        resolvedPkgDir = UserInputUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
         // Choose the workspace directory.

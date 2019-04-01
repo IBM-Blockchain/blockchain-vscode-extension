@@ -42,7 +42,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
     try {
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const pkgDir: string = path.join(extDir, 'packages');
-        let resolvedPkgDir: string = await UserInputUtil.getDirPath(pkgDir);
+        let resolvedPkgDir: string = UserInputUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
         const packageName: string = path.basename(packagePath);
