@@ -29,7 +29,7 @@ import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../src/fabric/FabricWalletRegistryEntry';
 import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
-import { IFabricConnection } from '../src/fabric/IFabricConnection';
+import { IFabricClientConnection } from '../src/fabric/IFabricClientConnection';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -170,7 +170,7 @@ export class IntegrationTestUtil {
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
 
-        const fabricConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+        const fabricConnection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
         should.exist(fabricConnection);
     }
 

@@ -16,7 +16,6 @@
 import * as Client from 'fabric-client';
 import * as ClientCA from 'fabric-ca-client';
 import { Gateway, Network, Contract, GatewayOptions, FileSystemWallet, IdentityInfo } from 'fabric-network';
-import { IFabricConnection } from './IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
 import { LogType, OutputAdapter } from '../logging/OutputAdapter';
@@ -25,7 +24,7 @@ import { FabricWallet } from './FabricWallet';
 import { URL } from 'url';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
-export abstract class FabricConnection implements IFabricConnection {
+export abstract class FabricConnection {
 
     public identityName: string;
     public wallet: FabricWalletRegistryEntry;

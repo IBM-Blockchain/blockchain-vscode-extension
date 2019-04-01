@@ -19,7 +19,6 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
@@ -31,6 +30,8 @@ import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -167,7 +168,7 @@ export class UserInputUtil {
     }
 
     public static async showPeerQuickPickBox(prompt: string): Promise<string | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const peerNames: Array<string> = connection.getAllPeerNames();
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -180,7 +181,7 @@ export class UserInputUtil {
     }
 
     public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Set<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
 
         // Get all installed smart contracts
@@ -395,7 +396,7 @@ export class UserInputUtil {
 
     public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
         let channels: Array<string> = [];
         if (!channelName) {
@@ -451,7 +452,7 @@ export class UserInputUtil {
 
     public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, contract: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        const connection: IFabricConnection = fabricConnectionManager.getConnection();
+        const connection: IFabricClientConnection = fabricConnectionManager.getConnection();
 
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'No connection to a blockchain found');
@@ -490,7 +491,7 @@ export class UserInputUtil {
 
     public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         // Get connection
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
         const quickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         // Get packaged contracts
@@ -592,7 +593,7 @@ export class UserInputUtil {
     }
 
     public static async showCertificateAuthorityQuickPickBox(prompt: string): Promise<string | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const caNameOption: string = connection.getCertificateAuthorityName();
         const caNames: string[] = [caNameOption];
 
@@ -706,7 +707,7 @@ export class UserInputUtil {
     }
 
     private static async getChannels(): Promise<Array<IBlockchainQuickPickItem<Set<string>>>> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
         const quickPickItems: Array<IBlockchainQuickPickItem<Set<string>>> = [];
         const peerNames: Array<string> = connection.getAllPeerNames();
@@ -728,7 +729,7 @@ export class UserInputUtil {
         return quickPickItems;
     }
 
-    private static async getInstalledContracts(connection: IFabricConnection, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
+    private static async getInstalledContracts(connection: IFabricRuntimeConnection, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         for (const peer of peers) {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);

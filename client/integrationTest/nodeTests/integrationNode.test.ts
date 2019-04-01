@@ -27,7 +27,6 @@ import { TestUtil } from '../../test/TestUtil';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { IFabricConnection } from '../../src/fabric/IFabricConnection';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { IntegrationTestUtil } from '../integrationTestUtil';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
@@ -42,6 +41,7 @@ import { CommandUtil } from '../../src/util/CommandUtil';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { IFabricClientConnection } from '../../src/fabric/IFabricClientConnection';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -362,7 +362,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await integrationTestUtil.packageSmartContract();
 
-                const fabricConnection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+                const fabricConnection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
                 should.exist(fabricConnection);
 
                 const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
@@ -471,7 +471,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
         }
         openFileNameArray.includes(pathToTestFile).should.be.true;
         // Get the smart contract metadata
-        const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+        const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
         const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, smartContractName, 'mychannel');
         let smartContractTransactionsArray: string[];
         let contractName: string = '';

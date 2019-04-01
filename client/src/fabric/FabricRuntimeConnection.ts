@@ -17,8 +17,9 @@ import { FabricConnection } from './FabricConnection';
 import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { FabricWallet } from '../fabric/FabricWallet';
+import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 
-export class FabricRuntimeConnection extends FabricConnection {
+export class FabricRuntimeConnection extends FabricConnection implements IFabricRuntimeConnection {
 
     constructor(private runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
         super(outputAdapter);

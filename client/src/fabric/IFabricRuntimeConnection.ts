@@ -17,7 +17,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
-export interface IFabricConnection {
+export interface IFabricRuntimeConnection {
 
     identityName: string;
 
@@ -25,15 +25,11 @@ export interface IFabricConnection {
 
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
-    createChannelMap(): Promise<Map<string, Array<string>>>;
-
     disconnect(): void;
 
     getAllPeerNames(): Array<string>;
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
-
-    getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
 
     getOrganizations(channelName: string): Promise<Array<string>>;
 

@@ -13,12 +13,12 @@
 */
 'use strict';
 import { OutputAdapter } from '../logging/OutputAdapter';
-import { IFabricConnection } from './IFabricConnection';
 import { FabricConnection } from './FabricConnection';
 import { FabricWallet } from './FabricWallet';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { IFabricClientConnection } from './IFabricClientConnection';
 
-export class FabricClientConnection extends FabricConnection implements IFabricConnection {
+export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
 
     private connectionProfilePath: string;
 
