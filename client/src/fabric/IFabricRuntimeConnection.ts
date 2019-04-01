@@ -47,13 +47,8 @@ export interface IFabricRuntimeConnection {
 
     upgradeChaincode(chaincodeName: string, version: string, channel: string, fcn: string, args: Array<string>): Promise<void>;
 
-    isIBPConnection(): boolean;
-
-    getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
-
-    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined>;
-
     enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
 
     register(enrollmentID: string, affiliation: string): Promise<string>;
+
 }
