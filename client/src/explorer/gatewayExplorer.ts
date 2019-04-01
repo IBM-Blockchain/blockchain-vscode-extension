@@ -29,7 +29,6 @@ import { ContractTreeItem } from './model/ContractTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -159,27 +158,24 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         const allGateways: FabricGatewayRegistryEntry[] = this.fabricGatewayRegistry.getAll();
 
         try {
-            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+            const runtimeGateways: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            for (const runtimeGateway of runtimeGateways) {
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT,
+                    title: '',
+                    arguments: [runtimeGateway]
+                };
 
-            const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            gateway.name = runtime.getName();
-            gateway.managedRuntime = true;
+                const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
+                    this,
+                    runtimeGateway.name,
+                    runtimeGateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    command
+                );
 
-            const command: vscode.Command = {
-                command: ExtensionCommands.CONNECT,
-                title: '',
-                arguments: [gateway]
-            };
-
-            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
-                this,
-                gateway.name,
-                gateway,
-                vscode.TreeItemCollapsibleState.None,
-                command
-            );
-
-            tree.push(treeItem);
+                tree.push(treeItem);
+            }
 
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating Blockchain Explorer View: ${error.message}`, `Error populating Blockchain Explorer View: ${error.toString()}`);

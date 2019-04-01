@@ -84,7 +84,6 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
             }
         }
 
-        gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
         runtimeData = 'managed runtime';
     }
 

@@ -25,6 +25,8 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
 import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 
@@ -447,4 +449,18 @@ describe('FabricRuntimeManager', () => {
         });
 
     });
+
+    describe('#getGatewayRegistryEntries', () => {
+
+        it('should return an array of gateway registry entires', async () => {
+            const registryEntries: FabricGatewayRegistryEntry[] = await runtimeManager.getGatewayRegistryEntries();
+            registryEntries.should.have.lengthOf(1);
+            registryEntries[0].name.should.equal('local_fabric');
+            registryEntries[0].managedRuntime.should.be.true;
+            const connectionProfilePath: string = UserInputUtil.getDirPath('~/.fabric-vscode/local_fabric/connection.json');
+            registryEntries[0].connectionProfilePath.should.equal(connectionProfilePath);
+        });
+
+    });
+
 });
