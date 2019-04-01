@@ -24,6 +24,8 @@ export interface IFabricClientConnection {
 
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
+    createChannelMap(): Promise<Map<string, Array<string>>>;
+
     disconnect(): void;
 
     getAllPeerNames(): Array<string>;

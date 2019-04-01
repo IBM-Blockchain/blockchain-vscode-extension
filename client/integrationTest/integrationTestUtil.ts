@@ -66,7 +66,7 @@ export class IntegrationTestUtil {
     public showPeerQuickPickStub: sinon.SinonStub;
     public showInstallableStub: sinon.SinonStub;
     public showChannelStub: sinon.SinonStub;
-    public showChanincodeAndVersionStub: sinon.SinonStub;
+    public showChaincodeAndVersionStub: sinon.SinonStub;
     public showInstantiatedSmartContractsStub: sinon.SinonStub;
     public showTransactionStub: sinon.SinonStub;
     public workspaceConfigurationUpdateStub: sinon.SinonStub;
@@ -96,7 +96,7 @@ export class IntegrationTestUtil {
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
         this.showInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
-        this.showChanincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
+        this.showChaincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
         this.showTransactionStub = this.mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
@@ -268,7 +268,12 @@ export class IntegrationTestUtil {
     }
 
     public async instantiateSmartContract(name: string, version: string, transaction: string = 'instantiate', args: string = ''): Promise<void> {
-        this.showChannelStub.resolves('mychannel');
+        this.showChannelStub.resolves({
+            label: 'mychannel',
+            data: {
+                mychannel: ['peer0.org1.example.com']
+            }
+        });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
@@ -276,7 +281,7 @@ export class IntegrationTestUtil {
             return packageEntry.name === name && packageEntry.version === version;
         });
 
-        this.showChanincodeAndVersionStub.resolves({
+        this.showChaincodeAndVersionStub.resolves({
             label: `${name}@${version}`,
             description: 'Installed',
             data: {
@@ -299,7 +304,7 @@ export class IntegrationTestUtil {
             return packageEntry.name === name && packageEntry.version === version;
         });
 
-        this.showChanincodeAndVersionStub.resolves({
+        this.showChaincodeAndVersionStub.resolves({
             label: `${name}@${version}`,
             description: 'Installed',
             data: {

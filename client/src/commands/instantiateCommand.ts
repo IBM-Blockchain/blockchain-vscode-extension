@@ -28,7 +28,7 @@ import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
     let channelName: string;
-    let peers: Set<string>;
+    let peers: Array<string>;
     let packageEntry: PackageRegistryEntry;
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -37,7 +37,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         // If clicked on runtime channel
         const channelTreeItem: ChannelTreeItem = treeItem as ChannelTreeItem;
         channelName = channelTreeItem.label;
-        peers = new Set(channelTreeItem.peers);
+        peers = channelTreeItem.peers;
     } else {
         // Called from command palette or Instantiated runtime tree item
         const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
@@ -50,7 +50,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             }
         }
 
-        const chosenChannel: IBlockchainQuickPickItem<Set<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
+        const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
         if (!chosenChannel) {
             return;
         }

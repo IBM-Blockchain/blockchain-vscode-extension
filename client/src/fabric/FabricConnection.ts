@@ -393,6 +393,66 @@ export abstract class FabricConnection {
         return secret;
     }
 
+    public async createChannelMap(): Promise<Map<string, Array<string>>> {
+        console.log('createChannelMap');
+        try {
+            const allPeerNames: Array<string> = this.getAllPeerNames();
+
+            const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+
+            for (const peer of allPeerNames) {
+                const channels: Array<string> = await this.getAllChannelsForPeer(peer);
+                channels.forEach((channelName: string) => {
+                    let peers: Array<string> = channelMap.get(channelName);
+                    if (peers) {
+                        peers.push(peer);
+                        channelMap.set(channelName, peers);
+                    } else {
+                        peers = [peer];
+                        channelMap.set(channelName, peers);
+                    }
+                });
+            }
+
+            return channelMap;
+
+        } catch (error) {
+            if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
+                throw new Error(`Cannot connect to Fabric: ${error.message}`);
+            } else {
+                throw new Error(`Error creating channel map: ${error.message}`);
+            }
+        }
+    }
+
+    public async getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>> {
+
+        try {
+            const channelMap: Map<string, Array<string>> = await this.createChannelMap();
+            const channels: Array<string> = Array.from(channelMap.keys());
+
+            const chaincodes: Array<{name: string, version: string}> = []; // We can change the array type if we need more detailed chaincodes in future
+
+            for (const channel of channels) {
+                const channelChaincodes: Array<{name: string, version: string}> = await this.getInstantiatedChaincode(channel); // Returns channel chaincodes
+                for (const chaincode of channelChaincodes) { // For each channel chaincodes, push it to the 'chaincodes' array if it doesn't exist
+
+                    const alreadyExists: boolean = chaincodes.some((_chaincode: {name: string, version: string}) => {
+                        return _chaincode.name === chaincode.name && _chaincode.version === chaincode.version;
+                    });
+                    if (!alreadyExists) {
+                        chaincodes.push(chaincode);
+                    }
+                }
+            }
+
+            return chaincodes;
+        } catch (error) {
+            throw new Error(`Could not get all instantiated chaincodes: ${error}`);
+        }
+
+    }
+
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);

@@ -25,11 +25,15 @@ export interface IFabricRuntimeConnection {
 
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
+    createChannelMap(): Promise<Map<string, Array<string>>>;
+
     disconnect(): void;
 
     getAllPeerNames(): Array<string>;
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
+
+    getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
 
     getOrganizations(channelName: string): Promise<Array<string>>;
 
