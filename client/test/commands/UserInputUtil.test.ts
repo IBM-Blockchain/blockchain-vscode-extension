@@ -40,7 +40,7 @@ chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
-describe('userInputUtil', () => {
+describe('UserInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let quickPickStub: sinon.SinonStub;
@@ -197,6 +197,8 @@ describe('userInputUtil', () => {
             const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             managedRuntime.name = 'local_fabric';
             managedRuntime.managedRuntime = true;
+            const connectionProfilePath: string = UserInputUtil.getDirPath('~/.fabric-vscode/local_fabric/connection.json');
+            managedRuntime.connectionProfilePath = connectionProfilePath;
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true);

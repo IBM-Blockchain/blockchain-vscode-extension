@@ -21,6 +21,7 @@ import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
+import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 
 export class FabricRuntimeManager {
 
@@ -89,6 +90,16 @@ export class FabricRuntimeManager {
             this.runtime.developmentMode = false;
             await this.runtime.updateUserSettings();
         }
+    }
+
+    public async getGatewayRegistryEntries(): Promise<FabricGatewayRegistryEntry[]> {
+        const runtime: FabricRuntime = this.getRuntime();
+        const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            name: runtime.getName(),
+            managedRuntime: true,
+            connectionProfilePath: runtime.getConnectionProfilePath()
+        });
+        return [registryEntry];
     }
 
     private readRuntimeUserSettings(): any {

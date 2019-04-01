@@ -30,6 +30,7 @@ import { ExtensionCommands } from '../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../src/fabric/FabricWalletRegistryEntry';
 import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
 import { IFabricClientConnection } from '../src/fabric/IFabricClientConnection';
+import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -148,6 +149,7 @@ export class IntegrationTestUtil {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = name;
             gatewayEntry.managedRuntime = true;
+            gatewayEntry.connectionProfilePath = FabricRuntimeManager.instance().getRuntime().getConnectionProfilePath();
         }
 
         let walletEntry: FabricWalletRegistryEntry;

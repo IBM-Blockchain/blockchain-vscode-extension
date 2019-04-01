@@ -159,7 +159,7 @@ export class FabricRuntime extends EventEmitter {
         return connectionProfile;
     }
 
-    public async getConnectionProfilePath(): Promise<string> {
+    public getConnectionProfilePath(): string {
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
         const dir: string = path.join(homeExtDir, this.name);
