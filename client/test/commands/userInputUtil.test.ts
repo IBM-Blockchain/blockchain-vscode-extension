@@ -23,7 +23,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import * as fs from 'fs-extra';
@@ -35,6 +34,7 @@ import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -54,7 +54,7 @@ describe('userInputUtil', () => {
     let walletEntryTwo: FabricWalletRegistryEntry;
 
     let getConnectionStub: sinon.SinonStub;
-    let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let fabricConnectionStub: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -146,7 +146,7 @@ describe('userInputUtil', () => {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
-        fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
+        fabricConnectionStub = sinon.createStubInstance(FabricRuntimeConnection);
         fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerOne').resolves(['channelOne']);
@@ -158,7 +158,7 @@ describe('userInputUtil', () => {
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
         fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
-        fabricConnectionStub.getCertificateAuthorityName.resolves('ca.example.cake.com');
+        fabricConnectionStub.getAllCertificateAuthorityNames.resolves('ca.example.cake.com');
 
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
 
