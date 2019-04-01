@@ -161,7 +161,7 @@ export class FabricRuntime extends EventEmitter {
 
     public async getConnectionProfilePath(): Promise<string> {
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
         const dir: string = path.join(homeExtDir, this.name);
 
         return path.join(dir, 'connection.json');
@@ -243,7 +243,7 @@ export class FabricRuntime extends EventEmitter {
         const connectionProfile: string = JSON.stringify(connectionProfileObj, null, 4);
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
 
         if (!dir) {
             dir = path.join(homeExtDir, this.name);
@@ -265,7 +265,7 @@ export class FabricRuntime extends EventEmitter {
     public async deleteConnectionDetails(outputAdapter: OutputAdapter): Promise<void> {
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
         const runtimePath: string = path.join(homeExtDir, this.name);
         // TODO: hardcoded name
         const walletPath: string = path.join(homeExtDir, 'local_wallet');

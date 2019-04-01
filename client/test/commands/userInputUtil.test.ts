@@ -632,15 +632,15 @@ describe('userInputUtil', () => {
     });
 
     describe('getDirPath', () => {
-        it('should replace ~ with the users home directory', async () => {
+        it('should replace ~ with the users home directory', () => {
             const packageDirOriginal: string = '~/smartContractDir';
-            const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
+            const packageDirNew: string = UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.not.contain('~');
         });
 
-        it('should not replace if not ~', async () => {
+        it('should not replace if not ~', () => {
             const packageDirOriginal: string = '/banana/smartContractDir';
-            const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
+            const packageDirNew: string = UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.equal(packageDirOriginal);
         });
     });

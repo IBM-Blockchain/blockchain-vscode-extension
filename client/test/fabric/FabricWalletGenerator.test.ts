@@ -36,7 +36,7 @@ describe('FabricWalletGenerator', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            mySandBox.stub(UserInputUtil, 'getDirPath').resolves(path.join(rootPath, '../../test/data/walletDir'));
+            mySandBox.stub(UserInputUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/walletDir'));
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
         });

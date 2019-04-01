@@ -200,7 +200,7 @@ describe('FabricRuntime', () => {
         getVolumeStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsVolume);
 
         runtimeDir = path.join(rootPath, '..', 'data');
-        sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
+        sandbox.stub(UserInputUtil, 'getDirPath').returns(runtimeDir);
         ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
         writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
         removeStub = sandbox.stub(fs, 'remove').resolves();

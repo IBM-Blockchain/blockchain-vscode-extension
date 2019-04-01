@@ -143,7 +143,7 @@ describe('DeleteGatewayCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGatewayC')
             });
 
-            const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves('fabric-vscode');
+            const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').returns('fabric-vscode');
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
