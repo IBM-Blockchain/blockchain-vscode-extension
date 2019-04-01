@@ -37,8 +37,6 @@ import { InstantiateCommandTreeItem } from './runtimeOps/InstantiateCommandTreeI
 import { InstallCommandTreeItem } from './runtimeOps/InstallCommandTreeItem';
 import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { MetadataUtil } from '../util/MetadataUtil';
-import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
@@ -305,12 +303,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 const peers: Array<string> = channelMap.get(channel);
                 const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None);
                 for (const chaincode of chaincodes) {
-                    const transactions: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincode.name, channel);
-                    if (!transactions) {
-                        tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
-                    } else {
-                        tree.push(new InstantiatedContractTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
-                    }
+                    // Doesn't matter if this is a chaincode or a contract as this is the ops view, and
+                    // we shouldn't be exposing contracts or transaction functions in the ops view.
+                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
                 }
             }
         } catch (error) {
