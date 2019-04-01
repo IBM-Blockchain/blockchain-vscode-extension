@@ -240,7 +240,7 @@ describe('runtimeOpsExplorer', () => {
                     }
                 ]);
 
-                fabricConnection.getOrderers.resolves(new Set(['orderer1']));
+                fabricConnection.getAllOrdererNames.resolves(['orderer1']);
 
                 blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
@@ -301,8 +301,8 @@ describe('runtimeOpsExplorer', () => {
                 channelTwo.label.should.equal('channelTwo');
             });
 
-            it('should show peers (nodes) correctly', async () => {
-                fabricConnection.getCertificateAuthorityName.returns('ca-name');
+            it('should show peers, certificate authorities, and orderer nodes correctly', async () => {
+                fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);

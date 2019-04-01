@@ -76,7 +76,8 @@ describe('InstallCommand', () => {
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.installChaincode.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map<string, Array<string>>());
-            fabricRuntimeMock.getOrderers.resolves(new Set(['orderer1']));
+            fabricRuntimeMock.getAllOrdererNames.resolves(['orderer1']);
+            fabricRuntimeMock.getAllCertificateAuthorityNames.returns(['ca1']);
 
             const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
             getRuntimeConnectionStub = mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves((fabricRuntimeMock as any));

@@ -33,13 +33,13 @@ export interface IFabricRuntimeConnection {
 
     getOrganizations(channelName: string): Promise<Array<string>>;
 
-    getCertificateAuthorityName(): string;
+    getAllCertificateAuthorityNames(): Array<string>;
 
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
 
-    getOrderers(): Promise<Set<string>>;
+    getAllOrdererNames(): Promise<Array<string>>;
 
     installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
 
