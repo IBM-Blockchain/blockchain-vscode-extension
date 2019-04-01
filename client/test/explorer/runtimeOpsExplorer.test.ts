@@ -134,7 +134,7 @@ describe('runtimeOpsExplorer', () => {
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
-
+                fabricConnection.createChannelMap.callThrough();
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
@@ -149,6 +149,7 @@ describe('runtimeOpsExplorer', () => {
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
+                fabricConnection.createChannelMap.callThrough();
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
@@ -162,13 +163,15 @@ describe('runtimeOpsExplorer', () => {
                 const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws('an error with no message');
+                const error: Error = new Error('an error with no message');
+                fabricConnection.getAllChannelsForPeer.throws(error);
+                fabricConnection.createChannelMap.callThrough();
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
 
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating organizations view: an error with no message', 'Error populating organizations view: Error: an error with no message');
+                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating organizations view: Error creating channel map: an error with no message', 'Error populating organizations view: Error: Error creating channel map: an error with no message');
             });
 
             it('should error if populating nodes view fails', async () => {
@@ -246,6 +249,11 @@ describe('runtimeOpsExplorer', () => {
                 ]);
 
                 fabricConnection.getOrderers.resolves(new Set(['orderer1']));
+
+                const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+                map.set('channelOne', ['peerOne']);
+                map.set('channelTwo', ['peerOne', 'peerTwo']);
+                fabricConnection.createChannelMap.resolves(map);
 
                 blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();

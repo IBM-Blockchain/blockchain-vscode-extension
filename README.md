@@ -159,9 +159,10 @@ Debugging your smart contract allows you to run through the smart contract trans
 3. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
 5. Package and install the smart contract by clicking the **play** button.
-6. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
-7. Click **Instantiate** in the `Local Fabric Ops` panel. In the `Fabric Gateways` panel, you can now right click on transactions to submit them, execution will be paused on any breakpoints you've defined.
-8. To submit or evaluate a transaction click the blockchain icon on the debug toolbar.
+6. Select whether to `Create a new debug package and install` or `Resume from a previous debug session`.
+7. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
+8. If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
+9. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 

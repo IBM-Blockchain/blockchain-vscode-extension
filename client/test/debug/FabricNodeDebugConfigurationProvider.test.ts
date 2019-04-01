@@ -27,6 +27,7 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -68,7 +69,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mySandbox = sinon.createSandbox();
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
             date = new Date();
-            formattedDate = dateFormat(date, 'yyyymmddHHMM');
+            formattedDate = dateFormat(date, 'yyyymmddHHMMss');
             fabricDebugConfig = new FabricNodeDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -130,6 +131,12 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
+
+            mySandbox.stub(UserInputUtil, 'packageAndInstallQuestion').resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
         });
 
         afterEach(() => {
