@@ -66,7 +66,7 @@ describe('createNewIdentityCommand', () => {
         const testFabricWallet: FabricWallet = new FabricWallet('/some/path');
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-        runtimeManager.gatewayWallet = testFabricWallet as IFabricWallet;
+        runtimeManager.runtimeWallet = testFabricWallet as IFabricWallet;
 
         mockFabricRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
         mockFabricRuntimeConnection.connect.resolves();
@@ -106,11 +106,9 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
         importIdentityStub.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -127,11 +125,9 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub.should.have.been.calledOnce;
         caChoseStub.should.not.have.been.called;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
         importIdentityStub.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -153,11 +149,9 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub.should.have.been.calledTwice;
         walletExistsStub.getCall(0).should.have.been.calledWith(identityName);
         walletExistsStub.getCall(1).should.have.been.calledWith(secondIdentityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledTwice;
         mockFabricRuntimeConnection.register.should.have.been.calledTwice;
         mockFabricRuntimeConnection.enroll.should.have.been.calledTwice;
         importIdentityStub.should.have.been.calledTwice;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledTwice;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -180,11 +174,9 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
         importIdentityStub.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.START_FABRIC);
         executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -247,7 +239,6 @@ describe('createNewIdentityCommand', () => {
 
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         importIdentityStub.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;

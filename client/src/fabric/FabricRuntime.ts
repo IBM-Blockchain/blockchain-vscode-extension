@@ -28,10 +28,10 @@ import * as request from 'request';
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
 const basicNetworkConnectionProfile: string = JSON.parse(fs.readFileSync(basicNetworkConnectionProfilePath).toString());
-const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
-const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'msp/signcerts/Admin@org1.example.com-cert.pem');
+const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'admin-msp');
+const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'signcerts/cert.pem');
 const basicNetworkAdminCertificate: string = fs.readFileSync(basicNetworkAdminCertificatePath, 'utf8');
-const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
+const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'keystore/a2784adae3a2078eae7f24c9135dfd7479101d634e2466e093a3668a6d850707_sk');
 const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
 
 export enum FabricRuntimeState {
@@ -269,13 +269,10 @@ export class FabricRuntime extends EventEmitter {
         const runtimePath: string = path.join(homeExtDir, this.name);
         // TODO: hardcoded name
         const walletPath: string = path.join(homeExtDir, 'local_wallet');
-        // Need to remove the secret wallet as well
-        const secretRuntimePath: string = path.join(homeExtDir, 'local_wallet' + '-ops');
 
         try {
             await fs.remove(runtimePath);
             await fs.remove(walletPath);
-            await fs.remove(secretRuntimePath);
         } catch (error) {
             if (!error.message.includes('ENOENT: no such file or directory')) {
                 outputAdapter.log(LogType.ERROR, `Error removing runtime connection details: ${error.message}`, `Error removing runtime connection details: ${error.toString()}`);

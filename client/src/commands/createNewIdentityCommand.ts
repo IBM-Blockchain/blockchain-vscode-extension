@@ -20,8 +20,6 @@ import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
-import { FabricRuntime } from '../fabric/FabricRuntime';
-import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
@@ -53,41 +51,30 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         return;
     }
 
-    let connection: IFabricRuntimeConnection;
-
     try {
         const mspid: string = 'Org1MSP';
-        const adminName: string = 'Admin@org1.example.com';
         const affiliation: string = 'org1.department1'; // Currently works for org1.department1, org1.department2
         // check to see if identity of same name exists
-        const wallet: IFabricWallet = FabricRuntimeManager.instance().gatewayWallet;
+        const wallet: IFabricWallet = FabricRuntimeManager.instance().runtimeWallet;
         const identityExists: boolean = await wallet.exists(identityName);
         if (identityExists) {
             outputAdapter.log(LogType.ERROR, `An identity called ${identityName} already exists in the runtime wallet`, `An identity called ${identityName} already exists in the runtime wallet`);
             return;
         }
 
-        const runtime: FabricRuntime = await FabricRuntimeManager.instance().getRuntime();
-        connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
-        // Connect and then register the user
-        await connection.connect(wallet, adminName);
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        // Register the user
         const secret: string = await connection.register(identityName, affiliation);
 
         // Enroll the user
         const details: { certificate: string, privateKey: string } = await connection.enroll(identityName, secret);
 
-        // Import the new identity to the gateway wallet (no -ops in the name)
+        // Import the new identity to the runtime wallet
         await wallet.importIdentity(details.certificate, details.privateKey, identityName, mspid);
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
         outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
-
-        await connection.disconnect();
-        return;
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating new identity: ${error.message}`, `Issue creating new identity: ${error.toString()}`);
-
-        await connection.disconnect();
-        return;
     }
 }

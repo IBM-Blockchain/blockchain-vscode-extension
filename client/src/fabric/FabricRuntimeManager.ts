@@ -33,7 +33,7 @@ export class FabricRuntimeManager {
 
     private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
-    public gatewayWallet: IFabricWallet; // Used to enroll admin and other identities (registered with ca)
+    public runtimeWallet: IFabricWallet; // Used to enroll admin and other identities (registered with ca)
 
     private runtime: FabricRuntime;
 
@@ -203,8 +203,6 @@ export class FabricRuntimeManager {
     private async getConnectionInner(): Promise<IFabricRuntimeConnection> {
         const identityName: string = 'Admin@org1.example.com';
         const mspid: string = 'Org1MSP';
-        const enrollmentID: string = 'admin';
-        const enrollmentSecret: string = 'adminpw';
 
         const runtime: FabricRuntime = this.getRuntime();
         // register for events to disconnect
@@ -221,8 +219,8 @@ export class FabricRuntimeManager {
         const connection: IFabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
 
-        // our secret wallet
-        const runtimeWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet('local_wallet' + '-ops');
+        const runtimeWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet('local_wallet');
+        this.runtimeWallet = runtimeWallet;
 
         const adminExists: boolean = await runtimeWallet.exists(identityName);
 
@@ -233,17 +231,6 @@ export class FabricRuntimeManager {
         }
 
         await connection.connect(runtimeWallet, identityName);
-
-        // enroll a user
-        const gatewayWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet('local_wallet');
-        this.gatewayWallet = gatewayWallet;
-
-        const otherAdminExists: boolean = await gatewayWallet.exists(identityName);
-
-        if (!otherAdminExists) {
-            const enrollment: { certificate: string, privateKey: string } = await connection.enroll(enrollmentID, enrollmentSecret);
-            await gatewayWallet.importIdentity(enrollment.certificate, enrollment.privateKey, identityName, mspid);
-        }
 
         const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
         await runtime.startLogs(outputAdapter);
