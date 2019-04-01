@@ -24,7 +24,6 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
@@ -65,9 +64,7 @@ export class UserInputUtil {
     static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
 
-    public static showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
-        const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
-
+    public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
@@ -76,16 +73,13 @@ export class UserInputUtil {
 
         const allGateways: Array<FabricGatewayRegistryEntry> = [];
 
-        let connection: FabricGatewayRegistryEntry;
         if (showManagedRuntime) {
             // Allow users to choose local_fabric
-            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-            connection = new FabricGatewayRegistryEntry();
-            connection.name = runtime.getName();
-            connection.managedRuntime = true;
-            allGateways.push(connection);
+            const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            allGateways.push(...runtimeGateways);
         }
 
+        const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
         allGateways.push(...gateways);
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {

@@ -229,6 +229,7 @@ describe('gatewayExplorer', () => {
                 mockRuntime.getName.returns('local_fabric');
                 mockRuntime.isBusy.returns(false);
                 mockRuntime.isRunning.resolves(true);
+                mockRuntime.getConnectionProfilePath.returns('connection.json');
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
@@ -240,6 +241,7 @@ describe('gatewayExplorer', () => {
                 const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 gateway.name = 'local_fabric';
                 gateway.managedRuntime = true;
+                gateway.connectionProfilePath = 'connection.json';
                 const myCommand: vscode.Command = {
                     command: ExtensionCommands.CONNECT,
                     title: '',
