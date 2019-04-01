@@ -39,7 +39,6 @@ import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
-import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from '../../src/explorer/runtimeOps/OrdererTreeItem';
 
@@ -468,14 +467,14 @@ describe('runtimeOpsExplorer', () => {
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
                 const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 instantiatedChaincodes.length.should.equal(4);
-                const instantiatedChaincodeOne: InstantiatedContractTreeItem = instantiatedChaincodes[0] as InstantiatedContractTreeItem;
+                const instantiatedChaincodeOne: InstantiatedChaincodeTreeItem = instantiatedChaincodes[0] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-contract-item');
+                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedChaincodeOne.label.should.equal('biscuit-network@0.7');
                 instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne');
-                const instantiatedChaincodeTwo: InstantiatedContractTreeItem = instantiatedChaincodes[1] as InstantiatedContractTreeItem;
+                const instantiatedChaincodeTwo: InstantiatedChaincodeTreeItem = instantiatedChaincodes[1] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-contract-item');
+                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedChaincodeTwo.label.should.equal('cake-network@0.10');
                 instantiatedChaincodeTwo.tooltip.should.equal('Instantiated on: channelTwo');
                 const instantiatedChaincodeThree: InstantiatedChaincodeTreeItem = instantiatedChaincodes[2] as InstantiatedChaincodeTreeItem;
