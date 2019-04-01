@@ -862,7 +862,7 @@ describe('FabricConnection', () => {
             fabricClientStub.getCertificateAuthority.returns({
                 getCaName: mySandBox.stub().returns('ca-name')
             });
-            fabricConnection.getCertificateAuthorityName().should.equal('ca-name');
+            fabricConnection.getAllCertificateAuthorityNames().should.deep.equal(['ca-name']);
         });
     });
     describe('getOrderers', () => {
@@ -887,9 +887,8 @@ describe('FabricConnection', () => {
             const getAllChannelsForPeer: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeer.withArgs('peerOne').resolves(['channel1']);
             getAllChannelsForPeer.withArgs('peerTwo').resolves(['channel2']);
-            const orderers: Set<string> = await fabricConnection.getOrderers();
-            orderers.has('orderer1').should.equal(true);
-            orderers.has('orderer2').should.equal(true);
+            const orderers: Array<string> = await fabricConnection.getAllOrdererNames();
+            orderers.should.deep.equal(['orderer1', 'orderer2']);
         });
     });
 

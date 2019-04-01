@@ -243,7 +243,7 @@ describe('runtimeOpsExplorer', () => {
                     }
                 ]);
 
-                fabricConnection.getOrderers.resolves(new Set(['orderer1']));
+                fabricConnection.getAllOrdererNames.resolves(['orderer1']);
 
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);
@@ -309,8 +309,8 @@ describe('runtimeOpsExplorer', () => {
                 channelTwo.label.should.equal('channelTwo');
             });
 
-            it('should show peers (nodes) correctly', async () => {
-                fabricConnection.getCertificateAuthorityName.returns('ca-name');
+            it('should show peers, certificate authorities, and orderer nodes correctly', async () => {
+                fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);

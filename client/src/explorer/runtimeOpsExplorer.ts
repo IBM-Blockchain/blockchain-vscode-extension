@@ -244,12 +244,14 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             }
 
             // Push Certificate Authority tree item
-            const certificateAuthorityName: any = connection.getCertificateAuthorityName();
-            const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
-            tree.push(caTreeItem);
+            const certificateAuthorityNames: Array<string> = connection.getAllCertificateAuthorityNames();
+            for (const certificateAuthorityName of certificateAuthorityNames) {
+                const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
+                tree.push(caTreeItem);
+            }
 
-            const orderers: Set<string> = await this.getOrderers();
-            for (const orderer of orderers.keys()) {
+            const orderers: Array<string> = await this.getAllOrdererNames();
+            for (const orderer of orderers) {
                 tree.push(new OrdererTreeItem(this, orderer));
             }
 
@@ -347,9 +349,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         return tree;
     }
 
-    private async getOrderers(): Promise<Set<string>> {
+    private async getAllOrdererNames(): Promise<Array<string>> {
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-        const ordererSet: Set<string> = await connection.getOrderers();
+        const ordererSet: Array<string> = await connection.getAllOrdererNames();
 
         return ordererSet;
     }

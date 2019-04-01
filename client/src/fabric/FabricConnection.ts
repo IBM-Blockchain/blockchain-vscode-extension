@@ -81,11 +81,11 @@ export abstract class FabricConnection {
         return orgs;
     }
 
-    public getCertificateAuthorityName(): string {
+    public getAllCertificateAuthorityNames(): Array<string> {
         const client: Client = this.gateway.getClient();
         const certificateAuthority: any = client.getCertificateAuthority();
         const certificateAuthorityName: string = certificateAuthority.getCaName();
-        return certificateAuthorityName;
+        return [certificateAuthorityName];
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
@@ -361,7 +361,7 @@ export abstract class FabricConnection {
         return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
     }
 
-    public async getOrderers(): Promise<Set<string>> {
+    public async getAllOrdererNames(): Promise<Array<string>> {
 
         const ordererSet: Set<string> = new Set();
         const allPeerNames: Array<string> = this.getAllPeerNames();
@@ -379,7 +379,7 @@ export abstract class FabricConnection {
             }
         }
 
-        return ordererSet;
+        return Array.from(ordererSet);
     }
 
     public async register(enrollmentID: string, affiliation: string): Promise<string> {

@@ -593,8 +593,7 @@ export class UserInputUtil {
 
     public static async showCertificateAuthorityQuickPickBox(prompt: string): Promise<string | undefined> {
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-        const caNameOption: string = connection.getCertificateAuthorityName();
-        const caNames: string[] = [caNameOption];
+        const caNames: string[] = connection.getAllCertificateAuthorityNames();
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
