@@ -43,7 +43,7 @@ export class PackageRegistry {
         // Determine the directory that will contain the packages and ensure it exists.
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const pkgDir: string = path.join(extDir, 'packages');
-        const resolvedPkgDir: string = await UserInputUtil.getDirPath(pkgDir);
+        const resolvedPkgDir: string = UserInputUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
 
         // Read the list of files and process them.

@@ -26,7 +26,7 @@ export class FabricGatewayHelper {
         try {
 
             const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-            const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, gatewayName);
             const profileExists: boolean = await fs.pathExists(profileDirPath);
 

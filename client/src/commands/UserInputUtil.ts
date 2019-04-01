@@ -124,10 +124,9 @@ export class UserInputUtil {
      * @returns {String} Returns dir.
      *
      */
-    public static async getDirPath(dir: string): Promise<string> {
-
+    public static getDirPath(dir: string): string {
         if (dir.startsWith('~')) {
-            dir = await homeDir(dir.replace('~', ''));
+            dir = homeDir(dir.replace('~', ''));
         }
         return dir;
     }

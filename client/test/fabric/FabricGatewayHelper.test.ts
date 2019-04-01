@@ -77,7 +77,7 @@ describe('FabricGatewayHelper', () => {
         });
 
         it('should copy a connection profile and do nothing if TLS certs are inline', async () => {
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(true);
             readFileStub.onFirstCall().resolves(tlsPemJson);
             writeFileStub.resolves();
@@ -94,7 +94,7 @@ describe('FabricGatewayHelper', () => {
         });
 
         it('should copy a connection profile and ensure the destination directory exists', async () => {
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
             readFileStub.onFirstCall().resolves(tlsPemJson);
@@ -112,7 +112,7 @@ describe('FabricGatewayHelper', () => {
         });
 
         it('should copy a connection profile and change absolute paths', async () => {
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
             readFileStub.onFirstCall().resolves(tlsPathJson);
@@ -151,7 +151,7 @@ describe('FabricGatewayHelper', () => {
                 }
             };
             const stringifiedObject: string = JSON.stringify(connectionProfileObject);
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
             readFileStub.resolves('CERT_HERE');
@@ -181,7 +181,7 @@ describe('FabricGatewayHelper', () => {
         });
 
         it('should copy a connection profile and change relative paths', async () => {
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
             readFileStub.onFirstCall().resolves(tlsPathJson);
@@ -203,7 +203,7 @@ describe('FabricGatewayHelper', () => {
         });
 
         it('should handle any errors thrown', async () => {
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
             readFileStub.resolves('CERT_HERE');
@@ -224,7 +224,7 @@ describe('FabricGatewayHelper', () => {
         });
 
         it('should copy a connection profile and change relative paths for a YAML file', async () => {
-            getDirPathStub.resolves('fabric-vscode');
+            getDirPathStub.returns('fabric-vscode');
             pathExistsStub.resolves(false);
             ensureDirStub.resolves();
             readFileStub.onFirstCall().resolves(yamlPathData);
