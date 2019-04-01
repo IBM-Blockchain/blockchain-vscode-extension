@@ -19,7 +19,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
@@ -29,6 +28,7 @@ import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 export async function testSmartContract(chaincode?: InstantiatedContractTreeItem): Promise<void> {
 
@@ -71,7 +71,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
     // Get metadata
-    const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
 
     const transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
     if (transactions.size === 0) {

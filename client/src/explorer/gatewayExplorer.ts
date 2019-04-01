@@ -15,7 +15,6 @@
 // tslint:disable max-classes-per-file
 'use strict';
 import * as vscode from 'vscode';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { GatewayTreeItem } from './model/GatewayTreeItem';
@@ -36,6 +35,7 @@ import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -53,7 +53,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     constructor() {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-        FabricConnectionManager.instance().on('connected', async (connection: IFabricConnection) => {
+        FabricConnectionManager.instance().on('connected', async (connection: IFabricClientConnection) => {
             try {
                 await this.connect(connection);
             } catch (error) {
@@ -73,7 +73,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         this._onDidChangeTreeData.fire(element);
     }
 
-    async connect(connection: IFabricConnection): Promise<void> {
+    async connect(connection: IFabricClientConnection): Promise<void> {
         console.log('connect', connection);
         // This controls which menu buttons appear
         await vscode.commands.executeCommand('setContext', 'blockchain-connected', true);
@@ -218,7 +218,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         const tree: Array<InstantiatedTreeItem> = [];
 
         for (const instantiatedChaincode of channelTreeElement.chaincodes) {
-            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
+            const connection: IFabricClientConnection = await FabricConnectionManager.instance().getConnection();
             const contracts: Array<string> = await MetadataUtil.getContractNames(connection, instantiatedChaincode.name, channelTreeElement.label);
             if (!contracts) {
                 tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, vscode.TreeItemCollapsibleState.None, contracts, true));
@@ -238,7 +238,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         console.log('createContractsTree', chainCodeElement);
         const tree: Array<any> = [];
         for (const contract of chainCodeElement.contracts) {
-            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
+            const connection: IFabricClientConnection = await FabricConnectionManager.instance().getConnection();
             const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chainCodeElement.name, chainCodeElement.channel.label);
             const transactionNames: string[] = transactionNamesMap.get(contract);
             if (contract === '' || chainCodeElement.contracts.length === 1) {
@@ -268,7 +268,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             console.log('createConnectedTree');
             const tree: Array<BlockchainTreeItem> = [];
 
-            const connection: IFabricConnection = await FabricConnectionManager.instance().getConnection();
+            const connection: IFabricClientConnection = await FabricConnectionManager.instance().getConnection();
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
             tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayRegistryEntry.name}`, gatewayRegistryEntry, 0));
             tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gatewayRegistryEntry, 0));

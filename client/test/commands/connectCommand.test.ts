@@ -21,7 +21,6 @@ import * as myExtension from '../../src/extension';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { IdentityInfo } from 'fabric-network';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
@@ -66,7 +65,6 @@ describe('ConnectCommand', () => {
         let mySandBox: sinon.SinonSandbox;
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricClientConnection>;
-        let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
         let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
         let logSpy: sinon.SinonSpy;
         let connectionMultiple: FabricGatewayRegistryEntry;
@@ -84,11 +82,8 @@ describe('ConnectCommand', () => {
 
             mockConnection = sinon.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
-            mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
-            mockRuntimeConnection.connect.resolves();
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricClientConnection').returns(mockConnection);
-            mySandBox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockRuntimeConnection);
 
             rootPath = path.dirname(__dirname);
 
@@ -316,9 +311,9 @@ describe('ConnectCommand', () => {
             it('should connect to a managed runtime using a quick pick', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockRuntimeConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
             });
 
             it('should connect to a managed runtime with multiple identities, using a quick pick', async () => {
@@ -329,9 +324,9 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.called;
-                mockRuntimeConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
             });
 
             it('should connect to a managed runtime from the tree', async () => {
@@ -341,9 +336,9 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockRuntimeConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
             });
 
             it('should start a stopped fabric runtime before connecting', async () => {
@@ -355,9 +350,9 @@ describe('ConnectCommand', () => {
 
                 choseGatewayQuickPick.should.have.been.calledOnce;
                 startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricRuntimeConnection));
+                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockRuntimeConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
 
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
@@ -386,7 +381,7 @@ describe('ConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
                 choseIdentityQuickPick.should.have.been.called;
-                mockRuntimeConnection.connect.should.not.have.been.called;
+                mockConnection.connect.should.not.have.been.called;
             });
 
         });

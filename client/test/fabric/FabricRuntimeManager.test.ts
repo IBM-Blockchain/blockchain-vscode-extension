@@ -18,13 +18,13 @@ import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntim
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
-import { IFabricConnection } from '../../src/fabric/IFabricConnection';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
+import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
 
 const should: Chai.Should = chai.should();
 
@@ -69,7 +69,7 @@ describe('FabricRuntimeManager', () => {
             runtimeManager['connection'] = connection;
             runtimeManager['connectingPromise'] = undefined;
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
             result.should.deep.equal(connection);
         });
 
@@ -95,7 +95,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
             createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
@@ -125,7 +125,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
             createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
             runtimeWalletStub.importIdentity.should.not.have.been.called;
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
@@ -154,7 +154,7 @@ describe('FabricRuntimeManager', () => {
             const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
             createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
             createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
 
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
@@ -195,7 +195,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
             createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
@@ -231,7 +231,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
             createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
@@ -268,7 +268,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs('local_wallet-ops').resolves(runtimeWalletStub);
             createWalletStub.withArgs('local_wallet').resolves(gatewayWalletStub);
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
+            const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
             connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');

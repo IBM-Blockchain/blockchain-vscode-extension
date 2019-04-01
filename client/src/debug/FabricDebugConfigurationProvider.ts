@@ -17,11 +17,11 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as dateFormat from 'dateformat';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -125,7 +125,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         connectionRegistry.managedRuntime = true;
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         if (!connection) {
             // either the user cancelled or there was an error so don't carry on
             return [];

@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -24,6 +23,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
@@ -110,7 +110,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         }, async (progress: vscode.Progress<{ message: string }>) => {
 
             progress.report({ message: 'Instantiating Smart Contract' });
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
             VSCodeBlockchainDockerOutputAdapter.instance().show();
             if (packageEntry) {
