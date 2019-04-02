@@ -162,7 +162,7 @@ export class FabricRuntime extends EventEmitter {
                 'peer0.org1.example.com',
                 FabricNodeType.PEER,
                 `grpc://localhost:${peerRequestPort}`,
-                'local_wallet',
+                'local_wallet-ops',
                 'Admin@org1.example.com'
             ),
             new FabricNode(
@@ -171,14 +171,14 @@ export class FabricRuntime extends EventEmitter {
                 FabricNodeType.CERTIFICATE_AUTHORITY,
                 `http://localhost:${caPort}`,
                 'local_wallet',
-                'admin'
+                'Admin@org1.example.com'
             ),
             new FabricNode(
                 'orderer.example.com',
                 'orderer.example.com',
                 FabricNodeType.ORDERER,
                 `grpc://localhost:${ordererPort}`,
-                'local_wallet',
+                'local_wallet-ops',
                 'Admin@org1.example.com'
             )
         ];
