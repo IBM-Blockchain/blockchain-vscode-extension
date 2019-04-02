@@ -28,6 +28,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'createNewIdentity');
 
+    let certificateAuthorityName: string;
     if (!certificateAuthorityTreeItem) {
         // Command called from the command palette or elsewhere
         // Check runtime is running
@@ -41,10 +42,12 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
             }
         }
         // Ask which certificate authority to use
-        const certificateAuthorityName: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Choose certificate authority to create a new identity with');
+        certificateAuthorityName = await UserInputUtil.showCertificateAuthorityQuickPickBox('Choose certificate authority to create a new identity with');
         if (!certificateAuthorityName) {
             return;
         }
+    } else {
+        certificateAuthorityName = certificateAuthorityTreeItem.name;
     }
 
     // Ask for identity name
@@ -71,10 +74,10 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         // Connect and then register the user
         await connection.connect(wallet, adminName);
-        const secret: string = await connection.register(identityName, affiliation);
+        const secret: string = await connection.register(certificateAuthorityName, identityName, affiliation);
 
         // Enroll the user
-        const details: { certificate: string, privateKey: string } = await connection.enroll(identityName, secret);
+        const details: { certificate: string, privateKey: string } = await connection.enroll(certificateAuthorityName, identityName, secret);
 
         // Import the new identity to the gateway wallet (no -ops in the name)
         await wallet.importIdentity(details.certificate, details.privateKey, identityName, mspid);

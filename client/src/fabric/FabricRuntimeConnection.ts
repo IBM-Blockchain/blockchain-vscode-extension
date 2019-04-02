@@ -20,20 +20,51 @@ import { FabricWallet } from '../fabric/FabricWallet';
 import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 import { Network, Contract } from 'fabric-network';
 import * as Client from 'fabric-client';
-import * as ClientCA from 'fabric-ca-client';
+import * as FabricCAServices from 'fabric-ca-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import * as fs from 'fs-extra';
+import { FabricNode, FabricNodeType } from './FabricNode';
+import { IFabricWalletGenerator } from './IFabricWalletGenerator';
+import { IFabricWallet } from './IFabricWallet';
+import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 
 export class FabricRuntimeConnection extends FabricConnection implements IFabricRuntimeConnection {
 
-    constructor(private runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
+    private runtime: FabricRuntime;
+    private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
+    private client: Client;
+    private certificateAuthorities: Map<string, FabricCAServices> = new Map<string, FabricCAServices>();
+
+    constructor(runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
         super(outputAdapter);
+        this.runtime = runtime;
     }
 
-    async connect(wallet: FabricWallet, identityName: string): Promise<void> {
+    public async connect(wallet: FabricWallet, identityName: string): Promise<void> {
         console.log('FabricRuntimeConnection: connect');
+
+        // This is old "gateway" code and will be removed.
         const connectionProfile: object = await this.runtime.getConnectionProfile();
         await this.connectInner(connectionProfile, wallet, identityName);
+
+        const nodes: FabricNode[] = await this.runtime.getNodes();
+        this.client = new Client();
+        this.client.setCryptoSuite(Client.newCryptoSuite());
+        for (const node of nodes) {
+            if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
+                const certificateAuthority: FabricCAServices = new FabricCAServices(node.url, null, node.name, this.client.getCryptoSuite());
+                this.certificateAuthorities.set(node.name, certificateAuthority);
+            }
+            this.nodes.set(node.name, node);
+        }
+
+    }
+
+    public disconnect(): void {
+        super.disconnect();
+        this.nodes.clear();
+        this.client = null;
+        this.certificateAuthorities.clear();
     }
 
     public async getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>> {
@@ -73,10 +104,7 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
     }
 
     public getAllCertificateAuthorityNames(): Array<string> {
-        const client: Client = this.gateway.getClient();
-        const certificateAuthority: any = client.getCertificateAuthority();
-        const certificateAuthorityName: string = certificateAuthority.getCaName();
-        return [certificateAuthorityName];
+        return Array.from(this.certificateAuthorities.keys()).sort();
     }
 
     public async getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>> {
@@ -288,20 +316,53 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         return result;
     }
 
-    public async enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
-        const enrollment: ClientCA.IEnrollResponse = await this.gateway.getClient().getCertificateAuthority().enroll({ enrollmentID, enrollmentSecret });
+    public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+        const certificateAuthority: FabricCAServices = this.getCertificateAuthority(certificateAuthorityName);
+        const enrollment: FabricCAServices.IEnrollResponse = await certificateAuthority.enroll({ enrollmentID, enrollmentSecret });
         return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
     }
 
-    public async register(enrollmentID: string, affiliation: string): Promise<string> {
-        const request: ClientCA.IRegisterRequest = {
+    public async register(certificateAuthorityName: string, enrollmentID: string, affiliation: string): Promise<string> {
+        const certificateAuthority: FabricCAServices = this.getCertificateAuthority(certificateAuthorityName);
+        const request: FabricCAServices.IRegisterRequest = {
             enrollmentID: enrollmentID,
             affiliation: affiliation,
             role: 'client'
         };
-        const registrar: Client.User = this.gateway.getCurrentIdentity();
-        const secret: string = await this.gateway.getClient().getCertificateAuthority().register(request, registrar);
+        await this.setNodeContext(certificateAuthorityName);
+        const registrar: Client.User = await this.client.getUserContext('', false);
+        const secret: string = await certificateAuthority.register(request, registrar);
         return secret;
+    }
+
+    public getNode(nodeName: string): FabricNode {
+        if (!this.nodes.has(nodeName)) {
+            throw new Error(`The Fabric node ${nodeName} does not exist`);
+        }
+        return this.nodes.get(nodeName);
+    }
+
+    public async getWallet(nodeName: string): Promise<IFabricWallet> {
+        const node: FabricNode = this.getNode(nodeName);
+        const walletName: string = node.wallet;
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        return fabricWalletGenerator.createLocalWallet(walletName);
+    }
+
+    private async setNodeContext(nodeName: string): Promise<void> {
+        const node: FabricNode = this.getNode(nodeName);
+        const walletName: string = node.wallet;
+        const identityName: string = node.identity;
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        const fabricWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(walletName);
+        await fabricWallet['setUserContext'](this.client, identityName);
+    }
+
+    private getCertificateAuthority(certificateAuthorityName: string): FabricCAServices {
+        if (!this.certificateAuthorities.has(certificateAuthorityName)) {
+            throw new Error(`The Fabric certificate authority ${certificateAuthorityName} does not exist`);
+        }
+        return this.certificateAuthorities.get(certificateAuthorityName);
     }
 
     /**

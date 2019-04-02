@@ -241,7 +241,11 @@ export class FabricRuntimeManager {
         const otherAdminExists: boolean = await gatewayWallet.exists(identityName);
 
         if (!otherAdminExists) {
-            const enrollment: { certificate: string, privateKey: string } = await connection.enroll(enrollmentID, enrollmentSecret);
+            // TODO: this is wrong and assumes we only have one certificate authority.
+            // This code will all be removed in the future anyway.
+            const certificateAuthorityNames: string[] = connection.getAllCertificateAuthorityNames();
+            const certificateAuthorityName: string = certificateAuthorityNames[0];
+            const enrollment: { certificate: string, privateKey: string } = await connection.enroll(certificateAuthorityName, enrollmentID, enrollmentSecret);
             await gatewayWallet.importIdentity(enrollment.certificate, enrollment.privateKey, identityName, mspid);
         }
 

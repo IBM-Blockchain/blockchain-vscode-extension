@@ -58,7 +58,7 @@ describe('FabricRuntimeManager', () => {
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         connection = sinon.createStubInstance(FabricRuntimeConnection);
-
+        connection.getAllCertificateAuthorityNames.returns(['ca.example.com']);
     });
 
     afterEach(async () => {
