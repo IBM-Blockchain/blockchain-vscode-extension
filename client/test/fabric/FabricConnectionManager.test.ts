@@ -12,34 +12,26 @@
  * limitations under the License.
 */
 
-import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 
 const should: Chai.Should = chai.should();
 
 describe('FabricConnectionManager', () => {
 
-    class TestFabricConnection extends FabricConnection {
-
-        async connect(): Promise<void> {
-            return;
-        }
-
-    }
-
     const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-    let mockFabricConnection: sinon.SinonStubbedInstance<TestFabricConnection>;
+    let mockFabricConnection: sinon.SinonStubbedInstance<FabricClientConnection>;
     let sandbox: sinon.SinonSandbox;
     let registryEntry: FabricGatewayRegistryEntry;
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
-        mockFabricConnection = sinon.createStubInstance(TestFabricConnection);
+        mockFabricConnection = sinon.createStubInstance(FabricClientConnection);
         connectionManager['connection'] = null;
 
         registryEntry = new FabricGatewayRegistryEntry();
@@ -56,7 +48,7 @@ describe('FabricConnectionManager', () => {
     describe('#getConnection', () => {
 
         it('should get the connection', () => {
-            connectionManager['connection'] = ((mockFabricConnection as any) as FabricConnection);
+            connectionManager['connection'] = ((mockFabricConnection as any) as FabricClientConnection);
             connectionManager.getConnection().should.equal(mockFabricConnection);
         });
 
@@ -74,7 +66,7 @@ describe('FabricConnectionManager', () => {
         it('should store the connection and emit an event', () => {
             const listenerStub: sinon.SinonStub = sinon.stub();
             connectionManager.once('connected', listenerStub);
-            connectionManager.connect((mockFabricConnection as any) as FabricConnection, registryEntry);
+            connectionManager.connect((mockFabricConnection as any) as FabricClientConnection, registryEntry);
             connectionManager.getConnection().should.equal(mockFabricConnection);
             connectionManager.getGatewayRegistryEntry().should.equal(registryEntry);
             listenerStub.should.have.been.calledOnceWithExactly(mockFabricConnection);
@@ -98,7 +90,7 @@ describe('FabricConnectionManager', () => {
 
         it('should get the name of the identity used to connect', () => {
             mockFabricConnection.identityName = 'admin@conga';
-            connectionManager['connection'] = ((mockFabricConnection as any) as FabricConnection);
+            connectionManager['connection'] = ((mockFabricConnection as any) as FabricClientConnection);
             connectionManager.getConnectionIdentity().should.equal('admin@conga');
         });
 
@@ -112,7 +104,7 @@ describe('FabricConnectionManager', () => {
                 walletPath: '/some/path'
             });
             mockFabricConnection.wallet = walletRegistryEntry;
-            connectionManager['connection'] = ((mockFabricConnection as any) as FabricConnection);
+            connectionManager['connection'] = ((mockFabricConnection as any) as FabricClientConnection);
             connectionManager.getConnectionWallet().should.deep.equal(walletRegistryEntry);
         });
 

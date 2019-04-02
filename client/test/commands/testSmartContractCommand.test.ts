@@ -30,7 +30,6 @@ import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
@@ -46,7 +45,6 @@ chai.use(sinonChai);
 describe('testSmartContractCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
-    let fabricRuntimeConnectionMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
     let executeCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let fsRemoveStub: sinon.SinonStub;
@@ -121,7 +119,6 @@ describe('testSmartContractCommand', () => {
             executeCommandStub.callThrough();
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
-            fabricClientConnectionMock.instantiateChaincode.resolves();
             fakeMetadata = {
                 contracts: {
                     'my-contract': {
@@ -896,136 +893,5 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });
 
-    });
-
-    describe('Generate tests for Fabric Runtime Connection instantiated smart contract', () => {
-
-        beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-            reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
-            // ExecuteCommand stub
-            executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
-            executeCommandStub.callThrough();
-            // Runtime Connection stubs
-            fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
-            fabricRuntimeConnectionMock.connect.resolves();
-            fabricRuntimeConnectionMock.instantiateChaincode.resolves();
-            fakeMetadata = {
-                contracts: {
-                    'my-contract': {
-                        name: 'my-contract',
-                        transactions: [
-                            {
-                                name: 'instantiate'
-                            },
-                            {
-                                name: 'wagonwheeling',
-                                parameters: []
-                            },
-                            {
-                                name: 'transaction2'
-                            }
-                        ]
-                    }
-                }
-            };
-            fabricRuntimeConnectionMock.getMetadata.resolves(fakeMetadata);
-            fabricConnectionManager = FabricConnectionManager.instance();
-            getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricRuntimeConnectionMock);
-            fabricRuntimeConnectionMock.getAllPeerNames.returns(['peerThree']);
-            fabricRuntimeConnectionMock.getAllChannelsForPeer.withArgs('peerThree').resolves(['myChannelTunnel']);
-            fabricRuntimeConnectionMock.getInstantiatedChaincode.resolves([
-                {
-                    name: 'doubleDecker',
-                    version: '0.0.7',
-                    label: 'doubleDecker@0.0.7',
-                    channel: 'myChannelTunnel'
-                }
-            ]);
-
-            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
-            map.set('myChannelTunnel', ['peerThree']);
-            fabricRuntimeConnectionMock.createChannelMap.resolves(map);
-
-            gatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            gatewayRegistryEntry.name = 'myConnection';
-            gatewayRegistryEntry.connectionProfilePath = 'myPath';
-            gatewayRegistryEntry.managedRuntime = true;
-            getGatewayRegistryStub = mySandBox.stub(fabricConnectionManager, 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
-
-            // Wallet stubs
-            walletRegistryEntry = new FabricWalletRegistryEntry();
-            walletRegistryEntry.name = 'myWallet';
-            walletRegistryEntry.walletPath = 'walletPath';
-            getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet').returns(walletRegistryEntry);
-
-            // UserInputUtil stubs
-            showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any, 'myChannelTunnel').resolves('doubleDecker@0.0.7');
-            // Explorer provider stuff
-            blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-            allChildren = await blockchainGatewayExplorerProvider.getChildren();
-            const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
-            chaincodes = channelChildren[0].chaincodes;
-            instantiatedSmartContract = chaincodes[0] as InstantiatedContractTreeItem;
-            smartContractLabel = instantiatedSmartContract.label;
-            smartContractName = instantiatedSmartContract.name;
-            // Document editor stubs
-            testFileDir = path.join(rootPath, '..', 'data', 'smartContractTests');
-            mockDocumentStub = {
-                lineCount: 8,
-                save: (): any => {
-                    return Promise.resolve();
-                }
-            };
-            mockDocumentSaveSpy = mySandBox.spy(mockDocumentStub, 'save');
-            mockEditBuilder = {
-                replace: (): any => {
-                    return Promise.resolve();
-                }
-            };
-            mockEditBuilderReplaceSpy = mySandBox.spy(mockEditBuilder, 'replace');
-            mockTextEditor = {
-                edit: mySandBox.stub()
-            };
-            mockTextEditor.edit.yields(mockEditBuilder);
-            mockTextEditor.edit.resolves(true);
-            openTextDocumentStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocumentStub);
-            showTextDocumentStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves(mockTextEditor);
-            packageJSONPath = vscode.Uri.file(path.join(testFileDir, 'package.json'));
-            mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
-            const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
-            readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
-            sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
-            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-        });
-
-        it('should generate tests for a runtime connection', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
-            const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
-
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
-            openTextDocumentStub.should.have.been.calledOnce;
-            showTextDocumentStub.should.have.been.calledOnce;
-            const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
-            templateData.should.not.equal('');
-            templateData.includes(smartContractLabel).should.be.true;
-            templateData.includes(fakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
-            templateData.includes(fakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
-            templateData.includes(fakeMetadata.contracts['my-contract'].transactions[2].name).should.be.true;
-            templateData.startsWith('/*').should.be.true;
-            templateData.includes('walletPath').should.be.true;
-            templateData.includes('gateway.connect').should.be.true;
-            templateData.includes('submitTransaction').should.be.true;
-            sendCommandStub.should.have.been.calledOnce;
-
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-        });
     });
 });
