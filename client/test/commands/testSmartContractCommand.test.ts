@@ -171,6 +171,9 @@ describe('testSmartContractCommand', () => {
             transactionTwo = fakeMetadata.contracts['my-contract'].transactions[1];
             transactionThree = fakeMetadata.contracts['my-contract'].transactions[2];
             fabricClientConnectionMock.getMetadata.resolves(fakeMetadata);
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('myEnglishChannel', ['peerOne']);
+            fabricClientConnectionMock.createChannelMap.resolves(map);
             fabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
@@ -350,8 +353,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should connect if there is no connection', async () => {
-            getConnectionStub.onCall(5).returns(null);
-            getConnectionStub.onCall(6).returns(fabricClientConnectionMock);
+            getConnectionStub.onCall(3).returns(null);
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
@@ -942,6 +944,10 @@ describe('testSmartContractCommand', () => {
                     channel: 'myChannelTunnel'
                 }
             ]);
+
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('myChannelTunnel', ['peerThree']);
+            fabricRuntimeConnectionMock.createChannelMap.resolves(map);
 
             gatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myConnection';

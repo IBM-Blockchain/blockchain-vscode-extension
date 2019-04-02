@@ -69,7 +69,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             mySandbox = sinon.createSandbox();
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
             date = new Date();
-            formattedDate = dateFormat(date, 'yyyymmddHHMM');
+            formattedDate = dateFormat(date, 'yyyymmddHHMMss');
             fabricDebugConfig = new FabricGoDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -134,6 +134,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
 
             mySandbox.stub(UserInputUtil, 'showInputBox').withArgs('Enter a name for your Go package').resolves('mySmartContract');
+
+            mySandbox.stub(UserInputUtil, 'packageAndInstallQuestion').resolves({
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            });
         });
 
         afterEach(() => {

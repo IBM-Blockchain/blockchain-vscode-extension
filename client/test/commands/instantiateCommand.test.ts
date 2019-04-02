@@ -77,10 +77,10 @@ describe('InstantiateCommand', () => {
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
                 label: 'myChannel',
-                data: new Set(['peerOne'])
+                data: ['peerOne']
             });
 
-            showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, new Set(['peerOne'])).resolves(
+            showChaincodeAndVersionQuickPick = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').withArgs(sinon.match.any, ['peerOne']).resolves(
                 {
                     label: 'myContract@0.0.1',
                     data: {
@@ -107,6 +107,9 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myChannel']);
 
             fabricRuntimeMock.getInstantiatedChaincode.resolves([]);
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('myChannel', ['peerOne']);
+            fabricRuntimeMock.createChannelMap.resolves(map);
 
             blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -259,7 +262,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should install and instantiate package', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -284,7 +287,7 @@ describe('InstantiateCommand', () => {
         });
 
         it('should be able to cancel install and instantiate for package', async () => {
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -310,7 +313,7 @@ describe('InstantiateCommand', () => {
 
         it('should package, install and instantiate a project', async () => {
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
@@ -332,7 +335,7 @@ describe('InstantiateCommand', () => {
 
         it('should be able to cancel a project packaging, installing and instantiating', async () => {
             executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'somepackage', version: '0.0.1', path: undefined });
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, new Set(['peerOne']), { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'somepackage', version: '0.0.1', path: undefined }).resolves();
 
             showChaincodeAndVersionQuickPick.resolves({
                 label: 'somepackage@0.0.1',
