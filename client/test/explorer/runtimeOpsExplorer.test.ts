@@ -41,16 +41,10 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from '../../src/explorer/runtimeOps/OrdererTreeItem';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 
 chai.use(sinonChai);
 chai.should();
-
-class TestFabricConnection extends FabricConnection {
-
-    async connect(): Promise<void> {
-        return;
-    }
-}
 
 // tslint:disable no-unused-expression
 describe('runtimeOpsExplorer', () => {
@@ -125,8 +119,8 @@ describe('runtimeOpsExplorer', () => {
 
             it('should error if gRPC cant connect to Fabric', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
                 fabricConnection.createChannelMap.callThrough();
@@ -140,8 +134,8 @@ describe('runtimeOpsExplorer', () => {
 
             it('should error if getAllChannelsForPeer errors with message when populating channels view', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
                 fabricConnection.createChannelMap.callThrough();
@@ -155,8 +149,8 @@ describe('runtimeOpsExplorer', () => {
 
             it('should error if getAllChannelsForPeer errors without a message when populating organizations view', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 const error: Error = new Error('an error with no message');
                 fabricConnection.getAllChannelsForPeer.throws(error);
@@ -171,8 +165,8 @@ describe('runtimeOpsExplorer', () => {
 
             it('should error if populating nodes view fails', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.throws({ message: 'some error' });
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
@@ -188,7 +182,7 @@ describe('runtimeOpsExplorer', () => {
             let mySandBox: sinon.SinonSandbox;
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
-            let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
+            let fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
@@ -199,7 +193,7 @@ describe('runtimeOpsExplorer', () => {
 
                 await ExtensionUtil.activateExtension();
 
-                fabricConnection = sinon.createStubInstance(TestFabricConnection);
+                fabricConnection = sinon.createStubInstance(FabricRuntimeConnection);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
