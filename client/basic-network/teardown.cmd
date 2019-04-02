@@ -17,4 +17,7 @@ rem remove chaincode docker images
 for /f "tokens=*" %%i in ('docker ps -aq --filter "name=%COMPOSE_PROJECT_NAME%-*"') do docker rm -f %%i
 for /f "tokens=*" %%i in ('docker images -aq "%COMPOSE_PROJECT_NAME%-*"') do docker rmi -f %%i
 
+rem delete the file that shows we have generated the configuration
+del /q generated.lock
+
 rem Your system is now clean

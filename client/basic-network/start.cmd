@@ -8,7 +8,12 @@ rem
 rem rewrite paths for Windows users to enable Docker socket binding
 set COMPOSE_CONVERT_WINDOWS_PATHS=1
 
-docker-compose -f docker-compose.yml down
+if not exist generated.lock (
+    call generate.cmd
+    if errorlevel 1 (
+        exit /b 1
+    )
+)
 
 docker-compose -f docker-compose.yml up -d ca.example.com orderer.example.com peer0.org1.example.com couchdb logs
 

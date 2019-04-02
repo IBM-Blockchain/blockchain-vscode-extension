@@ -836,18 +836,18 @@ describe('FabricRuntime', () => {
     describe('#getCertificate', () => {
 
         it('should get the PEM encoded certificate', async () => {
-            let certificate: string = await runtime.getCertificate();
-            certificate = certificate.replace(/\r/g, ''); // Windows!
-            certificate.should.equal('-----BEGIN CERTIFICATE-----\nMIICWTCCAf+gAwIBAgIURYRWBYn51Etl5CW02PX/z9EP28YwCgYIKoZIzj0EAwIw\nczELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDVNh\nbiBGcmFuY2lzY28xGTAXBgNVBAoTEG9yZzEuZXhhbXBsZS5jb20xHDAaBgNVBAMT\nE2NhLm9yZzEuZXhhbXBsZS5jb20wHhcNMTkwNDAxMTYwMDAwWhcNMjAwMzMxMTYw\nNTAwWjBdMQswCQYDVQQGEwJVUzEXMBUGA1UECBMOTm9ydGggQ2Fyb2xpbmExFDAS\nBgNVBAoTC0h5cGVybGVkZ2VyMQ8wDQYDVQQLEwZjbGllbnQxDjAMBgNVBAMTBWFk\nbWluMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAExCWlZhbBEzumAgxMZfAeDHlX\nSvN8Ff0Jkqqgx67bgsAgf2MaMXOfaJ4/g7h19f8lDGKSTuUZoIQ5IPDER9ek8aOB\nhjCBgzAOBgNVHQ8BAf8EBAMCB4AwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQU0ONr\n2KHwLbp3ADcAnGeeyapeaxQwKwYDVR0jBCQwIoAgQjmqDc122u64ugzacBhR0UUE\n0xqtGy3d26xqVzZeSXwwFwYDVR0RBBAwDoIMZGQ2OWRhMGZiYjkwMAoGCCqGSM49\nBAMCA0gAMEUCIQCucSyfdtVZmmEP8Q3C3QgVJwGE+Lmp5C2i5dqhNhSf/wIgbdiA\npF+haOMUQYmRxCgfWldl7Cwxd+3+LN6wPW8A/m4=\n-----END CERTIFICATE-----\n');
+            sandbox.stub(fs, 'readFile').resolves('such certificate');
+            const certificate: string = await runtime.getCertificate();
+            certificate.should.equal('such certificate');
         });
     });
 
     describe('#getPrivateKey', () => {
 
         it('should get the PEM encoded private key', async () => {
-            let privateKey: string = await runtime.getPrivateKey();
-            privateKey = privateKey.replace(/\r/g, ''); // Windows!
-            privateKey.should.equal('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRayhPgYqnuyOJss4\nwuwf6p6jd2TcFEEnZfX34lvb8RqhRANCAATEJaVmFsETO6YCDExl8B4MeVdK83wV\n/QmSqqDHrtuCwCB/Yxoxc59onj+DuHX1/yUMYpJO5RmghDkg8MRH16Tx\n-----END PRIVATE KEY-----\n');
+            sandbox.stub(fs, 'readFile').resolves('such private key');
+            const privateKey: string = await runtime.getPrivateKey();
+            privateKey.should.equal('such private key');
         });
 
     });

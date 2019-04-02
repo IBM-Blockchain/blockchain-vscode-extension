@@ -17,4 +17,7 @@ rm -f ~/.hfc-key-store/*
 docker ps -aq --filter "name=${COMPOSE_PROJECT_NAME}-*" | xargs docker rm -f
 docker images -aq "${COMPOSE_PROJECT_NAME}-*" | xargs docker rmi -f
 
+# delete the file that shows we have generated the configuration
+rm -f generated.lock
+
 # Your system is now clean

@@ -30,9 +30,7 @@ const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath,
 const basicNetworkConnectionProfile: string = JSON.parse(fs.readFileSync(basicNetworkConnectionProfilePath).toString());
 const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'admin-msp');
 const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'signcerts/cert.pem');
-const basicNetworkAdminCertificate: string = fs.readFileSync(basicNetworkAdminCertificatePath, 'utf8');
-const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'keystore/a2784adae3a2078eae7f24c9135dfd7479101d634e2466e093a3668a6d850707_sk');
-const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
+const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'keystore/key.pem');
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -168,6 +166,7 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async getCertificate(): Promise<string> {
+        const basicNetworkAdminCertificate: string = await fs.readFile(basicNetworkAdminCertificatePath, 'utf8');
         return basicNetworkAdminCertificate;
     }
 
@@ -176,6 +175,7 @@ export class FabricRuntime extends EventEmitter {
     }
 
     public async getPrivateKey(): Promise<string> {
+        const basicNetworkAdminPrivateKey: string = await fs.readFile(basicNetworkAdminPrivateKeyPath, 'utf8');
         return basicNetworkAdminPrivateKey;
     }
 
