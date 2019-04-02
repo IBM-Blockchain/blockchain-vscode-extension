@@ -1188,7 +1188,7 @@ describe('FabricRuntime', () => {
                     name: 'peer0.org1.example.com',
                     type: 'fabric-peer',
                     url: 'grpc://localhost:12345',
-                    wallet: 'local_wallet',
+                    wallet: 'local_wallet-ops',
                     identity: 'Admin@org1.example.com'
                 },
                 {
@@ -1197,14 +1197,14 @@ describe('FabricRuntime', () => {
                     type: 'fabric-ca',
                     url: 'http://localhost:12348',
                     wallet: 'local_wallet',
-                    identity: 'admin'
+                    identity: 'Admin@org1.example.com'
                 },
                 {
                     short_name: 'orderer.example.com',
                     name: 'orderer.example.com',
                     type: 'fabric-orderer',
                     url: 'grpc://localhost:12347',
-                    wallet: 'local_wallet',
+                    wallet: 'local_wallet-ops',
                     identity: 'Admin@org1.example.com'
                 }
             ]);

@@ -17,8 +17,8 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { Gateway } from 'fabric-network';
-import * as fabricClient from 'fabric-client';
-import * as fabricClientCA from 'fabric-ca-client';
+import * as Client from 'fabric-client';
+import * as FabricCAServices from 'fabric-ca-client';
 import { Channel } from 'fabric-client';
 import * as path from 'path';
 
@@ -28,6 +28,10 @@ import * as sinonChai from 'sinon-chai';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricNodeType, FabricNode } from '../../src/fabric/FabricNode';
+import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -37,15 +41,15 @@ describe('FabricRuntimeConnection', () => {
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');
 
-    let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
+    let fabricClientStub: sinon.SinonStubbedInstance<Client>;
     let fabricRuntimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
     let fabricRuntimeConnection: FabricRuntimeConnection;
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
     let fabricContractStub: any;
     let fabricTransactionStub: any;
-    let wallet: FabricWallet;
+    let connectionWallet: FabricWallet;
     const mockIdentityName: string = 'Admin@org1.example.com';
-    let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
+    let fabricCAStub: sinon.SinonStubbedInstance<FabricCAServices>;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -108,6 +112,9 @@ describe('FabricRuntimeConnection', () => {
         }
     };
 
+    let mockLocalWallet: sinon.SinonStubbedInstance<IFabricWallet>;
+    let mockLocalWalletOps: sinon.SinonStubbedInstance<IFabricWallet>;
+
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
@@ -117,13 +124,13 @@ describe('FabricRuntimeConnection', () => {
         fabricRuntimeStub.getPrivateKey.resolves('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
         fabricRuntimeStub.getConnectionProfile.callThrough();
         fabricRuntimeStub.getCertificatePath.callThrough();
-        wallet = new FabricWallet(walletPath);
+        connectionWallet = new FabricWallet(walletPath);
 
         fabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection((fabricRuntimeStub as any) as FabricRuntime) as FabricRuntimeConnection;
 
-        fabricClientStub = mySandBox.createStubInstance(fabricClient);
+        fabricClientStub = mySandBox.createStubInstance(Client);
 
-        mySandBox.stub(fabricClient, 'loadFromConfig').resolves(fabricClientStub);
+        mySandBox.stub(Client, 'loadFromConfig').resolves(fabricClientStub);
 
         fabricClientStub.getMspid.returns('myMSPId');
 
@@ -175,33 +182,99 @@ describe('FabricRuntimeConnection', () => {
 
         gatewayStub.getNetwork.returns(fabricNetworkStub);
 
-        fabricClientStub = mySandBox.createStubInstance(fabricClient);
+        fabricClientStub = mySandBox.createStubInstance(Client);
         fabricClientStub.newTransactionID.returns({
             getTransactionID: mySandBox.stub().returns('1234')
         });
         gatewayStub.getClient.returns(fabricClientStub);
 
         fabricClientStub.getMspid.returns('myMSPId');
-        fabricCAStub = mySandBox.createStubInstance(fabricClientCA);
+        fabricCAStub = mySandBox.createStubInstance(FabricCAServices);
         fabricCAStub.enroll.returns({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
         fabricCAStub.register.resolves('its a secret');
         fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
+
+        fabricRuntimeStub.getNodes.resolves([
+            new FabricNode(
+                'peer0.org1.example.com',
+                'peer0.org1.example.com',
+                FabricNodeType.PEER,
+                `grpc://localhost:7051`,
+                'local_wallet-ops',
+                'Admin@org1.example.com'
+            ),
+            new FabricNode(
+                'ca.example.com',
+                'ca.example.com',
+                FabricNodeType.CERTIFICATE_AUTHORITY,
+                `http://localhost:7054`,
+                'local_wallet',
+                'Admin@org1.example.com'
+            ),
+            new FabricNode(
+                'orderer.example.com',
+                'orderer.example.com',
+                FabricNodeType.ORDERER,
+                `grpc://localhost:7050`,
+                'local_wallet-ops',
+                'Admin@org1.example.com'
+            )
+        ]);
+
+        const mockFabricWalletGenerator: sinon.SinonStubbedInstance<FabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+        mySandBox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
+        mockLocalWallet = sinon.createStubInstance(FabricWallet);
+        mockLocalWallet['setUserContext'] = sinon.stub();
+        mockLocalWalletOps = sinon.createStubInstance(FabricWallet);
+        mockLocalWalletOps['setUserContext'] = sinon.stub();
+        mockFabricWalletGenerator.createLocalWallet.rejects(new Error('no such wallet'));
+        mockFabricWalletGenerator.createLocalWallet.withArgs('local_wallet').resolves(mockLocalWallet);
+        mockFabricWalletGenerator.createLocalWallet.withArgs('local_wallet-ops').resolves(mockLocalWalletOps);
     });
 
     afterEach(() => {
         mySandBox.restore();
     });
+
     describe('connect', () => {
+
         it('should connect to a fabric', async () => {
-            await fabricRuntimeConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
             gatewayStub.connect.should.have.been.called;
         });
 
         it('should connect with an already loaded client connection', async () => {
             should.exist(FabricConnectionFactory['runtimeConnection']);
-            await fabricRuntimeConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
             gatewayStub.connect.should.have.been.called;
         });
+
+        it('should create certificate authority clients for each certificate authority node', async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
+            const certificateAuthorityNames: string[] = Array.from(fabricRuntimeConnection['certificateAuthorities'].keys());
+            const certificateAuthorityValues: FabricCAServices[] = Array.from(fabricRuntimeConnection['certificateAuthorities'].values());
+            certificateAuthorityNames.should.deep.equal(['ca.example.com']);
+            certificateAuthorityValues.should.have.lengthOf(1);
+            certificateAuthorityValues[0].should.be.an.instanceOf(FabricCAServices);
+            certificateAuthorityValues[0].toString().should.match(/hostname: localhost/);
+            certificateAuthorityValues[0].toString().should.match(/port: 7054/);
+        });
+
+    });
+
+    describe('disconnect', () => {
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+        });
+
+        it('should clear all nodes, clients, and certificate authorities', () => {
+            fabricRuntimeConnection.disconnect();
+            fabricRuntimeConnection['nodes'].size.should.equal(0);
+            should.equal(fabricRuntimeConnection['client'], null);
+            fabricRuntimeConnection['certificateAuthorities'].size.should.equal(0);
+        });
+
     });
 
     describe('getAllInstantiatedChaincodes', () => {
@@ -232,7 +305,7 @@ describe('FabricRuntimeConnection', () => {
 
     describe('getOrganization', () => {
         it('should get an organization', async () => {
-            await fabricRuntimeConnection.connect(wallet, mockIdentityName);
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
 
             const orgs: any[] = await fabricRuntimeConnection.getOrganizations('myChannel');
             orgs.length.should.equal(1);
@@ -241,18 +314,21 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllCertificateAuthorityNames', () => {
-        it('should get the certificate authority name', async () => {
-            fabricClientStub.getCertificateAuthority.returns({
-                getCaName: mySandBox.stub().returns('ca-name')
-            });
-            fabricRuntimeConnection.getAllCertificateAuthorityNames().should.deep.equal(['ca-name']);
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
         });
+
+        it('should get all of the certificate authority names', async () => {
+            fabricRuntimeConnection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com']);
+        });
+
     });
 
     describe('getInstalledChaincode', () => {
         it('should get the install chaincode', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
+            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
@@ -263,7 +339,7 @@ describe('FabricRuntimeConnection', () => {
                 }, { name: 'biscuit-network', version: '0.8' }, { name: 'cake-network', version: '0.8' }]
             });
 
-            await fabricRuntimeConnection.connect(wallet, mockIdentityName);
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
             const installedChaincode: Map<string, Array<string>> = await fabricRuntimeConnection.getInstalledChaincode('peerOne');
             installedChaincode.size.should.equal(2);
             Array.from(installedChaincode.keys()).should.deep.equal(['biscuit-network', 'cake-network']);
@@ -272,28 +348,28 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should handle and swallow an access denied error', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
+            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
             fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).rejects(new Error('wow u cannot see cc cos access denied as u is not an admin'));
 
-            await fabricRuntimeConnection.connect(wallet, mockIdentityName);
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
             const installedChaincode: Map<string, Array<string>> = await fabricRuntimeConnection.getInstalledChaincode('peerOne');
             installedChaincode.size.should.equal(0);
             Array.from(installedChaincode.keys()).should.deep.equal([]);
         });
 
         it('should rethrow any error other than access denied', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
+            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
             fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).rejects(new Error('wow u cannot see cc cos peer no works'));
 
-            await fabricRuntimeConnection.connect(wallet, mockIdentityName);
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
             await fabricRuntimeConnection.getInstalledChaincode('peerOne').should.be.rejectedWith(/peer no works/);
         });
     });
@@ -314,8 +390,8 @@ describe('FabricRuntimeConnection', () => {
                     }
                 ])
             });
-            fabricChannelStub.getOrderers.onFirstCall().returns([new fabricClient.Orderer('grpc://url1')]);
-            fabricChannelStub.getOrderers.onSecondCall().returns([new fabricClient.Orderer('grpc://url2')]);
+            fabricChannelStub.getOrderers.onFirstCall().returns([new Client.Orderer('grpc://url1')]);
+            fabricChannelStub.getOrderers.onSecondCall().returns([new Client.Orderer('grpc://url2')]);
             mySandBox.stub(fabricRuntimeConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
             const getAllChannelsForPeer: sinon.SinonStub = mySandBox.stub(fabricRuntimeConnection, 'getAllChannelsForPeer');
             getAllChannelsForPeer.withArgs('peerOne').resolves(['channel1']);
@@ -327,10 +403,10 @@ describe('FabricRuntimeConnection', () => {
 
     describe('installChaincode', () => {
 
-        let peer: fabricClient.Peer;
+        let peer: Client.Peer;
 
         beforeEach(async () => {
-            peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peer1' });
+            peer = new Client.Peer('grpc://localhost:1453', { name: 'peer1' });
             fabricClientStub.getPeersForOrg.returns([peer]);
             const responseStub: any = [[{
                 response: {
@@ -338,7 +414,7 @@ describe('FabricRuntimeConnection', () => {
                 }
             }]];
             fabricClientStub.installChaincode.resolves(responseStub);
-            await fabricRuntimeConnection.connect(wallet, mockIdentityName);
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
         });
 
         it('should install the chaincode package', async () => {
@@ -553,17 +629,85 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('enroll', () => {
-        it('should enroll an identity', async () => {
-            const result: {certificate: string, privateKey: string} =  await fabricRuntimeConnection.enroll('myId', 'mySecret');
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+            const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
+            mockFabricCA.enroll.returns({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
+            fabricRuntimeConnection['certificateAuthorities'].has('ca.example.com').should.be.true;
+            fabricRuntimeConnection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
+        });
+
+        it('should enroll an identity using a certificate authority that exists', async () => {
+            const result: {certificate: string, privateKey: string} =  await fabricRuntimeConnection.enroll('ca.example.com', 'myId', 'mySecret');
             result.should.deep.equal({certificate : 'myCert', privateKey: 'myKey'});
         });
+
+        it('should throw trying to enroll an identity using a certificate authority that does not exist', async () => {
+            await fabricRuntimeConnection.enroll('nosuch.ca.example.com', 'myId', 'mySecret')
+                .should.be.rejectedWith(/does not exist/);
+        });
+
     });
 
     describe('register', () => {
-        it('should register a new user and return a secret', async () => {
-            const secret: string = await fabricRuntimeConnection.register('enrollThis', 'departmentE');
-            secret.should.deep.equal('its a secret');
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+            const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
+            mockFabricCA.register.resolves('its a secret');
+            fabricRuntimeConnection['certificateAuthorities'].has('ca.example.com').should.be.true;
+            fabricRuntimeConnection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
         });
+
+        it('should register a new user and return a secret using a certificate authority that exists ', async () => {
+            const secret: string = await fabricRuntimeConnection.register('ca.example.com', 'enrollThis', 'departmentE');
+            secret.should.deep.equal('its a secret');
+            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, 'Admin@org1.example.com');
+        });
+
+        it('should throw trying to register a new user using a certificate authority that does not exist ', async () => {
+            await fabricRuntimeConnection.register('nosuch.ca.example.com', 'enrollThis', 'departmentE')
+                .should.be.rejectedWith(/does not exist/);
+        });
+
+    });
+
+    describe('getNode', () => {
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+        });
+
+        it('should return a certificate authority node', () => {
+            const node: FabricNode = fabricRuntimeConnection.getNode('ca.example.com');
+            node.short_name.should.equal('ca.example.com');
+            node.name.should.equal('ca.example.com');
+            node.type.should.equal(FabricNodeType.CERTIFICATE_AUTHORITY);
+            node.url.should.equal('http://localhost:7054');
+            node.wallet.should.equal('local_wallet');
+            node.identity.should.equal('Admin@org1.example.com');
+        });
+
+        it('should throw for a node that does not exist', () => {
+            ((): void => {
+                fabricRuntimeConnection.getNode('nosuch.ca.example.com');
+            }).should.throw(/does not exist/);
+        });
+
+    });
+
+    describe('getWallet', () => {
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+        });
+
+        it('should return the wallet for a certificate authority node', async () => {
+            const wallet: IFabricWallet = await fabricRuntimeConnection.getWallet('ca.example.com');
+            wallet.should.equal(mockLocalWallet);
+        });
+
     });
 
 });
