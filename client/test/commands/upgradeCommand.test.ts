@@ -96,15 +96,6 @@ describe('UpgradeCommand', () => {
 
             fabricRuntimeMock.getInstantiatedChaincode.resolves([{ name: 'biscuit-network', version: '0.0.1' }]);
 
-            fabricRuntimeMock.getMetadata.resolves({
-                contracts: {
-                    'my-contract' : {
-                        name: 'my-contract',
-                        transactions: [],
-                    }
-                }
-            });
-
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('channelOne', ['peerOne']);
             fabricRuntimeMock.createChannelMap.resolves(map);

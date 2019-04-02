@@ -38,16 +38,10 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
-
-class TestFabricConnection extends FabricConnection {
-
-    async connect(): Promise<void> {
-        return;
-    }
-}
 
 // tslint:disable no-unused-expression
 describe('gatewayExplorer', () => {
@@ -88,7 +82,7 @@ describe('gatewayExplorer', () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
-            const mockConnection: sinon.SinonStubbedInstance<TestFabricConnection> = sinon.createStubInstance(TestFabricConnection);
+            const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
             blockchainGatewayExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
@@ -98,7 +92,7 @@ describe('gatewayExplorer', () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').rejects(new Error('wow such error'));
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
-            const mockConnection: sinon.SinonStubbedInstance<TestFabricConnection> = sinon.createStubInstance(TestFabricConnection);
+            const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
             // Need to ensure the event handler gets a chance to run.
@@ -258,7 +252,7 @@ describe('gatewayExplorer', () => {
             });
 
             it('should handle errors thrown when connection fails', async () => {
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
@@ -275,7 +269,7 @@ describe('gatewayExplorer', () => {
 
             it('should error if getAllChannelsForPeer fails', async () => {
 
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
@@ -300,8 +294,8 @@ describe('gatewayExplorer', () => {
 
             it('should error if gRPC cant connect to Fabric', async () => {
 
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricClientConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
 
@@ -329,7 +323,7 @@ describe('gatewayExplorer', () => {
             let mySandBox: sinon.SinonSandbox;
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
-            let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
+            let fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection>;
             let registryEntry: FabricGatewayRegistryEntry;
             let getGatewayRegistryEntryStub: sinon.SinonStub;
             let logSpy: sinon.SinonSpy;
@@ -340,7 +334,7 @@ describe('gatewayExplorer', () => {
 
                 await ExtensionUtil.activateExtension();
 
-                fabricConnection = sinon.createStubInstance(TestFabricConnection);
+                fabricConnection = sinon.createStubInstance(FabricClientConnection);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
@@ -868,7 +862,7 @@ describe('gatewayExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            const myConnection: TestFabricConnection = new TestFabricConnection();
+            const myConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
 
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
