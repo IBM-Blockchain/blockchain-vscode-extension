@@ -31,6 +31,10 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
+import { FabricGateway } from '../../src/fabric/FabricGateway';
+import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricIdentity } from '../../src/fabric/FabricIdentity';
+import * as os from 'os';
 
 chai.should();
 
@@ -1107,4 +1111,140 @@ describe('FabricRuntime', () => {
             abortRequestStub.should.not.have.been.called;
         });
     });
+
+    describe('#getGateways', () => {
+        it('should return an array of gateways', async () => {
+            const gateways: FabricGateway[] = await runtime.getGateways();
+            gateways.should.deep.equal([
+                {
+                    name: 'local_fabric',
+                    path: runtime.getConnectionProfilePath(),
+                    connectionProfile: {
+                        name: 'basic-network',
+                        version: '1.0.0',
+                        client: {
+                            organization: 'Org1',
+                            connection: {
+                                timeout: {
+                                    peer: {
+                                        endorser: '300',
+                                        eventHub: '300',
+                                        eventReg: '300'
+                                    },
+                                    orderer: '300'
+                                }
+                            }
+                        },
+                        channels: {
+                            mychannel: {
+                                orderers: [
+                                    'orderer.example.com'
+                                ],
+                                peers: {
+                                    'peer0.org1.example.com': {}
+                                }
+                            }
+                        },
+                        organizations: {
+                            Org1: {
+                                mspid: 'Org1MSP',
+                                peers: [
+                                    'peer0.org1.example.com'
+                                ],
+                                certificateAuthorities: [
+                                    'ca.org1.example.com'
+                                ]
+                            }
+                        },
+                        orderers: {
+                            'orderer.example.com': {
+                                url: 'grpc://127.0.0.1:12347'
+                            }
+                        },
+                        peers: {
+                            'peer0.org1.example.com': {
+                                url: 'grpc://localhost:12345',
+                                eventUrl: 'grpc://localhost:12346'
+                            }
+                        },
+                        certificateAuthorities: {
+                            'ca.org1.example.com': {
+                                url: 'http://127.0.0.1:12348',
+                                caName: 'ca.example.com'
+                            }
+                        }
+                    }
+                }
+            ]);
+        });
+    });
+
+    describe('#getNodes', () => {
+        it('should return an array of nodes', async () => {
+            const nodes: FabricNode[] = await runtime.getNodes();
+            nodes.should.deep.equal([
+                {
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    type: 'fabric-peer',
+                    url: 'grpc://localhost:12345',
+                    wallet: 'local_wallet',
+                    identity: 'Admin@org1.example.com'
+                },
+                {
+                    short_name: 'ca.example.com',
+                    name: 'ca.example.com',
+                    type: 'fabric-ca',
+                    url: 'http://localhost:12348',
+                    wallet: 'local_wallet',
+                    identity: 'admin'
+                },
+                {
+                    short_name: 'orderer.example.com',
+                    name: 'orderer.example.com',
+                    type: 'fabric-orderer',
+                    url: 'grpc://localhost:12347',
+                    wallet: 'local_wallet',
+                    identity: 'Admin@org1.example.com'
+                }
+            ]);
+        });
+    });
+
+    describe('#getWalletName', () => {
+        it('should return an array of wallet names', async () => {
+            const walletNames: string[] = await runtime.getWalletNames();
+            walletNames.should.deep.equal([
+                'local_wallet'
+            ]);
+        });
+    });
+
+    describe('#getIdentities', () => {
+        it('should return an array of identities for a wallet that exists', async () => {
+            const identities: FabricIdentity[] = await runtime.getIdentities('local_wallet');
+            let certificate: string;
+            let privateKey: string;
+            if (os.platform() === 'win32') {
+                certificate = 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlDR0RDQ0FiK2dBd0lCQWdJUUZTeG5MQUdzdTA0enJGa0FFd3puNnpBS0JnZ3Foa2pPUFFRREFqQnpNUXN3DQpDUVlEVlFRR0V3SlZVekVUTUJFR0ExVUVDQk1LUTJGc2FXWnZjbTVwWVRFV01CUUdBMVVFQnhNTlUyRnVJRVp5DQpZVzVqYVhOamJ6RVpNQmNHQTFVRUNoTVFiM0puTVM1bGVHRnRjR3hsTG1OdmJURWNNQm9HQTFVRUF4TVRZMkV1DQpiM0puTVM1bGVHRnRjR3hsTG1OdmJUQWVGdzB4TnpBNE16RXdPVEUwTXpKYUZ3MHlOekE0TWprd09URTBNekphDQpNRnN4Q3pBSkJnTlZCQVlUQWxWVE1STXdFUVlEVlFRSUV3cERZV3hwWm05eWJtbGhNUll3RkFZRFZRUUhFdzFUDQpZVzRnUm5KaGJtTnBjMk52TVI4d0hRWURWUVFEREJaQlpHMXBia0J2Y21jeExtVjRZVzF3YkdVdVkyOXRNRmt3DQpFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVYxZGZtS3hzRktXbzdvNkROQklhSVZlYkNDUEFNOUMvDQpzTEJ0NHBKUnJlOXBXRTk4N0RqWFpvWjNnbGM0K0RvUE10VG1CUnFiUFZ3WWNVdnBiWVk4cDZOTk1Fc3dEZ1lEDQpWUjBQQVFIL0JBUURBZ2VBTUF3R0ExVWRFd0VCL3dRQ01BQXdLd1lEVlIwakJDUXdJb0FnUWptcURjMTIydTY0DQp1Z3phY0JoUjBVVUUweHF0R3kzZDI2eHFWelplU1h3d0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ1hNeTI2QUVVDQovR1VNUGZDTXMvblFqUU1FMVp4QkhBWVp0S0V1UlIzNjFKc0NJRWc5Qk9aZElvaW9SaXZKQytaVXp2SlVua1h1DQpvMkhrV2l1eExzaWJHeHRFDQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tDQo=';
+                privateKey = 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tDQpNSUdIQWdFQU1CTUdCeXFHU000OUFnRUdDQ3FHU000OUF3RUhCRzB3YXdJQkFRUWdSZ1FyMzQ3aWo2Y2p3WDdtDQpLanpiYkQ4VGx3ZGZ1NkZhdWJqV0pXTEd5cWFoUkFOQ0FBUlhWMStZckd3VXBhanVqb00wRWhvaFY1c0lJOEF6DQowTCt3c0czaWtsR3Q3MmxZVDN6c09OZG1obmVDVnpqNE9nOHkxT1lGR3BzOVhCaHhTK2x0aGp5bg0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ0K';
+            } else {
+                certificate = 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNHRENDQWIrZ0F3SUJBZ0lRRlN4bkxBR3N1MDR6ckZrQUV3em42ekFLQmdncWhrak9QUVFEQWpCek1Rc3cKQ1FZRFZRUUdFd0pWVXpFVE1CRUdBMVVFQ0JNS1EyRnNhV1p2Y201cFlURVdNQlFHQTFVRUJ4TU5VMkZ1SUVaeQpZVzVqYVhOamJ6RVpNQmNHQTFVRUNoTVFiM0puTVM1bGVHRnRjR3hsTG1OdmJURWNNQm9HQTFVRUF4TVRZMkV1CmIzSm5NUzVsZUdGdGNHeGxMbU52YlRBZUZ3MHhOekE0TXpFd09URTBNekphRncweU56QTRNamt3T1RFME16SmEKTUZzeEN6QUpCZ05WQkFZVEFsVlRNUk13RVFZRFZRUUlFd3BEWVd4cFptOXlibWxoTVJZd0ZBWURWUVFIRXcxVApZVzRnUm5KaGJtTnBjMk52TVI4d0hRWURWUVFEREJaQlpHMXBia0J2Y21jeExtVjRZVzF3YkdVdVkyOXRNRmt3CkV3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFVjFkZm1LeHNGS1dvN282RE5CSWFJVmViQ0NQQU05Qy8Kc0xCdDRwSlJyZTlwV0U5ODdEalhab1ozZ2xjNCtEb1BNdFRtQlJxYlBWd1ljVXZwYllZOHA2Tk5NRXN3RGdZRApWUjBQQVFIL0JBUURBZ2VBTUF3R0ExVWRFd0VCL3dRQ01BQXdLd1lEVlIwakJDUXdJb0FnUWptcURjMTIydTY0CnVnemFjQmhSMFVVRTB4cXRHeTNkMjZ4cVZ6WmVTWHd3Q2dZSUtvWkl6ajBFQXdJRFJ3QXdSQUlnWE15MjZBRVUKL0dVTVBmQ01zL25RalFNRTFaeEJIQVladEtFdVJSMzYxSnNDSUVnOUJPWmRJb2lvUml2SkMrWlV6dkpVbmtYdQpvMkhrV2l1eExzaWJHeHRFCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K';
+                privateKey = 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1JnUXIzNDdpajZjandYN20KS2p6YmJEOFRsd2RmdTZGYXVialdKV0xHeXFhaFJBTkNBQVJYVjErWXJHd1VwYWp1am9NMEVob2hWNXNJSThBegowTCt3c0czaWtsR3Q3MmxZVDN6c09OZG1obmVDVnpqNE9nOHkxT1lGR3BzOVhCaHhTK2x0aGp5bgotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==';
+            }
+            identities.should.deep.equal([
+                {
+                    name: 'Admin@org1.example.com',
+                    certificate: certificate,
+                    private_key: privateKey,
+                    msp_id: 'Org1MSP'
+                }
+            ]);
+        });
+
+        it('should throw for a wallet that does not exist', async () => {
+            await runtime.getIdentities('no identities here').should.be.rejectedWith(/does not exist/);
+        });
+    });
+
 });

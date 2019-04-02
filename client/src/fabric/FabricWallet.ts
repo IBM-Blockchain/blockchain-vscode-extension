@@ -25,10 +25,7 @@ export class FabricWallet extends FileSystemWallet implements IFabricWallet {
     }
 
     public async importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void> {
-
-        const wallet: FileSystemWallet = new FileSystemWallet(this.walletPath);
-        await wallet.import(identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
-
+        await this.import(identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
     }
 
     public async getIdentityNames(): Promise<string[]> {
