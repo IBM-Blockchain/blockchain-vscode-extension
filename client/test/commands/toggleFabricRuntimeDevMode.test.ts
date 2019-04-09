@@ -80,7 +80,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
     });
 
     it('should disable development mode and not restart a stopped Fabric runtime when run from the command', async () => {
@@ -91,7 +91,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.false;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
     });
 
     it('should enable development mode and restart a running Fabric runtime specified by right clicking on a peer', async () => {
@@ -102,7 +102,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
     });
 
     it('should disable development mode and restart a running Fabric runtime specified by right clicking on a peer', async () => {
@@ -113,10 +113,10 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
     });
 
-    it('should toggle dev mode', async () => {
+    it('should enable dev mode', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
         await runtime.setDevelopmentMode(false);
         sandbox.stub(runtime, 'isRunning').resolves(false);
@@ -124,10 +124,21 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
     });
 
-    it('should disconnect when trying to toggle a connected runtime', async () => {
+    it('should disable dev mode', async () => {
+        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
+        await runtime.setDevelopmentMode(true);
+        sandbox.stub(runtime, 'isRunning').resolves(true);
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        runtime.isDevelopmentMode().should.be.false;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
+    });
+
+    it('should disconnect when trying to enable a connected runtime', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(true);
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         await runtime.setDevelopmentMode(false);
@@ -136,7 +147,20 @@ describe('toggleFabricRuntimeDevMode', () => {
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
         restartStub.should.have.been.called;
         runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+    });
+
+    it('should disconnect when trying to disable a connected runtime', async () => {
+        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(true);
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        await runtime.setDevelopmentMode(true);
+        sandbox.stub(runtime, 'isRunning').resolves(true);
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
+        restartStub.should.have.been.called;
+        runtime.isDevelopmentMode().should.be.false;
+        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
     });
 });
