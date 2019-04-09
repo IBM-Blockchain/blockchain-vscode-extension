@@ -29,6 +29,7 @@ import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry
 import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabricWallet): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -39,11 +40,11 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
 
     if (walletItem && walletItem instanceof BlockchainTreeItem) {
         // can't get it from the registry if it's local_fabric because it doesn't exist
-        // TODO: hardcoded name
-        if (walletItem.label === 'local_wallet') {
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
+
+        if (walletItem.label === FabricWalletUtil.LOCAL_WALLET) {
+            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
         } else {
-            const walletRegistryEntry: FabricWalletRegistryEntry = await FabricWalletRegistry.instance().get(walletItem.label);
+            const walletRegistryEntry: FabricWalletRegistryEntry = FabricWalletRegistry.instance().get(walletItem.label);
             wallet = fabricWalletGenerator.getNewWallet(walletRegistryEntry.walletPath);
         }
     } else if (walletItem && !(walletItem instanceof BlockchainTreeItem) ) {
@@ -96,8 +97,10 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
         privateKeyPath = certKey.privateKeyPath;
     } else {
         // User wants to add an identity by providing a enrollment id and secret
-        // Ask them what gateway they want to use
-        // TODO: check for associated gateway
+
+        // Ask them what gateway they want to use for enrollment.
+        // We can't tell this automatically as a wallet is associated with a gateway (and a wallet can be associated with multiple gateways)
+
         const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', true);
         if (!chosenEntry) {
             return Promise.resolve();
@@ -108,7 +111,7 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
             const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
             const runtime: FabricRuntime = runtimeManager.getRuntime();
 
-            gatewayRegistryEntry.connectionProfilePath = await runtime.getConnectionProfilePath();
+            gatewayRegistryEntry.connectionProfilePath = runtime.getConnectionProfilePath();
         }
 
         const enrollIdSecret: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();

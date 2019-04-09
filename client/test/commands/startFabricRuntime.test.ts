@@ -89,6 +89,7 @@ describe('startFabricRuntime', () => {
         getConnectionStub.should.have.been.calledOnce;
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 
     it('should start a Fabric runtime', async () => {
@@ -98,5 +99,6 @@ describe('startFabricRuntime', () => {
         getConnectionStub.should.have.been.calledOnce;
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 });

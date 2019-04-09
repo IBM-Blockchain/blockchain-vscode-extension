@@ -32,6 +32,8 @@ import { FabricNodeType, FabricNode } from '../../src/fabric/FabricNode';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -48,7 +50,7 @@ describe('FabricRuntimeConnection', () => {
     let fabricContractStub: any;
     let fabricTransactionStub: any;
     let connectionWallet: FabricWallet;
-    const mockIdentityName: string = 'Admin@org1.example.com';
+    const mockIdentityName: string = FabricRuntimeUtil.ADMIN_USER;
     let fabricCAStub: sinon.SinonStubbedInstance<FabricCAServices>;
 
     let mySandBox: sinon.SinonSandbox;
@@ -200,24 +202,24 @@ describe('FabricRuntimeConnection', () => {
                 'peer0.org1.example.com',
                 FabricNodeType.PEER,
                 `grpc://localhost:7051`,
-                'local_wallet-ops',
-                'Admin@org1.example.com'
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER
             ),
             new FabricNode(
                 'ca.example.com',
                 'ca.example.com',
                 FabricNodeType.CERTIFICATE_AUTHORITY,
                 `http://localhost:7054`,
-                'local_wallet',
-                'Admin@org1.example.com'
+                FabricWalletUtil.LOCAL_WALLET,
+                FabricRuntimeUtil.ADMIN_USER
             ),
             new FabricNode(
                 'orderer.example.com',
                 'orderer.example.com',
                 FabricNodeType.ORDERER,
                 `grpc://localhost:7050`,
-                'local_wallet-ops',
-                'Admin@org1.example.com'
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER
             )
         ]);
 
@@ -228,8 +230,8 @@ describe('FabricRuntimeConnection', () => {
         mockLocalWalletOps = sinon.createStubInstance(FabricWallet);
         mockLocalWalletOps['setUserContext'] = sinon.stub();
         mockFabricWalletGenerator.createLocalWallet.rejects(new Error('no such wallet'));
-        mockFabricWalletGenerator.createLocalWallet.withArgs('local_wallet').resolves(mockLocalWallet);
-        mockFabricWalletGenerator.createLocalWallet.withArgs('local_wallet-ops').resolves(mockLocalWalletOps);
+        mockFabricWalletGenerator.createLocalWallet.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(mockLocalWallet);
+        mockFabricWalletGenerator.createLocalWallet.withArgs(`${FabricWalletUtil.LOCAL_WALLET}-ops`).resolves(mockLocalWalletOps);
     });
 
     afterEach(() => {
@@ -239,18 +241,18 @@ describe('FabricRuntimeConnection', () => {
     describe('connect', () => {
 
         it('should connect to a fabric', async () => {
-            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
+            await fabricRuntimeConnection.connect(connectionWallet, FabricRuntimeUtil.ADMIN_USER);
             gatewayStub.connect.should.have.been.called;
         });
 
         it('should connect with an already loaded client connection', async () => {
             should.exist(FabricConnectionFactory['runtimeConnection']);
-            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
+            await fabricRuntimeConnection.connect(connectionWallet, FabricRuntimeUtil.ADMIN_USER);
             gatewayStub.connect.should.have.been.called;
         });
 
         it('should create certificate authority clients for each certificate authority node', async () => {
-            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
+            await fabricRuntimeConnection.connect(connectionWallet, FabricRuntimeUtil.ADMIN_USER);
             const certificateAuthorityNames: string[] = Array.from(fabricRuntimeConnection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(fabricRuntimeConnection['certificateAuthorities'].values());
             certificateAuthorityNames.should.deep.equal(['ca.example.com']);
@@ -663,7 +665,7 @@ describe('FabricRuntimeConnection', () => {
         it('should register a new user and return a secret using a certificate authority that exists ', async () => {
             const secret: string = await fabricRuntimeConnection.register('ca.example.com', 'enrollThis', 'departmentE');
             secret.should.deep.equal('its a secret');
-            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, 'Admin@org1.example.com');
+            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
         });
 
         it('should throw trying to register a new user using a certificate authority that does not exist ', async () => {
@@ -685,8 +687,8 @@ describe('FabricRuntimeConnection', () => {
             node.name.should.equal('ca.example.com');
             node.type.should.equal(FabricNodeType.CERTIFICATE_AUTHORITY);
             node.url.should.equal('http://localhost:7054');
-            node.wallet.should.equal('local_wallet');
-            node.identity.should.equal('Admin@org1.example.com');
+            node.wallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
+            node.identity.should.equal(FabricRuntimeUtil.ADMIN_USER);
         });
 
         it('should throw for a node that does not exist', () => {

@@ -55,6 +55,8 @@
             "gatewaysExplorer.testSmartContractEntry",
             "gatewaysExplorer.submitTransactionEntry",
             "gatewaysExplorer.evaluateTransactionEntry",
+            "gatewaysExplorer.associateWallet",
+            "gatewaysExplorer.dissociateWallet",
             "aPackagesExplorer.createSmartContractProjectEntry",
             "aPackagesExplorer.packageSmartContractProjectEntry",
             "aPackagesExplorer.deleteSmartContractPackageEntry",
@@ -369,6 +371,16 @@
                 "command": "walletExplorer.deleteIdentityEntry",
                 "title": "Delete Identity",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "gatewaysExplorer.associateWallet",
+                "title": "Associate a wallet",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "gatewaysExplorer.dissociateWallet",
+                "title": "Dissociate a wallet",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -490,7 +502,11 @@
             "view/item/context": [
                 {
                     "command": "gatewaysExplorer.deleteGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.deleteGatewayEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
                     "command": "walletExplorer.addWalletIdentityEntry",
@@ -554,7 +570,11 @@
                 },
                 {
                     "command": "gatewaysExplorer.editGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.editGatewayEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
@@ -591,6 +611,14 @@
                 {
                     "command": "walletExplorer.deleteIdentityEntry",
                     "when": "view == walletExplorer && viewItem == blockchain-identity-item"
+                },
+                {
+                    "command": "gatewaysExplorer.associateWallet",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.dissociateWallet",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
                 }
             ]
         },
@@ -1096,8 +1124,8 @@
         "chai-as-promised": "7.1.1",
         "decache": "4.4.0",
         "glob": "7.1.2",
-        "js-yaml": "3.13.0",
         "istanbul": "0.4.5",
+        "js-yaml": "3.13.0",
         "license-check-and-add": "2.3.6",
         "mocha": "5.2.0",
         "remap-istanbul": "0.11.1",
@@ -1110,7 +1138,7 @@
         "tslint-loader": "3.6.0",
         "typescript": "3.0.1",
         "vsce": "^1.46.0",
-        "vscode": "1.1.29",
+        "vscode": "1.1.32",
         "vscode-nls-dev": "^3.2.5"
     },
     "dependencies": {

@@ -39,6 +39,10 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { GatewayDissociatedTreeItem } from '../../src/explorer/model/GatewayDissociatedTreeItem';
+import { GatewayAssociatedTreeItem } from '../../src/explorer/model/GatewayAssociatedTreeItem';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -148,22 +152,26 @@ describe('gatewayExplorer', () => {
 
                 gateways.push({
                     name: 'myGatewayB',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    associatedWallet: ''
                 });
 
                 gateways.push({
                     name: 'myGatewayC',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json')
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
+                    associatedWallet: 'some_wallet'
                 });
 
                 gateways.push({
                     name: 'myGatewayA',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    associatedWallet: 'some_other_wallet'
                 });
 
                 gateways.push({
                     name: 'myGatewayA',
-                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
+                    connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                    associatedWallet: 'some_other_wallet'
                 });
 
                 await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
@@ -172,10 +180,14 @@ describe('gatewayExplorer', () => {
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(5);
-                allChildren[1].label.should.equal('myGatewayA');
-                allChildren[2].label.should.equal('myGatewayA');
+                allChildren[1].label.should.equal('myGatewayA ⧉');
+                allChildren[1].should.be.an.instanceOf(GatewayAssociatedTreeItem);
+                allChildren[2].label.should.equal('myGatewayA ⧉');
+                allChildren[2].should.be.an.instanceOf(GatewayAssociatedTreeItem);
                 allChildren[3].label.should.equal('myGatewayB');
-                allChildren[4].label.should.equal('myGatewayC');
+                allChildren[3].should.be.an.instanceOf(GatewayDissociatedTreeItem);
+                allChildren[4].label.should.equal('myGatewayC ⧉');
+                allChildren[4].should.be.an.instanceOf(GatewayAssociatedTreeItem);
             });
 
             it('should handle error with tree', async () => {
@@ -203,7 +215,7 @@ describe('gatewayExplorer', () => {
             it('should handle errors populating the tree with localGatewayTreeItems', async () => {
 
                 const runtime: any = {
-                    name: 'local_fabric',
+                    name: FabricRuntimeUtil.LOCAL_FABRIC,
                     developmentMode: false
                 };
 
@@ -220,7 +232,7 @@ describe('gatewayExplorer', () => {
 
             it('should display the managed runtime', async () => {
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-                mockRuntime.getName.returns('local_fabric');
+                mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
                 mockRuntime.isBusy.returns(false);
                 mockRuntime.isRunning.resolves(true);
                 mockRuntime.getConnectionProfilePath.returns('connection.json');
@@ -233,9 +245,10 @@ describe('gatewayExplorer', () => {
                 });
 
                 const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-                gateway.name = 'local_fabric';
+                gateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 gateway.managedRuntime = true;
                 gateway.connectionProfilePath = 'connection.json';
+                gateway.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
                 const myCommand: vscode.Command = {
                     command: ExtensionCommands.CONNECT,
                     title: '',
@@ -245,10 +258,13 @@ describe('gatewayExplorer', () => {
                 allChildren.length.should.equal(1);
                 allChildren[0].should.be.an.instanceOf(LocalGatewayTreeItem);
                 const localGatewayTreeItem: LocalGatewayTreeItem = allChildren[0] as LocalGatewayTreeItem;
-                localGatewayTreeItem.label.should.equal('local_fabric  ●');
+                localGatewayTreeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
                 localGatewayTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 localGatewayTreeItem.gateway.should.deep.equal(gateway);
                 localGatewayTreeItem.command.should.deep.equal(myCommand);
+                localGatewayTreeItem.tooltip.should.deep.equal(`Local Fabric is running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
             });
 
             it('should handle errors thrown when connection fails', async () => {
@@ -259,7 +275,7 @@ describe('gatewayExplorer', () => {
                 getConnectionStub.returns((fabricConnection as any) as FabricConnection);
                 getConnectionStub.onCall(1).throws({ message: 'cannot connect' });
 
-                const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').resolves();
+                const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').returns(undefined);
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 await blockchainGatewayExplorerProvider.getChildren();
 
@@ -304,6 +320,7 @@ describe('gatewayExplorer', () => {
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
                 registryEntry.connectionProfilePath = 'myPath';
+                registryEntry.associatedWallet = 'some_wallet';
                 registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
@@ -412,6 +429,7 @@ describe('gatewayExplorer', () => {
                 registryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
                 registryEntry.connectionProfilePath = 'myPath';
+                registryEntry.associatedWallet = 'some_wallet';
                 registryEntry.managedRuntime = false;
                 getGatewayRegistryEntryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
                 allChildren = await blockchainGatewayExplorerProvider.getChildren();

@@ -29,6 +29,9 @@ import * as myExtension from '../../src/extension';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -179,6 +182,27 @@ describe('deleteIdentityCommand', () => {
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteIdentity`);
     });
 
+    it('should delete an identity and filter admin id from local wallet', async () => {
+        identityName = 'bob';
+
+        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+
+        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        runtimeWalletRegistryEntry.walletPath = 'wallet_path';
+
+        showWalletsQuickPickStub.resolves({
+            label: FabricWalletUtil.LOCAL_WALLET,
+            data: runtimeWalletRegistryEntry
+        });
+        walletIdentitiesStub.resolves([FabricRuntimeUtil.ADMIN_USER, identityName]);
+        showIdentitiesQuickPickStub.resolves(identityName);
+
+        await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
+
+        showIdentitiesQuickPickStub.should.have.been.calledOnceWithExactly('Choose the identity to delete', [identityName]);
+
+    });
+
     describe('called from the tree', () => {
 
         it('should delete an identity when called from the wallet tree', async () => {
@@ -189,6 +213,26 @@ describe('deleteIdentityCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
 
             fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(blueWallet.walletPath, identityName));
+            showWalletsQuickPickStub.should.not.have.been.called;
+            warningStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteIdentity`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted identity: ${identityName}`, `Successfully deleted identity: ${identityName}`);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        });
+
+        it('should delete an identity and filter admin id from local wallet', async () => {
+            identityName = 'bob';
+            const walletGenerator: FabricWalletGenerator = await FabricWalletGenerator.instance();
+            const testFabricWallet: FabricWallet = new FabricWallet('some/local/fabric/wallet/path');
+            mySandBox.stub(walletGenerator, 'createLocalWallet').returns(testFabricWallet);
+
+            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, FabricWalletUtil.LOCAL_WALLET);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
+
+            fsRemoveStub.should.have.been.calledOnceWithExactly(path.join('some/local/fabric/wallet/path', identityName));
             showWalletsQuickPickStub.should.not.have.been.called;
             warningStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledTwice;

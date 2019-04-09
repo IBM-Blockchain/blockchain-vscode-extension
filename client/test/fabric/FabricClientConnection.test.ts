@@ -24,6 +24,7 @@ import { Gateway } from 'fabric-network';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -123,7 +124,7 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect to a fabric', async () => {
-            await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnection['networkIdProperty'].should.equal(false);
@@ -131,7 +132,7 @@ describe('FabricClientConnection', () => {
 
         it('should connect with an already loaded client connection', async () => {
             should.exist(FabricConnectionFactory['clientConnection']);
-            await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnection['networkIdProperty'].should.equal(false);
@@ -146,7 +147,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionYamlData) as FabricClientConnection;
             fabricClientConnectionYaml['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnectionYaml.connect(wallet, 'Admin@org1.example.com');
+            await fabricClientConnectionYaml.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
@@ -161,7 +162,7 @@ describe('FabricClientConnection', () => {
             otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
             otherFabricClientConnectionYml['gateway'] = fabricGatewayStub;
 
-            await otherFabricClientConnectionYml.connect(wallet, 'Admin@org1.example.com');
+            await otherFabricClientConnectionYml.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
@@ -177,7 +178,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnection.connect(wallet, 'Admin@org1.example.com');
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
 
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -193,7 +194,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnectionWrong = FabricConnectionFactory.createFabricClientConnection(connectionWrongData) as FabricClientConnection;
             fabricClientConnectionWrong['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnectionWrong.connect(wallet, 'Admin@org1.example.com').should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
+            await fabricClientConnectionWrong.connect(wallet, FabricRuntimeUtil.ADMIN_USER).should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
             fabricGatewayStub.connect.should.not.have.been.called;
         });
 

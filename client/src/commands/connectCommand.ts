@@ -28,6 +28,8 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -44,16 +46,52 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         gatewayRegistryEntry = chosenEntry.data;
     }
 
-    // Choose a wallet to connect with
-    const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', true);
-    if (!chosenWallet) {
-        return;
+    let wallet: IFabricWallet;
+    let walletPath: string;
+    let walletName: string;
+    let walletData: any;
+
+    // If the user is trying to connect to the local_fabric, we should always use the local_wallet
+    if (!gatewayRegistryEntry.associatedWallet && !gatewayRegistryEntry.managedRuntime) {
+        // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
+
+        // Choose a wallet to connect with
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', true);
+        if (!chosenWallet) {
+            return;
+        }
+        walletName = chosenWallet.data.name;
+        walletPath = chosenWallet.data.walletPath;
+        walletData = chosenWallet.data;
+    } else {
+        walletName = gatewayRegistryEntry.associatedWallet;
+
+        if (walletName === FabricWalletUtil.LOCAL_WALLET) {
+            // We don't want to attempt to get it from the wallet registry
+            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
+
+            const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+
+            runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            runtimeWalletRegistryEntry.walletPath = wallet.getWalletPath();
+
+            walletData = runtimeWalletRegistryEntry;
+
+        } else {
+            const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+            walletData = fabricWalletRegistry.get(walletName);
+        }
+
+        walletPath = walletData.walletPath;
+
     }
 
-    // Get the wallet
-    const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-    let wallet: IFabricWallet;
-    wallet = FabricWalletGenerator.getNewWallet(chosenWallet.data.walletPath);
+    if (!wallet) {
+        // If we haven't already retrieved the wallet
+        // Get the wallet
+        const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        wallet = FabricWalletGenerator.getNewWallet(walletPath);
+    }
 
     // Get the identities
     const identityNames: string[] = await wallet.getIdentityNames();
@@ -64,7 +102,7 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
             return;
         }
     } else if (identityNames.length === 0) {
-        outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + chosenWallet.data.name);
+        outputAdapter.log(LogType.ERROR, 'No identities found in wallet: ' + walletName);
         return;
     } else {
         identityName = identityNames[0];
@@ -94,7 +132,7 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
 
     try {
         await connection.connect(wallet, identityName);
-        connection.wallet = chosenWallet.data;
+        connection.wallet = walletData;
         connection.identityName = identityName;
         FabricConnectionManager.instance().connect(connection, gatewayRegistryEntry);
 

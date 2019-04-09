@@ -40,9 +40,11 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
-import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { IFabricClientConnection } from '../../src/fabric/IFabricClientConnection';
 import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
+import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -196,9 +198,9 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 // Connect using it
                 integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(otherUserName);
-                await integrationTestUtil.connectToFabric('local_fabric', 'local_wallet');
+                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET);
 
-                await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'local_fabric');
+                await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, FabricRuntimeUtil.LOCAL_FABRIC);
                 testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
 
                 await integrationTestUtil.updatePackageJsonVersion('0.0.2');
@@ -240,7 +242,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 allChildren.length.should.equal(3);
 
-                allChildren[0].label.should.equal('Connected via gateway: local_fabric');
+                allChildren[0].label.should.equal(`Connected via gateway: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
                 allChildren[1].label.should.equal(`Using ID: ${otherUserName}`);
                 allChildren[2].label.should.equal('Channels');
 
@@ -311,14 +313,15 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 installedSmartContract.should.not.be.null;
 
-                await integrationTestUtil.connectToFabric('local_fabric', 'local_wallet');
+                integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(FabricRuntimeUtil.ADMIN_USER);
+                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET);
 
                 allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
-                allChildren[0].label.should.equal('Connected via gateway: local_fabric');
-                allChildren[1].label.should.equal('Using ID: Admin@org1.example.com');
+                allChildren[0].label.should.equal(`Connected via gateway: ${FabricRuntimeUtil.LOCAL_FABRIC}`);
+                allChildren[1].label.should.equal(`Using ID: ${FabricRuntimeUtil.ADMIN_USER}`);
                 allChildren[2].label.should.equal('Channels');
 
                 // Submit some transactions and then check the results

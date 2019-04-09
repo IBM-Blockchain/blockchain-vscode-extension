@@ -27,12 +27,14 @@ import * as request from 'request';
 import { FabricIdentity } from './FabricIdentity';
 import { FabricNode, FabricNodeType } from './FabricNode';
 import { FabricGateway } from './FabricGateway';
+import { FabricWalletUtil } from './FabricWalletUtil';
+import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
 const basicNetworkConnectionProfile: string = JSON.parse(fs.readFileSync(basicNetworkConnectionProfilePath).toString());
-const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
-const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'msp/signcerts/Admin@org1.example.com-cert.pem');
+const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, `crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com`);
+const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, `msp/signcerts/Admin@org1.example.com-cert.pem`);
 const basicNetworkAdminCertificate: string = fs.readFileSync(basicNetworkAdminCertificatePath, 'utf8');
 const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
 const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
@@ -59,7 +61,7 @@ export class FabricRuntime extends EventEmitter {
 
     constructor() {
         super();
-        this.name = 'local_fabric';
+        this.name = FabricRuntimeUtil.LOCAL_FABRIC;
         this.docker = new Docker(this.name);
     }
 
@@ -144,7 +146,7 @@ export class FabricRuntime extends EventEmitter {
     public async getGateways(): Promise<FabricGateway[]> {
         const connectionProfile: object = await this.getConnectionProfile();
         return [
-            new FabricGateway('local_fabric', this.getConnectionProfilePath(), connectionProfile)
+            new FabricGateway(FabricRuntimeUtil.LOCAL_FABRIC, this.getConnectionProfilePath(), connectionProfile)
         ];
     }
 
@@ -162,41 +164,41 @@ export class FabricRuntime extends EventEmitter {
                 'peer0.org1.example.com',
                 FabricNodeType.PEER,
                 `grpc://localhost:${peerRequestPort}`,
-                'local_wallet-ops',
-                'Admin@org1.example.com'
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER
             ),
             new FabricNode(
                 'ca.example.com',
                 'ca.example.com',
                 FabricNodeType.CERTIFICATE_AUTHORITY,
                 `http://localhost:${caPort}`,
-                'local_wallet',
-                'Admin@org1.example.com'
+                FabricWalletUtil.LOCAL_WALLET,
+                FabricRuntimeUtil.ADMIN_USER
             ),
             new FabricNode(
                 'orderer.example.com',
                 'orderer.example.com',
                 FabricNodeType.ORDERER,
                 `grpc://localhost:${ordererPort}`,
-                'local_wallet-ops',
-                'Admin@org1.example.com'
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER
             )
         ];
     }
 
     public async getWalletNames(): Promise<string[]> {
         return [
-            'local_wallet'
+            `${FabricWalletUtil.LOCAL_WALLET}`
         ];
     }
 
     public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
-        if (walletName !== 'local_wallet') {
+        if (walletName !== FabricWalletUtil.LOCAL_WALLET) {
             throw new Error(`The wallet ${walletName} does not exist`);
         } else {
             return [
                 new FabricIdentity(
-                    'Admin@org1.example.com',
+                    FabricRuntimeUtil.ADMIN_USER,
                     Buffer.from(basicNetworkAdminCertificate, 'utf8').toString('base64'),
                     Buffer.from(basicNetworkAdminPrivateKey, 'utf8').toString('base64'),
                     'Org1MSP'
@@ -333,15 +335,22 @@ export class FabricRuntime extends EventEmitter {
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const runtimePath: string = path.join(homeExtDir, this.name);
-        // TODO: hardcoded name
-        const walletPath: string = path.join(homeExtDir, 'local_wallet');
+
+        const localFabric: string = path.join(homeExtDir, FabricRuntimeUtil.LOCAL_FABRIC);
+        const walletPath: string = path.join(homeExtDir, FabricWalletUtil.LOCAL_WALLET);
+
         // Need to remove the secret wallet as well
-        const secretRuntimePath: string = path.join(homeExtDir, 'local_wallet' + '-ops');
+        const secretRuntimePath: string = path.join(homeExtDir, FabricWalletUtil.LOCAL_WALLET + '-ops');
 
         try {
-            await fs.remove(runtimePath);
-            await fs.remove(walletPath);
+            // Remove Local Fabric connection directory
+            await fs.remove(localFabric);
+
+            // Remove the Local Fabric Wallet's admin identity - but don't remove the entire wallet or other identities
+            const adminIdentity: string = path.join(walletPath, FabricRuntimeUtil.ADMIN_USER);
+            await fs.remove(adminIdentity);
+
+            // Remove Local Fabric Ops Wallet
             await fs.remove(secretRuntimePath);
         } catch (error) {
             if (!error.message.includes('ENOENT: no such file or directory')) {

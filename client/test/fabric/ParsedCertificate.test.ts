@@ -20,6 +20,7 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 // tslint:disable no-var-requires
 const {Certificate} = require('@fidm/x509');
@@ -57,7 +58,7 @@ describe('ParsedCertificate', () => {
             const certPath: string = path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate');
             const parsedCertificate: ParsedCertificate = new ParsedCertificate(certPath);
 
-            parsedCertificate.getCommonName().should.equal('Admin@org1.example.com');
+            parsedCertificate.getCommonName().should.equal(FabricRuntimeUtil.ADMIN_USER);
         });
     });
 

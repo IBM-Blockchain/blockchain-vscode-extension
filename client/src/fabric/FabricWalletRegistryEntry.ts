@@ -18,7 +18,6 @@ import { FabricRegistryEntry } from './FabricRegistryEntry';
 export class FabricWalletRegistryEntry extends FabricRegistryEntry {
 
     // name is connectionName - will change when they are no longer associated
-
     public walletPath: string;
 
     constructor(fields?: FabricWalletRegistryEntry) {

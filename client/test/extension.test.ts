@@ -28,6 +28,7 @@ import { BlockchainGatewayExplorerProvider } from '../src/explorer/gatewayExplor
 import { SampleView } from '../src/webview/SampleView';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../src/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 
@@ -110,6 +111,8 @@ describe('Extension Tests', () => {
             ExtensionCommands.EDIT_WALLET,
             ExtensionCommands.REMOVE_WALLET,
             ExtensionCommands.DELETE_IDENTITY,
+            ExtensionCommands.ASSOCIATE_WALLET,
+            ExtensionCommands.DISSOCIATE_WALLET,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -132,6 +135,8 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
             `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
+            `onCommand:${ExtensionCommands.ASSOCIATE_WALLET}`,
+            `onCommand:${ExtensionCommands.DISSOCIATE_WALLET}`,
             `onCommand:${ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT}`,
             `onCommand:${ExtensionCommands.PACKAGE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.DELETE_SMART_CONTRACT}`,
@@ -193,7 +198,7 @@ describe('Extension Tests', () => {
         const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
         const myRuntime: any = {
-            name: 'local_fabric',
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
             developmentMode: false
         };
 
