@@ -776,7 +776,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
             smartContractExists.should.be.false;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java. Please ensure your contract's root-level directory is open in the Explorer.`);
             logSpy.should.have.been.calledTwice;
         });
 
