@@ -6,7 +6,7 @@
             "samples":[
                 {
                     "name": "FabCar",
-                    "description": "Basic sample demonstrating the transfer of vehicle ownership.",
+                    "description": "Basic sample based on cars: the \"hello world\" of Hyperledger Fabric samples.",
                     "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md",
                     "category":{
                         "contracts":[
@@ -101,7 +101,7 @@
                 },
                 {
                     "name": "Commercial Paper",
-                    "description": "Issue, buy and redeem commercial papers using PaperNet, a Hyperledger Fabric blockchain network.",
+                    "description": "Based on a real-world financial use-case, with multiple parties sharing a ledger.",
                     "readme": "https://raw.githubusercontent.com/hyperledger/fabric-samples/release-1.4/README.md",
                     "category":{
                         "contracts":[
