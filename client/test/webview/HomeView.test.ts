@@ -179,7 +179,6 @@ describe('HomeView', () => {
 
         const homePageHtml: string = await HomeView.getHomePage(options);
         homePageHtml.should.contain(`<h3 id="sample-header">`);
-        homePageHtml.should.contain(`<h4 id="repository-name">hyperledger/fabric-samples</h4>`);
         homePageHtml.should.contain(`<p id="sample-description">Sample project demonstrating the transfer of vehicle ownership</p>`);
     });
 
