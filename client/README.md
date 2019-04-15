@@ -163,6 +163,8 @@ Debugging your smart contract allows you to run through the smart contract trans
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
 
+If you stop the fabric runtime, in order to debug you’ll need to rename your smart contract or teardown the fabric runtime.
+
 > ⚠ Please note after installing 0.3.3, you may no longer be able to debug existing smart contract projects that are written in TypeScript. You must add the following two settings to your launch configuration in launch.json:
 ``` "preLaunchTask": "tsc: build - tsconfig.json",
 "outFiles": [
