@@ -31,6 +31,8 @@ import { FabricWalletRegistryEntry } from '../src/fabric/FabricWalletRegistryEnt
 import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
 import { IFabricClientConnection } from '../src/fabric/IFabricClientConnection';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../src/fabric/FabricWalletUtil';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -82,8 +84,8 @@ export class IntegrationTestUtil {
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
         this.packageRegistry = PackageRegistry.instance();
-        this.keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem`);
-        this.certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
+        this.keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/${FabricRuntimeUtil.ADMIN_USER}/msp/keystore/key.pem`);
+        this.certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/${FabricRuntimeUtil.ADMIN_USER}/msp/signcerts/${FabricRuntimeUtil.ADMIN_USER}-cert.pem`);
 
         this.showLanguagesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
         this.getWorkspaceFoldersStub = this.mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
@@ -149,6 +151,7 @@ export class IntegrationTestUtil {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = name;
             gatewayEntry.managedRuntime = true;
+            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
             gatewayEntry.connectionProfilePath = FabricRuntimeManager.instance().getRuntime().getConnectionProfilePath();
         }
 
@@ -158,8 +161,8 @@ export class IntegrationTestUtil {
             walletEntry = this.walletRegistry.get(walletName);
         } catch (error) {
             walletEntry = new FabricWalletRegistryEntry();
-            walletEntry.name = 'local_wallet';
-            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_wallet');
+            walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
         }
 
         this.showWalletsQuickPickStub.resolves({
@@ -365,6 +368,7 @@ export class IntegrationTestUtil {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
             gatewayEntry.managedRuntime = true;
+            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         }
 
         this.showGatewayQuickPickStub.resolves({
@@ -407,6 +411,23 @@ export class IntegrationTestUtil {
     }
 
     public async createCAIdentity(name: string): Promise<void> {
+
+        const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+        walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
+
+        const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, name));
+        if (identityExists) {
+            this.showWalletsQuickPickStub.resolves({
+                label: walletEntry.name,
+                data: walletEntry
+            });
+            this.showIdentitiesQuickPickStub.resolves(name);
+
+            // If the identity already exists, remove it from the wallet
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
+        }
+
         this.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.example.com');
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
@@ -444,8 +465,8 @@ export class IntegrationTestUtil {
             walletEntry = this.walletRegistry.get(walletName);
         } catch (error) {
             walletEntry = new FabricWalletRegistryEntry();
-            walletEntry.name = 'local_wallet';
-            walletEntry.walletPath = path.join(__dirname, '../../integrationTest/tmp/local_wallet');
+            walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
         }
 
         this.showWalletsQuickPickStub.resolves({

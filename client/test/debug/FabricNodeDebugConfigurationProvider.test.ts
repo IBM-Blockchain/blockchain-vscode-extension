@@ -28,6 +28,7 @@ import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -80,7 +81,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             runtimeStub.isDevelopmentMode.returns(true);
 
             registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'local_fabric';
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = true;
 

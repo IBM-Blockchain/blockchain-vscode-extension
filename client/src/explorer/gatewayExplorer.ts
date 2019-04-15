@@ -18,6 +18,8 @@ import * as vscode from 'vscode';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { GatewayTreeItem } from './model/GatewayTreeItem';
+import { GatewayAssociatedTreeItem } from './model/GatewayAssociatedTreeItem';
+import { GatewayDissociatedTreeItem } from './model/GatewayDissociatedTreeItem';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
@@ -188,12 +190,23 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 title: '',
                 arguments: [gateway]
             };
-            tree.push(new GatewayTreeItem(this,
-                gateway.name,
-                gateway,
-                vscode.TreeItemCollapsibleState.None,
-                command)
-            );
+
+            if (gateway.associatedWallet) {
+                tree.push(new GatewayAssociatedTreeItem(this,
+                    gateway.name,
+                    gateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    command)
+                );
+            } else {
+                tree.push(new GatewayDissociatedTreeItem(this,
+                    gateway.name,
+                    gateway,
+                    vscode.TreeItemCollapsibleState.None,
+                    command)
+                );
+            }
+
         }
 
         tree.sort((connectionA: GatewayTreeItem, connectionB: GatewayTreeItem) => {

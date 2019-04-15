@@ -25,6 +25,7 @@ import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -58,7 +59,7 @@ describe('stopFabricRuntime', () => {
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
         gatewayRegistyEntry.managedRuntime = false;
         gatewayRegistyEntry.connectionProfilePath = 'myPath';
-        gatewayRegistyEntry.name = 'local_fabric';
+        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
 
         getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
     });

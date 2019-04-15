@@ -11,16 +11,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
-
-export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
-
-    public connectionProfilePath: string;
-    public managedRuntime: boolean;
-    public associatedWallet: string;
-    constructor(fields?: FabricGatewayRegistryEntry) {
-        super();
-        Object.assign(this, fields);
-    }
+export class FabricWalletUtil {
+    static readonly LOCAL_WALLET: string = 'local_wallet';
 }

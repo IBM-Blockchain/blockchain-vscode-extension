@@ -20,6 +20,7 @@ import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
+import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
@@ -44,6 +45,9 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
+        this.tooltip = `ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`;
+
     }
 
     private safelyUpdateProperties(): void {
@@ -61,13 +65,14 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
         const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
         let newCommand: vscode.Command = this.command;
-        let newContextLabel: string = this.contextValue;
+        let newContextLabel: string;
         if (busy) {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
             newLabel += busyStates[this.busyTicks % 4];
-            this.tooltip = `${this.label}`;
+            this.tooltip = `${this.label}
+${this.tooltip}`;
             newCommand = null;
             newContextLabel = 'blockchain-local-gateway-item-busy';
         } else if (running) {
@@ -77,14 +82,16 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             gateway.name = this.name;
             gateway.managedRuntime = true;
             newLabel += '●';
-            this.tooltip = 'Local Fabric is running';
+            this.tooltip = `Local Fabric is running
+${this.tooltip}`;
 
             newContextLabel = 'blockchain-local-gateway-item-started';
         } else {
             // Not running!
             this.disableBusyTicker();
             newLabel += '○';
-            this.tooltip = 'Local Fabric is not running';
+            this.tooltip = `Local Fabric is not running
+${this.tooltip}`;
 
             if (created) {
                 newContextLabel = 'blockchain-local-gateway-item-stopped';

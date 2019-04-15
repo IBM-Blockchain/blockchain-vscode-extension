@@ -11,16 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
-
-export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
-
-    public connectionProfilePath: string;
-    public managedRuntime: boolean;
-    public associatedWallet: string;
-    constructor(fields?: FabricGatewayRegistryEntry) {
-        super();
-        Object.assign(this, fields);
-    }
+export class FabricRuntimeUtil {
+    public static readonly LOCAL_FABRIC: string = 'local_fabric';
+    public static readonly ADMIN_USER: string = 'Admin@org1.example.com';
 }

@@ -23,7 +23,8 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import * as myExtension from '../../src/extension';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
+import { GatewayDissociatedTreeItem } from '../../src/explorer/model/GatewayDissociatedTreeItem';
+import { GatewayAssociatedTreeItem } from '../../src/explorer/model/GatewayAssociatedTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
@@ -84,15 +85,24 @@ describe('EditGatewayCommand', () => {
 
         describe('called from tree by clicking or right-clicking and editing', () => {
 
-            it('should open the user settings to edit a gateway', async () => {
+            it('should open the user settings to edit an associated gateway', async () => {
                 const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-                const treeItem: GatewayTreeItem = new GatewayTreeItem(blockchainNetworkExplorerProvider, 'My Gateway', {name: 'myGateway'} as FabricGatewayRegistryEntry, 0);
+                const treeItem: GatewayAssociatedTreeItem = new GatewayAssociatedTreeItem(blockchainNetworkExplorerProvider, 'My Gateway', {name: 'myGateway', connectionProfilePath: 'path', associatedWallet: 'wallet', managedRuntime: false} as FabricGatewayRegistryEntry, 0);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myGateway');
                 logSpy.should.have.been.calledOnce;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
 
+            it('should open the user settings to edit an dissociated gateway', async () => {
+                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const treeItem: GatewayDissociatedTreeItem = new GatewayDissociatedTreeItem(blockchainNetworkExplorerProvider, 'My Gateway', {name: 'myGateway', connectionProfilePath: 'path', associatedWallet: '', managedRuntime: false} as FabricGatewayRegistryEntry, 0);
+
+                await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
+                openUserSettingsStub.should.have.been.calledWith('myGateway');
+                logSpy.should.have.been.calledOnce;
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
         });
     });

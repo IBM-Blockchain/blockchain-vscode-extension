@@ -64,7 +64,8 @@ import { LogType } from './logging/OutputAdapter';
 import { HomeView } from './webview/HomeView';
 import { SampleView } from './webview/SampleView';
 import { FabricGatewayRegistryEntry } from './fabric/FabricGatewayRegistryEntry';
-import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
+import { GatewayDissociatedTreeItem } from './explorer/model/GatewayDissociatedTreeItem';
+import { GatewayAssociatedTreeItem } from './explorer/model/GatewayAssociatedTreeItem';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { version as currentExtensionVersion } from '../package.json';
 import { InstantiatedContractTreeItem } from './explorer/model/InstantiatedContractTreeItem';
@@ -81,6 +82,9 @@ import { editWalletCommand } from './commands/editWalletCommand';
 import { removeWallet } from './commands/removeWalletCommand';
 import { deleteIdentity } from './commands/deleteIdentityCommand';
 import { IdentityTreeItem } from './explorer/model/IdentityTreeItem';
+import { associateWallet } from './commands/associateWalletCommand';
+import { dissociateWallet } from './commands/dissociateWalletCommand';
+import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -227,7 +231,8 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_WALLET, (treeItem: WalletTreeItem) => editWalletCommand(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REMOVE_WALLET, (treeItem: WalletTreeItem) => removeWallet(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_IDENTITY, (treeItem: IdentityTreeItem) => deleteIdentity(treeItem)));
-
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_WALLET, (treeItem: GatewayDissociatedTreeItem) => associateWallet(treeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_WALLET, (treeItem: GatewayAssociatedTreeItem) => dissociateWallet(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => await HomeView.openHomePage(context)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, async (repoName: string, sampleName: string) => await SampleView.openContractSample(context, repoName, sampleName)));
 

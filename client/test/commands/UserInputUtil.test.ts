@@ -36,6 +36,8 @@ import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -121,11 +123,13 @@ describe('UserInputUtil', () => {
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
         gatewayEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
-        identities = ['Admin@org1.example.com', 'Test@org1.example.com'];
+        gatewayEntryOne.associatedWallet = 'blueWallet';
+        identities = [FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com'];
 
         gatewayEntryTwo = new FabricGatewayRegistryEntry();
         gatewayEntryTwo.name = 'myGatewayB';
         gatewayEntryTwo.connectionProfilePath = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
+        gatewayEntryTwo.associatedWallet = '';
 
         await gatewayRegistry.clear();
         await gatewayRegistry.add(gatewayEntryOne);
@@ -200,24 +204,51 @@ describe('UserInputUtil', () => {
             mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne]);
 
             const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            managedRuntime.name = 'local_fabric';
+            managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
             managedRuntime.managedRuntime = true;
-            const connectionProfilePath: string = UserInputUtil.getDirPath('~/.fabric-vscode/local_fabric/connection.json');
+            managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            const connectionProfilePath: string = UserInputUtil.getDirPath(`~/.fabric-vscode/${FabricRuntimeUtil.LOCAL_FABRIC}/connection.json`);
             managedRuntime.connectionProfilePath = connectionProfilePath;
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true);
             quickPickStub.should.have.been.calledWith([{ label: managedRuntime.name, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
         });
+
+        it('should show any gateways with an associated wallet (associated gateway)', async () => {
+            mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
+            quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
+            quickPickStub.should.have.been.calledWith([{label: gatewayEntryOne.name, data: gatewayEntryOne }], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a gateway'
+            });
+            result.label.should.equal('myGatewayA');
+            result.data.should.deep.equal(gatewayEntryOne);
+        });
+
+        it('should show any gateways with an associated wallet (dissociated gateway)', async () => {
+            mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
+            quickPickStub.resolves({ label: gatewayEntryTwo.name, data: gatewayEntryTwo });
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false);
+            quickPickStub.should.have.been.calledWith([{label: gatewayEntryTwo.name, data: gatewayEntryTwo }], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a gateway'
+            });
+            result.label.should.equal('myGatewayB');
+            result.data.should.deep.equal(gatewayEntryTwo);
+        });
     });
 
     describe('showIdentitiesQuickPickBox', () => {
 
         it('should show identity names in the quickpick box', async () => {
-            quickPickStub.resolves('Admin@org1.example.com');
+            quickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
             const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities);
 
-            result.should.equal('Admin@org1.example.com');
+            result.should.equal(FabricRuntimeUtil.ADMIN_USER);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
                 canPickMany: false,
@@ -1355,7 +1386,7 @@ describe('UserInputUtil', () => {
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
 
             const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
-                name: 'local_wallet',
+                name: FabricWalletUtil.LOCAL_WALLET,
                 walletPath: 'some/local/path'
             });
 

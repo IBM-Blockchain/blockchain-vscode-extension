@@ -51,7 +51,7 @@ export async function addGateway(): Promise<{} | void> {
         // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
         fabricGatewayEntry.name = gatewayName;
         fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
-
+        fabricGatewayEntry.associatedWallet = '';
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         await fabricGatewayRegistry.add(fabricGatewayEntry);
 

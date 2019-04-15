@@ -46,7 +46,8 @@ describe('FabricGatewayRegistry', () => {
         const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
             name: 'my-fabric-network',
             connectionProfilePath: '/tmp/connection.json',
-            managedRuntime: false
+            managedRuntime: false,
+            associatedWallet: ''
         });
         registry.getAll().should.deep.equal([]);
         await registry.add(gateway);
