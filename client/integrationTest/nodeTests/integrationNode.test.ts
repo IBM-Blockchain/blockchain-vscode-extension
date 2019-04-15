@@ -380,7 +380,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 packageToInstall.should.not.be.null;
                 await fabricConnection.installChaincode(packageToInstall, 'peer0.org1.example.com');
 
-                await fabricConnection.instantiateChaincode(smartContractName, '0.0.1', 'mychannel', 'instantiate', []);
+                await fabricConnection.instantiateChaincode(smartContractName, '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', []);
 
                 const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
