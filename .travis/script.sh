@@ -38,6 +38,8 @@ docker_logs() {
     curl http://127.0.0.1:8000/logs
 }
 
+npm run package
+
 if [ $TRAVIS_OS_NAME == "linux" ]; then
      export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
 fi
