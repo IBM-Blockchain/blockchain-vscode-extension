@@ -220,7 +220,7 @@ async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<Chainc
     }
 
     // Its not java/node/go contract, so error
-    const message: string = 'Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java';
+    const message: string = `Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java. Please ensure your contract's root-level directory is open in the Explorer.`;
     throw new Error(message);
 
 }

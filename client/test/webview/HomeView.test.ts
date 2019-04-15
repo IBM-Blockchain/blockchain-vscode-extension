@@ -23,7 +23,6 @@ import { HomeView } from '../../src/webview/HomeView';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as ejs from 'ejs';
 import { SampleView } from '../../src/webview/SampleView';
-import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
@@ -32,9 +31,7 @@ chai.use(sinonChai);
 describe('HomeView', () => {
     let mySandBox: sinon.SinonSandbox;
     let extensionPath: string;
-    let imageUri: vscode.Uri;
-
-    let executeSpy: sinon.SinonSpy;
+    let images: any;
 
     let getExtensionHomepageStub: sinon.SinonStub;
     let createWebviewPanelStub: sinon.SinonStub;
@@ -44,7 +41,6 @@ describe('HomeView', () => {
         context = {
             extensionPath: '/some/path'
         } as vscode.ExtensionContext;
-        executeSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
         getExtensionHomepageStub = mySandBox.stub(HomeView, 'getExtensionHomepage');
         getExtensionHomepageStub.resolves('<html>HomePage</html>');
@@ -56,7 +52,7 @@ describe('HomeView', () => {
             },
             title: 'IBM Blockchain Platform Home',
             onDidDispose: mySandBox.stub(),
-            reveal: (): void => {return; }
+            reveal: (): void => { return; }
         });
 
         const repositories: any = [{ name: 'repo1', samples: [{ name: 'sample1' }] }];
@@ -65,7 +61,25 @@ describe('HomeView', () => {
         mySandBox.stub(SampleView, 'getSample').returns(repositories[0].samples[0]);
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
         extensionPath = ExtensionUtil.getExtensionPath();
-        imageUri = vscode.Uri.file(path.join(extensionPath, 'resources', 'blockchain_marketplace.png'));
+
+        // Images
+        const marketplaceIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'blockchain_marketplace.png')).with({ scheme: 'vscode-resource' });
+        const githubDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'github_dark.svg')).with({ scheme: 'vscode-resource' });
+        const documentDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'document_dark.svg')).with({ scheme: 'vscode-resource' });
+        const searchDark: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'search_dark.svg')).with({ scheme: 'vscode-resource' });
+        const githubLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'github_light.svg')).with({ scheme: 'vscode-resource' });
+        const documentLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'document_light.svg')).with({ scheme: 'vscode-resource' });
+        const searchLight: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'search_light.svg')).with({ scheme: 'vscode-resource' });
+
+        images = {
+            marketplaceIcon: marketplaceIcon,
+            githubDark: githubDark,
+            documentDark: documentDark,
+            searchDark: searchDark,
+            githubLight: githubLight,
+            documentLight: documentLight,
+            searchLight: searchLight
+        };
     });
 
     afterEach(() => {
@@ -93,7 +107,7 @@ describe('HomeView', () => {
             },
             title: 'IBM Blockchain Platform Home',
             onDidDispose: mySandBox.stub(),
-            reveal: (): void => {return; }
+            reveal: (): void => { return; }
         });
 
         await HomeView.openHomePage(context);
@@ -138,125 +152,6 @@ describe('HomeView', () => {
         filterSpy.getCall(1).thisValue[filterSpy.getCall(1).thisValue.length - 1].webview.html.should.equal('<html>HomePage</html>');
     });
 
-    it('should do nothing if command is not recognised from home page', async () => {
-        mySandBox.stub(Array.prototype, 'find').returns(undefined);
-
-        const onDidReceiveMessagePromises: any[] = [];
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.returns({
-                webview: {
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({command: 'unknown-command'});
-                        resolve();
-                    }
-                },
-                reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
-            });
-        }));
-        await HomeView.openHomePage(context);
-        await Promise.all(onDidReceiveMessagePromises);
-
-        createWebviewPanelStub.should.have.been.calledWith(
-            'extensionHome',
-            'IBM Blockchain Platform Home',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                enableCommandUris: true,
-                localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
-                ]
-
-            }
-        );
-
-        getExtensionHomepageStub.should.have.been.calledOnce;
-
-        should.equal(executeSpy.getCall(2), null); // Command 'unknown-command' shouldn't have been executed
-
-    });
-
-    it('should execute command from home page', async () => {
-        executeSpy.restore();
-        mySandBox.stub(Array.prototype, 'find').returns(undefined);
-        const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-        executeCommand.callThrough();
-        executeCommand.withArgs('some.command').resolves();
-        const onDidReceiveMessagePromises: any[] = [];
-        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
-            createWebviewPanelStub.onCall(0).returns({
-                webview: {
-                    onDidReceiveMessage: async (callback: any): Promise<void> => {
-                        await callback({command: 'command', executeCommand: 'some.command'});
-                        resolve();
-                    }
-                },
-                reveal: (): void => {return; },
-                onDidDispose: mySandBox.stub()
-            });
-        }));
-        await HomeView.openHomePage(context);
-        await Promise.all(onDidReceiveMessagePromises);
-
-        createWebviewPanelStub.should.have.been.calledWith(
-            'extensionHome',
-            'IBM Blockchain Platform Home',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                enableCommandUris: true,
-                localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
-                ]
-
-            }
-        );
-
-        getExtensionHomepageStub.should.have.been.calledOnce;
-
-        executeCommand.getCall(0).should.have.been.calledWith('some.command');
-    });
-
-    it('should try to open sample from home page', async () => {
-        executeSpy.restore();
-        const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-        executeCommand.resolves();
-        createWebviewPanelStub.onCall(0).returns({
-            webview: {
-                onDidReceiveMessage: mySandBox.stub().yields({command: 'openSample', repoName: 'repo1', sampleName: 'sample1'}),
-                html: ''
-            },
-            onDidDispose: mySandBox.stub()
-        });
-
-        mySandBox.stub(RepositoryRegistry.prototype, 'get').returns({name: 'repo1', path: 'path'});
-        mySandBox.stub(SampleView, 'getSamplePage').resolves('<html>Sample Page</html>');
-
-        await HomeView.openHomePage(context);
-
-        createWebviewPanelStub.getCall(0).should.have.been.calledWith(
-            'extensionHome',
-            'IBM Blockchain Platform Home',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                enableCommandUris: true,
-                localResourceRoots: [
-                    vscode.Uri.file(path.join(context.extensionPath, 'resources'))
-                ]
-
-            }
-        );
-        getExtensionHomepageStub.should.have.been.calledOnce;
-
-        executeCommand.getCall(0).should.have.been.calledWith(ExtensionCommands.OPEN_SAMPLE_PAGE, 'repo1', 'sample1');
-
-    });
-
     it('getHomePage', async () => {
         getExtensionHomepageStub.restore();
         const repository: any = [
@@ -273,16 +168,10 @@ describe('HomeView', () => {
         ];
         const options: any = {
             extensionVersion: '0.0.1',
-            commands : {
-                CREATE_SMART_CONTRACT_PROJECT: ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
-                PACKAGE_SMART_CONTRACT: ExtensionCommands.PACKAGE_SMART_CONTRACT,
-                INSTALL_SMART_CONTRACT: ExtensionCommands.INSTALL_SMART_CONTRACT,
-                INSTANTIATE_SMART_CONTRACT: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
-                TEST_SMART_CONTRACT: ExtensionCommands.TEST_SMART_CONTRACT,
-                UPGRADE_SMART_CONTRACT: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+            commands: {
                 OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE
             },
-            marketplaceIcon: imageUri,
+            images: images,
             repositories: repository
         };
 
@@ -311,16 +200,10 @@ describe('HomeView', () => {
         ];
         const options: any = {
             extensionVersion: '0.0.1',
-            commands : {
-                CREATE_SMART_CONTRACT_PROJECT: ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
-                PACKAGE_SMART_CONTRACT: ExtensionCommands.PACKAGE_SMART_CONTRACT,
-                INSTALL_SMART_CONTRACT: ExtensionCommands.INSTALL_SMART_CONTRACT,
-                INSTANTIATE_SMART_CONTRACT: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
-                TEST_SMART_CONTRACT: ExtensionCommands.TEST_SMART_CONTRACT,
-                UPGRADE_SMART_CONTRACT: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+            commands: {
                 OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE
             },
-            marketplaceIcon: imageUri,
+            images: images,
             repositories: repository
         };
 
