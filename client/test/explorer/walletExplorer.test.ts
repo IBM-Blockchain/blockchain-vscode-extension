@@ -29,6 +29,9 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
+import { AdminIdentityTreeItem } from '../../src/explorer/model/AdminIdentityTreeItem';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 chai.should();
@@ -71,7 +74,7 @@ describe('walletExplorer', () => {
         getIdentityNamesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames');
         mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testFabricWallet);
         const localWallet: FabricWallet = new FabricWallet('/some/local/path');
-        getLocalWalletIdentityNamesStub = mySandBox.stub(localWallet, 'getIdentityNames').resolves(['yellowConga', 'orangeConga']);
+        getLocalWalletIdentityNamesStub = mySandBox.stub(localWallet, 'getIdentityNames').resolves([FabricRuntimeUtil.ADMIN_USER, 'yellowConga', 'orangeConga']);
         mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'createLocalWallet').resolves(localWallet);
         await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
     });
@@ -87,7 +90,7 @@ describe('walletExplorer', () => {
 
         const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
         wallets.length.should.equal(3);
-        wallets[0].label.should.equal('local_wallet');
+        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET);
         wallets[1].label.should.equal(blueWalletEntry.name);
         wallets[2].label.should.equal(greenWalletEntry.name);
 
@@ -99,11 +102,16 @@ describe('walletExplorer', () => {
         blueWalletIdentities[1].walletName.should.equal(blueWalletEntry.name);
 
         const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
-        localWalletIdentities.length.should.equal(2);
-        localWalletIdentities[0].label.should.equal('yellowConga');
-        localWalletIdentities[0].walletName.should.equal('local_wallet');
-        localWalletIdentities[1].label.should.equal('orangeConga');
-        localWalletIdentities[1].walletName.should.equal('local_wallet');
+        localWalletIdentities.length.should.equal(3);
+        localWalletIdentities[0].label.should.equal(`${FabricRuntimeUtil.ADMIN_USER} ⭑`);
+        localWalletIdentities[0].should.be.an.instanceOf(AdminIdentityTreeItem);
+        localWalletIdentities[0].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        localWalletIdentities[1].label.should.equal('yellowConga');
+        localWalletIdentities[1].should.be.an.instanceOf(IdentityTreeItem);
+        localWalletIdentities[1].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        localWalletIdentities[2].label.should.equal('orangeConga');
+        localWalletIdentities[2].should.be.an.instanceOf(IdentityTreeItem);
+        localWalletIdentities[2].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET);
 
         const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<WalletTreeItem>;
         emptyWalletIdentites.should.deep.equal([]);
@@ -116,7 +124,7 @@ describe('walletExplorer', () => {
         const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
 
         wallets.length.should.equal(1);
-        wallets[0].label.should.equal('local_wallet');
+        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET);
         wallets[0].identities.should.deep.equal([]);
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });

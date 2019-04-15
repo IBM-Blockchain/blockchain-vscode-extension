@@ -78,7 +78,8 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
+                associatedWallet: ''
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             copyConnectionProfileStub.should.have.been.calledOnce;
@@ -105,12 +106,14 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal({
                 name: 'myGatewayOne',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json')
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
+                associatedWallet: ''
             });
 
             gateways[1].should.deep.equal({
                 name: 'myGatewayTwo',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json')
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'),
+                associatedWallet: ''
             });
 
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);

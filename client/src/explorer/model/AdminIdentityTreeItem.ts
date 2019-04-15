@@ -11,16 +11,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+'use strict';
+import { BlockchainTreeItem } from './BlockchainTreeItem';
+import * as vscode from 'vscode';
+import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 
-import { FabricRegistryEntry } from './FabricRegistryEntry';
+export class AdminIdentityTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-admin-identity-item';
 
-export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
-
-    public connectionProfilePath: string;
-    public managedRuntime: boolean;
-    public associatedWallet: string;
-    constructor(fields?: FabricGatewayRegistryEntry) {
-        super();
-        Object.assign(this, fields);
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string) {
+        super(provider, label, vscode.TreeItemCollapsibleState.None);
+        this.label += ' ⭑';
     }
 }

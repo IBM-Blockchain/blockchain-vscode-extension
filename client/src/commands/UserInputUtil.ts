@@ -31,6 +31,7 @@ import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -64,7 +65,7 @@ export class UserInputUtil {
     static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
 
-    public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
+    public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
@@ -75,11 +76,23 @@ export class UserInputUtil {
 
         if (showManagedRuntime) {
             // Allow users to choose local_fabric
-            const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            const runtimeGateways: Array<FabricGatewayRegistryEntry> = FabricRuntimeManager.instance().getGatewayRegistryEntries();
             allGateways.push(...runtimeGateways);
         }
 
-        const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
+        let gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
+
+        if (showAssociatedGateways !== undefined) {
+            gateways = gateways.filter((gateway: FabricGatewayRegistryEntry) => {
+                if (showAssociatedGateways) {
+                    return gateway.associatedWallet;
+                } else {
+                    return !gateway.associatedWallet;
+                }
+
+            });
+        }
+
         allGateways.push(...gateways);
 
         const gatewaysQuickPickItems: Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> = allGateways.map((gateway: FabricGatewayRegistryEntry) => {
@@ -642,11 +655,11 @@ export class UserInputUtil {
 
         if (showLocalWallet) {
             // Push local_fabric wallet
-            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
+            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
 
             const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-            // TODO: hardcoded
-            runtimeWalletRegistryEntry.name = 'local_wallet';
+
+            runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
             runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
             walletQuickPickItems.push( {
                 label: runtimeWalletRegistryEntry.name,
@@ -654,7 +667,7 @@ export class UserInputUtil {
             });
         }
 
-        const wallets: Array<FabricWalletRegistryEntry> = await FabricWalletRegistry.instance().getAll();
+        const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
         for (const walletRegistryEntry of wallets) {
             walletQuickPickItems.push( {
                 label: walletRegistryEntry.name,

@@ -35,6 +35,8 @@ import { FabricGateway } from '../../src/fabric/FabricGateway';
 import { FabricNode } from '../../src/fabric/FabricNode';
 import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 import * as os from 'os';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
 
@@ -63,7 +65,6 @@ describe('FabricRuntime', () => {
     let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
     let mockLogsVolume: sinon.SinonStubbedInstance<Volume>;
     let connectionProfilePath: string;
-    let runtimeDetailsDir: string;
     let ensureFileStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
     let removeStub: sinon.SinonStub;
@@ -217,7 +218,7 @@ describe('FabricRuntime', () => {
     describe('#getName', () => {
 
         it('should return the name of the runtime', () => {
-            runtime.getName().should.equal('local_fabric');
+            runtime.getName().should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
         });
     });
 
@@ -860,7 +861,7 @@ describe('FabricRuntime', () => {
 
         it('should get the runtime certificate path', async () => {
             const certPath: string = await runtime.getCertificatePath();
-            certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'signcerts', 'Admin@org1.example.com-cert.pem'));
+            certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', FabricRuntimeUtil.ADMIN_USER, 'msp', 'signcerts', `${FabricRuntimeUtil.ADMIN_USER}-cert.pem`));
         });
 
     });
@@ -869,7 +870,7 @@ describe('FabricRuntime', () => {
 
         it('should get the runtime connection profile path', async () => {
             const connectionPath: string = runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'local_fabric', 'connection.json'));
+            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json'));
         });
 
     });
@@ -1022,7 +1023,7 @@ describe('FabricRuntime', () => {
     describe('#exportConnectionProfile', () => {
 
         beforeEach(async () => {
-            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json');
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
@@ -1035,7 +1036,7 @@ describe('FabricRuntime', () => {
 
         it('should save runtime connection profile to a specified place', async () => {
             runtimeDir = 'myPath';
-            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json');
 
             await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
             ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
@@ -1049,7 +1050,7 @@ describe('FabricRuntime', () => {
             await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
             ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection profile in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection profile in directory ${path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC)} with error: oops`);
         });
     });
 
@@ -1057,13 +1058,15 @@ describe('FabricRuntime', () => {
 
         beforeEach(async () => {
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            runtimeDetailsDir = path.join(runtimeDir, 'local_fabric');
 
         });
 
-        it('should delete runtime connection details', async () => {
+        it('should delete admin identity and local runtime ops connection details ', async () => {
             await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            removeStub.getCall(0).should.have.been.calledWith(runtimeDetailsDir);
+
+            removeStub.getCall(0).should.have.been.calledWith(path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC));
+            removeStub.getCall(1).should.have.been.calledWith(path.join(runtimeDir, FabricWalletUtil.LOCAL_WALLET, FabricRuntimeUtil.ADMIN_USER));
+            removeStub.getCall(2).should.have.been.calledWith(path.join(runtimeDir, FabricWalletUtil.LOCAL_WALLET + '-ops'));
             errorSpy.should.not.have.been.called;
         });
 
@@ -1117,7 +1120,7 @@ describe('FabricRuntime', () => {
             const gateways: FabricGateway[] = await runtime.getGateways();
             gateways.should.deep.equal([
                 {
-                    name: 'local_fabric',
+                    name: FabricRuntimeUtil.LOCAL_FABRIC,
                     path: runtime.getConnectionProfilePath(),
                     connectionProfile: {
                         name: 'basic-network',
@@ -1188,24 +1191,24 @@ describe('FabricRuntime', () => {
                     name: 'peer0.org1.example.com',
                     type: 'fabric-peer',
                     url: 'grpc://localhost:12345',
-                    wallet: 'local_wallet-ops',
-                    identity: 'Admin@org1.example.com'
+                    wallet: `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                    identity: FabricRuntimeUtil.ADMIN_USER
                 },
                 {
                     short_name: 'ca.example.com',
                     name: 'ca.example.com',
                     type: 'fabric-ca',
                     url: 'http://localhost:12348',
-                    wallet: 'local_wallet',
-                    identity: 'Admin@org1.example.com'
+                    wallet: FabricWalletUtil.LOCAL_WALLET,
+                    identity: FabricRuntimeUtil.ADMIN_USER
                 },
                 {
                     short_name: 'orderer.example.com',
                     name: 'orderer.example.com',
                     type: 'fabric-orderer',
                     url: 'grpc://localhost:12347',
-                    wallet: 'local_wallet-ops',
-                    identity: 'Admin@org1.example.com'
+                    wallet: `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                    identity: FabricRuntimeUtil.ADMIN_USER
                 }
             ]);
         });
@@ -1215,14 +1218,14 @@ describe('FabricRuntime', () => {
         it('should return an array of wallet names', async () => {
             const walletNames: string[] = await runtime.getWalletNames();
             walletNames.should.deep.equal([
-                'local_wallet'
+                FabricWalletUtil.LOCAL_WALLET
             ]);
         });
     });
 
     describe('#getIdentities', () => {
         it('should return an array of identities for a wallet that exists', async () => {
-            const identities: FabricIdentity[] = await runtime.getIdentities('local_wallet');
+            const identities: FabricIdentity[] = await runtime.getIdentities(FabricWalletUtil.LOCAL_WALLET);
             let certificate: string;
             let privateKey: string;
             if (os.platform() === 'win32') {
@@ -1234,7 +1237,7 @@ describe('FabricRuntime', () => {
             }
             identities.should.deep.equal([
                 {
-                    name: 'Admin@org1.example.com',
+                    name: FabricRuntimeUtil.ADMIN_USER,
                     certificate: certificate,
                     private_key: privateKey,
                     msp_id: 'Org1MSP'

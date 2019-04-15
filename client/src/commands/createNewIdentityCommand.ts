@@ -23,6 +23,7 @@ import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -60,7 +61,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
 
     try {
         const mspid: string = 'Org1MSP';
-        const adminName: string = 'Admin@org1.example.com';
+        const adminName: string = FabricRuntimeUtil.ADMIN_USER;
         const affiliation: string = 'org1.department1'; // Currently works for org1.department1, org1.department2
         // check to see if identity of same name exists
         const wallet: IFabricWallet = FabricRuntimeManager.instance().gatewayWallet;
@@ -70,7 +71,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
             return;
         }
 
-        const runtime: FabricRuntime = await FabricRuntimeManager.instance().getRuntime();
+        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         // Connect and then register the user
         await connection.connect(wallet, adminName);
@@ -85,12 +86,12 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
         outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
 
-        await connection.disconnect();
+        connection.disconnect();
         return;
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating new identity: ${error.message}`, `Issue creating new identity: ${error.toString()}`);
 
-        await connection.disconnect();
+        connection.disconnect();
         return;
     }
 }

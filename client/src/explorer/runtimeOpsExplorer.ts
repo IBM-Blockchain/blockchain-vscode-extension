@@ -40,6 +40,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -130,6 +131,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = runtime.getName();
             connection.managedRuntime = true;
+            connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                 runtime.getName(),

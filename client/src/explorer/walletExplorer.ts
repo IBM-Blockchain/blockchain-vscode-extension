@@ -26,6 +26,9 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -67,13 +70,13 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         console.log('BlockchainWalletExplorer: createWalletTree');
         const tree: Array<BlockchainTreeItem> = [];
 
-        const walletRegistryEntries: FabricWalletRegistryEntry[] = await FabricWalletRegistry.instance().getAll();
+        const walletRegistryEntries: FabricWalletRegistryEntry[] = FabricWalletRegistry.instance().getAll();
         // Create the local_fabric wallet registry entry
-        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet('local_wallet');
+        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
 
         const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        // TODO: hardcoded
-        runtimeWalletRegistryEntry.name = 'local_wallet';
+
+        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
         runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
 
         let identityNames: string[] = await runtimeWallet.getIdentityNames();
@@ -105,7 +108,12 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         // Populate the tree with the identity names
         for (const identityName of walletTreeItem.identities) {
-            tree.push(new IdentityTreeItem(this, identityName, walletTreeItem.name));
+            if (walletTreeItem.name === FabricWalletUtil.LOCAL_WALLET && identityName === FabricRuntimeUtil.ADMIN_USER) {
+                // Create Local Fabric identity tree item - user cannot delete this
+                tree.push(new AdminIdentityTreeItem(this, identityName, walletTreeItem.name));
+            } else {
+                tree.push(new IdentityTreeItem(this, identityName, walletTreeItem.name));
+            }
         }
         return tree;
     }

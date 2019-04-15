@@ -26,6 +26,7 @@ import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -77,14 +78,14 @@ describe('openFabricRuntimeTerminal', () => {
     it('should open a terminal for a Fabric runtime specified by right clicking the tree', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL, peerTreeItem);
         createTerminalStub.should.have.been.calledOnceWithExactly(
-            'Fabric runtime - local_fabric',
+            `Fabric runtime - ${FabricRuntimeUtil.LOCAL_FABRIC}`,
             'docker',
             [
                 'exec',
                 '-e',
                 'CORE_PEER_LOCALMSPID=Org1MSP',
                 '-e',
-                'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
+                `CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/${FabricRuntimeUtil.ADMIN_USER}/msp`,
                 '-ti',
                 'fabricvscodelocalfabric_peer0.org1.example.com',
                 'bash'
@@ -96,14 +97,14 @@ describe('openFabricRuntimeTerminal', () => {
     it('should open a terminal for a Fabric runtime', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL);
         createTerminalStub.should.have.been.calledOnceWithExactly(
-            'Fabric runtime - local_fabric',
+            `Fabric runtime - ${FabricRuntimeUtil.LOCAL_FABRIC}`,
             'docker',
             [
                 'exec',
                 '-e',
                 'CORE_PEER_LOCALMSPID=Org1MSP',
                 '-e',
-                'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
+                `CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/${FabricRuntimeUtil.ADMIN_USER}/msp`,
                 '-ti',
                 'fabricvscodelocalfabric_peer0.org1.example.com',
                 'bash'

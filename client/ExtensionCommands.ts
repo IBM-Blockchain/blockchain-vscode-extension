@@ -46,6 +46,8 @@ export class ExtensionCommands {
     static readonly SUBMIT_TRANSACTION: string = 'gatewaysExplorer.submitTransactionEntry';
     static readonly EVALUATE_TRANSACTION: string = 'gatewaysExplorer.evaluateTransactionEntry';
     static readonly TEST_SMART_CONTRACT: string = 'gatewaysExplorer.testSmartContractEntry';
+    static readonly ASSOCIATE_WALLET: string = 'gatewaysExplorer.associateWallet';
+    static readonly DISSOCIATE_WALLET: string = 'gatewaysExplorer.dissociateWallet';
 
     // WALLET VIEW
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';

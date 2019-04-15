@@ -38,6 +38,8 @@ import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { LocalWalletTreeItem } from '../../src/explorer/wallets/LocalWalletTreeItem';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -85,12 +87,14 @@ describe('AddWalletIdentityCommand', () => {
                 name: 'myGatewayA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 managedRuntime: false,
+                associatedWallet: ''
             });
 
             const connectionTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
                 managedRuntime: false,
+                associatedWallet: ''
             });
 
             await FabricGatewayRegistry.instance().clear();
@@ -352,20 +356,21 @@ describe('AddWalletIdentityCommand', () => {
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
             });
 
-            it('should test an identity can be enrolled to local_wallet using local_fabric', async () => {
+            it(`should test an identity can be enrolled to local_wallet using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
                 showGatewayQuickPickBoxStub.resolves({
-                    label: 'local_fabric',
+                    label: FabricRuntimeUtil.LOCAL_FABRIC,
                     data: new FabricGatewayRegistryEntry({
-                        name: 'local_fabric',
+                        name: FabricRuntimeUtil.LOCAL_FABRIC,
                         connectionProfilePath: undefined,
-                        managedRuntime: true
+                        managedRuntime: true,
+                        associatedWallet: FabricWalletUtil.LOCAL_WALLET
                     })
                 });
                 const runtime: FabricRuntime = new FabricRuntime();
-                mySandBox.stub(runtime, 'getConnectionProfilePath').resolves('/some/path');
+                mySandBox.stub(runtime, 'getConnectionProfilePath').returns('/some/path');
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtime);
                 getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
                 enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
