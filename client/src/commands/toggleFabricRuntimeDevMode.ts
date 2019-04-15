@@ -47,6 +47,14 @@ export async function toggleFabricRuntimeDevMode(): Promise<void> {
     }
 
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
-    outputAdapter.log(LogType.SUCCESS, 'Successfully toggled development mode', 'Successfully toggled development mode');
+
+    let status: string;
+    if (newDevelopmentMode) {
+        status = 'enabled';
+    } else {
+        status = 'disabled';
+    }
+
+    outputAdapter.log(LogType.SUCCESS, `Development mode successfully ${status}`);
 
 }
