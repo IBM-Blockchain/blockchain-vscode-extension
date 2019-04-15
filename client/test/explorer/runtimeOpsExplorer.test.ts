@@ -237,7 +237,7 @@ describe('runtimeOpsExplorer', () => {
                     }
                 ]);
 
-                fabricConnection.getAllOrdererNames.resolves(['orderer1']);
+                fabricConnection.getAllOrdererNames.returns(['orderer1']);
 
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);

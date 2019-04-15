@@ -44,7 +44,7 @@ export interface IFabricRuntimeConnection {
 
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
 
-    getAllOrdererNames(): Promise<Array<string>>;
+    getAllOrdererNames(): Array<string>;
 
     installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
 

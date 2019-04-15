@@ -76,7 +76,7 @@ describe('InstallCommand', () => {
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.installChaincode.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map<string, Array<string>>());
-            fabricRuntimeMock.getAllOrdererNames.resolves(['orderer1']);
+            fabricRuntimeMock.getAllOrdererNames.returns(['orderer1']);
             fabricRuntimeMock.getAllCertificateAuthorityNames.returns(['ca1']);
 
             const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
