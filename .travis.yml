@@ -24,12 +24,6 @@ jobs:
       node_js:
       - "lts/*"
     - script: ./.travis/script.sh
-      os: windows
-      env: TASK=unit
-      language: node_js
-      node_js:
-      - "lts/*"
-    - script: ./.travis/script.sh
       os: linux
       env: TASK=unit
     - script: ./.travis/script.sh
