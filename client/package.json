@@ -1138,7 +1138,7 @@
         "tslint-loader": "3.6.0",
         "typescript": "3.0.1",
         "vsce": "^1.46.0",
-        "vscode": "1.1.32",
+        "vscode": "1.1.33",
         "vscode-nls-dev": "^3.2.5"
     },
     "dependencies": {
