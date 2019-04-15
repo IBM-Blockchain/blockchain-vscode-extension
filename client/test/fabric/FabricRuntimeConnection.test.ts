@@ -361,21 +361,36 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getInstalledChaincode', () => {
-        it('should get the install chaincode', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
+        let mockPeer: sinon.SinonStubbedInstance<Client.Peer>;
+        let queryInstalledChaincodesStub: sinon.SinonStub;
 
-            fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).resolves({
-                chaincodes: [{
-                    name: 'biscuit-network',
-                    version: '0.7'
-                }, { name: 'biscuit-network', version: '0.8' }, { name: 'cake-network', version: '0.8' }]
-            });
-
+        beforeEach(async () => {
             await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
-            const installedChaincode: Map<string, Array<string>> = await fabricRuntimeConnection.getInstalledChaincode('peerOne');
+            mockPeer = mySandBox.createStubInstance(Client.Peer);
+            fabricRuntimeConnection['peers'].has('peer0.org1.example.com').should.be.true;
+            fabricRuntimeConnection['peers'].set('peer0.org1.example.com', mockPeer);
+            queryInstalledChaincodesStub = mySandBox.stub(fabricRuntimeConnection['client'], 'queryInstalledChaincodes');
+            queryInstalledChaincodesStub.withArgs(mockPeer).resolves({
+                chaincodes: [
+                    {
+                        name: 'biscuit-network',
+                        version: '0.7'
+                    },
+                    {
+                        name: 'biscuit-network',
+                        version: '0.8'
+                    },
+                    {
+                        name: 'cake-network',
+                        version: '0.8'
+                    }
+                ]
+            });
+        });
+
+        it('should get the install chaincode', async () => {
+            const installedChaincode: Map<string, Array<string>> = await fabricRuntimeConnection.getInstalledChaincode('peer0.org1.example.com');
             installedChaincode.size.should.equal(2);
             Array.from(installedChaincode.keys()).should.deep.equal(['biscuit-network', 'cake-network']);
             installedChaincode.get('biscuit-network').should.deep.equal(['0.7', '0.8']);
@@ -383,29 +398,20 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should handle and swallow an access denied error', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-            fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).rejects(new Error('wow u cannot see cc cos access denied as u is not an admin'));
-
-            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
-            const installedChaincode: Map<string, Array<string>> = await fabricRuntimeConnection.getInstalledChaincode('peerOne');
+            queryInstalledChaincodesStub.withArgs(mockPeer).rejects(new Error('wow u cannot see cc cos access denied as u is not an admin'));
+            const installedChaincode: Map<string, Array<string>> = await fabricRuntimeConnection.getInstalledChaincode('peer0.org1.example.com');
             installedChaincode.size.should.equal(0);
             Array.from(installedChaincode.keys()).should.deep.equal([]);
         });
 
         it('should rethrow any error other than access denied', async () => {
-            const peerOne: Client.Peer = new Client.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: Client.Peer = new Client.Peer('grpc://localhost:1453', { name: 'peerTwo' });
+            queryInstalledChaincodesStub.withArgs(mockPeer).rejects(new Error('wow u cannot see cc cos peer no works'));
+            await fabricRuntimeConnection.getInstalledChaincode('peer0.org1.example.com').should.be.rejectedWith(/peer no works/);
+        });
 
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-            fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).rejects(new Error('wow u cannot see cc cos peer no works'));
-
-            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
-            await fabricRuntimeConnection.getInstalledChaincode('peerOne').should.be.rejectedWith(/peer no works/);
+        it('should throw an error getting installed chaincodes from a peer that does not exist', async () => {
+            await fabricRuntimeConnection.getInstalledChaincode('nosuch.peer0.org1.example.com')
+                .should.be.rejectedWith(/does not exist/);
         });
     });
 
@@ -422,30 +428,38 @@ describe('FabricRuntimeConnection', () => {
 
     describe('installChaincode', () => {
 
-        let peer: Client.Peer;
+        const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+            name: 'vscode-pkg-1',
+            version: '0.0.1',
+            path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
+        });
+
+        let mockPeer: sinon.SinonStubbedInstance<Client.Peer>;
+        let installChaincodeStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            peer = new Client.Peer('grpc://localhost:1453', { name: 'peer1' });
-            fabricClientStub.getPeersForOrg.returns([peer]);
-            const responseStub: any = [[{
-                response: {
-                    status: 200
-                }
-            }]];
-            fabricClientStub.installChaincode.resolves(responseStub);
             await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+            mockPeer = mySandBox.createStubInstance(Client.Peer);
+            fabricRuntimeConnection['peers'].has('peer0.org1.example.com').should.be.true;
+            fabricRuntimeConnection['peers'].set('peer0.org1.example.com', mockPeer);
+            mySandBox.stub(fabricRuntimeConnection['client'], 'newTransactionID').returns({
+                getTransactionID: mySandBox.stub().returns('1234')
+            });
+            installChaincodeStub = mySandBox.stub(fabricRuntimeConnection['client'], 'installChaincode');
         });
 
         it('should install the chaincode package', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
+            const responseStub: any = [[{
+                response: {
+                    message: 'all good in da hood',
+                    status: 200
+                }
+            }]];
+            installChaincodeStub.resolves(responseStub);
 
-            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer1');
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
+            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer0.org1.example.com');
+            installChaincodeStub.should.have.been.calledWith({
+                targets: [mockPeer],
                 txId: sinon.match.any,
                 chaincodePackage: sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
@@ -457,17 +471,11 @@ describe('FabricRuntimeConnection', () => {
 
         it('should handle error response', async () => {
             const responseStub: any = [[new Error('some error')]];
-            fabricClientStub.installChaincode.resolves(responseStub);
+            installChaincodeStub.resolves(responseStub);
 
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
-
-            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(/some error/);
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
+            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer0.org1.example.com').should.be.rejectedWith(/some error/);
+            installChaincodeStub.should.have.been.calledWith({
+                targets: [mockPeer],
                 txId: sinon.match.any,
                 chaincodePackage: sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
@@ -484,17 +492,11 @@ describe('FabricRuntimeConnection', () => {
                     status: 400
                 }
             }]];
-            fabricClientStub.installChaincode.resolves(responseStub);
+            installChaincodeStub.resolves(responseStub);
 
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
-
-            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith('some error');
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
+            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer0.org1.example.com').should.be.rejectedWith('some error');
+            installChaincodeStub.should.have.been.calledWith({
+                targets: [mockPeer],
                 txId: sinon.match.any,
                 chaincodePackage: sinon.match((buffer: Buffer) => {
                     buffer.should.be.an.instanceOf(Buffer);
@@ -505,26 +507,26 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should handle an error if the chaincode package does not exist', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
+            const invalidPackageEntry: PackageRegistryEntry = new PackageRegistryEntry({
                 name: 'vscode-pkg-1',
                 version: '0.0.1',
                 path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds')
             });
 
-            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer1')
+            await fabricRuntimeConnection.installChaincode(invalidPackageEntry, 'peer0.org1.example.com')
                 .should.have.been.rejectedWith(/ENOENT/);
         });
 
         it('should handle an error installing the chaincode package', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
+            installChaincodeStub.rejects(new Error('such error'));
 
-            fabricClientStub.installChaincode.rejects(new Error('such error'));
-            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer1')
+            await fabricRuntimeConnection.installChaincode(packageEntry, 'peer0.org1.example.com')
                 .should.have.been.rejectedWith(/such error/);
+        });
+
+        it('should throw an error installing chaincode onto a peer that does not exist', async () => {
+            await fabricRuntimeConnection.installChaincode(packageEntry, 'nosuch.peer0.org1.example.com')
+                .should.be.rejectedWith(/does not exist/);
         });
 
     });

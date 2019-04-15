@@ -129,9 +129,10 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Client.Peer = this.getPeer(peerName);
+        await this.setNodeContext(peerName);
         let chaincodeResponse: Client.ChaincodeQueryResponse;
         try {
-            chaincodeResponse = await this.gateway.getClient().queryInstalledChaincodes(peer);
+            chaincodeResponse = await this.client.queryInstalledChaincodes(peer);
         } catch (error) {
             if (error.message && error.message.match(/access denied/)) {
                 // Not allowed to do this as we're probably not an administrator.
@@ -140,13 +141,13 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
             }
             throw error;
         }
-        chaincodeResponse.chaincodes.forEach((chaincode: Client.ChaincodeInfo) => {
+        for (const chaincode of chaincodeResponse.chaincodes) {
             if (installedChainCodes.has(chaincode.name)) {
                 installedChainCodes.get(chaincode.name).push(chaincode.version);
             } else {
                 installedChainCodes.set(chaincode.name, [chaincode.version]);
             }
-        });
+        }
 
         return installedChainCodes;
     }
@@ -157,13 +158,14 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
 
     public async installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void> {
         const peer: Client.Peer = this.getPeer(peerName);
+        await this.setNodeContext(peerName);
         const pkgBuffer: Buffer = await fs.readFile(packageRegistryEntry.path);
         const installRequest: Client.ChaincodePackageInstallRequest = {
             targets: [peer],
             chaincodePackage: pkgBuffer,
-            txId: this.gateway.getClient().newTransactionID()
+            txId: this.client.newTransactionID()
         };
-        const response: Client.ProposalResponseObject = await this.gateway.getClient().installChaincode(installRequest);
+        const response: Client.ProposalResponseObject = await this.client.installChaincode(installRequest);
         const proposalResponse: Client.ProposalResponse | Error = response[0][0];
         if (proposalResponse instanceof Error) {
             throw proposalResponse;
@@ -357,6 +359,13 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const fabricWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(walletName);
         await fabricWallet['setUserContext'](this.client, identityName);
+    }
+
+    private getPeer(peerName: string): Client.Peer {
+        if (!this.peers.has(peerName)) {
+            throw new Error(`The Fabric peer ${peerName} does not exist`);
+        }
+        return this.peers.get(peerName);
     }
 
     private getCertificateAuthority(certificateAuthorityName: string): FabricCAServices {

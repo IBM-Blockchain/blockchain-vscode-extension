@@ -59,7 +59,7 @@ export abstract class FabricConnection {
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
         console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin
-        const peer: Client.Peer = this.getPeer(peerName);
+        const peer: Client.Peer = this.gateway.getClient().getPeer(peerName);
         const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
 
         const channelNames: Array<string> = [];
@@ -142,15 +142,6 @@ export abstract class FabricConnection {
 
         // TODO: remove this?
         this.mspid = identity.mspId;
-    }
-
-    protected getPeer(name: string): Client.Peer {
-        console.log('getPeer', name);
-        const allPeers: Array<Client.Peer> = this.getAllPeers();
-
-        return allPeers.find((peer: Client.Peer) => {
-            return peer.getName() === name;
-        });
     }
 
     protected async getChannel(channelName: string): Promise<Client.Channel> {
