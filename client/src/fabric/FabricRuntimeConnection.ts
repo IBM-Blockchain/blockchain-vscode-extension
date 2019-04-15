@@ -33,6 +33,8 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
     private runtime: FabricRuntime;
     private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
     private client: Client;
+    private peers: Map<string, Client.Peer> = new Map<string, Client.Peer>();
+    private orderers: Map<string, Client.Orderer> = new Map<string, Client.Orderer>();
     private certificateAuthorities: Map<string, FabricCAServices> = new Map<string, FabricCAServices>();
 
     constructor(runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
@@ -51,9 +53,19 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         this.client = new Client();
         this.client.setCryptoSuite(Client.newCryptoSuite());
         for (const node of nodes) {
-            if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
+            switch (node.type) {
+            case FabricNodeType.PEER:
+                const peer: Client.Peer = this.client.newPeer(node.url);
+                this.peers.set(node.name, peer);
+                break;
+            case FabricNodeType.ORDERER:
+                const orderer: Client.Orderer = this.client.newOrderer(node.url);
+                this.orderers.set(node.name, orderer);
+                break;
+            case FabricNodeType.CERTIFICATE_AUTHORITY:
                 const certificateAuthority: FabricCAServices = new FabricCAServices(node.url, null, node.name, this.client.getCryptoSuite());
                 this.certificateAuthorities.set(node.name, certificateAuthority);
+                break;
             }
             this.nodes.set(node.name, node);
         }
@@ -64,7 +76,13 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         super.disconnect();
         this.nodes.clear();
         this.client = null;
+        this.peers.clear();
+        this.orderers.clear();
         this.certificateAuthorities.clear();
+    }
+
+    public getAllPeerNames(): Array<string> {
+        return Array.from(this.peers.keys()).sort();
     }
 
     public async getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>> {
@@ -133,25 +151,8 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         return installedChainCodes;
     }
 
-    public async getAllOrdererNames(): Promise<Array<string>> {
-
-        const ordererSet: Set<string> = new Set();
-        const allPeerNames: Array<string> = this.getAllPeerNames();
-
-        for (const peer of allPeerNames) {
-            const channels: string[] = await this.getAllChannelsForPeer(peer);
-            for (const _channelName of channels) {
-
-                const channel: Client.Channel = await this.getChannel(_channelName);
-                const orderers: Client.Orderer[] = channel.getOrderers();
-
-                for (const orderer of orderers) {
-                    ordererSet.add(orderer.getName());
-                }
-            }
-        }
-
-        return Array.from(ordererSet);
+    public getAllOrdererNames(): Array<string> {
+        return Array.from(this.orderers.keys()).sort();
     }
 
     public async installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void> {

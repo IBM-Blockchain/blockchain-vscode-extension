@@ -214,7 +214,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
                 tree.push(caTreeItem);
             }
 
-            const orderers: Array<string> = await this.getAllOrdererNames();
+            const orderers: Array<string> = connection.getAllOrdererNames();
             for (const orderer of orderers) {
                 tree.push(new OrdererTreeItem(this, orderer));
             }
@@ -311,12 +311,5 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             tree.push(new InstallCommandTreeItem(this, command));
         }
         return tree;
-    }
-
-    private async getAllOrdererNames(): Promise<Array<string>> {
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-        const ordererSet: Array<string> = await connection.getAllOrdererNames();
-
-        return ordererSet;
     }
 }

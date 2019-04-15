@@ -70,8 +70,8 @@ describe('createNewIdentityCommand', () => {
 
         mockFabricRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
         mockFabricRuntimeConnection.connect.resolves();
-        mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns('ca.name');
-        mockFabricRuntimeConnection.getAllOrdererNames.resolves([]);
+        mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
+        mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);
         mockFabricRuntimeConnection.register.resolves('its a secret');
         mockFabricRuntimeConnection.enroll.resolves({

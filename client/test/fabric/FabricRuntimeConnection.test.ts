@@ -249,6 +249,26 @@ describe('FabricRuntimeConnection', () => {
             gatewayStub.connect.should.have.been.called;
         });
 
+        it('should create peer clients for each peer node', async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
+            const peerNames: string[] = Array.from(fabricRuntimeConnection['peers'].keys());
+            const peerValues: Client.Peer[] = Array.from(fabricRuntimeConnection['peers'].values());
+            peerNames.should.deep.equal(['peer0.org1.example.com']);
+            peerValues.should.have.lengthOf(1);
+            peerValues[0].should.be.an.instanceOf(Client.Peer);
+            peerValues[0].toString().should.match(/url:grpc:\/\/localhost:7051/);
+        });
+
+        it('should create orderer clients for each orderer node', async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
+            const ordererNames: string[] = Array.from(fabricRuntimeConnection['orderers'].keys());
+            const ordererValues: Client.Orderer[] = Array.from(fabricRuntimeConnection['orderers'].values());
+            ordererNames.should.deep.equal(['orderer.example.com']);
+            ordererValues.should.have.lengthOf(1);
+            ordererValues[0].should.be.an.instanceOf(Client.Orderer);
+            ordererValues[0].toString().should.match(/url:grpc:\/\/localhost:7050/);
+        });
+
         it('should create certificate authority clients for each certificate authority node', async () => {
             await fabricRuntimeConnection.connect(connectionWallet, 'Admin@org1.example.com');
             const certificateAuthorityNames: string[] = Array.from(fabricRuntimeConnection['certificateAuthorities'].keys());
@@ -268,13 +288,26 @@ describe('FabricRuntimeConnection', () => {
             await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
         });
 
-        it('should clear all nodes, clients, and certificate authorities', () => {
+        it('should clear all nodes, clients, peers, orderers, and certificate authorities', () => {
             fabricRuntimeConnection.disconnect();
             fabricRuntimeConnection['nodes'].size.should.equal(0);
             should.equal(fabricRuntimeConnection['client'], null);
+            fabricRuntimeConnection['peers'].size.should.equal(0);
+            fabricRuntimeConnection['orderers'].size.should.equal(0);
             fabricRuntimeConnection['certificateAuthorities'].size.should.equal(0);
         });
 
+    });
+
+    describe('getAllPeerNames', () => {
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+        });
+
+        it('should get all of the peer names', () => {
+            fabricRuntimeConnection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com']);
+        });
     });
 
     describe('getAllInstantiatedChaincodes', () => {
@@ -319,7 +352,7 @@ describe('FabricRuntimeConnection', () => {
             await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
         });
 
-        it('should get all of the certificate authority names', async () => {
+        it('should get all of the certificate authority names', () => {
             fabricRuntimeConnection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com']);
         });
 
@@ -375,29 +408,13 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllOrdererNames', () => {
-        it('should get orderers', async () => {
-            fabricClientStub.getChannel.onFirstCall().returns({
-                getOrderers: mySandBox.stub().returns([
-                    {
-                        getName: mySandBox.stub().returns('orderer1')
-                    }
-                ])
-            });
-            fabricClientStub.getChannel.onSecondCall().returns({
-                getOrderers: mySandBox.stub().returns([
-                    {
-                        getName: mySandBox.stub().returns('orderer2')
-                    }
-                ])
-            });
-            fabricChannelStub.getOrderers.onFirstCall().returns([new Client.Orderer('grpc://url1')]);
-            fabricChannelStub.getOrderers.onSecondCall().returns([new Client.Orderer('grpc://url2')]);
-            mySandBox.stub(fabricRuntimeConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
-            const getAllChannelsForPeer: sinon.SinonStub = mySandBox.stub(fabricRuntimeConnection, 'getAllChannelsForPeer');
-            getAllChannelsForPeer.withArgs('peerOne').resolves(['channel1']);
-            getAllChannelsForPeer.withArgs('peerTwo').resolves(['channel2']);
-            const orderers: Array<string> = await fabricRuntimeConnection.getAllOrdererNames();
-            orderers.should.deep.equal(['orderer1', 'orderer2']);
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+        });
+
+        it('should get all of the orderer names', () => {
+            fabricRuntimeConnection.getAllOrdererNames().should.deep.equal(['orderer.example.com']);
         });
     });
 
