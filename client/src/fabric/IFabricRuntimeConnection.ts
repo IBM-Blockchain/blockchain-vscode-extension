@@ -36,7 +36,7 @@ export interface IFabricRuntimeConnection {
 
     getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
 
-    getOrganizations(channelName: string): Promise<Array<string>>;
+    getAllOrganizationNames(): Array<string>;
 
     getAllCertificateAuthorityNames(): Array<string>;
 

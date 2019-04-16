@@ -21,7 +21,7 @@ export enum FabricNodeType {
 // This is a JSON representation of a Fabric node.
 // tslint:disable variable-name
 export class FabricNode {
-    public constructor(public short_name: string, public name: string, public type: FabricNodeType, public url: string, public wallet: string, public identity: string) {
+    public constructor(public short_name: string, public name: string, public type: FabricNodeType, public url: string, public wallet: string, public identity: string, public msp_id: string) {
 
     }
 }

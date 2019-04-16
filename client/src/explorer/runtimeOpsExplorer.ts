@@ -230,26 +230,8 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createOrganizationsTree(): Promise<Array<BlockchainTreeItem>> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const tree: Array<BlockchainTreeItem> = [];
-
-        try {
-            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            const channels: Array<string> = Array.from(channelMap.keys());
-            for (const channel of channels) {
-                const channelOrgs: any[] = await connection.getOrganizations(channel);
-                for (const org of channelOrgs) {
-                    tree.push(new OrgTreeItem(this, org.id));
-                }
-            }
-
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating organizations view: ${error.message}`, `Error populating organizations view: ${error.toString()}`);
-            return tree;
-        }
-        return tree;
-
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        return connection.getAllOrganizationNames().map((organizationName: string) => new OrgTreeItem(this, organizationName));
     }
 
     private async createInstantiatedTree(): Promise<Array<BlockchainTreeItem>> {
