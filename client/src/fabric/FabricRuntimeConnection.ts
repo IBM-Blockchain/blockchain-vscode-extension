@@ -18,7 +18,7 @@ import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter, LogType } from '../logging/OutputAdapter';
 import { FabricWallet } from '../fabric/FabricWallet';
 import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
-import { Network, Contract } from 'fabric-network';
+import { Network } from 'fabric-network';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -174,12 +174,12 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         }
     }
 
-    public async instantiateChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {
-        return this.instantiateOrUpgradeChaincode(name, version, channelName, fcn, args, false);
+    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, false);
     }
 
-    public async upgradeChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {
-        return this.instantiateOrUpgradeChaincode(name, version, channelName, fcn, args, true);
+    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
@@ -215,87 +215,129 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         return fabricWalletGenerator.createLocalWallet(walletName);
     }
 
-    private async instantiateOrUpgradeChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>, upgrade: boolean): Promise<any> {
+    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, upgrade: boolean): Promise<Buffer> {
 
-        const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
+        // Locate all of the requested peer nodes.
+        const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
+
+        // Get the channel.
+        const channel: Client.Channel = this.getOrCreateChannel(channelName);
+
+        // Determine if a chaincode with the specified name is already instantiated on this channel.
+        // Use the first peer to perform this query, and as the signing identity for all subsequent operations.
+        await this.setNodeContext(peerNames[0]);
+        const instantiatedChaincodes: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(peers[0]);
+        let foundChaincodeName: boolean = false;
+        let foundChaincodeNameAndVersion: boolean = false;
+        for (const chaincode of instantiatedChaincodes.chaincodes) {
+            if (chaincode.name === name) {
+                foundChaincodeName = true;
+                if (chaincode.version === version) {
+                    foundChaincodeNameAndVersion = true;
+                }
+            }
+        }
+
+        // Build the transaction proposal.
+        const txId: Client.TransactionId = this.client.newTransactionID();
         const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
+            targets: peers,
             chaincodeId: name,
             chaincodeVersion: version,
-            txId: transactionId,
-            fcn: fcn,
-            args: args
+            txId,
+            fcn,
+            args
         };
 
-        const network: Network = await this.gateway.getNetwork(channelName);
-        const channel: Client.Channel = network.getChannel();
-
-        const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
-
-        const foundChaincode: any = this.getChaincode(name, instantiatedChaincode);
-
+        // Send the instantiate/upgrade proposal to all of the specified peers.
         let proposalResponseObject: Client.ProposalResponseObject;
-
-        let message: string;
-
         if (!upgrade) {
-            if (foundChaincode) {
-                throw new Error('The name of the contract you tried to instantiate is already instantiated');
+            if (foundChaincodeName) {
+                throw new Error(`The smart contract ${name} is already instantiated on the channel ${channelName}`);
             } else {
-                message = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
-                this.outputAdapter.log(LogType.INFO, undefined, message);
-                proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest);
+                this.outputAdapter.log(LogType.INFO, undefined, `Instantiating with function: '${fcn}' and arguments: '${args}'`);
+                // Use a lengthy timeout to cater for building of Docker images on slower systems.
+                proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
             }
         } else {
-            if (foundChaincode) {
-                message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
-                this.outputAdapter.log(LogType.INFO, undefined, message);
-                proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest);
+            if (foundChaincodeNameAndVersion) {
+                throw new Error(`The smart contract ${name} with version ${version} is already instantiated on the channel ${channelName}`);
+            } else if (!foundChaincodeName) {
+                throw new Error(`The smart contract ${name} is not instantiated on the channel ${channelName}, so cannot be upgraded`);
             } else {
-                //
-                throw new Error('The contract you tried to upgrade with has no previous versions instantiated');
+                this.outputAdapter.log(LogType.INFO, undefined, `Upgrading with function: '${fcn}' and arguments: '${args}'`);
+                // Use a lengthy timeout to cater for building of Docker images on slower systems.
+                proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
             }
         }
 
-        const contract: Contract = network.getContract(name);
-        const transaction: any = (contract as any).createTransaction('dummy');
-
-        const responses: any = transaction['_validatePeerResponses'](proposalResponseObject[0]);
-
-        const txId: any = transactionId.getTransactionID();
-        const eventHandlerOptions: any = (contract as any).getEventHandlerOptions();
-        const eventHandler: any = transaction['_createTxEventHandler'](txId, network, eventHandlerOptions);
-
-        if (!eventHandler) {
-            throw new Error('Failed to create an event handler');
+        // Validate the proposal responses.
+        let payload: Buffer = null;
+        const validProposalResponses: Client.ProposalResponse[] = [];
+        const proposal: Client.Proposal = proposalResponseObject[1];
+        for (const proposalResponse of proposalResponseObject[0]) {
+            if (proposalResponse instanceof Error) {
+                throw proposalResponse;
+            } else if (proposalResponse.response.status !== 200) {
+                throw new Error(proposalResponse.response.message);
+            } else if (proposalResponse.response.payload.length) {
+                payload = proposalResponse.response.payload;
+            }
+            validProposalResponses.push(proposalResponse);
         }
 
-        await eventHandler.startListening();
+        // Set up the channel event hub for this transaction.
+        const eventHub: Client.ChannelEventHub = channel.newChannelEventHub(peers[0]);
+        let eventReceived: boolean = false;
+        await new Promise((resolve: any, reject: any): void => {
+            eventHub.connect(null, (err: Error) => {
+                // Doesn't matter if we received the event.
+                if (err && !eventReceived) {
+                    return reject(err);
+                }
+                resolve();
+            });
+        });
+        const eventHubPromise: any = new Promise((resolve: any, reject: any): void => {
+            eventHub.registerTxEvent(txId.getTransactionID(), (eventTxId: string, code: string, blockNumber: number): void => {
+                eventReceived = true;
+                if (code !== 'VALID') {
+                    return reject(new Error(`Peer ${peerNames[0]} has rejected the transaction ${eventTxId} with code ${code} in block ${blockNumber}`));
+                }
+                resolve();
+            }, (err: Error): void => {
+                // Doesn't matter if we received the event.
+                if (err && !eventReceived) {
+                    return reject(err);
+                }
+            }, {
+                disconnect: true,
+                unregister: true
+            });
+        });
 
-        const transactionRequest: Client.TransactionRequest = {
-            proposalResponses: proposalResponseObject[0] as Client.ProposalResponse[],
-            proposal: proposalResponseObject[1],
-            txId: transactionId
-        };
+        // Send the proposal responses to the ordering service.
+        // TODO: this badly assumes there is only ever one ordering service.
+        const orderer: Client.Orderer = Array.from(this.orderers.values())[0];
+        const broadcastResponse: Client.BroadcastResponse = await channel.sendTransaction({
+            proposal,
+            proposalResponses: validProposalResponses,
+            orderer,
+            txId
+        });
 
-        // Submit the endorsed transaction to the primary orderers.
-        const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
-
-        if (response.status !== 'SUCCESS') {
-            const msg: string = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
-            eventHandler.cancelListening();
-            throw new Error(msg);
+        // Check that the ordering service accepted the transaction.
+        if (broadcastResponse.status !== 'SUCCESS') {
+            eventHub.disconnect();
+            throw new Error(`Failed to send peer responses for transaction ${txId.getTransactionID()} to orderer. Response status: ${broadcastResponse.status}`);
         }
 
-        await eventHandler.waitForEvents();
-        // return the payload from the invoked chaincode
-        let result: any = null;
-        if (responses && responses.validResponses[0].response.payload.length > 0) {
-            result = responses.validResponses[0].response.payload;
-        }
+        // Wait for the transaction to be committed to the ledger.
+        await eventHubPromise;
 
-        eventHandler.cancelListening();
+        // Return the payload, if any.
+        return payload;
 
-        return result;
     }
 
     private async setNodeContext(nodeName: string): Promise<void> {
@@ -321,16 +363,12 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         return this.certificateAuthorities.get(certificateAuthorityName);
     }
 
-    /**
-     * Get a chaincode from a list of list of chaincode
-     * @param name {String} The name of the chaincode to find
-     * @param chaincodeArray {Array<any>} An array of chaincode to search
-     * @returns {any} Returns a chaincode from the given array where the name matches the users input
-     */
-    private getChaincode(name: string, chaincodeArray: Array<any>): any {
-        return chaincodeArray.find((chaincode: any) => {
-            return chaincode.name === name;
-        });
+    private getOrCreateChannel(channelName: string): Client.Channel {
+        let channel: Client.Channel = this.client.getChannel(channelName, false);
+        if (!channel) {
+            channel = this.client.newChannel(channelName);
+        }
+        return channel;
     }
 
 }

@@ -25,7 +25,6 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricNodeType, FabricNode } from '../../src/fabric/FabricNode';
@@ -533,120 +532,337 @@ describe('FabricRuntimeConnection', () => {
 
     describe('instantiateChaincode', () => {
 
-        let getChanincodesStub: sinon.SinonStub;
-        beforeEach(() => {
-            getChanincodesStub = mySandBox.stub(fabricRuntimeConnection, 'getInstantiatedChaincode');
-            getChanincodesStub.resolves([]);
+        let channel: Client.Channel;
+        let queryInstantiatedChaincodesStub: sinon.SinonStub;
+        let sendInstantiateProposalStub: sinon.SinonStub;
+        let sendTransactionStub: sinon.SinonStub;
+        let mockEventHub: sinon.SinonStubbedInstance<Client.ChannelEventHub>;
+        let outputSpy: sinon.SinonSpy;
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+            mySandBox.stub(fabricRuntimeConnection['client'], 'newTransactionID').returns({
+                getTransactionID: mySandBox.stub().returns('1234')
+            });
+            channel = fabricRuntimeConnection['getOrCreateChannel']('mychannel');
+            queryInstantiatedChaincodesStub = mySandBox.stub(channel, 'queryInstantiatedChaincodes');
+            queryInstantiatedChaincodesStub.resolves({
+                chaincodes: [
+                    {
+                        name: 'otherChaincode',
+                        version: '0.0.1'
+                    }
+                ]
+            });
+            sendInstantiateProposalStub = mySandBox.stub(channel, 'sendInstantiateProposal');
+            sendInstantiateProposalStub.resolves([
+                [
+                    {
+                        response: {
+                            payload: Buffer.from(''),
+                            status: 200
+                        }
+                    }
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            sendTransactionStub = mySandBox.stub(channel, 'sendTransaction');
+            sendTransactionStub.resolves({
+                status: 'SUCCESS'
+            });
+            mockEventHub = sinon.createStubInstance(Client.ChannelEventHub);
+            mySandBox.stub(channel, 'newChannelEventHub').returns(mockEventHub);
+            mockEventHub.connect.yields(null);
+            mockEventHub.registerTxEvent.callsFake((txId: string, callback: any, errorCallback: any): void => {
+                callback(txId, 'VALID', 1);
+                errorCallback(null);
+            });
+            outputSpy = mySandBox.spy(fabricRuntimeConnection['outputAdapter'], 'log');
         });
 
-        it('should instantiate a chaincode', async () => {
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(fabricRuntimeConnection['outputAdapter'], 'log');
-
-            const responsePayload: any = await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
-            fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
+        it('should instantiate the specified chaincode', async () => {
+            const payload: Buffer = await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            should.equal(payload, null);
+            sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
+                targets: [sinon.match.any],
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']
-            });
-            responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, "Instantiating with function: 'instantiate' and arguments: 'arg1'");
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnce;
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Instantiating with function: 'instantiate' and arguments: 'arg1'`);
         });
 
-        it('should throw an error instantiating if contract is already instantiated', async () => {
-            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-            const logSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
-            getChanincodesStub.withArgs('myChannel').resolves([{ name: 'myChaincode' }]);
-            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The name of the contract you tried to instantiate is already instantiated');
-            fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
-
-            logSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
-        });
-
-        it('should instantiate a chaincode and can return empty payload response', async () => {
-            fabricTransactionStub._validatePeerResponses.returns(null);
-            const nullResponsePayload: any = await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']);
-            fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
+        it('should instantiate the specified chaincode and return the payload', async () => {
+            sendInstantiateProposalStub.resolves([
+                [
+                    {
+                        response: {
+                            payload: Buffer.from('hello world'),
+                            status: 200
+                        }
+                    }
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            const payload: Buffer = await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            payload.toString().should.equal('hello world');
+            sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
+                targets: [sinon.match.any],
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnce;
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Instantiating with function: 'instantiate' and arguments: 'arg1'`);
+        });
+
+        it('should throw an error if the specified chaincode is already instantiated', async () => {
+            await fabricRuntimeConnection.instantiateChaincode('otherChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/The smart contract otherChaincode is already instantiated on the channel mychannel/);
+        });
+
+        it('should throw an error if a peer returns an error as a proposal response', async () => {
+            sendInstantiateProposalStub.resolves([
+                [
+                    new Error('such error')
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such error/);
+        });
+
+        it('should throw an error if a peer returns a failed proposal response', async () => {
+            sendInstantiateProposalStub.resolves([
+                [
+                    {
+                        response: {
+                            message: 'such error',
+                            status: 400
+                        }
+                    }
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such error/);
+        });
+
+        it('should throw an error if the orderer rejects the transaction', async () => {
+            sendTransactionStub.resolves({
+                status: 'FAILURE'
             });
-            should.not.exist(nullResponsePayload);
+            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Response status: FAILURE/);
         });
 
-        it('should throw an error if cant create event handler', async () => {
-            fabricTransactionStub._createTxEventHandler.returns();
-            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
+        it('should throw an error if the event hub fails to connect before the transaction is committed', async () => {
+            mockEventHub.connect.yields(new Error('such connect error'));
+            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such connect error/);
         });
 
-        it('should throw an error if submitting the transaction failed', async () => {
-            fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
-            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
+        it('should throw an error if the event hub disconnects before the transaction is committed', async () => {
+            mockEventHub.registerTxEvent.callsFake((_1: string, _2: void, errorCallback: any): void => {
+                errorCallback(new Error('such connect error'));
+            });
+            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such connect error/);
         });
+
+        it('should throw an error if the transaction is rejected at validation time', async () => {
+            mockEventHub.registerTxEvent.callsFake((txId: string, callback: any): void => {
+                callback(txId, 'INVALID', 1);
+            });
+            await fabricRuntimeConnection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/with code INVALID in block 1/);
+        });
+
     });
 
     describe('upgradeChaincode', () => {
 
-        let getChanincodesStub: sinon.SinonStub;
-        beforeEach(() => {
-            getChanincodesStub = mySandBox.stub(fabricRuntimeConnection, 'getInstantiatedChaincode');
-            getChanincodesStub.resolves([]);
+        let channel: Client.Channel;
+        let queryInstantiatedChaincodesStub: sinon.SinonStub;
+        let sendUpgradeProposalStub: sinon.SinonStub;
+        let sendTransactionStub: sinon.SinonStub;
+        let mockEventHub: sinon.SinonStubbedInstance<Client.ChannelEventHub>;
+        let outputSpy: sinon.SinonSpy;
+
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+            mySandBox.stub(fabricRuntimeConnection['client'], 'newTransactionID').returns({
+                getTransactionID: mySandBox.stub().returns('1234')
+            });
+            channel = fabricRuntimeConnection['getOrCreateChannel']('mychannel');
+            queryInstantiatedChaincodesStub = mySandBox.stub(channel, 'queryInstantiatedChaincodes');
+            queryInstantiatedChaincodesStub.resolves({
+                chaincodes: [
+                    {
+                        name: 'myChaincode',
+                        version: '0.0.1'
+                    }
+                ]
+            });
+            sendUpgradeProposalStub = mySandBox.stub(channel, 'sendUpgradeProposal');
+            sendUpgradeProposalStub.resolves([
+                [
+                    {
+                        response: {
+                            payload: Buffer.from(''),
+                            status: 200
+                        }
+                    }
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            sendTransactionStub = mySandBox.stub(channel, 'sendTransaction');
+            sendTransactionStub.resolves({
+                status: 'SUCCESS'
+            });
+            mockEventHub = sinon.createStubInstance(Client.ChannelEventHub);
+            mySandBox.stub(channel, 'newChannelEventHub').returns(mockEventHub);
+            mockEventHub.connect.yields(null);
+            mockEventHub.registerTxEvent.callsFake((txId: string, callback: any, errorCallback: any): void => {
+                callback(txId, 'VALID', 1);
+                errorCallback(null);
+            });
+            outputSpy = mySandBox.spy(fabricRuntimeConnection['outputAdapter'], 'log');
         });
 
-        it('should upgrade a chaincode', async () => {
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(fabricRuntimeConnection['outputAdapter'], 'log');
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-            const responsePayload: any = await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
-            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
+        it('should upgrade the specified chaincode', async () => {
+            const payload: Buffer = await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            should.equal(payload, null);
+            sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
+                targets: [sinon.match.any],
                 chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
+                chaincodeVersion: '0.0.2',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']
-            });
-            responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, "Upgrading with function: 'instantiate' and arguments: 'arg1'");
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnce;
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Upgrading with function: 'instantiate' and arguments: 'arg1'`);
         });
 
-        it('should throw an error instantiating if no contract with the same name has been instantiated', async () => {
-            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
-
-            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The contract you tried to upgrade with has no previous versions instantiated');
-            fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
-
-            outputSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
-        });
-
-        it('should instantiate a chaincode and can return empty payload response', async () => {
-            fabricTransactionStub._validatePeerResponses.returns(null);
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-
-            const nullResponsePayload: any = await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']);
-            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
+        it('should upgrade the specified chaincode and return the payload', async () => {
+            sendUpgradeProposalStub.resolves([
+                [
+                    {
+                        response: {
+                            payload: Buffer.from('hello world'),
+                            status: 200
+                        }
+                    }
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            const payload: Buffer = await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            payload.toString().should.equal('hello world');
+            sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
+                targets: [sinon.match.any],
                 chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
+                chaincodeVersion: '0.0.2',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnce;
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Upgrading with function: 'instantiate' and arguments: 'arg1'`);
+        });
+
+        it('should throw an error if the specified chaincode is not already instantiated', async () => {
+            await fabricRuntimeConnection.upgradeChaincode('noSuchChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/The smart contract noSuchChaincode is not instantiated on the channel mychannel, so cannot be upgraded/);
+        });
+
+        it('should throw an error if the specified chaincode is already instantiated with the same version', async () => {
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/The smart contract myChaincode with version 0.0.1 is already instantiated on the channel mychannel/);
+        });
+
+        it('should throw an error if a peer returns an error as a proposal response', async () => {
+            sendUpgradeProposalStub.resolves([
+                [
+                    new Error('such error')
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such error/);
+        });
+
+        it('should throw an error if a peer returns a failed proposal response', async () => {
+            sendUpgradeProposalStub.resolves([
+                [
+                    {
+                        response: {
+                            message: 'such error',
+                            status: 400
+                        }
+                    }
+                ],
+                {
+                    proposal: true
+                }
+            ]);
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such error/);
+        });
+
+        it('should throw an error if the orderer rejects the transaction', async () => {
+            sendTransactionStub.resolves({
+                status: 'FAILURE'
             });
-            should.not.exist(nullResponsePayload);
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Response status: FAILURE/);
         });
 
-        it('should throw an error if cant create event handler', async () => {
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-            fabricTransactionStub._createTxEventHandler.returns();
-            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
+        it('should throw an error if the event hub fails to connect before the transaction is committed', async () => {
+            mockEventHub.connect.yields(new Error('such connect error'));
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such connect error/);
         });
 
-        it('should throw an error if submitting the transaction failed', async () => {
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-            fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
-            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
+        it('should throw an error if the event hub disconnects before the transaction is committed', async () => {
+            mockEventHub.registerTxEvent.callsFake((_1: string, _2: void, errorCallback: any): void => {
+                errorCallback(new Error('such connect error'));
+            });
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/such connect error/);
         });
+
+        it('should throw an error if the transaction is rejected at validation time', async () => {
+            mockEventHub.registerTxEvent.callsFake((txId: string, callback: any): void => {
+                callback(txId, 'INVALID', 1);
+            });
+            await fabricRuntimeConnection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/with code INVALID in block 1/);
+        });
+
     });
 
     describe('enroll', () => {

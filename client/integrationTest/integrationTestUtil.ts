@@ -273,9 +273,7 @@ export class IntegrationTestUtil {
     public async instantiateSmartContract(name: string, version: string, transaction: string = 'instantiate', args: string = ''): Promise<void> {
         this.showChannelStub.resolves({
             label: 'mychannel',
-            data: {
-                mychannel: ['peer0.org1.example.com']
-            }
+            data: ['peer0.org1.example.com']
         });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
@@ -299,7 +297,10 @@ export class IntegrationTestUtil {
     }
 
     public async upgradeSmartContract(name: string, version: string): Promise<void> {
-        this.showChannelStub.resolves('mychannel');
+        this.showChannelStub.resolves({
+            label: 'mychannel',
+            data: ['peer0.org1.example.com']
+        });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
