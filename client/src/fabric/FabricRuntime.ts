@@ -165,7 +165,8 @@ export class FabricRuntime extends EventEmitter {
                 FabricNodeType.PEER,
                 `grpc://localhost:${peerRequestPort}`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
-                FabricRuntimeUtil.ADMIN_USER
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
             ),
             new FabricNode(
                 'ca.example.com',
@@ -173,7 +174,8 @@ export class FabricRuntime extends EventEmitter {
                 FabricNodeType.CERTIFICATE_AUTHORITY,
                 `http://localhost:${caPort}`,
                 FabricWalletUtil.LOCAL_WALLET,
-                FabricRuntimeUtil.ADMIN_USER
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
             ),
             new FabricNode(
                 'orderer.example.com',
@@ -181,7 +183,8 @@ export class FabricRuntime extends EventEmitter {
                 FabricNodeType.ORDERER,
                 `grpc://localhost:${ordererPort}`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
-                FabricRuntimeUtil.ADMIN_USER
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP'
             )
         ];
     }

@@ -1192,7 +1192,8 @@ describe('FabricRuntime', () => {
                     type: 'fabric-peer',
                     url: 'grpc://localhost:12345',
                     wallet: `${FabricWalletUtil.LOCAL_WALLET}-ops`,
-                    identity: FabricRuntimeUtil.ADMIN_USER
+                    identity: FabricRuntimeUtil.ADMIN_USER,
+                    msp_id: 'Org1MSP'
                 },
                 {
                     short_name: 'ca.example.com',
@@ -1200,7 +1201,8 @@ describe('FabricRuntime', () => {
                     type: 'fabric-ca',
                     url: 'http://localhost:12348',
                     wallet: FabricWalletUtil.LOCAL_WALLET,
-                    identity: FabricRuntimeUtil.ADMIN_USER
+                    identity: FabricRuntimeUtil.ADMIN_USER,
+                    msp_id: 'Org1MSP'
                 },
                 {
                     short_name: 'orderer.example.com',
@@ -1208,7 +1210,8 @@ describe('FabricRuntime', () => {
                     type: 'fabric-orderer',
                     url: 'grpc://localhost:12347',
                     wallet: `${FabricWalletUtil.LOCAL_WALLET}-ops`,
-                    identity: FabricRuntimeUtil.ADMIN_USER
+                    identity: FabricRuntimeUtil.ADMIN_USER,
+                    msp_id: 'OrdererMSP'
                 }
             ]);
         });

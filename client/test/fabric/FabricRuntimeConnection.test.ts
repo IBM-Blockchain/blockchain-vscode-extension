@@ -202,7 +202,8 @@ describe('FabricRuntimeConnection', () => {
                 FabricNodeType.PEER,
                 `grpc://localhost:7051`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
-                FabricRuntimeUtil.ADMIN_USER
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
             ),
             new FabricNode(
                 'ca.example.com',
@@ -210,7 +211,8 @@ describe('FabricRuntimeConnection', () => {
                 FabricNodeType.CERTIFICATE_AUTHORITY,
                 `http://localhost:7054`,
                 FabricWalletUtil.LOCAL_WALLET,
-                FabricRuntimeUtil.ADMIN_USER
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
             ),
             new FabricNode(
                 'orderer.example.com',
@@ -218,7 +220,8 @@ describe('FabricRuntimeConnection', () => {
                 FabricNodeType.ORDERER,
                 `grpc://localhost:7050`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
-                FabricRuntimeUtil.ADMIN_USER
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP'
             )
         ]);
 
@@ -337,14 +340,16 @@ describe('FabricRuntimeConnection', () => {
 
     });
 
-    describe('getOrganization', () => {
-        it('should get an organization', async () => {
-            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
+    describe('getAllOrganizationNames', () => {
 
-            const orgs: any[] = await fabricRuntimeConnection.getOrganizations('myChannel');
-            orgs.length.should.equal(1);
-            orgs[0].id.should.deep.equal('Org1MSP');
+        beforeEach(async () => {
+            await fabricRuntimeConnection.connect(connectionWallet, mockIdentityName);
         });
+
+        it('should get all of the organization names', () => {
+            fabricRuntimeConnection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP']);
+        });
+
     });
 
     describe('getAllCertificateAuthorityNames', () => {
