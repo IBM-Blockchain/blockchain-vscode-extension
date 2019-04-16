@@ -63,8 +63,6 @@ describe('startFabricRuntime', () => {
         runtime = runtimeManager.getRuntime();
         sandbox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
 
-        sandbox.stub(runtime, 'getCertificate').resolves();
-        sandbox.stub(runtime, 'getPrivateKey').resolves();
         const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
         sandbox.stub(testFabricWallet, 'importIdentity').resolves();
         sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);

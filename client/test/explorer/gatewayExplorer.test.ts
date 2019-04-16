@@ -52,6 +52,8 @@ describe('gatewayExplorer', () => {
 
     const rootPath: string = path.dirname(__dirname);
 
+    let mySandBox: sinon.SinonSandbox;
+
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
@@ -64,17 +66,30 @@ describe('gatewayExplorer', () => {
     });
 
     beforeEach(async () => {
+        mySandBox = sinon.createSandbox();
         await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
         FabricRuntimeManager.instance().exists().should.be.true;
+
+        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+        mockRuntime.isBusy.returns(false);
+        mockRuntime.isRunning.resolves(true);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
+            new FabricGatewayRegistryEntry({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                connectionProfilePath: 'connection.json',
+                associatedWallet: FabricWalletUtil.LOCAL_WALLET
+            })
+        ]);
     });
 
     describe('constructor', () => {
 
-        let mySandBox: sinon.SinonSandbox;
         let logSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
@@ -131,12 +146,10 @@ describe('gatewayExplorer', () => {
 
         describe('unconnected tree', () => {
 
-            let mySandBox: sinon.SinonSandbox;
             let getConnectionStub: sinon.SinonStub;
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
-                mySandBox = sinon.createSandbox();
                 getConnectionStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnection');
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
@@ -231,20 +244,6 @@ describe('gatewayExplorer', () => {
             });
 
             it('should display the managed runtime', async () => {
-                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-                mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
-                mockRuntime.isBusy.returns(false);
-                mockRuntime.isRunning.resolves(true);
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
-                    new FabricGatewayRegistryEntry({
-                        name: FabricRuntimeUtil.LOCAL_FABRIC,
-                        managedRuntime: true,
-                        connectionProfilePath: 'connection.json',
-                        associatedWallet: FabricWalletUtil.LOCAL_WALLET
-                    })
-                ]);
-
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
                 await new Promise((resolve: any): any => {
@@ -346,7 +345,6 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
         describe('connected tree', () => {
 
-            let mySandBox: sinon.SinonSandbox;
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
             let fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection>;
@@ -355,7 +353,6 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
-                mySandBox = sinon.createSandbox();
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();
@@ -839,11 +836,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
     describe('refresh', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
             await ExtensionUtil.activateExtension();
         });
 
@@ -878,11 +871,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
     describe('connect', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
             await ExtensionUtil.activateExtension();
         });
 
@@ -911,11 +900,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
     describe('disconnect', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
             await ExtensionUtil.activateExtension();
         });
 
@@ -941,11 +926,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
     describe('getTreeItem', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
             await ExtensionUtil.activateExtension();
         });
 

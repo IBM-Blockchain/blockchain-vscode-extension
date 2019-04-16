@@ -191,12 +191,12 @@ export class FabricRuntime extends EventEmitter {
 
     public async getWalletNames(): Promise<string[]> {
         return [
-            `${FabricWalletUtil.LOCAL_WALLET}`
+            `${FabricWalletUtil.LOCAL_WALLET}-ops`
         ];
     }
 
     public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
-        if (walletName !== FabricWalletUtil.LOCAL_WALLET) {
+        if (walletName !== `${FabricWalletUtil.LOCAL_WALLET}-ops`) {
             throw new Error(`The wallet ${walletName} does not exist`);
         } else {
             return [
@@ -208,18 +208,6 @@ export class FabricRuntime extends EventEmitter {
                 )
             ];
         }
-    }
-
-    public async getCertificate(): Promise<string> {
-        return basicNetworkAdminCertificate;
-    }
-
-    public getCertificatePath(): string {
-        return basicNetworkAdminCertificatePath;
-    }
-
-    public async getPrivateKey(): Promise<string> {
-        return basicNetworkAdminPrivateKey;
     }
 
     public async isCreated(): Promise<boolean> {

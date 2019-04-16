@@ -174,10 +174,16 @@ describe('UserInputUtil', () => {
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
         mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionStub);
+        mySandBox.stub(fabricRuntimeManager, 'getGatewayRegistryEntries').resolves([
+            new FabricGatewayRegistryEntry({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                connectionProfilePath: 'connection.json',
+                associatedWallet: FabricWalletUtil.LOCAL_WALLET
+            })
+        ]);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-
-        FabricRuntimeManager.instance().exists().should.be.true;
     });
 
     afterEach(async () => {
@@ -206,8 +212,7 @@ describe('UserInputUtil', () => {
             managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
             managedRuntime.managedRuntime = true;
             managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            const connectionProfilePath: string = UserInputUtil.getDirPath(`~/.fabric-vscode/${FabricRuntimeUtil.LOCAL_FABRIC}/connection.json`);
-            managedRuntime.connectionProfilePath = connectionProfilePath;
+            managedRuntime.connectionProfilePath = 'connection.json';
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true);
