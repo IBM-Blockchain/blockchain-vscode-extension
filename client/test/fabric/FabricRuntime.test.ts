@@ -776,68 +776,6 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#getConnectionProfile', () => {
-
-        it('should get a connection profile', async () => {
-            const connectionProfile: object = await runtime.getConnectionProfile();
-            connectionProfile.should.deep.equal({
-                name: 'basic-network',
-                version: '1.0.0',
-                client: {
-                    organization: 'Org1',
-                    connection: {
-                        timeout: {
-                            peer: {
-                                endorser: '300',
-                                eventHub: '300',
-                                eventReg: '300'
-                            },
-                            orderer: '300'
-                        }
-                    }
-                },
-                channels: {
-                    mychannel: {
-                        orderers: [
-                            'orderer.example.com'
-                        ],
-                        peers: {
-                            'peer0.org1.example.com': {}
-                        }
-                    }
-                },
-                organizations: {
-                    Org1: {
-                        mspid: 'Org1MSP',
-                        peers: [
-                            'peer0.org1.example.com'
-                        ],
-                        certificateAuthorities: [
-                            'ca.org1.example.com'
-                        ]
-                    }
-                },
-                orderers: {
-                    'orderer.example.com': {
-                        url: 'grpc://127.0.0.1:12347'
-                    }
-                },
-                peers: {
-                    'peer0.org1.example.com': {
-                        url: 'grpc://localhost:12345',
-                        eventUrl: 'grpc://localhost:12346'
-                    }
-                },
-                certificateAuthorities: {
-                    'ca.org1.example.com': {
-                        url: 'http://127.0.0.1:12348',
-                        caName: 'ca.example.com'
-                    }
-                }
-            });
-        });
-    });
-
     describe('#getCertificate', () => {
 
         it('should get the PEM encoded certificate', async () => {
@@ -862,15 +800,6 @@ describe('FabricRuntime', () => {
         it('should get the runtime certificate path', async () => {
             const certPath: string = await runtime.getCertificatePath();
             certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', FabricRuntimeUtil.ADMIN_USER, 'msp', 'signcerts', `${FabricRuntimeUtil.ADMIN_USER}-cert.pem`));
-        });
-
-    });
-
-    describe('#getConnectionProfilePath', () => {
-
-        it('should get the runtime connection profile path', async () => {
-            const connectionPath: string = runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json'));
         });
 
     });
@@ -1121,7 +1050,7 @@ describe('FabricRuntime', () => {
             gateways.should.deep.equal([
                 {
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    path: runtime.getConnectionProfilePath(),
+                    path: runtime['getConnectionProfilePath'](),
                     connectionProfile: {
                         name: 'basic-network',
                         version: '1.0.0',

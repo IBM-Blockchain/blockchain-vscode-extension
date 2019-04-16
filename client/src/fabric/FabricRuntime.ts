@@ -210,35 +210,6 @@ export class FabricRuntime extends EventEmitter {
         }
     }
 
-    public async getConnectionProfile(): Promise<object> {
-        const containerPrefix: string = this.docker.getContainerPrefix();
-        const connectionProfile: any = basicNetworkConnectionProfile;
-        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com`);
-        const peerRequestHost: string = Docker.fixHost(peerPorts['7051/tcp'][0].HostIp);
-        const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
-        const peerEventHost: string = Docker.fixHost(peerPorts['7053/tcp'][0].HostIp);
-        const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
-        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com`);
-        const ordererHost: string = Docker.fixHost(ordererPorts['7050/tcp'][0].HostIp);
-        const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
-        const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com`);
-        const caHost: string = Docker.fixHost(caPorts['7054/tcp'][0].HostIp);
-        const caPort: string = caPorts['7054/tcp'][0].HostPort;
-        connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
-        connectionProfile.peers['peer0.org1.example.com'].eventUrl = `grpc://${peerEventHost}:${peerEventPort}`;
-        connectionProfile.orderers['orderer.example.com'].url = `grpc://${ordererHost}:${ordererPort}`;
-        connectionProfile.certificateAuthorities['ca.org1.example.com'].url = `http://${caHost}:${caPort}`;
-        return connectionProfile;
-    }
-
-    public getConnectionProfilePath(): string {
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const dir: string = path.join(homeExtDir, this.name);
-
-        return path.join(dir, 'connection.json');
-    }
-
     public async getCertificate(): Promise<string> {
         return basicNetworkAdminCertificate;
     }
@@ -385,6 +356,35 @@ export class FabricRuntime extends EventEmitter {
             developmentMode: this.isDevelopmentMode(),
         };
         await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeObject, vscode.ConfigurationTarget.Global);
+    }
+
+    private async getConnectionProfile(): Promise<object> {
+        const containerPrefix: string = this.docker.getContainerPrefix();
+        const connectionProfile: any = basicNetworkConnectionProfile;
+        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com`);
+        const peerRequestHost: string = Docker.fixHost(peerPorts['7051/tcp'][0].HostIp);
+        const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
+        const peerEventHost: string = Docker.fixHost(peerPorts['7053/tcp'][0].HostIp);
+        const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
+        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com`);
+        const ordererHost: string = Docker.fixHost(ordererPorts['7050/tcp'][0].HostIp);
+        const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
+        const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com`);
+        const caHost: string = Docker.fixHost(caPorts['7054/tcp'][0].HostIp);
+        const caPort: string = caPorts['7054/tcp'][0].HostPort;
+        connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
+        connectionProfile.peers['peer0.org1.example.com'].eventUrl = `grpc://${peerEventHost}:${peerEventPort}`;
+        connectionProfile.orderers['orderer.example.com'].url = `grpc://${ordererHost}:${ordererPort}`;
+        connectionProfile.certificateAuthorities['ca.org1.example.com'].url = `http://${caHost}:${caPort}`;
+        return connectionProfile;
+    }
+
+    private getConnectionProfilePath(): string {
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const dir: string = path.join(homeExtDir, this.name);
+
+        return path.join(dir, 'connection.json');
     }
 
     private setBusy(busy: boolean): void {

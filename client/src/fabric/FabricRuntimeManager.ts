@@ -24,6 +24,7 @@ import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from './FabricWalletUtil';
 import { FabricRuntimeUtil } from './FabricRuntimeUtil';
+import { FabricGateway } from './FabricGateway';
 
 export class FabricRuntimeManager {
 
@@ -94,15 +95,15 @@ export class FabricRuntimeManager {
         }
     }
 
-    public getGatewayRegistryEntries(): FabricGatewayRegistryEntry[] {
+    public async getGatewayRegistryEntries(): Promise<FabricGatewayRegistryEntry[]> {
         const runtime: FabricRuntime = this.getRuntime();
-        const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
-            name: runtime.getName(),
+        const gateways: FabricGateway[] = await runtime.getGateways();
+        return gateways.map((gateway: FabricGateway) => new FabricGatewayRegistryEntry({
+            name: gateway.name,
             managedRuntime: true,
-            connectionProfilePath: runtime.getConnectionProfilePath(),
+            connectionProfilePath: gateway.path,
             associatedWallet: FabricWalletUtil.LOCAL_WALLET
-        });
-        return [registryEntry];
+        }));
     }
 
     private readRuntimeUserSettings(): any {

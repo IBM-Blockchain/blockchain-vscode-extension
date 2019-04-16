@@ -235,8 +235,15 @@ describe('gatewayExplorer', () => {
                 mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
                 mockRuntime.isBusy.returns(false);
                 mockRuntime.isRunning.resolves(true);
-                mockRuntime.getConnectionProfilePath.returns('connection.json');
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
+                    new FabricGatewayRegistryEntry({
+                        name: FabricRuntimeUtil.LOCAL_FABRIC,
+                        managedRuntime: true,
+                        connectionProfilePath: 'connection.json',
+                        associatedWallet: FabricWalletUtil.LOCAL_WALLET
+                    })
+                ]);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
