@@ -197,7 +197,7 @@ describe('testSmartContractCommand', () => {
             getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet');
             getWalletRegistryStub.returns(walletRegistryEntry);
             // UserInputUtil stubs
-            showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
+            showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
                 label: 'wagonwheel@0.0.1',
                 data: { name: 'wagonwheel', channel: 'myEnglishChannel', version: '0.0.1' }
             });

@@ -13,10 +13,9 @@
 */
 
 'use strict';
-import { FabricConnection } from './FabricConnection';
+
 import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter, LogType } from '../logging/OutputAdapter';
-import { FabricWallet } from '../fabric/FabricWallet';
 import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
@@ -26,9 +25,11 @@ import { FabricNode, FabricNodeType } from './FabricNode';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
+import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 
-export class FabricRuntimeConnection extends FabricConnection implements IFabricRuntimeConnection {
+export class FabricRuntimeConnection implements IFabricRuntimeConnection {
 
+    private outputAdapter: OutputAdapter;
     private runtime: FabricRuntime;
     private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
     private client: Client;
@@ -37,16 +38,16 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
     private certificateAuthorities: Map<string, FabricCAServices> = new Map<string, FabricCAServices>();
 
     constructor(runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
-        super(outputAdapter);
+        if (!outputAdapter) {
+            this.outputAdapter = ConsoleOutputAdapter.instance();
+        } else {
+            this.outputAdapter = outputAdapter;
+        }
         this.runtime = runtime;
     }
 
-    public async connect(wallet: FabricWallet, identityName: string): Promise<void> {
+    public async connect(): Promise<void> {
         console.log('FabricRuntimeConnection: connect');
-
-        // This is old "gateway" code and will be removed.
-        const connectionProfile: object = await this.runtime.getConnectionProfile();
-        await this.connectInner(connectionProfile, wallet, identityName);
 
         const nodes: FabricNode[] = await this.runtime.getNodes();
         this.client = new Client();
@@ -72,7 +73,6 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
     }
 
     public disconnect(): void {
-        super.disconnect();
         this.nodes.clear();
         this.client = null;
         this.peers.clear();
@@ -84,16 +84,61 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         return Array.from(this.peers.keys()).sort();
     }
 
+    public async createChannelMap(): Promise<Map<string, Array<string>>> {
+        try {
+            const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+
+            for (const [peerName] of this.peers) {
+                const channelNames: Array<string> = await this.getAllChannelNamesForPeer(peerName);
+                for (const channelName of channelNames) {
+                    if (!channelMap.has(channelName)) {
+                        channelMap.set(channelName, [peerName]);
+                    } else {
+                        channelMap.get(channelName).push(peerName);
+                    }
+                }
+            }
+
+            return channelMap;
+
+        } catch (error) {
+            if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
+                throw new Error(`Cannot connect to Fabric: ${error.message}`);
+            } else {
+                throw new Error(`Error creating channel map: ${error.message}`);
+            }
+        }
+    }
+
+    public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<{name: string, version: string}>> {
+
+        // Locate all of the requested peer nodes.
+        const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
+
+        // Get the channel.
+        const channel: Client.Channel = this.getOrCreateChannel(channelName);
+
+        // Use the first peer to perform this query.
+        await this.setNodeContext(peerNames[0]);
+        const instantiatedChaincodes: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(peers[0]);
+        return instantiatedChaincodes.chaincodes.map((chaincode: Client.ChaincodeInfo) => {
+            return {
+                name: chaincode.name,
+                version: chaincode.version
+            };
+        });
+
+    }
+
     public async getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>> {
 
         try {
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
-            const channels: Array<string> = Array.from(channelMap.keys());
 
             const chaincodes: Array<{name: string, version: string}> = []; // We can change the array type if we need more detailed chaincodes in future
 
-            for (const channel of channels) {
-                const channelChaincodes: Array<{name: string, version: string}> = await this.getInstantiatedChaincode(channel); // Returns channel chaincodes
+            for (const [channelName, peerNames] of channelMap) {
+                const channelChaincodes: Array<{name: string, version: string}> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
                 for (const chaincode of channelChaincodes) { // For each channel chaincodes, push it to the 'chaincodes' array if it doesn't exist
 
                     const alreadyExists: boolean = chaincodes.some((_chaincode: {name: string, version: string}) => {
@@ -104,6 +149,14 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
                     }
                 }
             }
+
+            chaincodes.sort((a: { name: string, version: string }, b: { name: string, version: string }): number => {
+                if (a.name === b.name) {
+                    return a.version.localeCompare(b.version);
+                } else {
+                    return a.name.localeCompare(b.name);
+                }
+            });
 
             return chaincodes;
         } catch (error) {
@@ -368,6 +421,13 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
             channel = this.client.newChannel(channelName);
         }
         return channel;
+    }
+
+    private async getAllChannelNamesForPeer(peerName: string): Promise<Array<string>> {
+        const peer: Client.Peer = this.getPeer(peerName);
+        await this.setNodeContext(peerName);
+        const channelQueryResponse: Client.ChannelQueryResponse = await this.client.queryChannels(peer);
+        return channelQueryResponse.channels.map((channel: Client.ChannelInfo) => channel.channel_id).sort();
     }
 
 }

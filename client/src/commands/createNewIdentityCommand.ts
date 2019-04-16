@@ -23,7 +23,6 @@ import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -61,7 +60,6 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
 
     try {
         const mspid: string = 'Org1MSP';
-        const adminName: string = FabricRuntimeUtil.ADMIN_USER;
         const affiliation: string = 'org1.department1'; // Currently works for org1.department1, org1.department2
         // check to see if identity of same name exists
         const wallet: IFabricWallet = FabricRuntimeManager.instance().gatewayWallet;
@@ -74,7 +72,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
         connection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
         // Connect and then register the user
-        await connection.connect(wallet, adminName);
+        await connection.connect();
         const secret: string = await connection.register(certificateAuthorityName, identityName, affiliation);
 
         // Enroll the user

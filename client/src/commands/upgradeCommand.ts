@@ -47,7 +47,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         peerNames = treeItem.peers;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
 
@@ -70,7 +70,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         peerNames = chosenChannel.data;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
     }

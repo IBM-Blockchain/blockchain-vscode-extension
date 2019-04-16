@@ -247,11 +247,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         try {
             const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            const channels: Array<string> = Array.from(channelMap.keys());
-            for (const channel of channels) {
-                const chaincodes: any[] = await connection.getInstantiatedChaincode(channel);
-                const peers: Array<string> = channelMap.get(channel);
-                const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None);
+            for (const [channelName, peerNames] of channelMap) {
+                const chaincodes: any[] = await connection.getInstantiatedChaincode(peerNames, channelName);
+                const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channelName, peerNames, chaincodes, vscode.TreeItemCollapsibleState.None);
                 for (const chaincode of chaincodes) {
                     // Doesn't matter if this is a chaincode or a contract as this is the ops view, and
                     // we shouldn't be exposing contracts or transaction functions in the ops view.

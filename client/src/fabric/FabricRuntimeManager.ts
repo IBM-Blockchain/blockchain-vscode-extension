@@ -235,7 +235,7 @@ export class FabricRuntimeManager {
             await runtimeWallet.importIdentity(certificate, privateKey, identityName, mspid);
         }
 
-        await connection.connect(runtimeWallet, identityName);
+        await connection.connect();
 
         // enroll a user
         const gatewayWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(FabricWalletUtil.LOCAL_WALLET);

@@ -69,7 +69,8 @@ export class IntegrationTestUtil {
     public showInstallableStub: sinon.SinonStub;
     public showChannelStub: sinon.SinonStub;
     public showChaincodeAndVersionStub: sinon.SinonStub;
-    public showInstantiatedSmartContractsStub: sinon.SinonStub;
+    public showClientInstantiatedSmartContractsStub: sinon.SinonStub;
+    public showRuntimeInstantiatedSmartContractsStub: sinon.SinonStub;
     public showTransactionStub: sinon.SinonStub;
     public workspaceConfigurationUpdateStub: sinon.SinonStub;
     public workspaceConfigurationGetStub: sinon.SinonStub;
@@ -97,7 +98,8 @@ export class IntegrationTestUtil {
         this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
-        this.showInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
+        this.showClientInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick');
+        this.showRuntimeInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick');
         this.showChaincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
         this.showTransactionStub = this.mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
@@ -318,7 +320,7 @@ export class IntegrationTestUtil {
         });
 
         // Upgrade from instantiated contract at version 0.0.1
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showRuntimeInstantiatedSmartContractsStub.resolves({
             label: `${name}@0.0.1`,
             data: { name: name, channel: 'mychannel', version: '0.0.1' }
         });
@@ -329,7 +331,7 @@ export class IntegrationTestUtil {
     }
 
     public async submitTransactionToChaincode(name: string, version: string, fcn: string, args: string): Promise<void> {
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
@@ -345,7 +347,7 @@ export class IntegrationTestUtil {
     }
 
     public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
@@ -378,7 +380,7 @@ export class IntegrationTestUtil {
         });
 
         this.showChannelStub.resolves('mychannel');
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
