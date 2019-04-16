@@ -103,9 +103,6 @@ describe('InstantiateCommand', () => {
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
-            fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
-            fabricRuntimeMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['myChannel']);
-
             fabricRuntimeMock.getInstantiatedChaincode.resolves([]);
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
             map.set('myChannel', ['peerOne']);

@@ -52,7 +52,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         }
 
         // Ask for instantiated smart contract
-        chosenChaincode = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+        chosenChaincode = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
         if (!chosenChaincode) {
             return;
         }

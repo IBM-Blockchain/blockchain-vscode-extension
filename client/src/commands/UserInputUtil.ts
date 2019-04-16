@@ -225,12 +225,11 @@ export class UserInputUtil {
         // First, we need to create a list of channels
 
         const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-        const channels: Array<string> = Array.from(channelMap.keys());
 
         // Next, we get all the instantiated smart contracts
         const allSmartContracts: any[] = [];
-        for (const channel of channels) {
-            const instantiatedSmartContracts: Array<{name: string, version: string}> = await connection.getInstantiatedChaincode(channel);
+        for (const [channelName, peerNames] of channelMap) {
+            const instantiatedSmartContracts: Array<{name: string, version: string}> = await connection.getInstantiatedChaincode(peerNames, channelName);
             allSmartContracts.push(...instantiatedSmartContracts);
         }
 
@@ -441,24 +440,58 @@ export class UserInputUtil {
         return new Promise((resolve: any): any => setTimeout(resolve, ms));
     }
 
-    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+    public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-
-        let channels: Array<string> = [];
-        if (!channelName) {
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            channels = Array.from(channelMap.keys());
-        } else {
-            channels.push(channelName);
-        }
+        const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
         const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
 
-        for (const channel of channels) {
-            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(channel); // returns array of objects
+        for (const [thisChannelName] of channelMap) {
+            if (channelName && (channelName !== thisChannelName)) {
+                continue;
+            }
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
             for (const chaincode of chaincodes) {
-                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: channel };
+                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: thisChannelName };
+                instantiatedChaincodes.push(data);
+            }
+        }
+
+        if (instantiatedChaincodes.length === 0) {
+            outputAdapter.log(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+            return;
+        }
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>> = [];
+        for (const chaincode of instantiatedChaincodes) {
+            const data: { name: string, channel: string, version: string } = { name: chaincode.name, channel: chaincode.channel, version: chaincode.version };
+            quickPickItems.push({ label: `${chaincode.name}@${chaincode.version}`, data: data });
+        }
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    public static async showRuntimeInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+
+        const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
+
+        for (const [thisChannelName, peerNames] of channelMap) {
+            if (channelName && (channelName !== thisChannelName)) {
+                continue;
+            }
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(peerNames, thisChannelName); // returns array of objects
+            for (const chaincode of chaincodes) {
+                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: thisChannelName };
                 instantiatedChaincodes.push(data);
             }
         }

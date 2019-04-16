@@ -91,9 +91,6 @@ describe('UpgradeCommand', () => {
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
-            fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
-            fabricRuntimeMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne']);
-
             fabricRuntimeMock.getInstantiatedChaincode.resolves([{ name: 'biscuit-network', version: '0.0.1' }]);
 
             const map: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -114,7 +111,7 @@ describe('UpgradeCommand', () => {
                 }
             );
 
-            mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').withArgs('Select the instantiated smart contract to upgrade', 'channelOne').resolves(
+            mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick').withArgs('Select the instantiated smart contract to upgrade', 'channelOne').resolves(
                 { label: 'biscuit-network@0.0.1', data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' } }
             );
 

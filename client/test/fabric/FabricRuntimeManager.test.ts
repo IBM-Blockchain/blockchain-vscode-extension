@@ -99,7 +99,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(gatewayWalletStub);
 
             const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, FabricRuntimeUtil.ADMIN_USER);
+            connection.connect.should.have.been.calledOnce;
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             runtime.startLogs.should.have.been.called;
@@ -129,7 +129,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(gatewayWalletStub);
 
             const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, FabricRuntimeUtil.ADMIN_USER);
+            connection.connect.should.have.been.calledOnce;
             runtimeWalletStub.importIdentity.should.not.have.been.called;
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             runtime.startLogs.should.have.been.called;
@@ -159,7 +159,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(gatewayWalletStub);
             const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
 
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, FabricRuntimeUtil.ADMIN_USER);
+            connection.connect.should.have.been.calledOnce;
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             gatewayWalletStub.importIdentity.should.not.have.been.called;
             runtime.startLogs.should.have.been.called;
@@ -199,7 +199,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(gatewayWalletStub);
 
             const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, FabricRuntimeUtil.ADMIN_USER);
+            connection.connect.should.have.been.calledOnce;
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             runtime.startLogs.should.have.been.called;
@@ -235,7 +235,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(gatewayWalletStub);
 
             const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, FabricRuntimeUtil.ADMIN_USER);
+            connection.connect.should.have.been.calledOnce;
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             runtime.startLogs.should.have.been.called;
@@ -272,7 +272,7 @@ describe('FabricRuntimeManager', () => {
             createWalletStub.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(gatewayWalletStub);
 
             const result: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, FabricRuntimeUtil.ADMIN_USER);
+            connection.connect.should.have.been.calledOnce;
             runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', FabricRuntimeUtil.ADMIN_USER, 'Org1MSP');
             runtime.startLogs.should.have.been.called;

@@ -103,7 +103,6 @@ describe('InstallCommand', () => {
             dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
-            fabricRuntimeMock.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne']);
 
             fabricRuntimeMock.getInstantiatedChaincode.resolves([]);
 
