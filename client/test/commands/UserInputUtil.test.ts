@@ -155,15 +155,12 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub = sinon.createStubInstance(FabricRuntimeConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
-        fabricRuntimeConnectionStub.getAllChannelsForPeer.withArgs('myPeerOne').resolves(['channelOne']);
-        fabricRuntimeConnectionStub.getAllChannelsForPeer.withArgs('myPeerTwo').resolves(['channelOne', 'channelTwo']);
-
         const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
         chaincodeMap.set('biscuit-network', ['0.0.1', '0.0.2']);
         chaincodeMap.set('cake-network', ['0.0.3']);
         fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
-        fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
+        fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.resolves('ca.example.cake.com');
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
         map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
@@ -173,6 +170,8 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
         fabricClientConnectionStub = sinon.createStubInstance(FabricClientConnection);
+        fabricClientConnectionStub.createChannelMap.resolves(map);
+        fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
         mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionStub);
 
@@ -987,7 +986,7 @@ describe('UserInputUtil', () => {
         });
     });
 
-    describe('showInstantiatedSmartContractsQuickPick', () => {
+    describe('showClientInstantiatedSmartContractsQuickPick', () => {
 
         it('should show the quick pick box for instantiated smart contracts', async () => {
             quickPickStub.resolves({
@@ -995,7 +994,7 @@ describe('UserInputUtil', () => {
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
             });
 
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
@@ -1014,7 +1013,7 @@ describe('UserInputUtil', () => {
                 data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
             });
 
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
@@ -1046,7 +1045,72 @@ describe('UserInputUtil', () => {
         it('should handle no instantiated chaincodes in connection', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
-            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
+            await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+
+        });
+    });
+
+    describe('showRuntimeInstantiatedSmartContractsQuickPick', () => {
+
+        it('should show the quick pick box for instantiated smart contracts', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+            });
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Please choose instantiated smart contract to test'
+            });
+        });
+
+        it('should show the quick pick box for instantiated smart contracts for all channels', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            quickPickStub.should.have.been.calledWith([
+                {
+                    label: 'biscuit-network@0.0.1',
+                    data: {
+                        name: 'biscuit-network',
+                        channel: 'channelOne',
+                        version: '0.0.1'
+                    }
+                },
+                {
+                    label: 'cake-network@0.0.3',
+                    data: {
+                        name: 'cake-network',
+                        channel: 'channelOne',
+                        version: '0.0.3'
+                    }
+                }], {
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Please choose instantiated smart contract to test'
+                });
+        });
+
+        it('should handle no instantiated chaincodes in connection', async () => {
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
+            await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
 
         });

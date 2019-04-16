@@ -122,8 +122,7 @@ describe('runtimeOpsExplorer', () => {
                 const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
-                fabricConnection.createChannelMap.callThrough();
+                fabricConnection.createChannelMap.throws(new Error('Cannot connect to Fabric: Received http2 header with status: 503'));
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
@@ -137,8 +136,7 @@ describe('runtimeOpsExplorer', () => {
                 const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
                 getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
-                fabricConnection.createChannelMap.callThrough();
+                fabricConnection.createChannelMap.throws(new Error('Error creating channel map: some error'));
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
@@ -181,10 +179,6 @@ describe('runtimeOpsExplorer', () => {
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
 
-                fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
-                fabricConnection.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne', 'channelTwo']);
-                fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
-
                 const installedChaincodeMapOne: Map<string, Array<string>> = new Map<string, Array<string>>();
                 installedChaincodeMapOne.set('sample-car-network', ['1.0', '1.2']);
                 installedChaincodeMapOne.set('sample-food-network', ['0.6']);
@@ -195,11 +189,11 @@ describe('runtimeOpsExplorer', () => {
                 installedChaincodeMapTwo.set('biscuit-network', ['0.7']);
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
-                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').resolves([{
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getInstantiatedChaincode.withArgs('channelTwo').resolves([{
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([{
                     name: 'cake-network',
                     version: '0.10'
                 }, {
@@ -307,7 +301,7 @@ describe('runtimeOpsExplorer', () => {
             });
 
             it('should error if there is a problem with displaying instantiated chaincodes', async () => {
-                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').rejects({ message: 'some error' });
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').rejects({ message: 'some error' });
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 

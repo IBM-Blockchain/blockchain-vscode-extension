@@ -15,24 +15,19 @@
 
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
-import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import { FabricNode } from './FabricNode';
 
 export interface IFabricRuntimeConnection {
 
-    identityName: string;
-
-    wallet: FabricWalletRegistryEntry;
-
-    connect(wallet: IFabricWallet, identityName: string): Promise<void>;
-
-    createChannelMap(): Promise<Map<string, Array<string>>>;
+    connect(): Promise<void>;
 
     disconnect(): void;
 
     getAllPeerNames(): Array<string>;
 
-    getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
+    createChannelMap(): Promise<Map<string, Array<string>>>;
+
+    getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<{name: string, version: string}>>;
 
     getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
 
@@ -41,8 +36,6 @@ export interface IFabricRuntimeConnection {
     getAllCertificateAuthorityNames(): Array<string>;
 
     getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
-
-    getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
 
     getAllOrdererNames(): Array<string>;
 

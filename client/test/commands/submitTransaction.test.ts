@@ -73,7 +73,7 @@ describe('SubmitTransactionCommand', () => {
             const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionMock);
 
-            showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick').resolves({
+            showInstantiatedSmartContractQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').resolves({
                 label: 'myContract',
                 data: { name: 'myContract', channel: 'myChannel', version: '0.0.1' }
             });
