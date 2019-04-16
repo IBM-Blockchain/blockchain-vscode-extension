@@ -175,148 +175,11 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
     }
 
     public async instantiateChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {
-
-        const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
-        const instantiateRequest: Client.ChaincodeInstantiateUpgradeRequest = {
-            chaincodeId: name,
-            chaincodeVersion: version,
-            txId: transactionId,
-            fcn: fcn,
-            args: args
-        };
-
-        const network: Network = await this.gateway.getNetwork(channelName);
-        const channel: Client.Channel = network.getChannel();
-
-        const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
-
-        const foundChaincode: any = this.getChaincode(name, instantiatedChaincode);
-
-        let proposalResponseObject: Client.ProposalResponseObject;
-
-        let message: string;
-
-        if (foundChaincode) {
-            throw new Error('The name of the contract you tried to instantiate is already instantiated');
-        } else {
-            message = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
-            this.outputAdapter.log(LogType.INFO, undefined, message);
-            proposalResponseObject = await channel.sendInstantiateProposal(instantiateRequest);
-        }
-
-        const contract: Contract = network.getContract(name);
-        const transaction: any = (contract as any).createTransaction('dummy');
-
-        const responses: any = transaction['_validatePeerResponses'](proposalResponseObject[0]);
-
-        const txId: any = transactionId.getTransactionID();
-        const eventHandlerOptions: any = (contract as any).getEventHandlerOptions();
-        const eventHandler: any = transaction['_createTxEventHandler'](txId, network, eventHandlerOptions);
-
-        if (!eventHandler) {
-            throw new Error('Failed to create an event handler');
-        }
-
-        await eventHandler.startListening();
-
-        const transactionRequest: Client.TransactionRequest = {
-            proposalResponses: proposalResponseObject[0] as Client.ProposalResponse[],
-            proposal: proposalResponseObject[1],
-            txId: transactionId
-        };
-
-        // Submit the endorsed transaction to the primary orderers.
-        const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
-
-        if (response.status !== 'SUCCESS') {
-            const msg: string = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
-            eventHandler.cancelListening();
-            throw new Error(msg);
-        }
-
-        await eventHandler.waitForEvents();
-        // return the payload from the invoked chaincode
-        let result: any = null;
-        if (responses && responses.validResponses[0].response.payload.length > 0) {
-            result = responses.validResponses[0].response.payload;
-        }
-
-        eventHandler.cancelListening();
-
-        return result;
+        return this.instantiateOrUpgradeChaincode(name, version, channelName, fcn, args, false);
     }
 
     public async upgradeChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>): Promise<any> {
-
-        const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
-        const upgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
-            chaincodeId: name,
-            chaincodeVersion: version,
-            txId: transactionId,
-            fcn: fcn,
-            args: args
-        };
-
-        const network: Network = await this.gateway.getNetwork(channelName);
-        const channel: Client.Channel = network.getChannel();
-
-        const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
-
-        const foundChaincode: any = this.getChaincode(name, instantiatedChaincode);
-
-        let proposalResponseObject: Client.ProposalResponseObject;
-
-        let message: string;
-
-        if (foundChaincode) {
-            message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
-            this.outputAdapter.log(LogType.INFO, undefined, message);
-            proposalResponseObject = await channel.sendUpgradeProposal(upgradeRequest);
-        } else {
-            //
-            throw new Error('The contract you tried to upgrade with has no previous versions instantiated');
-        }
-
-        const contract: Contract = network.getContract(name);
-        const transaction: any = (contract as any).createTransaction('dummy');
-
-        const responses: any = transaction['_validatePeerResponses'](proposalResponseObject[0]);
-
-        const txId: any = transactionId.getTransactionID();
-        const eventHandlerOptions: any = (contract as any).getEventHandlerOptions();
-        const eventHandler: any = transaction['_createTxEventHandler'](txId, network, eventHandlerOptions);
-
-        if (!eventHandler) {
-            throw new Error('Failed to create an event handler');
-        }
-
-        await eventHandler.startListening();
-
-        const transactionRequest: Client.TransactionRequest = {
-            proposalResponses: proposalResponseObject[0] as Client.ProposalResponse[],
-            proposal: proposalResponseObject[1],
-            txId: transactionId
-        };
-
-        // Submit the endorsed transaction to the primary orderers.
-        const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
-
-        if (response.status !== 'SUCCESS') {
-            const msg: string = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
-            eventHandler.cancelListening();
-            throw new Error(msg);
-        }
-
-        await eventHandler.waitForEvents();
-        // return the payload from the invoked chaincode
-        let result: any = null;
-        if (responses && responses.validResponses[0].response.payload.length > 0) {
-            result = responses.validResponses[0].response.payload;
-        }
-
-        eventHandler.cancelListening();
-
-        return result;
+        return this.instantiateOrUpgradeChaincode(name, version, channelName, fcn, args, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
@@ -350,6 +213,89 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
         const walletName: string = node.wallet;
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         return fabricWalletGenerator.createLocalWallet(walletName);
+    }
+
+    private async instantiateOrUpgradeChaincode(name: string, version: string, channelName: string, fcn: string, args: Array<string>, upgrade: boolean): Promise<any> {
+
+        const transactionId: Client.TransactionId = this.gateway.getClient().newTransactionID();
+        const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
+            chaincodeId: name,
+            chaincodeVersion: version,
+            txId: transactionId,
+            fcn: fcn,
+            args: args
+        };
+
+        const network: Network = await this.gateway.getNetwork(channelName);
+        const channel: Client.Channel = network.getChannel();
+
+        const instantiatedChaincode: Array<any> = await this.getInstantiatedChaincode(channelName);
+
+        const foundChaincode: any = this.getChaincode(name, instantiatedChaincode);
+
+        let proposalResponseObject: Client.ProposalResponseObject;
+
+        let message: string;
+
+        if (!upgrade) {
+            if (foundChaincode) {
+                throw new Error('The name of the contract you tried to instantiate is already instantiated');
+            } else {
+                message = `Instantiating with function: '${fcn}' and arguments: '${args}'`;
+                this.outputAdapter.log(LogType.INFO, undefined, message);
+                proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest);
+            }
+        } else {
+            if (foundChaincode) {
+                message = `Upgrading with function: '${fcn}' and arguments: '${args}'`;
+                this.outputAdapter.log(LogType.INFO, undefined, message);
+                proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest);
+            } else {
+                //
+                throw new Error('The contract you tried to upgrade with has no previous versions instantiated');
+            }
+        }
+
+        const contract: Contract = network.getContract(name);
+        const transaction: any = (contract as any).createTransaction('dummy');
+
+        const responses: any = transaction['_validatePeerResponses'](proposalResponseObject[0]);
+
+        const txId: any = transactionId.getTransactionID();
+        const eventHandlerOptions: any = (contract as any).getEventHandlerOptions();
+        const eventHandler: any = transaction['_createTxEventHandler'](txId, network, eventHandlerOptions);
+
+        if (!eventHandler) {
+            throw new Error('Failed to create an event handler');
+        }
+
+        await eventHandler.startListening();
+
+        const transactionRequest: Client.TransactionRequest = {
+            proposalResponses: proposalResponseObject[0] as Client.ProposalResponse[],
+            proposal: proposalResponseObject[1],
+            txId: transactionId
+        };
+
+        // Submit the endorsed transaction to the primary orderers.
+        const response: Client.BroadcastResponse = await network.getChannel().sendTransaction(transactionRequest);
+
+        if (response.status !== 'SUCCESS') {
+            const msg: string = `Failed to send peer responses for transaction ${transactionId.getTransactionID()} to orderer. Response status: ${response.status}`;
+            eventHandler.cancelListening();
+            throw new Error(msg);
+        }
+
+        await eventHandler.waitForEvents();
+        // return the payload from the invoked chaincode
+        let result: any = null;
+        if (responses && responses.validResponses[0].response.payload.length > 0) {
+            result = responses.validResponses[0].response.payload;
+        }
+
+        eventHandler.cancelListening();
+
+        return result;
     }
 
     private async setNodeContext(nodeName: string): Promise<void> {
