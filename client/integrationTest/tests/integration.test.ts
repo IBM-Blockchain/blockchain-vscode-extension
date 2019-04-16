@@ -173,8 +173,9 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             const orgsChildren: Array<OrgTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[3]) as Array<OrgTreeItem>;
 
-            orgsChildren.length.should.equal(1);
-            orgsChildren[0].label.should.equal('Org1MSP');
+            orgsChildren.length.should.equal(2);
+            orgsChildren[0].label.should.equal('OrdererMSP');
+            orgsChildren[1].label.should.equal('Org1MSP');
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 

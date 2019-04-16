@@ -18,7 +18,6 @@ import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter, LogType } from '../logging/OutputAdapter';
 import { FabricWallet } from '../fabric/FabricWallet';
 import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
-import { Network } from 'fabric-network';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -113,12 +112,12 @@ export class FabricRuntimeConnection extends FabricConnection implements IFabric
 
     }
 
-    public async getOrganizations(channelName: string): Promise<any[]> {
-        console.log('getOrganizations', channelName);
-        const network: Network = await this.gateway.getNetwork(channelName);
-        const channel: Client.Channel = network.getChannel();
-        const orgs: any[] = channel.getOrganizations();
-        return orgs;
+    public getAllOrganizationNames(): string[] {
+        const mspIDs: Set<string> = new Set<string>();
+        for (const node of this.nodes.values()) {
+            mspIDs.add(node.msp_id);
+        }
+        return Array.from(mspIDs).sort();
     }
 
     public getAllCertificateAuthorityNames(): Array<string> {

@@ -147,22 +147,6 @@ describe('runtimeOpsExplorer', () => {
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating channel view: Error creating channel map: some error', 'Error populating channel view: Error: Error creating channel map: some error');
             });
 
-            it('should error if getAllChannelsForPeer errors without a message when populating organizations view', async () => {
-                isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
-                fabricConnection.getAllPeerNames.returns(['peerOne']);
-                const error: Error = new Error('an error with no message');
-                fabricConnection.getAllChannelsForPeer.throws(error);
-                fabricConnection.createChannelMap.callThrough();
-
-                const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
-                await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
-
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating organizations view: Error creating channel map: an error with no message', 'Error populating organizations view: Error: Error creating channel map: an error with no message');
-            });
-
             it('should error if populating nodes view fails', async () => {
                 isRunningStub.resolves(true);
                 const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
@@ -223,19 +207,7 @@ describe('runtimeOpsExplorer', () => {
                     version: '2.34'
                 }]);
 
-                fabricConnection.getOrganizations.withArgs('channelOne').resolves([
-                    {
-                        id: 'Org1'
-                    },
-                    {
-                        id: 'Org2'
-                    }
-                ]);
-                fabricConnection.getOrganizations.withArgs('channelTwo').resolves([
-                    {
-                        id: 'Org3'
-                    }
-                ]);
+                fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
                 fabricConnection.getAllOrdererNames.returns(['orderer1']);
 
@@ -493,7 +465,7 @@ describe('runtimeOpsExplorer', () => {
                 allChildren.length.should.equal(4);
 
                 const orgs: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
-                orgs.length.should.equal(3);
+                orgs.length.should.equal(2);
                 const orgOne: OrgTreeItem = orgs[0] as OrgTreeItem;
                 orgOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orgOne.contextValue.should.equal('blockchain-runtime-org-item');
@@ -503,11 +475,6 @@ describe('runtimeOpsExplorer', () => {
                 orgTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orgTwo.contextValue.should.equal('blockchain-runtime-org-item');
                 orgTwo.label.should.equal('Org2');
-
-                const orgThree: OrgTreeItem = orgs[2] as OrgTreeItem;
-                orgThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                orgThree.contextValue.should.equal('blockchain-runtime-org-item');
-                orgThree.label.should.equal('Org3');
 
                 logSpy.should.not.have.been.called;
             });
