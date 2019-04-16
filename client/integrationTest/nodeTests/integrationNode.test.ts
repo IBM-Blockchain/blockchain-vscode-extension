@@ -38,17 +38,13 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { SampleView } from '../../src/webview/SampleView';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { CommandUtil } from '../../src/util/CommandUtil';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { IFabricClientConnection } from '../../src/fabric/IFabricClientConnection';
-import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
-const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('Integration Tests for Node Smart Contracts', () => {
@@ -198,7 +194,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 // Connect using it
                 integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(otherUserName);
-                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET);
+                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, otherUserName);
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, FabricRuntimeUtil.LOCAL_FABRIC);
                 testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
@@ -258,7 +254,10 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 instantiatedSmartContract.should.not.be.null;
 
-                await checkGeneratedSmartContractAndSubmitTransaction(language, smartContractName, testRunResult);
+                await checkGeneratedSmartContract(language, smartContractName, testRunResult);
+                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'transaction1', 'hello world', 'MyContract');
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             }).timeout(0);
 
@@ -270,7 +269,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 runtime.isRunning().should.eventually.be.true;
                 runtime.isDevelopmentMode().should.be.false;
 
-                mySandBox.stub(UserInputUtil, 'showFolderOptions').withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+                integrationTestUtil.showFolderOptions.withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
                 await SampleView.cloneAndOpenRepository('hyperledger/fabric-samples', `chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`);
 
                 integrationTestUtil.testContractType = language;
@@ -314,7 +313,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 installedSmartContract.should.not.be.null;
 
                 integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(FabricRuntimeUtil.ADMIN_USER);
-                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET);
+                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, 'Admin@org1.example.com');
 
                 allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
@@ -332,55 +331,73 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 logSpy.should.have.been.calledThrice;
                 logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction', `Returned value from queryCar: ${message}`);
 
-             }).timeout(0);
+            }).timeout(0);
         });
     });
 
     describe('other fabric gateway', () => {
-        beforeEach(async function(): Promise<void> {
+
+        before(async function(): Promise<void> {
             this.timeout(600000);
-            delete process.env.GOPATH;
+            // make sure the extension activates
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+            // work around the grpc problem
+            const remoteFabricUtil: any = require('../integrationTestRemoteFabricUtil');
+            const integrationTestRemoteFabricUtil: any = new remoteFabricUtil.IntegrationTestRemoteFabricUtil();
+
+            await integrationTestRemoteFabricUtil.connect();
+
+            const languages: Array<string> = ['JavaScript', 'TypeScript'];
+
             mySandBox = sinon.createSandbox();
             integrationTestUtil = new IntegrationTestUtil(mySandBox);
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+
+            for (const language of languages) {
+                integrationTestUtil.testContractType = language;
+                await integrationTestUtil.createSmartContract(language + 'SmartContract', language);
+                await integrationTestUtil.packageSmartContract();
+                await integrationTestRemoteFabricUtil.installChaincode(language);
+                await integrationTestRemoteFabricUtil.instantiateChaincode(language);
+            }
+        });
+
+        beforeEach(async function(): Promise<void> {
+            this.timeout(600000);
+            delete process.env.GOPATH;
+
+            logSpy.resetHistory();
+
+            await integrationTestUtil.createFabricConnection();
+            await integrationTestUtil.addWallet('myWallet');
+            await integrationTestUtil.connectToFabric('myGateway', 'myWallet');
         });
 
         afterEach(async () => {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
-            mySandBox.restore();
+
+            try {
+            const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+            const myGatewayItem: GatewayTreeItem = gatewayItems.find((value: BlockchainTreeItem) => value instanceof GatewayTreeItem && value.label.startsWith('myGateway')) as GatewayTreeItem;
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, myGatewayItem);
+            } catch (error) {
+                // ignore the error as its probably that it doesn't exist because it happened after the delete gateway test
+            }
+
             delete process.env.GOPATH;
+        });
+
+        after(() => {
+            mySandBox.restore();
         });
 
         ['JavaScript', 'TypeScript'].forEach((language: string) => {
 
-            // Skipped; this isn't a valid test - it deploys to a remote Fabric using extension code, which is not possible. It also creates and
-            // opens the smart contract project, which also isn't valid in this scenario - it should be testing that you can do all of this by
-            // starting with the gateway connection and an instantiated smart contract.
-            it.skip(`should create a ${language} smart contract, submit transactions, and generate tests`, async () => {
-                const smartContractName: string = `my${language}SC3`;
+            const smartContractName: string = `${language}SmartContract`;
 
-                await integrationTestUtil.createFabricConnection();
-
-                await integrationTestUtil.addWallet('myWallet');
-                await integrationTestUtil.connectToFabric('myGateway', 'myWallet');
-
-                await integrationTestUtil.createSmartContract(smartContractName, language);
-
-                await integrationTestUtil.packageSmartContract();
-
-                const fabricConnection: IFabricRuntimeConnection = null; // TODO, this is meant to be a remote Fabric and we can't deploy to it!
-                should.exist(fabricConnection);
-
-                const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
-
-                const packageToInstall: PackageRegistryEntry = allPackages.find((_package: PackageRegistryEntry) => {
-                    return _package.name === smartContractName;
-                });
-
-                packageToInstall.should.not.be.null;
-                await fabricConnection.installChaincode(packageToInstall, 'peer0.org1.example.com');
-
-                await fabricConnection.instantiateChaincode(smartContractName, '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', []);
+            it(`should ${language} check the tree is correct`, async () => {
 
                 const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
@@ -390,26 +407,30 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 allChildren[1].label.should.equal('Using ID: greenConga');
                 allChildren[2].label.should.equal('Channels');
 
-                let channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
 
-                let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
+                const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
-                let instantiatedSmartContract: InstantiatedContractTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                const instantiatedSmartContract: InstantiatedContractTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 instantiatedSmartContract.should.not.be.null;
-                await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'myGateway');
-                const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
 
-                await checkGeneratedSmartContractAndSubmitTransaction(language, smartContractName, testRunResult);
+            });
 
-                if (language === 'TypeScript') {
-                    integrationTestUtil.getConfigurationStub.callThrough();
-                }
+            it(`should ${language} submit transaction`, async () => {
+                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'transaction1', 'hello world', 'MyContract');
+
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            }).timeout(0);
+
+            it(`should ${language} update connection profile to use yml`, async () => {
 
                 // Disconnect from Fabric
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
@@ -427,41 +448,60 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 newConnectedGateway[1].label.should.equal('Using ID: greenConga');
                 newConnectedGateway[2].label.should.equal('Channels');
 
-                channels = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
+                const channels: Array<ChannelTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(newConnectedGateway[2]) as Array<ChannelTreeItem>;
                 channels.length.should.equal(2);
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
 
-                instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
+                const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
-                instantiatedSmartContract = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
+                const instantiatedSmartContract: BlockchainTreeItem = instantiatedChaincodesItems.find((_instantiatedSmartContract: BlockchainTreeItem) => {
                     return _instantiatedSmartContract.label === `${smartContractName}@0.0.1`;
                 });
 
                 instantiatedSmartContract.should.not.be.null;
+            });
+
+            it(`should ${language} add new identity and connect with it`, async () => {
 
                 // Try to add new identity to wallet using enrollment id and secret
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
                 await integrationTestUtil.addIdentityToWallet('admin', 'adminpw', 'myWallet'); // Unlimited enrollments
-                // TODO: fix
-                // const gateways: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
-                // const gateway: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(gateways[1]) as Array<GatewayTreeItem>;
-                // gateway[1].label.should.equal('redConga');
 
-                // Should now be able to delete the gateway
+                const gateways: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
+                await integrationTestUtil.associateWalletAndGateway('myWallet', gateways[1]);
+
+                await integrationTestUtil.connectToFabric('myGateway', 'myWallet', 'redConga', true);
+
+                const newConnectedGateway: Array<BlockchainTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
+                newConnectedGateway.length.should.equal(3);
+
+                newConnectedGateway[0].label.should.equal('Connected via gateway: myGateway');
+                newConnectedGateway[1].label.should.equal('Using ID: redConga');
+                newConnectedGateway[2].label.should.equal('Channels');
+            });
+
+            it(`should  ${language} delete the gateway`, async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
                 const gatewayItems: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
                 const myGatewayItem: GatewayTreeItem = gatewayItems.find((value: BlockchainTreeItem) => value instanceof GatewayTreeItem && value.label.startsWith('myGateway')) as GatewayTreeItem;
 
-                mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
                 await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, myGatewayItem);
                 integrationTestUtil.gatewayRegistry.exists('myGateway').should.be.false;
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it(`should ${language} generate tests`, async () => {
+                integrationTestUtil.testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp', language + 'SmartContract');
+                await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'myGateway');
+                const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+
+                await checkGeneratedSmartContract(language, smartContractName, testRunResult);
             }).timeout(0);
         });
     });
 
-    async function checkGeneratedSmartContractAndSubmitTransaction(language: string, smartContractName: string, testRunResult: string): Promise<void> {
+    async function checkGeneratedSmartContract(language: string, smartContractName: string, testRunResult: string): Promise<void> {
         let fileSuffix: string;
         fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
         // Check test file exists
@@ -480,10 +520,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
         const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
         const smartContractTransactionsMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, smartContractName, 'mychannel');
         let smartContractTransactionsArray: string[];
-        let contractName: string = '';
         for (const name of smartContractTransactionsMap.keys()) {
             smartContractTransactionsArray = smartContractTransactionsMap.get(name);
-            contractName = name;
         }
         // Check the test file was populated properly
         testFileContents.includes(smartContractName).should.be.true;
@@ -493,9 +531,10 @@ describe('Integration Tests for Node Smart Contracts', () => {
         testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
-        await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'transaction1', 'hello world', contractName);
+
         testRunResult.includes('success for transaction').should.be.true;
         testRunResult.includes('1 passing').should.be.true;
+
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     }
 });

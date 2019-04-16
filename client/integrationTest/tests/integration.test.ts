@@ -42,6 +42,7 @@ import { InstantiatedContractTreeItem } from '../../src/explorer/model/Instantia
 import { LocalWalletTreeItem } from '../../src/explorer/wallets/LocalWalletTreeItem';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 
 chai.should();
 chai.use(sinonChai);
@@ -378,7 +379,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
             // Connect using it
             integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(otherUserName);
-            await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET);
+            await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, otherUserName);
 
             // Confirm the connected view is correct
             const allConnectedTreeItems: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
@@ -394,16 +395,14 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const anotherIdentityName: string = 'anotherOne';
             await integrationTestUtil.createCAIdentity(anotherIdentityName);
 
-            // TODO: get the wallet tree instead
-            // Confirm they both exist in the tree
-            // const unconnectedTreeItems: Array<GatewayTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren() as Array<GatewayTreeItem>;
-            // unconnectedTreeItems.length.should.equal(1);
-            // unconnectedTreeItems[0]['name'].should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
-            // const gatewayIdentities: Array<IdentityTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(unconnectedTreeItems[0]) as Array<IdentityTreeItem>;
-            // gatewayIdentities.length.should.equal(3);
-            // gatewayIdentities[0].label.should.equal(FabricRuntimeUtil.ADMIN_USER);
-            // gatewayIdentities[1].label.should.equal(anotherIdentityName);
-            // gatewayIdentities[2].label.should.equal(otherUserName);
+            const wallets: Array<WalletTreeItem> = await myExtension.getBlockchainWalletExplorerProvider().getChildren() as Array<WalletTreeItem>;
+            wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET);
+
+            const identitities: Array<BlockchainTreeItem> = await myExtension.getBlockchainWalletExplorerProvider().getChildren(wallets[0]);
+            identitities.length.should.equal(3);
+            identitities[0].label.should.equal('Admin@org1.example.com ⭑');
+            identitities[1].label.should.equal(anotherIdentityName);
+            identitities[2].label.should.equal(otherUserName);
 
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
 
@@ -444,7 +443,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 instantiatedSmartContract.should.not.be.null;
 
                 integrationTestUtil.showIdentitiesQuickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
-                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET);
+                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, 'Admin@org1.example.com');
                 await integrationTestUtil.submitTransactionToChaincode(smartContractName, '0.0.1', 'transaction1', 'hello,world');
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
 
