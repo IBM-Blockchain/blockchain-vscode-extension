@@ -30,6 +30,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -83,6 +84,7 @@ describe('DissociateWalletCommand', () => {
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
+            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
 
         afterEach(async () => {
@@ -92,7 +94,7 @@ describe('DissociateWalletCommand', () => {
         it('should test a wallet can be dissociated from a gateway using the tree', async () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
-            const gatewayTreeItem: GatewayAssociatedTreeItem = gateways[1] as GatewayAssociatedTreeItem;
+            const gatewayTreeItem: GatewayAssociatedTreeItem = gateways[0] as GatewayAssociatedTreeItem;
 
             await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET, gatewayTreeItem);
 

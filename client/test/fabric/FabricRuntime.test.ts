@@ -776,105 +776,6 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#getConnectionProfile', () => {
-
-        it('should get a connection profile', async () => {
-            const connectionProfile: object = await runtime.getConnectionProfile();
-            connectionProfile.should.deep.equal({
-                name: 'basic-network',
-                version: '1.0.0',
-                client: {
-                    organization: 'Org1',
-                    connection: {
-                        timeout: {
-                            peer: {
-                                endorser: '300',
-                                eventHub: '300',
-                                eventReg: '300'
-                            },
-                            orderer: '300'
-                        }
-                    }
-                },
-                channels: {
-                    mychannel: {
-                        orderers: [
-                            'orderer.example.com'
-                        ],
-                        peers: {
-                            'peer0.org1.example.com': {}
-                        }
-                    }
-                },
-                organizations: {
-                    Org1: {
-                        mspid: 'Org1MSP',
-                        peers: [
-                            'peer0.org1.example.com'
-                        ],
-                        certificateAuthorities: [
-                            'ca.org1.example.com'
-                        ]
-                    }
-                },
-                orderers: {
-                    'orderer.example.com': {
-                        url: 'grpc://127.0.0.1:12347'
-                    }
-                },
-                peers: {
-                    'peer0.org1.example.com': {
-                        url: 'grpc://localhost:12345',
-                        eventUrl: 'grpc://localhost:12346'
-                    }
-                },
-                certificateAuthorities: {
-                    'ca.org1.example.com': {
-                        url: 'http://127.0.0.1:12348',
-                        caName: 'ca.example.com'
-                    }
-                }
-            });
-        });
-    });
-
-    describe('#getCertificate', () => {
-
-        it('should get the PEM encoded certificate', async () => {
-            let certificate: string = await runtime.getCertificate();
-            certificate = certificate.replace(/\r/g, ''); // Windows!
-            certificate.should.equal('-----BEGIN CERTIFICATE-----\nMIICGDCCAb+gAwIBAgIQFSxnLAGsu04zrFkAEwzn6zAKBggqhkjOPQQDAjBzMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu\nb3JnMS5leGFtcGxlLmNvbTAeFw0xNzA4MzEwOTE0MzJaFw0yNzA4MjkwOTE0MzJa\nMFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEV1dfmKxsFKWo7o6DNBIaIVebCCPAM9C/\nsLBt4pJRre9pWE987DjXZoZ3glc4+DoPMtTmBRqbPVwYcUvpbYY8p6NNMEswDgYD\nVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgQjmqDc122u64\nugzacBhR0UUE0xqtGy3d26xqVzZeSXwwCgYIKoZIzj0EAwIDRwAwRAIgXMy26AEU\n/GUMPfCMs/nQjQME1ZxBHAYZtKEuRR361JsCIEg9BOZdIoioRivJC+ZUzvJUnkXu\no2HkWiuxLsibGxtE\n-----END CERTIFICATE-----\n');
-        });
-    });
-
-    describe('#getPrivateKey', () => {
-
-        it('should get the PEM encoded private key', async () => {
-            let privateKey: string = await runtime.getPrivateKey();
-            privateKey = privateKey.replace(/\r/g, ''); // Windows!
-            privateKey.should.equal('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
-        });
-
-    });
-
-    describe('#getCertificatePath', () => {
-
-        it('should get the runtime certificate path', async () => {
-            const certPath: string = await runtime.getCertificatePath();
-            certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', FabricRuntimeUtil.ADMIN_USER, 'msp', 'signcerts', `${FabricRuntimeUtil.ADMIN_USER}-cert.pem`));
-        });
-
-    });
-
-    describe('#getConnectionProfilePath', () => {
-
-        it('should get the runtime connection profile path', async () => {
-            const connectionPath: string = runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json'));
-        });
-
-    });
-
     describe('#isCreated', () => {
 
         it('should return true if the peer, orderer, CA, couchdb, and logs exist', async () => {
@@ -1121,7 +1022,7 @@ describe('FabricRuntime', () => {
             gateways.should.deep.equal([
                 {
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    path: runtime.getConnectionProfilePath(),
+                    path: runtime['getConnectionProfilePath'](),
                     connectionProfile: {
                         name: 'basic-network',
                         version: '1.0.0',
@@ -1221,14 +1122,14 @@ describe('FabricRuntime', () => {
         it('should return an array of wallet names', async () => {
             const walletNames: string[] = await runtime.getWalletNames();
             walletNames.should.deep.equal([
-                FabricWalletUtil.LOCAL_WALLET
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`
             ]);
         });
     });
 
     describe('#getIdentities', () => {
         it('should return an array of identities for a wallet that exists', async () => {
-            const identities: FabricIdentity[] = await runtime.getIdentities(FabricWalletUtil.LOCAL_WALLET);
+            const identities: FabricIdentity[] = await runtime.getIdentities(`${FabricWalletUtil.LOCAL_WALLET}-ops`);
             let certificate: string;
             let privateKey: string;
             if (os.platform() === 'win32') {

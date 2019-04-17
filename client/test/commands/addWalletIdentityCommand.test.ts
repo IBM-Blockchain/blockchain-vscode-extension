@@ -364,13 +364,12 @@ describe('AddWalletIdentityCommand', () => {
                     label: FabricRuntimeUtil.LOCAL_FABRIC,
                     data: new FabricGatewayRegistryEntry({
                         name: FabricRuntimeUtil.LOCAL_FABRIC,
-                        connectionProfilePath: undefined,
+                        connectionProfilePath: '/some/path',
                         managedRuntime: true,
                         associatedWallet: FabricWalletUtil.LOCAL_WALLET
                     })
                 });
                 const runtime: FabricRuntime = new FabricRuntime();
-                mySandBox.stub(runtime, 'getConnectionProfilePath').returns('/some/path');
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtime);
                 getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
                 enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});

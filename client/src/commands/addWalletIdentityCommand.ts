@@ -23,8 +23,6 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
@@ -107,12 +105,6 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
         }
 
         const gatewayRegistryEntry: FabricGatewayRegistryEntry = chosenEntry.data;
-        if (gatewayRegistryEntry.managedRuntime) {
-            const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-
-            gatewayRegistryEntry.connectionProfilePath = runtime.getConnectionProfilePath();
-        }
 
         const enrollIdSecret: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
         if (!enrollIdSecret) {

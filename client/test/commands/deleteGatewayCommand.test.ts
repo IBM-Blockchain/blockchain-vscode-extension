@@ -25,6 +25,7 @@ import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 chai.should();
 chai.use(sinonChai);
@@ -78,6 +79,8 @@ describe('DeleteGatewayCommand', () => {
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
+
+            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
 
         afterEach(() => {
@@ -99,7 +102,7 @@ describe('DeleteGatewayCommand', () => {
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
-            const connectionToDelete: BlockchainTreeItem = allChildren[1];
+            const connectionToDelete: BlockchainTreeItem = allChildren[0];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, connectionToDelete);
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
