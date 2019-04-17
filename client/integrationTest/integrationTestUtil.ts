@@ -150,11 +150,8 @@ export class IntegrationTestUtil {
         try {
             gatewayEntry = this.gatewayRegistry.get(name);
         } catch (error) {
-            gatewayEntry = new FabricGatewayRegistryEntry();
-            gatewayEntry.name = name;
-            gatewayEntry.managedRuntime = true;
-            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            gatewayEntry.connectionProfilePath = FabricRuntimeManager.instance().getRuntime().getConnectionProfilePath();
+            const gatewayEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            gatewayEntry = gatewayEntries[0];
         }
 
         let walletEntry: FabricWalletRegistryEntry;

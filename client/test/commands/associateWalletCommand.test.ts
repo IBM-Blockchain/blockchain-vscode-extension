@@ -30,6 +30,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -85,6 +86,8 @@ describe('AssociateWalletCommand', () => {
             fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
             showWalletsQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
+
+            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
 
         afterEach(async () => {
@@ -99,7 +102,7 @@ describe('AssociateWalletCommand', () => {
 
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
-            const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[1] as GatewayDissociatedTreeItem;
+            const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gatewayTreeItem);
 
@@ -119,7 +122,7 @@ describe('AssociateWalletCommand', () => {
 
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
-            const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[1] as GatewayDissociatedTreeItem;
+            const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
 
             await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gatewayTreeItem);
 

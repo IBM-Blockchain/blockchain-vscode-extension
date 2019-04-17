@@ -76,7 +76,7 @@ export class UserInputUtil {
 
         if (showManagedRuntime) {
             // Allow users to choose local_fabric
-            const runtimeGateways: Array<FabricGatewayRegistryEntry> = FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
             allGateways.push(...runtimeGateways);
         }
 

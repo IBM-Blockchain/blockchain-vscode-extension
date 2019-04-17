@@ -28,6 +28,7 @@ import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnect
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricGateway } from '../../src/fabric/FabricGateway';
 
 const should: Chai.Should = chai.should();
 
@@ -81,7 +82,6 @@ describe('FabricRuntimeManager', () => {
             runtimeManager['connectingPromise'] = undefined;
             await runtimeManager.add();
             const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtime, 'getConnectionProfile');
             sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
             sandbox.stub(runtime, 'startLogs');
             connection.connect.resolves();
@@ -454,14 +454,13 @@ describe('FabricRuntimeManager', () => {
     describe('#getGatewayRegistryEntries', () => {
 
         it('should return an array of gateway registry entires', async () => {
-
-            // WE SHOULD BE STUBBING runtime.getConnectionProfilePath HERE
             const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
             const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtime, 'getConnectionProfilePath').returns('SOME_PATH');
-            sandbox.stub(instance, 'getRuntime').returns(runtime);
+            sandbox.stub(runtime, 'getGateways').resolves([
+                new FabricGateway(FabricRuntimeUtil.LOCAL_FABRIC, 'SOME_PATH', { connection: 'profile' })
+            ]);
 
-            const registryEntries: FabricGatewayRegistryEntry[] = instance.getGatewayRegistryEntries();
+            const registryEntries: FabricGatewayRegistryEntry[] = await instance.getGatewayRegistryEntries();
             registryEntries.should.have.lengthOf(1);
             registryEntries[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
             registryEntries[0].managedRuntime.should.be.true;
