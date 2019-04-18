@@ -26,6 +26,14 @@ export async function debugCommandList(): Promise<void> {
         {
             name: 'Evaluate Transaction',
             command: ExtensionCommands.EVALUATE_TRANSACTION
+        },
+        {
+            name: 'Instantiate Smart Contract',
+            command: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+        },
+        {
+            name: 'Upgrade Smart Contract',
+            command: ExtensionCommands.UPGRADE_SMART_CONTRACT
         }
     ];
 
