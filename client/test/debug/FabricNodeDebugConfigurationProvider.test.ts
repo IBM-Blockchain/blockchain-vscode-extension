@@ -78,6 +78,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             runtimeStub.getChaincodeAddress.resolves('127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
+            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
             registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;

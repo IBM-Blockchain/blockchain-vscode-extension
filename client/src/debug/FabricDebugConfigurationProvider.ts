@@ -77,9 +77,9 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
                 // If the user doesn't want to package and install
                 if (packageInstall.data === false) {
-                    const chaincodes: Array<{name: string, version: string}> = await connection.getAllInstantiatedChaincodes();
+                    const chaincodes: Array<{ name: string, version: string }> = await connection.getAllInstantiatedChaincodes();
 
-                    const chaincode: {name: string, version: string} = chaincodes.find((_chaincode: {name: string, version: string}) => {
+                    const chaincode: { name: string, version: string } = chaincodes.find((_chaincode: { name: string, version: string }) => {
                         return _chaincode.name === chaincodeName;
                     });
 
@@ -158,11 +158,9 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     }
 
     private async getPeersToInstallOn(): Promise<Array<string>> {
-        const connectionRegistry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-        connectionRegistry.name = this.runtime.getName();
-        connectionRegistry.managedRuntime = true;
+        const gatewayRegistryEntries: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
 
-        await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayRegistryEntries[0]);
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         return connection.getAllPeerNames();
     }
