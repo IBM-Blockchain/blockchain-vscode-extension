@@ -1157,5 +1157,93 @@ describe('packageSmartContract', () => {
             logSpy.should.have.been.calledTwice;
             executeTaskStub.should.have.not.been.called;
         }).timeout(10000);
+
+        it('should throw an error if there are errors in project', async () => {
+            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);
+
+            const packageDir: string = path.join(fileDest, 'typescriptProject' + '@0.0.1');
+
+            const testIndex: number = 1;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const uri: vscode.Uri = vscode.Uri.file(path.join(folders[testIndex].uri.fsPath, 'src'));
+            const mockDiagnostics: any = [[uri, [{severity: 0}]]];
+            mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const smartContractExists: boolean = await fs.pathExists(packageDir);
+
+            smartContractExists.should.equal(false);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project has errors please fix them before packaging`);
+            executeTaskStub.should.not.have.been.called;
+        });
+
+        it('should only throw error if there are errors', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 0;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const uri: vscode.Uri = vscode.Uri.file(path.join(folders[testIndex].uri.fsPath, 'src'));
+            const mockDiagnostics: any = [[uri, [{severity: 1}]]];
+            mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.not.been.called;
+        });
+
+        it('should ignore if errors in another project', async () => {
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 0;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            const uri: vscode.Uri = vscode.Uri.file('src');
+            const mockDiagnostics: any = [[uri, [{severity: 0}]]];
+            mySandBox.stub(vscode.languages, 'getDiagnostics').returns(mockDiagnostics);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            executeTaskStub.should.have.not.been.called;
+        });
     });
 });

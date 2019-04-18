@@ -51,6 +51,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             }
         }
 
+        checkForProjectErrors(workspace);
+
         // Build the workspace.
         await buildWorkspace(workspace);
 
@@ -129,7 +131,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
             // Create the package. Need to dynamically load the package class
             // from the Fabric SDK to avoid early native module loading.
-            const {Package} = await import('fabric-client');
+            const { Package } = await import('fabric-client');
             const pkg: any = await Package.fromDirectory({
                 name: properties.workspacePackageName,
                 version: properties.workspacePackageVersion,
@@ -249,7 +251,7 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, o
         const message: string = 'Please enter a package name and/or package version into your package.json';
         throw new Error(message);
     }
-    return {workspacePackageName, workspacePackageVersion};
+    return { workspacePackageName, workspacePackageVersion };
 }
 
 /**
@@ -276,7 +278,7 @@ async function javaPackageAndVersion(overrideName?: string, overrideVersion?: st
         }
     }
 
-    return {workspacePackageName, workspacePackageVersion};
+    return { workspacePackageName, workspacePackageVersion };
 }
 
 /**
@@ -303,7 +305,32 @@ async function golangPackageAndVersion(overrideName?: string, overrideVersion?: 
         }
     }
 
-    return {workspacePackageName, workspacePackageVersion};
+    return { workspacePackageName, workspacePackageVersion };
+}
+
+function checkForProjectErrors(workspaceDir: vscode.WorkspaceFolder): void {
+    const collections: [vscode.Uri, vscode.Diagnostic[]][] = vscode.languages.getDiagnostics();
+    for (const collection of collections) {
+        for (const thing of collection) {
+            if (thing instanceof vscode.Uri) {
+                const uri: vscode.Uri = thing as vscode.Uri;
+                const relativePath: string = path.relative(workspaceDir.uri.fsPath, uri.fsPath);
+                if (!relativePath || relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+                    // not in this project must have another project open in the workspace
+                    break;
+                }
+            } else {
+                const diagnostics: vscode.Diagnostic[] = thing as vscode.Diagnostic[];
+                for (const diagnostic of diagnostics) {
+                    // only check for errors
+                    if (diagnostic.severity === 0) {
+                        throw new Error('Smart contract project has errors please fix them before packaging');
+                    }
+                }
+            }
+
+        }
+    }
 }
 
 async function buildWorkspace(workspaceDir: vscode.WorkspaceFolder): Promise<void> {
