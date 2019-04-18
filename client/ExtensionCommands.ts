@@ -60,5 +60,6 @@ export class ExtensionCommands {
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';
     static readonly OPEN_SAMPLE_PAGE: string = 'sample.open';
+    static readonly OPEN_TUTORIAL_PAGE: string = 'tutorial.open';
     static readonly DEBUG_COMMAND_LIST: string = 'debug.commandList';
 }

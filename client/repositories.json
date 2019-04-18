@@ -3,6 +3,7 @@
         {
             "name": "hyperledger/fabric-samples",
             "remote": "https://github.com/hyperledger/fabric-samples.git",
+            "tutorials": [],
             "samples":[
                 {
                     "name": "FabCar",
@@ -189,6 +190,17 @@
                             }
                         ]
                     }
+                }
+            ]
+        },
+        {
+            "name": "IBMCode/Code-Tutorials",
+            "remote": "https://github.ibm.com/IBMCode/Code-Tutorials.git",
+            "samples": [],
+            "tutorials": [
+                {
+                    "name": "Developing smart contracts with IBM Blockchain VSCode Extension",
+                    "file": "ibm-blockchain-platform-vscode-smart-contract/index.md"
                 }
             ]
         }

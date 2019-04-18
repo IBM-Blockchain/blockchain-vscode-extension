@@ -39,7 +39,7 @@ describe('RepositoryRegistry', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        registry = new RepositoryRegistry();
+        registry = RepositoryRegistry.instance();
         await vscode.workspace.getConfiguration().update(testFabricRegistryName, [], vscode.ConfigurationTarget.Global);
     });
 

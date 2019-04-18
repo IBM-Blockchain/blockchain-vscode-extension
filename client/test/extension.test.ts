@@ -29,6 +29,7 @@ import { SampleView } from '../src/webview/SampleView';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
+import { TutorialView } from '../src/webview/TutorialView';
 
 chai.use(sinonChai);
 
@@ -367,15 +368,25 @@ describe('Extension Tests', () => {
     });
 
     it('should register and show sample page', async () => {
-        mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        const openContractSampleStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openContractSample').resolves();
+        const sampleViewStub: sinon.SinonStub = mySandBox.stub(SampleView.prototype, 'openView');
+        sampleViewStub.resolves();
         await myExtension.activate(context);
 
-        await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'Repo One', 'Sample One');
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'hyperledger/fabric-samples', 'FabCar');
 
-        openContractSampleStub.should.have.been.calledWith(context, 'Repo One', 'Sample One');
+        sampleViewStub.should.have.been.called;
+    });
 
+    it('should register and show tutorial page', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        const tutorialViewStub: sinon.SinonStub = mySandBox.stub(TutorialView.prototype, 'openView');
+        tutorialViewStub.resolves();
+        await myExtension.activate(context);
+
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+
+        tutorialViewStub.should.have.been.called;
     });
 
     it('should reload blockchain explorer when debug event emitted', async () => {
