@@ -19,7 +19,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { UserInputUtil, IBlockchainQuickPickItem, LanguageQuickPickItem } from './UserInputUtil';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
@@ -28,6 +27,8 @@ import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 
 export async function testSmartContract(chaincode?: InstantiatedContractTreeItem): Promise<void> {
 
@@ -51,7 +52,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         }
 
         // Ask for instantiated smart contract
-        chosenChaincode = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+        chosenChaincode = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
         if (!chosenChaincode) {
             return;
         }
@@ -70,7 +71,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
     // Get metadata
-    const connection: IFabricConnection = FabricConnectionManager.instance().getConnection();
+    const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
 
     const transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
     if (transactions.size === 0) {
@@ -120,7 +121,9 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         return;
     }
 
-    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+    const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
+    const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = fabricConnectionManager.getGatewayRegistryEntry();
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
 
     for (const [name, transactionArray] of transactions) {
         const homedir: string = os.homedir();
@@ -143,10 +146,10 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
             connectionProfileHome = false;
         }
 
-        if (fabricGatewayRegistryEntry.walletPath.includes(homedir)) {
+        if (fabricWalletRegistryEntry.walletPath.includes(homedir)) {
             walletPathString = 'path.join(homedir';
 
-            pathWithoutHomeDir = fabricGatewayRegistryEntry.walletPath.slice(homedir.length + 1);
+            pathWithoutHomeDir = fabricWalletRegistryEntry.walletPath.slice(homedir.length + 1);
             pathWithoutHomeDir.split('/').forEach((item: string) => {
                 walletPathString += `, '${item}'`;
             });
@@ -154,7 +157,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
             walletPathString += ')';
             walletHome = true;
         } else {
-            walletPathString = fabricGatewayRegistryEntry.walletPath;
+            walletPathString = fabricWalletRegistryEntry.walletPath;
             walletHome = false;
         }
         // Populate the template data

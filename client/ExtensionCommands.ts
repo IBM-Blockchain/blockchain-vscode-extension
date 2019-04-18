@@ -34,11 +34,10 @@ export class ExtensionCommands {
     static readonly TOGGLE_FABRIC_DEV_MODE: string = 'aRuntimeOpsExplorer.toggleFabricRuntimeDevMode';
     static readonly UPGRADE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'aRuntimeOpsExplorer.createNewIdentityEntry';
-    static readonly EXPORT_CONNECTION_DETAILS: string = 'aRuntimeOpsExplorer.exportConnectionDetailsEntry';
+    static readonly EXPORT_CONNECTION_PROFILE: string = 'aRuntimeOpsExplorer.exportConnectionProfileEntry';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
-    static readonly ADD_GATEWAY_IDENTITY: string = 'gatewaysExplorer.addGatewayIdentityEntry';
     static readonly CONNECT: string = 'gatewaysExplorer.connectEntry';
     static readonly DELETE_GATEWAY: string = 'gatewaysExplorer.deleteGatewayEntry';
     static readonly DISCONNECT: string = 'gatewaysExplorer.disconnectEntry';
@@ -47,6 +46,16 @@ export class ExtensionCommands {
     static readonly SUBMIT_TRANSACTION: string = 'gatewaysExplorer.submitTransactionEntry';
     static readonly EVALUATE_TRANSACTION: string = 'gatewaysExplorer.evaluateTransactionEntry';
     static readonly TEST_SMART_CONTRACT: string = 'gatewaysExplorer.testSmartContractEntry';
+    static readonly ASSOCIATE_WALLET: string = 'gatewaysExplorer.associateWallet';
+    static readonly DISSOCIATE_WALLET: string = 'gatewaysExplorer.dissociateWallet';
+
+    // WALLET VIEW
+    static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';
+    static readonly ADD_WALLET: string = 'walletExplorer.addWalletEntry';
+    static readonly ADD_WALLET_IDENTITY: string = 'walletExplorer.addWalletIdentityEntry';
+    static readonly EDIT_WALLET: string = 'walletExplorer.editWalletEntry';
+    static readonly REMOVE_WALLET: string = 'walletExplorer.removeWalletEntry';
+    static readonly DELETE_IDENTITY: string = 'walletExplorer.deleteIdentityEntry';
 
     // NO VIEW
     static readonly OPEN_HOME_PAGE: string = 'extensionHome.open';

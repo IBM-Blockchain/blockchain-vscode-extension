@@ -23,31 +23,42 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
-import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
-describe('userInputUtil', () => {
+describe('UserInputUtil', () => {
 
     let mySandBox: sinon.SinonSandbox;
     let quickPickStub: sinon.SinonStub;
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+    const walletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
 
     let gatewayEntryOne: FabricGatewayRegistryEntry;
     let gatewayEntryTwo: FabricGatewayRegistryEntry;
     let identities: string[];
+    let walletEntryOne: FabricWalletRegistryEntry;
+    let walletEntryTwo: FabricWalletRegistryEntry;
 
     let getConnectionStub: sinon.SinonStub;
-    let fabricConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
+    let fabricRuntimeConnectionStub: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+    let fabricClientConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -68,13 +79,21 @@ describe('userInputUtil', () => {
             ],
             "fabric.gateways": [
                 {
-                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
                     "name": "one",
+                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
+                },
+                {
+                    "name": "two",
+                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
+                }
+            ],
+            "fabric.wallets": [
+                {
+                    "name": "walletOne",
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 },
                 {
-                    "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json",
-                    "name": "two",
+                    "name": "walletTwo",
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 }
             ]
@@ -86,12 +105,14 @@ describe('userInputUtil', () => {
 
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
-        // await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeRuntimesConfig();
+        await TestUtil.storeWalletsConfig();
     });
 
     after(async () => {
         await TestUtil.restoreGatewaysConfig();
-        // await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreWalletsConfig();
     });
 
     beforeEach(async () => {
@@ -102,46 +123,67 @@ describe('userInputUtil', () => {
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
         gatewayEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
-        gatewayEntryOne.walletPath = path.join(rootPath, '../../test/data/connectionOne/wallet');
-        identities = ['Admin@org1.example.com', 'Test@org1.example.com'];
+        gatewayEntryOne.associatedWallet = 'blueWallet';
+        identities = [FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com'];
 
         gatewayEntryTwo = new FabricGatewayRegistryEntry();
         gatewayEntryTwo.name = 'myGatewayB';
         gatewayEntryTwo.connectionProfilePath = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
+        gatewayEntryTwo.associatedWallet = '';
 
         await gatewayRegistry.clear();
         await gatewayRegistry.add(gatewayEntryOne);
         await gatewayRegistry.add(gatewayEntryTwo);
 
+        walletEntryOne = new FabricWalletRegistryEntry({
+            name: 'purpleWallet',
+            walletPath: '/some/path'
+        });
+
+        walletEntryTwo = new FabricWalletRegistryEntry({
+            name: 'blueWallet',
+            walletPath: '/some/other/path'
+        });
+
+        await walletRegistry.clear();
+        await walletRegistry.add(walletEntryOne);
+        await walletRegistry.add(walletEntryTwo);
+
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
-        fabricConnectionStub = sinon.createStubInstance(FabricClientConnection);
-        fabricConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
-
-        fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerOne').resolves(['channelOne']);
-        fabricConnectionStub.getAllChannelsForPeer.withArgs('myPeerTwo').resolves(['channelOne', 'channelTwo']);
+        fabricRuntimeConnectionStub = sinon.createStubInstance(FabricRuntimeConnection);
+        fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
         chaincodeMap.set('biscuit-network', ['0.0.1', '0.0.2']);
         chaincodeMap.set('cake-network', ['0.0.3']);
-        fabricConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
-        fabricConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
-        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
-        fabricConnectionStub.getCertificateAuthorityName.resolves('ca.example.cake.com');
+        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
+        fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
+        fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
+        fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.resolves('ca.example.cake.com');
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
         map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
-        fabricConnectionStub.createChannelMap.resolves(map);
+        fabricRuntimeConnectionStub.createChannelMap.resolves(map);
         const chaincodeMapTwo: Map<string, Array<string>> = new Map<string, Array<string>>();
 
-        fabricConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
+        fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs('channelTwo').resolves(chaincodeMapTwo);
 
-        getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricConnectionStub);
-        mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricConnectionStub);
+        fabricClientConnectionStub = sinon.createStubInstance(FabricClientConnection);
+        fabricClientConnectionStub.createChannelMap.resolves(map);
+        fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
+        getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
+        mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionStub);
+        mySandBox.stub(fabricRuntimeManager, 'getGatewayRegistryEntries').resolves([
+            new FabricGatewayRegistryEntry({
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
+                managedRuntime: true,
+                connectionProfilePath: 'connection.json',
+                associatedWallet: FabricWalletUtil.LOCAL_WALLET
+            })
+        ]);
 
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
-
-        FabricRuntimeManager.instance().exists().should.be.true;
     });
 
     afterEach(async () => {
@@ -167,22 +209,50 @@ describe('userInputUtil', () => {
             mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne]);
 
             const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            managedRuntime.name = 'local_fabric';
+            managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
             managedRuntime.managedRuntime = true;
+            managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            managedRuntime.connectionProfilePath = 'connection.json';
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true);
             quickPickStub.should.have.been.calledWith([{ label: managedRuntime.name, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
+        });
+
+        it('should show any gateways with an associated wallet (associated gateway)', async () => {
+            mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
+            quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
+            quickPickStub.should.have.been.calledWith([{label: gatewayEntryOne.name, data: gatewayEntryOne }], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a gateway'
+            });
+            result.label.should.equal('myGatewayA');
+            result.data.should.deep.equal(gatewayEntryOne);
+        });
+
+        it('should show any gateways with an associated wallet (dissociated gateway)', async () => {
+            mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
+            quickPickStub.resolves({ label: gatewayEntryTwo.name, data: gatewayEntryTwo });
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false);
+            quickPickStub.should.have.been.calledWith([{label: gatewayEntryTwo.name, data: gatewayEntryTwo }], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a gateway'
+            });
+            result.label.should.equal('myGatewayB');
+            result.data.should.deep.equal(gatewayEntryTwo);
         });
     });
 
     describe('showIdentitiesQuickPickBox', () => {
 
         it('should show identity names in the quickpick box', async () => {
-            quickPickStub.resolves('Admin@org1.example.com');
+            quickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
             const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities);
 
-            result.should.equal('Admin@org1.example.com');
+            result.should.equal(FabricRuntimeUtil.ADMIN_USER);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: true,
                 canPickMany: false,
@@ -604,23 +674,23 @@ describe('userInputUtil', () => {
     });
 
     describe('getDirPath', () => {
-        it('should replace ~ with the users home directory', async () => {
+        it('should replace ~ with the users home directory', () => {
             const packageDirOriginal: string = '~/smartContractDir';
-            const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
+            const packageDirNew: string = UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.not.contain('~');
         });
 
-        it('should not replace if not ~', async () => {
+        it('should not replace if not ~', () => {
             const packageDirOriginal: string = '/banana/smartContractDir';
-            const packageDirNew: string = await UserInputUtil.getDirPath(packageDirOriginal);
+            const packageDirNew: string = UserInputUtil.getDirPath(packageDirOriginal);
             packageDirNew.should.equal(packageDirOriginal);
         });
     });
 
-    describe('browseEdit', () => {
-        it('should finish if user doesnt select browse or edit', async () => {
+    describe('browse', () => {
+        it('should finish if user cancels selecting to browse', async () => {
             const placeHolder: string = 'Enter a file path to the connection profile file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -628,44 +698,18 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
-
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
-
-            should.not.exist(result);
-        });
-
-        it('should not show the edit option for certificate/privateKey file paths', async () => {
-            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
-            const placeHolder: string = 'Enter a file path to the certificate file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: undefined
-            };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
-            showOpenDialogStub.should.have.been.calledWith({
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: undefined
-            });
 
-            result.should.equal('/some/path');
+            should.not.exist(result);
         });
 
         it('should allow folders to be chosen when selected, and not files', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
             const placeHolder: string = 'Enter a file path to the wallet';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: false,
                 canSelectFolders: true,
@@ -673,9 +717,9 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
 
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
                 canSelectFiles: false,
                 canSelectFolders: true,
@@ -691,7 +735,7 @@ describe('userInputUtil', () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }]);
             const placeHolder: string = 'Enter a file path to the connection profile file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -701,9 +745,9 @@ describe('userInputUtil', () => {
                     'Connection Profiles': ['json', 'yaml', 'yml']
                 }
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
 
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -718,91 +762,12 @@ describe('userInputUtil', () => {
 
         });
 
-        it('should show user settings for windows', async () => {
-            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
-            mySandBox.stub(process, 'platform').value('win32');
-            mySandBox.stub(path, 'join').returns('\\c\\users\\test\\appdata\\Code\\User\\settings.json');
-
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            const placeHolder: string = 'Enter a file path to the connection profile json file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: undefined
-            };
-
-            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
-
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
-        });
-
-        it('should show user settings for mac', async () => {
-            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
-            mySandBox.stub(process, 'platform').value('darwin');
-            mySandBox.stub(path, 'join').returns('/users/test/Library/Application Support/Code/User/settings.json');
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-            process.env.HOME = '/users/test';
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            const placeHolder: string = 'Enter a file path to the connection profile json file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: undefined
-            };
-
-            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
-
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
-        });
-
-        it('should show user settings for linux', async () => {
-            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
-            mySandBox.stub(process, 'platform').value('linux');
-            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
-            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
-            process.env.HOME = '/users/test';
-            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
-
-            const placeHolder: string = 'Enter a file path to the connection profile json file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Select',
-                filters: undefined
-            };
-
-            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'one') as string;
-
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
-
-            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledWith(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
-        });
-
         it('should handle any errors', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             quickPickStub.rejects({ message: 'some error' });
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -811,9 +776,9 @@ describe('userInputUtil', () => {
                 filters: undefined
             };
 
-            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+            await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
 
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'some error');
         });
@@ -822,7 +787,7 @@ describe('userInputUtil', () => {
             mySandBox.stub(vscode.window, 'showOpenDialog').resolves();
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
             const placeHolder: string = 'Enter a file path to the connection profile json file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -830,9 +795,9 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
 
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
 
             should.not.exist(result);
         });
@@ -849,7 +814,7 @@ describe('userInputUtil', () => {
                 openLabel: 'Save',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection') as string;
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions) as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
@@ -875,7 +840,7 @@ describe('userInputUtil', () => {
                 openLabel: 'Save',
                 filters: undefined
             };
-            const result: string = await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection', true) as string;
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions, true) as string;
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
             showOpenDialogStub.should.have.been.calledWith({
@@ -888,39 +853,18 @@ describe('userInputUtil', () => {
 
             result.should.deep.equal({ fsPath: '/some/path' });
         });
-
-        it('should open user settings if Edit is selected', async () => {
-            const openUserSettingsStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
-            quickPickStub.resolves(UserInputUtil.EDIT_LABEL);
-            const showOpenDialogSpy: sinon.SinonSpy = mySandBox.spy(vscode.window, 'showOpenDialog');
-            const placeHolder: string = 'Enter a file path to the connection profile file';
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
-            const openDialogOptions: vscode.OpenDialogOptions = {
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                openLabel: 'Open',
-                filters: undefined
-            };
-            await UserInputUtil.browseEdit(placeHolder, quickPickItems, openDialogOptions, 'connection', true) as string;
-
-            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], { placeHolder });
-            showOpenDialogSpy.should.not.have.been.called;
-
-            openUserSettingsStub.should.have.been.calledOnceWithExactly('connection');
-        });
     });
 
     describe('showCertificateAuthorityQuickPickBox', () => {
         it('should get and show the certificate authority names', async () => {
             quickPickStub.resolves('ca.example.cake.com');
-            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please chose a CA');
+            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please choose a CA');
 
             result.should.deep.equal('ca.example.cake.com');
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
-                placeHolder: 'Please chose a CA'
+                placeHolder: 'Please choose a CA'
             });
         });
     });
@@ -961,7 +905,7 @@ describe('userInputUtil', () => {
             await UserInputUtil.openUserSettings('one');
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('\\c\\users\\test\\appdata\\Code\\User\\settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
         });
 
         it('should open user settings for mac', async () => {
@@ -975,7 +919,7 @@ describe('userInputUtil', () => {
             await UserInputUtil.openUserSettings('one');
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/Library/Application Support/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
         });
 
         it('should open user settings for linux', async () => {
@@ -989,7 +933,21 @@ describe('userInputUtil', () => {
             await UserInputUtil.openUserSettings('one');
 
             openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
-            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(14, 0), new vscode.Position(19, 0)) });
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(15, 0), new vscode.Position(17, 0)) });
+        });
+
+        it('should open user settings for linux when editing a wallet', async () => {
+            mySandBox.stub(process, 'platform').value('linux');
+            mySandBox.stub(path, 'join').returns('/users/test/.config/Code/User/settings.json');
+            process.env.HOME = '/users/test';
+            const openTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.workspace, 'openTextDocument').resolves(mockDocument);
+
+            const showTextDocumentStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showTextDocument').resolves();
+
+            await UserInputUtil.openUserSettings('walletTwo', true);
+
+            openTextDocumentStub.should.have.been.calledWith(vscode.Uri.file('/users/test/.config/Code/User/settings.json'));
+            showTextDocumentStub.should.have.been.calledOnceWithExactly(mockDocument, { selection: new vscode.Range(new vscode.Position(29, 0), new vscode.Position(31, 0)) });
         });
     });
 
@@ -1033,7 +991,7 @@ describe('userInputUtil', () => {
         });
     });
 
-    describe('showInstantiatedSmartContractsQuickPick', () => {
+    describe('showClientInstantiatedSmartContractsQuickPick', () => {
 
         it('should show the quick pick box for instantiated smart contracts', async () => {
             quickPickStub.resolves({
@@ -1041,7 +999,7 @@ describe('userInputUtil', () => {
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
             });
 
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
@@ -1060,7 +1018,7 @@ describe('userInputUtil', () => {
                 data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
             });
 
-            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
             result.should.deep.equal({
                 label: 'biscuit-network@0.0.1',
                 data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
@@ -1091,8 +1049,73 @@ describe('userInputUtil', () => {
 
         it('should handle no instantiated chaincodes in connection', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            fabricConnectionStub.getInstantiatedChaincode.returns([]);
-            await UserInputUtil.showInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
+            fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
+            await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+
+        });
+    });
+
+    describe('showRuntimeInstantiatedSmartContractsQuickPick', () => {
+
+        it('should show the quick pick box for instantiated smart contracts', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test', 'channelOne');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'EnglishChannel', version: '0.0.1' }
+            });
+
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Please choose instantiated smart contract to test'
+            });
+        });
+
+        it('should show the quick pick box for instantiated smart contracts for all channels', async () => {
+            quickPickStub.resolves({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            const result: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Please choose instantiated smart contract to test');
+            result.should.deep.equal({
+                label: 'biscuit-network@0.0.1',
+                data: { name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }
+            });
+
+            quickPickStub.should.have.been.calledWith([
+                {
+                    label: 'biscuit-network@0.0.1',
+                    data: {
+                        name: 'biscuit-network',
+                        channel: 'channelOne',
+                        version: '0.0.1'
+                    }
+                },
+                {
+                    label: 'cake-network@0.0.3',
+                    data: {
+                        name: 'cake-network',
+                        channel: 'channelOne',
+                        version: '0.0.3'
+                    }
+                }], {
+                    ignoreFocusOut: true,
+                    canPickMany: false,
+                    placeHolder: 'Please choose instantiated smart contract to test'
+                });
+        });
+
+        it('should handle no instantiated chaincodes in connection', async () => {
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
+            await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
 
         });
@@ -1142,7 +1165,7 @@ describe('userInputUtil', () => {
                 label: 'my-contract - transaction1',
                 data: { name: 'transaction1', contract: 'my-contract' }
             });
-            fabricConnectionStub.getMetadata.resolves(
+            fabricClientConnectionStub.getMetadata.resolves(
                 {
                     contracts: {
                         'my-contract': {
@@ -1249,7 +1272,7 @@ describe('userInputUtil', () => {
         });
 
         it('should ask for a function name if there is no metadata', async () => {
-            fabricConnectionStub.getMetadata.resolves(null);
+            fabricClientConnectionStub.getMetadata.resolves(null);
             mySandBox.stub(vscode.window, 'showInputBox').resolves('suchFunc');
             const result: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
             result.should.deep.equal({
@@ -1262,7 +1285,7 @@ describe('userInputUtil', () => {
         });
 
         it('should handle cancelling the function name prompt if there is no metadata', async () => {
-            fabricConnectionStub.getMetadata.resolves(null);
+            fabricClientConnectionStub.getMetadata.resolves(null);
             mySandBox.stub(vscode.window, 'showInputBox').resolves();
             const result: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
             should.equal(result, undefined);
@@ -1390,19 +1413,55 @@ describe('userInputUtil', () => {
 
     });
 
-    describe('showAddIdentityOptionsQuickPick', () => {
+    describe('showAddWalletOptionsQuickPick', () => {
 
-        it('should show options to add identity in the quick pick box', async () => {
-            quickPickStub.resolves(UserInputUtil.CERT_KEY);
-            const result: string = await UserInputUtil.showAddIdentityOptionsQuickPick('choose option to add identity with');
+        it('should show options to add wallet in the quick pick box', async () => {
+            quickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
+            const result: string = await UserInputUtil.showAddWalletOptionsQuickPick('choose option to add wallet with');
 
-            result.should.equal(UserInputUtil.CERT_KEY);
+            result.should.equal(UserInputUtil.WALLET_NEW_ID);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 matchOnDetail: true,
-                placeHolder: 'choose option to add identity with',
-                ignoreFocusOut: true,
+                placeHolder: 'choose option to add wallet with',
+                ignoreFocusOut : true,
                 canPickMany: false,
             });
+        });
+    });
+
+    describe('showWalletsQuickPickBox', () => {
+
+        it('should show wallets to select', async () => {
+            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
+            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+
+            quickPickStub.resolves({
+                    label: walletEntryOne.name,
+                    data: walletEntryOne
+            });
+            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false);
+
+            result.label.should.equal(walletEntryOne.name);
+            result.data.should.deep.equal(walletEntryOne);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a wallet'
+            });
+        });
+
+        it('should allow the user to select the in house wallet', async () => {
+            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
+            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+
+            const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: FabricWalletUtil.LOCAL_WALLET,
+                walletPath: 'some/local/path'
+            });
+
+            quickPickStub.resolves();
+            await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', true);
+            quickPickStub.should.have.been.calledWith([{ label: localWalletEntry.name, data: localWalletEntry }, { label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }]);
         });
     });
 
@@ -1424,7 +1483,7 @@ describe('userInputUtil', () => {
     describe('getCertKey', () => {
 
         it('should cancel adding certificate path', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1432,17 +1491,17 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            browseEditStub.onCall(0).resolves();
-            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey('myGateway');
+            const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
+            browseStub.onCall(0).resolves();
+            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
-            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
 
         });
 
         it('should stop if certificate is invalid', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1450,20 +1509,20 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            browseEditStub.onCall(0).resolves('/some/path');
+            const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
+            browseStub.onCall(0).resolves('/some/path');
 
             const error: Error = new Error('Could not validate certificate: invalid PEM');
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws(error);
 
-            await UserInputUtil.getCertKey('myGateway').should.be.rejectedWith(error);
+            await UserInputUtil.getCertKey().should.be.rejectedWith(error);
 
-            browseEditStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
+            browseStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
         });
 
         it('should cancel adding private key path', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1471,21 +1530,21 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            browseEditStub.onCall(0).resolves('/some/path');
-            browseEditStub.onCall(1).resolves();
+            const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
+            browseStub.onCall(0).resolves('/some/path');
+            browseStub.onCall(1).resolves();
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().returns(undefined);
 
-            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey('myGateway');
+            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
-            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
-            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
+            browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
             validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
         });
 
         it('should stop if private key is invalid', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1493,25 +1552,25 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            browseEditStub.onCall(0).resolves('/some/cert');
-            browseEditStub.onCall(1).resolves('/some/key');
+            const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
+            browseStub.onCall(0).resolves('/some/cert');
+            browseStub.onCall(1).resolves('/some/key');
 
             const error: Error = new Error('Could not validate private key: invalid PEM');
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM');
             validPem.onFirstCall().returns(undefined);
             validPem.onSecondCall().throws(error);
 
-            await UserInputUtil.getCertKey('myGateway').should.be.rejectedWith(error);
+            await UserInputUtil.getCertKey().should.be.rejectedWith(error);
 
-            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
-            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
+            browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
             validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
             validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
         });
 
         it('should return certificate and private key paths', async () => {
-            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
                 canSelectFiles: true,
                 canSelectFolders: false,
@@ -1519,18 +1578,18 @@ describe('userInputUtil', () => {
                 openLabel: 'Select',
                 filters: undefined
             };
-            const browseEditStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browseEdit');
-            browseEditStub.onCall(0).resolves('/some/cert');
-            browseEditStub.onCall(1).resolves('/some/key');
+            const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
+            browseStub.onCall(0).resolves('/some/cert');
+            browseStub.onCall(1).resolves('/some/key');
 
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').returns(undefined);
 
-            const { certificatePath, privateKeyPath } = await UserInputUtil.getCertKey('myGateway');
+            const {certificatePath, privateKeyPath } = await UserInputUtil.getCertKey();
             certificatePath.should.equal('/some/cert');
             privateKeyPath.should.equal('/some/key');
 
-            browseEditStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions, 'myGateway');
-            browseEditStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions, 'myGateway');
+            browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
+            browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
             validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
             validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
         });

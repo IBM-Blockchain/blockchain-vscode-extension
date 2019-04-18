@@ -15,12 +15,11 @@
 import { BlockchainTreeItem } from './BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 
-export class GatewayPropertyTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-gateway-details-item';
+export class IdentityTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-identity-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: FabricGatewayRegistryEntry, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command ) {
-        super(provider, label, collapsibleState);
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string) {
+        super(provider, label, vscode.TreeItemCollapsibleState.None);
     }
 }

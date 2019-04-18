@@ -63,10 +63,7 @@ describe('startFabricRuntime', () => {
         runtime = runtimeManager.getRuntime();
         sandbox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
 
-        sandbox.stub(runtime, 'getConnectionProfile').resolves();
-        sandbox.stub(runtime, 'getCertificate').resolves();
-        sandbox.stub(runtime, 'getPrivateKey').resolves();
-        const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
+        const testFabricWallet: FabricWallet = new FabricWallet(path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
         sandbox.stub(testFabricWallet, 'importIdentity').resolves();
         sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
         getConnectionStub = sandbox.stub(FabricRuntimeManager.instance(), 'getConnection').resolves();
@@ -89,6 +86,7 @@ describe('startFabricRuntime', () => {
         getConnectionStub.should.have.been.calledOnce;
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 
     it('should start a Fabric runtime', async () => {
@@ -98,5 +96,6 @@ describe('startFabricRuntime', () => {
         getConnectionStub.should.have.been.calledOnce;
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 });

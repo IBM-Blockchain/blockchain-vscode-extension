@@ -12,9 +12,10 @@
  * limitations under the License.
 */
 
-import { IFabricConnection } from './IFabricConnection';
 import { EventEmitter } from 'events';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { IFabricClientConnection } from './IFabricClientConnection';
 
 export class FabricConnectionManager extends EventEmitter {
 
@@ -24,14 +25,14 @@ export class FabricConnectionManager extends EventEmitter {
 
     private static _instance: FabricConnectionManager = new FabricConnectionManager();
 
-    private connection: IFabricConnection;
+    private connection: IFabricClientConnection;
     private gatewayRegistryEntry: FabricGatewayRegistryEntry;
 
     private constructor() {
         super();
     }
 
-    public getConnection(): IFabricConnection {
+    public getConnection(): IFabricClientConnection {
         return this.connection;
     }
 
@@ -39,7 +40,7 @@ export class FabricConnectionManager extends EventEmitter {
         return this.gatewayRegistryEntry;
     }
 
-    public connect(connection: IFabricConnection, gatewayRegistryEntry: FabricGatewayRegistryEntry): void {
+    public connect(connection: IFabricClientConnection, gatewayRegistryEntry: FabricGatewayRegistryEntry): void {
         this.connection = connection;
         this.gatewayRegistryEntry = gatewayRegistryEntry;
         this.emit('connected', connection);
@@ -55,6 +56,14 @@ export class FabricConnectionManager extends EventEmitter {
             this.gatewayRegistryEntry = null;
         }
         this.emit('disconnected');
+    }
+
+    public getConnectionIdentity(): string {
+        return this.connection.identityName;
+    }
+
+    public getConnectionWallet(): FabricWalletRegistryEntry {
+        return this.connection.wallet;
     }
 
 }

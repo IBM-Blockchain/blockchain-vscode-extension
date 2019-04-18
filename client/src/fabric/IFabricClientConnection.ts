@@ -13,12 +13,14 @@
 */
 'use strict';
 
-import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 
-export interface IFabricConnection {
+export interface IFabricClientConnection {
 
     identityName: string;
+
+    wallet: FabricWalletRegistryEntry;
 
     connect(wallet: IFabricWallet, identityName: string): Promise<void>;
 
@@ -30,23 +32,7 @@ export interface IFabricConnection {
 
     getAllChannelsForPeer(peerName: string): Promise<Array<string>>;
 
-    getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>>;
-
-    getOrganizations(channelName: string): Promise<Array<string>>;
-
-    getCertificateAuthorityName(): string;
-
-    getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>>;
-
     getInstantiatedChaincode(channelName: string): Promise<Array<{name: string, version: string}>>;
-
-    getOrderers(): Promise<Set<string>>;
-
-    installChaincode(packageRegistryEntry: PackageRegistryEntry, peerName: string): Promise<void>;
-
-    instantiateChaincode(chaincodeName: string, version: string, channel: string, fcn: string, args: Array<string>): Promise<void>;
-
-    upgradeChaincode(chaincodeName: string, version: string, channel: string, fcn: string, args: Array<string>): Promise<void>;
 
     isIBPConnection(): boolean;
 
@@ -54,7 +40,4 @@ export interface IFabricConnection {
 
     submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined>;
 
-    enroll(enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
-
-    register(enrollmentID: string, affiliation: string): Promise<string>;
 }

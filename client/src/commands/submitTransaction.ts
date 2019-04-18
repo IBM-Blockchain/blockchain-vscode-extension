@@ -48,7 +48,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             }
         }
 
-        const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
+        const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
         if (!chosenSmartContract) {
             return;
         }

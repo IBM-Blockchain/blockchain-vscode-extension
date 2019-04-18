@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -24,11 +23,12 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
 
     let channelName: string;
-    let peers: Array<string>;
+    let peerNames: Array<string>;
     let packageEntry: PackageRegistryEntry;
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
@@ -37,7 +37,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         // If clicked on runtime channel
         const channelTreeItem: ChannelTreeItem = treeItem as ChannelTreeItem;
         channelName = channelTreeItem.label;
-        peers = channelTreeItem.peers;
+        peerNames = channelTreeItem.peers;
     } else {
         // Called from command palette or Instantiated runtime tree item
         const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
@@ -55,18 +55,18 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             return;
         }
         channelName = chosenChannel.label;
-        peers = chosenChannel.data;
+        peerNames = chosenChannel.data;
     }
 
     try {
 
-        const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', peers);
+        const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a smart contract and version to instantiate', peerNames);
         if (!chosenChaincode) {
             return;
         }
         const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenChaincode.data;
         if (chosenChaincode.description === 'Packaged') {
-            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, data.packageEntry) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, data.packageEntry) as PackageRegistryEntry;
             if (!packageEntry) {
                 // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
                 return;
@@ -81,7 +81,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             }
 
             // Install smart contract package
-            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, _package) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, _package) as PackageRegistryEntry;
             if (!packageEntry) {
                 return;
             }
@@ -110,15 +110,15 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         }, async (progress: vscode.Progress<{ message: string }>) => {
 
             progress.report({ message: 'Instantiating Smart Contract' });
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
             VSCodeBlockchainDockerOutputAdapter.instance().show();
             if (packageEntry) {
                 // If the package has been installed as part of this command
-                await connection.instantiateChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
+                await connection.instantiateChaincode(packageEntry.name, packageEntry.version, peerNames, channelName, fcn, args);
             } else {
                 // If the package was already installed
-                await connection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
+                await connection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, peerNames, channelName, fcn, args);
             }
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');

@@ -15,7 +15,6 @@
 // tslint:disable max-classes-per-file
 'use strict';
 import * as vscode from 'vscode';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PeerTreeItem } from './runtimeOps/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
@@ -38,10 +37,10 @@ import { InstantiateCommandTreeItem } from './runtimeOps/InstantiateCommandTreeI
 import { InstallCommandTreeItem } from './runtimeOps/InstallCommandTreeItem';
 import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { MetadataUtil } from '../util/MetadataUtil';
-import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -132,6 +131,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = runtime.getName();
             connection.managedRuntime = true;
+            connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                 runtime.getName(),
@@ -178,7 +178,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     private async createChannelsTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
         try {
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
@@ -200,7 +200,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         const tree: Array<BlockchainTreeItem> = [];
 
         try {
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
             const allPeerNames: Array<string> = connection.getAllPeerNames();
 
             for (const peer of allPeerNames) {
@@ -210,12 +210,14 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             }
 
             // Push Certificate Authority tree item
-            const certificateAuthorityName: any = connection.getCertificateAuthorityName();
-            const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
-            tree.push(caTreeItem);
+            const certificateAuthorityNames: Array<string> = connection.getAllCertificateAuthorityNames();
+            for (const certificateAuthorityName of certificateAuthorityNames) {
+                const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
+                tree.push(caTreeItem);
+            }
 
-            const orderers: Set<string> = await this.getOrderers();
-            for (const orderer of orderers.keys()) {
+            const orderers: Array<string> = connection.getAllOrdererNames();
+            for (const orderer of orderers) {
                 tree.push(new OrdererTreeItem(this, orderer));
             }
 
@@ -228,26 +230,8 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createOrganizationsTree(): Promise<Array<BlockchainTreeItem>> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const tree: Array<BlockchainTreeItem> = [];
-
-        try {
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            const channels: Array<string> = Array.from(channelMap.keys());
-            for (const channel of channels) {
-                const channelOrgs: any[] = await connection.getOrganizations(channel);
-                for (const org of channelOrgs) {
-                    tree.push(new OrgTreeItem(this, org.id));
-                }
-            }
-
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating organizations view: ${error.message}`, `Error populating organizations view: ${error.toString()}`);
-            return tree;
-        }
-        return tree;
-
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        return connection.getAllOrganizationNames().map((organizationName: string) => new OrgTreeItem(this, organizationName));
     }
 
     private async createInstantiatedTree(): Promise<Array<BlockchainTreeItem>> {
@@ -261,20 +245,15 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         };
 
         try {
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            const channels: Array<string> = Array.from(channelMap.keys());
-            for (const channel of channels) {
-                const chaincodes: any[] = await connection.getInstantiatedChaincode(channel);
-                const peers: Array<string> = channelMap.get(channel);
-                const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channel, peers, chaincodes, vscode.TreeItemCollapsibleState.None);
+            for (const [channelName, peerNames] of channelMap) {
+                const chaincodes: any[] = await connection.getInstantiatedChaincode(peerNames, channelName);
+                const channelTreeItem: ChannelTreeItem = new ChannelTreeItem(this, channelName, peerNames, chaincodes, vscode.TreeItemCollapsibleState.None);
                 for (const chaincode of chaincodes) {
-                    const transactions: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincode.name, channel);
-                    if (!transactions) {
-                        tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
-                    } else {
-                        tree.push(new InstantiatedContractTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
-                    }
+                    // Doesn't matter if this is a chaincode or a contract as this is the ops view, and
+                    // we shouldn't be exposing contracts or transaction functions in the ops view.
+                    tree.push(new InstantiatedChaincodeTreeItem(this, chaincode.name, channelTreeItem, chaincode.version, vscode.TreeItemCollapsibleState.None, null, false));
                 }
             }
         } catch (error) {
@@ -291,7 +270,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         const tree: Array<BlockchainTreeItem> = [];
         let command: vscode.Command;
         try {
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
             const allPeerNames: Array<string> = connection.getAllPeerNames();
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);
@@ -314,12 +293,5 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             tree.push(new InstallCommandTreeItem(this, command));
         }
         return tree;
-    }
-
-    private async getOrderers(): Promise<Set<string>> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        const ordererSet: Set<string> = await connection.getOrderers();
-
-        return ordererSet;
     }
 }

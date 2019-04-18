@@ -22,7 +22,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
 
-export async function exportConnectionDetails(): Promise<void> {
+export async function exportConnectionProfile(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
     const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
@@ -30,7 +30,7 @@ export async function exportConnectionDetails(): Promise<void> {
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (!workspaceFolders || workspaceFolders.length === 0) {
-        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'A folder must be open to export connection details to');
+        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'A folder must be open to export connection profile to');
         return;
     } else if (workspaceFolders.length > 1) {
         const chosenFolder: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('Choose which folder to save the connection profile to');
@@ -44,10 +44,10 @@ export async function exportConnectionDetails(): Promise<void> {
     }
 
     try {
-        await fabricRuntime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), dir);
+        await fabricRuntime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance(), dir);
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, 'Issue exporting connection details, see output channel for more information');
+        outputAdapter.log(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
         return;
     }
-    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection details to ${path.join(dir, fabricRuntime.getName())}`);
+    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection profile to ${path.join(dir, fabricRuntime.getName())}`);
 }

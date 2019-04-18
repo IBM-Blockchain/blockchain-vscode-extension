@@ -17,12 +17,13 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import * as dateFormat from 'dateformat';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -37,12 +38,12 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const isRunning: boolean = await this.runtime.isRunning();
 
             if (!isRunning) {
-                outputAdapter.log(LogType.ERROR, 'Please ensure "local_fabric" is running before trying to debug a smart contract');
+                outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
                 return;
             }
 
             if (!this.runtime.isDevelopmentMode()) {
-                outputAdapter.log(LogType.ERROR, 'Please ensure "local_fabric" is in development mode before trying to debug a smart contract');
+                outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is in development mode before trying to debug a smart contract`);
                 return;
             }
 
@@ -69,7 +70,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
                 // Get instantiated chaincode. Check if chaincode exists with chaincodeName already.
 
-                const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+                const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
                 if (!connection) {
                     return;
                 }
@@ -162,7 +163,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         connectionRegistry.managedRuntime = true;
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, connectionRegistry);
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         return connection.getAllPeerNames();
     }
 }

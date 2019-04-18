@@ -23,6 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOut
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 
 export class RuntimeTreeItem extends BlockchainTreeItem {
 
@@ -78,6 +79,7 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
             const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = this.name;
             connection.managedRuntime = true;
+            connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
             newLabel += '●';
             newCommand = {
                 command: ExtensionCommands.CONNECT,

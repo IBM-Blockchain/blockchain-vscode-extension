@@ -13,34 +13,24 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import {UserInputUtil} from './UserInputUtil';
+import { UserInputUtil } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { ExtensionCommands } from '../../ExtensionCommands';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'addGateway');
 
-        const connectionName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
-        if (!connectionName) {
+        const gatewayName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
+        if (!gatewayName) {
             return Promise.resolve();
         }
 
-        // Create the connection immediately
-        let fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-        fabricGatewayEntry.connectionProfilePath = FabricGatewayHelper.CONNECTION_PROFILE_PATH_DEFAULT;
-        fabricGatewayEntry.name = connectionName;
-        fabricGatewayEntry.walletPath = FabricGatewayHelper.WALLET_PATH_DEFAULT;
-
-        const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-        await fabricGatewayRegistry.add(fabricGatewayEntry);
-
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
             canSelectFolders: false,
@@ -52,44 +42,20 @@ export async function addGateway(): Promise<{} | void> {
         };
 
         // Get the connection profile json file path
-        const connectionProfilePath: string = await UserInputUtil.browseEdit('Enter a file path to a connection profile file', quickPickItems, openDialogOptions, connectionName) as string;
+        const connectionProfilePath: string = await UserInputUtil.browse('Enter a file path to a connection profile file', quickPickItems, openDialogOptions) as string;
         if (!connectionProfilePath) {
             return Promise.resolve();
         }
 
+        const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
-        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(connectionName, connectionProfilePath);
-        await fabricGatewayRegistry.update(fabricGatewayEntry);
+        fabricGatewayEntry.name = gatewayName;
+        fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+        fabricGatewayEntry.associatedWallet = '';
+        const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+        await fabricGatewayRegistry.add(fabricGatewayEntry);
 
-        // Ask the user whether they want to provide a wallet or certficate and privateKey file paths
-        const answer: string = await UserInputUtil.showAddIdentityOptionsQuickPick('Chose a method for importing identity to connect with:');
-        if (!answer) {
-            // User cancelled, so do nothing
-            return Promise.resolve();
-        } else if (answer === UserInputUtil.CERT_KEY) {
-
-            fabricGatewayEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY, fabricGatewayEntry) as FabricGatewayRegistryEntry;
-
-            if (!fabricGatewayEntry) {
-                return Promise.resolve();
-            }
-            await fabricGatewayRegistry.update(fabricGatewayEntry);
-            outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
-
-        } else {
-
-            openDialogOptions.filters = undefined;
-            openDialogOptions.canSelectFiles = false;
-            openDialogOptions.canSelectFolders = true;
-            // User has a wallet - get the path
-            const walletPath: string = await UserInputUtil.browseEdit('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, connectionName) as string;
-            if (!walletPath) {
-                return Promise.resolve();
-            }
-            fabricGatewayEntry.walletPath = walletPath;
-            await fabricGatewayRegistry.update(fabricGatewayEntry);
-            outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
-        }
+        outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
     }
