@@ -53,6 +53,15 @@ export class TestUtil {
         await vscode.workspace.getConfiguration().update('fabric.runtime', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
+    static async storeWalletsConfig(): Promise<void> {
+        this.USER_WALLETS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.wallets');
+        console.log('Storing user wallets:', this.USER_WALLETS_CONFIG);
+    }
+    static async restoreWalletsConfig(): Promise<void> {
+        console.log('Restoring user wallets config to settings:', this.USER_WALLETS_CONFIG);
+        await vscode.workspace.getConfiguration().update('fabric.wallets', this.USER_WALLETS_CONFIG, vscode.ConfigurationTarget.Global);
+    }
+
     static async storeRepositoriesConfig(): Promise<void> {
         this.USER_REPOSITORIES = await vscode.workspace.getConfiguration().get('blockchain.repositories');
         console.log('Storing repositories:', this.USER_REPOSITORIES);
@@ -84,6 +93,7 @@ export class TestUtil {
     private static USER_PACKAGE_DIR_CONFIG: any;
     private static USER_GATEWAYS_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
+    private static USER_WALLETS_CONFIG: any;
     private static USER_REPOSITORIES: any;
     private static HOME_STARTUP: any;
 }

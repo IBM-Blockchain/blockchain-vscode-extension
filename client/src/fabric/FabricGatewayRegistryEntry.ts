@@ -17,14 +17,10 @@ import { FabricRegistryEntry } from './FabricRegistryEntry';
 export class FabricGatewayRegistryEntry extends FabricRegistryEntry {
 
     public connectionProfilePath: string;
-
-    public walletPath: string;
-
     public managedRuntime: boolean;
-
+    public associatedWallet: string;
     constructor(fields?: FabricGatewayRegistryEntry) {
         super();
         Object.assign(this, fields);
     }
-
 }

@@ -14,7 +14,6 @@
 'use strict';
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -24,12 +23,13 @@ import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'upgradeSmartContract');
     let channelName: string;
-    let peers: Array<string>;
+    let peerNames: Array<string>;
     let packageEntry: PackageRegistryEntry;
     let contractName: string;
     let contractVersion: string;
@@ -39,15 +39,15 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         contractName = treeItem.name;
         contractVersion = treeItem.version;
         channelName = treeItem.channel.label;
-        peers = treeItem.channel.peers;
+        peerNames = treeItem.channel.peers;
 
     } else if ((treeItem instanceof ChannelTreeItem)) {
         // Called on a channel
         channelName = treeItem.label;
-        peers = treeItem.peers;
+        peerNames = treeItem.peers;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
 
@@ -67,16 +67,16 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
             return;
         }
         channelName = chosenChannel.label;
-        peers = chosenChannel.data;
+        peerNames = chosenChannel.data;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
     }
 
     try {
-        const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', peers, contractName, contractVersion);
+        const chosenChaincode: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Select the smart contract version to perform an upgrade with', peerNames, contractName, contractVersion);
         if (!chosenChaincode) {
             return;
         }
@@ -84,7 +84,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenChaincode.data;
 
         if (chosenChaincode.description === 'Packaged') {
-            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, data.packageEntry) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, data.packageEntry) as PackageRegistryEntry;
             if (!packageEntry) {
                 // Either a package wasn't selected or the package didnt successfully install on all peers and an error was thrown
                 return;
@@ -97,7 +97,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
             const _package: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, data.workspace) as PackageRegistryEntry;
 
             // Install smart contract package
-            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peers, _package) as PackageRegistryEntry;
+            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, _package) as PackageRegistryEntry;
             if (!packageEntry) {
                 return;
             }
@@ -126,14 +126,14 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         }, async (progress: vscode.Progress<{message: string}>) => {
 
             progress.report({message: 'Upgrading Smart Contract'});
-            const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
             if (packageEntry) {
                 // If the package has been installed as part of this command
-                await connection.upgradeChaincode(packageEntry.name, packageEntry.version, channelName, fcn, args);
+                await connection.upgradeChaincode(packageEntry.name, packageEntry.version, peerNames, channelName, fcn, args);
             } else {
                 // If the package was already installed
-                await connection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, channelName, fcn, args);
+                await connection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, peerNames, channelName, fcn, args);
             }
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');

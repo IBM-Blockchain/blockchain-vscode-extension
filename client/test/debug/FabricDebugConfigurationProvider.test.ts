@@ -30,6 +30,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -84,13 +85,12 @@ describe('FabricDebugConfigurationProvider', () => {
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
-            runtimeStub.getConnectionProfile.resolves({ peers: [{ name: 'peer1' }] });
             runtimeStub.getChaincodeAddress.resolves('127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
 
             registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'local_fabric';
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = true;
 
@@ -281,7 +281,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             should.not.exist(config);
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Please ensure "local_fabric" is running before trying to debug a smart contract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
         });
 
         it('should give an error if runtime isn\'t in development mode', async () => {
@@ -298,7 +298,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             should.not.exist(config);
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "local_fabric" is in development mode before trying to debug a smart contract`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is in development mode before trying to debug a smart contract`);
         });
 
         it('should handle errors with packaging', async () => {

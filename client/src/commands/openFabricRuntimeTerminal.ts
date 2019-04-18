@@ -15,6 +15,7 @@
 import * as vscode from 'vscode';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function openFabricRuntimeTerminal(): Promise<void> {
     const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
@@ -27,7 +28,7 @@ export async function openFabricRuntimeTerminal(): Promise<void> {
         '-e',
         'CORE_PEER_LOCALMSPID=Org1MSP',
         '-e',
-        'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
+        `CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/${FabricRuntimeUtil.ADMIN_USER}/msp`,
         '-ti',
         peerContainerName,
         'bash'

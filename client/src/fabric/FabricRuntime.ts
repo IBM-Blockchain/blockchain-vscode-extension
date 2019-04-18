@@ -24,12 +24,17 @@ import { Docker, ContainerPorts } from '../docker/Docker';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { LogType } from '../logging/OutputAdapter';
 import * as request from 'request';
+import { FabricIdentity } from './FabricIdentity';
+import { FabricNode, FabricNodeType } from './FabricNode';
+import { FabricGateway } from './FabricGateway';
+import { FabricWalletUtil } from './FabricWalletUtil';
+import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 
 const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
 const basicNetworkConnectionProfilePath: string = path.resolve(basicNetworkPath, 'connection.json');
 const basicNetworkConnectionProfile: string = JSON.parse(fs.readFileSync(basicNetworkConnectionProfilePath).toString());
-const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, 'crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com');
-const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, 'msp/signcerts/Admin@org1.example.com-cert.pem');
+const basicNetworkAdminPath: string = path.resolve(basicNetworkPath, `crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com`);
+const basicNetworkAdminCertificatePath: string = path.resolve(basicNetworkAdminPath, `msp/signcerts/Admin@org1.example.com-cert.pem`);
 const basicNetworkAdminCertificate: string = fs.readFileSync(basicNetworkAdminCertificatePath, 'utf8');
 const basicNetworkAdminPrivateKeyPath: string = path.resolve(basicNetworkAdminPath, 'msp/keystore/cd96d5260ad4757551ed4a5a991e62130f8008a0bf996e4e4b84cd097a747fec_sk');
 const basicNetworkAdminPrivateKey: string = fs.readFileSync(basicNetworkAdminPrivateKeyPath, 'utf8');
@@ -56,7 +61,7 @@ export class FabricRuntime extends EventEmitter {
 
     constructor() {
         super();
-        this.name = 'local_fabric';
+        this.name = FabricRuntimeUtil.LOCAL_FABRIC;
         this.docker = new Docker(this.name);
     }
 
@@ -138,45 +143,71 @@ export class FabricRuntime extends EventEmitter {
         }
     }
 
-    public async getConnectionProfile(): Promise<object> {
+    public async getGateways(): Promise<FabricGateway[]> {
+        const connectionProfile: object = await this.getConnectionProfile();
+        return [
+            new FabricGateway(FabricRuntimeUtil.LOCAL_FABRIC, this.getConnectionProfilePath(), connectionProfile)
+        ];
+    }
+
+    public async getNodes(): Promise<FabricNode[]> {
         const containerPrefix: string = this.docker.getContainerPrefix();
-        const connectionProfile: any = basicNetworkConnectionProfile;
         const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com`);
-        const peerRequestHost: string = Docker.fixHost(peerPorts['7051/tcp'][0].HostIp);
         const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
-        const peerEventHost: string = Docker.fixHost(peerPorts['7053/tcp'][0].HostIp);
-        const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
-        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com`);
-        const ordererHost: string = Docker.fixHost(ordererPorts['7050/tcp'][0].HostIp);
-        const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
         const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com`);
-        const caHost: string = Docker.fixHost(caPorts['7054/tcp'][0].HostIp);
         const caPort: string = caPorts['7054/tcp'][0].HostPort;
-        connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
-        connectionProfile.peers['peer0.org1.example.com'].eventUrl = `grpc://${peerEventHost}:${peerEventPort}`;
-        connectionProfile.orderers['orderer.example.com'].url = `grpc://${ordererHost}:${ordererPort}`;
-        connectionProfile.certificateAuthorities['ca.org1.example.com'].url = `http://${caHost}:${caPort}`;
-        return connectionProfile;
+        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com`);
+        const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
+        return [
+            new FabricNode(
+                'peer0.org1.example.com',
+                'peer0.org1.example.com',
+                FabricNodeType.PEER,
+                `grpc://localhost:${peerRequestPort}`,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            ),
+            new FabricNode(
+                'ca.example.com',
+                'ca.example.com',
+                FabricNodeType.CERTIFICATE_AUTHORITY,
+                `http://localhost:${caPort}`,
+                FabricWalletUtil.LOCAL_WALLET,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            ),
+            new FabricNode(
+                'orderer.example.com',
+                'orderer.example.com',
+                FabricNodeType.ORDERER,
+                `grpc://localhost:${ordererPort}`,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP'
+            )
+        ];
     }
 
-    public async getConnectionProfilePath(): Promise<string> {
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const dir: string = path.join(homeExtDir, this.name);
-
-        return path.join(dir, 'connection.json');
+    public async getWalletNames(): Promise<string[]> {
+        return [
+            `${FabricWalletUtil.LOCAL_WALLET}-ops`
+        ];
     }
 
-    public async getCertificate(): Promise<string> {
-        return basicNetworkAdminCertificate;
-    }
-
-    public getCertificatePath(): string {
-        return basicNetworkAdminCertificatePath;
-    }
-
-    public async getPrivateKey(): Promise<string> {
-        return basicNetworkAdminPrivateKey;
+    public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
+        if (walletName !== `${FabricWalletUtil.LOCAL_WALLET}-ops`) {
+            throw new Error(`The wallet ${walletName} does not exist`);
+        } else {
+            return [
+                new FabricIdentity(
+                    FabricRuntimeUtil.ADMIN_USER,
+                    Buffer.from(basicNetworkAdminCertificate, 'utf8').toString('base64'),
+                    Buffer.from(basicNetworkAdminPrivateKey, 'utf8').toString('base64'),
+                    'Org1MSP'
+                )
+            ];
+        }
     }
 
     public async isCreated(): Promise<boolean> {
@@ -233,7 +264,7 @@ export class FabricRuntime extends EventEmitter {
         return `${prefix}_peer0.org1.example.com`;
     }
 
-    public async exportConnectionDetails(outputAdapter: OutputAdapter, dir?: string): Promise<void> {
+    public async exportConnectionProfile(outputAdapter: OutputAdapter, dir?: string): Promise<void> {
 
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
@@ -241,17 +272,14 @@ export class FabricRuntime extends EventEmitter {
 
         const connectionProfileObj: any = await this.getConnectionProfile();
         const connectionProfile: string = JSON.stringify(connectionProfileObj, null, 4);
-        let newWalletPath: string;
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const runtimeWalletPath: string = path.join(homeExtDir, this.name, 'wallet');
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
 
         if (!dir) {
             dir = path.join(homeExtDir, this.name);
         } else {
             dir = path.join(dir, this.name);
-            newWalletPath = path.join(dir, 'wallet');
         }
 
         const connectionProfilePath: string = path.join(dir, 'connection.json');
@@ -259,11 +287,8 @@ export class FabricRuntime extends EventEmitter {
         try {
             await fs.ensureFileSync(connectionProfilePath);
             await fs.writeFileSync(connectionProfilePath, connectionProfile);
-            if (newWalletPath) {
-                await fs.copySync(runtimeWalletPath, newWalletPath);
-            }
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Issue saving runtime connection details in directory ${dir} with error: ${error.message}`);
+            outputAdapter.log(LogType.ERROR, `Issue saving runtime connection profile in directory ${dir} with error: ${error.message}`);
             throw new Error(error);
         }
     }
@@ -271,13 +296,23 @@ export class FabricRuntime extends EventEmitter {
     public async deleteConnectionDetails(outputAdapter: OutputAdapter): Promise<void> {
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const runtimePath: string = path.join(homeExtDir, this.name);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+
+        const localFabric: string = path.join(homeExtDir, FabricRuntimeUtil.LOCAL_FABRIC);
+        const walletPath: string = path.join(homeExtDir, FabricWalletUtil.LOCAL_WALLET);
+
         // Need to remove the secret wallet as well
-        const secretRuntimePath: string = path.join(homeExtDir, this.name + '-ops');
+        const secretRuntimePath: string = path.join(homeExtDir, FabricWalletUtil.LOCAL_WALLET + '-ops');
 
         try {
-            await fs.remove(runtimePath);
+            // Remove Local Fabric connection directory
+            await fs.remove(localFabric);
+
+            // Remove the Local Fabric Wallet's admin identity - but don't remove the entire wallet or other identities
+            const adminIdentity: string = path.join(walletPath, FabricRuntimeUtil.ADMIN_USER);
+            await fs.remove(adminIdentity);
+
+            // Remove Local Fabric Ops Wallet
             await fs.remove(secretRuntimePath);
         } catch (error) {
             if (!error.message.includes('ENOENT: no such file or directory')) {
@@ -311,6 +346,35 @@ export class FabricRuntime extends EventEmitter {
         await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeObject, vscode.ConfigurationTarget.Global);
     }
 
+    private async getConnectionProfile(): Promise<object> {
+        const containerPrefix: string = this.docker.getContainerPrefix();
+        const connectionProfile: any = basicNetworkConnectionProfile;
+        const peerPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_peer0.org1.example.com`);
+        const peerRequestHost: string = Docker.fixHost(peerPorts['7051/tcp'][0].HostIp);
+        const peerRequestPort: string = peerPorts['7051/tcp'][0].HostPort;
+        const peerEventHost: string = Docker.fixHost(peerPorts['7053/tcp'][0].HostIp);
+        const peerEventPort: string = peerPorts['7053/tcp'][0].HostPort;
+        const ordererPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_orderer.example.com`);
+        const ordererHost: string = Docker.fixHost(ordererPorts['7050/tcp'][0].HostIp);
+        const ordererPort: string = ordererPorts['7050/tcp'][0].HostPort;
+        const caPorts: ContainerPorts = await this.docker.getContainerPorts(`${containerPrefix}_ca.example.com`);
+        const caHost: string = Docker.fixHost(caPorts['7054/tcp'][0].HostIp);
+        const caPort: string = caPorts['7054/tcp'][0].HostPort;
+        connectionProfile.peers['peer0.org1.example.com'].url = `grpc://${peerRequestHost}:${peerRequestPort}`;
+        connectionProfile.peers['peer0.org1.example.com'].eventUrl = `grpc://${peerEventHost}:${peerEventPort}`;
+        connectionProfile.orderers['orderer.example.com'].url = `grpc://${ordererHost}:${ordererPort}`;
+        connectionProfile.certificateAuthorities['ca.org1.example.com'].url = `http://${caHost}:${caPort}`;
+        return connectionProfile;
+    }
+
+    private getConnectionProfilePath(): string {
+        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const dir: string = path.join(homeExtDir, this.name);
+
+        return path.join(dir, 'connection.json');
+    }
+
     private setBusy(busy: boolean): void {
         this.busy = busy;
         this.emit('busy', busy);
@@ -318,7 +382,7 @@ export class FabricRuntime extends EventEmitter {
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
         await this.execute('start', outputAdapter);
-        await this.exportConnectionDetails(outputAdapter);
+        await this.exportConnectionProfile(outputAdapter);
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {

@@ -19,14 +19,19 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { PackageRegistry } from '../packages/PackageRegistry';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { IFabricConnection } from '../fabric/IFabricConnection';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { IFabricWallet } from '../fabric/IFabricWallet';
+import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -53,17 +58,14 @@ export class UserInputUtil {
     static readonly FORCE_FILES: string = 'Force all files to overwrite';
     static readonly ABORT_GENERATOR: string = 'Abort generator';
     static readonly BROWSE_LABEL: string = '📁 Browse';
-    static readonly EDIT_LABEL: string = '✎ Edit in User Settings';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
     static readonly WALLET: string = 'Specify an existing file system wallet';
-    static readonly CERT_KEY: string = 'Create a new wallet and add an identity';
+    static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
-    static readonly ADD_CERT_KEY_OPTION: string = 'Enter (1) an MSP ID and (2) paths to Certificate and Key files';
-    static readonly ADD_ID_SECRET_OPTION: string = 'Enter (1) an MSP ID and (2) an enrollment ID and secret';
+    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
+    static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
 
-    public static showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean): Thenable<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
-        const gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
-
+    public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
@@ -72,14 +74,23 @@ export class UserInputUtil {
 
         const allGateways: Array<FabricGatewayRegistryEntry> = [];
 
-        let connection: FabricGatewayRegistryEntry;
         if (showManagedRuntime) {
             // Allow users to choose local_fabric
-            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-            connection = new FabricGatewayRegistryEntry();
-            connection.name = runtime.getName();
-            connection.managedRuntime = true;
-            allGateways.push(connection);
+            const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            allGateways.push(...runtimeGateways);
+        }
+
+        let gateways: Array<FabricGatewayRegistryEntry> = FabricGatewayRegistry.instance().getAll();
+
+        if (showAssociatedGateways !== undefined) {
+            gateways = gateways.filter((gateway: FabricGatewayRegistryEntry) => {
+                if (showAssociatedGateways) {
+                    return gateway.associatedWallet;
+                } else {
+                    return !gateway.associatedWallet;
+                }
+
+            });
         }
 
         allGateways.push(...gateways);
@@ -129,10 +140,9 @@ export class UserInputUtil {
      * @returns {String} Returns dir.
      *
      */
-    public static async getDirPath(dir: string): Promise<string> {
-
+    public static getDirPath(dir: string): string {
         if (dir.startsWith('~')) {
-            dir = await homeDir(dir.replace('~', ''));
+            dir = homeDir(dir.replace('~', ''));
         }
         return dir;
     }
@@ -173,7 +183,7 @@ export class UserInputUtil {
     }
 
     public static async showPeerQuickPickBox(prompt: string): Promise<string | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const peerNames: Array<string> = connection.getAllPeerNames();
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -186,7 +196,7 @@ export class UserInputUtil {
     }
 
     public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
 
         // Get all installed smart contracts
@@ -215,12 +225,11 @@ export class UserInputUtil {
         // First, we need to create a list of channels
 
         const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-        const channels: Array<string> = Array.from(channelMap.keys());
 
         // Next, we get all the instantiated smart contracts
         const allSmartContracts: any[] = [];
-        for (const channel of channels) {
-            const instantiatedSmartContracts: Array<{name: string, version: string}> = await connection.getInstantiatedChaincode(channel);
+        for (const [channelName, peerNames] of channelMap) {
+            const instantiatedSmartContracts: Array<{name: string, version: string}> = await connection.getInstantiatedChaincode(peerNames, channelName);
             allSmartContracts.push(...instantiatedSmartContracts);
         }
 
@@ -266,7 +275,7 @@ export class UserInputUtil {
     }
 
     public static async showChannelQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<Array<string>> | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
         const channels: Array<string> = Array.from(channelMap.keys());
 
@@ -345,7 +354,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async openUserSettings(gatewayName: string): Promise<void> {
+    public static async openUserSettings(name: string, searchWallets?: boolean): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         let settingsPath: string;
@@ -371,15 +380,18 @@ export class UserInputUtil {
 
             // Find the user settings line number
             for (let index: number = 0; index < settingsText.length; index++) {
-                const gatewaysSection: string = '"fabric.gateways": [';
-                if (settingsText[index].includes(gatewaysSection)) {
-                    // We've found fabric.gateways, so we'll assume that the gateway we're looking for will be the first result
-                    const gatewayEntry: string = '"name": "' + gatewayName + '",';
+                let section: string = '"fabric.gateways": [';
+                if (searchWallets) {
+                    section = '"fabric.wallets": [';
+                }
+                if (settingsText[index].includes(section)) {
+                    // We've found the section
+                    const entry: string = '"name": "' + name;
 
-                    for (let gatewaysIndex: number = index; gatewaysIndex < settingsText.length; gatewaysIndex++) {
-                        // Search for the specific gateway name and set the line number if found
-                        if (settingsText[gatewaysIndex].includes(gatewayEntry)) {
-                            highlightStart = gatewaysIndex;
+                    for (let searchIndex: number = index; searchIndex < settingsText.length; searchIndex++) {
+                        // Search for the specific name and set the line number if found
+                        if (settingsText[searchIndex].includes(entry)) {
+                            highlightStart = searchIndex;
                             break;
                         }
                     }
@@ -392,14 +404,14 @@ export class UserInputUtil {
             }
 
             if (!highlightStart) {
-                outputAdapter.log(LogType.ERROR, `Could not find gateway in user settings`);
+                outputAdapter.log(LogType.ERROR, `Could not find ${name} entry in user settings`);
                 await vscode.window.showTextDocument(document);
                 return;
             }
 
             // Define the section to highlight
-            const startLine: number = highlightStart - 2;
-            const endLine: number = highlightStart + 3;
+            const startLine: number = highlightStart;
+            const endLine: number = highlightStart + 2;
 
             // Show the user settings and highlight the connection
             await vscode.window.showTextDocument(document, {
@@ -428,24 +440,58 @@ export class UserInputUtil {
         return new Promise((resolve: any): any => setTimeout(resolve, ms));
     }
 
-    public static async showInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+    public static async showClientInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-
-        let channels: Array<string> = [];
-        if (!channelName) {
-            const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
-            channels = Array.from(channelMap.keys());
-        } else {
-            channels.push(channelName);
-        }
+        const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
 
         const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
 
-        for (const channel of channels) {
-            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(channel); // returns array of objects
+        for (const [thisChannelName] of channelMap) {
+            if (channelName && (channelName !== thisChannelName)) {
+                continue;
+            }
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(thisChannelName); // returns array of objects
             for (const chaincode of chaincodes) {
-                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: channel };
+                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: thisChannelName };
+                instantiatedChaincodes.push(data);
+            }
+        }
+
+        if (instantiatedChaincodes.length === 0) {
+            outputAdapter.log(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+            return;
+        }
+
+        const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>> = [];
+        for (const chaincode of instantiatedChaincodes) {
+            const data: { name: string, channel: string, version: string } = { name: chaincode.name, channel: chaincode.channel, version: chaincode.version };
+            quickPickItems.push({ label: `${chaincode.name}@${chaincode.version}`, data: data });
+        }
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    public static async showRuntimeInstantiatedSmartContractsQuickPick(prompt: string, channelName?: string): Promise<IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> | undefined> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
+
+        const instantiatedChaincodes: Array<{ name: string, version: string, channel: string }> = [];
+
+        for (const [thisChannelName, peerNames] of channelMap) {
+            if (channelName && (channelName !== thisChannelName)) {
+                continue;
+            }
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(peerNames, thisChannelName); // returns array of objects
+            for (const chaincode of chaincodes) {
+                const data: { name: string, version: string, channel: string } = { name: chaincode.name, version: chaincode.version, channel: thisChannelName };
                 instantiatedChaincodes.push(data);
             }
         }
@@ -484,7 +530,7 @@ export class UserInputUtil {
 
     public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, contract: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
-        const connection: IFabricConnection = fabricConnectionManager.getConnection();
+        const connection: IFabricClientConnection = fabricConnectionManager.getConnection();
 
         if (!connection) {
             VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'No connection to a blockchain found');
@@ -523,7 +569,7 @@ export class UserInputUtil {
 
     public static async showInstallableSmartContractsQuickPick(prompt: string, peers: Set<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
         // Get connection
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
         const quickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         // Get packaged contracts
@@ -581,8 +627,8 @@ export class UserInputUtil {
         }
     }
 
-    public static async showAddIdentityOptionsQuickPick(prompt: string): Promise<string | undefined> {
-        const addIdentityOptions: Array<string> = [this.WALLET, this.CERT_KEY];
+    public static async showAddWalletOptionsQuickPick(prompt: string): Promise<string | undefined> {
+        const addIdentityOptions: Array<string> = [this.WALLET, this.WALLET_NEW_ID];
         const quickPickOptions: vscode.QuickPickOptions = {
             matchOnDetail: true,
             placeHolder: prompt,
@@ -594,20 +640,14 @@ export class UserInputUtil {
 
     }
 
-    public static async browseEdit(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, connectionName?: string, returnUri?: boolean): Promise<string | vscode.Uri> {
+    public static async browse(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
-        if (quickPickItems.includes(this.BROWSE_LABEL) && quickPickItems.includes(this.EDIT_LABEL)) {
-            if (placeHolder.includes('certificate') || placeHolder.includes('private key')) {
-                quickPickItems.pop();
-            }
-        }
 
         try {
             const result: string = await vscode.window.showQuickPick(quickPickItems, { placeHolder });
             if (!result) {
                 return;
-            } else if (result === this.BROWSE_LABEL) {
+            } else { // result === this.BROWSE_LABEL
                 // Browse file and get path
                 // work around for #135
                 await UserInputUtil.delayWorkaround(500);
@@ -624,21 +664,15 @@ export class UserInputUtil {
                     return fileBrowser[0].fsPath;
                 }
 
-            } else { // result === this.EDIT_LABEL
-
-                // Edit in user settings
-                await this.openUserSettings(connectionName);
             }
-
         } catch (error) {
             outputAdapter.log(LogType.ERROR, error.message, error.toString());
         }
     }
 
     public static async showCertificateAuthorityQuickPickBox(prompt: string): Promise<string | undefined> {
-        const connection: IFabricConnection = await FabricRuntimeManager.instance().getConnection();
-        const caNameOption: string = connection.getCertificateAuthorityName();
-        const caNames: string[] = [caNameOption];
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const caNames: string[] = connection.getAllCertificateAuthorityNames();
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -647,6 +681,40 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(caNames, quickPickOptions);
+    }
+
+    public static async showWalletsQuickPickBox(prompt: string, showLocalWallet?: boolean): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
+        const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
+
+        if (showLocalWallet) {
+            // Push local_fabric wallet
+            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
+
+            const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+
+            runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+            walletQuickPickItems.push( {
+                label: runtimeWalletRegistryEntry.name,
+                data: runtimeWalletRegistryEntry
+            });
+        }
+
+        const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
+        for (const walletRegistryEntry of wallets) {
+            walletQuickPickItems.push( {
+                label: walletRegistryEntry.name,
+                data: walletRegistryEntry
+            });
+        }
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(walletQuickPickItems, quickPickOptions);
     }
 
     public static async addIdentityMethod(): Promise<any> {
@@ -660,8 +728,8 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async getCertKey(connectionName: string): Promise<{ certificatePath: string, privateKeyPath: string }> {
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL];
+    public static async getCertKey(): Promise<{certificatePath: string, privateKeyPath: string}> {
+        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
             canSelectFolders: false,
@@ -671,14 +739,14 @@ export class UserInputUtil {
         };
 
         // Get the certificate file path
-        const certificatePath: string = await UserInputUtil.browseEdit('Browse for a certificate file', quickPickItems, openDialogOptions, connectionName) as string;
+        const certificatePath: string = await UserInputUtil.browse('Browse for a certificate file', quickPickItems, openDialogOptions) as string;
         if (!certificatePath) {
             return;
         }
         ParsedCertificate.validPEM(certificatePath, 'certificate');
 
         // Get the private key file path
-        const privateKeyPath: string = await UserInputUtil.browseEdit('Browse for a private key file', quickPickItems, openDialogOptions, connectionName) as string;
+        const privateKeyPath: string = await UserInputUtil.browse('Browse for a private key file', quickPickItems, openDialogOptions) as string;
         if (!privateKeyPath) {
             return;
         }
@@ -756,7 +824,7 @@ export class UserInputUtil {
         }
     }
 
-    private static async getInstalledContracts(connection: IFabricConnection, peers: Array<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
+    private static async getInstalledContracts(connection: IFabricRuntimeConnection, peers: Array<string>): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[]> {
         const tempQuickPickItems: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>[] = [];
         for (const peer of peers) {
             const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);

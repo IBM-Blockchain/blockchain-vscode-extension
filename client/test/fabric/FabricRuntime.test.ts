@@ -31,6 +31,12 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
+import { FabricGateway } from '../../src/fabric/FabricGateway';
+import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricIdentity } from '../../src/fabric/FabricIdentity';
+import * as os from 'os';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
 
@@ -59,10 +65,8 @@ describe('FabricRuntime', () => {
     let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
     let mockLogsVolume: sinon.SinonStubbedInstance<Volume>;
     let connectionProfilePath: string;
-    let runtimeDetailsDir: string;
     let ensureFileStub: sinon.SinonStub;
     let writeFileStub: sinon.SinonStub;
-    let copyStub: sinon.SinonStub;
     let removeStub: sinon.SinonStub;
     let errorSpy: sinon.SinonSpy;
     let runtimeDir: string;
@@ -201,10 +205,9 @@ describe('FabricRuntime', () => {
         getVolumeStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsVolume);
 
         runtimeDir = path.join(rootPath, '..', 'data');
-        sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
+        sandbox.stub(UserInputUtil, 'getDirPath').returns(runtimeDir);
         ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
         writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
-        copyStub = sandbox.stub(fs, 'copySync').resolves();
         removeStub = sandbox.stub(fs, 'remove').resolves();
     });
 
@@ -215,7 +218,7 @@ describe('FabricRuntime', () => {
     describe('#getName', () => {
 
         it('should return the name of the runtime', () => {
-            runtime.getName().should.equal('local_fabric');
+            runtime.getName().should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
         });
     });
 
@@ -773,105 +776,6 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#getConnectionProfile', () => {
-
-        it('should get a connection profile', async () => {
-            const connectionProfile: object = await runtime.getConnectionProfile();
-            connectionProfile.should.deep.equal({
-                name: 'basic-network',
-                version: '1.0.0',
-                client: {
-                    organization: 'Org1',
-                    connection: {
-                        timeout: {
-                            peer: {
-                                endorser: '300',
-                                eventHub: '300',
-                                eventReg: '300'
-                            },
-                            orderer: '300'
-                        }
-                    }
-                },
-                channels: {
-                    mychannel: {
-                        orderers: [
-                            'orderer.example.com'
-                        ],
-                        peers: {
-                            'peer0.org1.example.com': {}
-                        }
-                    }
-                },
-                organizations: {
-                    Org1: {
-                        mspid: 'Org1MSP',
-                        peers: [
-                            'peer0.org1.example.com'
-                        ],
-                        certificateAuthorities: [
-                            'ca.org1.example.com'
-                        ]
-                    }
-                },
-                orderers: {
-                    'orderer.example.com': {
-                        url: 'grpc://127.0.0.1:12347'
-                    }
-                },
-                peers: {
-                    'peer0.org1.example.com': {
-                        url: 'grpc://localhost:12345',
-                        eventUrl: 'grpc://localhost:12346'
-                    }
-                },
-                certificateAuthorities: {
-                    'ca.org1.example.com': {
-                        url: 'http://127.0.0.1:12348',
-                        caName: 'ca.example.com'
-                    }
-                }
-            });
-        });
-    });
-
-    describe('#getCertificate', () => {
-
-        it('should get the PEM encoded certificate', async () => {
-            let certificate: string = await runtime.getCertificate();
-            certificate = certificate.replace(/\r/g, ''); // Windows!
-            certificate.should.equal('-----BEGIN CERTIFICATE-----\nMIICGDCCAb+gAwIBAgIQFSxnLAGsu04zrFkAEwzn6zAKBggqhkjOPQQDAjBzMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu\nb3JnMS5leGFtcGxlLmNvbTAeFw0xNzA4MzEwOTE0MzJaFw0yNzA4MjkwOTE0MzJa\nMFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEV1dfmKxsFKWo7o6DNBIaIVebCCPAM9C/\nsLBt4pJRre9pWE987DjXZoZ3glc4+DoPMtTmBRqbPVwYcUvpbYY8p6NNMEswDgYD\nVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgQjmqDc122u64\nugzacBhR0UUE0xqtGy3d26xqVzZeSXwwCgYIKoZIzj0EAwIDRwAwRAIgXMy26AEU\n/GUMPfCMs/nQjQME1ZxBHAYZtKEuRR361JsCIEg9BOZdIoioRivJC+ZUzvJUnkXu\no2HkWiuxLsibGxtE\n-----END CERTIFICATE-----\n');
-        });
-    });
-
-    describe('#getPrivateKey', () => {
-
-        it('should get the PEM encoded private key', async () => {
-            let privateKey: string = await runtime.getPrivateKey();
-            privateKey = privateKey.replace(/\r/g, ''); // Windows!
-            privateKey.should.equal('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
-        });
-
-    });
-
-    describe('#getCertificatePath', () => {
-
-        it('should get the runtime certificate path', async () => {
-            const certPath: string = await runtime.getCertificatePath();
-            certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'signcerts', 'Admin@org1.example.com-cert.pem'));
-        });
-
-    });
-
-    describe('#getConnectionProfilePath', () => {
-
-        it('should get the runtime connection profile path', async () => {
-            const connectionPath: string = await runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'local_fabric', 'connection.json'));
-        });
-
-    });
-
     describe('#isCreated', () => {
 
         it('should return true if the peer, orderer, CA, couchdb, and logs exist', async () => {
@@ -1017,39 +921,37 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#exportConnectionDetails', () => {
+    describe('#exportConnectionProfile', () => {
 
         beforeEach(async () => {
-            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json');
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
-        it('should save runtime connection details to disk', async () => {
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
+        it('should save runtime connection profile to disk', async () => {
+            await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance());
+            ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            copyStub.should.not.have.been.called;
             errorSpy.should.not.have.been.called;
         });
 
-        it('should save runtime connection details to a specified place', async () => {
+        it('should save runtime connection profile to a specified place', async () => {
             runtimeDir = 'myPath';
-            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
+            connectionProfilePath = path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC, 'connection.json');
 
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
-            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
+            await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
+            ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            copyStub.should.have.been.calledOnce;
             errorSpy.should.not.have.been.called;
         });
 
         it('should show an error message if we fail to save connection details to disk', async () => {
             writeFileStub.onCall(0).rejects({ message: 'oops' });
 
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
-            ensureFileStub.should.have.been.calledOnce;
+            await runtime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
+            ensureFileStub.should.have.been.calledOnceWithExactly(connectionProfilePath);
             writeFileStub.should.have.been.calledOnce;
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
+            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection profile in directory ${path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC)} with error: oops`);
         });
     });
 
@@ -1057,13 +959,15 @@ describe('FabricRuntime', () => {
 
         beforeEach(async () => {
             errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            runtimeDetailsDir = path.join(runtimeDir, 'local_fabric');
 
         });
 
-        it('should delete runtime connection details', async () => {
+        it('should delete admin identity and local runtime ops connection details ', async () => {
             await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            removeStub.getCall(0).should.have.been.calledWith(runtimeDetailsDir);
+
+            removeStub.getCall(0).should.have.been.calledWith(path.join(runtimeDir, FabricRuntimeUtil.LOCAL_FABRIC));
+            removeStub.getCall(1).should.have.been.calledWith(path.join(runtimeDir, FabricWalletUtil.LOCAL_WALLET, FabricRuntimeUtil.ADMIN_USER));
+            removeStub.getCall(2).should.have.been.calledWith(path.join(runtimeDir, FabricWalletUtil.LOCAL_WALLET + '-ops'));
             errorSpy.should.not.have.been.called;
         });
 
@@ -1111,4 +1015,143 @@ describe('FabricRuntime', () => {
             abortRequestStub.should.not.have.been.called;
         });
     });
+
+    describe('#getGateways', () => {
+        it('should return an array of gateways', async () => {
+            const gateways: FabricGateway[] = await runtime.getGateways();
+            gateways.should.deep.equal([
+                {
+                    name: FabricRuntimeUtil.LOCAL_FABRIC,
+                    path: runtime['getConnectionProfilePath'](),
+                    connectionProfile: {
+                        name: 'basic-network',
+                        version: '1.0.0',
+                        client: {
+                            organization: 'Org1',
+                            connection: {
+                                timeout: {
+                                    peer: {
+                                        endorser: '300',
+                                        eventHub: '300',
+                                        eventReg: '300'
+                                    },
+                                    orderer: '300'
+                                }
+                            }
+                        },
+                        channels: {
+                            mychannel: {
+                                orderers: [
+                                    'orderer.example.com'
+                                ],
+                                peers: {
+                                    'peer0.org1.example.com': {}
+                                }
+                            }
+                        },
+                        organizations: {
+                            Org1: {
+                                mspid: 'Org1MSP',
+                                peers: [
+                                    'peer0.org1.example.com'
+                                ],
+                                certificateAuthorities: [
+                                    'ca.org1.example.com'
+                                ]
+                            }
+                        },
+                        orderers: {
+                            'orderer.example.com': {
+                                url: 'grpc://127.0.0.1:12347'
+                            }
+                        },
+                        peers: {
+                            'peer0.org1.example.com': {
+                                url: 'grpc://localhost:12345',
+                                eventUrl: 'grpc://localhost:12346'
+                            }
+                        },
+                        certificateAuthorities: {
+                            'ca.org1.example.com': {
+                                url: 'http://127.0.0.1:12348',
+                                caName: 'ca.example.com'
+                            }
+                        }
+                    }
+                }
+            ]);
+        });
+    });
+
+    describe('#getNodes', () => {
+        it('should return an array of nodes', async () => {
+            const nodes: FabricNode[] = await runtime.getNodes();
+            nodes.should.deep.equal([
+                {
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    type: 'fabric-peer',
+                    url: 'grpc://localhost:12345',
+                    wallet: `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                    identity: FabricRuntimeUtil.ADMIN_USER,
+                    msp_id: 'Org1MSP'
+                },
+                {
+                    short_name: 'ca.example.com',
+                    name: 'ca.example.com',
+                    type: 'fabric-ca',
+                    url: 'http://localhost:12348',
+                    wallet: FabricWalletUtil.LOCAL_WALLET,
+                    identity: FabricRuntimeUtil.ADMIN_USER,
+                    msp_id: 'Org1MSP'
+                },
+                {
+                    short_name: 'orderer.example.com',
+                    name: 'orderer.example.com',
+                    type: 'fabric-orderer',
+                    url: 'grpc://localhost:12347',
+                    wallet: `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                    identity: FabricRuntimeUtil.ADMIN_USER,
+                    msp_id: 'OrdererMSP'
+                }
+            ]);
+        });
+    });
+
+    describe('#getWalletName', () => {
+        it('should return an array of wallet names', async () => {
+            const walletNames: string[] = await runtime.getWalletNames();
+            walletNames.should.deep.equal([
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`
+            ]);
+        });
+    });
+
+    describe('#getIdentities', () => {
+        it('should return an array of identities for a wallet that exists', async () => {
+            const identities: FabricIdentity[] = await runtime.getIdentities(`${FabricWalletUtil.LOCAL_WALLET}-ops`);
+            let certificate: string;
+            let privateKey: string;
+            if (os.platform() === 'win32') {
+                certificate = 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlDR0RDQ0FiK2dBd0lCQWdJUUZTeG5MQUdzdTA0enJGa0FFd3puNnpBS0JnZ3Foa2pPUFFRREFqQnpNUXN3DQpDUVlEVlFRR0V3SlZVekVUTUJFR0ExVUVDQk1LUTJGc2FXWnZjbTVwWVRFV01CUUdBMVVFQnhNTlUyRnVJRVp5DQpZVzVqYVhOamJ6RVpNQmNHQTFVRUNoTVFiM0puTVM1bGVHRnRjR3hsTG1OdmJURWNNQm9HQTFVRUF4TVRZMkV1DQpiM0puTVM1bGVHRnRjR3hsTG1OdmJUQWVGdzB4TnpBNE16RXdPVEUwTXpKYUZ3MHlOekE0TWprd09URTBNekphDQpNRnN4Q3pBSkJnTlZCQVlUQWxWVE1STXdFUVlEVlFRSUV3cERZV3hwWm05eWJtbGhNUll3RkFZRFZRUUhFdzFUDQpZVzRnUm5KaGJtTnBjMk52TVI4d0hRWURWUVFEREJaQlpHMXBia0J2Y21jeExtVjRZVzF3YkdVdVkyOXRNRmt3DQpFd1lIS29aSXpqMENBUVlJS29aSXpqMERBUWNEUWdBRVYxZGZtS3hzRktXbzdvNkROQklhSVZlYkNDUEFNOUMvDQpzTEJ0NHBKUnJlOXBXRTk4N0RqWFpvWjNnbGM0K0RvUE10VG1CUnFiUFZ3WWNVdnBiWVk4cDZOTk1Fc3dEZ1lEDQpWUjBQQVFIL0JBUURBZ2VBTUF3R0ExVWRFd0VCL3dRQ01BQXdLd1lEVlIwakJDUXdJb0FnUWptcURjMTIydTY0DQp1Z3phY0JoUjBVVUUweHF0R3kzZDI2eHFWelplU1h3d0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ1hNeTI2QUVVDQovR1VNUGZDTXMvblFqUU1FMVp4QkhBWVp0S0V1UlIzNjFKc0NJRWc5Qk9aZElvaW9SaXZKQytaVXp2SlVua1h1DQpvMkhrV2l1eExzaWJHeHRFDQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tDQo=';
+                privateKey = 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tDQpNSUdIQWdFQU1CTUdCeXFHU000OUFnRUdDQ3FHU000OUF3RUhCRzB3YXdJQkFRUWdSZ1FyMzQ3aWo2Y2p3WDdtDQpLanpiYkQ4VGx3ZGZ1NkZhdWJqV0pXTEd5cWFoUkFOQ0FBUlhWMStZckd3VXBhanVqb00wRWhvaFY1c0lJOEF6DQowTCt3c0czaWtsR3Q3MmxZVDN6c09OZG1obmVDVnpqNE9nOHkxT1lGR3BzOVhCaHhTK2x0aGp5bg0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ0K';
+            } else {
+                certificate = 'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNHRENDQWIrZ0F3SUJBZ0lRRlN4bkxBR3N1MDR6ckZrQUV3em42ekFLQmdncWhrak9QUVFEQWpCek1Rc3cKQ1FZRFZRUUdFd0pWVXpFVE1CRUdBMVVFQ0JNS1EyRnNhV1p2Y201cFlURVdNQlFHQTFVRUJ4TU5VMkZ1SUVaeQpZVzVqYVhOamJ6RVpNQmNHQTFVRUNoTVFiM0puTVM1bGVHRnRjR3hsTG1OdmJURWNNQm9HQTFVRUF4TVRZMkV1CmIzSm5NUzVsZUdGdGNHeGxMbU52YlRBZUZ3MHhOekE0TXpFd09URTBNekphRncweU56QTRNamt3T1RFME16SmEKTUZzeEN6QUpCZ05WQkFZVEFsVlRNUk13RVFZRFZRUUlFd3BEWVd4cFptOXlibWxoTVJZd0ZBWURWUVFIRXcxVApZVzRnUm5KaGJtTnBjMk52TVI4d0hRWURWUVFEREJaQlpHMXBia0J2Y21jeExtVjRZVzF3YkdVdVkyOXRNRmt3CkV3WUhLb1pJemowQ0FRWUlLb1pJemowREFRY0RRZ0FFVjFkZm1LeHNGS1dvN282RE5CSWFJVmViQ0NQQU05Qy8Kc0xCdDRwSlJyZTlwV0U5ODdEalhab1ozZ2xjNCtEb1BNdFRtQlJxYlBWd1ljVXZwYllZOHA2Tk5NRXN3RGdZRApWUjBQQVFIL0JBUURBZ2VBTUF3R0ExVWRFd0VCL3dRQ01BQXdLd1lEVlIwakJDUXdJb0FnUWptcURjMTIydTY0CnVnemFjQmhSMFVVRTB4cXRHeTNkMjZ4cVZ6WmVTWHd3Q2dZSUtvWkl6ajBFQXdJRFJ3QXdSQUlnWE15MjZBRVUKL0dVTVBmQ01zL25RalFNRTFaeEJIQVladEtFdVJSMzYxSnNDSUVnOUJPWmRJb2lvUml2SkMrWlV6dkpVbmtYdQpvMkhrV2l1eExzaWJHeHRFCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K';
+                privateKey = 'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ1JnUXIzNDdpajZjandYN20KS2p6YmJEOFRsd2RmdTZGYXVialdKV0xHeXFhaFJBTkNBQVJYVjErWXJHd1VwYWp1am9NMEVob2hWNXNJSThBegowTCt3c0czaWtsR3Q3MmxZVDN6c09OZG1obmVDVnpqNE9nOHkxT1lGR3BzOVhCaHhTK2x0aGp5bgotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==';
+            }
+            identities.should.deep.equal([
+                {
+                    name: FabricRuntimeUtil.ADMIN_USER,
+                    certificate: certificate,
+                    private_key: privateKey,
+                    msp_id: 'Org1MSP'
+                }
+            ]);
+        });
+
+        it('should throw for a wallet that does not exist', async () => {
+            await runtime.getIdentities('no identities here').should.be.rejectedWith(/does not exist/);
+        });
+    });
+
 });

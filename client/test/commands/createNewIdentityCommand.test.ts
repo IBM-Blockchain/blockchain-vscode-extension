@@ -63,15 +63,15 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         caChoseStub = mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox').resolves('ca.name');
 
-        const testFabricWallet: FabricWallet = new FabricWallet('local_fabric', '/some/path');
+        const testFabricWallet: FabricWallet = new FabricWallet('/some/path');
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
         runtimeManager.gatewayWallet = testFabricWallet as IFabricWallet;
 
         mockFabricRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
         mockFabricRuntimeConnection.connect.resolves();
-        mockFabricRuntimeConnection.getCertificateAuthorityName.returns('ca.name');
-        mockFabricRuntimeConnection.getOrderers.resolves([]);
+        mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
+        mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);
         mockFabricRuntimeConnection.register.resolves('its a secret');
         mockFabricRuntimeConnection.enroll.resolves({
@@ -112,7 +112,7 @@ describe('createNewIdentityCommand', () => {
         importIdentityStub.should.have.been.calledOnce;
         mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
@@ -133,7 +133,7 @@ describe('createNewIdentityCommand', () => {
         importIdentityStub.should.have.been.calledOnce;
         mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
@@ -159,8 +159,8 @@ describe('createNewIdentityCommand', () => {
         importIdentityStub.should.have.been.calledTwice;
         mockFabricRuntimeConnection.disconnect.should.have.been.calledTwice;
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.callCount.should.equal(4);
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
@@ -187,7 +187,7 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-        executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');

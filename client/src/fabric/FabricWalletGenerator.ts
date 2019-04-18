@@ -28,21 +28,21 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     private static _instance: FabricWalletGenerator = new FabricWalletGenerator();
 
-    public async createLocalWallet(connectionName: string): Promise<FabricWallet> {
+    public async createLocalWallet(walletName: string): Promise<FabricWallet> {
 
         const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-        const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
-        const walletPath: string = path.join(homeExtDir, connectionName, 'wallet');
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const walletPath: string = path.join(homeExtDir, walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
 
         if (!walletExists) {
             await fs.ensureDir(walletPath);
         }
 
-        return new FabricWallet(connectionName, walletPath);
+        return new FabricWallet(walletPath);
     }
 
-    public getNewWallet(connectionName: string, walletPath: string): FabricWallet {
-        return new FabricWallet(connectionName, walletPath);
+    public getNewWallet(walletPath: string): FabricWallet {
+        return new FabricWallet(walletPath);
     }
 }

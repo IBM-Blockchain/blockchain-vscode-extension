@@ -47,7 +47,7 @@ describe('importSmartContractPackageCommand', () => {
     let sandbox: sinon.SinonSandbox;
     let copyStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
-    let browseEditStub: sinon.SinonStub;
+    let browseStub: sinon.SinonStub;
     let commandSpy: sinon.SinonSpy;
 
     const srcPackage: string = path.join('myPath', 'test.cds');
@@ -55,7 +55,7 @@ describe('importSmartContractPackageCommand', () => {
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
 
-        browseEditStub = sandbox.stub(UserInputUtil, 'browseEdit').resolves(srcPackage);
+        browseStub = sandbox.stub(UserInputUtil, 'browse').resolves(srcPackage);
         copyStub = sandbox.stub(fs, 'copyFile').resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
@@ -76,7 +76,7 @@ describe('importSmartContractPackageCommand', () => {
     });
 
     it('should handle cancel choosing package', async () => {
-        browseEditStub.resolves();
+        browseStub.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
 
         copyStub.should.not.have.been.called;

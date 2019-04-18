@@ -18,7 +18,6 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-
 import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
@@ -26,6 +25,7 @@ import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 chai.should();
 chai.use(sinonChai);
@@ -63,15 +63,13 @@ describe('DeleteGatewayCommand', () => {
 
             myGatewayA = {
                 name: 'myGatewayA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json')
             };
             gateways.push(myGatewayA);
 
             myGatewayB = {
                 name: 'myGatewayB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
             };
             gateways.push(myGatewayB);
 
@@ -81,6 +79,8 @@ describe('DeleteGatewayCommand', () => {
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
             });
+
+            mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
 
         afterEach(() => {
@@ -102,7 +102,7 @@ describe('DeleteGatewayCommand', () => {
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
-            const connectionToDelete: BlockchainTreeItem = allChildren[1];
+            const connectionToDelete: BlockchainTreeItem = allChildren[0];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, connectionToDelete);
 
             gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
@@ -133,22 +133,20 @@ describe('DeleteGatewayCommand', () => {
             gateways[1].should.deep.equal(myGatewayB);
         });
 
-        it('should delete the wallet and local connection directory if the extension owns the wallet directory', async () => {
-
-            const myConnectionC: any = {
-                name: 'myConnectionC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                walletPath: 'fabric-vscode/myConnectionC/wallet'
+        it('should delete the local gateway directory if the extension owns it', async () => {
+            const myGatewayC: any = {
+                name: 'myGatewayC',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
             };
-            gateways.push(myConnectionC);
+            gateways.push(myGatewayC);
             await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
 
             quickPickStub.resolves({
-                label: 'myConnectionC',
-                data: FabricGatewayRegistry.instance().get('myConnectionC')
+                label: 'myGatewayC',
+                data: FabricGatewayRegistry.instance().get('myGatewayC')
             });
 
-            const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').resolves('fabric-vscode');
+            const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').returns('fabric-vscode');
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
@@ -158,7 +156,7 @@ describe('DeleteGatewayCommand', () => {
             gateways[1].should.deep.equal(myGatewayB);
 
             getDirPathStub.should.have.been.calledOnce;
-            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'myConnectionC'));
+            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'myGatewayC'));
 
         });
     });

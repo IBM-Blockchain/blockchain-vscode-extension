@@ -28,6 +28,8 @@ import { BlockchainGatewayExplorerProvider } from '../src/explorer/gatewayExplor
 import { SampleView } from '../src/webview/SampleView';
 import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../src/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
+import { TutorialView } from '../src/webview/TutorialView';
 
 chai.use(sinonChai);
 
@@ -69,19 +71,20 @@ describe('Extension Tests', () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
         const commands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome');
+            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer');
         });
 
         commands.should.deep.equal([
             'aPackagesExplorer.focus',
             'aRuntimeOpsExplorer.focus',
             'gatewaysExplorer.focus',
+            'walletExplorer.focus',
             ExtensionCommands.REFRESH_GATEWAYS,
             ExtensionCommands.CONNECT,
             ExtensionCommands.DISCONNECT,
             ExtensionCommands.ADD_GATEWAY,
             ExtensionCommands.DELETE_GATEWAY,
-            ExtensionCommands.ADD_GATEWAY_IDENTITY,
+            ExtensionCommands.ADD_WALLET_IDENTITY,
             ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
             ExtensionCommands.PACKAGE_SMART_CONTRACT,
             ExtensionCommands.REFRESH_PACKAGES,
@@ -92,7 +95,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.TEARDOWN_FABRIC,
             ExtensionCommands.TOGGLE_FABRIC_DEV_MODE,
             ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL,
-            ExtensionCommands.EXPORT_CONNECTION_DETAILS,
+            ExtensionCommands.EXPORT_CONNECTION_PROFILE,
             ExtensionCommands.DELETE_SMART_CONTRACT,
             ExtensionCommands.EXPORT_SMART_CONTRACT,
             ExtensionCommands.IMPORT_SMART_CONTRACT,
@@ -104,6 +107,13 @@ describe('Extension Tests', () => {
             ExtensionCommands.EVALUATE_TRANSACTION,
             ExtensionCommands.UPGRADE_SMART_CONTRACT,
             ExtensionCommands.CREATE_NEW_IDENTITY,
+            ExtensionCommands.REFRESH_WALLETS,
+            ExtensionCommands.ADD_WALLET,
+            ExtensionCommands.EDIT_WALLET,
+            ExtensionCommands.REMOVE_WALLET,
+            ExtensionCommands.DELETE_IDENTITY,
+            ExtensionCommands.ASSOCIATE_WALLET,
+            ExtensionCommands.DISSOCIATE_WALLET,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -116,9 +126,9 @@ describe('Extension Tests', () => {
             `onView:gatewayExplorer`,
             `onView:aRuntimeOpsExplorer`,
             `onView:aPackagesExplorer`,
+            `onView:walletExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,
             `onCommand:${ExtensionCommands.DELETE_GATEWAY}`,
-            `onCommand:${ExtensionCommands.ADD_GATEWAY_IDENTITY}`,
             `onCommand:${ExtensionCommands.CONNECT}`,
             `onCommand:${ExtensionCommands.DISCONNECT}`,
             `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
@@ -126,6 +136,8 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.SUBMIT_TRANSACTION}`,
             `onCommand:${ExtensionCommands.EVALUATE_TRANSACTION}`,
+            `onCommand:${ExtensionCommands.ASSOCIATE_WALLET}`,
+            `onCommand:${ExtensionCommands.DISSOCIATE_WALLET}`,
             `onCommand:${ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT}`,
             `onCommand:${ExtensionCommands.PACKAGE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.DELETE_SMART_CONTRACT}`,
@@ -141,9 +153,15 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.TEARDOWN_FABRIC}`,
             `onCommand:${ExtensionCommands.TOGGLE_FABRIC_DEV_MODE}`,
             `onCommand:${ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL}`,
-            `onCommand:${ExtensionCommands.EXPORT_CONNECTION_DETAILS}`,
+            `onCommand:${ExtensionCommands.EXPORT_CONNECTION_PROFILE}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.CREATE_NEW_IDENTITY}`,
+            `onCommand:${ExtensionCommands.REFRESH_WALLETS}`,
+            `onCommand:${ExtensionCommands.ADD_WALLET}`,
+            `onCommand:${ExtensionCommands.ADD_WALLET_IDENTITY}`,
+            `onCommand:${ExtensionCommands.EDIT_WALLET}`,
+            `onCommand:${ExtensionCommands.REMOVE_WALLET}`,
+            `onCommand:${ExtensionCommands.DELETE_IDENTITY}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onDebug`
         ]);
@@ -181,7 +199,7 @@ describe('Extension Tests', () => {
         const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
         const myRuntime: any = {
-            name: 'local_fabric',
+            name: FabricRuntimeUtil.LOCAL_FABRIC,
             developmentMode: false
         };
 
@@ -350,15 +368,25 @@ describe('Extension Tests', () => {
     });
 
     it('should register and show sample page', async () => {
-        mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        const openContractSampleStub: sinon.SinonStub = mySandBox.stub(SampleView, 'openContractSample').resolves();
+        const sampleViewStub: sinon.SinonStub = mySandBox.stub(SampleView.prototype, 'openView');
+        sampleViewStub.resolves();
         await myExtension.activate(context);
 
-        await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'Repo One', 'Sample One');
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'hyperledger/fabric-samples', 'FabCar');
 
-        openContractSampleStub.should.have.been.calledWith(context, 'Repo One', 'Sample One');
+        sampleViewStub.should.have.been.called;
+    });
 
+    it('should register and show tutorial page', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        const tutorialViewStub: sinon.SinonStub = mySandBox.stub(TutorialView.prototype, 'openView');
+        tutorialViewStub.resolves();
+        await myExtension.activate(context);
+
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, 'IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+
+        tutorialViewStub.should.have.been.called;
     });
 
     it('should reload blockchain explorer when debug event emitted', async () => {

@@ -39,23 +39,12 @@ import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
-import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from '../../src/explorer/runtimeOps/OrdererTreeItem';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 
 chai.use(sinonChai);
 chai.should();
-
-class TestFabricConnection extends FabricConnection {
-
-    async connect(): Promise<void> {
-        return;
-    }
-
-    async getConnectionDetails(): Promise<any> {
-        return;
-    }
-}
 
 // tslint:disable no-unused-expression
 describe('runtimeOpsExplorer', () => {
@@ -130,11 +119,10 @@ describe('runtimeOpsExplorer', () => {
 
             it('should error if gRPC cant connect to Fabric', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });
-                fabricConnection.createChannelMap.callThrough();
+                fabricConnection.createChannelMap.throws(new Error('Cannot connect to Fabric: Received http2 header with status: 503'));
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
@@ -145,11 +133,10 @@ describe('runtimeOpsExplorer', () => {
 
             it('should error if getAllChannelsForPeer errors with message when populating channels view', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
-                fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
-                fabricConnection.createChannelMap.callThrough();
+                fabricConnection.createChannelMap.throws(new Error('Error creating channel map: some error'));
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
@@ -158,26 +145,10 @@ describe('runtimeOpsExplorer', () => {
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating channel view: Error creating channel map: some error', 'Error populating channel view: Error: Error creating channel map: some error');
             });
 
-            it('should error if getAllChannelsForPeer errors without a message when populating organizations view', async () => {
-                isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
-                fabricConnection.getAllPeerNames.returns(['peerOne']);
-                const error: Error = new Error('an error with no message');
-                fabricConnection.getAllChannelsForPeer.throws(error);
-                fabricConnection.createChannelMap.callThrough();
-
-                const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
-                const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
-                await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
-
-                logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating organizations view: Error creating channel map: an error with no message', 'Error populating organizations view: Error: Error creating channel map: an error with no message');
-            });
-
             it('should error if populating nodes view fails', async () => {
                 isRunningStub.resolves(true);
-                const fabricConnection: sinon.SinonStubbedInstance<FabricConnection> = sinon.createStubInstance(TestFabricConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                const fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+                getConnectionStub.returns((fabricConnection as any) as FabricRuntimeConnection);
                 fabricConnection.getAllPeerNames.throws({ message: 'some error' });
 
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
@@ -193,7 +164,7 @@ describe('runtimeOpsExplorer', () => {
             let mySandBox: sinon.SinonSandbox;
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
-            let fabricConnection: sinon.SinonStubbedInstance<FabricConnection>;
+            let fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
@@ -204,13 +175,9 @@ describe('runtimeOpsExplorer', () => {
 
                 await ExtensionUtil.activateExtension();
 
-                fabricConnection = sinon.createStubInstance(TestFabricConnection);
+                fabricConnection = sinon.createStubInstance(FabricRuntimeConnection);
 
                 fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
-
-                fabricConnection.getAllPeerNames.returns(['peerOne', 'peerTwo']);
-                fabricConnection.getAllChannelsForPeer.withArgs('peerOne').resolves(['channelOne', 'channelTwo']);
-                fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
 
                 const installedChaincodeMapOne: Map<string, Array<string>> = new Map<string, Array<string>>();
                 installedChaincodeMapOne.set('sample-car-network', ['1.0', '1.2']);
@@ -222,11 +189,11 @@ describe('runtimeOpsExplorer', () => {
                 installedChaincodeMapTwo.set('biscuit-network', ['0.7']);
                 fabricConnection.getInstalledChaincode.withArgs('peerTwo').returns(installedChaincodeMapTwo);
 
-                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').resolves([{
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').resolves([{
                     name: 'biscuit-network',
                     version: '0.7'
                 }]);
-                fabricConnection.getInstantiatedChaincode.withArgs('channelTwo').resolves([{
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne', 'peerTwo'], 'channelTwo').resolves([{
                     name: 'cake-network',
                     version: '0.10'
                 }, {
@@ -234,21 +201,9 @@ describe('runtimeOpsExplorer', () => {
                     version: '2.34'
                 }]);
 
-                fabricConnection.getOrganizations.withArgs('channelOne').resolves([
-                    {
-                        id: 'Org1'
-                    },
-                    {
-                        id: 'Org2'
-                    }
-                ]);
-                fabricConnection.getOrganizations.withArgs('channelTwo').resolves([
-                    {
-                        id: 'Org3'
-                    }
-                ]);
+                fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
-                fabricConnection.getOrderers.resolves(new Set(['orderer1']));
+                fabricConnection.getAllOrdererNames.returns(['orderer1']);
 
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);
@@ -314,8 +269,8 @@ describe('runtimeOpsExplorer', () => {
                 channelTwo.label.should.equal('channelTwo');
             });
 
-            it('should show peers (nodes) correctly', async () => {
-                fabricConnection.getCertificateAuthorityName.returns('ca-name');
+            it('should show peers, certificate authorities, and orderer nodes correctly', async () => {
+                fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(4);
@@ -346,7 +301,7 @@ describe('runtimeOpsExplorer', () => {
             });
 
             it('should error if there is a problem with displaying instantiated chaincodes', async () => {
-                fabricConnection.getInstantiatedChaincode.withArgs('channelOne').rejects({ message: 'some error' });
+                fabricConnection.getInstantiatedChaincode.withArgs(['peerOne'], 'channelOne').rejects({ message: 'some error' });
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
@@ -472,14 +427,14 @@ describe('runtimeOpsExplorer', () => {
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
                 const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 instantiatedChaincodes.length.should.equal(4);
-                const instantiatedChaincodeOne: InstantiatedContractTreeItem = instantiatedChaincodes[0] as InstantiatedContractTreeItem;
+                const instantiatedChaincodeOne: InstantiatedChaincodeTreeItem = instantiatedChaincodes[0] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-contract-item');
+                instantiatedChaincodeOne.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedChaincodeOne.label.should.equal('biscuit-network@0.7');
                 instantiatedChaincodeOne.tooltip.should.equal('Instantiated on: channelOne');
-                const instantiatedChaincodeTwo: InstantiatedContractTreeItem = instantiatedChaincodes[1] as InstantiatedContractTreeItem;
+                const instantiatedChaincodeTwo: InstantiatedChaincodeTreeItem = instantiatedChaincodes[1] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-contract-item');
+                instantiatedChaincodeTwo.contextValue.should.equal('blockchain-instantiated-chaincode-item');
                 instantiatedChaincodeTwo.label.should.equal('cake-network@0.10');
                 instantiatedChaincodeTwo.tooltip.should.equal('Instantiated on: channelTwo');
                 const instantiatedChaincodeThree: InstantiatedChaincodeTreeItem = instantiatedChaincodes[2] as InstantiatedChaincodeTreeItem;
@@ -504,7 +459,7 @@ describe('runtimeOpsExplorer', () => {
                 allChildren.length.should.equal(4);
 
                 const orgs: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
-                orgs.length.should.equal(3);
+                orgs.length.should.equal(2);
                 const orgOne: OrgTreeItem = orgs[0] as OrgTreeItem;
                 orgOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orgOne.contextValue.should.equal('blockchain-runtime-org-item');
@@ -514,11 +469,6 @@ describe('runtimeOpsExplorer', () => {
                 orgTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orgTwo.contextValue.should.equal('blockchain-runtime-org-item');
                 orgTwo.label.should.equal('Org2');
-
-                const orgThree: OrgTreeItem = orgs[2] as OrgTreeItem;
-                orgThree.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                orgThree.contextValue.should.equal('blockchain-runtime-org-item');
-                orgThree.label.should.equal('Org3');
 
                 logSpy.should.not.have.been.called;
             });
