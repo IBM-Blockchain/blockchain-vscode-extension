@@ -66,6 +66,8 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                 const certificateAuthority: FabricCAServices = new FabricCAServices(node.url, null, node.name, this.client.getCryptoSuite());
                 this.certificateAuthorities.set(node.name, certificateAuthority);
                 break;
+            default:
+                continue;
             }
             this.nodes.set(node.name, node);
         }

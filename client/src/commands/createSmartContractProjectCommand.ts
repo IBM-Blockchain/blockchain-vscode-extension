@@ -19,13 +19,10 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
 import { UserInputUtil, LanguageQuickPickItem } from './UserInputUtil';
-import * as yeoman from 'yeoman-environment';
-import { YeomanAdapter } from '../util/YeomanAdapter';
-import * as util from 'util';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LogType } from '../logging/OutputAdapter';
-import * as GeneratorFabric from 'generator-fabric';
 import * as GeneratorFabricPackageJSON from 'generator-fabric/package.json';
+import { YeomanUtil } from '../util/YeomanUtil';
 
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
@@ -79,15 +76,7 @@ export async function createSmartContractProject(): Promise<void> {
     }
 
     try {
-        // tslint:disable-next-line
-        let env = yeoman.createEnv([], {}, new YeomanAdapter());
-        env.registerStub(GeneratorFabric, 'fabric');
 
-        env.lookup = util.promisify(env.lookup);
-        env.run = util.promisify(env.run);
-        await env.lookup();
-
-        // tslint:disable-next-line
         const packageJson: any = ExtensionUtil.getPackageJSON();
         const runOptions: any = {
             'destination': folderPath,
@@ -106,7 +95,7 @@ export async function createSmartContractProject(): Promise<void> {
             cancellable: false
         }, async (progress: vscode.Progress<{message: string}>): Promise<void> => {
             progress.report({message: 'Generating smart contract project'});
-            await env.run(generator, runOptions);
+            await YeomanUtil.run(generator, runOptions);
         });
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully generated smart contract project');

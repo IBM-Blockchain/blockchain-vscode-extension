@@ -17,6 +17,8 @@ export interface IFabricWallet {
 
     importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void>;
 
+    delete(identityName: string): Promise<void>;
+
     exists(identityName: string): Promise<boolean>;
 
     getIdentityNames(): Promise<string[]>;
