@@ -74,6 +74,7 @@ describe('testSmartContractCommand', () => {
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     let walletRegistryEntry: FabricWalletRegistryEntry;
     let getGatewayRegistryStub: sinon.SinonStub;
+    let getIdentityNameStub: sinon.SinonStub;
     let getWalletRegistryStub: sinon.SinonStub;
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
@@ -195,7 +196,9 @@ describe('testSmartContractCommand', () => {
             walletRegistryEntry.name = 'myWallet';
             walletRegistryEntry.walletPath = 'walletPath';
             getWalletRegistryStub = mySandBox.stub(fabricConnectionManager, 'getConnectionWallet');
+            getIdentityNameStub = mySandBox.stub(fabricConnectionManager, 'getConnectionIdentity');
             getWalletRegistryStub.returns(walletRegistryEntry);
+            getIdentityNameStub.returns('Admin');
             // UserInputUtil stubs
             showInstantiatedSmartContractsQuickPickStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').withArgs(sinon.match.any).resolves({
                 label: 'wagonwheel@0.0.1',
@@ -275,6 +278,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')} = true;`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
             templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})];`).should.be.true;
+            templateData.includes('Admin').should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
@@ -314,6 +318,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')}: ${transactionOne.parameters[3].schema.type.replace(`"`, '')} = true;`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
             templateData.includes(`const args: string[] = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})`).should.be.true;
+            templateData.includes('Admin').should.be.true;
             sendCommandStub.should.have.been.calledOnce;
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
