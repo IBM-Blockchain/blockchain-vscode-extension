@@ -14,7 +14,7 @@
 'use strict';
 
 import * as Client from 'fabric-client';
-import { Gateway, GatewayOptions, FileSystemWallet, IdentityInfo } from 'fabric-network';
+import { Gateway, GatewayOptions, FileSystemWallet } from 'fabric-network';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { FabricWallet } from './FabricWallet';
@@ -28,7 +28,6 @@ export abstract class FabricConnection {
     protected outputAdapter: OutputAdapter;
     protected gateway: Gateway = new Gateway();
 
-    private mspid: string;
     private discoveryAsLocalhost: boolean;
     private discoveryEnabled: boolean;
 
@@ -134,14 +133,6 @@ export abstract class FabricConnection {
         };
 
         await this.gateway.connect(connectionProfile, options);
-
-        const identities: IdentityInfo[] = await wallet.list();
-        const identity: IdentityInfo = identities.find((identityToSearch: IdentityInfo) => {
-            return identityToSearch.label === identityName;
-        });
-
-        // TODO: remove this?
-        this.mspid = identity.mspId;
     }
 
     protected async getChannel(channelName: string): Promise<Client.Channel> {
@@ -194,6 +185,6 @@ export abstract class FabricConnection {
     private getAllPeers(): Array<Client.Peer> {
         console.log('getAllPeers');
 
-        return this.gateway.getClient().getPeersForOrg(this.mspid);
+        return this.gateway.getClient().getPeersForOrg();
     }
 }
