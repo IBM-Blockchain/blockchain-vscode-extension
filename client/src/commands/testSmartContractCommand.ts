@@ -124,6 +124,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
     const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
     const fabricGatewayRegistryEntry: FabricGatewayRegistryEntry = fabricConnectionManager.getGatewayRegistryEntry();
     const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
+    const connectionIdentityName: string = fabricConnectionManager.getConnectionIdentity();
 
     for (const [name, transactionArray] of transactions) {
         const homedir: string = os.homedir();
@@ -171,7 +172,8 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
             walletHome: walletHome,
             chaincodeName: chaincodeName,
             chaincodeVersion: chaincodeVersion,
-            channelName: channelName
+            channelName: channelName,
+            identityName: connectionIdentityName
         };
         console.log('template data is: ');
         console.log(templateData);
