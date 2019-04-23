@@ -172,7 +172,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 const nodesChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<SmartContractsTreeItem>;
                 nodesChildren.length.should.equal(3);
                 nodesChildren[0].label.should.equal('peer0.org1.example.com');
-                nodesChildren[1].label.should.equal('ca.example.com');
+                nodesChildren[1].label.should.equal('ca.org1.example.com');
                 nodesChildren[2].label.should.equal('orderer.example.com');
 
                 let instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
@@ -297,7 +297,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 const nodesChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<SmartContractsTreeItem>;
                 nodesChildren.length.should.equal(3);
                 nodesChildren[0].label.should.equal('peer0.org1.example.com');
-                nodesChildren[1].label.should.equal('ca.example.com');
+                nodesChildren[1].label.should.equal('ca.org1.example.com');
                 nodesChildren[2].label.should.equal('orderer.example.com');
 
                 const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]) as Array<InstantiatedContractTreeItem>;
@@ -317,7 +317,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 installedSmartContract.should.not.be.null;
 
                 integrationTestUtil.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(FabricRuntimeUtil.ADMIN_USER);
-                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, 'Admin@org1.example.com');
+                await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, 'admin');
 
                 allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
 
