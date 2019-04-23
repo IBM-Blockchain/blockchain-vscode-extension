@@ -30,6 +30,8 @@ import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import * as fs from 'fs-extra';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
@@ -43,6 +45,8 @@ describe('exportConnectionProfileCommand', () => {
     let nodes: NodesTreeItem;
     let peerTreeItem: PeerTreeItem;
     let logSpy: sinon.SinonSpy;
+    let ensureDirStub: sinon.SinonStub;
+    let copyFileStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -59,7 +63,7 @@ describe('exportConnectionProfileCommand', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeManager.add();
+        await runtimeManager.initialize();
         runtime = runtimeManager.getRuntime();
         sandbox.stub(runtime, 'isRunning').resolves(true);
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
@@ -73,6 +77,15 @@ describe('exportConnectionProfileCommand', () => {
         };
         workspaceFolderStub = sandbox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        sandbox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
+            {
+                name: 'local_fabric',
+                managedRuntime: true,
+                connectionProfilePath: '/tmp/doggo.json'
+            }
+        ]);
+        ensureDirStub = sandbox.stub(fs, 'ensureDir');
+        copyFileStub = sandbox.stub(fs, 'copyFile');
     });
 
     afterEach(async () => {
@@ -80,16 +93,20 @@ describe('exportConnectionProfileCommand', () => {
     });
 
     it('should export the connection profile by right clicking on a peer in the runtime ops tree', async () => {
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, peerTreeItem);
-        exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder.uri.fsPath);
+        const targetDirectory: string = path.resolve(workspaceFolder.uri.fsPath, FabricRuntimeUtil.LOCAL_FABRIC);
+        const targetFile: string = path.resolve(targetDirectory, 'connection.json');
+        ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
+        copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
     });
 
     it('should export the connection profile when called from the command palette', async () => {
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder.uri.fsPath);
+        const targetDirectory: string = path.resolve(workspaceFolder.uri.fsPath, FabricRuntimeUtil.LOCAL_FABRIC);
+        const targetFile: string = path.resolve(targetDirectory, 'connection.json');
+        ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
+        copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
     });
 
@@ -107,26 +124,28 @@ describe('exportConnectionProfileCommand', () => {
         workspaceFolderStub.returns([workspaceFolder, workspaceFolder2]);
         sandbox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').resolves({ label: workspaceFolder2.name, data: workspaceFolder2 });
 
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder2.uri.fsPath);
+        const targetDirectory: string = path.resolve(workspaceFolder2.uri.fsPath, FabricRuntimeUtil.LOCAL_FABRIC);
+        const targetFile: string = path.resolve(targetDirectory, 'connection.json');
+        ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
+        copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder2.uri.fsPath, runtime.getName()));
     });
 
     it('should handle undefined workspace folders', async () => {
 
         workspaceFolderStub.returns(null);
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        exportStub.should.not.have.been.called;
+        ensureDirStub.should.not.have.been.called;
+        copyFileStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection profile to');
     });
 
     it('should handle empty workspace folders', async () => {
         workspaceFolderStub.returns([]);
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        exportStub.should.not.have.been.called;
+        ensureDirStub.should.not.have.been.called;
+        copyFileStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection profile to');
     });
 
@@ -144,16 +163,14 @@ describe('exportConnectionProfileCommand', () => {
         workspaceFolderStub.returns([workspaceFolder, workspaceFolder2]);
         sandbox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').resolves();
 
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        exportStub.should.not.have.been.called;
+        ensureDirStub.should.not.have.been.called;
+        copyFileStub.should.not.have.been.called;
     });
 
     it('should not print the successSpy if there was an error', async () => {
-
-        const exportStub: sinon.SinonStub = sandbox.stub(runtime, 'exportConnectionProfile').rejects({ message: 'something bad happened' });
+        ensureDirStub.rejects(new Error('such error'));
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        exportStub.should.have.been.called.calledOnceWith(VSCodeBlockchainOutputAdapter.instance(), workspaceFolder.uri.fsPath);
 
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
         logSpy.should.not.have.been.calledWith(LogType.SUCCESS);

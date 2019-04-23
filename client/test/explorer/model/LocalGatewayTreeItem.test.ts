@@ -31,13 +31,14 @@ import { FabricRuntimeUtil } from '../../../src/fabric/FabricRuntimeUtil';
 describe('LocalGatewayTreeItem', () => {
 
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+
     let connection: FabricGatewayRegistryEntry;
+    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let onBusyCallback: any;
 
     let sandbox: sinon.SinonSandbox;
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainGatewayExplorerProvider;
-    let localGateway: FabricRuntime;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -60,9 +61,14 @@ describe('LocalGatewayTreeItem', () => {
         connection.managedRuntime = true;
 
         provider = getBlockchainGatewayExplorerProvider();
-        await runtimeManager.add();
-        localGateway = runtimeManager.getRuntime();
+        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.on.callsFake((name: string, callback: any) => {
+            name.should.equal('busy');
+            onBusyCallback = callback;
+        });
         sandbox = sinon.createSandbox();
+        sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
         clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
     });
 
@@ -75,30 +81,11 @@ describe('LocalGatewayTreeItem', () => {
 
     describe('#constructor', () => {
 
-        it('should have the right properties for a local gateway that is not created', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(false);
-            sandbox.stub(localGateway, 'isBusy').returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
-            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricWalletUtil.LOCAL_WALLET, new FabricGatewayRegistryEntry({
-                name: FabricWalletUtil.LOCAL_WALLET,
-                managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                associatedWallet: FabricWalletUtil.LOCAL_WALLET
-            }), vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
-
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-removed');
-        });
-
         it('should have the right properties for a runtime that is not running', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricWalletUtil.LOCAL_WALLET, new FabricGatewayRegistryEntry({
-                name: FabricWalletUtil.LOCAL_WALLET,
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET
@@ -107,26 +94,22 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-stopped');
         });
 
         it('should have the right properties for a runtime that is busy', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(true);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ◐`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-busy');
         });
 
         it('should animate the label for a runtime that is busy', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(true);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -143,50 +126,42 @@ describe('LocalGatewayTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that is running', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(true);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(true);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-started');
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            const isBusyStub: sinon.SinonStub = sandbox.stub(localGateway, 'isBusy');
-            isBusyStub.returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-stopped');
-            isBusyStub.returns(true);
-            localGateway.emit('busy', true);
+            mockRuntime.isBusy.returns(true);
+            onBusyCallback(true);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ◐`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-busy');
         });
 
         it('should animate the label for a runtime that becomes busy', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            const isBusyStub: sinon.SinonStub = sandbox.stub(localGateway, 'isBusy');
-            isBusyStub.returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            isBusyStub.returns(true);
-            localGateway.emit('busy', true);
+            mockRuntime.isBusy.returns(true);
+            onBusyCallback(true);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -201,61 +176,50 @@ describe('LocalGatewayTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that stops being busy', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            const isBusyStub: sinon.SinonStub = sandbox.stub(localGateway, 'isBusy');
-            isBusyStub.returns(true);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ◐`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-busy');
-            isBusyStub.returns(false);
-            localGateway.emit('busy', false);
+            mockRuntime.isBusy.returns(false);
+            onBusyCallback(false);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
-
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-stopped');
         });
 
         it('should have the right properties for a runtime that is not running in development mode', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isDevelopmentMode').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isDevelopmentMode.returns(true);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○  ∞`);
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-stopped');
         });
 
         it('should have the right properties for a runtime that is running in development mode', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isDevelopmentMode').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(false);
-            sandbox.stub(localGateway, 'isRunning').resolves(true);
+            mockRuntime.isDevelopmentMode.returns(true);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(true);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●  ∞`);
-
-            treeItem.contextValue.should.equal('blockchain-local-gateway-item-started');
         });
 
         it('should report errors animating the label for a runtime that is busy', async () => {
-            sandbox.stub(localGateway, 'isCreated').returns(true);
-            sandbox.stub(localGateway, 'isBusy').returns(true);
-            sandbox.stub(localGateway, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
             const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, new FabricGatewayRegistryEntry({
-                name: FabricWalletUtil.LOCAL_WALLET,
+                name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET

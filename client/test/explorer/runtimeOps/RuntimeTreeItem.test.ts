@@ -35,13 +35,13 @@ const should: Chai.Should = chai.should();
 describe('RuntimeTreeItem', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let connection: FabricGatewayRegistryEntry;
 
     let sandbox: sinon.SinonSandbox;
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainGatewayExplorerProvider;
-    let runtime: FabricRuntime;
+    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let onBusyCallback: any;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -65,9 +65,14 @@ describe('RuntimeTreeItem', () => {
         connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
         provider = getBlockchainGatewayExplorerProvider();
-        await runtimeManager.add();
-        runtime = runtimeManager.getRuntime();
+        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.on.callsFake((name: string, callback: any) => {
+            name.should.equal('busy');
+            onBusyCallback = callback;
+        });
         sandbox = sinon.createSandbox();
+        sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
         clock = sinon.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     });
 
@@ -80,33 +85,9 @@ describe('RuntimeTreeItem', () => {
 
     describe('#constructor', () => {
 
-        it('should have the right properties for a runtime that is not created', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(false);
-            sandbox.stub(runtime, 'isBusy').returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, new FabricGatewayRegistryEntry({
-                name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                associatedWallet: FabricWalletUtil.LOCAL_WALLET
-            }), vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
-            treeItem.command.should.deep.equal({
-                command: ExtensionCommands.START_FABRIC,
-                title: '',
-                arguments: [treeItem]
-            });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-removed');
-            treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
-        });
-
         it('should have the right properties for a runtime that is not running', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,
@@ -122,14 +103,12 @@ describe('RuntimeTreeItem', () => {
                 title: '',
                 arguments: [treeItem]
             });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-stopped');
         });
 
         it('should have the right properties for a runtime that is busy starting', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(true);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
+            mockRuntime.getState.returns(FabricRuntimeState.STARTING);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -137,14 +116,12 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
             should.equal(treeItem.command, null);
-            treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
 
         it('should have the right properties for a runtime that is busy stopping', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(true);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STOPPING);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
+            mockRuntime.getState.returns(FabricRuntimeState.STOPPING);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -152,14 +129,12 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local Fabric runtime is stopping... ◐');
             should.equal(treeItem.command, null);
-            treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
 
         it('should have the right properties for a runtime that is busy restarting', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(true);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.RESTARTING);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
+            mockRuntime.getState.returns(FabricRuntimeState.RESTARTING);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -167,14 +142,12 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local Fabric runtime is restarting... ◐');
             should.equal(treeItem.command, null);
-            treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
 
         it('should animate the label for a runtime that is busy', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(true);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.isRunning.resolves(false);
+            mockRuntime.getState.returns(FabricRuntimeState.STARTING);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -191,9 +164,8 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that is running', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(true);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(true);
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
@@ -204,14 +176,11 @@ describe('RuntimeTreeItem', () => {
                 title: '',
                 arguments: [connection]
             });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-started');
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
-            isBusyStub.returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -223,31 +192,27 @@ describe('RuntimeTreeItem', () => {
                 title: '',
                 arguments: [treeItem]
             });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-stopped');
-            isBusyStub.returns(true);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
-            runtime.emit('busy', true);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.getState.returns(FabricRuntimeState.STARTING);
+            onBusyCallback(true);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
             should.equal(treeItem.command, null);
-            treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
         });
 
         it('should animate the label for a runtime that becomes busy', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
-            isBusyStub.returns(false);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(false);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            isBusyStub.returns(true);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
-            runtime.emit('busy', true);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.getState.returns(FabricRuntimeState.STARTING);
+            onBusyCallback(true);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -262,11 +227,9 @@ describe('RuntimeTreeItem', () => {
         });
 
         it('should have the right properties for a runtime that stops being busy', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            const isBusyStub: sinon.SinonStub = sandbox.stub(runtime, 'isBusy');
-            isBusyStub.returns(true);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.getState.returns(FabricRuntimeState.STARTING);
+            mockRuntime.isRunning.resolves(false);
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
@@ -274,9 +237,8 @@ describe('RuntimeTreeItem', () => {
             });
             treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
             should.equal(treeItem.command, null);
-            treeItem.contextValue.should.equal('blockchain-runtime-item-busy');
-            isBusyStub.returns(false);
-            runtime.emit('busy', false);
+            mockRuntime.isBusy.returns(false);
+            onBusyCallback(false);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -286,14 +248,12 @@ describe('RuntimeTreeItem', () => {
                 title: '',
                 arguments: [treeItem]
             });
-            treeItem.contextValue.should.equal('blockchain-runtime-item-stopped');
         });
 
         it('should report errors animating the label for a runtime that is busy', async () => {
-            sandbox.stub(runtime, 'isCreated').returns(true);
-            sandbox.stub(runtime, 'isBusy').returns(true);
-            sandbox.stub(runtime, 'getState').returns(FabricRuntimeState.STARTING);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            mockRuntime.isBusy.returns(true);
+            mockRuntime.getState.returns(FabricRuntimeState.STARTING);
+            mockRuntime.isRunning.resolves(false);
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,

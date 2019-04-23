@@ -147,7 +147,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection(connectionProfile);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.false;
+            fabricConnection['discoveryEnabled'].should.be.true;
         });
 
         it('should not use discovery as localhost for remote orderer connections', async () => {
@@ -189,7 +189,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection(connectionProfile);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.false;
+            fabricConnection['discoveryEnabled'].should.be.true;
         });
 
         it('should not use discovery as localhost for remote peer connections', async () => {
@@ -231,7 +231,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection(connectionProfile);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.false;
+            fabricConnection['discoveryEnabled'].should.be.true;
         });
 
         it('should not use discovery as localhost for remote certificate authority connections', async () => {

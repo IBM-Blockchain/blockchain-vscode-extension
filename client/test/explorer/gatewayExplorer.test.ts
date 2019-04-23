@@ -68,7 +68,6 @@ describe('gatewayExplorer', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
-        FabricRuntimeManager.instance().exists().should.be.true;
 
         const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
         mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);

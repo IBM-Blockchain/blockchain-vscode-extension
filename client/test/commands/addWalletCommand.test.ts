@@ -98,6 +98,7 @@ describe('AddWalletCommand', () => {
             const wallets: Array<any> = vscode.workspace.getConfiguration().get('fabric.wallets');
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
+                managedWallet: false,
                 name: path.basename(uri.fsPath),
                 walletPath: uri.fsPath
             });
@@ -141,6 +142,7 @@ describe('AddWalletCommand', () => {
             const wallets: Array<any> = vscode.workspace.getConfiguration().get('fabric.wallets');
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
+                managedWallet: false,
                 name: 'someWalletName',
                 walletPath: uri.fsPath
             });
