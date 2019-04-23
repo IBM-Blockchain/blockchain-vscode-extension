@@ -4,17 +4,29 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Exit on first error, print all commands.
-set -e
+# Don't exit on first error, print all commands.
+set +e
+set -v
 
-# Shut down the Docker containers for the system tests.
-docker-compose -f docker-compose.yml kill && docker-compose -f docker-compose.yml down -v
+# Remove the Docker containers for the runtime components.
+docker rm -f fabricvscodelocalfabric_peer0.org1.example.com
+docker rm -f fabricvscodelocalfabric_ca.example.com
+docker rm -f fabricvscodelocalfabric_orderer.example.com
+docker rm -f fabricvscodelocalfabric_couchdb
+docker rm -f fabricvscodelocalfabric_logs
 
-# remove the local state
-rm -f ~/.hfc-key-store/*
+# Remove the Docker containers and images for any chaincode images.
+docker ps -aq --filter "name=fabricvscodelocalfabric-*" | xargs docker rm -f
+docker images -aq "fabricvscodelocalfabric-*" | xargs docker rmi -f
 
-# remove chaincode docker images
-docker ps -aq --filter "name=${COMPOSE_PROJECT_NAME}-*" | xargs docker rm -f
-docker images -aq "${COMPOSE_PROJECT_NAME}-*" | xargs docker rmi -f
+# Remove the Docker volumes.
+docker volume rm -f fabricvscodelocalfabric_peer0.org1.example.com
+docker volume rm -f fabricvscodelocalfabric_ca.example.com
+docker volume rm -f fabricvscodelocalfabric_orderer.example.com
+docker volume rm -f fabricvscodelocalfabric_couchdb
+docker volume rm -f fabricvscodelocalfabric_logs
 
-# Your system is now clean
+# Remove the Docker network.
+docker network rm fabricvscodelocalfabric_basic
+
+exit 0
