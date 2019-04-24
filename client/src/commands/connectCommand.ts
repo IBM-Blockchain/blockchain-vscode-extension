@@ -46,6 +46,22 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         gatewayRegistryEntry = chosenEntry.data;
     }
 
+    if (gatewayRegistryEntry.managedRuntime) {
+
+        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        const runtime: FabricRuntime = runtimeManager.getRuntime();
+        const running: boolean = await runtime.isRunning();
+        if (!running) {
+            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+            if (!(await runtimeManager.getRuntime().isRunning())) {
+                // Start local_fabric failed so return
+                return;
+            }
+        }
+
+        runtimeData = 'managed runtime';
+    }
+
     let wallet: IFabricWallet;
     let walletPath: string;
     let walletName: string;
@@ -108,27 +124,10 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
         identityName = identityNames[0];
     }
 
-    let connection: IFabricClientConnection;
-    if (gatewayRegistryEntry.managedRuntime) {
-
-        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.getRuntime();
-        const running: boolean = await runtime.isRunning();
-        if (!running) {
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-            if (!(await runtimeManager.getRuntime().isRunning())) {
-                // Start local_fabric failed so return
-                return;
-            }
-        }
-
-        runtimeData = 'managed runtime';
-    }
-
     const connectionData: { connectionProfilePath: string } = {
         connectionProfilePath: gatewayRegistryEntry.connectionProfilePath
     };
-    connection = FabricConnectionFactory.createFabricClientConnection(connectionData);
+    const connection: IFabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData);
 
     try {
         await connection.connect(wallet, identityName);

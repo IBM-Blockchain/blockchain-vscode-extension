@@ -21,11 +21,9 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
-import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import * as myExtension from '../../src/extension';
@@ -66,10 +64,8 @@ describe('createNewIdentityCommand', () => {
         const testFabricWallet: FabricWallet = new FabricWallet('/some/path');
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
-        runtimeManager.gatewayWallet = testFabricWallet as IFabricWallet;
 
         mockFabricRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
-        mockFabricRuntimeConnection.connect.resolves();
         mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
         mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);
@@ -78,8 +74,7 @@ describe('createNewIdentityCommand', () => {
             certificate: 'this is a certificate',
             privateKey: 'this is a private Key'
         });
-        mockFabricRuntimeConnection.disconnect.resolves();
-        mySandBox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockFabricRuntimeConnection);
+        mockFabricRuntimeConnection.getWallet.withArgs('ca.name').resolves(testFabricWallet);
         mySandBox.stub(runtimeManager, 'getConnection').resolves((mockFabricRuntimeConnection as any));
 
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -106,11 +101,9 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
         importIdentityStub.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -127,11 +120,9 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub.should.have.been.calledOnce;
         caChoseStub.should.not.have.been.called;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
         importIdentityStub.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -153,11 +144,9 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub.should.have.been.calledTwice;
         walletExistsStub.getCall(0).should.have.been.calledWith(identityName);
         walletExistsStub.getCall(1).should.have.been.calledWith(secondIdentityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledTwice;
         mockFabricRuntimeConnection.register.should.have.been.calledTwice;
         mockFabricRuntimeConnection.enroll.should.have.been.calledTwice;
         importIdentityStub.should.have.been.calledTwice;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledTwice;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         executeCommandStub.getCall(5).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -180,11 +169,9 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
         importIdentityStub.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.disconnect.should.have.been.calledOnce;
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.START_FABRIC);
         executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -233,7 +220,6 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists in the runtime wallet`, `An identity called ${identityName} already exists in the runtime wallet`);
@@ -247,7 +233,6 @@ describe('createNewIdentityCommand', () => {
 
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.connect.should.have.been.calledOnce;
         mockFabricRuntimeConnection.register.should.have.been.calledOnce;
         importIdentityStub.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;
