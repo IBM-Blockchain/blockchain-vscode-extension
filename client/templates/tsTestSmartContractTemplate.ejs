@@ -45,7 +45,7 @@ describe('<%=chaincodeLabel%>' , () => {
     <%_ } _%>
     const gateway: fabricNetwork.Gateway = new fabricNetwork.Gateway();
     const fabricWallet: fabricNetwork.FileSystemWallet = new fabricNetwork.FileSystemWallet(walletPath);
-    let identityName: string;
+    const identityName: string = '<%-identityName%>';
     let connectionProfile: any;
 
     before(async () => {
@@ -60,10 +60,6 @@ describe('<%=chaincodeLabel%>' , () => {
         } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
             connectionProfile = yaml.safeLoad(connectionProfileContents);
         }
-
-        const identities: fabricNetwork.IdentityInfo[] = await fabricWallet.list();
-        // TODO: edit to use different identities in wallet
-        identityName = identities[0].label;
     });
 
     beforeEach(async () => {
