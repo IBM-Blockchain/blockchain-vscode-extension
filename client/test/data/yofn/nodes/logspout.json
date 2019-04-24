@@ -1,0 +1,7 @@
+{
+    "short_name": "logspout",
+    "name": "logspout",
+    "url": "http://localhost:17056",
+    "type": "logspout",
+    "container_name": "yofn_logspout"
+}

@@ -32,6 +32,9 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { AdminIdentityTreeItem } from '../../src/explorer/model/AdminIdentityTreeItem';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 
 chai.use(sinonChai);
 chai.should();
@@ -43,6 +46,7 @@ describe('walletExplorer', () => {
     let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
+    let runtimeWalletEntry: FabricWalletRegistryEntry;
     let blueWalletEntry: FabricWalletRegistryEntry;
     let greenWalletEntry: FabricWalletRegistryEntry;
     let getIdentityNamesStub: sinon.SinonStub;
@@ -61,7 +65,15 @@ describe('walletExplorer', () => {
         mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
-
+        runtimeWalletEntry = new FabricWalletRegistryEntry({
+            name: FabricWalletUtil.LOCAL_WALLET,
+            walletPath: '/some/local/path',
+            managedWallet: true
+        });
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getWalletRegistryEntries').resolves([runtimeWalletEntry]);
+        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.getIdentities.resolves([new FabricIdentity('admin', 'such cert', 'much key', 'Org1MSP')]);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         blueWalletEntry = new FabricWalletRegistryEntry({
             name: 'blueWallet',
             walletPath: '/some/path'
@@ -72,10 +84,12 @@ describe('walletExplorer', () => {
         });
         const testFabricWallet: FabricWallet = new FabricWallet('some/path');
         getIdentityNamesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames');
-        mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testFabricWallet);
+        const getNewWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet');
+        getNewWalletStub.withArgs('/some/path').returns(testFabricWallet);
+        getNewWalletStub.withArgs('/some/other/path').returns(testFabricWallet);
         const localWallet: FabricWallet = new FabricWallet('/some/local/path');
         getLocalWalletIdentityNamesStub = mySandBox.stub(localWallet, 'getIdentityNames').resolves([FabricRuntimeUtil.ADMIN_USER, 'yellowConga', 'orangeConga']);
-        mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'createLocalWallet').resolves(localWallet);
+        getNewWalletStub.withArgs('/some/local/path').returns(localWallet);
         await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
     });
 

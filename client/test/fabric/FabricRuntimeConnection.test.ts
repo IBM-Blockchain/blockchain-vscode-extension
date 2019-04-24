@@ -53,32 +53,39 @@ describe('FabricRuntimeConnection', () => {
         mySandBox = sinon.createSandbox();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         mockRuntime.getNodes.resolves([
-            new FabricNode(
+            FabricNode.newPeer(
                 'peer0.org1.example.com',
                 'peer0.org1.example.com',
-                FabricNodeType.PEER,
                 `grpc://localhost:7051`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
-            new FabricNode(
+            FabricNode.newCertificateAuthority(
                 'ca.example.com',
                 'ca.example.com',
-                FabricNodeType.CERTIFICATE_AUTHORITY,
                 `http://localhost:7054`,
                 FabricWalletUtil.LOCAL_WALLET,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
-            new FabricNode(
+            FabricNode.newOrderer(
                 'orderer.example.com',
                 'orderer.example.com',
-                FabricNodeType.ORDERER,
                 `grpc://localhost:7050`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP'
+            ),
+            FabricNode.newCouchDB(
+                'couchdb',
+                'couchdb',
+                `http://localhost:7055`
+            ),
+            FabricNode.newLogspout(
+                'logspout',
+                'logspout',
+                `http://localhost:7056`
             )
         ]);
 
@@ -144,6 +151,12 @@ describe('FabricRuntimeConnection', () => {
             certificateAuthorityValues[0].toString().should.match(/port: 7054/);
         });
 
+        it('should ignore any other nodes', async () => {
+            const nodeNames: string[] = Array.from(connection['nodes'].keys());
+            nodeNames.should.not.contain('couchdb');
+            nodeNames.should.not.contain('logspout');
+        });
+
     });
 
     describe('disconnect', () => {
@@ -179,7 +192,7 @@ describe('FabricRuntimeConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['nodes'].has('peer0.org2.example.com').should.be.false;
             connection['peers'].has('peer0.org2.example.com').should.be.false;
-            connection['nodes'].set('peer0.org2.example.com', new FabricNode('peer0.org2.example.com', 'peer0.org2.example.com', FabricNodeType.PEER, 'grpc://localhost:8051', 'local_wallet', 'Admin@org2.example.com', 'Org2MSP'));
+            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', 'local_wallet', 'Admin@org2.example.com', 'Org2MSP'));
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
             queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
@@ -279,7 +292,7 @@ describe('FabricRuntimeConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['nodes'].has('peer0.org2.example.com').should.be.false;
             connection['peers'].has('peer0.org2.example.com').should.be.false;
-            connection['nodes'].set('peer0.org2.example.com', new FabricNode('peer0.org2.example.com', 'peer0.org2.example.com', FabricNodeType.PEER, 'grpc://localhost:8051', 'local_wallet', 'Admin@org2.example.com', 'Org2MSP'));
+            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', 'local_wallet', 'Admin@org2.example.com', 'Org2MSP'));
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
             queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({

@@ -431,7 +431,7 @@ export class IntegrationTestUtil {
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
         }
 
-        this.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.example.com');
+        this.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
     }

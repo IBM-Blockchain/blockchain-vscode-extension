@@ -22,7 +22,7 @@ export async function openFabricRuntimeTerminal(): Promise<void> {
 
     const name: string = `Fabric runtime - ${runtime.getName()}`;
     const shellPath: string = 'docker';
-    const peerContainerName: string = runtime.getPeerContainerName();
+    const peerContainerName: string = await runtime.getPeerContainerName();
     const shellArgs: string[] = [
         'exec',
         '-e',

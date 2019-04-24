@@ -121,7 +121,7 @@ export abstract class FabricConnection {
     protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
 
         this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
-        this.discoveryEnabled = !this.discoveryAsLocalhost;
+        this.discoveryEnabled = true;
 
         const options: GatewayOptions = {
             wallet: wallet,

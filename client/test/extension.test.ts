@@ -22,7 +22,6 @@ import { DependencyManager } from '../src/dependencies/DependencyManager';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRegistry';
 import { TestUtil } from './TestUtil';
-import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { Reporter } from '../src/util/Reporter';
 import { BlockchainGatewayExplorerProvider } from '../src/explorer/gatewayExplorer';
 import { SampleView } from '../src/webview/SampleView';
@@ -30,13 +29,17 @@ import { ExtensionCommands } from '../ExtensionCommands';
 import { LogType } from '../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
 import { TutorialView } from '../src/webview/TutorialView';
+import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('Extension Tests', () => {
+
     let mySandBox: sinon.SinonSandbox;
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    let migrateStub: sinon.SinonStub;
+    let initializeStub: sinon.SinonStub;
+
     before(async () => {
         await TestUtil.storeShowHomeOnStart();
         await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
@@ -59,6 +62,8 @@ describe('Extension Tests', () => {
         mySandBox = sinon.createSandbox();
         await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
+        migrateStub = mySandBox.stub(FabricRuntimeManager.instance(), 'migrate');
+        initializeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize');
     });
 
     afterEach(async () => {
@@ -270,25 +275,6 @@ describe('Extension Tests', () => {
         await vscode.commands.executeCommand('blockchain.refreshEntry').should.be.rejectedWith(`command 'blockchain.refreshEntry' not found`);
     });
 
-    it('should create a new local_fabric if one does not exist', async () => {
-        // Runtime is created upon extension activation, so need to stub the exists function
-        mySandBox.stub(runtimeManager, 'exists').returns(false);
-        const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
-
-        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await myExtension.activate(context);
-        addSpy.should.have.been.calledOnce;
-    });
-
-    it('should not create a new local_fabric if one already exists', async () => {
-        // Runtime is created upon extension activation, so no need to add it again
-        const addSpy: sinon.SinonSpy = mySandBox.spy(runtimeManager, 'add');
-        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-
-        await myExtension.activate(context);
-        addSpy.should.not.have.been.called;
-    });
-
     it('should check if production flag is false on extension activiation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
@@ -413,4 +399,16 @@ describe('Extension Tests', () => {
         await myExtension.activate(context);
         executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
     });
+
+    it('should always migrate and initialize the runtime manager', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: '0.0.7'
+        });
+        await myExtension.activate(context);
+        migrateStub.should.have.been.calledOnceWithExactly('0.0.7');
+        initializeStub.should.have.been.calledOnceWithExactly();
+    });
+
 });

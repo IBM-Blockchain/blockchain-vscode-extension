@@ -64,7 +64,7 @@ describe('<%=chaincodeLabel%>' , () => {
 
     beforeEach(async () => {
         const discoveryAsLocalhost: boolean = hasLocalhostURLs(connectionProfile);
-        const discoveryEnabled: boolean = !discoveryAsLocalhost;
+        const discoveryEnabled: boolean = true;
 
         const options: fabricNetwork.GatewayOptions = {
             discovery: {

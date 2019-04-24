@@ -146,7 +146,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     protected abstract async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string>;
 
     protected async getChaincodeAddress(): Promise<string> {
-        return this.runtime.getChaincodeAddress();
+        return this.runtime.getPeerChaincodeURL();
     }
 
     protected abstract async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration>;

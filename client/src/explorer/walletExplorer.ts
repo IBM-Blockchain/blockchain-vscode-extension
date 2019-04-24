@@ -27,8 +27,8 @@ import { LogType } from '../logging/OutputAdapter';
 import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricIdentity } from '../fabric/FabricIdentity';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -71,48 +71,47 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = FabricWalletRegistry.instance().getAll();
-        // Create the local_fabric wallet registry entry
-        const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
-
-        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-
-        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
-        runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
-
-        let identityNames: string[] = await runtimeWallet.getIdentityNames();
-
-        let treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
-
-        tree.push(new LocalWalletTreeItem(this, runtimeWalletRegistryEntry.name, identityNames, treeState));
+        const runtimeWalletRegistryEntries: FabricWalletRegistryEntry[] = await FabricRuntimeManager.instance().getWalletRegistryEntries();
+        const allWalletRegistryEntires: FabricWalletRegistryEntry[] = [].concat(runtimeWalletRegistryEntries, walletRegistryEntries);
 
         // Populate the tree with the name of each wallet
-        for (const walletRegistryEntry of walletRegistryEntries) {
+        for (const walletRegistryEntry of allWalletRegistryEntires) {
 
             if (walletRegistryEntry.walletPath) {
                 // get identityNames in the wallet
                 const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
                 const wallet: IFabricWallet = walletGenerator.getNewWallet(walletRegistryEntry.walletPath);
-                identityNames = await wallet.getIdentityNames();
+                const identityNames: string[] = await wallet.getIdentityNames();
 
-                treeState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
+                const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
-                tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState));
+                if (walletRegistryEntry.managedWallet) {
+                    tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState));
+                } else {
+                    tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState));
+                }
             }
         }
 
         return tree;
     }
 
-    private async createIdentityTree(walletTreeItem: WalletTreeItem): Promise<BlockchainTreeItem[]> {
+    private async createIdentityTree(walletTreeItem: WalletTreeItem | LocalWalletTreeItem): Promise<BlockchainTreeItem[]> {
         const tree: Array<BlockchainTreeItem> = [];
 
         // Populate the tree with the identity names
+        const walletName: string = walletTreeItem.name;
         for (const identityName of walletTreeItem.identities) {
-            if (walletTreeItem.name === FabricWalletUtil.LOCAL_WALLET && identityName === FabricRuntimeUtil.ADMIN_USER) {
-                // Create Local Fabric identity tree item - user cannot delete this
-                tree.push(new AdminIdentityTreeItem(this, identityName, walletTreeItem.name));
+            let isAdminIdentity: boolean = false;
+            if (walletTreeItem instanceof LocalWalletTreeItem) {
+                const adminIdentities: FabricIdentity[] = await FabricRuntimeManager.instance().getRuntime().getIdentities(walletName);
+                isAdminIdentity = adminIdentities.some((adminIdentity: FabricIdentity): boolean => adminIdentity.name === identityName);
+            }
+            if (isAdminIdentity) {
+                // User can't delete this!
+                tree.push(new AdminIdentityTreeItem(this, identityName, walletName));
             } else {
-                tree.push(new IdentityTreeItem(this, identityName, walletTreeItem.name));
+                tree.push(new IdentityTreeItem(this, identityName, walletName));
             }
         }
         return tree;
