@@ -25,6 +25,7 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -41,6 +42,7 @@ describe('FabricClientConnection', () => {
     let fabricClientConnectionWrong: FabricClientConnection;
     let logSpy: sinon.SinonSpy;
     let wallet: FabricWallet;
+    let readConnectionProfileStub: sinon.SinonStub;
 
     let mySandBox: sinon.SinonSandbox;
 
@@ -104,6 +106,7 @@ describe('FabricClientConnection', () => {
         fabricClientConnection = new FabricClientConnection({ connectionProfilePath: 'connectionpath', walletPath: 'walletPath' });
         fabricClientConnection['gateway'] = fabricGatewayStub;
         fabricClientConnection['outputAdapter'] = VSCodeBlockchainOutputAdapter.instance();
+        readConnectionProfileStub = mySandBox.stub(ExtensionUtil, 'readConnectionProfile').callThrough();
     });
 
     afterEach(() => {
@@ -127,7 +130,7 @@ describe('FabricClientConnection', () => {
             await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            fabricClientConnection['networkIdProperty'].should.equal(false);
+            fabricClientConnection['description'].should.equal(false);
         });
 
         it('should connect with an already loaded client connection', async () => {
@@ -135,7 +138,7 @@ describe('FabricClientConnection', () => {
             await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            fabricClientConnection['networkIdProperty'].should.equal(false);
+            fabricClientConnection['description'].should.equal(false);
         });
 
         it('should connect to a fabric with a .yaml connection profile', async () => {
@@ -150,7 +153,7 @@ describe('FabricClientConnection', () => {
             await fabricClientConnectionYaml.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
+            fabricClientConnectionYaml['description'].should.equal(false);
         });
 
         it('should connect to a fabric with a .yml connection profile', async () => {
@@ -165,10 +168,10 @@ describe('FabricClientConnection', () => {
             await otherFabricClientConnectionYml.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            fabricClientConnectionYaml['networkIdProperty'].should.equal(false);
+            fabricClientConnectionYaml['description'].should.equal(false);
         });
 
-        it('should detecting connecting to ibp instance', async () => {
+        it('should detect connecting to ibp instance', async () => {
 
             const connectionData: any = {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
@@ -182,7 +185,28 @@ describe('FabricClientConnection', () => {
 
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            fabricClientConnection['networkIdProperty'].should.equal(true);
+            fabricClientConnection['description'].should.equal(true);
+        });
+
+        it('should detect not connecting to ibp instance', async () => {
+
+            readConnectionProfileStub.resolves({
+                description: 'Not an IBP Network!'
+            });
+
+            const connectionData: any = {
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
+                walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
+            };
+            wallet = new FabricWallet(connectionData.walletPath);
+            fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
+            fabricClientConnection['gateway'] = fabricGatewayStub;
+
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+
+            fabricGatewayStub.connect.should.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            fabricClientConnection['description'].should.equal(false);
         });
 
         it('should show an error if connection profile is not .yaml or .json file', async () => {
@@ -202,12 +226,12 @@ describe('FabricClientConnection', () => {
 
     describe('isIBPConnection', () => {
         it('should return true if connected to an IBP instance', async () => {
-            fabricClientConnection['networkIdProperty'] = true;
+            fabricClientConnection['description'] = true;
             const result: boolean = await fabricClientConnection.isIBPConnection();
             result.should.equal(true);
         });
         it('should return false if not connected to an IBP instance', async () => {
-            fabricClientConnection['networkIdProperty'] = false;
+            fabricClientConnection['description'] = false;
             const result: boolean = await fabricClientConnection.isIBPConnection();
             result.should.equal(false);
         });
