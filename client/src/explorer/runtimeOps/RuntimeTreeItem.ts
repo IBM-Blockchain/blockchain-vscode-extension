@@ -23,6 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOut
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 
 export class RuntimeTreeItem extends BlockchainTreeItem {
 
@@ -42,8 +43,8 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        this.name = connection.name;
         this.runtime = runtimeManager.getRuntime();
-        this.name = this.runtime.getName();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
@@ -59,11 +60,9 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
 
     private async updateProperties(): Promise<void> {
         const busy: boolean = this.runtime.isBusy();
-        const created: boolean = await this.runtime.isCreated();
         const running: boolean = await this.runtime.isRunning();
         let newLabel: string = this.name + '  ';
         let newCommand: vscode.Command = this.command;
-        let newContextLabel: string = this.contextValue;
         if (busy) {
             // Busy!
             this.enableBusyTicker();
@@ -71,20 +70,19 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
             newLabel = `Local Fabric runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
             newCommand = null;
-            newContextLabel = 'blockchain-runtime-item-busy';
         } else if (running) {
             // Running!
             this.disableBusyTicker();
             const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             connection.name = this.name;
             connection.managedRuntime = true;
+            connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
             newLabel += '●';
             newCommand = {
                 command: ExtensionCommands.CONNECT,
                 title: '',
                 arguments: [connection]
             };
-            newContextLabel = 'blockchain-runtime-item-started';
         } else {
             // Not running!
             this.disableBusyTicker();
@@ -95,16 +93,10 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
                 title: '',
                 arguments: [this]
             };
-            if (created) {
-                newContextLabel = 'blockchain-runtime-item-stopped';
-            } else {
-                newContextLabel = 'blockchain-runtime-item-removed';
-            }
         }
 
         this.setLabel(newLabel);
         this.setCommand(newCommand);
-        this.setContextValue(newContextLabel);
         this.refresh();
     }
 
@@ -116,10 +108,6 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
     private setCommand(command: vscode.Command): void {
         // command is readonly so make it less readonly
         (this as any).command = command;
-    }
-
-    private setContextValue(contextValue: string): void {
-        this.contextValue = contextValue;
     }
 
     private enableBusyTicker(): void {

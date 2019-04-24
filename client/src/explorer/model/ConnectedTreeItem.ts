@@ -26,14 +26,14 @@ export class ConnectedTreeItem extends BlockchainTreeItem {
         dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', 'channel.svg')
     };
 
-    constructor(provider: BlockchainExplorerProvider, public readonly connectionName: string, public readonly connection: FabricGatewayRegistryEntry, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
-        super(provider, connectionName, collapsibleState);
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: FabricGatewayRegistryEntry, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
+        super(provider, label, collapsibleState);
 
         if (connection.managedRuntime) {
             this.contextValue = 'blockchain-connected-runtime-item';
         }
 
-        if (connectionName.includes('Connected via gateway') || connectionName.includes('Using ID')) {
+        if (label.includes('Connected via gateway') || label.includes('Using ID')) {
             this.iconPath = null;
         }
     }

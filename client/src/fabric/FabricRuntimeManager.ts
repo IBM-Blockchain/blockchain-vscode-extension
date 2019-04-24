@@ -15,12 +15,22 @@
 import * as vscode from 'vscode';
 import { FabricRuntime, FabricRuntimeState } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { IFabricConnection } from './IFabricConnection';
 import { FabricConnectionFactory } from './FabricConnectionFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
+import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
+import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
+import { FabricWalletUtil } from './FabricWalletUtil';
+import { FabricRuntimeUtil } from './FabricRuntimeUtil';
+import { FabricGateway } from './FabricGateway';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import * as semver from 'semver';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { CommandUtil } from '../util/CommandUtil';
+import * as path from 'path';
+import { LogType } from '../logging/OutputAdapter';
 
 export class FabricRuntimeManager {
 
@@ -32,27 +42,25 @@ export class FabricRuntimeManager {
 
     private static _instance: FabricRuntimeManager = new FabricRuntimeManager();
 
-    public gatewayWallet: IFabricWallet; // Used to enroll admin and other identities (registered with ca)
-
     private runtime: FabricRuntime;
 
-    private connection: IFabricConnection;
+    private connection: IFabricRuntimeConnection;
 
-    private connectingPromise: Promise<IFabricConnection>;
+    private connectingPromise: Promise<IFabricRuntimeConnection>;
 
     private constructor() {
     }
 
-    public async getConnection(): Promise<IFabricConnection> {
+    public getConnection(): Promise<IFabricRuntimeConnection> {
         if (this.connectingPromise) {
             return this.connectingPromise;
         }
 
         if (this.connection) {
-            return this.connection;
+            return Promise.resolve(this.connection);
         }
 
-        this.connectingPromise = this.getConnectionInner().then((connection: IFabricConnection) => {
+        this.connectingPromise = this.getConnectionInner().then((connection: IFabricRuntimeConnection) => {
             this.connectingPromise = undefined;
             return connection;
         });
@@ -64,14 +72,7 @@ export class FabricRuntimeManager {
         return this.runtime;
     }
 
-    public exists(): boolean {
-        return (this.runtime ? true : false);
-    }
-
-    public async add(): Promise<void> {
-
-        // Copy old local_fabric runtime to new fabric.runtime setting
-        await this.migrate();
+    public async initialize(): Promise<void> {
 
         // only generate a range of ports if it doesn't already exist
         const runtimeObject: any = this.readRuntimeUserSettings();
@@ -89,6 +90,51 @@ export class FabricRuntimeManager {
             this.runtime.developmentMode = false;
             await this.runtime.updateUserSettings();
         }
+
+        // Check to see if the runtime has been created.
+        const created: boolean = await this.runtime.isCreated();
+        if (!created) {
+
+            // Nope - create it now.
+            await this.runtime.create();
+
+        }
+
+        // Import all of the wallets and identities as well.
+        await this.runtime.importWalletsAndIdentities();
+
+    }
+
+    public async getGatewayRegistryEntries(): Promise<FabricGatewayRegistryEntry[]> {
+        const runtime: FabricRuntime = this.getRuntime();
+        const gateways: FabricGateway[] = await runtime.getGateways();
+        return gateways.map((gateway: FabricGateway) => new FabricGatewayRegistryEntry({
+            name: gateway.name,
+            managedRuntime: true,
+            connectionProfilePath: gateway.path,
+            associatedWallet: FabricWalletUtil.LOCAL_WALLET
+        }));
+    }
+
+    public async getWalletRegistryEntries(): Promise<FabricWalletRegistryEntry[]> {
+        const runtime: FabricRuntime = this.getRuntime();
+        const walletNames: string[] = await runtime.getWalletNames();
+        const entries: FabricWalletRegistryEntry[] = [];
+        const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        for (const walletName of walletNames) {
+            const wallet: IFabricWallet = await walletGenerator.createLocalWallet(walletName);
+            entries.push(new FabricWalletRegistryEntry({
+                name: walletName,
+                walletPath: wallet.getWalletPath(),
+                managedWallet: true
+            }));
+        }
+        return entries;
+    }
+
+    public async migrate(oldVersion: string): Promise<void> {
+        await this.migrateRuntimeConfiguration();
+        await this.migrateRuntimeContainers(oldVersion);
     }
 
     private readRuntimeUserSettings(): any {
@@ -123,7 +169,7 @@ export class FabricRuntimeManager {
         }
     }
 
-    private async migrate(): Promise<void> {
+    private async migrateRuntimeConfiguration(): Promise<void> {
         const oldRuntimeSettings: any[] = vscode.workspace.getConfiguration().get('fabric.runtimes');
         const runtimeObj: any = await this.readRuntimeUserSettings();
         if (oldRuntimeSettings && !runtimeObj.ports) {
@@ -132,7 +178,7 @@ export class FabricRuntimeManager {
                 developmentMode: false
             };
             for (const oldRuntime of oldRuntimeSettings) {
-                if (oldRuntime.name === 'local_fabric') {
+                if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                     runtimeToCopy.ports = oldRuntime.ports;
                     runtimeToCopy.developmentMode = oldRuntime.developmentMode;
 
@@ -145,6 +191,31 @@ export class FabricRuntimeManager {
                 }
             }
         }
+
+    }
+
+    private async migrateRuntimeContainers(oldVersion: string): Promise<void> {
+
+        // Determine if we need to try to teardown the old "basic-network" version of local_fabric.
+        if (!oldVersion) {
+            // New install, or version before we tracked which version was last used.
+        } else if (semver.lte(oldVersion, '0.3.3')) {
+            // Upgrade from version that has the old "basic-network" version of local_fabric.
+        } else {
+            return;
+        }
+
+        // Execute the teardown scripts.
+        const basicNetworkPath: string = path.resolve(__dirname, '..', '..', '..', 'basic-network');
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        outputAdapter.log(LogType.WARNING, null, 'Attempting to teardown old local Fabric from version <= 0.3.3');
+        outputAdapter.log(LogType.WARNING, null, 'Any error messages from this process can be safely ignored (for example, container does not exist');
+        if (process.platform === 'win32') {
+            await CommandUtil.sendCommandWithOutput('cmd', ['/c', 'teardown.cmd'], basicNetworkPath, null, outputAdapter);
+        } else {
+            await CommandUtil.sendCommandWithOutput('/bin/sh', ['teardown.sh'], basicNetworkPath, null, outputAdapter);
+        }
+        outputAdapter.log(LogType.WARNING, null, 'Finished attempting to teardown old local Fabric from version <= 0.3.3');
 
     }
 
@@ -189,12 +260,7 @@ export class FabricRuntimeManager {
         return ports;
     }
 
-    private async getConnectionInner(): Promise<IFabricConnection> {
-        const identityName: string = 'Admin@org1.example.com';
-        const mspid: string = 'Org1MSP';
-        const enrollmentID: string = 'admin';
-        const enrollmentSecret: string = 'adminpw';
-
+    private async getConnectionInner(): Promise<IFabricRuntimeConnection> {
         const runtime: FabricRuntime = this.getRuntime();
         // register for events to disconnect
         runtime.on('busy', () => {
@@ -207,32 +273,8 @@ export class FabricRuntimeManager {
             }
         });
 
-        const connection: IFabricConnection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
-        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-
-        // our secret wallet
-        const runtimeWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(runtime.getName() + '-ops');
-
-        const adminExists: boolean = await runtimeWallet.exists(identityName);
-
-        if (!adminExists) {
-            const certificate: string = await runtime.getCertificate();
-            const privateKey: string = await runtime.getPrivateKey();
-            await runtimeWallet.importIdentity(certificate, privateKey, identityName, mspid);
-        }
-
-        await connection.connect(runtimeWallet, identityName);
-
-        // enroll a user
-        const gatewayWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(runtime.getName());
-        this.gatewayWallet = gatewayWallet;
-
-        const otherAdminExists: boolean = await gatewayWallet.exists(identityName);
-
-        if (!otherAdminExists) {
-            const enrollment: { certificate: string, privateKey: string } = await connection.enroll(enrollmentID, enrollmentSecret);
-            await gatewayWallet.importIdentity(enrollment.certificate, enrollment.privateKey, identityName, mspid);
-        }
+        const connection: IFabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
+        await connection.connect();
 
         const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
         await runtime.startLogs(outputAdapter);

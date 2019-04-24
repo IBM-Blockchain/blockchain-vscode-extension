@@ -46,8 +46,8 @@ describe('<%=chaincodeLabel%>' , () => {
     <%_ } _%>    
     const gateway = new fabricNetwork.Gateway();
     const wallet = new fabricNetwork.FileSystemWallet(walletPath);
+    const identityName = '<%-identityName%>';
     let connectionProfile;
-    let identityName;
 
     before(async () => {
         <%_ if (connectionProfileHome) { _%>
@@ -61,16 +61,12 @@ describe('<%=chaincodeLabel%>' , () => {
         } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
             connectionProfile = yaml.safeLoad(connectionProfileContents);
         };
-        const identities = await wallet.list();
-        // TODO: edit to use different identities in wallet
-        identityName = identities[0].label;
-
     });
 
     beforeEach(async () => {
 
         const discoveryAsLocalhost = hasLocalhostURLs(connectionProfile);
-        const discoveryEnabled = !discoveryAsLocalhost;
+        const discoveryEnabled = true;
 
         const options = {
             wallet: wallet,

@@ -20,11 +20,12 @@ import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
+import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
-    static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState): Promise<LocalGatewayTreeItem> {
-        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState);
+    static async newLocalGatewayTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<LocalGatewayTreeItem> {
+        const treeItem: LocalGatewayTreeItem = new LocalGatewayTreeItem(provider, label, gateway, collapsableState, command);
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -36,14 +37,17 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState) {
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+        this.name = gateway.name;
         this.runtime = runtimeManager.getRuntime();
-        this.name = this.runtime.getName();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
+        this.tooltip = `ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`;
+
     }
 
     private safelyUpdateProperties(): void {
@@ -56,18 +60,18 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
     private async updateProperties(): Promise<void> {
         const busy: boolean = this.runtime.isBusy();
-        const created: boolean = await this.runtime.isCreated();
         const running: boolean = await this.runtime.isRunning();
         const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
-        let newContextLabel: string = this.contextValue;
+        let newCommand: vscode.Command = this.command;
         if (busy) {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
             newLabel += busyStates[this.busyTicks % 4];
-            this.tooltip = `${this.label}`;
-            newContextLabel = 'blockchain-local-gateway-item-busy';
+            this.tooltip = `${this.label}
+${this.tooltip}`;
+            newCommand = null;
         } else if (running) {
             // Running!
             this.disableBusyTicker();
@@ -75,26 +79,20 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             gateway.name = this.name;
             gateway.managedRuntime = true;
             newLabel += '●';
-            this.tooltip = 'Local Fabric is running';
-
-            newContextLabel = 'blockchain-local-gateway-item-started';
+            this.tooltip = `Local Fabric is running
+${this.tooltip}`;
         } else {
             // Not running!
             this.disableBusyTicker();
             newLabel += '○';
-            this.tooltip = 'Local Fabric is not running';
-
-            if (created) {
-                newContextLabel = 'blockchain-local-gateway-item-stopped';
-            } else {
-                newContextLabel = 'blockchain-local-gateway-item-removed';
-            }
+            this.tooltip = `Local Fabric is not running
+${this.tooltip}`;
         }
         if (developmentMode) {
             newLabel += '  ∞';
         }
         this.setLabel(newLabel);
-        this.setContextValue(newContextLabel);
+        this.setCommand(newCommand);
         this.refresh();
     }
 
@@ -103,8 +101,9 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
         (this as any).label = label;
     }
 
-    private setContextValue(contextValue: string): void {
-        this.contextValue = contextValue;
+    private setCommand(command: vscode.Command): void {
+        // command is readonly so make it less readonly
+        (this as any).command = command;
     }
 
     private enableBusyTicker(): void {

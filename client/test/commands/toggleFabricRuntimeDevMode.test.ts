@@ -57,7 +57,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeManager.add();
+        await runtimeManager.initialize();
         runtime = runtimeManager.getRuntime();
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();

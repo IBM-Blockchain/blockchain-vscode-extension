@@ -12,10 +12,6 @@
  * limitations under the License.
 */
 
-import Dockerode = require('dockerode');
-import { Container, Volume } from 'dockerode';
-import ContainerImpl = require('dockerode/lib/container');
-import VolumeImpl = require('dockerode/lib/volume');
 import * as child_process from 'child_process';
 import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
 
@@ -24,13 +20,19 @@ import * as sinon from 'sinon';
 import { OutputAdapter } from '../../src/logging/OutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { UserInputUtil } from '../../src/commands/UserInputUtil';
-import * as path from 'path';
 import * as fs from 'fs-extra';
-import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import * as path from 'path';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { YeomanUtil } from '../../src/util/YeomanUtil';
+import { IFabricWalletGenerator } from '../../src/fabric/IFabricWalletGenerator';
+import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
+import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
+import { IFabricWallet } from '../../src/fabric/IFabricWallet';
+import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 
 chai.should();
 
@@ -40,32 +42,10 @@ describe('FabricRuntime', () => {
     const originalPlatform: string = process.platform;
     const originalSpawn: any = child_process.spawn;
     const rootPath: string = path.dirname(__dirname);
+    const runtimePath: string = path.resolve(rootPath, '..', '..', 'test', 'data', 'yofn');
 
     let runtime: FabricRuntime;
     let sandbox: sinon.SinonSandbox;
-    let mockPeerContainer: sinon.SinonStubbedInstance<Container>;
-    let mockOrdererContainer: sinon.SinonStubbedInstance<Container>;
-    let mockCAContainer: sinon.SinonStubbedInstance<Container>;
-    let mockCouchContainer: sinon.SinonStubbedInstance<Container>;
-    let mockLogsContainer: sinon.SinonStubbedInstance<Container>;
-    let mockPeerInspect: any;
-    let mockOrdererInspect: any;
-    let mockCAInspect: any;
-    let mockCouchInspect: any;
-    let mockLogsInspect: any;
-    let mockPeerVolume: sinon.SinonStubbedInstance<Volume>;
-    let mockOrdererVolume: sinon.SinonStubbedInstance<Volume>;
-    let mockCAVolume: sinon.SinonStubbedInstance<Volume>;
-    let mockCouchVolume: sinon.SinonStubbedInstance<Volume>;
-    let mockLogsVolume: sinon.SinonStubbedInstance<Volume>;
-    let connectionProfilePath: string;
-    let runtimeDetailsDir: string;
-    let ensureFileStub: sinon.SinonStub;
-    let writeFileStub: sinon.SinonStub;
-    let copyStub: sinon.SinonStub;
-    let removeStub: sinon.SinonStub;
-    let errorSpy: sinon.SinonSpy;
-    let runtimeDir: string;
 
     // tslint:disable max-classes-per-file
     class TestFabricOutputAdapter implements OutputAdapter {
@@ -116,96 +96,8 @@ describe('FabricRuntime', () => {
             logs: 12387
         };
         runtime.developmentMode = false;
+        runtime['path'] = runtimePath;
         sandbox = sinon.createSandbox();
-
-        const docker: Dockerode = (runtime as any).docker['docker'];
-        mockPeerContainer = sinon.createStubInstance(ContainerImpl);
-        mockPeerInspect = {
-            NetworkSettings: {
-                Ports: {
-                    '7051/tcp': [{ HostIp: '0.0.0.0', HostPort: '12345' }],
-                    '7052/tcp': [{ HostIp: '0.0.0.0', HostPort: '54321' }],
-                    '7053/tcp': [{ HostIp: '0.0.0.0', HostPort: '12346' }]
-                }
-            },
-            State: {
-                Running: true
-            }
-        };
-        mockPeerContainer.inspect.resolves(mockPeerInspect);
-        mockOrdererContainer = sinon.createStubInstance(ContainerImpl);
-        mockOrdererInspect = {
-            NetworkSettings: {
-                Ports: {
-                    '7050/tcp': [{ HostIp: '127.0.0.1', HostPort: '12347' }]
-                }
-            },
-            State: {
-                Running: true
-            }
-        };
-        mockOrdererContainer.inspect.resolves(mockOrdererInspect);
-        mockCAContainer = sinon.createStubInstance(ContainerImpl);
-        mockCAInspect = {
-            NetworkSettings: {
-                Ports: {
-                    '7054/tcp': [{ HostIp: '127.0.0.1', HostPort: '12348' }]
-                }
-            },
-            State: {
-                Running: true
-            }
-        };
-        mockCAContainer.inspect.resolves(mockCAInspect);
-        mockCouchContainer = sinon.createStubInstance(ContainerImpl);
-        mockCouchInspect = {
-            NetworkSettings: {
-                Ports: {
-                    '5984/tcp': [{ HostIp: '127.0.0.1', HostPort: '12349' }]
-                }
-            },
-            State: {
-                Running: true
-            }
-        };
-        mockCouchContainer.inspect.resolves(mockCouchInspect);
-
-        mockLogsContainer = sinon.createStubInstance(ContainerImpl);
-        mockLogsInspect = {
-            NetworkSettings: {
-                Ports: {
-                    '80/tcp': [{ HostIp: '0.0.0.0', HostPort: 12387 }]
-                }
-            },
-            State: {
-                Running: true
-            }
-        };
-        mockLogsContainer.inspect.resolves(mockLogsInspect);
-        const getContainerStub: sinon.SinonStub = sandbox.stub(docker, 'getContainer');
-        getContainerStub.withArgs('fabricvscodelocalfabric_peer0.org1.example.com').returns(mockPeerContainer);
-        getContainerStub.withArgs('fabricvscodelocalfabric_orderer.example.com').returns(mockOrdererContainer);
-        getContainerStub.withArgs('fabricvscodelocalfabric_ca.example.com').returns(mockCAContainer);
-        getContainerStub.withArgs('fabricvscodelocalfabric_couchdb').returns(mockCouchContainer);
-        getContainerStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsContainer);
-        mockPeerVolume = sinon.createStubInstance(VolumeImpl);
-        mockOrdererVolume = sinon.createStubInstance(VolumeImpl);
-        mockCAVolume = sinon.createStubInstance(VolumeImpl);
-        mockCouchVolume = sinon.createStubInstance(VolumeImpl);
-        mockLogsVolume = sinon.createStubInstance(VolumeImpl);
-        const getVolumeStub: sinon.SinonStub = sandbox.stub(docker, 'getVolume');
-        getVolumeStub.withArgs('fabricvscodelocalfabric_peer0.org1.example.com').returns(mockPeerVolume);
-        getVolumeStub.withArgs('fabricvscodelocalfabric_orderer.example.com').returns(mockOrdererVolume);
-        getVolumeStub.withArgs('fabricvscodelocalfabric_ca.example.com').returns(mockCAVolume);
-        getVolumeStub.withArgs('fabricvscodelocalfabric_couchdb').returns(mockCouchVolume);
-        getVolumeStub.withArgs('fabricvscodelocalfabric_logs').returns(mockLogsVolume);
-
-        runtimeDir = path.join(rootPath, '..', 'data');
-        sandbox.stub(UserInputUtil, 'getDirPath').resolves(runtimeDir);
-        ensureFileStub = sandbox.stub(fs, 'ensureFileSync').resolves();
-        writeFileStub = sandbox.stub(fs, 'writeFileSync').resolves();
-        copyStub = sandbox.stub(fs, 'copySync').resolves();
-        removeStub = sandbox.stub(fs, 'remove').resolves();
     });
 
     afterEach(async () => {
@@ -215,7 +107,21 @@ describe('FabricRuntime', () => {
     describe('#getName', () => {
 
         it('should return the name of the runtime', () => {
-            runtime.getName().should.equal('local_fabric');
+            runtime.getName().should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+        });
+    });
+
+    describe('#getDockerName', () => {
+
+        it('should return the Docker name of the runtime', () => {
+            runtime.getDockerName().should.equal('fabricvscodelocalfabric');
+        });
+    });
+
+    describe('#getPath', () => {
+
+        it('should return the path of the runtime', () => {
+            runtime.getPath().should.equal(runtimePath);
         });
     });
 
@@ -259,14 +165,86 @@ describe('FabricRuntime', () => {
         });
     });
 
-    ['start', 'stop', 'teardown'].forEach((verb: string) => {
+    describe('#create', () => {
+
+        it('should create a new network', async () => {
+            const removeStub: sinon.SinonStub = sandbox.stub(fs, 'remove');
+            const ensureDirStub: sinon.SinonStub = sandbox.stub(fs, 'ensureDir');
+            const runStub: sinon.SinonStub = sandbox.stub(YeomanUtil, 'run');
+            await runtime.create();
+            removeStub.should.have.been.calledOnceWithExactly(runtime.getPath());
+            ensureDirStub.should.have.been.calledOnceWithExactly(runtime.getPath());
+            runStub.should.have.been.calledOnceWithExactly('fabric:network', {
+                certificateAuthority: 12348,
+                couchDB: 12349,
+                destination: runtime.getPath(),
+                dockerName: 'fabricvscodelocalfabric',
+                logspout: 12387,
+                name: 'local_fabric',
+                orderer: 12347,
+                peerChaincode: 54321,
+                peerRequest: 12345
+            });
+        });
+
+    });
+
+    describe('#importWalletsAndIdentities', () => {
+
+        it('should create all wallets and import all identities', async () => {
+            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
+            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
+            mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
+            await runtime.importWalletsAndIdentities();
+            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly('local_wallet');
+            mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
+        });
+
+    });
+
+    describe('#deleteWalletsAndIdentities', () => {
+
+        it('should delete all known identities that exist', async () => {
+            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
+            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
+            mockFabricWallet.exists.withArgs('admin').resolves(true);
+            mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
+            await runtime.deleteWalletsAndIdentities();
+            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly('local_wallet');
+            mockFabricWallet.exists.should.have.been.calledOnceWithExactly('admin');
+            mockFabricWallet.delete.should.have.been.calledOnceWithExactly('admin');
+        });
+
+        it('should ignore any known identities that do not exist', async () => {
+            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
+            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
+            mockFabricWallet.exists.withArgs('admin').resolves(false);
+            mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
+            await runtime.deleteWalletsAndIdentities();
+            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly('local_wallet');
+            mockFabricWallet.exists.should.have.been.calledOnceWithExactly('admin');
+            mockFabricWallet.delete.should.not.have.been.called;
+        });
+
+    });
+
+    ['generate', 'start', 'stop', 'teardown'].forEach((verb: string) => {
 
         describe(`#${verb}`, () => {
 
+            let createStub: sinon.SinonStub;
+            let importWalletsAndIdentitiesStub: sinon.SinonStub;
+            let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
             let stopLogsStub: sinon.SinonStub;
 
             beforeEach(() => {
+                createStub = sandbox.stub(runtime, 'create');
+                importWalletsAndIdentitiesStub = sandbox.stub(runtime, 'importWalletsAndIdentities');
+                isRunningStub = sandbox.stub(runtime, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(runtime, 'setState');
                 stopLogsStub = sandbox.stub(runtime, 'stopLogs');
             });
@@ -282,7 +260,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -299,7 +277,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -314,7 +292,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -330,7 +308,7 @@ describe('FabricRuntime', () => {
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -344,10 +322,10 @@ describe('FabricRuntime', () => {
                 });
                 runtime.on('busy', eventStub);
 
-                if (verb === 'start') {
-                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                if (verb === 'generate' || verb === 'start') {
+                    isRunningStub.resolves(true);
                 } else {
-                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                    isRunningStub.resolves(false);
                 }
 
                 await runtime[verb]();
@@ -355,7 +333,7 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
-                if (verb === 'start') {
+                if (verb === 'generate' || verb === 'start') {
                     runtime.getState().should.equal(FabricRuntimeState.STARTED);
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
@@ -378,10 +356,10 @@ describe('FabricRuntime', () => {
                     return mockFailureCommand();
                 });
 
-                if (verb === 'start') {
-                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                if (verb === 'generate' || verb === 'start') {
+                    isRunningStub.resolves(false);
                 } else {
-                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                    isRunningStub.resolves(true);
                 }
                 runtime.on('busy', eventStub);
 
@@ -390,7 +368,7 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
-                if (verb === 'start') {
+                if (verb === 'generate' || verb === 'start') {
                     runtime.getState().should.equal(FabricRuntimeState.STOPPED);
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
@@ -416,7 +394,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -433,7 +411,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -448,7 +426,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -464,7 +442,7 @@ describe('FabricRuntime', () => {
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
-                if (verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -477,10 +455,10 @@ describe('FabricRuntime', () => {
                     return mockSuccessCommand();
                 });
 
-                if (verb === 'start') {
-                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                if (verb === 'generate' || verb === 'start') {
+                    isRunningStub.resolves(true);
                 } else {
-                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                    isRunningStub.resolves(false);
                 }
 
                 runtime.on('busy', eventStub);
@@ -489,7 +467,7 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
-                if (verb === 'start') {
+                if (verb === 'generate' || verb === 'start') {
                     runtime.getState().should.equal(FabricRuntimeState.STARTED);
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
@@ -513,10 +491,10 @@ describe('FabricRuntime', () => {
                 });
                 runtime.on('busy', eventStub);
 
-                if (verb === 'start') {
-                    sandbox.stub(runtime, 'isRunning').resolves(false);
+                if (verb === 'generate' || verb === 'start') {
+                    isRunningStub.resolves(false);
                 } else {
-                    sandbox.stub(runtime, 'isRunning').resolves(true);
+                    isRunningStub.resolves(true);
                 }
 
                 await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
@@ -524,7 +502,7 @@ describe('FabricRuntime', () => {
                 eventStub.should.have.been.calledWithExactly(true);
                 eventStub.should.have.been.calledWithExactly(false);
 
-                if (verb === 'start') {
+                if (verb === 'generate' || verb === 'start') {
                     runtime.getState().should.equal(FabricRuntimeState.STOPPED);
                     setStateSpy.should.have.been.calledTwice;
                     setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
@@ -539,14 +517,30 @@ describe('FabricRuntime', () => {
                 }
             });
 
+            if (verb === 'teardown') {
+
+                it('should recreate the runtime after tearing it down', async () => {
+                    sandbox.stub(child_process, 'spawn').callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                    await runtime.teardown();
+                    createStub.should.have.been.calledOnce;
+                    importWalletsAndIdentitiesStub.should.have.been.calledOnce;
+                });
+
+            }
+
         });
+
     });
 
     describe('#restart', () => {
 
+        let isRunningStub: sinon.SinonStub;
         let stopLogsStub: sinon.SinonStub;
 
         beforeEach(() => {
+            isRunningStub = sandbox.stub(runtime, 'isRunning').resolves(false);
             stopLogsStub = sandbox.stub(runtime, 'stopLogs');
         });
 
@@ -598,7 +592,7 @@ describe('FabricRuntime', () => {
                 return mockSuccessCommand();
             });
             runtime.on('busy', eventStub);
-            sandbox.stub(runtime, 'isRunning').resolves(true);
+            isRunningStub.resolves(true);
             const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart();
             eventStub.should.have.been.calledTwice;
@@ -623,7 +617,7 @@ describe('FabricRuntime', () => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
-            sandbox.stub(runtime, 'isRunning').resolves(true);
+            isRunningStub.resolves(true);
             const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "stop.sh" return code 1`);
             eventStub.should.have.been.calledTwice;
@@ -648,7 +642,7 @@ describe('FabricRuntime', () => {
                 return mockSuccessCommand();
             });
             runtime.on('busy', eventStub);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            isRunningStub.resolves(false);
             const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "start.sh" return code 1`);
             eventStub.should.have.been.calledTwice;
@@ -708,7 +702,7 @@ describe('FabricRuntime', () => {
                 return mockSuccessCommand();
             });
             runtime.on('busy', eventStub);
-            sandbox.stub(runtime, 'isRunning').resolves(true);
+            isRunningStub.resolves(true);
             const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart();
             eventStub.should.have.been.calledTwice;
@@ -733,7 +727,7 @@ describe('FabricRuntime', () => {
                 return mockFailureCommand();
             });
             runtime.on('busy', eventStub);
-            sandbox.stub(runtime, 'isRunning').resolves(true);
+            isRunningStub.resolves(true);
             const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, stop.cmd" return code 1`);
             eventStub.should.have.been.calledTwice;
@@ -758,7 +752,7 @@ describe('FabricRuntime', () => {
                 return mockSuccessCommand();
             });
             runtime.on('busy', eventStub);
-            sandbox.stub(runtime, 'isRunning').resolves(false);
+            isRunningStub.resolves(false);
             const setStateSpy: sinon.SinonSpy = sandbox.spy(runtime, 'setState');
             await runtime.restart().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, start.cmd" return code 1`);
             eventStub.should.have.been.calledTwice;
@@ -773,200 +767,163 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#getConnectionProfile', () => {
-
-        it('should get a connection profile', async () => {
-            const connectionProfile: object = await runtime.getConnectionProfile();
-            connectionProfile.should.deep.equal({
-                name: 'basic-network',
-                version: '1.0.0',
-                client: {
-                    organization: 'Org1',
-                    connection: {
-                        timeout: {
-                            peer: {
-                                endorser: '300',
-                                eventHub: '300',
-                                eventReg: '300'
-                            },
-                            orderer: '300'
-                        }
-                    }
-                },
-                channels: {
-                    mychannel: {
-                        orderers: [
-                            'orderer.example.com'
-                        ],
-                        peers: {
-                            'peer0.org1.example.com': {}
-                        }
-                    }
-                },
-                organizations: {
-                    Org1: {
-                        mspid: 'Org1MSP',
-                        peers: [
-                            'peer0.org1.example.com'
-                        ],
-                        certificateAuthorities: [
-                            'ca.org1.example.com'
-                        ]
-                    }
-                },
-                orderers: {
-                    'orderer.example.com': {
-                        url: 'grpc://127.0.0.1:12347'
-                    }
-                },
-                peers: {
-                    'peer0.org1.example.com': {
-                        url: 'grpc://localhost:12345',
-                        eventUrl: 'grpc://localhost:12346'
-                    }
-                },
-                certificateAuthorities: {
-                    'ca.org1.example.com': {
-                        url: 'http://127.0.0.1:12348',
-                        caName: 'ca.example.com'
-                    }
-                }
-            });
-        });
-    });
-
-    describe('#getCertificate', () => {
-
-        it('should get the PEM encoded certificate', async () => {
-            let certificate: string = await runtime.getCertificate();
-            certificate = certificate.replace(/\r/g, ''); // Windows!
-            certificate.should.equal('-----BEGIN CERTIFICATE-----\nMIICGDCCAb+gAwIBAgIQFSxnLAGsu04zrFkAEwzn6zAKBggqhkjOPQQDAjBzMQsw\nCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZy\nYW5jaXNjbzEZMBcGA1UEChMQb3JnMS5leGFtcGxlLmNvbTEcMBoGA1UEAxMTY2Eu\nb3JnMS5leGFtcGxlLmNvbTAeFw0xNzA4MzEwOTE0MzJaFw0yNzA4MjkwOTE0MzJa\nMFsxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1T\nYW4gRnJhbmNpc2NvMR8wHQYDVQQDDBZBZG1pbkBvcmcxLmV4YW1wbGUuY29tMFkw\nEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEV1dfmKxsFKWo7o6DNBIaIVebCCPAM9C/\nsLBt4pJRre9pWE987DjXZoZ3glc4+DoPMtTmBRqbPVwYcUvpbYY8p6NNMEswDgYD\nVR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwKwYDVR0jBCQwIoAgQjmqDc122u64\nugzacBhR0UUE0xqtGy3d26xqVzZeSXwwCgYIKoZIzj0EAwIDRwAwRAIgXMy26AEU\n/GUMPfCMs/nQjQME1ZxBHAYZtKEuRR361JsCIEg9BOZdIoioRivJC+ZUzvJUnkXu\no2HkWiuxLsibGxtE\n-----END CERTIFICATE-----\n');
-        });
-    });
-
-    describe('#getPrivateKey', () => {
-
-        it('should get the PEM encoded private key', async () => {
-            let privateKey: string = await runtime.getPrivateKey();
-            privateKey = privateKey.replace(/\r/g, ''); // Windows!
-            privateKey.should.equal('-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgRgQr347ij6cjwX7m\nKjzbbD8Tlwdfu6FaubjWJWLGyqahRANCAARXV1+YrGwUpajujoM0EhohV5sII8Az\n0L+wsG3iklGt72lYT3zsONdmhneCVzj4Og8y1OYFGps9XBhxS+lthjyn\n-----END PRIVATE KEY-----\n');
-        });
-
-    });
-
-    describe('#getCertificatePath', () => {
-
-        it('should get the runtime certificate path', async () => {
-            const certPath: string = await runtime.getCertificatePath();
-            certPath.should.equal(path.join(rootPath, '..', '..', 'basic-network', 'crypto-config', 'peerOrganizations', 'org1.example.com', 'users', 'Admin@org1.example.com', 'msp', 'signcerts', 'Admin@org1.example.com-cert.pem'));
-        });
-
-    });
-
-    describe('#getConnectionProfilePath', () => {
-
-        it('should get the runtime connection profile path', async () => {
-            const connectionPath: string = await runtime.getConnectionProfilePath();
-            connectionPath.should.equal(path.join(rootPath, '..', '..', 'out', 'data', 'local_fabric', 'connection.json'));
-        });
-
-    });
-
     describe('#isCreated', () => {
 
-        it('should return true if the peer, orderer, CA, couchdb, and logs exist', async () => {
+        it('should return true if the runtime directory exists', async () => {
             await runtime.isCreated().should.eventually.be.true;
         });
 
-        it('should return true if the peer does not exist, but everything else does', async () => {
-            mockPeerVolume.inspect.rejects(new Error('blah'));
-            await runtime.isCreated().should.eventually.be.true;
-        });
-
-        it('should return true if the orderer does not exist, but everything else does', async () => {
-            mockOrdererVolume.inspect.rejects(new Error('blah'));
-            await runtime.isCreated().should.eventually.be.true;
-        });
-
-        it('should return true if the CA does not exist, but everything else does', async () => {
-            mockCAVolume.inspect.rejects(new Error('blah'));
-            await runtime.isCreated().should.eventually.be.true;
-        });
-
-        it('should return true if Couch does not exist, but everything else does', async () => {
-            mockCouchVolume.inspect.rejects(new Error('blah'));
-            await runtime.isCreated().should.eventually.be.true;
-        });
-
-        it('should return true if logs does not exist, but everything else does', async () => {
-            mockLogsVolume.inspect.rejects(new Error('blah'));
-            await runtime.isCreated().should.eventually.be.true;
-        });
-
-        it('should return false if nothing exists', async () => {
-            mockPeerVolume.inspect.rejects(new Error('blah'));
-            mockOrdererVolume.inspect.rejects(new Error('blah'));
-            mockCAVolume.inspect.rejects(new Error('blah'));
-            mockCouchVolume.inspect.rejects(new Error('blah'));
-            mockLogsVolume.inspect.rejects(new Error('blah'));
+        it('should return false if the runtime directory does not exist', async () => {
+            runtime['path'] = 'blahblahblah';
             await runtime.isCreated().should.eventually.be.false;
         });
+
+    });
+
+    describe('#isGenerated', () => {
+
+        it('should return false if not created (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            sandbox.stub(runtime, 'isCreated').resolves(false);
+            await runtime.isGenerated().should.eventually.be.false;
+        });
+
+        it('should return false if not created (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            sandbox.stub(runtime, 'isCreated').resolves(false);
+            await runtime.isGenerated().should.eventually.be.false;
+        });
+
+        it('should execute the is_generated.sh script and return true if successful (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', ['is_generated.sh'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            await runtime.isGenerated().should.eventually.be.true;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('/bin/sh', ['is_generated.sh'], sinon.match.any);
+        });
+
+        it('should execute the is_generated.sh script and return false if unsuccessful (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', ['is_generated.sh'], sinon.match.any).callsFake(() => {
+                return mockFailureCommand();
+            });
+            await runtime.isGenerated().should.eventually.be.false;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('/bin/sh', ['is_generated.sh'], sinon.match.any);
+        });
+
+        it('should execute the is_generated.sh script and return true if successful (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('cmd', ['/c', 'is_generated.cmd'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            await runtime.isGenerated().should.eventually.be.true;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_generated.cmd'], sinon.match.any);
+        });
+
+        it('should execute the is_generated.sh script and return false if unsuccessful (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('cmd', ['/c', 'is_generated.cmd'], sinon.match.any).callsFake(() => {
+                return mockFailureCommand();
+            });
+            await runtime.isGenerated().should.eventually.be.false;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_generated.cmd'], sinon.match.any);
+        });
+
     });
 
     describe('#isRunning', () => {
 
-        it('should return true if the peer, orderer, CA, Couch and Logs are running', async () => {
+        it('should return false if not created (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            sandbox.stub(runtime, 'isCreated').resolves(false);
+            await runtime.isRunning().should.eventually.be.false;
+        });
+
+        it('should return false if not created (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            sandbox.stub(runtime, 'isCreated').resolves(false);
+            await runtime.isRunning().should.eventually.be.false;
+        });
+
+        it('should execute the is_generated.sh script and return true if successful (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', ['is_running.sh'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
             await runtime.isRunning().should.eventually.be.true;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('/bin/sh', ['is_running.sh'], sinon.match.any);
         });
 
-        it('should return false if the peer does not exist', async () => {
-            mockPeerContainer.inspect.rejects(new Error('blah'));
+        it('should execute the is_generated.sh script and return false if unsuccessful (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', ['is_running.sh'], sinon.match.any).callsFake(() => {
+                return mockFailureCommand();
+            });
             await runtime.isRunning().should.eventually.be.false;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('/bin/sh', ['is_running.sh'], sinon.match.any);
         });
 
-        it('should return false if the peer is not running', async () => {
-            mockPeerInspect.State.Running = false;
-            await runtime.isRunning().should.eventually.be.false;
+        it('should execute the is_generated.sh script and return true if successful (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('cmd', ['/c', 'is_running.cmd'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            await runtime.isRunning().should.eventually.be.true;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_running.cmd'], sinon.match.any);
         });
 
-        it('should return false if the orderer does not exist', async () => {
-            mockOrdererContainer.inspect.rejects(new Error('blah'));
+        it('should execute the is_generated.sh script and return false if unsuccessful (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('cmd', ['/c', 'is_running.cmd'], sinon.match.any).callsFake(() => {
+                return mockFailureCommand();
+            });
             await runtime.isRunning().should.eventually.be.false;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_running.cmd'], sinon.match.any);
         });
 
-        it('should return false if the orderer is not running', async () => {
-            mockOrdererInspect.State.Running = false;
-            await runtime.isRunning().should.eventually.be.false;
+        it('should return the same promise if a request is already running (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('/bin/sh', ['is_running.sh'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            const promise1: any = runtime.isRunning();
+            const promise2: any = runtime.isRunning();
+            (promise1 === promise2).should.be.true;
+            await promise1.should.eventually.be.true;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('/bin/sh', ['is_running.sh'], sinon.match.any);
         });
 
-        it('should return false if the CA does not exist', async () => {
-            mockCAContainer.inspect.rejects(new Error('blah'));
-            await runtime.isRunning().should.eventually.be.false;
-        });
-
-        it('should return false if the CA is not running', async () => {
-            mockCAInspect.State.Running = false;
-            await runtime.isRunning().should.eventually.be.false;
-        });
-
-        it('should return false if Couch does not exist', async () => {
-            mockCouchContainer.inspect.rejects(new Error('blah'));
-            await runtime.isRunning().should.eventually.be.false;
-        });
-
-        it('should return false if Couch is not running', async () => {
-            mockCouchInspect.State.Running = false;
-            await runtime.isRunning().should.eventually.be.false;
-        });
-
-        it('should return false if Logs does not exist', async () => {
-            mockLogsContainer.inspect.rejects(new Error('blah'));
-            await runtime.isRunning().should.eventually.be.false;
-        });
-
-        it('should return false if Logs is not running', async () => {
-            mockLogsInspect.State.Running = false;
-            await runtime.isRunning().should.eventually.be.false;
+        it('should return the same promise if a request is already running (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+            spawnStub.withArgs('cmd', ['/c', 'is_running.cmd'], sinon.match.any).callsFake(() => {
+                return mockSuccessCommand();
+            });
+            const promise1: any = runtime.isRunning();
+            const promise2: any = runtime.isRunning();
+            (promise1 === promise2).should.be.true;
+            await promise1.should.eventually.be.true;
+            spawnStub.should.have.been.calledOnce;
+            spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_running.cmd'], sinon.match.any);
         });
 
     });
@@ -996,90 +953,43 @@ describe('FabricRuntime', () => {
         });
     });
 
-    describe('#getChaincodeAddress', () => {
-        it('should get the chaincode address', async () => {
-            const result: string = await runtime.getChaincodeAddress();
-            result.should.equal('localhost:54321');
+    describe('#getPeerChaincodeURL', () => {
+
+        it('should get the peer chaincode URL', async () => {
+            await runtime.getPeerChaincodeURL().should.eventually.equal('grpc://localhost:17052');
         });
+
+        it('should throw an error if there are no peer nodes', async () => {
+            sandbox.stub(runtime, 'getNodes').resolves([]);
+            await runtime.getPeerChaincodeURL().should.be.rejectedWith(/There are no Fabric peer nodes/);
+        });
+
     });
 
-    describe('#getLogsAddress', () => {
-        it('should get the logs address', async () => {
-            const result: string = await runtime.getLogsAddress();
-            result.should.equal('localhost:12387');
+    describe('#getLogspoutURL', () => {
+
+        it('should get the logspout URL', async () => {
+            await runtime.getLogspoutURL().should.eventually.equal('http://localhost:17056');
         });
+
+        it('should throw an error if there are no logspout nodes', async () => {
+            sandbox.stub(runtime, 'getNodes').resolves([]);
+            await runtime.getLogspoutURL().should.be.rejectedWith(/There are no Logspout nodes/);
+        });
+
     });
 
     describe('#getPeerContainerName', () => {
-        it('should get the chaincode address', () => {
-            const result: string = runtime.getPeerContainerName();
-            result.should.equal('fabricvscodelocalfabric_peer0.org1.example.com');
-        });
-    });
 
-    describe('#exportConnectionDetails', () => {
-
-        beforeEach(async () => {
-            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
-            errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        it('should get the peer container name', async () => {
+            await runtime.getPeerContainerName().should.eventually.equal('yofn_peer0.org1.example.com');
         });
 
-        it('should save runtime connection details to disk', async () => {
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
-            writeFileStub.should.have.been.calledOnce;
-            copyStub.should.not.have.been.called;
-            errorSpy.should.not.have.been.called;
+        it('should throw an error if there are no peer nodes', async () => {
+            sandbox.stub(runtime, 'getNodes').resolves([]);
+            await runtime.getPeerContainerName().should.be.rejectedWith(/There are no Fabric peer nodes/);
         });
 
-        it('should save runtime connection details to a specified place', async () => {
-            runtimeDir = 'myPath';
-            connectionProfilePath = path.join(runtimeDir, 'local_fabric', 'connection.json');
-
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance(), 'myPath');
-            ensureFileStub.getCall(0).should.have.been.calledWith(connectionProfilePath);
-            writeFileStub.should.have.been.calledOnce;
-            copyStub.should.have.been.calledOnce;
-            errorSpy.should.not.have.been.called;
-        });
-
-        it('should show an error message if we fail to save connection details to disk', async () => {
-            writeFileStub.onCall(0).rejects({ message: 'oops' });
-
-            await runtime.exportConnectionDetails(VSCodeBlockchainOutputAdapter.instance()).should.have.been.rejected;
-            ensureFileStub.should.have.been.calledOnce;
-            writeFileStub.should.have.been.calledOnce;
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Issue saving runtime connection details in directory ${path.join(runtimeDir, 'local_fabric')} with error: oops`);
-        });
-    });
-
-    describe('#deleteConnectionDetails', () => {
-
-        beforeEach(async () => {
-            errorSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            runtimeDetailsDir = path.join(runtimeDir, 'local_fabric');
-
-        });
-
-        it('should delete runtime connection details', async () => {
-            await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            removeStub.getCall(0).should.have.been.calledWith(runtimeDetailsDir);
-            errorSpy.should.not.have.been.called;
-        });
-
-        it('should show an error message if we fail to delete the connection details', async () => {
-            removeStub.onCall(0).rejects({ message: 'oops' });
-
-            await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            errorSpy.should.have.been.calledWith(LogType.ERROR, `Error removing runtime connection details: oops`), `Error removing runtime connection details: oops`;
-        });
-
-        it('should not show an error message if the runtime connection details folder doesnt exist', async () => {
-            removeStub.onCall(0).rejects({ message: 'ENOENT: no such file or directory' });
-
-            await runtime.deleteConnectionDetails(VSCodeBlockchainOutputAdapter.instance());
-            errorSpy.should.not.have.been.called;
-        });
     });
 
     describe('#startLogs', () => {
@@ -1089,7 +999,7 @@ describe('FabricRuntime', () => {
 
             await runtime.startLogs(VSCodeBlockchainDockerOutputAdapter.instance());
 
-            sendRequest.should.have.been.calledWith('http://localhost:12387/logs', VSCodeBlockchainDockerOutputAdapter.instance());
+            sendRequest.should.have.been.calledWith('http://localhost:17056/logs', VSCodeBlockchainDockerOutputAdapter.instance());
         });
     });
 
@@ -1111,4 +1021,154 @@ describe('FabricRuntime', () => {
             abortRequestStub.should.not.have.been.called;
         });
     });
+
+    describe('#getGateways', () => {
+
+        it('should return an empty array if no gateways directory', async () => {
+            sandbox.stub(fs, 'pathExists').resolves(false);
+            await runtime.getGateways().should.eventually.deep.equal([]);
+        });
+
+        it('should return all of the gateways', async () => {
+            await runtime.getGateways().should.eventually.deep.equal([
+                {
+                    name: 'yofn',
+                    path: path.resolve(runtimePath, 'gateways', 'yofn.json'),
+                    connectionProfile: {
+                        name: 'yofn',
+                        version: '1.0.0',
+                        wallet: 'local_wallet',
+                        client: {
+                            organization: 'Org1',
+                            connection: {
+                                timeout: {
+                                    peer: {
+                                        endorser: '300'
+                                    },
+                                    orderer: '300'
+                                }
+                            }
+                        },
+                        organizations: {
+                            Org1: {
+                                mspid: 'Org1MSP',
+                                peers: [
+                                    'peer0.org1.example.com'
+                                ],
+                                certificateAuthorities: [
+                                    'ca.org1.example.com'
+                                ]
+                            }
+                        },
+                        peers: {
+                            'peer0.org1.example.com': {
+                                url: 'grpc://localhost:17051'
+                            }
+                        },
+                        certificateAuthorities: {
+                            'ca.org1.example.com': {
+                                url: 'http://localhost:17054',
+                                caName: 'ca.org1.example.com'
+                            }
+                        }
+                    }
+                }
+            ]);
+        });
+
+    });
+
+    describe('#getNodes', () => {
+
+        it('should return an empty array if no nodes directory', async () => {
+            sandbox.stub(fs, 'pathExists').resolves(false);
+            await runtime.getNodes().should.eventually.deep.equal([]);
+        });
+
+        it('should return all of the nodes', async () => {
+            await runtime.getNodes().should.eventually.deep.equal([
+                {
+                    short_name: 'ca.org1.example.com',
+                    name: 'ca.org1.example.com',
+                    url: 'http://localhost:17054',
+                    type: 'fabric-ca',
+                    ca_name: 'ca.org1.example.com',
+                    wallet: 'local_wallet',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_ca.org1.example.com'
+                },
+                {
+                    short_name: 'couchdb',
+                    name: 'couchdb',
+                    url: 'http://localhost:17055',
+                    type: 'couchdb',
+                    container_name: 'yofn_couchdb'
+                },
+                {
+                    short_name: 'logspout',
+                    name: 'logspout',
+                    url: 'http://localhost:17056',
+                    type: 'logspout',
+                    container_name: 'yofn_logspout'
+                },
+                {
+                    short_name: 'orderer.example.com',
+                    name: 'orderer.example.com',
+                    url: 'grpc://localhost:17050',
+                    type: 'fabric-orderer',
+                    wallet: 'local_wallet',
+                    identity: 'admin',
+                    msp_id: 'OrdererMSP',
+                    container_name: 'yofn_orderer.example.com'
+                },
+                {
+                    short_name: 'peer0.org1.example.com',
+                    name: 'peer0.org1.example.com',
+                    url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    wallet: 'local_wallet',
+                    identity: 'admin',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_peer0.org1.example.com'
+                }
+            ]);
+        });
+
+    });
+
+    describe('#getWalletNames', () => {
+
+        it('should return an empty array if no wallets directory', async () => {
+            sandbox.stub(fs, 'pathExists').resolves(false);
+            await runtime.getWalletNames().should.eventually.deep.equal([]);
+        });
+
+        it('should return all of the wallet names', async () => {
+            await runtime.getWalletNames().should.eventually.deep.equal(['local_wallet']);
+        });
+
+    });
+
+    describe('#getIdentities', () => {
+
+        it('should return an empty array if no wallet directory', async () => {
+            sandbox.stub(fs, 'pathExists').resolves(false);
+            await runtime.getIdentities('local_wallet').should.eventually.deep.equal([]);
+        });
+
+        it('should return all of the identities', async () => {
+            await runtime.getIdentities('local_wallet').should.eventually.deep.equal([
+                new FabricIdentity(
+                    'admin',
+                    'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNXRENDQWYrZ0F3SUJBZ0lVUU4zUlE1MFB6R0wrZFRBc2haeXJRNGc2MEFZd0NnWUlLb1pJemowRUF3SXcKY3pFTE1Ba0dBMVVFQmhNQ1ZWTXhFekFSQmdOVkJBZ1RDa05oYkdsbWIzSnVhV0V4RmpBVUJnTlZCQWNURFZOaApiaUJHY21GdVkybHpZMjh4R1RBWEJnTlZCQW9URUc5eVp6RXVaWGhoYlhCc1pTNWpiMjB4SERBYUJnTlZCQU1UCkUyTmhMbTl5WnpFdVpYaGhiWEJzWlM1amIyMHdIaGNOTVRrd05ERTRNVFl4TkRBd1doY05NakF3TkRFM01UWXgKT1RBd1dqQmRNUXN3Q1FZRFZRUUdFd0pWVXpFWE1CVUdBMVVFQ0JNT1RtOXlkR2dnUTJGeWIyeHBibUV4RkRBUwpCZ05WQkFvVEMwaDVjR1Z5YkdWa1oyVnlNUTh3RFFZRFZRUUxFd1pqYkdsbGJuUXhEakFNQmdOVkJBTVRCV0ZrCmJXbHVNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVDSTNkbnI1ekx0b3VmbmF4N0l2bnRMQ3EKY0gyMlZveXhYck43RHNZTG1MOExIWHFkTE9STGRCMHlBeVQ5a3FqRVJlYVFGUys5eWY0RGhFUVh5YTRsaEtPQgpoakNCZ3pBT0JnTlZIUThCQWY4RUJBTUNCNEF3REFZRFZSMFRBUUgvQkFJd0FEQWRCZ05WSFE0RUZnUVUvR2x6CjB0TWowYkRxblZ2YXBRcG1MY0Fscmdnd0t3WURWUjBqQkNRd0lvQWdNRklUMFpYR1dhMzU1THlUNEJ6c2RHNGoKdy9RNHBkeTByTzUrdEtGVEY1SXdGd1lEVlIwUkJCQXdEb0lNWkRnek5UVTFaRGsxT1dNNU1Bb0dDQ3FHU000OQpCQU1DQTBjQU1FUUNJQ2VrdEcrejAxUkZHOTc2bStNWnJyckFZN0srckxVYXFPYmk1YStsSWs0ckFpQTBsMzN2CjU4dkFvMFhYbU9ncnQrUmQwWFZJbDZJUW1EVFFrZnNwT3RsVDV3PT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=',
+                    'LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ3RGK29wMGFWMWx1TTU0VGoKTVV1Rnhod3pSUmM3S1VMMDhjT0IyZFRjTG1HaFJBTkNBQVFJamQyZXZuTXUyaTUrZHJIc2krZTBzS3B3ZmJaVwpqTEZlczNzT3hndVl2d3NkZXAwczVFdDBIVElESlAyU3FNUkY1cEFWTDczSi9nT0VSQmZKcmlXRQotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg==',
+                    'Org1MSP'
+                )
+            ]);
+        });
+
+    });
+
 });

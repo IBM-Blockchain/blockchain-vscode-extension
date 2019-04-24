@@ -30,12 +30,15 @@ export async function startFabricRuntime(): Promise<void> {
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
+        const generated: boolean = await runtime.isGenerated();
+        if (!generated) {
+            await runtime.generate(outputAdapter);
+        }
         await runtime.start(outputAdapter);
-
-        // ensure the wallets are populated properly before the gateway view uses it
-        await FabricRuntimeManager.instance().getConnection();
+        await runtime.importWalletsAndIdentities();
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
     });
 }

@@ -42,12 +42,12 @@
         "onView": [
             "gatewayExplorer",
             "aRuntimeOpsExplorer",
-            "aPackagesExplorer"
+            "aPackagesExplorer",
+            "walletExplorer"
         ],
         "onCommand": [
             "gatewaysExplorer.addGatewayEntry",
             "gatewaysExplorer.deleteGatewayEntry",
-            "gatewaysExplorer.addGatewayIdentityEntry",
             "gatewaysExplorer.connectEntry",
             "gatewaysExplorer.disconnectEntry",
             "gatewaysExplorer.refreshEntry",
@@ -55,6 +55,8 @@
             "gatewaysExplorer.testSmartContractEntry",
             "gatewaysExplorer.submitTransactionEntry",
             "gatewaysExplorer.evaluateTransactionEntry",
+            "gatewaysExplorer.associateWallet",
+            "gatewaysExplorer.dissociateWallet",
             "aPackagesExplorer.createSmartContractProjectEntry",
             "aPackagesExplorer.packageSmartContractProjectEntry",
             "aPackagesExplorer.deleteSmartContractPackageEntry",
@@ -70,9 +72,15 @@
             "aRuntimeOpsExplorer.teardownFabricRuntime",
             "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
             "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
-            "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
+            "aRuntimeOpsExplorer.exportConnectionProfileEntry",
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
             "aRuntimeOpsExplorer.createNewIdentityEntry",
+            "walletExplorer.refreshEntry",
+            "walletExplorer.addWalletEntry",
+            "walletExplorer.addWalletIdentityEntry",
+            "walletExplorer.editWalletEntry",
+            "walletExplorer.removeWalletEntry",
+            "walletExplorer.deleteIdentityEntry",
             "extensionHome.open"
         ]
     },
@@ -100,6 +108,10 @@
                 {
                     "id": "gatewaysExplorer",
                     "name": "Fabric Gateways"
+                },
+                {
+                    "id": "walletExplorer",
+                    "name": "Fabric Wallets"
                 }
             ]
         },
@@ -111,6 +123,11 @@
                     "type": "array",
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
+                },
+                "fabric.wallets": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Wallets for connecting to a Blockchain network"
                 },
                 "fabric.runtime": {
                     "type": "object",
@@ -147,6 +164,11 @@
             {
                 "command": "sample.open",
                 "title": "Open Sample",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "tutorial.open",
+                "title": "Open Tutorial",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -196,7 +218,7 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "gatewaysExplorer.addGatewayIdentityEntry",
+                "command": "walletExplorer.addWalletIdentityEntry",
                 "title": "Add Identity To Wallet",
                 "category": "IBM Blockchain Platform"
             },
@@ -313,13 +335,56 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
-                "title": "Export Connection Details",
+                "command": "aRuntimeOpsExplorer.exportConnectionProfileEntry",
+                "title": "Export Connection Profile",
                 "category": "IBM Blockchain Platform"
             },
             {
                 "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
                 "title": "Create Identity (register and enroll)",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.refreshEntry",
+                "title": "Refresh Fabric Wallets",
+                "icon": {
+                    "light": "resources/light/refresh_light.svg",
+                    "dark": "resources/dark/refresh.svg"
+                },
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.addWalletEntry",
+                "title": "Add Wallet",
+                "icon": {
+                    "light": "resources/light/add_light.svg",
+                    "dark": "resources/dark/add.svg"
+                },
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.editWalletEntry",
+                "title": "Edit Wallet",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.removeWalletEntry",
+                "title": "Remove Wallet",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.deleteIdentityEntry",
+                "title": "Delete Identity",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "gatewaysExplorer.associateWallet",
+                "title": "Associate a wallet",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "gatewaysExplorer.dissociateWallet",
+                "title": "Dissociate a wallet",
                 "category": "IBM Blockchain Platform"
             }
         ],
@@ -360,6 +425,10 @@
                 },
                 {
                     "command": "sample.open",
+                    "when": "false"
+                },
+                {
+                    "command": "tutorial.open",
                     "when": "false"
                 },
                 {
@@ -427,16 +496,34 @@
                     "command": "aRuntimeOpsExplorer.teardownFabricRuntime",
                     "when": "view == aRuntimeOpsExplorer",
                     "group": "blockchain"
+                },
+                {
+                    "command": "walletExplorer.refreshEntry",
+                    "when": "view == walletExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "walletExplorer.addWalletEntry",
+                    "when": "view == walletExplorer",
+                    "group": "navigation"
                 }
             ],
             "view/item/context": [
                 {
                     "command": "gatewaysExplorer.deleteGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
                 },
                 {
-                    "command": "gatewaysExplorer.addGatewayIdentityEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
+                    "command": "gatewaysExplorer.deleteGatewayEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+                },
+                {
+                    "command": "walletExplorer.addWalletIdentityEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
+                },
+                {
+                    "command": "walletExplorer.addWalletIdentityEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-local-wallet-item"
                 },
                 {
                     "command": "aPackagesExplorer.deleteSmartContractPackageEntry",
@@ -463,7 +550,7 @@
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.exportConnectionDetailsEntry",
+                    "command": "aRuntimeOpsExplorer.exportConnectionProfileEntry",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
                 },
                 {
@@ -492,7 +579,11 @@
                 },
                 {
                     "command": "gatewaysExplorer.editGatewayEntry",
-                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-item"
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.editGatewayEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
@@ -517,6 +608,26 @@
                 {
                     "command": "aRuntimeOpsExplorer.createNewIdentityEntry",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                },
+                {
+                    "command": "walletExplorer.editWalletEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
+                },
+                {
+                    "command": "walletExplorer.removeWalletEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
+                },
+                {
+                    "command": "walletExplorer.deleteIdentityEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-identity-item"
+                },
+                {
+                    "command": "gatewaysExplorer.associateWallet",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.dissociateWallet",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
                 }
             ]
         },
@@ -1007,12 +1118,12 @@
         "@types/chai": "4.1.4",
         "@types/chai-as-promised": "7.1.0",
         "@types/dateformat": "^1.0.1",
-        "@types/dockerode": "^2.5.5",
         "@types/fs-extra": "^5.0.4",
         "@types/glob": "5.0.35",
         "@types/mocha": "5.2.5",
         "@types/node": "10.5.4",
         "@types/rimraf": "^2.0.2",
+        "@types/semver": "^6.0.0",
         "@types/sinon": "5.0.1",
         "@types/sinon-chai": "3.2.0",
         "@types/strip-ansi": "^3.0.0",
@@ -1044,11 +1155,11 @@
         "axios": "^0.18.0",
         "child-process-promise": "^2.2.1",
         "dateformat": "^3.0.3",
-        "dockerode": "^2.5.5",
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
-        "generator-fabric": "0.0.20",
+        "generator-fabric": "0.0.22",
+        "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.0.0",
         "shelljs": "^0.8.3",
@@ -1114,7 +1225,8 @@
             "templates/tsTestSmartContractTemplate.ejs",
             "templates/jsTestSmartContractTemplate.ejs",
             "templates/HomeView.ejs",
-            "templates/SampleView.ejs"
+            "templates/SampleView.ejs",
+            "tutorials"
         ],
         "file_type_method": "EXCLUDE",
         "file_types": [

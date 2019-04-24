@@ -16,21 +16,15 @@ import { FileSystemWallet, X509WalletMixin, IdentityInfo} from 'fabric-network';
 import { IFabricWallet} from './IFabricWallet';
 
 export class FabricWallet extends FileSystemWallet implements IFabricWallet {
-
-    public connectionName: string;
     public walletPath: string;
 
-    constructor(connectionName: string, walletPath: string) {
+    constructor(walletPath: string) {
         super(walletPath);
         this.walletPath = walletPath;
-        this.connectionName = connectionName;
     }
 
     public async importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void> {
-
-        const wallet: FileSystemWallet = new FileSystemWallet(this.walletPath);
-        await wallet.import(identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
-
+        await this.import(identityName, X509WalletMixin.createIdentity(mspid, certificate, privateKey));
     }
 
     public async getIdentityNames(): Promise<string[]> {

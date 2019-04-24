@@ -30,6 +30,7 @@ import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -38,7 +39,7 @@ describe('teardownFabricRuntime', () => {
     let sandbox: sinon.SinonSandbox;
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let runtime: FabricRuntime;
+    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let runtimeTreeItem: RuntimeTreeItem;
     let gatewayRegistyEntry: FabricGatewayRegistryEntry;
     let getRegistryEntryStub: sinon.SinonStub;
@@ -58,8 +59,11 @@ describe('teardownFabricRuntime', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeManager.add();
-        runtime = runtimeManager.getRuntime();
+        await runtimeManager.initialize();
+        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.teardown.resolves();
+        mockRuntime.deleteWalletsAndIdentities.resolves();
+        sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const provider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
@@ -67,8 +71,7 @@ describe('teardownFabricRuntime', () => {
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
         gatewayRegistyEntry.managedRuntime = false;
         gatewayRegistyEntry.connectionProfilePath = 'myPath';
-        gatewayRegistyEntry.name = 'local_fabric';
-        gatewayRegistyEntry.walletPath = 'myWalletPath';
+        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
 
         getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
     });
@@ -81,12 +84,16 @@ describe('teardownFabricRuntime', () => {
     it('should teardown a Fabric runtime', async () => {
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
-        const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
         warningStub.should.have.been.calledOnce;
-        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);
+
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 
     it('should teardown a Fabric runtime and disconnect', async () => {
@@ -95,20 +102,31 @@ describe('teardownFabricRuntime', () => {
 
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
-        const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
         warningStub.should.have.been.calledOnce;
-        teardownStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
 
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
     });
 
     it('should handle cancel from confirmation message', async () => {
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+
         const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(false);
-        const teardownStub: sinon.SinonStub = sandbox.stub(runtime, 'teardown').resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, runtimeTreeItem);
         warningStub.should.have.been.calledOnce;
-        teardownStub.should.not.have.been.called;
+        mockRuntime.teardown.should.not.have.been.called;
+        mockRuntime.deleteWalletsAndIdentities.should.not.have.been.called;
+
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 
 });

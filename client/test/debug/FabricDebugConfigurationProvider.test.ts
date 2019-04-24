@@ -23,13 +23,13 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
-import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -68,7 +68,6 @@ describe('FabricDebugConfigurationProvider', () => {
         let commandStub: sinon.SinonStub;
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
-        let registryEntry: FabricGatewayRegistryEntry;
         let getConnectionStub: sinon.SinonStub;
         let date: Date;
         let formattedDate: string;
@@ -84,18 +83,12 @@ describe('FabricDebugConfigurationProvider', () => {
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
-            runtimeStub.getConnectionProfile.resolves({ peers: [{ name: 'peer1' }] });
-            runtimeStub.getChaincodeAddress.resolves('127.0.0.1:54321');
+            runtimeStub.getPeerChaincodeURL.resolves('127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
-
-            registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'local_fabric';
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = true;
+            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
-            mySandbox.stub(FabricGatewayRegistry.instance(), 'get').returns(registryEntry);
 
             workspaceFolder = {
                 name: 'myFolder',
@@ -162,7 +155,7 @@ describe('FabricDebugConfigurationProvider', () => {
             });
             commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'myGateway', connectionProfilePath: 'myPath', associatedWallet: FabricWalletUtil.LOCAL_WALLET });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -184,7 +177,7 @@ describe('FabricDebugConfigurationProvider', () => {
             });
             commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'myGateway', connectionProfilePath: 'myPath', associatedWallet: FabricWalletUtil.LOCAL_WALLET });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -206,7 +199,7 @@ describe('FabricDebugConfigurationProvider', () => {
             });
             commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'myGateway', connectionProfilePath: 'myPath', associatedWallet: FabricWalletUtil.LOCAL_WALLET });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -228,7 +221,7 @@ describe('FabricDebugConfigurationProvider', () => {
             });
             commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'myContract', 'myVersion');
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'myGateway', connectionProfilePath: 'myPath', associatedWallet: FabricWalletUtil.LOCAL_WALLET });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -250,7 +243,7 @@ describe('FabricDebugConfigurationProvider', () => {
             });
             commandStub.callCount.should.equal(4);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'myGateway', connectionProfilePath: 'myPath', associatedWallet: FabricWalletUtil.LOCAL_WALLET });
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.INSTALL_SMART_CONTRACT, null, new Set(['peerOne']), packageEntry);
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         });
@@ -281,7 +274,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             should.not.exist(config);
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'Please ensure "local_fabric" is running before trying to debug a smart contract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
         });
 
         it('should give an error if runtime isn\'t in development mode', async () => {
@@ -298,7 +291,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             should.not.exist(config);
 
-            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "local_fabric" is in development mode before trying to debug a smart contract`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is in development mode before trying to debug a smart contract`);
         });
 
         it('should handle errors with packaging', async () => {
@@ -434,7 +427,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.not.have.been.called;
             commandStub.callCount.should.equal(2);
             commandStub.should.have.been.calledWithExactly(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'mySmartContract', `vscode-debug-${formattedDate}`);
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'localfabric' });
+            commandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, { managedRuntime: true, name: 'myGateway', connectionProfilePath: 'myPath', associatedWallet: FabricWalletUtil.LOCAL_WALLET });
         });
     });
 });

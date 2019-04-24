@@ -28,6 +28,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { FabricGoDebugConfigurationProvider } from '../../src/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -74,13 +75,13 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
-            runtimeStub.getConnectionProfile.resolves({ peers: [{ name: 'peer1' }] });
-            runtimeStub.getChaincodeAddress.resolves('127.0.0.1:54321');
+            runtimeStub.getPeerChaincodeURL.resolves('127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
+            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
             registryEntry = new FabricGatewayRegistryEntry();
-            registryEntry.name = 'local_fabric';
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.connectionProfilePath = 'myPath';
             registryEntry.managedRuntime = true;
 

@@ -18,28 +18,36 @@ import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntim
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
-import { IFabricConnection } from '../../src/fabric/IFabricConnection';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
+import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricGateway } from '../../src/fabric/FabricGateway';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
+import { CommandUtil } from '../../src/util/CommandUtil';
+import { version } from '../../package.json';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 
-const should: Chai.Should = chai.should();
+chai.should();
 
 // tslint:disable no-unused-expression
 describe('FabricRuntimeManager', () => {
 
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let connection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let mockConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
 
     let sandbox: sinon.SinonSandbox;
     let findFreePortStub: sinon.SinonStub;
-    let getConfigurationStub: sinon.SinonStub;
-    let workspaceConfigurationUpdateStub: sinon.SinonStub;
-    let workspaceConfigurationGetStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeGatewaysConfig();
@@ -55,396 +63,339 @@ describe('FabricRuntimeManager', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        connection = sinon.createStubInstance(FabricRuntimeConnection);
-
+        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
+        runtimeManager['runtime'] = ((mockRuntime as any) as FabricRuntime);
+        mockConnection = sinon.createStubInstance(FabricRuntimeConnection);
+        sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockConnection);
+        findFreePortStub = sinon.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
+        sandbox.stub(FabricRuntimeManager, 'findFreePort').value(findFreePortStub);
     });
 
     afterEach(async () => {
         sandbox.restore();
+        runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
+        runtimeManager['runtime'] = undefined;
         await connectionRegistry.clear();
     });
 
-    describe('getConnection', () => {
-        it('should return the connection if there is a connection', async () => {
-            runtimeManager['connection'] = connection;
-            runtimeManager['connectingPromise'] = undefined;
+    describe('#getConnection', () => {
 
-            const result: IFabricConnection = await runtimeManager.getConnection();
-            result.should.deep.equal(connection);
-        });
-
-        it('should connect if there is no connection', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = undefined;
-            await runtimeManager.add();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtime, 'getConnectionProfile');
-            sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
-            sandbox.stub(runtime, 'startLogs');
-            connection.connect.resolves();
-            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
-            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            runtimeWalletStub.exists.resolves(false);
-            runtimeWalletStub.importIdentity.resolves();
-            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            gatewayWalletStub.exists.resolves(false);
-            gatewayWalletStub.importIdentity.resolves();
-
-            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
-
-            const result: IFabricConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
-            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
-            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
-            runtime.startLogs.should.have.been.called;
-            result.should.deep.equal(connection);
-        });
-
-        it('should not import runtime identity if already exists', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = undefined;
-            await runtimeManager.add();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
-            sandbox.stub(runtime, 'startLogs');
-            connection.connect.resolves();
-            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
-            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-
-            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            runtimeWalletStub.exists.resolves(true);
-            runtimeWalletStub.importIdentity.resolves();
-            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            gatewayWalletStub.exists.resolves(false);
-            gatewayWalletStub.importIdentity.resolves();
-
-            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
-
-            const result: IFabricConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
-            runtimeWalletStub.importIdentity.should.not.have.been.called;
-            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
-            runtime.startLogs.should.have.been.called;
-            result.should.deep.equal(connection);
-        });
-
-        it('should not import gateway identity if already exists', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = undefined;
-            await runtimeManager.add();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
-            sandbox.stub(runtime, 'startLogs');
-            connection.connect.resolves();
-            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
-            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-
-            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            runtimeWalletStub.exists.resolves(false);
-            runtimeWalletStub.importIdentity.resolves();
-            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            gatewayWalletStub.exists.resolves(true);
-            gatewayWalletStub.importIdentity.resolves();
-
-            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
-            const result: IFabricConnection = await runtimeManager.getConnection();
-
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
-            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
-            gatewayWalletStub.importIdentity.should.not.have.been.called;
-            runtime.startLogs.should.have.been.called;
-            result.should.deep.equal(connection);
-        });
-
-        it('should not connect if already connecting', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = Promise.resolve(connection);
-            connection.connect.resolves();
-
+        it('should connect and start logs', async () => {
             await runtimeManager.getConnection();
-
-            connection.connect.should.not.have.been.called;
+            mockConnection.connect.should.have.been.calledOnce;
+            mockRuntime.startLogs.should.have.been.calledOnceWithExactly(VSCodeBlockchainDockerOutputAdapter.instance());
         });
 
-        it('should disconnect if runtime stopped', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = undefined;
-            await runtimeManager.add();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
-            sandbox.stub(runtime, 'startLogs');
-
-            connection.connect.resolves();
-            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
-            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            runtimeWalletStub.exists.resolves(false);
-            runtimeWalletStub.importIdentity.resolves();
-            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            gatewayWalletStub.exists.resolves(false);
-            gatewayWalletStub.importIdentity.resolves();
-
-            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
-
-            const result: IFabricConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
-            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
-            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
-            runtime.startLogs.should.have.been.called;
-            result.should.deep.equal(connection);
-
-            runtime.setState(FabricRuntimeState.STOPPED);
-            runtime.emit('busy', false);
-
-            connection.disconnect.should.have.been.called;
-            should.not.exist(runtimeManager['connection']);
+        it('should not start another connection attempt if already connecting', async () => {
+            const promise1: any = runtimeManager.getConnection();
+            const promise2: any = runtimeManager.getConnection();
+            (promise1 === promise2).should.be.true;
+            await promise1;
+            mockConnection.connect.should.have.been.calledOnce;
+            mockRuntime.startLogs.should.have.been.calledOnceWithExactly(VSCodeBlockchainDockerOutputAdapter.instance());
         });
 
-        it('should not discconect if no connection if runtime stopped', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = undefined;
-            await runtimeManager.add();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
-            sandbox.stub(runtime, 'startLogs');
-
-            connection.connect.resolves();
-            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
-            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            runtimeWalletStub.exists.resolves(false);
-            runtimeWalletStub.importIdentity.resolves();
-            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            gatewayWalletStub.exists.resolves(false);
-            gatewayWalletStub.importIdentity.resolves();
-
-            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
-
-            const result: IFabricConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
-            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
-            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
-            runtime.startLogs.should.have.been.called;
-            result.should.deep.equal(connection);
-
-            runtimeManager['connection'] = undefined;
-            runtime.setState(FabricRuntimeState.STOPPED);
-            runtime.emit('busy', false);
-
-            connection.disconnect.should.not.have.been.called;
-            should.not.exist(runtimeManager['connection']);
+        it('should not connect if already connected', async () => {
+            const connection1: IFabricRuntimeConnection = await runtimeManager.getConnection();
+            mockConnection.connect.should.have.been.calledOnce;
+            mockRuntime.startLogs.should.have.been.calledOnceWithExactly(VSCodeBlockchainDockerOutputAdapter.instance());
+            const connection2: IFabricRuntimeConnection = await runtimeManager.getConnection();
+            (connection1 === connection2).should.be.true;
         });
 
-        it('should do nothing if started', async () => {
-            runtimeManager['connection'] = undefined;
-            runtimeManager['connectingPromise'] = undefined;
-            await runtimeManager.add();
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            sandbox.stub(runtimeManager, 'getRuntime').returns(runtime);
-            sandbox.stub(runtime, 'startLogs');
-
-            connection.connect.resolves();
-            connection.enroll.resolves({ certificate: 'myCert', privateKey: 'myKey' });
-            sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(connection);
-            const runtimeWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            runtimeWalletStub.exists.resolves(false);
-            runtimeWalletStub.importIdentity.resolves();
-            const gatewayWalletStub: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
-            gatewayWalletStub.exists.resolves(false);
-            gatewayWalletStub.importIdentity.resolves();
-
-            const createWalletStub: sinon.SinonStub = sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createWalletStub.withArgs('local_fabric-ops').resolves(runtimeWalletStub);
-            createWalletStub.withArgs('local_fabric').resolves(gatewayWalletStub);
-
-            const result: IFabricConnection = await runtimeManager.getConnection();
-            connection.connect.should.have.been.calledWith(runtimeWalletStub, 'Admin@org1.example.com');
-            runtimeWalletStub.importIdentity.should.have.been.calledWith(sinon.match.string, sinon.match.string, 'Admin@org1.example.com', 'Org1MSP');
-            gatewayWalletStub.importIdentity.should.have.been.calledWith('myCert', 'myKey', 'Admin@org1.example.com', 'Org1MSP');
-            runtime.startLogs.should.have.been.called;
-            result.should.deep.equal(connection);
-
-            runtime.setState(FabricRuntimeState.STARTED);
-            runtime.emit('busy', false);
-
-            connection.disconnect.should.not.have.been.called;
-            runtimeManager['connection'].should.exist;
+        it('should disconnect when the runtime stops', async () => {
+            let onBusyCallback: any;
+            mockRuntime.on.callsFake((name: string, callback: any) => {
+                name.should.equal('busy');
+                onBusyCallback = callback;
+            });
+            await runtimeManager.getConnection();
+            mockRuntime.getState.returns(FabricRuntimeState.STOPPED);
+            onBusyCallback();
+            mockConnection.disconnect.should.have.been.calledOnce;
         });
+
+        it('should not disconnect when the runtime is stopping', async () => {
+            let onBusyCallback: any;
+            mockRuntime.on.callsFake((name: string, callback: any) => {
+                name.should.equal('busy');
+                onBusyCallback = callback;
+            });
+            await runtimeManager.getConnection();
+            mockRuntime.getState.returns(FabricRuntimeState.STOPPING);
+            onBusyCallback();
+            mockConnection.disconnect.should.not.have.been.called;
+        });
+
+        it('should not disconnect if the connection has already been removed', async () => {
+            let onBusyCallback: any;
+            mockRuntime.on.callsFake((name: string, callback: any) => {
+                name.should.equal('busy');
+                onBusyCallback = callback;
+            });
+            await runtimeManager.getConnection();
+            mockRuntime.getState.returns(FabricRuntimeState.STOPPED);
+            runtimeManager['connection'] = undefined;
+            onBusyCallback();
+            mockConnection.disconnect.should.not.have.been.called;
+        });
+
     });
 
-    describe('#add', () => {
+    describe('#getRuntime', () => {
 
-        beforeEach(async () => {
-            workspaceConfigurationUpdateStub = sandbox.stub();
-            workspaceConfigurationGetStub = sandbox.stub();
-
-            getConfigurationStub = sandbox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-            findFreePortStub = sandbox.stub(FabricRuntimeManager, 'findFreePort');
-
+        it('should return the runtime', () => {
+            runtimeManager.getRuntime().should.equal(mockRuntime);
         });
 
-        it('should add a runtime to the runtime manager if one does not exist', async () => {
-            workspaceConfigurationGetStub.withArgs('fabric.runtimes').onCall(0).returns([]);
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({});
+    });
 
-            // Runtime is created upon extension activation
-            findFreePortStub.resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
-            await runtimeManager.add();
-            runtimeManager.exists().should.be.true;
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            runtime.getName().should.equal('local_fabric');
-            runtime.isDevelopmentMode().should.be.false;
-            runtime.ports.should.deep.equal({
+    describe('#initialize', () => {
+
+        beforeEach(() => {
+            mockRuntime.isCreated.resolves(true);
+            Object.defineProperty(runtimeManager, 'runtime', {
+                configurable: true,
+                enumerable: true,
+                get: (): FabricRuntime => (mockRuntime as any) as FabricRuntime,
+                set: (): void => { /* Ignore the new value */ }
+            });
+        });
+
+        it('should use existing configuration and import all wallets/identities', async () => {
+            await vscode.workspace.getConfiguration().update('fabric.runtime', {
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: false
+            }, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+            mockRuntime.ports.should.deep.equal({
                 certificateAuthority: 17054,
                 couchDB: 17055,
+                logs: 17056,
                 orderer: 17050,
                 peerChaincode: 17052,
                 peerEventHub: 17053,
-                peerRequest: 17051,
-                logs: 17056
+                peerRequest: 17051
             });
+            mockRuntime.developmentMode.should.be.false;
+            mockRuntime.updateUserSettings.should.not.have.been.called;
+            mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
         });
 
-        it('should migrate the existing runtime to the new user setting value and add a logs port', async () => {
-            findFreePortStub.resolves([111]);
-            workspaceConfigurationGetStub.withArgs('fabric.runtimes').returns([
-                {
-                    name: 'local_fabric',
-                    ports: {
-                        orderer: 777,
-                        peerRequest: 666,
-                        peerChaincode: 555,
-                        peerEventHub: 444,
-                        certificateAuthority: 333,
-                        couchDB: 222,
-                    },
-                    developmentMode: false
-                },
-                {
-                    somethingelse: 'somethingThatShouldntExist',
-                }
-            ]);
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({
-                ports: {
-                    orderer: 777,
-                    peerRequest: 666,
-                    peerChaincode: 555,
-                    peerEventHub: 444,
-                    certificateAuthority: 333,
-                    couchDB: 222,
-                    logs: 111
-                },
-                developmentMode: false
+        it('should generate new configuration and import all wallets/identities', async () => {
+            await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+            mockRuntime.ports.should.deep.equal({
+                certificateAuthority: 17054,
+                couchDB: 17055,
+                logs: 17056,
+                orderer: 17050,
+                peerChaincode: 17052,
+                peerEventHub: 17053,
+                peerRequest: 17051
             });
-            await runtimeManager.add();
-            runtimeManager.exists().should.be.true;
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            runtime.getName().should.equal('local_fabric');
-            runtime.isDevelopmentMode().should.be.false;
-            runtime.ports.should.deep.equal({
-                orderer: 777,
-                peerRequest: 666,
-                peerChaincode: 555,
-                peerEventHub: 444,
-                certificateAuthority: 333,
-                couchDB: 222,
-                logs: 111
-            });
-            findFreePortStub.should.have.been.calledOnce;
+            mockRuntime.developmentMode.should.be.false;
+            mockRuntime.updateUserSettings.should.have.been.calledOnce;
+            mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
         });
 
-        it('should use the runtime defined in fabric.runtime', async () => {
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').returns({
-                ports: {
-                    orderer: 111,
-                    peerRequest: 222,
-                    peerChaincode: 333,
-                    peerEventHub: 444,
-                    certificateAuthority: 555,
-                    couchDB: 666,
-                    logs: 777
-                },
-                developmentMode: true
+        it('create the runtime if it is not already created', async () => {
+            mockRuntime.isCreated.resolves(false);
+            await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+            mockRuntime.ports.should.deep.equal({
+                certificateAuthority: 17054,
+                couchDB: 17055,
+                logs: 17056,
+                orderer: 17050,
+                peerChaincode: 17052,
+                peerEventHub: 17053,
+                peerRequest: 17051
             });
-            await runtimeManager.add();
-            runtimeManager.exists().should.be.true;
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            runtime.getName().should.equal('local_fabric');
-            runtime.isDevelopmentMode().should.be.true;
-            runtime.ports.should.deep.equal({
-                orderer: 111,
-                peerRequest: 222,
-                peerChaincode: 333,
-                peerEventHub: 444,
-                certificateAuthority: 555,
-                couchDB: 666,
-                logs: 777
-            });
-            findFreePortStub.should.not.have.been.called;
-        });
-
-        it('should generate a logs port that is higher than the others', async () => {
-            findFreePortStub.resolves([17086]);
-            workspaceConfigurationGetStub.withArgs('fabric.runtimes').returns([
-                {
-                    name: 'local_fabric',
-                    ports: {
-                        orderer: 17080,
-                        peerRequest: 17081,
-                        peerChaincode: 17082,
-                        peerEventHub: 17083,
-                        certificateAuthority: 17084,
-                        couchDB: 17085,
-                    },
-                    developmentMode: false
-                }
-            ]);
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(0).returns({});
-            workspaceConfigurationGetStub.withArgs('fabric.runtime').onCall(1).returns({
-                ports: {
-                    orderer: 17080,
-                    peerRequest: 17081,
-                    peerChaincode: 17082,
-                    peerEventHub: 17083,
-                    certificateAuthority: 17084,
-                    couchDB: 17085,
-                    logs: 17086
-                },
-                developmentMode: false
-            });
-            await runtimeManager.add();
-            runtimeManager.exists().should.be.true;
-            const runtime: FabricRuntime = runtimeManager.getRuntime();
-            runtime.getName().should.equal('local_fabric');
-            runtime.isDevelopmentMode().should.be.false;
-            runtime.ports.should.deep.equal({
-                orderer: 17080,
-                peerRequest: 17081,
-                peerChaincode: 17082,
-                peerEventHub: 17083,
-                certificateAuthority: 17084,
-                couchDB: 17085,
-                logs: 17086
-            });
-            findFreePortStub.should.have.been.calledOnceWithExactly(17086, null, null, 1);
+            mockRuntime.developmentMode.should.be.false;
+            mockRuntime.updateUserSettings.should.have.been.calledOnce;
+            mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
+            mockRuntime.create.should.have.been.calledOnce;
         });
 
     });
+
+    describe('#getGatewayRegistryEntries', () => {
+
+        it('should return an array of gateway registry entries', async () => {
+            const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
+            mockRuntime.getGateways.resolves([
+                new FabricGateway(FabricRuntimeUtil.LOCAL_FABRIC, 'SOME_PATH', { connection: 'profile' })
+            ]);
+
+            const registryEntries: FabricGatewayRegistryEntry[] = await instance.getGatewayRegistryEntries();
+            registryEntries.should.have.lengthOf(1);
+            registryEntries[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            registryEntries[0].managedRuntime.should.be.true;
+            registryEntries[0].associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
+            registryEntries[0].connectionProfilePath.should.equal('SOME_PATH');
+        });
+
+    });
+
+    describe('#getWalletRegistryEntries', () => {
+
+        it('should return an array of wallet registry entries', async () => {
+            const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
+            mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
+            const mockWalletGenerator: sinon.SinonStubbedInstance<FabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
+            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockWalletGenerator);
+            const mockWallet: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
+            mockWallet.getWalletPath.returns('SOME_PATH');
+            mockWalletGenerator.createLocalWallet.resolves(mockWallet);
+
+            const registryEntries: FabricWalletRegistryEntry[] = await instance.getWalletRegistryEntries();
+            registryEntries.should.have.lengthOf(1);
+            registryEntries[0].name.should.equal(FabricWalletUtil.LOCAL_WALLET);
+            registryEntries[0].walletPath.should.equal('SOME_PATH');
+            registryEntries[0].managedWallet.should.be.true;
+        });
+
+    });
+
+    describe('#migrate', () => {
+
+        let getStub: sinon.SinonStub;
+        let updateStub: sinon.SinonStub;
+        let sendCommandWithOutputStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            getStub = sinon.stub();
+            getStub.withArgs('fabric.runtime').returns({
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: false
+            });
+            getStub.withArgs('fabric.runtimes').returns([]);
+            updateStub = sinon.stub().resolves();
+            sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub});
+            sendCommandWithOutputStub = sandbox.stub(CommandUtil, 'sendCommandWithOutput');
+        });
+
+        it('should not migrate anything for a new configuration', async () => {
+            await runtimeManager.migrate(version);
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.not.have.been.called;
+        });
+
+        it('should not migrate anything for an old configuration with a new configuration', async () => {
+            getStub.withArgs('fabric.runtimes').returns([{
+                name: 'local_fabric',
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }]);
+            await runtimeManager.migrate(version);
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.not.have.been.called;
+        });
+
+        it('should migrate an old configuration with the name "local_fabric" when no new configuration', async () => {
+            findFreePortStub.returns([17056]);
+            getStub.withArgs('fabric.runtime').returns({});
+            getStub.withArgs('fabric.runtimes').returns([{
+                name: 'local_fabric',
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }]);
+            await runtimeManager.migrate(version);
+            updateStub.should.have.been.calledOnceWithExactly('fabric.runtime', {
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }, vscode.ConfigurationTarget.Global);
+            sendCommandWithOutputStub.should.not.have.been.called;
+        });
+
+        it('should not migrate an old configuration with any other name when no new configuration', async () => {
+            getStub.withArgs('fabric.runtime').returns({});
+            getStub.withArgs('fabric.runtimes').returns([{
+                name: 'some_other_fabric',
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }]);
+            await runtimeManager.migrate(version);
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.not.have.been.called;
+        });
+
+        it('should attempt to teardown any old runtimes if no previous version (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            await runtimeManager.migrate(undefined);
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('/bin/sh', ['teardown.sh'], sinon.match.any, null, VSCodeBlockchainOutputAdapter.instance());
+        });
+
+        it('should attempt to teardown any old runtimes if no previous version (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            await runtimeManager.migrate(undefined);
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('cmd', ['/c', 'teardown.cmd'], sinon.match.any, null, VSCodeBlockchainOutputAdapter.instance());
+        });
+
+        it('should attempt to teardown any old runtimes if migrating from >=0.3.3 (Linux/MacOS)', async () => {
+            sandbox.stub(process, 'platform').value('linux');
+            await runtimeManager.migrate('0.3.3');
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('/bin/sh', ['teardown.sh'], sinon.match.any, null, VSCodeBlockchainOutputAdapter.instance());
+        });
+
+        it('should attempt to teardown any old runtimes if migrating from >=0.3.3 (Windows)', async () => {
+            sandbox.stub(process, 'platform').value('win32');
+            await runtimeManager.migrate('0.3.3');
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('cmd', ['/c', 'teardown.cmd'], sinon.match.any, null, VSCodeBlockchainOutputAdapter.instance());
+        });
+
+    });
+
 });

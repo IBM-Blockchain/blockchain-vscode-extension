@@ -13,8 +13,6 @@
 */
 
 import { FabricConnection } from '../../src/fabric/FabricConnection';
-import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -23,16 +21,14 @@ import * as fabricClientCA from 'fabric-ca-client';
 import { Gateway, Wallet, FileSystemWallet } from 'fabric-network';
 import { Channel, Peer } from 'fabric-client';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { LogType, OutputAdapter } from '../../src/logging/OutputAdapter';
+import { OutputAdapter } from '../../src/logging/OutputAdapter';
 
-const should: Chai.Should = chai.should();
+chai.should();
 chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 // tslint:disable no-use-before-declare
 describe('FabricConnection', () => {
-
-    const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');
 
     class TestFabricConnection extends FabricConnection {
 
@@ -47,19 +43,12 @@ describe('FabricConnection', () => {
             this['gateway'] = fabricGatewayStub;
             await this.connectInner(this.connectionProfile, wallet, identityName);
         }
-
-        async getConnectionDetails(): Promise<any> {
-            return;
-        }
-
     }
 
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
     let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
     let fabricConnection: TestFabricConnection;
-    let fabricContractStub: any;
     let fabricChannelStub: sinon.SinonStubbedInstance<Channel>;
-    let fabricTransactionStub: any;
     let fabricCAStub: sinon.SinonStubbedInstance<fabricClientCA>;
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
     const mockIdentityName: string = 'admin';
@@ -107,37 +96,6 @@ describe('FabricConnection', () => {
         fabricGatewayStub.connect.resolves();
         fabricGatewayStub.getCurrentIdentity.resolves({});
 
-        const eventHandlerOptions: any = {
-            commitTimeout: 30,
-            strategy: 'MSPID_SCOPE_ANYFORTX'
-        };
-
-        const eventHandlerStub: any = {
-            startListening: mySandBox.stub(),
-            cancelListening: mySandBox.stub(),
-            waitForEvents: mySandBox.stub(),
-        };
-        const responsesStub: any = {
-            validResponses: [
-                {
-                    response: {
-                        payload: new Buffer('payload response buffer')
-                    }
-                }
-            ]
-        };
-        fabricTransactionStub = {
-            _validatePeerResponses: mySandBox.stub().returns(responsesStub),
-            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
-        };
-
-        fabricContractStub = {
-            createTransaction: mySandBox.stub().returns(fabricTransactionStub),
-            evaluateTransaction: mySandBox.stub(),
-            submitTransaction: mySandBox.stub(),
-            getEventHandlerOptions: mySandBox.stub().returns(eventHandlerOptions)
-        };
-
         fabricChannelStub = sinon.createStubInstance(Channel);
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
         fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
@@ -145,7 +103,6 @@ describe('FabricConnection', () => {
         fabricChannelStub.getOrganizations.resolves([{id: 'Org1MSP'}]);
 
         const fabricNetworkStub: any = {
-            getContract: mySandBox.stub().returns(fabricContractStub),
             getChannel: mySandBox.stub().returns(fabricChannelStub)
         };
 
@@ -190,7 +147,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection(connectionProfile);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.false;
+            fabricConnection['discoveryEnabled'].should.be.true;
         });
 
         it('should not use discovery as localhost for remote orderer connections', async () => {
@@ -232,7 +189,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection(connectionProfile);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.false;
+            fabricConnection['discoveryEnabled'].should.be.true;
         });
 
         it('should not use discovery as localhost for remote peer connections', async () => {
@@ -274,7 +231,7 @@ describe('FabricConnection', () => {
             fabricConnection = new TestFabricConnection(connectionProfile);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.false;
+            fabricConnection['discoveryEnabled'].should.be.true;
         });
 
         it('should not use discovery as localhost for remote certificate authority connections', async () => {
@@ -321,29 +278,19 @@ describe('FabricConnection', () => {
         });
     });
 
-    describe('getPeer', () => {
-        it('should get a peer', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
+    // describe('getPeer', () => {
+    //     it('should get a peer', async () => {
+    //         const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
+    //         const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
 
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
+    //         fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
-            await fabricConnection.connect(mockWallet, mockIdentityName);
+    //         await fabricConnection.connect(mockWallet, mockIdentityName);
 
-            const peer: fabricClient.Peer = await fabricConnection.getPeer('peerTwo');
-            peer.getName().should.deep.equal('peerTwo');
-        });
-    });
-
-    describe('getOrganization', () => {
-        it('should get an organization', async () => {
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-
-            const orgs: any[] = await fabricConnection.getOrganizations('myChannel');
-            orgs.length.should.equal(1);
-            orgs[0].id.should.deep.equal('Org1MSP');
-        });
-    });
+    //         const peer: fabricClient.Peer = await fabricConnection.getPeer('peerTwo');
+    //         peer.getName().should.deep.equal('peerTwo');
+    //     });
+    // });
 
     describe('getAllChannelsForPeer', () => {
         it('should get all the channels a peer has joined', async () => {
@@ -360,55 +307,6 @@ describe('FabricConnection', () => {
             const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peerTwo');
 
             channelNames.should.deep.equal(['channel-one', 'channel-two']);
-        });
-    });
-
-    describe('getInstalledChaincode', () => {
-        it('should get the install chaincode', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-            fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).resolves({
-                chaincodes: [{
-                    name: 'biscuit-network',
-                    version: '0.7'
-                }, { name: 'biscuit-network', version: '0.8' }, { name: 'cake-network', version: '0.8' }]
-            });
-
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            const installedChaincode: Map<string, Array<string>> = await fabricConnection.getInstalledChaincode('peerOne');
-            installedChaincode.size.should.equal(2);
-            Array.from(installedChaincode.keys()).should.deep.equal(['biscuit-network', 'cake-network']);
-            installedChaincode.get('biscuit-network').should.deep.equal(['0.7', '0.8']);
-            installedChaincode.get('cake-network').should.deep.equal(['0.8']);
-        });
-
-        it('should handle and swallow an access denied error', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-            fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).rejects(new Error('wow u cannot see cc cos access denied as u is not an admin'));
-
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            const installedChaincode: Map<string, Array<string>> = await fabricConnection.getInstalledChaincode('peerOne');
-            installedChaincode.size.should.equal(0);
-            Array.from(installedChaincode.keys()).should.deep.equal([]);
-        });
-
-        it('should rethrow any error other than access denied', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
-            const peerTwo: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peerTwo' });
-
-            fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
-
-            fabricClientStub.queryInstalledChaincodes.withArgs(peerOne).rejects(new Error('wow u cannot see cc cos peer no works'));
-
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            await fabricConnection.getInstalledChaincode('peerOne').should.be.rejectedWith(/peer no works/);
         });
     });
 
@@ -510,398 +408,10 @@ describe('FabricConnection', () => {
         });
     });
 
-    describe('installChaincode', () => {
-
-        let peer: fabricClient.Peer;
-
-        beforeEach(async () => {
-            peer = new fabricClient.Peer('grpc://localhost:1453', { name: 'peer1' });
-            fabricClientStub.getPeersForOrg.returns([peer]);
-            const responseStub: any = [[{
-                response: {
-                    status: 200
-                }
-            }]];
-            fabricClientStub.installChaincode.resolves(responseStub);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-        });
-
-        it('should install the chaincode package', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
-
-            await fabricConnection.installChaincode(packageEntry, 'peer1');
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
-                txId: sinon.match.any,
-                chaincodePackage: sinon.match((buffer: Buffer) => {
-                    buffer.should.be.an.instanceOf(Buffer);
-                    buffer.length.should.equal(2719);
-                    return true;
-                })
-            });
-        });
-
-        it('should handle error response', async () => {
-            const responseStub: any = [[new Error('some error')]];
-            fabricClientStub.installChaincode.resolves(responseStub);
-
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
-
-            await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith(/some error/);
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
-                txId: sinon.match.any,
-                chaincodePackage: sinon.match((buffer: Buffer) => {
-                    buffer.should.be.an.instanceOf(Buffer);
-                    buffer.length.should.equal(2719);
-                    return true;
-                })
-            });
-        });
-
-        it('should handle failed response', async () => {
-            const responseStub: any = [[{
-                response: {
-                    message: 'some error',
-                    status: 400
-                }
-            }]];
-            fabricClientStub.installChaincode.resolves(responseStub);
-
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
-
-            await fabricConnection.installChaincode(packageEntry, 'peer1').should.be.rejectedWith('some error');
-            fabricClientStub.installChaincode.should.have.been.calledWith({
-                targets: [peer],
-                txId: sinon.match.any,
-                chaincodePackage: sinon.match((buffer: Buffer) => {
-                    buffer.should.be.an.instanceOf(Buffer);
-                    buffer.length.should.equal(2719);
-                    return true;
-                })
-            });
-        });
-
-        it('should handle an error if the chaincode package does not exist', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-doesnotexist@0.0.1.cds')
-            });
-
-            await fabricConnection.installChaincode(packageEntry, 'peer1')
-                .should.have.been.rejectedWith(/ENOENT/);
-        });
-
-        it('should handle an error installing the chaincode package', async () => {
-            const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
-                name: 'vscode-pkg-1',
-                version: '0.0.1',
-                path: path.join(TEST_PACKAGE_DIRECTORY, 'vscode-pkg-1@0.0.1.cds')
-            });
-
-            fabricClientStub.installChaincode.rejects(new Error('such error'));
-            await fabricConnection.installChaincode(packageEntry, 'peer1')
-                .should.have.been.rejectedWith(/such error/);
-        });
-
-    });
-
-    describe('instantiateChaincode', () => {
-
-        let getChanincodesStub: sinon.SinonStub;
-        beforeEach(() => {
-            getChanincodesStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
-            getChanincodesStub.resolves([]);
-        });
-
-        it('should instantiate a chaincode', async () => {
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(fabricConnection['outputAdapter'], 'log');
-
-            const responsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
-            fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
-            });
-            responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, "Instantiating with function: 'instantiate' and arguments: 'arg1'");
-        });
-
-        it('should throw an error instantiating if contract is already instantiated', async () => {
-            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-            const logSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
-            getChanincodesStub.withArgs('myChannel').resolves([{ name: 'myChaincode' }]);
-            await fabricConnection.instantiateChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The name of the contract you tried to instantiate is already instantiated');
-            fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
-
-            logSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
-        });
-
-        it('should instantiate a chaincode and can return empty payload response', async () => {
-            fabricTransactionStub._validatePeerResponses.returns(null);
-            const nullResponsePayload: any = await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']);
-            fabricChannelStub.sendInstantiateProposal.should.have.been.calledWith({
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
-            });
-            should.not.exist(nullResponsePayload);
-        });
-
-        it('should throw an error if cant create event handler', async () => {
-            fabricTransactionStub._createTxEventHandler.returns();
-            await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
-        });
-
-        it('should throw an error if submitting the transaction failed', async () => {
-            fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
-            await fabricConnection.instantiateChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
-        });
-    });
-
-    describe('isIBPConnection', () => {
-        it('should return true if connected to an IBP instance', async () => {
-            fabricConnection['networkIdProperty'] = true;
-            const result: boolean = await fabricConnection.isIBPConnection();
-            result.should.equal(true);
-        });
-        it('should return false if not connected to an IBP instance', async () => {
-            fabricConnection['networkIdProperty'] = false;
-            const result: boolean = await fabricConnection.isIBPConnection();
-            result.should.equal(false);
-        });
-    });
-
-    describe('getMetadata', () => {
-        it('should return the metadata for an instantiated smart contract', async () => {
-            const fakeMetaData: string = '{"contracts":{"my-contract":{"name":"","contractInstance":{"name":""},"transactions":[{"name":"instantiate"},{"name":"wagonwheeling"},{"name":"transaction2"}],"info":{"title":"","version":""}},"org.hyperledger.fabric":{"name":"org.hyperledger.fabric","contractInstance":{"name":"org.hyperledger.fabric"},"transactions":[{"name":"GetMetadata"}],"info":{"title":"","version":""}}},"info":{"version":"0.0.2","title":"victoria_sponge"},"components":{"schemas":{}}}';
-            const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
-            fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
-
-            const metadata: any = await fabricConnection.getMetadata('myChaincode', 'channelConga');
-            // tslint:disable-next-line
-            const testFunction: string = metadata.contracts["my-contract"].transactions[1].name;
-            // tslint:disable-next-line
-            testFunction.should.equal("wagonwheeling");
-        });
-
-        it('should throw an error if an error is thrown by an instantiated smart contract', async () => {
-            fabricContractStub.evaluateTransaction.rejects(new Error('no such function!'));
-
-            await fabricConnection.getMetadata('myChaincode', 'channelConga')
-                .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" returned an error: no such function!/);
-        });
-
-        it('should throw an error if no metadata is returned by an instantiated smart contract', async () => {
-            const fakeMetaData: string = '';
-            const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
-            fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
-
-            await fabricConnection.getMetadata('myChaincode', 'channelConga')
-                .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" did not return any metadata/);
-        });
-
-        it('should throw an error if non-JSON metadata is returned by an instantiated smart contract', async () => {
-            const fakeMetaData: string = '500 tokens to lulzwat@dogecorp.com';
-            const fakeMetaDataBuffer: Buffer = Buffer.from(fakeMetaData, 'utf8');
-            fabricContractStub.evaluateTransaction.resolves(fakeMetaDataBuffer);
-
-            await fabricConnection.getMetadata('myChaincode', 'channelConga')
-                .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" did not return valid JSON metadata/);
-        });
-
-    });
-
-    describe('submitTransaction', () => {
-        it('should handle no response from a submitted transaction', async () => {
-            const buffer: Buffer = Buffer.from([]);
-            fabricContractStub.submitTransaction.resolves(buffer);
-
-            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
-            should.equal(result, undefined);
-        });
-
-        it('should handle a returned string response from a submitted transaction', async () => {
-            const buffer: Buffer = Buffer.from('hello world');
-            fabricContractStub.submitTransaction.resolves(buffer);
-
-            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
-            result.should.equal('hello world');
-        });
-
-        it('should handle a returned empty string response from a submitted transaction', async () => {
-            const buffer: Buffer = Buffer.from('');
-            fabricContractStub.submitTransaction.resolves(buffer);
-
-            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
-            should.equal(result, undefined);
-        });
-
-        it('should handle a returned array from a submitted transaction', async () => {
-
-            const buffer: Buffer = Buffer.from(JSON.stringify(['hello', 'world']));
-            fabricContractStub.submitTransaction.resolves(buffer);
-
-            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
-            should.equal(result, '["hello","world"]');
-        });
-
-        it('should handle returned object from a submitted transaction', async () => {
-
-            const buffer: Buffer = Buffer.from(JSON.stringify({hello: 'world'}));
-            fabricContractStub.submitTransaction.resolves(buffer);
-
-            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
-            should.equal(result, '{"hello":"world"}');
-        });
-
-        it('should evaluate a transaction if specified', async () => {
-            const buffer: Buffer = Buffer.from([]);
-            fabricContractStub.evaluateTransaction.resolves(buffer);
-
-            const result: string | undefined = await fabricConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', true);
-            fabricContractStub.evaluateTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
-            should.equal(result, undefined);
-        });
-    });
-
     describe('disconnect', () => {
         it('should disconnect from gateway', async () => {
             await fabricConnection.disconnect();
             fabricGatewayStub.disconnect.should.have.been.called;
-        });
-    });
-
-    describe('upgradeChaincode', () => {
-
-        let getChanincodesStub: sinon.SinonStub;
-        beforeEach(() => {
-            getChanincodesStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
-            getChanincodesStub.resolves([]);
-        });
-
-        it('should upgrade a chaincode', async () => {
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(fabricConnection['outputAdapter'], 'log');
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-            const responsePayload: any = await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.not.be.rejected;
-            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
-            });
-            responsePayload.toString().should.equal('payload response buffer');
-            outputSpy.should.have.been.calledWith(LogType.INFO, undefined, "Upgrading with function: 'instantiate' and arguments: 'arg1'");
-        });
-
-        it('should throw an error instantiating if no contract with the same name has been instantiated', async () => {
-            const output: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-            const outputSpy: sinon.SinonSpy = mySandBox.spy(output, 'log');
-
-            await fabricConnection.upgradeChaincode('myChaincode', '0.0.2', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('The contract you tried to upgrade with has no previous versions instantiated');
-            fabricChannelStub.sendUpgradeProposal.should.not.have.been.called;
-
-            outputSpy.should.not.have.been.calledWith("Upgrading with function: 'instantiate' and arguments: 'arg1'");
-        });
-
-        it('should instantiate a chaincode and can return empty payload response', async () => {
-            fabricTransactionStub._validatePeerResponses.returns(null);
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-
-            const nullResponsePayload: any = await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']);
-            fabricChannelStub.sendUpgradeProposal.should.have.been.calledWith({
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
-            });
-            should.not.exist(nullResponsePayload);
-        });
-
-        it('should throw an error if cant create event handler', async () => {
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-            fabricTransactionStub._createTxEventHandler.returns();
-            await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to create an event handler');
-        });
-
-        it('should throw an error if submitting the transaction failed', async () => {
-            getChanincodesStub.resolves([{name: 'myChaincode', version: '0.0.2'}]);
-            fabricChannelStub.sendTransaction.returns({ status: 'FAILED' });
-            await fabricConnection.upgradeChaincode('myChaincode', '0.0.1', 'myChannel', 'instantiate', ['arg1']).should.be.rejectedWith('Failed to send peer responses for transaction 1234 to orderer. Response status: FAILED');
-        });
-    });
-
-    describe('enroll', () => {
-        it('should enroll an identity', async () => {
-            const result: {certificate: string, privateKey: string} =  await fabricConnection.enroll('myId', 'mySecret');
-            result.should.deep.equal({certificate : 'myCert', privateKey: 'myKey'});
-        });
-    });
-
-    describe('getCertificateAuthorityName', () => {
-        it('should get the certificate authority name', async () => {
-            fabricClientStub.getCertificateAuthority.returns({
-                getCaName: mySandBox.stub().returns('ca-name')
-            });
-            fabricConnection.getCertificateAuthorityName().should.equal('ca-name');
-        });
-    });
-    describe('getOrderers', () => {
-        it('should get orderers', async () => {
-            fabricClientStub.getChannel.onFirstCall().returns({
-                getOrderers: mySandBox.stub().returns([
-                    {
-                        getName: mySandBox.stub().returns('orderer1')
-                    }
-                ])
-            });
-            fabricClientStub.getChannel.onSecondCall().returns({
-                getOrderers: mySandBox.stub().returns([
-                    {
-                        getName: mySandBox.stub().returns('orderer2')
-                    }
-                ])
-            });
-            fabricChannelStub.getOrderers.onFirstCall().returns([new fabricClient.Orderer('grpc://url1')]);
-            fabricChannelStub.getOrderers.onSecondCall().returns([new fabricClient.Orderer('grpc://url2')]);
-            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns(['peerOne', 'peerTwo']);
-            const getAllChannelsForPeer: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getAllChannelsForPeer');
-            getAllChannelsForPeer.withArgs('peerOne').resolves(['channel1']);
-            getAllChannelsForPeer.withArgs('peerTwo').resolves(['channel2']);
-            const orderers: Set<string> = await fabricConnection.getOrderers();
-            orderers.has('orderer1').should.equal(true);
-            orderers.has('orderer2').should.equal(true);
-        });
-    });
-
-    describe('register', () => {
-        it('should register a new user and return a secret', async () => {
-            const secret: string = await fabricConnection.register('enrollThis', 'departmentE');
-            secret.should.deep.equal('its a secret');
         });
     });
 
@@ -950,31 +460,5 @@ describe('FabricConnection', () => {
 
             await fabricConnection.createChannelMap().should.be.rejectedWith(`Error creating channel map: ${error.message}`);
         });
-    });
-
-    describe('getAllInstantiatedChaincodes', () => {
-
-        it('should get all instantiated chaincodes', async () => {
-            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
-            map.set('channel1', ['peerOne']);
-            map.set('channel2', ['peerOne', 'peerTwo']);
-            mySandBox.stub(fabricConnection, 'createChannelMap').resolves(map);
-
-            const getInstantiatedChaincodeStub: sinon.SinonStub = mySandBox.stub(fabricConnection, 'getInstantiatedChaincode');
-            getInstantiatedChaincodeStub.withArgs('channel1').resolves([{name: 'a_chaincode', version: '0.0.1'}, {name: 'another_chaincode', version: '0.0.7'}]);
-            getInstantiatedChaincodeStub.withArgs('channel2').resolves([{name: 'another_chaincode', version: '0.0.7'}]);
-
-            const instantiatedChaincodes: Array<{name: string, version: string}> = await fabricConnection.getAllInstantiatedChaincodes();
-
-            instantiatedChaincodes.should.deep.equal([{name: 'a_chaincode', version: '0.0.1'}, {name: 'another_chaincode', version: '0.0.7'}]);
-        });
-
-        it('should handle any errors', async () => {
-            const error: Error = new Error('Could not create channel map');
-            mySandBox.stub(fabricConnection, 'createChannelMap').rejects(error);
-
-            await fabricConnection.getAllInstantiatedChaincodes().should.be.rejectedWith(`Could not get all instantiated chaincodes: ${error}`);
-        });
-
     });
 });

@@ -15,19 +15,20 @@
 import * as vscode from 'vscode';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function openFabricRuntimeTerminal(): Promise<void> {
     const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
     const name: string = `Fabric runtime - ${runtime.getName()}`;
     const shellPath: string = 'docker';
-    const peerContainerName: string = runtime.getPeerContainerName();
+    const peerContainerName: string = await runtime.getPeerContainerName();
     const shellArgs: string[] = [
         'exec',
         '-e',
         'CORE_PEER_LOCALMSPID=Org1MSP',
         '-e',
-        'CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/Admin@org1.example.com/msp',
+        `CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/msp/users/${FabricRuntimeUtil.ADMIN_USER}/msp`,
         '-ti',
         peerContainerName,
         'bash'

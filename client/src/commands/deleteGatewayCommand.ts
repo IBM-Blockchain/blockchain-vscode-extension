@@ -22,7 +22,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 
-export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{} | void> {
+export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteGateway`);
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
@@ -43,7 +43,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<{
     }
 
     const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
-    const homeExtDir: string = await UserInputUtil.getDirPath(extDir);
+    const homeExtDir: string = UserInputUtil.getDirPath(extDir);
     const gatewayPath: string = path.join(homeExtDir, gatewayRegistryEntry.name);
     await fs.remove(gatewayPath);
 

@@ -22,10 +22,18 @@ import { CommandUtil } from '../src/util/CommandUtil';
 import { UserInputUtil, LanguageType } from '../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricGatewayRegistry } from '../src/fabric/FabricGatewayRegistry';
+import { FabricWalletRegistry } from '../src/fabric/FabricWalletRegistry';
 import { FabricGatewayRegistryEntry } from '../src/fabric/FabricGatewayRegistryEntry';
 import { PackageRegistryEntry } from '../src/packages/PackageRegistryEntry';
 import { PackageRegistry } from '../src/packages/PackageRegistry';
 import { ExtensionCommands } from '../ExtensionCommands';
+import { FabricWalletRegistryEntry } from '../src/fabric/FabricWalletRegistryEntry';
+import { FabricConnectionManager } from '../src/fabric/FabricConnectionManager';
+import { IFabricClientConnection } from '../src/fabric/IFabricClientConnection';
+import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../src/fabric/FabricWalletUtil';
+import { GatewayTreeItem } from '../src/explorer/model/GatewayTreeItem';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -48,6 +56,7 @@ export class IntegrationTestUtil {
     public testContractType: string;
     public workspaceFolder: vscode.WorkspaceFolder;
     public gatewayRegistry: FabricGatewayRegistry;
+    public walletRegistry: FabricWalletRegistry;
     public packageRegistry: PackageRegistry;
     public keyPath: string;
     public certPath: string;
@@ -56,27 +65,30 @@ export class IntegrationTestUtil {
     public getWorkspaceFoldersStub: sinon.SinonStub;
     public findFilesStub: sinon.SinonStub;
     public inputBoxStub: sinon.SinonStub;
-    public browseEditStub: sinon.SinonStub;
+    public browseStub: sinon.SinonStub;
     public showPeerQuickPickStub: sinon.SinonStub;
     public showInstallableStub: sinon.SinonStub;
     public showChannelStub: sinon.SinonStub;
     public showChaincodeAndVersionStub: sinon.SinonStub;
-    public showInstantiatedSmartContractsStub: sinon.SinonStub;
+    public showClientInstantiatedSmartContractsStub: sinon.SinonStub;
+    public showRuntimeInstantiatedSmartContractsStub: sinon.SinonStub;
     public showTransactionStub: sinon.SinonStub;
     public workspaceConfigurationUpdateStub: sinon.SinonStub;
     public workspaceConfigurationGetStub: sinon.SinonStub;
     public getConfigurationStub: sinon.SinonStub;
-    public showIdentityOptionsStub: sinon.SinonStub;
+    public showAddWalletOptionsQuickPickStub: sinon.SinonStub;
     public showGatewayQuickPickStub: sinon.SinonStub;
     public showCertificateAuthorityQuickPickStub: sinon.SinonStub;
     public showIdentitiesQuickPickStub: sinon.SinonStub;
     public addIdentityMethodStub: sinon.SinonStub;
+    public showWalletsQuickPickStub: sinon.SinonStub;
+    public showFolderOptions: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
         this.packageRegistry = PackageRegistry.instance();
-        this.keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key.pem`);
-        this.certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
+        this.keyPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/${FabricRuntimeUtil.ADMIN_USER}/msp/keystore/key.pem`);
+        this.certPath = path.join(__dirname, `../../integrationTest/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/${FabricRuntimeUtil.ADMIN_USER}/msp/signcerts/${FabricRuntimeUtil.ADMIN_USER}-cert.pem`);
 
         this.showLanguagesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick');
         this.getWorkspaceFoldersStub = this.mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
@@ -84,77 +96,89 @@ export class IntegrationTestUtil {
         this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox');
         this.gatewayRegistry = FabricGatewayRegistry.instance();
-        this.browseEditStub = this.mySandBox.stub(UserInputUtil, 'browseEdit');
+        this.walletRegistry = FabricWalletRegistry.instance();
+        this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse');
         this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
-        this.showInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showInstantiatedSmartContractsQuickPick');
+        this.showClientInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick');
+        this.showRuntimeInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick');
         this.showChaincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick');
         this.showTransactionStub = this.mySandBox.stub(UserInputUtil, 'showTransactionQuickPick');
         this.workspaceConfigurationUpdateStub = this.mySandBox.stub();
         this.workspaceConfigurationGetStub = this.mySandBox.stub();
-        this.showIdentityOptionsStub = this.mySandBox.stub(UserInputUtil, 'showAddIdentityOptionsQuickPick');
+        this.showAddWalletOptionsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick');
         this.showGatewayQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
         this.showCertificateAuthorityQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox');
         this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
         this.addIdentityMethodStub = this.mySandBox.stub(UserInputUtil, 'addIdentityMethod');
+        this.showWalletsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
+        this.showFolderOptions = this.mySandBox.stub(UserInputUtil, 'showFolderOptions');
     }
 
     public async createFabricConnection(): Promise<void> {
         if (this.gatewayRegistry.exists('myGateway')) {
             await this.gatewayRegistry.delete('myGateway');
         }
-
         this.inputBoxStub.withArgs('Enter a name for the gateway').resolves('myGateway');
 
-        this.browseEditStub.withArgs('Enter a file path to a connection profile file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: 'Select',
-            filters: {
-                'Connection Profiles' : ['json', 'yaml', 'yml']
-            }
-        }, 'myGateway').resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
-        this.showIdentityOptionsStub.resolves(UserInputUtil.CERT_KEY);
-        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('greenConga');
-
-        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
-
-        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
-
-        this.browseEditStub.withArgs('Browse for a certificate file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: 'Select',
-            filters: undefined
-        }, 'myGateway').resolves(this.certPath);
-        this.browseEditStub.withArgs('Browse for a private key file', [UserInputUtil.BROWSE_LABEL, UserInputUtil.EDIT_LABEL], {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: 'Select',
-            filters: undefined
-        }, 'myGateway').resolves(this.keyPath);
+        this.browseStub.resolves(path.join(__dirname, '../../integrationTest/data/connection/connection.json'));
         await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
         this.gatewayRegistry.exists('myGateway').should.be.true;
     }
 
-    public async connectToFabric(name: string): Promise<void> {
+    public async addWallet(name: string): Promise<void> {
+        if (this.walletRegistry.exists(name)) {
+            await this.walletRegistry.delete(name);
+        }
+        this.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET);
+
+        const walletPath: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../integrationTest/data/myWallet'));
+
+        this.browseStub.withArgs('Enter a file path to a wallet directory', [UserInputUtil.BROWSE_LABEL], {
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            openLabel: 'Select',
+        }, true).resolves(walletPath);
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+
+        this.walletRegistry.exists(name).should.be.true;
+    }
+
+    public async connectToFabric(name: string, walletName: string, identityName: string = 'greenConga', expectAssociated: boolean = false): Promise<void> {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(name);
+            gatewayEntry = this.gatewayRegistry.get(name);
         } catch (error) {
-            gatewayEntry = new FabricGatewayRegistryEntry();
-            gatewayEntry.name = name;
-            gatewayEntry.managedRuntime = true;
+            const gatewayEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            gatewayEntry = gatewayEntries[0];
         }
 
-        this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with', ['greenConga', 'redConga']).resolves('greenConga');
+        if (!expectAssociated) {
+            let walletEntry: FabricWalletRegistryEntry;
+
+            try {
+                walletEntry = this.walletRegistry.get(walletName);
+            } catch (error) {
+                walletEntry = new FabricWalletRegistryEntry();
+                walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+                walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
+            }
+
+            this.showWalletsQuickPickStub.resolves({
+                name: walletEntry.name,
+                data: walletEntry
+            });
+        }
+
+        this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(identityName);
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
+
+        const fabricConnection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
+        should.exist(fabricConnection);
     }
 
     public async createSmartContract(name: string, language: string): Promise<void> {
@@ -167,7 +191,7 @@ export class IntegrationTestUtil {
             throw new Error(`You must update this test to support the ${language} language`);
         }
         this.showLanguagesQuickPickStub.resolves({ label: language, type });
-        this.mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+        this.showFolderOptions.resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
         this.testContractName = name;
         if (language === 'Go') {
@@ -184,13 +208,13 @@ export class IntegrationTestUtil {
 
         const uri: vscode.Uri = vscode.Uri.file(this.testContractDir);
 
-        this.browseEditStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
+        this.browseStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             openLabel: 'Save',
             filters: undefined
-        }, undefined, true).resolves(uri);
+        }, true).resolves(uri);
 
         let generator: string;
         if (language === 'Go' || language === 'Java') {
@@ -251,9 +275,7 @@ export class IntegrationTestUtil {
     public async instantiateSmartContract(name: string, version: string, transaction: string = 'instantiate', args: string = ''): Promise<void> {
         this.showChannelStub.resolves({
             label: 'mychannel',
-            data: {
-                mychannel: ['peer0.org1.example.com']
-            }
+            data: ['peer0.org1.example.com']
         });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
@@ -277,7 +299,10 @@ export class IntegrationTestUtil {
     }
 
     public async upgradeSmartContract(name: string, version: string): Promise<void> {
-        this.showChannelStub.resolves('mychannel');
+        this.showChannelStub.resolves({
+            label: 'mychannel',
+            data: ['peer0.org1.example.com']
+        });
 
         const allPackages: Array<PackageRegistryEntry> = await PackageRegistry.instance().getAll();
 
@@ -295,7 +320,7 @@ export class IntegrationTestUtil {
         });
 
         // Upgrade from instantiated contract at version 0.0.1
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showRuntimeInstantiatedSmartContractsStub.resolves({
             label: `${name}@0.0.1`,
             data: { name: name, channel: 'mychannel', version: '0.0.1' }
         });
@@ -306,7 +331,7 @@ export class IntegrationTestUtil {
     }
 
     public async submitTransactionToChaincode(name: string, version: string, fcn: string, args: string): Promise<void> {
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
@@ -322,7 +347,7 @@ export class IntegrationTestUtil {
     }
 
     public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
@@ -337,24 +362,25 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
 
-    public async generateSmartContractTests(name: string, version: string, language: string, gatewayConnectionName: string): Promise<void> {
+    public async generateSmartContractTests(name: string, version: string, language: string, gatewayName: string): Promise<void> {
         let gatewayEntry: FabricGatewayRegistryEntry;
 
         try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayConnectionName);
+            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
-            gatewayEntry.name = gatewayConnectionName;
+            gatewayEntry.name = gatewayName;
             gatewayEntry.managedRuntime = true;
+            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         }
 
         this.showGatewayQuickPickStub.resolves({
-            label: gatewayConnectionName,
+            label: gatewayName,
             data: gatewayEntry
         });
 
         this.showChannelStub.resolves('mychannel');
-        this.showInstantiatedSmartContractsStub.resolves({
+        this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
         });
@@ -388,7 +414,24 @@ export class IntegrationTestUtil {
     }
 
     public async createCAIdentity(name: string): Promise<void> {
-        this.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.example.com');
+
+        const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+        walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
+
+        const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, name));
+        if (identityExists) {
+            this.showWalletsQuickPickStub.resolves({
+                label: walletEntry.name,
+                data: walletEntry
+            });
+            this.showIdentitiesQuickPickStub.resolves(name);
+
+            // If the identity already exists, remove it from the wallet
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
+        }
+
+        this.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
         this.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
     }
@@ -418,22 +461,46 @@ export class IntegrationTestUtil {
         await this.gatewayRegistry.update(fabricGatewayEntry);
     }
 
-    public async addIdentityToGateway(id: string, secret: string): Promise<void> {
+    public async addIdentityToWallet(id: string, secret: string, walletName: string): Promise<void> {
+        let walletEntry: FabricWalletRegistryEntry;
+
+        try {
+            walletEntry = this.walletRegistry.get(walletName);
+        } catch (error) {
+            walletEntry = new FabricWalletRegistryEntry();
+            walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
+        }
+
+        this.showWalletsQuickPickStub.resolves({
+            name: walletEntry.name,
+            data: walletEntry
+        });
+
+        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('redConga');
+        this.inputBoxStub.withArgs('Enter MSPID').resolves('Org1MSP');
+        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
         const fabricGatewayEntry: FabricGatewayRegistryEntry = this.gatewayRegistry.get('myGateway');
         this.showGatewayQuickPickStub.resolves({
             label: 'myGateway',
             data: fabricGatewayEntry
         });
 
-        this.inputBoxStub.withArgs('Provide a name for the identity').resolves('redConga');
-
-        this.addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-
-        this.inputBoxStub.withArgs('Enter MSP ID').resolves('Org1MSP');
-
         this.inputBoxStub.withArgs('Enter enrollment ID').resolves(id);
         this.inputBoxStub.withArgs('Enter enrollment secret').resolves(secret);
 
-        await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY_IDENTITY);
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+    }
+
+    public async associateWalletAndGateway(walletName: string, gateway: GatewayTreeItem): Promise<void> {
+        const walletEntry: FabricWalletRegistryEntry = this.walletRegistry.get(walletName);
+
+        this.showWalletsQuickPickStub.resolves({
+            name: walletEntry.name,
+            data: walletEntry,
+            label: walletEntry.name
+        });
+
+        await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gateway);
     }
 }

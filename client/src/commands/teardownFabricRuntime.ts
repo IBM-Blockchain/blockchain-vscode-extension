@@ -44,7 +44,10 @@ export async function teardownFabricRuntime(): Promise<void> {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
         }
         await runtime.teardown(outputAdapter);
+        await runtime.deleteWalletsAndIdentities();
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+
     });
 }

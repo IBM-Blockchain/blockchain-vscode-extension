@@ -360,7 +360,7 @@
         <div id="repository-config">
             <div class="repository-config-item">Repository: <a href="https://github.com/<%=repositoryName%>">https://github.com/<%=repositoryName%></a></div>
             <div class="repository-config-item">Cloned to: <%= repositoryConfig.path %></div>
-            <div class="repository-config-item"><a href="#" onclick="cloneRepository('<%= repositoryName %>',true)">Clone again</a></div>
+            <div class="repository-config-item"><a href="#" onclick="cloneRepository(true)">Clone again</a></div>
         </div>
 
         <% } else { %>
@@ -368,7 +368,7 @@
             <div id="repository-url">Repository: <a href="https://github.com/<%=repositoryName%>">https://github.com/<%=repositoryName%></a></div>
         </div>
         <br>
-        <button class="clone-button" onclick="cloneRepository('<%= repositoryName %>')">Clone</button>
+        <button class="clone-button" onclick="cloneRepository()">Clone</button>
         <% } %>
 
 
@@ -415,9 +415,9 @@
 
 
                         <% if (repositoryConfig) { %>
-                            <button class="open-button" onclick="openFile('<%= sample.name %>','contracts','<%= contract.name %>','<%= language.type %>')">Open Locally</button>
+                            <button class="open-button" onclick="openFile('contracts','<%= contract.name %>','<%= language.type %>')">Open Locally</button>
                         <% } else { %>
-                            <button disabled class="open-button" onclick="openFile('<%= sample.name %>','contracts','<%= contract.name %>','<%= language.type %>')">Open Locally</button>
+                            <button disabled class="open-button" onclick="openFile('contracts','<%= contract.name %>','<%= language.type %>')">Open Locally</button>
                         <% } %>
 
                         </div>
@@ -463,9 +463,9 @@
 
 
                         <% if (repositoryConfig) { %>
-                            <button class="open-button" onclick="openFile('<%= sample.name %>','applications','<%= application.name %>')">Open Locally</button>
+                            <button class="open-button" onclick="openFile('applications','<%= application.name %>')">Open Locally</button>
                         <% } else { %>
-                            <button disabled class="open-button" onclick="openFile('<%= sample.name %>','applications','<%= application.name %>')">Open Locally</button>
+                            <button disabled class="open-button" onclick="openFile('applications','<%= application.name %>')">Open Locally</button>
                         <% } %>
 
                         </div>
@@ -482,36 +482,20 @@
             const vscode = acquireVsCodeApi();
             let globalContractName;
 
-            function openFile(sampleName,fileType,fileName,language){
+            function openFile(fileType,fileName,language){
                 vscode.postMessage({
                     command: 'open',
-                    sampleName: sampleName,
                     fileType: fileType,
                     fileName: fileName,
                     language: language
                 });
             }
 
-            function cloneRepository(repoName,recloning){
+            function cloneRepository(recloning){
                 vscode.postMessage({
                     command: 'clone',
-                    repository: repoName,
                     recloning: recloning
                 })
-            }
-
-            function getLanguage(contractName){
-                return document.getElementById(contractName).value;
-            }
-
-            function getLanguageVersion(contractName){
-                let languageType = document.getElementById(contractName).value;
-                globalContractName = contractName;
-                vscode.postMessage({
-                    command: 'getLanguageVersion',
-                    contractName: contractName,
-                    languageType: languageType
-                });
             }
 
             function showMore(){

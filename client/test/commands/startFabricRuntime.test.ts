@@ -16,8 +16,6 @@ import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricWallet } from '../../src/fabric/FabricWallet';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -25,7 +23,6 @@ import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOps
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
-import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -38,11 +35,9 @@ describe('startFabricRuntime', () => {
     let sandbox: sinon.SinonSandbox;
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    const rootPath: string = path.dirname(__dirname);
-    let runtime: FabricRuntime;
+    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let runtimeTreeItem: RuntimeTreeItem;
     let commandSpy: sinon.SinonSpy;
-    let getConnectionStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -59,17 +54,13 @@ describe('startFabricRuntime', () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
-        await runtimeManager.add();
-        runtime = runtimeManager.getRuntime();
-        sandbox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
-
-        sandbox.stub(runtime, 'getConnectionProfile').resolves();
-        sandbox.stub(runtime, 'getCertificate').resolves();
-        sandbox.stub(runtime, 'getPrivateKey').resolves();
-        const testFabricWallet: FabricWallet = new FabricWallet('myConnection', path.join(rootPath, '../../test/data/walletDir/emptyWallet'));
-        sandbox.stub(testFabricWallet, 'importIdentity').resolves();
-        sandbox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-        getConnectionStub = sandbox.stub(FabricRuntimeManager.instance(), 'getConnection').resolves();
+        await runtimeManager.initialize();
+        mockRuntime = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.isGenerated.resolves(true);
+        mockRuntime.generate.resolves();
+        mockRuntime.start.resolves();
+        mockRuntime.importWalletsAndIdentities.resolves();
+        sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
 
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -83,20 +74,43 @@ describe('startFabricRuntime', () => {
     });
 
     it('should start a Fabric runtime specified by clicking the tree', async () => {
-        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
+        mockRuntime.isGenerated.resolves(true);
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        getConnectionStub.should.have.been.calledOnce;
+        mockRuntime.generate.should.not.have.been.called;
+        mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
 
     it('should start a Fabric runtime', async () => {
-        const startStub: sinon.SinonStub = sandbox.stub(runtime, 'start').resolves();
+        mockRuntime.isGenerated.resolves(true);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-        startStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        getConnectionStub.should.have.been.calledOnce;
+        mockRuntime.generate.should.not.have.been.called;
+        mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
     });
+
+    it('should generate and start a Fabric runtime specified by clicking the tree', async () => {
+        mockRuntime.isGenerated.resolves(false);
+        await vscode.commands.executeCommand(runtimeTreeItem.command.command);
+        mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+    });
+
+    it('should generate and start a Fabric runtime', async () => {
+        mockRuntime.isGenerated.resolves(false);
+        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+        mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+    });
+
 });
