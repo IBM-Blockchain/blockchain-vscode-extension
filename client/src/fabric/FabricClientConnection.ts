@@ -22,7 +22,7 @@ import { Network, Contract } from 'fabric-network';
 export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
 
     private connectionProfilePath: string;
-    private networkIdProperty: boolean;
+    private description: boolean;
 
     constructor(connectionData: { connectionProfilePath: string, walletPath: string }, outputAdapter?: OutputAdapter) {
         super(outputAdapter);
@@ -32,12 +32,16 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     async connect(wallet: FabricWallet, identityName: string): Promise<void> {
         console.log('FabricClientConnection: connect');
         const connectionProfile: object = await ExtensionUtil.readConnectionProfile(this.connectionProfilePath);
-        this.networkIdProperty = (connectionProfile['x-networkId'] ? true : false);
+        if (connectionProfile['description']) {
+            this.description = (connectionProfile['description'].includes('Network on IBP') ? true : false);
+        } else {
+            this.description = false;
+        }
         await this.connectInner(connectionProfile, wallet, identityName);
     }
 
     public isIBPConnection(): boolean {
-        return this.networkIdProperty;
+        return this.description;
     }
 
     public async getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any> {
