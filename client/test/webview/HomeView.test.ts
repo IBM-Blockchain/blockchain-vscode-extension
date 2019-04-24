@@ -122,9 +122,9 @@ describe('HomeView', () => {
         const homeView: HomeView = new HomeView(context);
 
         const homePageHtml: string = await  homeView.getHTMLString();
-        homePageHtml.should.contain(`<h3 id="sample-header">`);
-        homePageHtml.should.contain(`<h4 id="repository-name">hyperledger/fabric-samples</h4>`);
-        homePageHtml.should.contain(`<p id="sample-description">Basic sample demonstrating the transfer of vehicle ownership.</p>`);
+        homePageHtml.should.contain(`<h3 class="sample-header">`);
+        homePageHtml.should.contain(`<p class="sample-description">Basic sample based on cars`);
+        homePageHtml.should.contain(`<p class="sample-description">Based on a real-world financial use-case, with multiple parties sharing a ledger.</p>`);
     });
 
     it('should throw error if not able to render file', async () => {
