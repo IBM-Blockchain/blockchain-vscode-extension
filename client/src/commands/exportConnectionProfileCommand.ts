@@ -17,15 +17,19 @@
 import * as vscode from 'vscode';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import * as fs from 'fs-extra';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function exportConnectionProfile(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-    const fabricRuntime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+    // Assume there's only one registry entry for now.
+    const runtimeGatewayRegistryEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+    const runtimeGatewayRegistryEntry: FabricGatewayRegistryEntry = runtimeGatewayRegistryEntries[0];
 
     let dir: string;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
@@ -44,10 +48,13 @@ export async function exportConnectionProfile(): Promise<void> {
     }
 
     try {
-        await fabricRuntime.exportConnectionProfile(VSCodeBlockchainOutputAdapter.instance(), dir);
+        dir = path.resolve(dir, FabricRuntimeUtil.LOCAL_FABRIC);
+        await fs.ensureDir(dir);
+        const targetConnectionProfilePath: string = path.resolve(dir, 'connection.json');
+        await fs.copyFile(runtimeGatewayRegistryEntry.connectionProfilePath, targetConnectionProfilePath);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
         return;
     }
-    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection profile to ${path.join(dir, fabricRuntime.getName())}`);
+    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection profile to ${dir}`);
 }

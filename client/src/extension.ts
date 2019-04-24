@@ -136,8 +136,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (!hasNativeDependenciesInstalled) {
             await dependancyManager.installNativeDependencies();
         }
-        outputAdapter.log(LogType.INFO, undefined, 'Ensuring local runtime exists in runtime manager');
-        await ensureRuntimeExists();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Migrating local runtime manager');
+        await FabricRuntimeManager.instance().migrate(originalExtensionData.version);
+        outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
+        await FabricRuntimeManager.instance().initialize();
 
         outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
         await registerCommands(context);
@@ -279,14 +282,6 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     if (packageJson.production === true) {
         context.subscriptions.push(Reporter.instance());
     }
-}
-
-export async function ensureRuntimeExists(): Promise<void> {
-    const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    if (runtimeManager.exists()) {
-        return;
-    }
-    await runtimeManager.add();
 }
 
 function disposeExtension(context: vscode.ExtensionContext): void {

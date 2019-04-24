@@ -18,5 +18,7 @@ export interface IFabricWalletGenerator {
 
     createLocalWallet(walletName: string): Promise<IFabricWallet>;
 
+    deleteLocalWallet(walletName: string): Promise<void>;
+
     getNewWallet(walletPath: string): IFabricWallet;
 }

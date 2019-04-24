@@ -26,8 +26,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
-import * as yeoman from 'yeoman-environment';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { YeomanUtil } from '../../src/util/YeomanUtil';
 
 chai.use(sinonChai);
 
@@ -199,12 +199,7 @@ describe('CreateSmartContractProjectCommand', () => {
     }
 
     it('should show error message if we fail to create a smart contract', async () => {
-        const mockEnv: any = {
-            registerStub: sinon.stub().throws(new Error('such error')),
-            lookup: sinon.stub().yields(new Error('such error')),
-            run: sinon.stub().yields(new Error('such error'))
-        };
-        mySandBox.stub(yeoman, 'createEnv').returns(mockEnv);
+        mySandBox.stub(YeomanUtil, 'run').rejects(new Error('such error'));
         quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         quickPickStub.onCall(1).resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
 

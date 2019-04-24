@@ -15,5 +15,5 @@
 
 export class FabricRuntimeUtil {
     public static readonly LOCAL_FABRIC: string = 'local_fabric';
-    public static readonly ADMIN_USER: string = 'Admin@org1.example.com';
+    public static readonly ADMIN_USER: string = 'admin';
 }
