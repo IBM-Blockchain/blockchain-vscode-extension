@@ -1,5 +1,6 @@
 {
   "name": "hlfv1",
+  "description": "Network on IBP",
   "x-type": "hlfv1",
   "x-commitTimeout": 300,
   "version": "1.0.0",
