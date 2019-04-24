@@ -98,12 +98,11 @@ Alternatively, navigate to the explorer view (click the IBM Blockchain Platform 
 
 When you package a smart contract project, all of the smart contract code is added into a new Fabric smart contract package file (using the standard Fabric chaincode deployment specification format). You can deploy this package using this extension. Alternatively, you can deploy the package using other tools, such as the Fabric CLI (`peer chaincode install` command).
 
-![Create a package from a smart contract project](client/media/package_project.png)
 
 ### Export a smart contract package
 Right-click a package and select the `Export Package` option.  You can select where the package is exported to. Use this to take the packages you have made and deploy them somewhere else, using other tools, such as the Fabric CLI (`peer chaincode install` command).
 
-![Export a package from a smart contract project](client/media/export_smart_contract_package.png)
+![Export a package from a smart contract project](client/media/export_smart_contract_package.gif)
 
 
 ### Connect to local_fabric runtime
@@ -111,7 +110,7 @@ The `local_fabric` runtime can be enabled in `Local Fabric Ops` panel. The first
 Click the menu on the `Local Fabric Ops` header-bar for management options (including start/stop and teardown).
 Left-click the `local_fabric` identity to connect to it within the `Fabric Gateways` view.
 
-![Connect to local_fabric runtime](client/media/connect_to_local_fabric_runtime_small.gif)
+![Connect to local_fabric runtime](client/media/connect_local_fabric.gif)
 
 
 ### Teardown the local_fabric runtime
@@ -122,13 +121,11 @@ When you start/stop the local_fabric, all data will be maintained. Choose `Teard
 ### Connect to a specified (remote) Fabric runtime and discover the existing resources
 Left-click a gateway identity to activate connect to the blockchain runtime it represents. Expand the sections in the navigation tree to explore its resources. When you're done, use the "back" icon in the section's header-bar to disconnect.
 
-![Connect to the network and discover the existing resources](client/media/discover_resources.png)
-
 
 ### Install smart contract package
 Smart contract packages are installed on Fabric peers.  Start `local_fabric`, find a peer under `Nodes` in the `Local Fabric Ops` panel and right-click to select `Install Smart Contract`. Alternatively click on `+ Install` or right-click `Installed` under `Smart Contracts` in the `Local Fabric Ops` panel
 
-![Install smart contract](client/media/install_smart_contract.png)
+![Install smart contract](client/media/install_smart_contract.gif)
 
 
 ### Instantiate smart contract package
@@ -136,17 +133,17 @@ Start `local_fabric`, find a channel under `Channels` in the `Local Fabric Ops` 
 
 It is useful to think of installing on peers as the first step and instantiating on a channel as the second step of deploying a smart contract package.
 
-![Instantiate smart contract](client/media/instantiate_small.gif)
+![Instantiate smart contract](client/media/instantiate_smart_contract.gif)
 
 ### Submit transaction
 Once connected to a Fabric gateway in the `Fabric Gateways` panel, right-click a transaction under an instantiated smart contract and click `Submit transaction`. This will submit a transaction to a smart contract.
 
 ![Submit transaction](client/media/submit_transaction.gif)
 
-### Edit an existing blockchain connection
+### Edit an existing blockchain gateway
 Gateways and their wallets can be edited by right-clicking and selecting `Edit Gateway` in the `Fabric Gateways` panel.  This will open User Settings, with the gateway available for editing. This is not available for the `local_fabric` runtime. 
 
-![Edit blockchain connection](client/media/edit_connection.gif)
+![Edit blockchain connection](client/media/edit_gateway.gif)
 
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. To debug your smart contract follow these steps:
@@ -194,7 +191,6 @@ If you want to start and connect to your own Hyperledger Fabric instance, ensure
 
 https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html
 
-![Add blockchain connection](client/media/add_new_connection.gif)
 
 ## Supported Operating Systems
 
