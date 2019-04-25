@@ -47,32 +47,40 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Command | Description |
 | --- | --- |
 | Add Gateway | Add a Hyperledger Fabric instance gateway |
-| Add Identity To Wallet | Add an identity to be used when connecting to a Hyperledger Fabric gateway  |
+| Add Identity To Wallet | Add an identity into a wallet to be used when connecting to a Hyperledger Fabric gateway |
+| Add Wallet | Add a wallet containing identities to be used when connecting to a gateway |
+| Associate A Wallet | Associate a wallet with a gateway to be used when connecting |
 | Connect Via Gateway | Connect to a Hyperledger Fabric blockchain using a gateway |
-| Create Smart Contract Project | Create a new JavaScript or TypeScript smart contract project |
-| Create Identity (register and enroll) | Create, register and enroll a new identity from the runtime certificate authority |
+| Create Smart Contract Project | Create a new smart contract project |
+| Create Identity (register and enroll) | Create, register and enroll a new identity from the local_fabric runtime certificate authority |
 | Debug | Debug a Smart Contract |
+| Delete Identity | Delete an identity from a wallet |
 | Delete Gateway | Delete a Hyperledger Fabric instance gateway |
 | Delete Package | Delete a smart contract package |
+| Disassociate A Wallet | Remove the association between a wallet and a gateway |
 | Disconnect From Gateway | Disconnect from the blockchain gateway you're currently connected to |
-| Edit Gateway | Edit connection profile or wallet used for connecting to a blockchain gateway |
-| Export Connection Details | Export connection details for the a Hyperledger Fabric instance |
-| Export Package | Export an already-packaged smart contract package to use outside VSCode |
+| Edit Gateway | Edit connection profile for connecting to a blockchain gateway |
+| Edit Wallet | Edit wallet containing identities used for connecting to a blockchain gateway |
+| Evaluate Transaction | Evaluate a smart contract transaction |
+| Export Connection Profile | Export connection profile for the local_fabric gateway |
+| Export Package | Export a smart contract package to use outside VSCode |
 | Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
 | Import Package | Import a smart contract package |
-| Install Smart Contract | Install a smart contract package onto a peer |
-| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel<br>**Note: This currently doesn't work with IBM Blockchain Platform Enterprise plan - Coming soon!* |
+| Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
+| Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
 | Open Fabric Runtime Terminal | Open a terminal with access to the Fabric runtime (peer CLI) |
-| Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer|
+| Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer |
 | Refresh Fabric Gateways | Refresh the Fabric Gateways view |
 | Refresh Smart Contract Packages | Refresh the Smart Contract Packages view |
-| Restart Local Fabric Ops | Refresh the Local Fabric Ops view |
-| Start Fabric Runtime | Start a Hyperledger Fabric instance |
-| Stop Fabric Runtime | Stop a Hyperledger Fabric instance |
+| Refresh Fabric Wallets | Refresh the Fabric Wallets view |
+| Refresh Local Fabric Ops | Refresh the Local Fabric Ops view |
+| Remove Wallet | Remove a wallet from the Fabric Wallets view |
+| Restart Fabric Runtime | Restart the local_fabric instance |
+| Start Fabric Runtime | Start the local_fabric instance |
+| Stop Fabric Runtime | Stop the local_fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
-| Evaluate Transaction | Evaluate a smart contract transaction |
 | Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
-| Toggle Development Mode | Toggle the Hyperledger Fabric instance development mode |
+| Toggle Development Mode | Toggle the local_fabric instance development mode |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 
@@ -94,7 +102,7 @@ You'll find the smart contract file in the `lib` directory of a newly generated 
 ### Package a smart contract project
 To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages will be added to the `Smart Contract Packages` panel in the explorer view.
 
-Alternatively, navigate to the explorer view (click the IBM Blockchain Platform icon in the left-navigation) then click the `add` icon on the Smart Contract Packages view (this will again package up the project you have open in your workspace).
+Alternatively, navigate to the explorer view (click the IBM Blockchain Platform icon in the left-navigation) then click the `add` icon on the Smart Contract Packages view (this will package up the project you have open in your workspace). The Blockchain output channel lists what files have been packaged during this action.
 
 When you package a smart contract project, all of the smart contract code is added into a new Fabric smart contract package file (using the standard Fabric chaincode deployment specification format). You can deploy this package using this extension. Alternatively, you can deploy the package using other tools, such as the Fabric CLI (`peer chaincode install` command).
 
@@ -104,29 +112,33 @@ Right-click a package and select the `Export Package` option.  You can select wh
 
 ![Export a package from a smart contract project](client/media/export_smart_contract_package.gif)
 
+### Connect to the local_fabric runtime
 
-### Connect to local_fabric runtime
-The `local_fabric` runtime can be enabled in `Local Fabric Ops` panel. The first time you enable it, Fabric images will be installed.  
+**When using the pre-configured local instance of Hyperledger Fabric named `local_fabric`, the extension will automatically pull and use the correct Docker images.**
+
+The `local_fabric` runtime can be enabled in `Local Fabric Ops` panel. The first time you enable it, Fabric images will be installed and an admin identity created in the `local_fabric_wallet` visible in the `Fabric Wallets` panel. 
 Click the menu on the `Local Fabric Ops` header-bar for management options (including start/stop and teardown).
-Left-click the `local_fabric` identity to connect to it within the `Fabric Gateways` view.
+Left-click the `local_fabric` gateway to connect to it within the `Fabric Gateways` view, using the `admin` identity.
 
 ![Connect to local_fabric runtime](client/media/connect_local_fabric.gif)
 
+### Connect to your own Hyperledger Fabric instance and discover the existing resources
+Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. Further documentation here: 
 
-### Teardown the local_fabric runtime
-When you start/stop the local_fabric, all data will be maintained. Choose `Teardown Fabric Runtime` from the `Local Fabric Ops` header-bar to completely teardown the runtime and start over (you must then confirm this action).
+https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html
 
-![Teardown the local_fabric runtime](client/media/teardown_fabric_runtime.gif)
+1. Add your gateway by providing a name and connection profile via the `Add Gateway` command. It will be listed in the `Fabric Gateways` panel.
+2. Add a file system wallet to connect to your gateway with, by providing either an existing wallet or creating one and adding an identity. This action is available via the `Add Wallet` command, and wallets are visible in the `Fabric Wallets` panel.
+3. (Optional) Use the `Associate A Wallet` command to associate a gateway and a wallet.
+4. Left-click a gateway in the `Fabric Gateways` panel to connect to the blockchain runtime it represents. Select the wallet and identity to connect with. If the gateway has an associated wallet, select an identity contained in the associated wallet to connect with. 
+5. Expand the sections in the `Fabric Gateways` navigation tree to explore its resources. When you're done, use the "back" icon in the section's header-bar to disconnect.
 
-### Connect to a specified (remote) Fabric runtime and discover the existing resources
-Left-click a gateway identity to activate connect to the blockchain runtime it represents. Expand the sections in the navigation tree to explore its resources. When you're done, use the "back" icon in the section's header-bar to disconnect.
-
+> ⚠ Please note: v0.4.0 has restructured Fabric gateways and wallets, so you will need to add any gateways and wallets created with previous releases again in order to use them. 
 
 ### Install smart contract package
 Smart contract packages are installed on Fabric peers.  Start `local_fabric`, find a peer under `Nodes` in the `Local Fabric Ops` panel and right-click to select `Install Smart Contract`. Alternatively click on `+ Install` or right-click `Installed` under `Smart Contracts` in the `Local Fabric Ops` panel
 
 ![Install smart contract](client/media/install_smart_contract.gif)
-
 
 ### Instantiate smart contract package
 Start `local_fabric`, find a channel under `Channels` in the `Local Fabric Ops` panel and right-click to select `Instantiate Smart Contract`. Alternatively click on `+ Instantiate` or right-click `Instantiated` under `Smart Contracts` in the `Local Fabric Ops` panel. You will be asked to select from a list of open projects, smart contract packages or smart contracts installed on peers in the channel.
@@ -139,11 +151,6 @@ It is useful to think of installing on peers as the first step and instantiating
 Once connected to a Fabric gateway in the `Fabric Gateways` panel, right-click a transaction under an instantiated smart contract and click `Submit transaction`. This will submit a transaction to a smart contract.
 
 ![Submit transaction](client/media/submit_transaction.gif)
-
-### Edit an existing blockchain gateway
-Gateways and their wallets can be edited by right-clicking and selecting `Edit Gateway` in the `Fabric Gateways` panel.  This will open User Settings, with the gateway available for editing. This is not available for the `local_fabric` runtime. 
-
-![Edit blockchain connection](client/media/edit_gateway.gif)
 
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. To debug your smart contract follow these steps:
@@ -179,18 +186,22 @@ To make iterative changes to your smart contract while debugging, after making y
 ```
 > Note that the values of the `preLaunchTask` and `outFiles` settings are specific to your project configuration, and the values above are only guaranteed to work with a TypeScript smart contract project generated by this extension.
 
-## Connecting to your own Hyperledger Fabric instance
+### Edit an existing blockchain gateway
+Gateways can be edited by right-clicking and selecting `Edit Gateway` in the `Fabric Gateways` panel.  This will open User Settings, with the gateway available for editing. This is not available for the `local_fabric` runtime. Wallets can be edited in the same way via the `Edit Wallet` command.
 
-Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. From v0.2.0+, you can use a file system wallet to import identities to connect with. Alternatively, provide a name, user certificate and private key and the extension will generate a new file system wallet. In either case, this file system wallet can be used by your Blockchain applications. 
+![Edit blockchain gateway](client/media/edit_gateway.gif)
 
-> ⚠ Please note: v0.3.0 has restructured fabric connections to fabric gateways, so you will need to add any connections created with previous releases again in order to use them. 
+### Teardown the local_fabric runtime
+When you start/stop the local_fabric, all data will be maintained. Choose `Teardown Fabric Runtime` from the `Local Fabric Ops` header-bar to completely teardown the runtime and start over (you must then confirm this action). This action will also delete all identities in the `local_fabric_wallet`.
 
-**When using the pre-configured local instance of Hyperledger Fabric named `local_fabric`, the extension will automatically pull and use the correct Docker images.**
+![Teardown the local_fabric runtime](client/media/teardown_fabric_runtime.gif)
 
-If you want to start and connect to your own Hyperledger Fabric instance, ensure that you are using Hyperledger Fabric v1.4.0 or later by following the Fabric documentation here:
+### Wallet Management
+The extension creates a `local_fabric_wallet` file system wallet when it is installed, which is used to connect to the `local_fabric` runtime instance and is automatically associated with that gateway. When `local_fabric` is started, an admin identity is added to the the `local_fabric_wallet` and cannot be deleted unless the `local_fabric` runtime is torn down.
 
-https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html
+To add an identity into any wallet, right-click on the wallet in the `Fabric Wallets` panel and run the `Add Identity to Wallet` command. This will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, or a gateway, enrollment id and secret.
 
+For wallets associated with other remote Fabric gateways, the `Add Wallet`, `Edit Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 
 ## Supported Operating Systems
 
@@ -214,4 +225,3 @@ Copyright © 2017 IBM Corp. with Reserved Font Name "Plex"
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
 http://scripts.sil.org/OFL
-
