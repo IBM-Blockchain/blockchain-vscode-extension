@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.3.4",
+    "version": "0.4.0",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -379,12 +379,12 @@
             },
             {
                 "command": "gatewaysExplorer.associateWallet",
-                "title": "Associate a wallet",
+                "title": "Associate A Wallet",
                 "category": "IBM Blockchain Platform"
             },
             {
                 "command": "gatewaysExplorer.dissociateWallet",
-                "title": "Dissociate a wallet",
+                "title": "Dissociate A Wallet",
                 "category": "IBM Blockchain Platform"
             }
         ],
