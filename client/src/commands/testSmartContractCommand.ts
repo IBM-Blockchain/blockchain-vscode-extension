@@ -29,11 +29,12 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 
-export async function testSmartContract(chaincode?: InstantiatedContractTreeItem): Promise<void> {
+export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedContractTreeItem | ContractTreeItem): Promise<void> {
 
     let chaincodeLabel: string;
-    let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}>;
+    let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>;
     let channelName: string;
     let chaincodeName: string;
     let chaincodeVersion: string;
@@ -60,24 +61,48 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         chaincodeName = chosenChaincode.data.name;
         chaincodeVersion = chosenChaincode.data.version;
         channelName = chosenChaincode.data.channel;
-
     } else {
-        // Smart Contract selected from the tree item, so assign label and name
-        chaincodeLabel = chaincode.label;
-        chaincodeName = chaincode.name;
-        channelName = chaincode.channel.label;
-        chaincodeVersion = chaincode.version;
+
+        if (chaincode instanceof ContractTreeItem) {
+            chaincodeLabel = chaincode.instantiatedChaincode.label;
+            chaincodeName = chaincode.instantiatedChaincode.name;
+            channelName = chaincode.instantiatedChaincode.channel.label;
+            chaincodeVersion = chaincode.instantiatedChaincode.version;
+        } else {
+            // Smart Contract selected from the tree item, so assign label and name
+            chaincodeLabel = chaincode.label;
+            chaincodeName = chaincode.name;
+            channelName = chaincode.channel.label;
+            chaincodeVersion = chaincode.version;
+        }
     }
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
     // Get metadata
     const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
 
-    const transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
+    let transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
     if (transactions.size === 0) {
         outputAdapter.log(LogType.ERROR, `Populated metadata required for generating smart contract tests, see previous error`);
 
         return;
+    }
+
+    if ((chaincode && chaincode instanceof ContractTreeItem) || (!allContracts && !chaincode && transactions.size > 1)) {
+        let chosenContract: string;
+
+        if (chaincode && chaincode instanceof ContractTreeItem) {
+            chosenContract = chaincode.name;
+        } else {
+            chosenContract = await UserInputUtil.showContractQuickPick('Choose a contract to generate tests for', Array.from(transactions.keys()));
+            if (!chosenContract) {
+                return;
+            }
+        }
+
+        const tempTransactions: Map<string, any[]> = transactions;
+        transactions = new Map<string, any[]>();
+        transactions.set(chosenContract, tempTransactions.get(chosenContract));
     }
 
     // Ask the user which language to write the tests in
@@ -134,7 +159,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         let walletHome: boolean;
         let pathWithoutHomeDir: string;
 
-        if ( fabricGatewayRegistryEntry.connectionProfilePath.includes(homedir)) {
+        if (fabricGatewayRegistryEntry.connectionProfilePath.includes(homedir)) {
             connectionProfilePathString = 'path.join(homedir';
             pathWithoutHomeDir = fabricGatewayRegistryEntry.connectionProfilePath.slice(homedir.length + 1);
             pathWithoutHomeDir.split('/').forEach((item: string) => {
@@ -246,7 +271,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
 
         const lineCount: number = document.lineCount;
         const textEditorResult: boolean = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
-                editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
+            editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
         });
         if (!textEditorResult) {
             outputAdapter.log(LogType.ERROR, `Error editing test file: ${testFile}`);
@@ -299,7 +324,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         try {
             const tsConfigExists: boolean = await fs.pathExists(tsConfigPath);
             if (!tsConfigExists) {
-                await fs.writeJson(tsConfigPath, tsConfigContents, {spaces: '\t'});
+                await fs.writeJson(tsConfigPath, tsConfigContents, { spaces: '\t' });
             } else {
                 // Assume that the users tsconfig.json file is compatible, but don't error
                 outputAdapter.log(LogType.WARNING, `Unable to create tsconfig.json file as it already exists`);
@@ -322,7 +347,7 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
     const ejsOptions: ejs.Options = {
         async: true,
     };
-    return new Promise ( (resolve: any, reject: any): any => {
+    return new Promise((resolve: any, reject: any): any => {
         // TODO: promisify this?
         ejs.renderFile(template, templateData, ejsOptions, (error: any, data: any) => {
             if (error) {
@@ -330,7 +355,7 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
             } else {
                 resolve(data);
             }
-         });
+        });
     });
 }
 

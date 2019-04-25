@@ -22,12 +22,11 @@ import * as assert from 'assert';
 import * as fabricNetwork from 'fabric-network';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { URL } from 'url';
 <%_ if (connectionProfileHome || walletHome) {-%>
 import * as os from 'os';
 import * as path from 'path';
 <%_ }-%>
-
+import { URL } from 'url';
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -120,7 +119,11 @@ describe('<%=chaincodeLabel%>' , () => {
         // Submit transaction
 
         const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
+        <%_ if (contractName !== '') { _%>
+        const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>', '<%=contractName%>');
+        <%_ } else { _%>
         const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>');
+        <%_ } _%>
 
         const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;

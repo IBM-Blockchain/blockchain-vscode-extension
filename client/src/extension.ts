@@ -86,6 +86,7 @@ import { associateWallet } from './commands/associateWalletCommand';
 import { dissociateWallet } from './commands/dissociateWalletCommand';
 import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
 import { TutorialView } from './webview/TutorialView';
+import { ContractTreeItem } from './explorer/model/ContractTreeItem';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -224,7 +225,8 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, (channelTreeItem?: ChannelTreeItem) => instantiateSmartContract(channelTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_GATEWAY, (treeItem: GatewayTreeItem) => editGatewayCommand(treeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(chaincode)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (contract: ContractTreeItem) => testSmartContract(false, contract)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem) => submitTransaction(false, transactionTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EVALUATE_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem) => submitTransaction(true, transactionTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, (instantiatedChainCodeTreeItem?: InstantiatedTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));

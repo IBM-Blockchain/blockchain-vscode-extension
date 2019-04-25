@@ -64,7 +64,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for the local_fabric gateway |
 | Export Package | Export a smart contract package to use outside VSCode |
-| Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
+| Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
 | Import Package | Import a smart contract package |
 | Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |

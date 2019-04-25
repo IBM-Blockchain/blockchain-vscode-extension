@@ -53,6 +53,7 @@
             "gatewaysExplorer.refreshEntry",
             "gatewaysExplorer.editGatewayEntry",
             "gatewaysExplorer.testSmartContractEntry",
+            "gatewaysExplorer.testAllSmartContractEntry",
             "gatewaysExplorer.submitTransactionEntry",
             "gatewaysExplorer.evaluateTransactionEntry",
             "gatewaysExplorer.associateWallet",
@@ -315,8 +316,13 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "gatewaysExplorer.testAllSmartContractEntry",
+                "title": "Generate Tests For All Smart Contracts",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "gatewaysExplorer.testSmartContractEntry",
-                "title": "Generate Smart Contract Tests",
+                "title": "Generate Tests for Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -586,8 +592,16 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
+                    "command": "gatewaysExplorer.testAllSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item"
+                },
+                {
                     "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-contract-item"
+                },
+                {
+                    "command": "gatewaysExplorer.testSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-contract-item"
                 },
                 {
                     "command": "gatewaysExplorer.submitTransactionEntry",

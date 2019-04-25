@@ -37,6 +37,7 @@ import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistry
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -86,12 +87,12 @@ describe('testSmartContractCommand', () => {
     let packageJSONPath: vscode.Uri;
     const tsConfigContents: any = {
         compilerOptions: {
-          declaration: true,
-          module: 'commonjs',
-          moduleResolution: 'node',
-          outDir: 'dist',
-          sourceMap: true,
-          target: 'es2017'
+            declaration: true,
+            module: 'commonjs',
+            moduleResolution: 'node',
+            outDir: 'dist',
+            sourceMap: true,
+            target: 'es2017'
         },
         exclude: ['node_modules'],
         include: ['./functionalTests/**/*']
@@ -246,7 +247,6 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
-
         });
 
         it('should generate a javascript test file for a selected instantiated smart contract', async () => {
@@ -491,7 +491,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
         });
 
-        it('should generate a test file for each smart contract defined in the metadata', async () => {
+        it('should generate a test file for each smart contract defined in the metadata (from tree)', async () => {
             const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
             const secondTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-other-contract-${smartContractLabel}.test.js`);
@@ -547,7 +547,7 @@ describe('testSmartContractCommand', () => {
             };
             fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
             openTextDocumentStub.should.have.been.calledWith(secondTestUri.fsPath);
             showTextDocumentStub.should.have.been.calledTwice;
@@ -570,6 +570,300 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
+        });
+
+        it('should generate a test file for just the contract tree item passed in', async () => {
+            const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            const morefakeMetadata: any = {
+                contracts: {
+                    'my-contract': {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'eggs',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    },
+                                    {
+                                        name: 'sugar',
+                                    },
+                                ]
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            }
+                        ]
+                    },
+                    'my-other-contract': {
+                        name: 'my-other-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'chocolate',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'upgrade'
+                            }
+                        ]
+                    }
+                }
+            };
+            fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
+
+            allChildren = await blockchainGatewayExplorerProvider.getChildren();
+            const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            const instantiatedTreeItems: Array<InstantiatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
+            const contractTreeItems: Array<ContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedTreeItems[0]) as Array<ContractTreeItem>;
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, contractTreeItems[0]);
+            openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
+            showTextDocumentStub.should.have.been.called;
+            sendCommandStub.should.have.been.calledOnce;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+
+            mockEditBuilderReplaceSpy.args.length.should.equal(1);
+
+            const firstTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            firstTemplateData.includes('my-contract').should.be.true;
+            firstTemplateData.includes(smartContractLabel).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(`const args = [];`).should.be.true;
+        });
+
+        it('should generate a test file for just the selected contract', async () => {
+            const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            const morefakeMetadata: any = {
+                contracts: {
+                    'my-contract': {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'eggs',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    },
+                                    {
+                                        name: 'sugar',
+                                    },
+                                ]
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            }
+                        ]
+                    },
+                    'my-other-contract': {
+                        name: 'my-other-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'chocolate',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'upgrade'
+                            }
+                        ]
+                    }
+                }
+            };
+            fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
+
+            mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves('my-contract');
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
+            showTextDocumentStub.should.have.been.calledOnce;
+            sendCommandStub.should.have.been.calledOnce;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+
+            mockEditBuilderReplaceSpy.args.length.should.equal(1);
+
+            const firstTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            firstTemplateData.includes('my-contract').should.be.true;
+            firstTemplateData.includes(smartContractLabel).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(`const args = [];`).should.be.true;
+        });
+
+        it('should generate a test file for all contracts', async () => {
+            const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
+            const secondTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-other-contract-${smartContractLabel}.test.js`);
+            const secondTestUri: vscode.Uri = vscode.Uri.file(secondTestFilePath);
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            const morefakeMetadata: any = {
+                contracts: {
+                    'my-contract': {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'eggs',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    },
+                                    {
+                                        name: 'sugar',
+                                    },
+                                ]
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            }
+                        ]
+                    },
+                    'my-other-contract': {
+                        name: 'my-other-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'chocolate',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'upgrade'
+                            }
+                        ]
+                    }
+                }
+            };
+            fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
+
+            mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves('my-contract');
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT);
+            openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
+            openTextDocumentStub.should.have.been.calledWith(secondTestUri.fsPath);
+            showTextDocumentStub.should.have.been.calledTwice;
+            sendCommandStub.should.have.been.calledOnce;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+
+            const firstTemplateData: string = mockEditBuilderReplaceSpy.args[0][1];
+            firstTemplateData.includes('my-contract').should.be.true;
+            firstTemplateData.includes(smartContractLabel).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(`const args = [];`).should.be.true;
+
+            const secondTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
+            secondTemplateData.includes('my-other-contract').should.be.true;
+            secondTemplateData.includes(smartContractLabel).should.be.true;
+            secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].name).should.be.true;
+            secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
+            secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
+            secondTemplateData.includes(`const args = [];`).should.be.true;
+        });
+
+        it('should handle cancel from choosing contract', async () => {
+            mySandBox.stub(fs, 'pathExists').resolves(false);
+            mySandBox.stub(fs, 'ensureFile').resolves();
+
+            const morefakeMetadata: any = {
+                contracts: {
+                    'my-contract': {
+                        name: 'my-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'eggs',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    },
+                                    {
+                                        name: 'sugar',
+                                    },
+                                ]
+                            },
+                            {
+                                name: 'wagonwheeling',
+                                parameters: []
+                            }
+                        ]
+                    },
+                    'my-other-contract': {
+                        name: 'my-other-contract',
+                        transactions: [
+                            {
+                                name: 'instantiate',
+                                parameters: [
+                                    {
+                                        name: 'chocolate',
+                                        schema: {
+                                            type: 'string'
+                                        }
+                                    }
+                                ]
+                            },
+                            {
+                                name: 'upgrade'
+                            }
+                        ]
+                    }
+                }
+            };
+            fabricClientConnectionMock.getMetadata.resolves(morefakeMetadata);
+
+            mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            openTextDocumentStub.should.not.have.been.called;
+            sendCommandStub.should.not.have.been.called;
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         it('should handle errors with creating the template data', async () => {
@@ -897,6 +1191,5 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(4).should.have.been.calledWith(LogType.WARNING, 'Unable to create tsconfig.json file as it already exists');
             logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });
-
     });
 });
