@@ -18,7 +18,7 @@ import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
-import { UserInputUtil, LanguageQuickPickItem } from './UserInputUtil';
+import { UserInputUtil, LanguageQuickPickItem, LanguageType } from './UserInputUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { LogType } from '../logging/OutputAdapter';
 import * as GeneratorFabricPackageJSON from 'generator-fabric/package.json';
@@ -53,6 +53,15 @@ export async function createSmartContractProject(): Promise<void> {
     const generator: string = `fabric:${smartContractLanguageItem.type.toLowerCase()}`;
     const smartContractLanguage: string = smartContractLanguageItem.label.toLowerCase();
 
+    let assetType: string;
+    if (smartContractLanguageItem.type === LanguageType.CONTRACT) {
+        assetType = await UserInputUtil.showInputBox('Name the type of asset managed by this smart contract', 'MyAsset');
+        if (!assetType) {
+            // User has cancelled the input box
+            return;
+        }
+    }
+
     const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: false,
@@ -86,7 +95,8 @@ export async function createSmartContractProject(): Promise<void> {
             'description': 'My Smart Contract',
             'author': 'John Doe',
             'license': 'Apache-2.0',
-            'skip-install': !packageJson.production
+            'skip-install': !packageJson.production,
+            'asset': assetType
         };
 
         await vscode.window.withProgress({

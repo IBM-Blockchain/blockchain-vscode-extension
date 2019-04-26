@@ -269,7 +269,20 @@ describe('UserInputUtil', () => {
             result.should.equal('my answer');
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
-                ignoreFocusOut: true
+                ignoreFocusOut: true,
+                value: undefined
+            });
+        });
+
+        it('should show the input box with a default value', async () => {
+            const inputStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('my answer');
+
+            const result: string = await UserInputUtil.showInputBox('a question', 'a sensible answer');
+            result.should.equal('my answer');
+            inputStub.should.have.been.calledWith({
+                prompt: 'a question',
+                ignoreFocusOut: true,
+                value: 'a sensible answer'
             });
         });
     });
@@ -1456,23 +1469,40 @@ describe('UserInputUtil', () => {
 
             const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: FabricWalletUtil.LOCAL_WALLET,
-                walletPath: 'some/local/path'
+                walletPath: 'some/local/path',
+                managedWallet: true
             });
 
             quickPickStub.resolves();
             await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', true);
-            quickPickStub.should.have.been.calledWith([{ label: localWalletEntry.name, data: localWalletEntry }, { label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }]);
+            quickPickStub.should.have.been.calledWith([
+                { label: localWalletEntry.name, data: localWalletEntry },
+                { label: walletEntryOne.name, data: walletEntryOne },
+                { label: walletEntryTwo.name, data: walletEntryTwo }]);
         });
+
     });
 
     describe('addIdentityMethod', () => {
 
-        it('should ask how to add an identity', async () => {
+        it('should ask how to add an identity for a non-local wallet', async () => {
             quickPickStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
-            const result: string = await UserInputUtil.addIdentityMethod();
+            const result: string = await UserInputUtil.addIdentityMethod(false);
 
             result.should.equal(UserInputUtil.ADD_CERT_KEY_OPTION);
             quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION], {
+                placeHolder: 'Choose a method for adding an identity',
+                ignoreFocusOut: true,
+                canPickMany: false
+            });
+        });
+
+        it('should ask how to add an identity for the local fabric wallet', async () => {
+            quickPickStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            const result: string = await UserInputUtil.addIdentityMethod(true);
+
+            result.should.equal(UserInputUtil.ADD_CERT_KEY_OPTION);
+            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION], {
                 placeHolder: 'Choose a method for adding an identity',
                 ignoreFocusOut: true,
                 canPickMany: false

@@ -13,7 +13,7 @@ export MSYS_NO_PATHCONV=1
 CHANNEL_NAME=mychannel
 
 # remove previous crypto material and config transactions
-rm -fr admin-msp/* configtx/* crypto-config/* wallets/local_wallet/*
+rm -fr admin-msp/* configtx/* crypto-config/* wallets/local_fabric_wallet/*
 
 fix_permissions () {
   docker run --rm -v $PWD:/etc/hyperledger/fabric -w /etc/hyperledger/fabric hyperledger/fabric-tools:1.4.0 chown -R $(id -u):$(id -g) ./configtx ./crypto-config ./admin-msp

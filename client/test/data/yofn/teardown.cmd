@@ -13,7 +13,7 @@ for /f "tokens=*" %%i in ('docker ps -aq --filter "name=yofn-*"') do docker rm -
 for /f "tokens=*" %%i in ('docker images -aq "yofn-*"') do docker rmi -f %%i
 
 rem remove previous crypto material and config transactions
-for %%d in (admin-msp configtx crypto-config wallets\local_wallet) do (
+for %%d in (admin-msp configtx crypto-config wallets\local_fabric_wallet) do (
   pushd %%d
   rmdir /q/s .
   popd

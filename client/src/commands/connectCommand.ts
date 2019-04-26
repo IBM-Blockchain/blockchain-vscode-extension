@@ -12,20 +12,16 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
-import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
@@ -47,18 +43,6 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
     }
 
     if (gatewayRegistryEntry.managedRuntime) {
-
-        const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        const runtime: FabricRuntime = runtimeManager.getRuntime();
-        const running: boolean = await runtime.isRunning();
-        if (!running) {
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-            if (!(await runtimeManager.getRuntime().isRunning())) {
-                // Start local_fabric failed so return
-                return;
-            }
-        }
-
         runtimeData = 'managed runtime';
     }
 
@@ -67,12 +51,12 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
     let walletName: string;
     let walletData: any;
 
-    // If the user is trying to connect to the local_fabric, we should always use the local_wallet
+    // If the user is trying to connect to the local_fabric, we should always use the local_fabric_wallet
     if (!gatewayRegistryEntry.associatedWallet && !gatewayRegistryEntry.managedRuntime) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
 
         // Choose a wallet to connect with
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', true);
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', false);
         if (!chosenWallet) {
             return;
         }
@@ -90,6 +74,7 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
 
             runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
             runtimeWalletRegistryEntry.walletPath = wallet.getWalletPath();
+            runtimeWalletRegistryEntry.managedWallet = true;
 
             walletData = runtimeWalletRegistryEntry;
 

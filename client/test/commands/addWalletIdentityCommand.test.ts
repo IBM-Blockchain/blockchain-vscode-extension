@@ -324,6 +324,29 @@ describe('AddWalletIdentityCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
         });
 
+        it('should test an error is thrown if trying to add an identity when no gateway doesnt exist', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'blueWallet',
+                data: FabricWalletRegistry.instance().get('blueWallet')
+            });
+            mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
+            inputBoxStub.onFirstCall().resolves('greenConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayB',
+                data: FabricGatewayRegistry.instance().get('myGatewayB')
+            });
+            getEnrollIdSecretStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+            fsReadFile.should.not.have.been.called;
+            enrollStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
+        });
+
         describe('called from WalletTreeItem', () => {
 
             it('should test an identity can be added from a WalletTreeItem', async () => {
@@ -356,19 +379,17 @@ describe('AddWalletIdentityCommand', () => {
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
             });
 
-            it(`should test an identity can be enrolled to local_wallet using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
+            it(`should test an identity can be enrolled to ${FabricWalletUtil.LOCAL_WALLET} using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
+                    name: FabricRuntimeUtil.LOCAL_FABRIC,
+                    connectionProfilePath: '/some/path',
+                    managedRuntime: true,
+                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
+                } as FabricGatewayRegistryEntry]);
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
-                addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-                showGatewayQuickPickBoxStub.resolves({
-                    label: FabricRuntimeUtil.LOCAL_FABRIC,
-                    data: new FabricGatewayRegistryEntry({
-                        name: FabricRuntimeUtil.LOCAL_FABRIC,
-                        connectionProfilePath: '/some/path',
-                        managedRuntime: true,
-                        associatedWallet: FabricWalletUtil.LOCAL_WALLET
-                    })
-                });
+                addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
+
                 const runtime: FabricRuntime = new FabricRuntime();
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtime);
                 getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});

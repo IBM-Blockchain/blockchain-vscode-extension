@@ -303,7 +303,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             channelItems[0].label.should.equal('mychannel');
 
             // Create a smart contract, package it, install it, and instantiate it.
-            await integrationTestUtil.createSmartContract('teardownSmartContract', 'JavaScript');
+            await integrationTestUtil.createSmartContract('teardownSmartContract', 'JavaScript', 'Conga');
             await integrationTestUtil.packageSmartContract();
             await integrationTestUtil.installSmartContract('teardownSmartContract', '0.0.1');
             await integrationTestUtil.instantiateSmartContract('teardownSmartContract', '0.0.1');
@@ -413,7 +413,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             it(`should create a ${language} smart contract, package, install and instantiate it on a peer, and upgrade it`, async () => {
                 const smartContractName: string = `my${language}SC`;
 
-                await integrationTestUtil.createSmartContract(smartContractName, language);
+                await integrationTestUtil.createSmartContract(smartContractName, language, null /* Not used for old programming model */);
 
                 await integrationTestUtil.packageSmartContract();
 

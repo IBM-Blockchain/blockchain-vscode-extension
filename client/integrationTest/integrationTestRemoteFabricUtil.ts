@@ -87,7 +87,7 @@ export class IntegrationTestRemoteFabricUtil {
             chaincodeId: language + 'SmartContract',
             chaincodeVersion: '0.0.1',
             txId,
-            fcn: 'instantiate',
+            fcn: '',
             args: []
         };
 

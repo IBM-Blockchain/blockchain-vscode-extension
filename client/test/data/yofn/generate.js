@@ -23,7 +23,7 @@ const identities = [
 ];
 
 for (const identity of identities) {
-    const identityPath = path.resolve(__dirname, 'wallets', 'local_wallet', `${identity.name}.json`);
+    const identityPath = path.resolve(__dirname, 'wallets', 'local_fabric_wallet', `${identity.name}.json`);
     const identityData = JSON.stringify(identity, null, 4);
     fs.writeFileSync(identityPath, identityData);
 }
