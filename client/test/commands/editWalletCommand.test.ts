@@ -86,7 +86,7 @@ describe('EditWalletCommand', () => {
 
             it('should open the user settings to edit a wallet', async () => {
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
-                const treeItem: WalletTreeItem = new WalletTreeItem(blockchainWalletExplorerProvider, 'myWallet', [], 0);
+                const treeItem: WalletTreeItem = new WalletTreeItem(blockchainWalletExplorerProvider, 'myWallet', [], 0, {name: 'myWallet', walletPath: '/some/path', managedWallet: false});
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_WALLET, treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myWallet');

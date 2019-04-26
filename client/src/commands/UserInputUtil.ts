@@ -64,6 +64,7 @@ export class UserInputUtil {
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
     static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
+    static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
 
     public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -694,6 +695,7 @@ export class UserInputUtil {
 
             runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
             runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
+            runtimeWalletRegistryEntry.managedWallet = true;
             walletQuickPickItems.push( {
                 label: runtimeWalletRegistryEntry.name,
                 data: runtimeWalletRegistryEntry
@@ -717,8 +719,14 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(walletQuickPickItems, quickPickOptions);
     }
 
-    public static async addIdentityMethod(): Promise<any> {
-        const options: Array<string> = [UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION];
+    public static async addIdentityMethod(isLocalWallet: boolean): Promise<any> {
+        const options: Array<string> = [UserInputUtil.ADD_CERT_KEY_OPTION];
+
+        if (isLocalWallet) {
+            options.push(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
+        } else {
+            options.push(UserInputUtil.ADD_ID_SECRET_OPTION);
+        }
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: false,

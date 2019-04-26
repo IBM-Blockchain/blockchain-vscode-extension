@@ -192,7 +192,7 @@ describe('FabricRuntimeConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['nodes'].has('peer0.org2.example.com').should.be.false;
             connection['peers'].has('peer0.org2.example.com').should.be.false;
-            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', 'local_wallet', 'Admin@org2.example.com', 'Org2MSP'));
+            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', FabricWalletUtil.LOCAL_WALLET, 'Admin@org2.example.com', 'Org2MSP'));
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
             queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
@@ -292,7 +292,7 @@ describe('FabricRuntimeConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['nodes'].has('peer0.org2.example.com').should.be.false;
             connection['peers'].has('peer0.org2.example.com').should.be.false;
-            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', 'local_wallet', 'Admin@org2.example.com', 'Org2MSP'));
+            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', FabricWalletUtil.LOCAL_WALLET, 'Admin@org2.example.com', 'Org2MSP'));
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
             queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({

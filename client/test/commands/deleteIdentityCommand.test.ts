@@ -189,6 +189,7 @@ describe('deleteIdentityCommand', () => {
 
         runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
         runtimeWalletRegistryEntry.walletPath = 'wallet_path';
+        runtimeWalletRegistryEntry.managedWallet = true;
 
         showWalletsQuickPickStub.resolves({
             label: FabricWalletUtil.LOCAL_WALLET,

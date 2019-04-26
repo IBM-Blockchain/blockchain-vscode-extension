@@ -15,7 +15,7 @@
 // This is a JSON representation of a Fabric identity.
 // tslint:disable variable-name
 export class FabricIdentity {
-    public constructor(public name: string, public certificate: string, public private_key: string, public msp_id: string) {
+    public constructor(public name: string, public cert: string, public private_key: string, public msp_id: string) {
 
     }
 }

@@ -16,6 +16,7 @@ import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import * as path from 'path';
+import { FabricWalletRegistryEntry } from '../../fabric/FabricWalletRegistryEntry';
 
 export class LocalWalletTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-local-wallet-item';
@@ -25,7 +26,7 @@ export class LocalWalletTreeItem extends BlockchainTreeItem {
         dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', `wallet.svg`)
     };
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly identities: string[], public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly identities: string[], public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly registryEntry: FabricWalletRegistryEntry) {
         super(provider, name, collapsibleState);
 
     }

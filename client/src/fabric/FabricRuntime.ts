@@ -113,7 +113,7 @@ export class FabricRuntime extends EventEmitter {
             const identities: FabricIdentity[] = await this.getIdentities(walletName);
             for (const identity of identities) {
                 await localWallet.importIdentity(
-                    Buffer.from(identity.certificate, 'base64').toString('utf8'),
+                    Buffer.from(identity.cert, 'base64').toString('utf8'),
                     Buffer.from(identity.private_key, 'base64').toString('utf8'),
                     identity.name,
                     identity.msp_id
@@ -129,14 +129,7 @@ export class FabricRuntime extends EventEmitter {
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const walletNames: string[] = await this.getWalletNames();
         for (const walletName of walletNames) {
-            const localWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(walletName);
-            const identities: FabricIdentity[] = await this.getIdentities(walletName);
-            for (const identity of identities) {
-                const exists: boolean = await localWallet.exists(identity.name);
-                if (exists) {
-                    await localWallet.delete(identity.name);
-                }
-            }
+            await fabricWalletGenerator.deleteLocalWallet(walletName);
         }
 
     }

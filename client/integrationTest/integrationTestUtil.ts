@@ -165,6 +165,7 @@ export class IntegrationTestUtil {
                 walletEntry = new FabricWalletRegistryEntry();
                 walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
                 walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
+                walletEntry.managedWallet = true;
             }
 
             this.showWalletsQuickPickStub.resolves({
@@ -470,6 +471,7 @@ export class IntegrationTestUtil {
             walletEntry = new FabricWalletRegistryEntry();
             walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
             walletEntry.walletPath = path.join(__dirname, `../../integrationTest/tmp/${FabricWalletUtil.LOCAL_WALLET}`);
+            walletEntry.managedWallet = true;
         }
 
         this.showWalletsQuickPickStub.resolves({
