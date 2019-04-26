@@ -26,6 +26,7 @@ import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistry
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import * as myExtension from '../../src/extension';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 
 chai.should();
 chai.use(sinonChai);
@@ -40,7 +41,8 @@ describe('removeWalletCommand', () => {
     let showWalletsQuickPickStub: sinon.SinonStub;
     let purpleWallet: FabricWalletRegistryEntry;
     let blueWallet: FabricWalletRegistryEntry;
-
+    let getAllFabricGatewayRegisty: sinon.SinonStub;
+    let updateFabricGatewayRegisty: sinon.SinonStub;
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeWalletsConfig();
@@ -72,6 +74,8 @@ describe('removeWalletCommand', () => {
         });
         await vscode.workspace.getConfiguration().update('fabric.wallets', [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
 
+        getAllFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
+        updateFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
     });
 
     afterEach(() => {
@@ -141,6 +145,31 @@ describe('removeWalletCommand', () => {
         wallets[1].name.should.equal(blueWallet.name);
         fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `removeWallet`);
+    });
+
+    it('should remove the wallet association from any gateways', async () => {
+        showWalletsQuickPickStub.resolves({
+            label: blueWallet.name,
+            data: blueWallet
+        });
+        warningStub.resolves( {title: 'Yes'} );
+        getAllFabricGatewayRegisty.returns([{name: 'gatewayA', associatedWallet: 'blueWallet'}, {name: 'gatewayB', associatedWallet: 'blueWallet'}, {name: 'gatewayC', associatedWallet: 'greenWallet'}]);
+        updateFabricGatewayRegisty.resolves();
+
+        await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
+
+        const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+        wallets.length.should.equal(1);
+        wallets[0].name.should.equal(purpleWallet.name);
+
+        updateFabricGatewayRegisty.callCount.should.equal(2);
+        updateFabricGatewayRegisty.getCall(0).should.have.been.calledWithExactly({name: 'gatewayA', associatedWallet: ''});
+        updateFabricGatewayRegisty.getCall(1).should.have.been.calledWithExactly({name: 'gatewayB', associatedWallet: ''});
+
+        fsRemoveStub.should.have.been.calledOnceWithExactly(blueWallet.walletPath);
+        logSpy.should.have.been.calledTwice;
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${blueWallet.walletPath}`, `Successfully deleted ${blueWallet.walletPath}`);
     });
 
     describe('called from the tree', () => {
