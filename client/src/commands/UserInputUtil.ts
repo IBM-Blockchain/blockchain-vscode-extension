@@ -103,10 +103,11 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(gatewaysQuickPickItems, quickPickOptions);
     }
 
-    public static showInputBox(question: string): Thenable<string | undefined> {
+    public static showInputBox(question: string, defaultValue?: string): Thenable<string | undefined> {
         const inputBoxOptions: vscode.InputBoxOptions = {
             prompt: question,
-            ignoreFocusOut: true
+            ignoreFocusOut: true,
+            value: defaultValue
         };
 
         return vscode.window.showInputBox(inputBoxOptions);

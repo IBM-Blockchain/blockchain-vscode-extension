@@ -182,7 +182,7 @@ export class IntegrationTestUtil {
         should.exist(fabricConnection);
     }
 
-    public async createSmartContract(name: string, language: string): Promise<void> {
+    public async createSmartContract(name: string, language: string, assetType: string): Promise<void> {
         let type: LanguageType;
         if (language === 'Go' || language === 'Java') {
             type = LanguageType.CHAINCODE;
@@ -192,6 +192,7 @@ export class IntegrationTestUtil {
             throw new Error(`You must update this test to support the ${language} language`);
         }
         this.showLanguagesQuickPickStub.resolves({ label: language, type });
+        this.inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
         this.showFolderOptions.resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
         this.testContractName = name;
@@ -217,12 +218,7 @@ export class IntegrationTestUtil {
             filters: undefined
         }, true).resolves(uri);
 
-        let generator: string;
-        if (language === 'Go' || language === 'Java') {
-            generator = 'fabric:chaincode';
-        }
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, generator);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
 
         if (language === 'JavaScript' || language === 'TypeScript') {
             await CommandUtil.sendCommandWithOutput('npm', ['install'], this.testContractDir, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
@@ -273,7 +269,7 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
     }
 
-    public async instantiateSmartContract(name: string, version: string, transaction: string = 'instantiate', args: string = ''): Promise<void> {
+    public async instantiateSmartContract(name: string, version: string, transaction: string = '', args: string = ''): Promise<void> {
         this.showChannelStub.resolves({
             label: 'mychannel',
             data: ['peer0.org1.example.com']
@@ -326,7 +322,7 @@ export class IntegrationTestUtil {
             data: { name: name, channel: 'mychannel', version: '0.0.1' }
         });
 
-        this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('instantiate');
+        this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('');
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
@@ -406,9 +402,9 @@ export class IntegrationTestUtil {
 
     public async runSmartContractTests(name: string, language: string): Promise<string> {
         // Run the same command that the JavaScript Test Runner runs to run javascript/typescript tests
-        let testCommand: string = `node_modules/.bin/mocha functionalTests/MyContract-${name}@0.0.1.test.js --grep="instantiate"`;
+        let testCommand: string = `node_modules/.bin/mocha functionalTests/CongaContract-${name}@0.0.1.test.js --grep="createConga"`;
         if (language === 'TypeScript') {
-            testCommand = `node_modules/.bin/mocha functionalTests/MyContract-${name}@0.0.1.test.ts --grep="instantiate" -r ts-node/register`;
+            testCommand = `node_modules/.bin/mocha functionalTests/CongaContract-${name}@0.0.1.test.ts --grep="createConga" -r ts-node/register`;
         }
         const testResult: string = await CommandUtil.sendCommand(testCommand, this.testContractDir);
         return testResult;

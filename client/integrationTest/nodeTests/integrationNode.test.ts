@@ -152,9 +152,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 const smartContractName: string = `my${language}SC`;
 
-                let testRunResult: string;
-
-                await integrationTestUtil.createSmartContract(smartContractName, language);
+                await integrationTestUtil.createSmartContract(smartContractName, language, 'Conga');
 
                 await integrationTestUtil.packageSmartContract();
 
@@ -200,7 +198,9 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, otherUserName);
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, FabricRuntimeUtil.LOCAL_FABRIC);
-                testRunResult = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+                // TODO: the generated smart contract tests for a generated smart contract can never pass out of the box
+                // until the tests are edited to provide the correct set of arguments for each transaction.
+                // const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
 
                 await integrationTestUtil.updatePackageJsonVersion('0.0.2');
 
@@ -257,8 +257,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 instantiatedSmartContract.should.not.be.null;
 
-                await checkGeneratedSmartContract(language, smartContractName, testRunResult);
-                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'transaction1', 'hello world', 'MyContract');
+                await checkGeneratedSmartContract(language, smartContractName);
+                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '1001,hello world', 'CongaContract');
                 logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -360,7 +360,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
             for (const language of languages) {
                 integrationTestUtil.testContractType = language;
-                await integrationTestUtil.createSmartContract(language + 'SmartContract', language);
+                await integrationTestUtil.createSmartContract(language + 'SmartContract', language, 'Conga');
                 await integrationTestUtil.packageSmartContract();
                 await integrationTestRemoteFabricUtil.installChaincode(language);
                 await integrationTestRemoteFabricUtil.instantiateChaincode(language);
@@ -427,7 +427,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             });
 
             it(`should ${language} submit transaction`, async () => {
-                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'transaction1', 'hello world', 'MyContract');
+                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '1001,hello world', 'CongaContract');
 
                 logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
 
@@ -498,18 +498,20 @@ describe('Integration Tests for Node Smart Contracts', () => {
             it(`should ${language} generate tests`, async () => {
                 integrationTestUtil.testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp', language + 'SmartContract');
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'myGateway');
-                const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+                // TODO: the generated smart contract tests for a generated smart contract can never pass out of the box
+                // until the tests are edited to provide the correct set of arguments for each transaction.
+                // const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
 
-                await checkGeneratedSmartContract(language, smartContractName, testRunResult);
+                await checkGeneratedSmartContract(language, smartContractName);
             }).timeout(0);
         });
     });
 
-    async function checkGeneratedSmartContract(language: string, smartContractName: string, testRunResult: string): Promise<void> {
+    async function checkGeneratedSmartContract(language: string, smartContractName: string): Promise<void> {
         let fileSuffix: string;
         fileSuffix = (language === 'TypeScript' ? 'ts' : 'js');
         // Check test file exists
-        const pathToTestFile: string = path.join(integrationTestUtil.testContractDir, 'functionalTests', `MyContract-${smartContractName}@0.0.1.test.${fileSuffix}`);
+        const pathToTestFile: string = path.join(integrationTestUtil.testContractDir, 'functionalTests', `CongaContract-${smartContractName}@0.0.1.test.${fileSuffix}`);
         fs.pathExists(pathToTestFile).should.eventually.be.true;
         const testFileContentsBuffer: Buffer = await fs.readFile(pathToTestFile);
         const testFileContents: string = testFileContentsBuffer.toString();
@@ -535,9 +537,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
         testFileContents.includes(smartContractTransactionsArray[0]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
-
-        testRunResult.includes('success for transaction').should.be.true;
-        testRunResult.includes('1 passing').should.be.true;
 
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     }

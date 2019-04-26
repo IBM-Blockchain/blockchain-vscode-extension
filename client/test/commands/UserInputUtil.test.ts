@@ -269,7 +269,20 @@ describe('UserInputUtil', () => {
             result.should.equal('my answer');
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
-                ignoreFocusOut: true
+                ignoreFocusOut: true,
+                value: undefined
+            });
+        });
+
+        it('should show the input box with a default value', async () => {
+            const inputStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showInputBox').resolves('my answer');
+
+            const result: string = await UserInputUtil.showInputBox('a question', 'a sensible answer');
+            result.should.equal('my answer');
+            inputStub.should.have.been.calledWith({
+                prompt: 'a question',
+                ignoreFocusOut: true,
+                value: 'a sensible answer'
             });
         });
     });
