@@ -1076,7 +1076,7 @@ describe('FabricRuntime', () => {
                 {
                     short_name: 'ca.org1.example.com',
                     name: 'ca.org1.example.com',
-                    url: 'http://localhost:17054',
+                    api_url: 'http://localhost:17054',
                     type: 'fabric-ca',
                     ca_name: 'ca.org1.example.com',
                     wallet: FabricWalletUtil.LOCAL_WALLET,
@@ -1087,21 +1087,21 @@ describe('FabricRuntime', () => {
                 {
                     short_name: 'couchdb',
                     name: 'couchdb',
-                    url: 'http://localhost:17055',
+                    api_url: 'http://localhost:17055',
                     type: 'couchdb',
                     container_name: 'yofn_couchdb'
                 },
                 {
                     short_name: 'logspout',
                     name: 'logspout',
-                    url: 'http://localhost:17056',
+                    api_url: 'http://localhost:17056',
                     type: 'logspout',
                     container_name: 'yofn_logspout'
                 },
                 {
                     short_name: 'orderer.example.com',
                     name: 'orderer.example.com',
-                    url: 'grpc://localhost:17050',
+                    api_url: 'grpc://localhost:17050',
                     type: 'fabric-orderer',
                     wallet: FabricWalletUtil.LOCAL_WALLET,
                     identity: 'admin',
@@ -1111,7 +1111,7 @@ describe('FabricRuntime', () => {
                 {
                     short_name: 'peer0.org1.example.com',
                     name: 'peer0.org1.example.com',
-                    url: 'grpc://localhost:17051',
+                    api_url: 'grpc://localhost:17051',
                     chaincode_url: 'grpc://localhost:17052',
                     type: 'fabric-peer',
                     wallet: FabricWalletUtil.LOCAL_WALLET,

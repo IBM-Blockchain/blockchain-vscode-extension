@@ -17,6 +17,7 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
+import * as fs from 'fs';
 import * as path from 'path';
 
 import * as chai from 'chai';
@@ -42,6 +43,7 @@ chai.use(sinonChai);
 describe('FabricRuntimeConnection', () => {
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');
+    const TLS_CA_CERTIFICATE: string = fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'yofn', 'admin-msp', 'cacerts', 'ca-org1-example-com-17054.pem')).toString('base64');
 
     let mySandBox: sinon.SinonSandbox;
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
@@ -61,6 +63,15 @@ describe('FabricRuntimeConnection', () => {
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
+            FabricNode.newSecurePeer(
+                'peer0.org1.example.com',
+                'peer0.org2.example.com',
+                `grpcs://localhost:8051`,
+                TLS_CA_CERTIFICATE,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org2MSP'
+            ),
             FabricNode.newCertificateAuthority(
                 'ca.example.com',
                 'ca.example.com',
@@ -69,10 +80,28 @@ describe('FabricRuntimeConnection', () => {
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
+            FabricNode.newSecureCertificateAuthority(
+                'ca2.example.com',
+                'ca2.example.com',
+                `https://localhost:8054`,
+                TLS_CA_CERTIFICATE,
+                FabricWalletUtil.LOCAL_WALLET,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org2MSP'
+            ),
             FabricNode.newOrderer(
                 'orderer.example.com',
                 'orderer.example.com',
                 `grpc://localhost:7050`,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP'
+            ),
+            FabricNode.newSecureOrderer(
+                'orderer2.example.com',
+                'orderer2.example.com',
+                `grpcs://localhost:8050`,
+                TLS_CA_CERTIFICATE,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP'
@@ -126,29 +155,57 @@ describe('FabricRuntimeConnection', () => {
         it('should create peer clients for each peer node', async () => {
             const peerNames: string[] = Array.from(connection['peers'].keys());
             const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
-            peerNames.should.deep.equal(['peer0.org1.example.com']);
-            peerValues.should.have.lengthOf(1);
+            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
+            peerValues.should.have.lengthOf(2);
             peerValues[0].should.be.an.instanceOf(Client.Peer);
             peerValues[0].toString().should.match(/url:grpc:\/\/localhost:7051/);
+        });
+
+        it('should create secure peer clients for each secure peer node', async () => {
+            const peerNames: string[] = Array.from(connection['peers'].keys());
+            const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
+            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
+            peerValues.should.have.lengthOf(2);
+            peerValues[1].should.be.an.instanceOf(Client.Peer);
+            peerValues[1].toString().should.match(/url:grpcs:\/\/localhost:8051/);
         });
 
         it('should create orderer clients for each orderer node', async () => {
             const ordererNames: string[] = Array.from(connection['orderers'].keys());
             const ordererValues: Client.Orderer[] = Array.from(connection['orderers'].values());
-            ordererNames.should.deep.equal(['orderer.example.com']);
-            ordererValues.should.have.lengthOf(1);
+            ordererNames.should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
+            ordererValues.should.have.lengthOf(2);
             ordererValues[0].should.be.an.instanceOf(Client.Orderer);
             ordererValues[0].toString().should.match(/url:grpc:\/\/localhost:7050/);
+        });
+
+        it('should create secure orderer clients for each secure orderer node', async () => {
+            const ordererNames: string[] = Array.from(connection['orderers'].keys());
+            const ordererValues: Client.Orderer[] = Array.from(connection['orderers'].values());
+            ordererNames.should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
+            ordererValues.should.have.lengthOf(2);
+            ordererValues[1].should.be.an.instanceOf(Client.Orderer);
+            ordererValues[1].toString().should.match(/url:grpcs:\/\/localhost:8050/);
         });
 
         it('should create certificate authority clients for each certificate authority node', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
-            certificateAuthorityNames.should.deep.equal(['ca.example.com']);
-            certificateAuthorityValues.should.have.lengthOf(1);
+            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com']);
+            certificateAuthorityValues.should.have.lengthOf(2);
             certificateAuthorityValues[0].should.be.an.instanceOf(FabricCAServices);
             certificateAuthorityValues[0].toString().should.match(/hostname: localhost/);
             certificateAuthorityValues[0].toString().should.match(/port: 7054/);
+        });
+
+        it('should create secure certificate authority clients for each secure certificate authority node', async () => {
+            const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
+            const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
+            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com']);
+            certificateAuthorityValues.should.have.lengthOf(2);
+            certificateAuthorityValues[1].should.be.an.instanceOf(FabricCAServices);
+            certificateAuthorityValues[1].toString().should.match(/hostname: localhost/);
+            certificateAuthorityValues[1].toString().should.match(/port: 8054/);
         });
 
         it('should ignore any other nodes', async () => {
@@ -175,7 +232,7 @@ describe('FabricRuntimeConnection', () => {
     describe('getAllPeerNames', () => {
 
         it('should get all of the peer names', () => {
-            connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com']);
+            connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
         });
     });
 
@@ -190,9 +247,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer2 = mySandBox.createStubInstance(Client.Peer);
             connection['peers'].has('peer0.org1.example.com').should.be.true;
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
-            connection['nodes'].has('peer0.org2.example.com').should.be.false;
-            connection['peers'].has('peer0.org2.example.com').should.be.false;
-            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', FabricWalletUtil.LOCAL_WALLET, 'Admin@org2.example.com', 'Org2MSP'));
+            connection['peers'].has('peer0.org2.example.com').should.be.true;
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
             queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
@@ -290,9 +345,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer2 = mySandBox.createStubInstance(Client.Peer);
             connection['peers'].has('peer0.org1.example.com').should.be.true;
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
-            connection['nodes'].has('peer0.org2.example.com').should.be.false;
-            connection['peers'].has('peer0.org2.example.com').should.be.false;
-            connection['nodes'].set('peer0.org2.example.com', FabricNode.newPeer('peer0.org2.example.com', 'peer0.org2.example.com', 'grpc://localhost:8051', FabricWalletUtil.LOCAL_WALLET, 'Admin@org2.example.com', 'Org2MSP'));
+            connection['peers'].has('peer0.org2.example.com').should.be.true;
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
             queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
@@ -376,7 +429,7 @@ describe('FabricRuntimeConnection', () => {
     describe('getAllOrganizationNames', () => {
 
         it('should get all of the organization names', () => {
-            connection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP']);
+            connection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP', 'Org2MSP']);
         });
 
     });
@@ -384,7 +437,7 @@ describe('FabricRuntimeConnection', () => {
     describe('getAllCertificateAuthorityNames', () => {
 
         it('should get all of the certificate authority names', () => {
-            connection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com']);
+            connection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com', 'ca2.example.com']);
         });
 
     });
@@ -446,7 +499,7 @@ describe('FabricRuntimeConnection', () => {
     describe('getAllOrdererNames', () => {
 
         it('should get all of the orderer names', () => {
-            connection.getAllOrdererNames().should.deep.equal(['orderer.example.com']);
+            connection.getAllOrdererNames().should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
         });
     });
 
@@ -937,7 +990,7 @@ describe('FabricRuntimeConnection', () => {
             node.short_name.should.equal('ca.example.com');
             node.name.should.equal('ca.example.com');
             node.type.should.equal(FabricNodeType.CERTIFICATE_AUTHORITY);
-            node.url.should.equal('http://localhost:7054');
+            node.api_url.should.equal('http://localhost:7054');
             node.wallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
             node.identity.should.equal(FabricRuntimeUtil.ADMIN_USER);
         });

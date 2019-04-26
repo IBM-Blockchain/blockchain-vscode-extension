@@ -340,7 +340,7 @@ export class FabricRuntime extends EventEmitter {
         if (!logspout) {
             throw new Error('There are no Logspout nodes');
         }
-        return logspout.url;
+        return logspout.api_url;
     }
 
     public async getPeerContainerName(): Promise<string> {
