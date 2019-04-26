@@ -11,7 +11,7 @@ set COMPOSE_CONVERT_WINDOWS_PATHS=1
 set CHANNEL_NAME=mychannel
 
 rem remove previous crypto material and config transactions
-for %%d in (admin-msp configtx crypto-config wallets\local_wallet) do (
+for %%d in (admin-msp configtx crypto-config wallets\local_fabric_wallet) do (
   pushd %%d
   rmdir /q/s .
   popd

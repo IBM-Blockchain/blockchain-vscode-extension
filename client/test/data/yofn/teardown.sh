@@ -15,6 +15,6 @@ docker-compose -f docker-compose.yml kill && docker-compose -f docker-compose.ym
 (docker images -aq "yofn-*" | xargs docker rmi -f) || true
 
 # remove previous crypto material and config transactions
-rm -fr admin-msp/* configtx/* crypto-config/* wallets/local_wallet/*
+rm -fr admin-msp/* configtx/* crypto-config/* wallets/local_fabric_wallet/*
 
 # Your system is now clean

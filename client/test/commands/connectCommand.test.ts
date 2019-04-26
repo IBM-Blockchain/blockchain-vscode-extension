@@ -334,7 +334,8 @@ describe('ConnectCommand', () => {
                     label: FabricWalletUtil.LOCAL_WALLET,
                     data: new FabricWalletRegistryEntry({
                         name: FabricWalletUtil.LOCAL_WALLET,
-                        walletPath: 'some/new/wallet/path'
+                        walletPath: 'some/new/wallet/path',
+                        managedWallet: true
                     })
                 });
 
@@ -372,39 +373,6 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
-            });
-
-            it('should start a stopped fabric runtime before connecting', async () => {
-                mockRuntime.isRunning.onCall(0).resolves(false);
-                const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-                startCommandStub.callThrough();
-                startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
-
-                choseGatewayQuickPick.should.have.been.calledOnce;
-                startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
-                choseIdentityQuickPick.should.not.have.been.called;
-                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
-
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
-                logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${connection.name}`);
-            });
-
-            it('should stop if starting the fabric runtime failed', async () => {
-                mockRuntime.isRunning.resolves(false);
-
-                const startCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
-                startCommandStub.callThrough();
-                startCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
-
-                choseGatewayQuickPick.should.have.been.calledOnce;
-                startCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-                connectStub.should.not.have.been.called;
-                logSpy.should.have.been.calledOnce;
-                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'connect');
-
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {

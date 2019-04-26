@@ -33,6 +33,7 @@ import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricIdentity } from '../../src/fabric/FabricIdentity';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
 
@@ -197,7 +198,7 @@ describe('FabricRuntime', () => {
             const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
             mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
             await runtime.importWalletsAndIdentities();
-            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly('local_wallet');
+            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
             mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
         });
 
@@ -208,25 +209,10 @@ describe('FabricRuntime', () => {
         it('should delete all known identities that exist', async () => {
             const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
-            mockFabricWallet.exists.withArgs('admin').resolves(true);
-            mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
+            sandbox.stub(FabricRuntime.prototype, 'getWalletNames').resolves([FabricWalletUtil.LOCAL_WALLET]);
+            mockFabricWalletGenerator.deleteLocalWallet.resolves();
             await runtime.deleteWalletsAndIdentities();
-            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly('local_wallet');
-            mockFabricWallet.exists.should.have.been.calledOnceWithExactly('admin');
-            mockFabricWallet.delete.should.have.been.calledOnceWithExactly('admin');
-        });
-
-        it('should ignore any known identities that do not exist', async () => {
-            const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
-            sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
-            const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
-            mockFabricWallet.exists.withArgs('admin').resolves(false);
-            mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
-            await runtime.deleteWalletsAndIdentities();
-            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly('local_wallet');
-            mockFabricWallet.exists.should.have.been.calledOnceWithExactly('admin');
-            mockFabricWallet.delete.should.not.have.been.called;
+            mockFabricWalletGenerator.deleteLocalWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
         });
 
     });
@@ -1037,7 +1023,7 @@ describe('FabricRuntime', () => {
                     connectionProfile: {
                         name: 'yofn',
                         version: '1.0.0',
-                        wallet: 'local_wallet',
+                        wallet: FabricWalletUtil.LOCAL_WALLET,
                         client: {
                             organization: 'Org1',
                             connection: {
@@ -1093,7 +1079,7 @@ describe('FabricRuntime', () => {
                     url: 'http://localhost:17054',
                     type: 'fabric-ca',
                     ca_name: 'ca.org1.example.com',
-                    wallet: 'local_wallet',
+                    wallet: FabricWalletUtil.LOCAL_WALLET,
                     identity: 'admin',
                     msp_id: 'Org1MSP',
                     container_name: 'yofn_ca.org1.example.com'
@@ -1117,7 +1103,7 @@ describe('FabricRuntime', () => {
                     name: 'orderer.example.com',
                     url: 'grpc://localhost:17050',
                     type: 'fabric-orderer',
-                    wallet: 'local_wallet',
+                    wallet: FabricWalletUtil.LOCAL_WALLET,
                     identity: 'admin',
                     msp_id: 'OrdererMSP',
                     container_name: 'yofn_orderer.example.com'
@@ -1128,7 +1114,7 @@ describe('FabricRuntime', () => {
                     url: 'grpc://localhost:17051',
                     chaincode_url: 'grpc://localhost:17052',
                     type: 'fabric-peer',
-                    wallet: 'local_wallet',
+                    wallet: FabricWalletUtil.LOCAL_WALLET,
                     identity: 'admin',
                     msp_id: 'Org1MSP',
                     container_name: 'yofn_peer0.org1.example.com'
@@ -1146,7 +1132,7 @@ describe('FabricRuntime', () => {
         });
 
         it('should return all of the wallet names', async () => {
-            await runtime.getWalletNames().should.eventually.deep.equal(['local_wallet']);
+            await runtime.getWalletNames().should.eventually.deep.equal([FabricWalletUtil.LOCAL_WALLET]);
         });
 
     });
@@ -1155,11 +1141,11 @@ describe('FabricRuntime', () => {
 
         it('should return an empty array if no wallet directory', async () => {
             sandbox.stub(fs, 'pathExists').resolves(false);
-            await runtime.getIdentities('local_wallet').should.eventually.deep.equal([]);
+            await runtime.getIdentities(FabricWalletUtil.LOCAL_WALLET).should.eventually.deep.equal([]);
         });
 
         it('should return all of the identities', async () => {
-            await runtime.getIdentities('local_wallet').should.eventually.deep.equal([
+            await runtime.getIdentities(FabricWalletUtil.LOCAL_WALLET).should.eventually.deep.equal([
                 new FabricIdentity(
                     'admin',
                     'LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNXRENDQWYrZ0F3SUJBZ0lVUU4zUlE1MFB6R0wrZFRBc2haeXJRNGc2MEFZd0NnWUlLb1pJemowRUF3SXcKY3pFTE1Ba0dBMVVFQmhNQ1ZWTXhFekFSQmdOVkJBZ1RDa05oYkdsbWIzSnVhV0V4RmpBVUJnTlZCQWNURFZOaApiaUJHY21GdVkybHpZMjh4R1RBWEJnTlZCQW9URUc5eVp6RXVaWGhoYlhCc1pTNWpiMjB4SERBYUJnTlZCQU1UCkUyTmhMbTl5WnpFdVpYaGhiWEJzWlM1amIyMHdIaGNOTVRrd05ERTRNVFl4TkRBd1doY05NakF3TkRFM01UWXgKT1RBd1dqQmRNUXN3Q1FZRFZRUUdFd0pWVXpFWE1CVUdBMVVFQ0JNT1RtOXlkR2dnUTJGeWIyeHBibUV4RkRBUwpCZ05WQkFvVEMwaDVjR1Z5YkdWa1oyVnlNUTh3RFFZRFZRUUxFd1pqYkdsbGJuUXhEakFNQmdOVkJBTVRCV0ZrCmJXbHVNRmt3RXdZSEtvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVDSTNkbnI1ekx0b3VmbmF4N0l2bnRMQ3EKY0gyMlZveXhYck43RHNZTG1MOExIWHFkTE9STGRCMHlBeVQ5a3FqRVJlYVFGUys5eWY0RGhFUVh5YTRsaEtPQgpoakNCZ3pBT0JnTlZIUThCQWY4RUJBTUNCNEF3REFZRFZSMFRBUUgvQkFJd0FEQWRCZ05WSFE0RUZnUVUvR2x6CjB0TWowYkRxblZ2YXBRcG1MY0Fscmdnd0t3WURWUjBqQkNRd0lvQWdNRklUMFpYR1dhMzU1THlUNEJ6c2RHNGoKdy9RNHBkeTByTzUrdEtGVEY1SXdGd1lEVlIwUkJCQXdEb0lNWkRnek5UVTFaRGsxT1dNNU1Bb0dDQ3FHU000OQpCQU1DQTBjQU1FUUNJQ2VrdEcrejAxUkZHOTc2bStNWnJyckFZN0srckxVYXFPYmk1YStsSWs0ckFpQTBsMzN2CjU4dkFvMFhYbU9ncnQrUmQwWFZJbDZJUW1EVFFrZnNwT3RsVDV3PT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=',

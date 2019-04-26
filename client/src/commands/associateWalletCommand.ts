@@ -41,7 +41,7 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
     }
 
     // Get a wallet to associate
-    const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Associate a wallet with this gateway', true);
+    const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to associate with this gateway', false);
     if (!chosenWallet) {
         return;
     }

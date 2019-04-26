@@ -86,9 +86,9 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
                 const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
                 if (walletRegistryEntry.managedWallet) {
-                    tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState));
+                    tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
                 } else {
-                    tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState));
+                    tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
                 }
             }
         }
