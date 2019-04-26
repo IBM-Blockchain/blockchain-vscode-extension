@@ -127,6 +127,8 @@ The `local_fabric` runtime can be enabled in `Local Fabric Ops` panel. The first
 Click the menu on the `Local Fabric Ops` header-bar for management options (including start/stop and teardown).
 Left-click the `local_fabric` gateway to connect to it within the `Fabric Gateways` view, using the `admin` identity.
 
+> ⚠ Please note: v0.4.0 will teardown the `local_fabric` runtime instance when it installs, removing any existing configuration created with older versions of the extension.
+
 <img src="/client/media/connect_local_fabric.gif" width="85%" alt="Connect to local_fabric runtime">
 
 ### Connect to your own Hyperledger Fabric instance and discover the existing resources
@@ -172,7 +174,7 @@ Debugging your smart contract allows you to run through the smart contract trans
 8. If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
 9. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
 
-To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. Restarting debugging means you don't need to instantiate the contract again. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract.
+To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. You do not need to instantiate the contract again upon restarting the debug session. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract. If you restart the local_fabric runtime after debugging, you must choose the "new debugging session" option after starting a new debugging session. You must then upgrade the smart contract to the new `vscode-debug-XXXXXXX` version before submitting and debugging transactions.
 
 > ⚠ Please note after installing 0.3.3, you may no longer be able to debug existing smart contract projects that are written in TypeScript. You must add the following two settings to your launch configuration in launch.json:
 ``` "preLaunchTask": "tsc: build - tsconfig.json",
