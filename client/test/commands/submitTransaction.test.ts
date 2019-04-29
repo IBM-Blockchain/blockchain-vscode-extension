@@ -84,7 +84,7 @@ describe('SubmitTransactionCommand', () => {
             });
 
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
-            showInputBoxStub.onFirstCall().resolves('arg1,arg2,arg3');
+            showInputBoxStub.onFirstCall().resolves('["arg1", "arg2", "arg3"]');
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
@@ -240,7 +240,7 @@ describe('SubmitTransactionCommand', () => {
             instantiatedChainCodes.length.should.equal(1);
 
             showInputBoxStub.onFirstCall().resolves('transaction1');
-            showInputBoxStub.onSecondCall().resolves('arg1,arg2,arg3');
+            showInputBoxStub.onSecondCall().resolves('["arg1", "arg2" ,"arg3"]');
 
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, instantiatedChainCodes[0]);
 
@@ -273,6 +273,16 @@ describe('SubmitTransactionCommand', () => {
         });
 
         it('should submit the smart contract through the command with function but no args', async () => {
+            showInputBoxStub.onFirstCall().resolves('[]');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
+            showInputBoxStub.should.have.been.calledOnce;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+        });
+
+        it('should submit the smart contract through the command with function but no args or brackets', async () => {
             showInputBoxStub.onFirstCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
@@ -280,6 +290,12 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
+        });
+
+        it('should error when given incorrect JSON', async () => {
+            showInputBoxStub.onFirstCall().resolves('["testArg]');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            logSpy.should.have.been.calledTwice;
         });
 
         it('should handle cancelling when required to give args', async () => {
@@ -296,7 +312,7 @@ describe('SubmitTransactionCommand', () => {
             const result: string = '{"hello":"world"}';
             const outputAdapterShowSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
             fabricClientConnectionMock.submitTransaction.resolves(result);
-            showInputBoxStub.onFirstCall().resolves('');
+            showInputBoxStub.onFirstCall().resolves('[]');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
             showInputBoxStub.should.have.been.calledOnce;
@@ -310,7 +326,7 @@ describe('SubmitTransactionCommand', () => {
             const result: string = undefined;
             const outputAdapterShowSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
             fabricClientConnectionMock.submitTransaction.resolves(result);
-            showInputBoxStub.onFirstCall().resolves('');
+            showInputBoxStub.onFirstCall().resolves('[]');
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
             fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', true);
             showInputBoxStub.should.have.been.calledOnce;

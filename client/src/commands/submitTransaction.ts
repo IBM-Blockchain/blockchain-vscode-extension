@@ -81,13 +81,18 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     }
 
     let args: Array<string> = [];
-    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (comma seperated)');
+    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])', '[]');
     if (argsString === undefined) {
         return;
     } else if (argsString === '') {
         args = [];
     } else {
-        args = argsString.split(','); // If empty, args will be ['']
+        try {
+            args = JSON.parse(argsString);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error ${actioning} transaction: ${error.message}`);
+            return;
+        }
     }
 
     await vscode.window.withProgress({
