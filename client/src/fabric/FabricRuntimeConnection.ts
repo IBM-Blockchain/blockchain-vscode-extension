@@ -26,6 +26,7 @@ import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
+import { URL } from 'url';
 
 export class FabricRuntimeConnection implements IFabricRuntimeConnection {
 
@@ -54,18 +55,35 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         this.client.setCryptoSuite(Client.newCryptoSuite());
         for (const node of nodes) {
             switch (node.type) {
-            case FabricNodeType.PEER:
-                const peer: Client.Peer = this.client.newPeer(node.url);
+            case FabricNodeType.PEER: {
+                const url: URL = new URL(node.api_url);
+                let pem: string;
+                if (node.pem) {
+                    pem = Buffer.from(node.pem, 'base64').toString();
+                }
+                const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': url.hostname });
                 this.peers.set(node.name, peer);
                 break;
-            case FabricNodeType.ORDERER:
-                const orderer: Client.Orderer = this.client.newOrderer(node.url);
+            }
+            case FabricNodeType.ORDERER: {
+                const url: URL = new URL(node.api_url);
+                let pem: string;
+                if (node.pem) {
+                    pem = Buffer.from(node.pem, 'base64').toString();
+                }
+                const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': url.hostname });
                 this.orderers.set(node.name, orderer);
                 break;
-            case FabricNodeType.CERTIFICATE_AUTHORITY:
-                const certificateAuthority: FabricCAServices = new FabricCAServices(node.url, null, node.name, this.client.getCryptoSuite());
+            }
+            case FabricNodeType.CERTIFICATE_AUTHORITY: {
+                let trustedRoots: Buffer;
+                if (node.pem) {
+                    trustedRoots = Buffer.from(node.pem, 'base64');
+                }
+                const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, node.name, this.client.getCryptoSuite());
                 this.certificateAuthorities.set(node.name, certificateAuthority);
                 break;
+            }
             default:
                 continue;
             }

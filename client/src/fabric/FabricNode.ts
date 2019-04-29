@@ -24,30 +24,43 @@ export enum FabricNodeType {
 // tslint:disable variable-name
 export class FabricNode {
 
-    public static newPeer(short_name: string, name: string, url: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.PEER, url, wallet, identity, msp_id });
+    public static newPeer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.PEER, api_url, wallet, identity, msp_id });
     }
 
-    public static newCertificateAuthority(short_name: string, name: string, url: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, url, wallet, identity, msp_id });
+    public static newSecurePeer(short_name: string, name: string, api_url: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.PEER, api_url, pem, wallet, identity, msp_id });
     }
 
-    public static newOrderer(short_name: string, name: string, url: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, url, wallet, identity, msp_id });
+    public static newCertificateAuthority(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, wallet, identity, msp_id });
     }
 
-    public static newCouchDB(short_name: string, name: string, url: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.COUCHDB, url });
+    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, pem, wallet, identity, msp_id });
     }
 
-    public static newLogspout(short_name: string, name: string, url: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.LOGSPOUT, url });
+    public static newOrderer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, wallet, identity, msp_id });
+    }
+
+    public static newSecureOrderer(short_name: string, name: string, api_url: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, pem, wallet, identity, msp_id });
+    }
+
+    public static newCouchDB(short_name: string, name: string, api_url: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.COUCHDB, api_url });
+    }
+
+    public static newLogspout(short_name: string, name: string, api_url: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.LOGSPOUT, api_url });
     }
 
     public short_name: string;
     public name: string;
     public type: FabricNodeType;
-    public url: string;
+    public api_url: string;
+    public pem?: string;
     public wallet?: string;
     public identity?: string;
     public msp_id?: string;

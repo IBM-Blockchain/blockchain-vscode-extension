@@ -1,7 +1,7 @@
 {
     "short_name": "orderer.example.com",
     "name": "orderer.example.com",
-    "url": "grpc://localhost:17050",
+    "api_url": "grpc://localhost:17050",
     "type": "fabric-orderer",
     "wallet": "local_fabric_wallet",
     "identity": "admin",
