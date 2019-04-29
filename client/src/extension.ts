@@ -87,6 +87,7 @@ import { dissociateWallet } from './commands/dissociateWalletCommand';
 import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
 import { TutorialView } from './webview/TutorialView';
 import { ContractTreeItem } from './explorer/model/ContractTreeItem';
+import { TutorialGalleryView } from './webview/TutorialGalleryView';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -248,6 +249,11 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, async (repoName: string, sampleName: string) => {
         const sampleView: SampleView = new SampleView(context, repoName, sampleName);
         await sampleView.openView(false);
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY, async () => {
+        const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
+        await tutorialGalleryView.openView(false);
     }));
 
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {

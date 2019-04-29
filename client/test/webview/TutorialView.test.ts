@@ -41,22 +41,22 @@ describe('TutorialView', () => {
     it('should show tutorial', async () => {
         const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-        const tutorialView: TutorialView = new TutorialView('IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         await tutorialView.openView();
 
-        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'ibm-blockchain-platform-vscode-smart-contract/index.md');
+        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'ibm-blockchain-platform-vscode-smart-contract/Tutorial-1.md');
         const uri: vscode.Uri = vscode.Uri.file(filePath);
 
         commandSpy.should.have.been.calledWith('markdown.showPreviewToSide', uri);
     });
 
     it('should do nothing on openPanelInner', async () => {
-        const tutorialView: TutorialView = new TutorialView('IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         await tutorialView['openPanelInner']();
     });
 
     it('should return empty string on getHTMLString', async () => {
-        const tutorialView: TutorialView = new TutorialView('IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         const result: string = await tutorialView['getHTMLString']();
         result.should.equal('');
     });
@@ -64,9 +64,9 @@ describe('TutorialView', () => {
     it('should send a telemetry event if the extension is for production', async () => {
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
         const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        const tutorialView: TutorialView = new TutorialView('IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         await tutorialView.openView();
 
-        reporterStub.should.have.been.calledWith('Tutorial Viewed', {tutorial: 'Developing smart contracts with IBM Blockchain VSCode Extension'});
+        reporterStub.should.have.been.calledWith('Tutorial Viewed', {series: 'Introduction', tutorial: 'Local smart contract development'});
     });
 });

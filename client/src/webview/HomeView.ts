@@ -27,6 +27,8 @@ export class HomeView extends View {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
+        Reporter.instance().sendTelemetryEvent('openedView', {name: panel.title}); // Report that a user has opened a new panel
+
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
 
@@ -83,6 +85,7 @@ export class HomeView extends View {
             extensionVersion: extensionVersion,
             commands : {
                 OPEN_SAMPLE_PAGE: ExtensionCommands.OPEN_SAMPLE_PAGE,
+                OPEN_TUTORIAL_GALLERY: ExtensionCommands.OPEN_TUTORIAL_GALLERY,
                 OPEN_TUTORIAL_PAGE: ExtensionCommands.OPEN_TUTORIAL_PAGE
             },
             images: images,

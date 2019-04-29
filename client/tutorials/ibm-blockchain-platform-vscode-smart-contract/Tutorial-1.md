@@ -226,5 +226,5 @@ If you wish to spend some more time locally developing your own smart contracts,
 
 There's no need to worry about those concepts yet if you don't want to though: `demoContract@0.0.1` is perfect for carrying on with this tutorial series!
 
-<a href='./IBPTutorial2'><h2 align='right'><b> Next: Create a cloud blockchain deployment ➔ </h2></b></a>
+<a href='./Tutorial-2#top'><h2 align='right'><b> Next: Create a cloud blockchain deployment ➔</b></h2></a>
 

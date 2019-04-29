@@ -95,6 +95,15 @@ export abstract class View {
         return repositories;
     }
 
+    // Get all the series of tutorials
+    public async getAllSeries(): Promise<any[]> {
+        const extensionPath: any = ExtensionUtil.getExtensionPath();
+        const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
+        const json: any = await fs.readJson(tutorialsPath);
+        const allSeries: any[] = json.series;
+        return allSeries;
+    }
+
     // Get individual repository
     public async getRepository(name: string): Promise<any> {
         const repositories: any[] = await this.getRepositories();
@@ -104,11 +113,20 @@ export abstract class View {
         return repository;
     }
 
-    // Get tutorial from repository
-    public getTutorial(repository: any, tutorialName: string): any {
-        const tutorials: any[] = repository.tutorials;
+    // Get individual series
+    public async getSeries(name: string): Promise<any> {
+        const allSeries: any[] = await this.getAllSeries();
+        const series: any = allSeries.find((_series: any) => {
+            return _series.name === name;
+        });
+        return series;
+    }
+
+    // Get tutorials from a series
+    public async getTutorial(series: any, tutorialName: string): Promise<any> {
+        const tutorials: any[] = series.tutorials;
         const tutorial: any = tutorials.find((tut: any) => {
-            return tut.name === tutorialName;
+            return tut.title === tutorialName;
         });
         return tutorial;
     }

@@ -242,23 +242,30 @@ describe('View', () => {
 
     describe('getTutorial', () => {
         it('should get tutorial', async () => {
-            const repository: any = {
-                name: 'IBMCode/Code-Tutorials',
-                remote: 'https://github.ibm.com/IBMCode/Code-Tutorials.git',
-                samples: [],
+            const series: any = {
+                name: 'Introduction',
+                length: '3 hours',
+                difficulty: 'simple',
+                description: 'Series of tutorials that will introduce the basic concepts',
                 tutorials: [
                     {
-                        name: 'Developing smart contracts with IBM Blockchain VSCode Extension',
+                        title: 'Local smart contract development',
+                        length: '30 mins',
+                        source: 'https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract',
+                        description: 'Follow the typical workflow from generating a new smart contract project, deploying code to the local_fabric runtime, and testing your transactions via an application gateway.',
                         file: 'ibm-blockchain-platform-vscode-smart-contract/index.md'
                     }
                 ]
             };
 
             const testView: TestView = new TestView(context, 'myPanel', 'my panel');
-            const result: any = await testView.getTutorial(repository, 'Developing smart contracts with IBM Blockchain VSCode Extension');
+            const result: any = await testView.getTutorial(series, 'Local smart contract development');
 
             result.should.deep.equal({
-                name: 'Developing smart contracts with IBM Blockchain VSCode Extension',
+                title: 'Local smart contract development',
+                length: '30 mins',
+                source: 'https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract',
+                description: 'Follow the typical workflow from generating a new smart contract project, deploying code to the local_fabric runtime, and testing your transactions via an application gateway.',
                 file: 'ibm-blockchain-platform-vscode-smart-contract/index.md'
             });
         });

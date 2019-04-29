@@ -19,25 +19,25 @@ import { View } from './View';
 
 export class TutorialView extends View {
 
-    private repoName: string;
+    private seriesName: string;
     private tutorialName: string;
 
-    constructor(repoName: string, tutorialName: string) {
+    constructor(seriesName: string, tutorialName: string) {
         super(null, null, null);
-        this.repoName = repoName;
+        this.seriesName = seriesName;
         this.tutorialName = tutorialName;
     }
 
     public async openView(): Promise<void> {
-        const repository: any = await this.getRepository(this.repoName);
-        const tutorial: any = this.getTutorial(repository, this.tutorialName);
+        const series: any = await this.getSeries(this.seriesName);
+        const tutorial: any = await this.getTutorial(series, this.tutorialName);
 
         const tutorialPath: string = path.join(__dirname, '..', '..', '..', 'tutorials', tutorial.file);
 
         const uri: vscode.Uri = vscode.Uri.file(tutorialPath);
 
         await vscode.commands.executeCommand('markdown.showPreviewToSide', uri);
-        Reporter.instance().sendTelemetryEvent('Tutorial Viewed', {tutorial: this.tutorialName});
+        Reporter.instance().sendTelemetryEvent('Tutorial Viewed', {series: this.seriesName, tutorial: this.tutorialName});
     }
 
     // Not needed for a tutorial view
