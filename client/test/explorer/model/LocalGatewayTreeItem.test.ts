@@ -94,6 +94,9 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
+            treeItem.tooltip.should.equal(`Local Fabric is not running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should have the right properties for a runtime that is busy', async () => {
@@ -105,6 +108,9 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ◐`);
+            treeItem.tooltip.should.equal(`Local Fabric  ◐
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should animate the label for a runtime that is busy', async () => {
@@ -118,6 +124,9 @@ describe('LocalGatewayTreeItem', () => {
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ${state}`);
+                treeItem.tooltip.should.equal(`Local Fabric  ${state}
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -133,6 +142,9 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
+            treeItem.tooltip.should.equal(`Local Fabric is running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
@@ -144,12 +156,18 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
+            treeItem.tooltip.should.equal(`Local Fabric is not running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
             mockRuntime.isBusy.returns(true);
             onBusyCallback(true);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ◐`);
+            treeItem.tooltip.should.equal(`Local Fabric  ◐
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should animate the label for a runtime that becomes busy', async () => {
@@ -168,6 +186,9 @@ describe('LocalGatewayTreeItem', () => {
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ${state}`);
+                treeItem.tooltip.should.equal(`Local Fabric  ${state}
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -184,12 +205,18 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ◐`);
+            treeItem.tooltip.should.equal(`Local Fabric  ◐
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
             mockRuntime.isBusy.returns(false);
             onBusyCallback(false);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
+            treeItem.tooltip.should.equal(`Local Fabric is not running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should have the right properties for a runtime that is not running in development mode', async () => {
@@ -202,6 +229,9 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○  ∞`);
+            treeItem.tooltip.should.equal(`Local Fabric is not running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should have the right properties for a runtime that is running in development mode', async () => {
@@ -213,6 +243,9 @@ describe('LocalGatewayTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●  ∞`);
+            treeItem.tooltip.should.equal(`Local Fabric is running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
         });
 
         it('should report errors animating the label for a runtime that is busy', async () => {
@@ -232,6 +265,9 @@ describe('LocalGatewayTreeItem', () => {
             const states: string[] = ['◐', '◓', '◑', '◒', '◐'];
             for (const state of states) {
                 treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ${state}`);
+                treeItem.tooltip.should.equal(`Local Fabric  ${state}
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`);
                 clock.tick(500);
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
