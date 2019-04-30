@@ -30,6 +30,8 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -126,6 +128,20 @@ describe('exportSmartContractPackageCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+    });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
+        const _package: PackageRegistryEntry = _packages[0];
+        sandbox.stub(vscode.window, 'showQuickPick').resolves({
+            label: 'vscode-pkg-1@0.0.1',
+            data: _package
+        });
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
+
+        reporterStub.should.have.been.calledWith('exportSmartContractPackageCommand');
     });
 
 });

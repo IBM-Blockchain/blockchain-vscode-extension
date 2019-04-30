@@ -32,6 +32,8 @@ import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTr
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -370,6 +372,14 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.instantiateChaincode.should.not.been.called;
             logSpy.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+        });
+
+        it('should send a telemetry event if the extension is for production', async () => {
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+
+            reporterStub.should.have.been.calledWith('instantiateCommand');
         });
 
     });

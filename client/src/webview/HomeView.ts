@@ -18,6 +18,7 @@ import * as path from 'path';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { View } from './View';
+import { Reporter } from '../util/Reporter';
 
 export class HomeView extends View {
 
@@ -30,6 +31,12 @@ export class HomeView extends View {
         const panelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'logo.svg'));
 
         panel.iconPath = panelIcon;
+
+        panel.webview.onDidReceiveMessage(async (message: any) => {
+            if (message.command === 'telemetry') {
+                Reporter.instance().sendTelemetryEvent('Referral', {source: 'homepage', destination: message.url});
+            }
+        });
     }
 
     async getHomePage(options: any): Promise<any> {

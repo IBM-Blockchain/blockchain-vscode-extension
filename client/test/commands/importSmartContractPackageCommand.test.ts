@@ -26,6 +26,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
@@ -94,5 +96,13 @@ describe('importSmartContractPackageCommand', () => {
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
+    });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
+
+        reporterStub.should.have.been.calledWith('importSmartContractPackageCommand');
     });
 });

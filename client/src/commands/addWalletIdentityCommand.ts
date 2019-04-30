@@ -14,6 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
+import { Reporter } from '../util/Reporter';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
@@ -114,6 +115,7 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
         }
         certificatePath = certKey.certificatePath;
         privateKeyPath = certKey.privateKeyPath;
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'Certificate'});
     } else {
         // User wants to add an identity by providing a enrollment id and secret
 
@@ -158,6 +160,7 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
         const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
         certificate = enrollment.certificate;
         privateKey = enrollment.privateKey;
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'enrollmentID'});
     }
 
     if (certificatePath && privateKeyPath) {

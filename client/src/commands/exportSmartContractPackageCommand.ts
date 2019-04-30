@@ -15,6 +15,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -49,6 +50,7 @@ export async function exportSmartContractPackage(packageTreeItem?: PackageTreeIt
         }
         await fs.copy(packageToExport.path, packageUri.fsPath, { overwrite: true });
         outputAdapter.log(LogType.SUCCESS, `Exported smart contract package ${packageToExport.name}@${packageToExport.version} to ${packageUri.fsPath}.`);
+        Reporter.instance().sendTelemetryEvent('exportSmartContractPackageCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, error.message, error.toString());
     }

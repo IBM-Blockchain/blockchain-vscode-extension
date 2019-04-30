@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -77,6 +78,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
         outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        Reporter.instance().sendTelemetryEvent('createNewIdentityCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating new identity: ${error.message}`, `Issue creating new identity: ${error.toString()}`);
     }

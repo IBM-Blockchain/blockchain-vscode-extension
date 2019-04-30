@@ -13,6 +13,7 @@
 */
 
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import * as path from 'path';
 import { FabricDebugConfigurationProvider } from './FabricDebugConfigurationProvider';
 import { ExtensionUtil } from '../util/ExtensionUtil';
@@ -62,6 +63,7 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
             config.args.push('--peer.address', peerAddress);
         }
 
+        Reporter.instance().sendTelemetryEvent('Smart Contract Debugged', {language: 'Node'});
         return config;
     }
 }

@@ -13,6 +13,7 @@
 */
 'use strict';
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { UserInputUtil } from '../commands/UserInputUtil';
@@ -58,6 +59,7 @@ export class SampleView extends View {
 
                 // Set the webview's html
                 panel.webview.html = await this.getHTMLString();
+                Reporter.instance().sendTelemetryEvent('Sample Cloned', {sample: this.sampleName});
 
             } else if (message.command === 'open') {
                 // Open a contract/application
@@ -70,6 +72,7 @@ export class SampleView extends View {
 
                 // Refresh the webviews html
                 panel.webview.html = await this.getHTMLString();
+                Reporter.instance().sendTelemetryEvent('Sample Opened', {sample: this.sampleName, name: fileName, type: fileType, language: language});
 
             } else if (message.command === 'getLanguageVersion') {
                 // Gets the version for the selected contract language (used for updating the view)
