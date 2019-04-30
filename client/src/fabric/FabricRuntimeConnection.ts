@@ -246,12 +246,12 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         }
     }
 
-    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, false);
+    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, false);
     }
 
-    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, true);
+    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
@@ -287,7 +287,7 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         return fabricWalletGenerator.createLocalWallet(walletName);
     }
 
-    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, upgrade: boolean): Promise<Buffer> {
+    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, upgrade: boolean): Promise<Buffer> {
 
         // Locate all of the requested peer nodes.
         const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
@@ -329,12 +329,13 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         // Build the transaction proposal.
         const txId: Client.TransactionId = this.client.newTransactionID();
         const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
-            targets: peers,
-            chaincodeId: name,
-            chaincodeVersion: version,
+            'targets': peers,
+            'chaincodeId': name,
+            'chaincodeVersion': version,
             txId,
             fcn,
-            args
+            args,
+            'collections-config': collectionsConfig
         };
 
         // Send the instantiate/upgrade proposal to all of the specified peers.

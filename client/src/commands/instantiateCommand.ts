@@ -103,6 +103,33 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             }
         }
 
+        let collectionPath: string;
+        const wantCollection: string = await UserInputUtil.showQuickPickYesNo('Do you want to provide a private data collection configuration file?');
+
+        if (!wantCollection) {
+            return;
+        } else if (wantCollection === UserInputUtil.YES) {
+            let defaultUri: vscode.Uri;
+            const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+            if (workspaceFolders.length > 0) {
+                defaultUri = workspaceFolders[0].uri;
+            }
+
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                defaultUri: defaultUri
+            };
+
+            collectionPath = await UserInputUtil.browse('Enter a file path to the collection configuration', quickPickItems, openDialogOptions) as string;
+            if (collectionPath === undefined) {
+                return;
+            }
+        }
+
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
@@ -113,13 +140,17 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
             const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
             VSCodeBlockchainDockerOutputAdapter.instance().show();
+            let smartContractName: string;
+            let smartContractVersion: string;
             if (packageEntry) {
-                // If the package has been installed as part of this command
-                await connection.instantiateChaincode(packageEntry.name, packageEntry.version, peerNames, channelName, fcn, args);
+                smartContractName = packageEntry.name;
+                smartContractVersion = packageEntry.version;
             } else {
-                // If the package was already installed
-                await connection.instantiateChaincode(data.packageEntry.name, data.packageEntry.version, peerNames, channelName, fcn, args);
+                smartContractName = data.packageEntry.name;
+                smartContractVersion = data.packageEntry.version;
             }
+
+            await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath);
 
             Reporter.instance().sendTelemetryEvent('instantiateCommand');
 
