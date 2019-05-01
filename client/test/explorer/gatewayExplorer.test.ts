@@ -508,7 +508,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 instantiatedTreeItemOne.name.should.equal('biscuit-network');
                 instantiatedTreeItemOne.version.should.equal('0.7');
                 instantiatedTreeItemOne.label.should.equal('biscuit-network@0.7');
-                instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-contract-item');
+                instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-multi-contract-item');
                 instantiatedTreeItemOne.channel.label.should.equal('channelOne');
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]);
@@ -619,7 +619,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenOne[0] as InstantiatedContractTreeItem;
 
                 instantiatedChaincodeItemOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
-                instantiatedChaincodeItemOne.contextValue.should.equal('blockchain-instantiated-contract-item');
+                instantiatedChaincodeItemOne.contextValue.should.equal('blockchain-instantiated-multi-contract-item');
                 instantiatedChaincodeItemOne.label.should.equal('biscuit-network@0.7');
                 instantiatedChaincodeItemOne.channel.should.equal(channelOne);
                 instantiatedChaincodeItemOne.version.should.equal('0.7');

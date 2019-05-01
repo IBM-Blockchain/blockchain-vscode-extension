@@ -24,11 +24,11 @@ const assert = require('assert');
 const fabricNetwork = require('fabric-network');
 const fs = require('fs-extra');
 const yaml = require('js-yaml');
-const URL = require('url');
 <%_ if (connectionProfileHome || walletHome) {-%>
 const os = require('os');
 const path = require('path');
 <%_ }-%>
+const URL = require('url');
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
