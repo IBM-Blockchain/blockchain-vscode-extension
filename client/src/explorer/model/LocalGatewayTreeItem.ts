@@ -45,9 +45,6 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
         });
-        this.tooltip = `ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
-
     }
 
     private safelyUpdateProperties(): void {
@@ -63,14 +60,17 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
         const running: boolean = await this.runtime.isRunning();
         const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
+        let newTooltip: string;
         let newCommand: vscode.Command = this.command;
         if (busy) {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
-            newLabel += busyStates[this.busyTicks % 4];
-            this.tooltip = `${this.label}
-${this.tooltip}`;
+            const currentBusyState: string = busyStates[this.busyTicks % 4];
+            newLabel += currentBusyState;
+            newTooltip = `Local Fabric  ${currentBusyState}
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`;
             newCommand = null;
         } else if (running) {
             // Running!
@@ -79,19 +79,22 @@ ${this.tooltip}`;
             gateway.name = this.name;
             gateway.managedRuntime = true;
             newLabel += '●';
-            this.tooltip = `Local Fabric is running
-${this.tooltip}`;
+            newTooltip = `Local Fabric is running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`;
         } else {
             // Not running!
             this.disableBusyTicker();
             newLabel += '○';
-            this.tooltip = `Local Fabric is not running
-${this.tooltip}`;
+            newTooltip = `Local Fabric is not running
+ⓘ Associated wallet:
+${FabricWalletUtil.LOCAL_WALLET}`;
         }
         if (developmentMode) {
             newLabel += '  ∞';
         }
         this.setLabel(newLabel);
+        this.setTooltip(newTooltip);
         this.setCommand(newCommand);
         this.refresh();
     }
@@ -99,6 +102,10 @@ ${this.tooltip}`;
     private setLabel(label: string): void {
         // label is readonly so make it less readonly
         (this as any).label = label;
+    }
+
+    private setTooltip(tooltip: string): void {
+        (this as any).tooltip = tooltip;
     }
 
     private setCommand(command: vscode.Command): void {
