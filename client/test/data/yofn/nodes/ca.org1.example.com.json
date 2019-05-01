@@ -1,7 +1,7 @@
 {
     "short_name": "ca.org1.example.com",
     "name": "ca.org1.example.com",
-    "url": "http://localhost:17054",
+    "api_url": "http://localhost:17054",
     "type": "fabric-ca",
     "ca_name": "ca.org1.example.com",
     "wallet": "local_fabric_wallet",

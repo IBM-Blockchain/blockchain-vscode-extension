@@ -30,7 +30,6 @@ describe('YeomanUtil', () => {
         mySandBox = sinon.createSandbox();
         mockEnv = {
             registerStub: sinon.stub(),
-            lookup: sinon.stub().yields(),
             run: sinon.stub().yields()
         };
         mySandBox.stub(yeoman, 'createEnv').returns(mockEnv);
@@ -44,8 +43,11 @@ describe('YeomanUtil', () => {
 
         it('should run the specified Yeoman generator', async () => {
             await YeomanUtil.run('fabric:network', { some: 'option', another: 'test' });
-            mockEnv.registerStub.should.have.been.calledOnceWithExactly(sinon.match.func, 'fabric');
-            mockEnv.lookup.should.have.been.calledOnceWithExactly(sinon.match.func);
+            mockEnv.registerStub.should.have.callCount(4);
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric', require.resolve('generator-fabric'));
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:chaincode', require.resolve('generator-fabric/generators/chaincode'));
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:contract', require.resolve('generator-fabric/generators/contract'));
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:network', require.resolve('generator-fabric/generators/network'));
             mockEnv.run.should.have.been.calledOnceWithExactly('fabric:network', { some: 'option', another: 'test' }, sinon.match.func);
         });
 

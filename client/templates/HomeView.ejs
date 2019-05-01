@@ -39,7 +39,7 @@
             font-size:28px;
             letter-spacing:0.02px;
             font-weight: lighter;
-            font-family: 'IBMPlexSans-Light', 'IBM Plex Sans', 'IBMPlexSans';
+            font-family: 'IBMPlexSans-Light', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
         }
 
         h2 {
@@ -103,7 +103,7 @@
         #extension-name{
             display:inline;
             font-size: 36px;
-            font-family: IBMPlexSans-Light;
+            font-family: 'IBMPlexSans-Light', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
         }
 
         #extension-version-container{
@@ -123,12 +123,12 @@
         #content-top, #content-middle, #content-bottom  {
             display: flex;
             margin-bottom: 4px;
-                height: 275px;
+            flex: 1;
         }
 
         #content-top-left, #content-top-right, #content-middle-right, #content-bottom-right, #content-bottom-left {
-            flex: 1;
             display: flex;
+            flex: 1;
 
         }
 
@@ -148,33 +148,32 @@
 
         #about-title {
             margin: 0px 0px 8px 0px;
-            font-family: 'IBMPlexSans-Light', 'IBM Plex Sans', 'IBMPlexSans';
+            font-family: 'IBMPlexSans-Light', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
         }
 
         #about-sub-text {
             margin-top: 0;
             margin-bottom: 0;
             font-weight: 400;
-            font-family: 'IBMPlexSans-Medium', 'IBM Plex Sans', 'IBMPlexSans';
+            font-family: 'IBMPlexSans-Medium', 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
         }
 
         #capabilities {
             padding-right: 48px;
-            font-family: 'IBM Plex Sans';
+            font-family: 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
             font-weight: 400;
         }
 
         #help-support-title{
             font-size: 20px;
             font-weight: 400;
-            font-family: 'IBM Plex Sans', 'IBMPlexSans';
+            font-family: 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
         }
 
         .panel {
             display: flex;
             flex-direction: column;
             padding: 32px 24px;
-            max-height: 238px;
             flex: 1;
         }
 
@@ -189,14 +188,14 @@
             margin-top: 8px;
             padding-bottom: 8px;
             margin-bottom: 4px;
-            font-family: 'IBM Plex Sans', 'IBMPlexSans';
+            font-family: 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
             font-weight: 400;
         }
 
         .panel-sub-text {
             margin-bottom: 16px;
             font-size: 16px;
-            font-family: 'IBM Plex Sans', 'IBMPlexSans';
+            font-family: 'IBM Plex Sans', 'IBMPlexSans', Arial, Helvetica, sans-serif;
             font-weight: 400;
             width: 65%;
         }
@@ -225,7 +224,7 @@
 
         .sample-description{
             margin-bottom: 16px;
-            font-family: 'IBM Plex Sans';
+            font-family: 'IBM Plex Sans', Arial, Helvetica, sans-serif;
             font-weight: 400;
             width: 65%;
         }
@@ -400,12 +399,16 @@
                         <div class="panel-header">
                             <h2 class="panel-title">Get started</h2>
                         </div>
-                        <div class=panel-top>
+                        <div class="panel-top">
                             <p class="panel-sub-text">Learn how to develop and debug your smart contracts, and deploy them to your network.</p>
                         </div>
-                        <div class=panel-bottom>
-                            <a class="panel-link" href="https://developer.ibm.com/tutorials/ibm-blockchain-platform-vscode-smart-contract">Follow tutorial</a>
-                        </div>
+                        <% for (const repository of repositories) { %>
+                            <% for (const tutorial of repository.tutorials) { %>
+                                <div class="panel-bottom">
+                                    <a class="panel-button" href='command:<%=commands.OPEN_TUTORIAL_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,tutorial.name])); %>'>Beginner tutorial</a>
+                                </div>
+                            <% } %>
+                        <% } %>
                     </div>
 
 
