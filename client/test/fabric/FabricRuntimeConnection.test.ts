@@ -64,7 +64,7 @@ describe('FabricRuntimeConnection', () => {
                 'Org1MSP'
             ),
             FabricNode.newSecurePeer(
-                'peer0.org1.example.com',
+                'peer0.org2.example.com',
                 'peer0.org2.example.com',
                 `grpcs://localhost:8051`,
                 TLS_CA_CERTIFICATE,
@@ -610,7 +610,11 @@ describe('FabricRuntimeConnection', () => {
     describe('instantiateChaincode', () => {
 
         let channel: Client.Channel;
+        let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
+        let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
+        let mockOrderer: sinon.SinonStubbedInstance<Client.Orderer>;
         let queryInstantiatedChaincodesStub: sinon.SinonStub;
+        let loadConfigEnvelopeStub: sinon.SinonStub;
         let sendInstantiateProposalStub: sinon.SinonStub;
         let sendTransactionStub: sinon.SinonStub;
         let mockEventHub: sinon.SinonStubbedInstance<Client.ChannelEventHub>;
@@ -630,6 +634,9 @@ describe('FabricRuntimeConnection', () => {
                     }
                 ]
             });
+            mySandBox.stub(channel, 'getChannelConfig').resolves({ config: 'envelope' });
+            loadConfigEnvelopeStub = mySandBox.stub(channel, 'loadConfigEnvelope');
+            loadConfigEnvelopeStub.returns({ orderers: ['orderer.example.com:7050' ]});
             sendInstantiateProposalStub = mySandBox.stub(channel, 'sendInstantiateProposal');
             sendInstantiateProposalStub.resolves([
                 [
@@ -656,20 +663,54 @@ describe('FabricRuntimeConnection', () => {
                 errorCallback(null);
             });
             outputSpy = mySandBox.spy(connection['outputAdapter'], 'log');
+            mockPeer1 = mySandBox.createStubInstance(Client.Peer);
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2 = mySandBox.createStubInstance(Client.Peer);
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            mockOrderer = mySandBox.createStubInstance(Client.Orderer);
+            mockOrderer.getName.returns('orderer.example.com:7050');
+            connection['peers'].has('peer0.org1.example.com').should.be.true;
+            connection['peers'].set('peer0.org1.example.com', mockPeer1);
+            connection['peers'].has('peer0.org2.example.com').should.be.true;
+            connection['peers'].set('peer0.org2.example.com', mockPeer2);
+            connection['orderers'].has('orderer.example.com').should.be.true;
+            connection['orderers'].set('orderer.example.com', mockOrderer);
         });
 
-        it('should instantiate the specified chaincode', async () => {
-            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+        it('should instantiate the specified chaincode with a remote orderer', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
+            mockOrderer.getName.returns('orderer.example.com:7050');
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
             should.equal(payload, null);
             sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any],
+                targets: [sinon.match.any, sinon.match.any],
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.1',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']
             }, 5 * 60 * 1000);
-            sendTransactionStub.should.have.been.calledOnce;
+            sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Instantiating with function: 'instantiate' and arguments: 'arg1'`);
+        });
+
+        it('should instantiate the specified chaincode with a local orderer', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            mockOrderer.getName.returns('localhost:7050');
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            should.equal(payload, null);
+            sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
+                targets: [sinon.match.any, sinon.match.any],
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.1',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
             outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Instantiating with function: 'instantiate' and arguments: 'arg1'`);
         });
@@ -769,12 +810,48 @@ describe('FabricRuntimeConnection', () => {
                 .should.be.rejectedWith(/with code INVALID in block 1/);
         });
 
+        it('should throw an error if the orderer in the channel configuration is not known and all the peers are not local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and all the peers are not local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and the peers are a mix of local and not local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and all the peers are local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
     });
 
     describe('upgradeChaincode', () => {
 
         let channel: Client.Channel;
+        let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
+        let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
+        let mockOrderer: sinon.SinonStubbedInstance<Client.Orderer>;
         let queryInstantiatedChaincodesStub: sinon.SinonStub;
+        let loadConfigEnvelopeStub: sinon.SinonStub;
         let sendUpgradeProposalStub: sinon.SinonStub;
         let sendTransactionStub: sinon.SinonStub;
         let mockEventHub: sinon.SinonStubbedInstance<Client.ChannelEventHub>;
@@ -794,6 +871,9 @@ describe('FabricRuntimeConnection', () => {
                     }
                 ]
             });
+            mySandBox.stub(channel, 'getChannelConfig').resolves({ config: 'envelope' });
+            loadConfigEnvelopeStub = mySandBox.stub(channel, 'loadConfigEnvelope');
+            loadConfigEnvelopeStub.returns({ orderers: ['orderer.example.com:7050' ]});
             sendUpgradeProposalStub = mySandBox.stub(channel, 'sendUpgradeProposal');
             sendUpgradeProposalStub.resolves([
                 [
@@ -820,20 +900,54 @@ describe('FabricRuntimeConnection', () => {
                 errorCallback(null);
             });
             outputSpy = mySandBox.spy(connection['outputAdapter'], 'log');
+            mockPeer1 = mySandBox.createStubInstance(Client.Peer);
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2 = mySandBox.createStubInstance(Client.Peer);
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            mockOrderer = mySandBox.createStubInstance(Client.Orderer);
+            mockOrderer.getName.returns('orderer.example.com:7050');
+            connection['peers'].has('peer0.org1.example.com').should.be.true;
+            connection['peers'].set('peer0.org1.example.com', mockPeer1);
+            connection['peers'].has('peer0.org2.example.com').should.be.true;
+            connection['peers'].set('peer0.org2.example.com', mockPeer2);
+            connection['orderers'].has('orderer.example.com').should.be.true;
+            connection['orderers'].set('orderer.example.com', mockOrderer);
         });
 
-        it('should upgrade the specified chaincode', async () => {
-            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+        it('should upgrade the specified chaincode with a remote orderer', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
+            mockOrderer.getName.returns('orderer.example.com:7050');
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
             should.equal(payload, null);
             sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any],
+                targets: [sinon.match.any, sinon.match.any],
                 chaincodeId: 'myChaincode',
                 chaincodeVersion: '0.0.2',
                 txId: sinon.match.any,
                 fcn: 'instantiate',
                 args: ['arg1']
             }, 5 * 60 * 1000);
-            sendTransactionStub.should.have.been.calledOnce;
+            sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Upgrading with function: 'instantiate' and arguments: 'arg1'`);
+        });
+
+        it('should upgrade the specified chaincode with a local orderer', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            mockOrderer.getName.returns('localhost:7050');
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            should.equal(payload, null);
+            sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
+                targets: [sinon.match.any, sinon.match.any],
+                chaincodeId: 'myChaincode',
+                chaincodeVersion: '0.0.2',
+                txId: sinon.match.any,
+                fcn: 'instantiate',
+                args: ['arg1']
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
             outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Upgrading with function: 'instantiate' and arguments: 'arg1'`);
         });
@@ -936,6 +1050,38 @@ describe('FabricRuntimeConnection', () => {
             });
             await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
                 .should.be.rejectedWith(/with code INVALID in block 1/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and all the peers are not local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and all the peers are not local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and the peers are a mix of local and not local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
+        });
+
+        it('should throw an error if the orderer in the channel configuration is not known and all the peers are local', async () => {
+            mockPeer1.getUrl.returns('grpc://localhost:7051');
+            mockPeer2.getUrl.returns('grpcs://localhost:8051');
+            loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+                .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
     });

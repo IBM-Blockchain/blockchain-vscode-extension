@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -1158,7 +1158,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
-        "generator-fabric": "0.0.25",
+        "generator-fabric": "0.0.27",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.0.0",
@@ -1171,9 +1171,9 @@
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
-        "fabric-ca-client": "1.4.1-snapshot.17",
-        "fabric-client": "1.4.1-snapshot.17",
-        "fabric-network": "1.4.1-snapshot.19"
+        "fabric-ca-client": "1.4.1",
+        "fabric-client": "1.4.1",
+        "fabric-network": "1.4.1"
     },
     "nativeDependencies": {
         "grpc": {
