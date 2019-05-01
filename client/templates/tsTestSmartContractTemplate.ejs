@@ -22,6 +22,11 @@ import * as assert from 'assert';
 import * as fabricNetwork from 'fabric-network';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
+<<<<<<< HEAD
+=======
+import { URL } from 'url';
+import { testFunctions } from './testFunctions';
+>>>>>>> initial changes to the test boiler plate
 <%_ if (connectionProfileHome || walletHome) {-%>
 import * as os from 'os';
 import * as path from 'path';
@@ -62,7 +67,7 @@ describe('<%=chaincodeLabel%>' , () => {
     });
 
     beforeEach(async () => {
-        const discoveryAsLocalhost: boolean = hasLocalhostURLs(connectionProfile);
+        const discoveryAsLocalhost: boolean = testFunctions.hasLocalhostURLs(connectionProfile);
         const discoveryEnabled: boolean = true;
 
         const options: fabricNetwork.GatewayOptions = {
@@ -111,13 +116,14 @@ describe('<%=chaincodeLabel%>' , () => {
         const args: string[] = [];
         <%_ } _%>
 
-        const response: Buffer = await submitTransaction('<%=transaction.name%>', args);
+        const response: Buffer = await testFunctions.submitTransaction('<%=transaction.name%>', args);
         // submitTransaction returns buffer of transcation return value
         // TODO: Update with return value of transaction
         assert.equal(true, true);
         // assert.equal(JSON.parse(response.toString()), undefined);
     }).timeout(10000);
 <% }) %>
+<<<<<<< HEAD
     async function submitTransaction(functionName: string, args: string[]): Promise<Buffer> {
         // Submit transaction
 
@@ -160,4 +166,6 @@ describe('<%=chaincodeLabel%>' , () => {
         return urls.some((url: string) => isLocalhostURL(url));
     }
 
+=======
+>>>>>>> initial changes to the test boiler plate
 });
