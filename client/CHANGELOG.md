@@ -1,5 +1,23 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 0.4.0: May 1st 2019
+
+* Separate wallets and gateways and allow for wallet management [#524](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/524)
+* Generate local_fabric from generator_fabric network templates, allowing for service discovery [#776](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/776)
+* Support generator_fabric v0.0.27 and use it, not global install [#873](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/873)
+* Added inline Introduction Tutorial [#812](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/812)
+* Added instantiate and upgrade commands to the debug toolbar [#829](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/829)
+* Allow the user to specify an asset type on creating a smart contract project [#826](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/826)
+* Improved debug functionality for resuming debugging sessions [#703](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/703)
+* Enable TLS support for local_fabric nodes [#852](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/852)
+* Refactored “Export Connection Details” command to “Export Connection Profile” [#766](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/766)
+* Fixed bug for not packaging when errors occur [#828](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/828)
+* Home page updates (791, 850)
+* Improved readme (756, 846, 851, 855)
+* Minor bug fixes (800, 801, 840, 674)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-49.png)
+
 ## 0.3.3: March 28th 2019
 
 * generator_fabric@0.0.20 is now bundled with the extension [#722](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/722)
