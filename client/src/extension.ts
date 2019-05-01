@@ -89,6 +89,7 @@ import { TutorialView } from './webview/TutorialView';
 import { ContractTreeItem } from './explorer/model/ContractTreeItem';
 import { TutorialGalleryView } from './webview/TutorialGalleryView';
 import { NodeTreeItem } from './explorer/runtimeOps/NodeTreeItem';
+import { SettingConfigurations } from '../SettingConfigurations';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -98,12 +99,14 @@ let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
 class ExtensionData {
     public activationCount: number;
     public version: string;
+    public migrationCheck: number;
 }
 
 export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
 export const DEFAULT_EXTENSION_DATA: ExtensionData = {
     activationCount: 0,
-    version: null
+    version: null,
+    migrationCheck: 0
 };
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -111,8 +114,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const originalExtensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
     const newExtensionData: ExtensionData = {
         activationCount: originalExtensionData.activationCount + 1,
-        version: currentExtensionVersion
+        version: currentExtensionVersion,
+        migrationCheck: 1 // Every time we change the setting configurations we need to change this to any other value
     };
+
+    if (originalExtensionData.migrationCheck !== newExtensionData.migrationCheck) {
+        // Migrate old user setting configurations to use newer values
+        await ExtensionUtil.migrateSettingConfigurations();
+    }
+
     await context.globalState.update(EXTENSION_DATA_KEY, newExtensionData);
     const extensionUpdated: boolean = newExtensionData.version !== originalExtensionData.version;
 
@@ -165,7 +175,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
         // Only do this if the extension has been updated.
-        const showPage: boolean = vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
+        const showPage: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_STARTUP);
         if (extensionUpdated && showPage) {
             // Open the Home page
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
@@ -264,7 +274,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
-        if (e.affectsConfiguration('fabric.gateways') || e.affectsConfiguration('fabric.runtime') || e.affectsConfiguration('fabric.wallets') ) {
+        if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_WALLETS) ) {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);

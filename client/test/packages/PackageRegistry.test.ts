@@ -23,6 +23,7 @@ import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 
@@ -50,7 +51,7 @@ describe('PackageRegistry', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_GOOD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_GOOD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     afterEach(() => {
@@ -81,7 +82,7 @@ describe('PackageRegistry', () => {
         });
 
         it('should return only the good entries from the bad package directory', async () => {
-            await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_BAD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_BAD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
             const packageRegistryEntries: PackageRegistryEntry[] = await packageRegistry.getAll();
             packageRegistryEntries.should.deep.equal([
                 {
@@ -103,7 +104,7 @@ describe('PackageRegistry', () => {
         });
 
         it('should log any errors reading one of the bad entries', async () => {
-            await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_BAD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_BAD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             await packageRegistry.getAll();
             logSpy.should.have.been.calledWithExactly(LogType.ERROR, null, sinon.match(/Failed to parse package garbage@6.6.6.cds: /));

@@ -32,6 +32,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -45,7 +46,7 @@ describe('exportSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeExtensionDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {

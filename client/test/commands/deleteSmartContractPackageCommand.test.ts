@@ -29,6 +29,7 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -40,7 +41,7 @@ describe('DeleteSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeExtensionDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {

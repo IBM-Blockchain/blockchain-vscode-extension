@@ -26,6 +26,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -159,7 +160,7 @@ describe('packageSmartContract', () => {
         showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, true);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, true);
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
 

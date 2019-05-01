@@ -17,11 +17,12 @@ import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
 
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 // tslint:disable no-unused-expression
 describe('RepositoryRegistry', () => {
 
-    const testFabricRegistryName: string = 'blockchain.repositories';
+    const testFabricRegistryName: string = SettingConfigurations.EXTENSION_REPOSITORIES;
 
     before(async () => {
         await TestUtil.storeGatewaysConfig();

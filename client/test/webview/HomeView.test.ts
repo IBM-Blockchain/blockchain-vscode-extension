@@ -24,6 +24,7 @@ import { View } from '../../src/webview/View';
 import * as ejs from 'ejs';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { Reporter } from '../../src/util/Reporter';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -53,7 +54,7 @@ describe('HomeView', () => {
 
         reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
         View['openPanels'].splice(0, View['openPanels'].length);
     });

@@ -21,6 +21,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -42,7 +43,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
         return;
     }
 
-    const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+    const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
     const homeExtDir: string = UserInputUtil.getDirPath(extDir);
     const gatewayPath: string = path.join(homeExtDir, gatewayRegistryEntry.name);
     await fs.remove(gatewayPath);

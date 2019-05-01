@@ -35,6 +35,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlo
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 
@@ -164,7 +165,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should use existing configuration and import all wallets/identities', async () => {
-            await vscode.workspace.getConfiguration().update('fabric.runtime', {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
                 ports: {
                     certificateAuthority: 17054,
                     couchDB: 17055,
@@ -192,7 +193,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should generate new configuration and import all wallets/identities', async () => {
-            await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
                 certificateAuthority: 17054,
@@ -210,7 +211,7 @@ describe('FabricRuntimeManager', () => {
 
         it('create the runtime if it is not already created', async () => {
             mockRuntime.isCreated.resolves(false);
-            await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
                 certificateAuthority: 17054,
@@ -275,7 +276,7 @@ describe('FabricRuntimeManager', () => {
 
         beforeEach(() => {
             getStub = sinon.stub();
-            getStub.withArgs('fabric.runtime').returns({
+            getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({
                 ports: {
                     certificateAuthority: 17054,
                     couchDB: 17055,
@@ -287,7 +288,7 @@ describe('FabricRuntimeManager', () => {
                 },
                 developmentMode: false
             });
-            getStub.withArgs('fabric.runtimes').returns([]);
+            getStub.withArgs('fabric.runtime').returns({});
             updateStub = sinon.stub().resolves();
             sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub});
             sendCommandWithOutputStub = sandbox.stub(CommandUtil, 'sendCommandWithOutput');
@@ -300,7 +301,7 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should not migrate anything for an old configuration with a new configuration', async () => {
-            getStub.withArgs('fabric.runtimes').returns([{
+            getStub.withArgs('fabric.runtime').returns({
                 name: 'local_fabric',
                 ports: {
                     certificateAuthority: 17054,
@@ -312,7 +313,7 @@ describe('FabricRuntimeManager', () => {
                     peerRequest: 17051
                 },
                 developmentMode: true
-            }]);
+            });
             await runtimeManager.migrate(version);
             updateStub.should.not.have.been.called;
             sendCommandWithOutputStub.should.not.have.been.called;
@@ -320,8 +321,8 @@ describe('FabricRuntimeManager', () => {
 
         it('should migrate an old configuration with the name "local_fabric" when no new configuration', async () => {
             findFreePortStub.returns([17056]);
-            getStub.withArgs('fabric.runtime').returns({});
-            getStub.withArgs('fabric.runtimes').returns([{
+            getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
+            getStub.withArgs('fabric.runtime').returns({
                 name: 'local_fabric',
                 ports: {
                     certificateAuthority: 17054,
@@ -332,9 +333,9 @@ describe('FabricRuntimeManager', () => {
                     peerRequest: 17051
                 },
                 developmentMode: true
-            }]);
+            });
             await runtimeManager.migrate(version);
-            updateStub.should.have.been.calledOnceWithExactly('fabric.runtime', {
+            updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME, {
                 ports: {
                     certificateAuthority: 17054,
                     couchDB: 17055,
@@ -350,8 +351,8 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('should not migrate an old configuration with any other name when no new configuration', async () => {
-            getStub.withArgs('fabric.runtime').returns({});
-            getStub.withArgs('fabric.runtimes').returns([{
+            getStub.withArgs(SettingConfigurations.FABRIC_WALLETS).returns({});
+            getStub.withArgs('fabric.runtime').returns({
                 name: 'some_other_fabric',
                 ports: {
                     certificateAuthority: 17054,
@@ -362,7 +363,7 @@ describe('FabricRuntimeManager', () => {
                     peerRequest: 17051
                 },
                 developmentMode: true
-            }]);
+            });
             await runtimeManager.migrate(version);
             updateStub.should.not.have.been.called;
             sendCommandWithOutputStub.should.not.have.been.called;

@@ -30,6 +30,7 @@ import { YeomanUtil } from '../util/YeomanUtil';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { IFabricWallet } from './IFabricWallet';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -55,7 +56,7 @@ export class FabricRuntime extends EventEmitter {
 
     constructor() {
         super();
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const resolvedExtDir: string = UserInputUtil.getDirPath(extDir);
         this.name = FabricRuntimeUtil.LOCAL_FABRIC;
         this.dockerName = `fabricvscodelocalfabric`;
@@ -373,7 +374,7 @@ export class FabricRuntime extends EventEmitter {
             ports: this.ports,
             developmentMode: this.isDevelopmentMode(),
         };
-        await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeObject, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeObject, vscode.ConfigurationTarget.Global);
     }
 
     private async isRunningInner(): Promise<boolean> {

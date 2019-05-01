@@ -14,6 +14,7 @@
 'use strict';
 import { FabricRegistry } from './FabricRegistry';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricWalletRegistry extends FabricRegistry<FabricWalletRegistryEntry> {
 
@@ -24,6 +25,6 @@ export class FabricWalletRegistry extends FabricRegistry<FabricWalletRegistryEnt
     private static _instance: FabricWalletRegistry = new FabricWalletRegistry();
 
     private constructor() {
-        super('fabric.wallets');
+        super(SettingConfigurations.FABRIC_WALLETS);
     }
 }

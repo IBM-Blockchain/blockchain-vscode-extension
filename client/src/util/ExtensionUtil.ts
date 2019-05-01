@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class ExtensionUtil {
 
@@ -74,6 +75,45 @@ export class ExtensionUtil {
             throw new Error('Connection profile must be in JSON or yaml format');
         }
         return connectionProfile;
+    }
+
+    // Migrate user setting configurations
+    public static async migrateSettingConfigurations(): Promise<any> {
+        // No need to handle migrating 'fabric.runtime' to the new configuration as this is handled in FabricRuntimeManager
+
+        // Migrate Fabric gateways
+        const oldGateways: any = vscode.workspace.getConfiguration().get('fabric.gateways');
+        if (oldGateways !== undefined) {
+            const newGateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            if (oldGateways && newGateways.length === 0) {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, oldGateways, vscode.ConfigurationTarget.Global);
+            }
+        }
+
+        // Migrate Fabric gateways
+        const oldWallets: any = vscode.workspace.getConfiguration().get('fabric.wallets');
+        if (oldWallets !== undefined) {
+            const newWallets: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            if (oldWallets && newWallets.length === 0) {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, oldWallets, vscode.ConfigurationTarget.Global);
+            }
+        }
+
+        // Migrate extension repositories
+        const oldRepositories: any = vscode.workspace.getConfiguration().get('blockchain.repositories');
+        if (oldRepositories !== undefined) {
+            const newRepositories: any = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_REPOSITORIES);
+            if (oldRepositories && newRepositories.length === 0) {
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, oldRepositories, vscode.ConfigurationTarget.Global);
+            }
+        }
+
+        // Migrate extension directory
+        const oldDirectory: any = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        if (oldDirectory !== undefined) {
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, oldDirectory, vscode.ConfigurationTarget.Global);
+        }
+
     }
 
     private static extensionContext: vscode.ExtensionContext;

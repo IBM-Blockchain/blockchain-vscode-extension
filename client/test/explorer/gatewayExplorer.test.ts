@@ -43,6 +43,7 @@ import { GatewayDissociatedTreeItem } from '../../src/explorer/model/GatewayDiss
 import { GatewayAssociatedTreeItem } from '../../src/explorer/model/GatewayAssociatedTreeItem';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -67,7 +68,7 @@ describe('gatewayExplorer', () => {
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 
         const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
         mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -186,7 +187,7 @@ describe('gatewayExplorer', () => {
                     associatedWallet: 'some_other_wallet'
                 });
 
-                await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
@@ -212,7 +213,7 @@ describe('gatewayExplorer', () => {
 
                 gateways.push(myGateway);
 
-                await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
@@ -231,8 +232,8 @@ describe('gatewayExplorer', () => {
                     developmentMode: false
                 };
 
-                await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
-                await vscode.workspace.getConfiguration().update('fabric.runtime', runtime, vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtime, vscode.ConfigurationTarget.Global);
 
                 mySandBox.stub(LocalGatewayTreeItem, 'newLocalGatewayTreeItem').rejects({ message: 'some error' });
 
@@ -939,7 +940,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
             };
 
-            await vscode.workspace.getConfiguration().update('fabric.gateways', [myGateway], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [myGateway], vscode.ConfigurationTarget.Global);
 
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();

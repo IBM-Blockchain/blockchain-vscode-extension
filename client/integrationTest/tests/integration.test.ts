@@ -45,6 +45,7 @@ import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
 import { FabricNodeType } from '../../src/fabric/FabricNode';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -74,7 +75,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
 
         const extDir: string = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
         const packageDir: string = path.join(extDir, 'packages');
         const exists: boolean = await fs.pathExists(packageDir);
         if (exists) {
