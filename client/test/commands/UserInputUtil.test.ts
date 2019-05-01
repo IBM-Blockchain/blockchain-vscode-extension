@@ -223,7 +223,7 @@ describe('UserInputUtil', () => {
             mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
             quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
             const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
-            quickPickStub.should.have.been.calledWith([{label: gatewayEntryOne.name, data: gatewayEntryOne }], {
+            quickPickStub.should.have.been.calledWith([{ label: gatewayEntryOne.name, data: gatewayEntryOne }], {
                 ignoreFocusOut: false,
                 canPickMany: false,
                 placeHolder: 'Choose a gateway'
@@ -236,7 +236,7 @@ describe('UserInputUtil', () => {
             mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
             quickPickStub.resolves({ label: gatewayEntryTwo.name, data: gatewayEntryTwo });
             const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false);
-            quickPickStub.should.have.been.calledWith([{label: gatewayEntryTwo.name, data: gatewayEntryTwo }], {
+            quickPickStub.should.have.been.calledWith([{ label: gatewayEntryTwo.name, data: gatewayEntryTwo }], {
                 ignoreFocusOut: false,
                 canPickMany: false,
                 placeHolder: 'Choose a gateway'
@@ -1172,6 +1172,14 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('showContractQuickPick', () => {
+        it('should show a list of contracts to choose from', async () => {
+            quickPickStub.resolves('myContract');
+            const result: string = await UserInputUtil.showContractQuickPick('choose a contract', ['myContract', 'myOtherContract']);
+            result.should.equal('myContract');
+        });
+    });
+
     describe('showTransactionQuickPick', () => {
         it('should get a list of transactions', async () => {
             quickPickStub.resolves({
@@ -1436,7 +1444,7 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 matchOnDetail: true,
                 placeHolder: 'choose option to add wallet with',
-                ignoreFocusOut : true,
+                ignoreFocusOut: true,
                 canPickMany: false,
             });
         });
@@ -1449,8 +1457,8 @@ describe('UserInputUtil', () => {
             mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
 
             quickPickStub.resolves({
-                    label: walletEntryOne.name,
-                    data: walletEntryOne
+                label: walletEntryOne.name,
+                data: walletEntryOne
             });
             const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false);
 
@@ -1565,7 +1573,7 @@ describe('UserInputUtil', () => {
             browseStub.onCall(1).resolves();
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().returns(undefined);
 
-            const result: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
+            const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
@@ -1614,7 +1622,7 @@ describe('UserInputUtil', () => {
 
             const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').returns(undefined);
 
-            const {certificatePath, privateKeyPath } = await UserInputUtil.getCertKey();
+            const { certificatePath, privateKeyPath } = await UserInputUtil.getCertKey();
             certificatePath.should.equal('/some/cert');
             privateKeyPath.should.equal('/some/key');
 
