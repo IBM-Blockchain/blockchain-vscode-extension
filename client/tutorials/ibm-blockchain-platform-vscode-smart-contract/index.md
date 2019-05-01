@@ -1,520 +1,230 @@
----
+<!-- # TUTORIAL 1: Local Smart Contract Development -->
+# TUTORIAL: Local Smart Contract Development
+`30-45 mins`
 
-# Related publishing issue: https://github.ibm.com/IBMCode/Code-Tutorials/issues/338
+Follow the typical workflow from generating a new smart contract project, deploying code to the _local_fabric_ runtime, and testing your transactions via an application gateway.
 
-abstract: "Use the IBM Blockchain Platform's VSCode extension to streamline the process of developing, testing, and deploying a smart contract."
 
-authors:
-  - name: "Horea Porutiu"
-    email: "Horea.Porutiu@ibm.com"
+## Learning Objectives
 
-completed_date:	"2018-11-20"
-
-components:
-  - "hyperledger-fabric"
-
-draft: false
-
-excerpt: "Use the IBM Blockchain Platform's VSCode extension to streamline the process of developing, testing, and deploying a smart contract."
-
-last_updated: "2019-02-25"
-
-meta_description: "Use the IBM Blockchain Platform's VSCode extension to streamline the process of developing, testing, and deploying a smart contract."
-
-meta_keywords: "IBM Blockchain platform, extension, VSCode, Smart Contract"
-
-primary_tag: "blockchain"
-
-pta:
- - "emerging technology and industry"
-
-pwg:
-  - "blockchain"
-
-related_content:
-  - type: announcements
-    slug: "ibm-blockchain-platform-vscode-smart-contract"
-  - type: tutorials
-    slug: "cl-ibm-blockchain-101-quick-start-guide-for-developers-bluemix-trs"
-  - type: patterns
-    slug: "create-and-execute-blockchain-smart-contracts"
-
-related_links:
-  - title: "Video: Start developing with the IBM Blockchain Platform VSCode Extension"
-    url: "https://youtu.be/0NkGGIUPhqk"
-  - title: "IBM Blockchain Platform"
-    url: "https://www.ibm.com/blockchain/platform"
-  - title: "IBM Blockchain - Marbles demo"
-    url: "https://github.com/IBM-Blockchain/marbles"
-  - title: "Hyperledger Fabric docs"
-    url: "https://hyperledger-fabric.readthedocs.io/en/release-1.2/"
-
-# runtimes:
-
-services:
-  - "blockchain"
-
-subtitle: "Streamline the process of developing, testing, and deploying a smart contract"
-
-tags:
-  - "blockchain"
-
-title: "Develop a smart contract with the IBM Blockchain Platform VSCode extension"
-
-type: tutorial
-
----
-
-Learn the process of using IBM Blockchain Platform's VSCode extension to streamline the process of developing, testing, and deploying a smart contract. Once you finish this tutorial, you will understand how to quickly develop, demo, and deploy your blockchain application on a local Hyperledger Fabric network using VSCode. This tutorial assumes some basic understanding of Hyperledger Fabric.
-
-## Watch the videos
-
-  [![](images/video-thumbnail.png)](https://www.youtube.com/watch?v=r77p-8k4Mpk)
-
-[![](images/video-thumbnail2.png)](https://www.youtube.com/watch?v=ixu8tyXsCwY&t=1s)
-
-## Learning objectives
-
-* Install the IBM Blockchain Platform VSCode extension
-* Create a new JavaScript smart contract
+* Create a new smart contract project
 * Package a smart contract
-* Create, explore, and understand a Hyperledger Fabric network
-* Deploy the smart contract on a local Hyperledger Fabric instance
-* Use a Node.js SDK to interact with the deployed smart contract package
+* Start and use the local, pre-configured Hyperledger Fabric runtime
+* Deploy the smart contract on _local_fabric_
+* Transact on your locally-deployed smart contract
 
-## Prerequisites
-
-You will need the following installed in order to use the extension:
-
-* [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
-* [Yeoman (yo) v2.x](http://yeoman.io/)
-* [Docker version v17.06.2-ce or greater](https://www.docker.com/get-started)
-* [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
-* [VSCode 1.28.2 or higher](https://code.visualstudio.com/download)
+---
+<details>
+<summary><b>Step 1. Create a new smart contract project</b></summary>
 
-If you are using Windows, you must also ensure the following:
+The extension can generate a smart contract skeleton in your chosen Hyperledger Fabric contract language. This means you start with a basic but useful smart contract rather than a blank-sheet!
 
-* Your version of Windows supports Hyper-V and Docker:
-  * Windows 10 Enterprise, Pro, or Education with 1607 Anniversary Update or later
-* Docker for Windows is configured to use Linux containers (this is the default)
-* You have installed the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
-* You have installed OpenSSL v1.0.2 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
-  * Install the normal version, not the version marked as "light"
-  * Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
-  * Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems
+For the purposes of this tutorial, we'll use TypeScript as the example language.
 
-You can check your installed versions by running the following commands from a terminal:
+> In VSCode, every command can be executed from the Command Palette (press `Ctrl+Shift+P`, or `Cmd+Shift+P` on MacOS). All of this extension's commands start with `IBM Blockchain Platform:`. In the tutorial steps, we'll explain where to click in the UI, but look out for comment-boxes like this one if you want to know the Command Palette alternatives.
 
-* `node --version`
-* `npm --version`
-* `yo --version`
-* `docker --version`
-* `docker-compose --version`
+1. In the left sidebar, click on the __IBM Blockchain Platform__ icon (it looks like a square, and will probably be at the bottom of the set of icons if this was the latest extension you installed!)
 
-## Estimated time
+2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create Smart Contract Project` from the dropdown.
 
-After the prerequisites are installed, this should take approximately 30-45 minutes to complete.
+> Command Palette alternative: `IBM Blockchain Platform: Create Smart Contract Project`
 
-## Steps
+3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
 
-1. [Get started](#step-1-get-started)
-2. [Create a new smart contract project](#step-2-create-a-new-smart-contract-project)
-3. [Modify the smart contract](#step-3-modify-the-smart-contract)
-4. [Package the smart contract](#step-4-package-the-smart-contract)
-5. [Install the smart contract](#step-5-install-the-smart-contract)
-6. [Instantiate the smart contract](#step-6-instantiate-the-smart-contract)
-7. [Export connection details](#step-7-export-connection-details)
-8. [Submit transactions](#step-8-submit-transactions)
-9. [Update the smart contract](#step-9-update-the-smart-contract)
-10. [Submit more transactions](#step-10-submit-more-transactions)
-11. [Query the ledger](#step-11-query-the-ledger)
-12. [Test the contract](#step-12-test-the-contract)
+4. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to have some fun ;)  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For the sake of this tutorial, we'll be boring and stick with `MyAsset`.
 
-### Step 1. Get started
+> __Pro Tip:__ If you decide to change the name of your asset, remember to swap out `MyAsset` for whatever you named it in future steps!
 
-![packageFile](images/installExtension.gif)
+5. Choose a location to save the project.  Click `Browse`, then click `New Folder`, and name the project what you want e.g. `demoContract`.
 
-The first thing you need to do is to install the IBM Blockchain Platform VSCode extension. To do this, you 
-need to install the latest version of VSCode; to see if you have the latest 
-VSCode extension, go to
-`Code` > `Check for Updates`. If VSCode crashes at this point (which it did for me), it likely
-means you don't have the latest version. If your VSCode crashes, check the troubleshooting section below. Otherwise, update your VSCode, and once you're done, click on `extensions` in the 
-sidebar on the left side of your screen. At the top, search the extension marketplace for 
-`IBM Blockchain Platform`. Click `Install` and then click `reload`. Now you should be all set to use the extension!
+6. Click `Create` and then select the new folder you just created and click `Save`.
 
-### Step 2. Create a new smart contract project
+7. Finally, select `Add to workspace` from the list of options.
 
-![packageFile](images/createSmartContract.gif)
+The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold. Great work, you've got yourself a smart contract - let's take a look at its contents...
 
-To create a smart contract project: 
+</details>
 
-1. Click on your newly downloaded IBM Blockchain Platform extension. It should be the extension
-all the way at the bottom of the left sidebar.
-2. Next, use the keyboard shortcut `Shift` + `CMD` + `P` to 
-bring up the command pallete. Choose **IBM Blockchain Platform: Create Smart Contract Project** from the dropdown.
-3. Click **JavaScript** from the dropdown. 
-4. Click **New Folder**, and name the project what you want. I named mine `demoContract`.
-5. Click **Create** and then **Open** your new folder which you just created. Next, from the dropdown, click **Add to Workspace**.
-6. Once the extension is done packaging your contract, you can open the `lib/my-contract.js` file to see your smart 
-contract code scaffold. Nice job!
+---
 
-### Step 3. Modify the smart contract 
+<details>
+<summary><b>Step 2. Understand the smart contract</b></summary>
 
-![packageFile](images/addChaincode.gif)
+The generated smart contract code scaffold provides a good example of some common operations for interacting with data on a blockchain ledger. If you're in a big rush, you could skip this section, but why not stay a while and listen as we learn the basic anatomy of a smart contract!
 
-Inside your `lib/my-contract.js` file, go ahead and copy 
-and paste this code: 
+Notice the lines that start with `@Transaction` - these are functions that define your contract's transactions i.e. the things it allows you to do to interact with the ledger.
 
-```javascript
-'use strict';
-
-const { Contract } = require('fabric-contract-api');
-
-class MyContract extends Contract {
-
-  //update ledger with a greeting to show that the function was called
-  async instantiate(ctx) {
-    let greeting = { text: 'Instantiate was called!' };
-    await ctx.stub.putState('GREETING', Buffer.from(JSON.stringify(greeting)));
-  }
-
-  //take argument and create a greeting object to be updated to the ledger
-  async transaction1(ctx, arg1) {
-    console.info('transaction1', arg1);
-    let greeting = { text: arg1 };
-    await ctx.stub.putState('GREETING', Buffer.from(JSON.stringify(greeting)));
-    return JSON.stringify(greeting);
-  }
-
-}
-
-module.exports = MyContract;
-```
-
-**Note:** The .gifs may not *exactly* match the above smart contract, but this is the one 
-you should have in your `lib/my-contract.js` file now!
-
-Let's examine the functions you just defined. The `instantiate` function creates a greeting 
-object and then stores that on the ledger with the key `GREETING`. 
-The `transaction1` function takes the Hyperledger
-Fabric context and one argument, `arg1`, which is used to store a greeting as defined by the user.
-The `ctx.stub.putState` method is used to record the `greeting` on the ledger and then you 
-return that object back. Save the file and proceed!
-
-### Step 4. Package the smart contract
-
-![packageFile](images/packageSmartContract.gif)
-
-Now that you have created your smart contract and understand which functions you've defined,
-it's time to package it so you can install it on a peer.
-
-1. Open the command pallete with `Shift` + `CMD` + `P` and select **package smart contract**.
-2. In the left sidebar, click on the IBM Blockchain Platform icon (it looks like a square). 
-In the top-left corner, you will see all of your smart contract packages. You should 
-see `demoContract@0.0.1` if everything went well. 
-
-### Step 5. Install the smart contract
-
-![packageFile](images/install3rd.gif)
-
-Ok, you're more than halfway there. Now for the fun part! Let's install this contract on the peer!
-To do this, you must first connect to a Hyperledger Fabric network. The network that comes with
-the VSCode extension is perfect for development -- it offers the minimal resources to develop and 
-test your contract.
-
-The following Docker containers are started on your local machine, each with a different role in
-the network: Orderer, Certificate Authority, CouchDB, and Peer. 
-
-To start your network, click on your IBM Blockchain Platform extension, to the left side of your editor. It's
-the icon that looks like a square.
-
-1. Once you click on the extension, you should see **LOCAL FABRIC OPS** on the left side of the editor. To the 
-right of **LOCAL FABRIC OPS** you should see a three-dot symbol. Click that, and then click on **Start Fabric Runtime**.
-   
-   Your extension will now provision Docker containers that will act as nodes in your network. Once the 
-provisioning is finished, you should see a **Smart Contracts** section under **LOCAL FABRIC OPS**.
-   
-2. Under **Smart Contracts** click on **+ Install**.
-
-3. Next, the extension will ask you which peer to install the smart contract on. Choose **peer0.org1.examplee.com** 
-
-4. The extension will ask you which package to install: Choose `demoContract@0.0.1`. If all goes well, you 
-should see a notification in the bottom right corner - **Successfully installed on peer peer0.org1.example.com**
-That's it! Nice job!
-
-### Step 6. Instantiate the smart contract
-
-![packageFile](images/instantiate3rd.gif)
-
-This is the real test -- will your smart contract instantiate properly? Let's find out...
-
-1. Under **Smart Contracts** you will see a section that says **Instantiated**. Click on 
-**+ Instantiate**.
-2. The extension will then ask you which channel to instantiate the smart contract on - choose **mychannel**.
-2. The extension will then ask you which contract and version to instantiate -- choose `demoContract@0.0.1`.
-3. The extension will then ask you which function to call -- type in **instantiate**
-4. Next, it will ask you for the arguments. There are none, so just hit enter.
-
-The extension will do some work, and then in the bottom-right corner you should see that the contract
-was successfully instantiated. Hooray!!
-
-### Step 7. Export connection details
-![packageFile](images/exportProfile3rd.gif)
-
-At this point, you need to start interacting a bit more closely with your
-Fabric instance. You'll need to prove to the certificate authority that you are allowed
-to create a digital identity on the network. This is done by showing the certificate
-authority your certificate and private key.
-
-1. Later in the tutorial, we will query the network. To do this we will need some scripts. Clone this
-Github Repo outside of your smart contract directory to get the necessary scripts required to query the network. 
-  
-  ```
-  $ git clone https://github.com/horeaporutiu/VSCodeTutorialBlockchain.git
-  ```
-
-2. Import this folder into your VSCode workspace by right-clicking an empty space
-under your smart contract directory in VSCode and selecting **Add folder to workspace**. 
-Find the recently cloned folder `VSCodeTutorialBlockchain` and double-click it.
-
-3. In VSCode, click on the **IBM Blockchain Platform** extension in the left sidebar.
-
-4. Under **LOCAL FABRIC OPS** click on  **Nodes**. Right-click on the **peer0.org1.example.com** node.
-Select **Export Connection Details**.
-
-5. The extension will ask which folder to save the connection profile to. Choose the 
-**VSCodeTutorialBlockchain directory**. 
-
-6. If all goes well, you should see something like: 
-  
-  ```
-  Successfully exported connection details to 
-  /Users/Horea.Porutiu@ibm.com/Workdir/VSCodeTutorialBlockchain/local_fabric
-  ```
-
-### Step 8. Submit transactions 
-![packageFile](images/invoke3rd.gif)
-
-Ok, so you've instantiated your contract, exported our keys to our wallet -- so now what?
-Well, now it's time to actually invoke the functions in your smart contract! To do this, 
-you can use the VSCode extension. 
-
-1. Under **LOCAL FABRIC OPS** you should see **FABRIC GATEWAYS**. 
-
-2. Click on **local_fabric** and then on **Admin@org1.example.com**
-
-3. If all goes well, you should see a notification that says **Connecting to local_fabric**.
-
-4. Next, under **FABRIC GATEWAYS** and **Channels** you should see my **mychannel**. Click to expand it. Then expand 
-**demoContract@0.0.1**. You should see two functions, **instantiate** and **transaction1**.
-
-4. Right click on **transaction1** and then select `submit transaction`. For the arguments,
-enter in 'hello'. 
-
-Nice job! You've just successfully submitted a transaction to your Fabric network, and have updated the ledger!
-
-### Step 9. Update the smart contract
-![packageFile](images/upgrade3rd.gif)
-In the previous step, you updated the ledger by using the `putState` API, passing in a key and a value.
-The key happened to be "GREETING" and the value happened to be the object.
+Skipping over the first one, take a look at the `createAsset` function:
 
 ```
-{
-  text: 'hello'
-}
+    @Transaction()
+    public async createMyAsset(ctx: Context, myAssetId: string, value: string): Promise<void> {
+        const exists = await this.myAssetExists(ctx, myAssetId);
+        if (exists) {
+            throw new Error(`The my asset ${myAssetId} already exists`);
+        }
+        const myAsset = new MyAsset();
+        myAsset.value = value;
+        const buffer = Buffer.from(JSON.stringify(myAsset));
+        await ctx.stub.putState(myAssetId, buffer);
+    }
 ```
 
-The last thing you should learn is how to query -- how to retrieve data from the ledger. You will do this
-by using the `getState` API, which takes in a key and returns the value associated with that key, if it finds it.
+The empty brackets in `@Transaction()` tells us that this function is intended to change the contents of the ledger. Transactions like this are typically __submitted__ (as opposed to __evaluated__) - more on that later in this tutorial! The function is called `createMyAsset` and it takes `myAssetId` and a `value`, both of which are strings.  When this transaction is submitted, a new asset will be created, with key `myAssetId` and value `value`. For example if we were to create "001", "A juicy delicious pineapple", then when we later read the value of key "001", we'll learn the value of that particular state is "A juicy delicious pineapple".
 
-Let's add a query function to our `demoContract`.
+Now, take a look at the next transaction:
 
-1. Copy and paste the following code into your `lib/my-contract.js` file:
-  
-  ```javascript
-  'use strict';
-  
-  const { Contract } = require('fabric-contract-api');
-  
-  class MyContract extends Contract {
-  
-    //update ledger with a greeting 
-    async instantiate(ctx) {
-      let greeting = { text: 'Instantiate was called!' };
-      await ctx.stub.putState('GREETING', Buffer.from(JSON.stringify(greeting)));
+```
+    @Transaction(false)
+    @Returns('MyAsset')
+    public async readMyAsset(ctx: Context, myAssetId: string): Promise<MyAsset> {
+        const exists = await this.myAssetExists(ctx, myAssetId);
+        if (!exists) {
+            throw new Error(`The my asset ${myAssetId} does not exist`);
+        }
+        const buffer = await ctx.stub.getState(myAssetId);
+        const myAsset = JSON.parse(buffer.toString()) as MyAsset;
+        return myAsset;
     }
-  
-    //add a member along with their email, name, address, and number
-    async addMember(ctx, email, name, address, phoneNumber) {
-      let member = {
-        name: name,
-        address: address,
-        number: phoneNumber,
-        email: email
-      };
-      await ctx.stub.putState(email, Buffer.from(JSON.stringify(member)));
-      return JSON.stringify(member);
-    }
-  
-    // look up data by key
-    async query(ctx, key) {
-      console.info('querying for key: ' + key  );
-      let returnAsBytes = await ctx.stub.getState(key);
-      let result = JSON.parse(returnAsBytes);
-      return JSON.stringify(result);
-    }
-  
-  }
-  
-  module.exports = MyContract;
-  ```
-  
-  The code adds an `addMember` function which takes in arguments from the user such as email, name, address, and phone number, and saves that data on the ledger as a key-value pair. 
-  
-  This code also adds a `query` function; this function takes in one argument, which is the key to look up. The function returns the value associated with a given key, if there is any.
-  
-2. Update the `package.json` file such that line 3, which contains the version number, now reads:
-  
-  ```
-    "version": "0.0.2",
-  ```
-   
-   Save the file.
-   
-3. To upgrade your existing smart contract to the new version, under **LOCAL FABRIC OPS**  
-expand **Instantiated** until you see **demoContract@0.0.1**. Next,
-right-click on `demoContract` and choose **Upgrade Smart Contract**.
+```
 
-4. the extension will ask which version to perform an upgrade with. Choose **demoContract**.
+This one starts with `@Transaction(false)` - the "false" means that this function is not typically intended to change the contents of the ledger. Transactions like this are typically __evaluated__. You'll often hear such transactions referred to as "queries".  As you can see, this function only takes `myAssetId`, and will return the value of the whatever state that key points to.
 
-5. The extension will ask which peer to install the smart contract on, choose **peer0.org1.example.com**
+Take a look at the other transactions in the contract at your leisure, then when you're happy, let's move on to packaging and deploying that contract so that we can start using it...
+</details>
 
-6. The extension will ask which function to call. Type in **instantiate**.
+---
 
-7. The extension will ask which arguments to pass. Leave this blank, and hit **enter**.
-After some heavy computation (and a little bit of time), if all goes
-well, you should get a notification in the bottom-right corner saying **Successfully upgraded smart contract**.
+<details>
+<summary><b>Step 3. Package the smart contract</b></summary>
 
-### Step 10. Submit more transactions 
-![packageFile](images/addMember3rd.gif)
+Now that you have created your smart contract and understand the transactions therein, it’s time to package it. Smart contract projects are packaged into `.CDS` files - a special type of file that can be installed on Hyperledger Fabric peers.
 
-Now that you've updated your smart contract, look under **FABRIC GATEWAYS** and expand **Channels**. 
-Next, expand **mychannel** and you should see **demoContract@0.0.2**
+1. In the left sidebar, click on the __IBM Blockchain Platform__ icon.
 
-1. Next, expand **demoContract@0.0.2** to view the functions you have updated the smart contract **my-contract.js** with, namely `instantiate`, `addMember`, and `query`.
+2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Package a Smart Contract Project` from the dropdown.
 
-2. Right-click on **addMember** and click **Submit Transaction**. For the arguments, copy and paste the following:
-  
-  ```
-  ginny@ibm.com, Ginny Rometty, Wall Street NY, 1234567890
-  ```
-  
-  In the output, you should see the following:
-  
-  ```
-  Submitting transaction addMember with args Ginny Rometty, Wall Street NY, 1234567890, ginny@ibm.com
-  ```
-  
-  Let's add one more member, so repeat this step, but for the arguments copy and paste the following: 
-  
-  ```
-  arvind@ibm.com, Arvind Krishna, Broadway Street NY, 1231231111
-  ```
-  
-  Nice job. We're almost done now!
+> Command Palette alternative: `IBM Blockchain Platform: Package a smart contract project`
 
+2. You should see a new package on the list, `demoContract@0.0.1`, if everything went well.
 
-### Step 11. Query the ledger
+The package you just created can be installed onto any Hyperledger Fabric peer (running at the correct version). For example, you could right-click and choose "Export Package", then deploy it into a cloud environment using the IBM Blockchain Platform operational console. We'll learn how to do this later: for now, we'll deploy the package locally on the runtime that comes pre-configured with the VSCode extension, so there's no need to export your package just yet!
 
-![packageFile](images/query3rd.gif)
-  
-And now for the moment you've all been waiting for...let's actually see what is written to the ledger! To do this,
-we will use the **query.js** file from our **VSCodeTutorialBlockchain** folder. 
+</details>
 
-1. Take a look at the `query.js` file from the `VSCodeTutorialBlockchain` directory. It's very similar to the `invoke.js` file, except it one major difference:
-  
-  ```javascript
-  let response = await contract.evaluateTransaction('query', 'GREETING');
-  ```
-  
-  The main difference is that in this file, you will use the **evaluateTransaction** API, which **does not send the 
-transactions to  the ordering service** -- hence, it will not update the ledger. This is very important. In the **invoke.js** file, you submit transactions to the ordering service, which will all get **written to the ledger**, but here in the **query.js** file, you will not update the ledger.
-  
-2. Use your terminal in VSCode to naviagate to the **VSCodeTutorialBlockchain** folder. From there, install the 
-required dependencies by using the following command:
-  
-  ```
-  VSCodeTutorialBlockchain$ npm install
-  ```
-  
-3. Next, run **query.js** with the following command:
-  
-  ```javascript
-  VSCodeTutorialBlockchain$ node query.js
-  ```
-  
-  You should get the following output: 
-  
-  ```javascript
-  Connected to Fabric gateway.
-  { text: 'Instantiate was called!' }
-  Disconnect from Fabric gateway.
-  done
-  ```
-  
-4. Next, query for Ginny Rometty. Change the following line:
-  
-  ```javascript
-  let response = await contract.evaluateTransaction('query', 'GREETING');
-  ```
-  
-  to this:
-  
-  ```javascript
-  let response = await contract.evaluateTransaction('query', 'ginny@ibm.com');
-  ```
-  
-  Your output should be as follows: 
-  
-  ```javascript
-  VSCodeTutorialBlockchain$ node query.js
-  Connected to Fabric gateway.
-  {"address":" Wall Street NY","email":"ginny@ibm.com","name":" Ginny Rometty","number":" 1234567890"}
-  Disconnect from Fabric gateway.
-  done
-  ```
+---
 
-5. Lastly, query for Arvind. Modify the request to be as follows:
-  
-  ```javascript
-  let response = await contract.evaluateTransaction('query', 'arvind@ibm.com');
-  ```
-  
-  The output should be similar to the one above, except with Arvind's data.
+<details>
+<summary><b>Step 4. Local Fabric Ops</b></summary>
 
-### Step 12. Test the contract
-![packageFile](images/runTest3rd.gif)
+The panel titled `LOCAL FABRIC OPS` (in the IBM Blockchain Platform view) allows you to operate a simple Hyperledger Fabric runtime using Docker on your local machine. Initially, it will be stopped, and you should see:
 
-Testing functionality is a feature of the IBM Blockchain extension, and can be done 
-through the UI. Click on the IBM Blockchain Platform extension icon, on the left-hand side.
+```
+Local Fabric runtime is stopped. Click to start.
+```
 
-1. Under **FABRIC GATEWAYS** and under **Channels** expand **mychannel**, and 
-right-click on your latest smart contract `demoContract@0.0.2` and then select
-**Generate Smart Contract Tests**.
+Click that message and the extension will start spinning up Docker containers for you. The message "Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sectioned labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
 
-2. The extension will ask you which language to generate the test files in. Choose **JavaScript**.
+> Command Palette alternative: `IBM Blockchain Platform: Start Fabric Runtime`
 
-3. Once the extension is done generating the tests, you can run npm test from the **demoContract** 
-directory, or you can click on the **run test** button from the VSCode UI from the 
-**MyContract-demoContract@0.0.2.test.js** file, as shown in the gif.
+That's all you need to do in this step, so if you're in a rush, you can skip ahead to the next step! If you're interested to learn what's included in the Local Fabric runtime though, read on! 
 
-## Summary
+We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know about the local runtime you've just started:
 
-Nice work! You learned how to create, package, install, instantiate, 
-and invoke a smart contract using Hyperledger's newest APIs. At this point, 
-you can focus on developing your smart contract and updating your `my-contract.js`
-file knowing that you have taken care of the networking aspects of blockchain.
-You can also successfully invoke and update your ledger using just VSCode,
-Node.js, and Docker. Please, please, please reach out to me if there are bugs --
-comment on this post and I will fix them. Thanks so much for 
-reading this tutorial. I hope you enjoyed it! Horea Blockchain out!
+* There is a single organization in this simple blockchain network (this isn't very realistic for real-world use, as the whole point is to _share_ a ledger between _multiple_ organizations, but it's sufficient for local development purposes!), called Org1. Under `Organizations` you will see `Org1MSP`: this is Org1's "MSP ID". You don't need to worry too much about this right now: Membership Services Providers (MSPs) will be covered when you start building your own network in later tutorials.
+* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by Org1. (The little infinity-symbol after the peer name indicates that it is is currently in "development mode", which you can toggle on/off if you like, but is probably left on for most users!)
+* There is also a single Certificate Authority (CA) `ca.example.com`, and a single orderer node `orderer.example.com`. Again, you'll learn more about these node types when building your own network later - for now, it is enough to know that they're essential parts of the network, and so the extension has created them for you!
+* Under `Channels` there is a single channel called `myChannel`. In order for a smart contract to be used, it must be __instantiated__ on a channel. This happens in the _next_ step of this tutorial, after we first __install__ the contract on a peer.
+* The `Smart Contracts` section shows you the `Instantiated` and `Installed` contracts on this network. The next couple of steps in this tutorial will have us __install__ then __instantiate__ the smart contract we've packaged.
+* If you're a big Docker fan, you may find it useful to know that the following containers are started on your local machine: Orderer, Certificate Authority, CouchDB, and Peer.
+
+Now you've started up the local Fabric runtime, it's time to install and instantiate your smart contract...
+
+</details>
+
+---
+
+<details>
+<summary><b>Step 5. Install the smart contract</b></summary>
+
+In a real network, each of the organizations that will be endorsing transactions will install the smart contract on their peers, then the contract will be instantiated on the channel. Our basic local Fabric runtime only has a single organization (`Org1`) with a single peer (`peer0.org1.example.com`) and a single channel (`myChannel`).
+
+So, we only have to install the contract on that single peer, then we will be able to instantiate it in `myChannel`.
+To do this...
+
+1. In the `LOCAL FABRIC OPS` panel, look for `+ Install` (it's under Smart Contracts > Installed) and click it.
+
+2. You'll be asked to choose a peer. Pick the only option: `peer0.org1.example.com`.
+
+3. You'll be asked to choose a package to install. Pick `demoContract@0.0.1`.
+
+You should see `demoContract@0.0.1` appear under the Smart Contracts > Installed list.
+
+> Command Palette alternative: `IBM Blockchain Platform: Install Smart Contract`.
+
+That's it - job done! Next up, we'll instantiate the smart contract...
+
+</details>
+
+---
+
+<details>
+<summary><b>Step 6. Instantiate the smart contract</b></summary>
+
+Installed smart contracts aren't ready to be invoked by client applications yet: we need a shared instance of the contract that all organizations in the network can use. In our simplified local dev network with just one organization, this is a bit of a moot point! As you'll see in later tutorials though, when multiple organizations are involved, they must individually __install__ the same contract on their respective __peers__ before the group can __instantiate__ on their shared __channel__. So, it's useful to be thinking about this deployment as a two-stage process even at this early stage: it'll save you some surprises later!
+
+For now though, we've got our contract installed on all (one) of the peers that participate in `myChannel` so we can go ahead and instantiate.
+
+1. In the `LOCAL FABRIC OPS` panel, look for `+ Instantiate` (it's under Smart Contracts > Instantiated) and click it.
+
+2. You'll be asked to choose a channel. Pick the only option: `myChannel`.
+
+3. You'll be asked to choose a smart contract to instantiate. Pick `demoContract@0.0.1`.
+
+4. You'll be asked what function to call. If you wanted to use a specific function as part of your instantiate, you could enter something here.  We'll see that happen in future tutorials, but for now just hit `Enter` to skip this step.
+
+Instantiation can take a while longer than install - watch out for the success message and `demoContract@0.0.1` appearing in the Smart Contracts > Instantiated list to confirm it's worked!
+
+</details>
+
+---
+
+<details>
+<summary><b>Step 7. Submit and evaluate transactions</b></summary>
+
+Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `local_fabric`.
+
+To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already beem set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `local_fabric_wallet  `, which contains an ID called `admin`. If you hover your mouse over `local_fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: local_fabric_wallet".
+
+So, you've got a Gateway, and an associated wallet with a single identity in it - this means the Gateway is ready to be used!
+
+1. Click on `local_fabric` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: local_fabric, Using ID: admin` and a collapsed section labelled  `Channels`.
+
+2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.1`. You will see a list of all the transactions that were defined in your smart contract.
+
+3. First, we will create an asset.  Right-click on createMyAsset and select `Submit Transaction`. You will be asked to provide arguments for the transaction: try `001, a juicy delicious asset` (or whatever key and value you like, but make sure you remember the key you use!). There should now be a juicy, delicious asset on our ledger. Let's submit another transaction...
+
+4. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `001, a tremendously delicious asset`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
+
+5. `readMyAsset` is for reading from rather than writing to the ledger, so this time select `Evaluate Transaction`. Enter `001` (or whatever you set your key to) as the argument. You should see the following in the output console:
+
+```
+[SUCCESS] Returned value from readMyAsset: {"value":" a tremendously delicious asset"}
+```
+
+You've proven you can submit and evaluate transactions to update and read your ledger!
+
+</details>
+
+---
+
+Completed all the steps? Congratulations, you now know the key steps in the workflow of local smart contract development. You've generated a skeleton contract, deployed it locally, and submitted/evalueted transactions using it.
+
+If you wish to spend some more time locally developing your own smart contracts, our Samples (accessed from the extension's homepage) can help you explore development concepts. If you're iterating a lot on your code, you should read up on __Debug__ in our ReadMe: it's _very_ useful for developers!
+
+<!-- There's no need to worry about those concepts yet if you don't want to though: `demoContract@0.0.1` is perfect for carrying on with this tutorial series!
+
+> __UP NEXT:__ Learn how to deploy your smart contracts into a cloud environment, using IBM Blockchain Platform on IBM Cloud.
+
+> <button> this is a button </button> -->
+

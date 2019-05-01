@@ -16,6 +16,9 @@
 
 import { YeomanAdapter } from '../util/YeomanAdapter';
 import * as GeneratorFabric from 'generator-fabric';
+import * as GeneratorFabricChaincode from 'generator-fabric/generators/chaincode';
+import * as GeneratorFabricContract from 'generator-fabric/generators/contract';
+import * as GeneratorFabricNetwork from 'generator-fabric/generators/network';
 import * as util from 'util';
 import * as yeoman from 'yeoman-environment';
 
@@ -23,10 +26,11 @@ export class YeomanUtil {
 
     public static async run(generator: string, options: object): Promise<void> {
         const env: any = yeoman.createEnv([], {}, new YeomanAdapter());
-        env.registerStub(GeneratorFabric, 'fabric');
-        env.lookupAsync = util.promisify(env.lookup);
+        env.registerStub(GeneratorFabric, 'fabric', require.resolve('generator-fabric'));
+        env.registerStub(GeneratorFabricChaincode, 'fabric:chaincode', require.resolve('generator-fabric/generators/chaincode'));
+        env.registerStub(GeneratorFabricContract, 'fabric:contract', require.resolve('generator-fabric/generators/contract'));
+        env.registerStub(GeneratorFabricNetwork, 'fabric:network', require.resolve('generator-fabric/generators/network'));
         env.runAsync = util.promisify(env.run);
-        await env.lookupAsync();
         await env.runAsync(generator, options);
     }
 

@@ -132,7 +132,7 @@ Left-click the `local_fabric` gateway to connect to it within the `Fabric Gatewa
 <img src="/client/media/connect_local_fabric.gif" width="85%" alt="Connect to local_fabric runtime">
 
 ### Connect to your own Hyperledger Fabric instance and discover the existing resources
-Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. Further documentation here: 
+Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.1 or later. Further documentation here: 
 
 https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html
 
