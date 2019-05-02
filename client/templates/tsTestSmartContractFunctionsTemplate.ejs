@@ -1,16 +1,19 @@
-export class testFunctions {
-        async function submitTransaction(functionName: string, args: string[]): Promise<Buffer> {
+import * as fabricNetwork from 'fabric-network';
+
+export class TestFunctions {
+
+    public async submitTransaction(functionName: string, args: string[], channelName, chaincodeName, gateway): Promise<Buffer> {
         // Submit transaction
 
-        const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
-        const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>');
+        const network: fabricNetwork.Network = await gateway.getNetwork(channelName);
+        const contract: fabricNetwork.Contract = await network.getContract(chaincodeName);
 
         const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
         return responseBuffer;
     }
 
     // Checks if URL is localhost
-    function isLocalhostURL(url: string): boolean {
+    public isLocalhostURL(url: string): boolean {
         const parsedURL: URL = new URL(url);
         const localhosts: string[] = [
             'localhost',
@@ -20,7 +23,7 @@ export class testFunctions {
     }
 
     // Used for determining whether to use discovery
-    function hasLocalhostURLs(profile: any): boolean {
+    public hasLocalhostURLs(profile: any): boolean {
         const urls: string[] = [];
         for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
             if (!profile[nodeType]) {
@@ -34,6 +37,6 @@ export class testFunctions {
                 urls.push(nodes[nodeName].url);
             }
         }
-        return urls.some((url: string) => isLocalhostURL(url));
+        return urls.some((url: string) => this.isLocalhostURL(url));
     }
 }

@@ -27,6 +27,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { Reporter } from '../../src/util/Reporter';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -113,5 +114,13 @@ describe('openFabricRuntimeTerminal', () => {
             ]
         );
         mockTerminal.show.should.have.been.calledOnce;
+    });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL);
+
+        reporterStub.should.have.been.calledWith('openFabricRuntimeTerminalCommand');
     });
 });

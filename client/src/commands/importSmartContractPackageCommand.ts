@@ -15,6 +15,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { Reporter } from '../util/Reporter';
 import { UserInputUtil } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
@@ -52,6 +53,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
 
         VSCodeBlockchainOutputAdapter.instance().log(LogType.SUCCESS, 'Successfully imported smart contract package', `Successfully imported smart contract package ${packageName}`);
+        Reporter.instance().sendTelemetryEvent('importSmartContractPackageCommand');
     } catch (error) {
         VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error}`);
     }

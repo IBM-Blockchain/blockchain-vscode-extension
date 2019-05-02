@@ -14,6 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import { UserInputUtil } from './UserInputUtil';
+import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
@@ -56,6 +57,7 @@ export async function addGateway(): Promise<{} | void> {
         await fabricGatewayRegistry.add(fabricGatewayEntry);
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
+        Reporter.instance().sendTelemetryEvent('addGatewayCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
     }

@@ -20,6 +20,8 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import { TutorialView } from '../../src/webview/TutorialView';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
@@ -57,5 +59,14 @@ describe('TutorialView', () => {
         const tutorialView: TutorialView = new TutorialView('IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
         const result: string = await tutorialView['getHTMLString']();
         result.should.equal('');
+    });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        const tutorialView: TutorialView = new TutorialView('IBMCode/Code-Tutorials', 'Developing smart contracts with IBM Blockchain VSCode Extension');
+        await tutorialView.openView();
+
+        reporterStub.should.have.been.calledWith('Tutorial Viewed', {tutorial: 'Developing smart contracts with IBM Blockchain VSCode Extension'});
     });
 });

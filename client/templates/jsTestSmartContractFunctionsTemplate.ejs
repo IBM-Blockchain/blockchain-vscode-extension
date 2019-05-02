@@ -1,0 +1,47 @@
+'use strict';
+
+const fabricNetwork = require('fabric-network');
+
+export class TestFunctions {
+
+async function submitTransaction(functionName, args, channelName, contractName, chaincodeName) {
+        // Submit transaction
+        const network = await gateway.getNetwork(channelName);
+<%_ if (contractName !== '') { _%>
+        const contract = await network.getContract('<%=chaincodeName%>', '<%=contractName%>');
+<%_ } else { _%>
+        const contract = await network.getContract('<%=chaincodeName%>');
+<%_ } _%>
+        const responseBuffer = await contract.submitTransaction(functionName, ...args);
+        return responseBuffer;
+    }
+
+    // Checks if URL is localhost
+    function isLocalhostURL(url) {
+        const parsedURL = URL.parse(url);
+        const localhosts = [
+            'localhost',
+            '127.0.0.1'
+        ];
+        return localhosts.indexOf(parsedURL.hostname) !== -1;
+    }
+
+    // Used for determining whether to use discovery
+    function hasLocalhostURLs(connectionProfile) {
+        const urls = [];
+        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
+            if (!connectionProfile[nodeType]) {
+                continue;
+            }
+            const nodes = connectionProfile[nodeType];
+            for (const nodeName in nodes) {
+                if (!nodes[nodeName].url) {
+                    continue;
+                }
+                urls.push(nodes[nodeName].url);
+            }
+        }
+        return urls.some((url) => isLocalhostURL(url));
+    }
+
+}

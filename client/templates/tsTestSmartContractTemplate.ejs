@@ -22,13 +22,13 @@ import * as assert from 'assert';
 import * as fabricNetwork from 'fabric-network';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
-import { URL } from 'url';
-import { testFunctions } from './testFunctions';
+import { TestFunctions } from './test-functions';
+
 <%_ if (connectionProfileHome || walletHome) {-%>
 import * as os from 'os';
 import * as path from 'path';
 <%_ }-%>
-
+import { URL } from 'url';
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -47,6 +47,7 @@ describe('<%=chaincodeLabel%>' , () => {
     const gateway: fabricNetwork.Gateway = new fabricNetwork.Gateway();
     const fabricWallet: fabricNetwork.FileSystemWallet = new fabricNetwork.FileSystemWallet(walletPath);
     const identityName: string = '<%-identityName%>';
+    const testFunctions: TestFunctions = new TestFunctions();
     let connectionProfile: any;
 
     before(async () => {
@@ -110,7 +111,7 @@ describe('<%=chaincodeLabel%>' , () => {
         const args: string[] = [];
         <%_ } _%>
 
-        const response: Buffer = await testFunctions.submitTransaction('<%=transaction.name%>', args);
+        const response: Buffer = await testFunctions.submitTransaction('<%=transaction.name%>', args, '<%=channelName%>', '<%=chaincodeName%>', gateway);
         // submitTransaction returns buffer of transcation return value
         // TODO: Update with return value of transaction
         assert.equal(true, true);

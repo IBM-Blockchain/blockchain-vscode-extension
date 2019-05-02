@@ -26,6 +26,7 @@ You will need the following installed in order to use the extension:
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
+- [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
 
 > ⚠ Please note: From version 0.1.0+, your smart contract package.json should depend on at least fabric-contract@1.4.0-beta2. This is only required for smart contracts not created using version 0.1.0+ of this extension.
 
@@ -71,7 +72,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for the local_fabric gateway |
 | Export Package | Export a smart contract package to use outside VSCode |
-| Generate Smart Contract Tests | Create a functional level test file for instantiated smart contracts |
+| Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
 | Import Package | Import a smart contract package |
 | Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
@@ -132,7 +133,7 @@ Left-click the `local_fabric` gateway to connect to it within the `Fabric Gatewa
 <img src="/client/media/connect_local_fabric.gif" width="85%" alt="Connect to local_fabric runtime">
 
 ### Connect to your own Hyperledger Fabric instance and discover the existing resources
-Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.0 or later. Further documentation here: 
+Using this extension, you can connect to a pre-configured local instance of Hyperledger Fabric named `local_fabric`, or you can connect to your own Hyperledger Fabric instance. If you choose to connect to your own Hyperledger Fabric instance, it must be running Hyperledger Fabric v1.4.1 or later. Further documentation here: 
 
 https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html
 

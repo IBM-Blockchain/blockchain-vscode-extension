@@ -13,6 +13,7 @@
 */
 
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
@@ -33,7 +34,7 @@ export async function openFabricRuntimeTerminal(): Promise<void> {
         peerContainerName,
         'bash'
     ];
-
+    Reporter.instance().sendTelemetryEvent('openFabricRuntimeTerminalCommand');
     const terminal: vscode.Terminal = vscode.window.createTerminal(name, shellPath, shellArgs);
     terminal.show();
 }

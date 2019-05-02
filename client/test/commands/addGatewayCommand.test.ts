@@ -24,6 +24,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -160,5 +162,17 @@ describe('AddGatewayCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: already exists`);
         });
+
+        it ('should send a telemetry event if the extension is for production', async () => {
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            showInputBoxStub.onFirstCall().resolves('myGateway');
+            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            reporterStub.should.have.been.calledWith('addGatewayCommand');
+        });
+
     });
 });

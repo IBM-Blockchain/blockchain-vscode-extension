@@ -30,6 +30,8 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as ejs from 'ejs';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { View } from '../../src/webview/View';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -421,6 +423,23 @@ describe('SampleView', () => {
             });
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
         });
+
+        it('should send a telemetry event if the extension is for production', async () => {
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            setUpTest(false);
+            mySandBox.stub(RepositoryRegistry.prototype, 'add').resolves();
+
+            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
+            mySandBox.stub(CommandUtil, 'sendCommandWithProgress').resolves();
+            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+
+            await sampleView.openView(false);
+            await Promise.all(onDidReceiveMessagePromises);
+
+            reporterStub.should.have.been.calledWith('Sample Cloned', {sample: 'FabCar'});
+        });
+
     });
 
     describe('openFile', () => {
@@ -682,5 +701,26 @@ describe('SampleView', () => {
 
             openNewProjectStub.should.not.have.been.called;
         });
+
+        it('should send a telemetry event if the extension is for production', async () => {
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            await setupTest('contracts', 'FabCar Contract', 'Go');
+            mySandBox.stub(fs, 'pathExists').resolves(true);
+            mySandBox.stub(shell, 'cd').returns(undefined);
+            mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
+            mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
+            mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
+
+            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+
+            await sampleView.openView(false);
+
+            await Promise.all(onDidReceiveMessagePromises);
+
+            reporterStub.should.have.been.calledWith('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
+        });
+
     });
 });

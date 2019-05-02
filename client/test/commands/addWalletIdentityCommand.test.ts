@@ -40,6 +40,8 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -414,9 +416,57 @@ describe('AddWalletIdentityCommand', () => {
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
             });
 
+            it('should send a telemetry event when using an enrollmentID if the extension is for production', async () => {
+                mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+                const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+                showWalletsQuickPickStub.resolves({
+                    label: 'blueWallet',
+                    data: FabricWalletRegistry.instance().get('blueWallet')
+                });
+
+                inputBoxStub.onFirstCall().resolves('greenConga');
+                inputBoxStub.onSecondCall().resolves('myMSPID');
+                addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+                showGatewayQuickPickBoxStub.resolves({
+                    label: 'myGatewayA',
+                    data: FabricGatewayRegistry.instance().get('myGatewayA')
+                });
+                getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
+                enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
+                importIdentityStub.resolves();
+
+                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+
+                reporterStub.should.have.been.calledWith('addWalletIdentityCommand', {method: 'enrollmentID'});
+            });
+
+            it('should send a telemetry event when using certificates if the extension is for production', async () => {
+                mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+                const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+                showWalletsQuickPickStub.resolves({
+                    label: 'blueWallet',
+                    data: FabricWalletRegistry.instance().get('blueWallet')
+                });
+
+                inputBoxStub.onFirstCall().resolves('blueConga');
+                inputBoxStub.onSecondCall().resolves('myMSPID');
+                addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+                getCertKeyStub.resolves({certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'), privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')});
+                fsReadFile.onFirstCall().resolves('---CERT---');
+                fsReadFile.onSecondCall().resolves('---KEY---');
+                importIdentityStub.resolves();
+
+                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+
+                reporterStub.should.have.been.calledWith('addWalletIdentityCommand', {method: 'Certificate'});
+            });
+
         });
 
         describe('called from IFabricWallet - addWallet command', () => {
+
             it('should test an identity can be enrolled to a new wallet', async () => {
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
@@ -446,6 +496,9 @@ describe('AddWalletIdentityCommand', () => {
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
 
             });
+
         });
+
     });
+
 });

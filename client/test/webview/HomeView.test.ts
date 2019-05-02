@@ -22,13 +22,15 @@ import * as path from 'path';
 import { HomeView } from '../../src/webview/HomeView';
 import { View } from '../../src/webview/View';
 import * as ejs from 'ejs';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { Reporter } from '../../src/util/Reporter';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('HomeView', () => {
     let mySandBox: sinon.SinonSandbox;
-
+    let onDidReceiveMessagePromises: any[];
     let createWebviewPanelStub: sinon.SinonStub;
     let context: vscode.ExtensionContext;
     beforeEach(async () => {
@@ -134,4 +136,69 @@ describe('HomeView', () => {
         const homeView: HomeView = new HomeView(context);
         await homeView.openView(true).should.be.rejectedWith(error);
     });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        onDidReceiveMessagePromises = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'telemetry',
+                            url: 'https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview',
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        const homeView: HomeView = new HomeView(context);
+        await homeView.openView(false);
+
+        await Promise.all(onDidReceiveMessagePromises);
+
+        reporterStub.should.have.been.calledWith('Referral', {source: 'homepage', destination: 'https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview'});
+    });
+
+    it('should not send a telemetry event if the links were not clicked', async () => {
+        onDidReceiveMessagePromises = [];
+
+        onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
+            createWebviewPanelStub.onCall(0).returns({
+                webview: {
+                    onDidReceiveMessage: async (callback: any): Promise<void> => {
+                        await callback({
+                            command: 'randomting',
+                            url: 'https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview',
+                        });
+                        resolve();
+                    }
+                },
+                reveal: (): void => {
+                    return;
+                },
+                onDidDispose: mySandBox.stub(),
+                onDidChangeViewState: mySandBox.stub()
+            });
+        }));
+
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        const homeView: HomeView = new HomeView(context);
+        await homeView.openView(false);
+
+        await Promise.all(onDidReceiveMessagePromises);
+
+        reporterStub.should.not.have.been.called;
+    });
+
 });

@@ -15,6 +15,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import { Reporter } from '../util/Reporter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -57,4 +58,5 @@ export async function exportConnectionProfile(): Promise<void> {
         return;
     }
     outputAdapter.log(LogType.SUCCESS, `Successfully exported connection profile to ${dir}`);
+    Reporter.instance().sendTelemetryEvent('exportConnectionProfileCommand');
 }

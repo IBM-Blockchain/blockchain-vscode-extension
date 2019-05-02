@@ -61,6 +61,7 @@ export class FabricNode {
     public type: FabricNodeType;
     public api_url: string;
     public pem?: string;
+    public ssl_target_name_override?: string;
     public wallet?: string;
     public identity?: string;
     public msp_id?: string;

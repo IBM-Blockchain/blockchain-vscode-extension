@@ -61,7 +61,11 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                 if (node.pem) {
                     pem = Buffer.from(node.pem, 'base64').toString();
                 }
-                const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': url.hostname });
+                let sslTargetNameOverride: string = url.hostname;
+                if (node.ssl_target_name_override) {
+                    sslTargetNameOverride = node.ssl_target_name_override;
+                }
+                const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
                 this.peers.set(node.name, peer);
                 break;
             }
@@ -71,7 +75,11 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                 if (node.pem) {
                     pem = Buffer.from(node.pem, 'base64').toString();
                 }
-                const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': url.hostname });
+                let sslTargetNameOverride: string = url.hostname;
+                if (node.ssl_target_name_override) {
+                    sslTargetNameOverride = node.ssl_target_name_override;
+                }
+                const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
                 this.orderers.set(node.name, orderer);
                 break;
             }
@@ -246,12 +254,12 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         }
     }
 
-    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, false);
+    public async instantiateChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, false);
     }
 
-    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>): Promise<Buffer> {
-        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, true);
+    public async upgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionPath: string): Promise<Buffer> {
+        return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, true);
     }
 
     public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
@@ -287,7 +295,7 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         return fabricWalletGenerator.createLocalWallet(walletName);
     }
 
-    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, upgrade: boolean): Promise<Buffer> {
+    private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, upgrade: boolean): Promise<Buffer> {
 
         // Locate all of the requested peer nodes.
         const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
@@ -310,37 +318,44 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
             }
         }
 
-        // Build the transaction proposal.
-        const txId: Client.TransactionId = this.client.newTransactionID();
-        const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
-            targets: peers,
-            chaincodeId: name,
-            chaincodeVersion: version,
-            txId,
-            fcn,
-            args
-        };
-
-        // Send the instantiate/upgrade proposal to all of the specified peers.
-        let proposalResponseObject: Client.ProposalResponseObject;
+        // Check for the error cases.
         if (!upgrade) {
             if (foundChaincodeName) {
                 throw new Error(`The smart contract ${name} is already instantiated on the channel ${channelName}`);
-            } else {
-                this.outputAdapter.log(LogType.INFO, undefined, `Instantiating with function: '${fcn}' and arguments: '${args}'`);
-                // Use a lengthy timeout to cater for building of Docker images on slower systems.
-                proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
             }
         } else {
             if (foundChaincodeNameAndVersion) {
                 throw new Error(`The smart contract ${name} with version ${version} is already instantiated on the channel ${channelName}`);
             } else if (!foundChaincodeName) {
                 throw new Error(`The smart contract ${name} is not instantiated on the channel ${channelName}, so cannot be upgraded`);
-            } else {
-                this.outputAdapter.log(LogType.INFO, undefined, `Upgrading with function: '${fcn}' and arguments: '${args}'`);
-                // Use a lengthy timeout to cater for building of Docker images on slower systems.
-                proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
             }
+        }
+
+        // Find the orderer for this channel.
+        const orderer: Client.Orderer = await this.getOrdererForChannel(peers, channel);
+
+        // Build the transaction proposal.
+        const txId: Client.TransactionId = this.client.newTransactionID();
+        const instantiateOrUpgradeRequest: Client.ChaincodeInstantiateUpgradeRequest = {
+            'targets': peers,
+            'chaincodeId': name,
+            'chaincodeVersion': version,
+            txId,
+            fcn,
+            args,
+            'collections-config': collectionsConfig
+        };
+
+        // Send the instantiate/upgrade proposal to all of the specified peers.
+        let proposalResponseObject: Client.ProposalResponseObject;
+        if (!upgrade) {
+            this.outputAdapter.log(LogType.INFO, undefined, `Instantiating with function: '${fcn}' and arguments: '${args}'`);
+            // Use a lengthy timeout to cater for building of Docker images on slower systems.
+            proposalResponseObject = await channel.sendInstantiateProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
+        } else {
+            this.outputAdapter.log(LogType.INFO, undefined, `Upgrading with function: '${fcn}' and arguments: '${args}'`);
+            // Use a lengthy timeout to cater for building of Docker images on slower systems.
+            proposalResponseObject = await channel.sendUpgradeProposal(instantiateOrUpgradeRequest, 5 * 60 * 1000);
         }
 
         // Validate the proposal responses.
@@ -389,8 +404,6 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         });
 
         // Send the proposal responses to the ordering service.
-        // TODO: this badly assumes there is only ever one ordering service.
-        const orderer: Client.Orderer = Array.from(this.orderers.values())[0];
         const broadcastResponse: Client.BroadcastResponse = await channel.sendTransaction({
             proposal,
             proposalResponses: validProposalResponses,
@@ -448,6 +461,56 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         await this.setNodeContext(peerName);
         const channelQueryResponse: Client.ChannelQueryResponse = await this.client.queryChannels(peer);
         return channelQueryResponse.channels.map((channel: Client.ChannelInfo) => channel.channel_id).sort();
+    }
+
+    private isPeerLocal(peer: Client.Peer): boolean {
+        const localhosts: string[] = [
+            'localhost',
+            '127.0.0.1'
+        ];
+        const peerURL: URL = new URL(`${peer.getUrl()}`);
+        return localhosts.indexOf(peerURL.hostname) !== -1;
+    }
+
+    private areAllPeersLocal(peers: Client.Peer[]): boolean {
+        return peers.every((peer: Client.Peer) => this.isPeerLocal(peer));
+    }
+
+    private async getOrdererForChannel(peers: Client.Peer[], channel: Client.Channel): Promise<Client.Orderer> {
+
+        // Get and decode the channel configuration, which contains an array of orderer addresses.
+        const configEnvelope: any = await channel.getChannelConfig(peers[0]);
+        const loadedConfigEnvelope: any = channel.loadConfigEnvelope(configEnvelope);
+
+        // Check for a direct match against the "name" (aka host) of the orderer.
+        for (const ordererHost of loadedConfigEnvelope.orderers as string[]) {
+            for (const orderer of this.orderers.values()) {
+                if (orderer.getName() === ordererHost) {
+                    return orderer;
+                }
+            }
+        }
+
+        // We didn't find a direct match - if all the peers are local, then it's a good chance the orderer
+        // is local and we need to force the hostname to localhost - if not, throw an error.
+        const areAllPeersLocal: boolean = this.areAllPeersLocal(peers);
+        if (!areAllPeersLocal) {
+            throw new Error(`Failed to find Fabric orderer(s) ${loadedConfigEnvelope.orderers.join(', ')} for channel ${channel.getName()}`);
+        }
+
+        // Check for a match against the port of the orderer.
+        for (const ordererHost of loadedConfigEnvelope.orderers as string[]) {
+            const ordererPort: string = ordererHost.split(':')[1];
+            for (const orderer of this.orderers.values()) {
+                if (orderer.getName() === `localhost:${ordererPort}`) {
+                    return orderer;
+                }
+            }
+        }
+
+        // Couldn't find any match.
+        throw new Error(`Failed to find Fabric orderer(s) ${loadedConfigEnvelope.orderers.join(', ')} for channel ${channel.getName()}`);
+
     }
 
 }

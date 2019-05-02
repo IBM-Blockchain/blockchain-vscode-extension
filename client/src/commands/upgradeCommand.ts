@@ -47,7 +47,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         peerNames = treeItem.peers;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
 
@@ -70,7 +70,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
         peerNames = chosenChannel.data;
 
         // We should now ask for the instantiated smart contract to upgrade
-        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
+        const initialSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Select the instantiated smart contract to upgrade', channelName);
         contractName = initialSmartContract.data.name;
         contractVersion = initialSmartContract.data.version;
     }
@@ -81,7 +81,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
             return;
         }
 
-        const data: {packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder} = chosenChaincode.data;
+        const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = chosenChaincode.data;
 
         if (chosenChaincode.description === 'Packaged') {
             packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, data.packageEntry) as PackageRegistryEntry;
@@ -119,21 +119,48 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem): Promi
             }
         }
 
+        let collectionPath: string;
+        const wantCollection: string = await UserInputUtil.showQuickPickYesNo('Do you want to provide a private data collection configuration file?');
+
+        if (!wantCollection) {
+            return;
+        } else if (wantCollection === UserInputUtil.YES) {
+            let defaultUri: vscode.Uri;
+            const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
+            if (workspaceFolders.length > 0) {
+                defaultUri = workspaceFolders[0].uri;
+            }
+
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: false,
+                openLabel: 'Select',
+                defaultUri: defaultUri
+            };
+
+            collectionPath = await UserInputUtil.browse('Enter a file path to the collection configuration', quickPickItems, openDialogOptions) as string;
+            if (collectionPath === undefined) {
+                return;
+            }
+        }
+
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Blockchain Extension',
             cancellable: false
-        }, async (progress: vscode.Progress<{message: string}>) => {
+        }, async (progress: vscode.Progress<{ message: string }>) => {
 
-            progress.report({message: 'Upgrading Smart Contract'});
+            progress.report({ message: 'Upgrading Smart Contract' });
             const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
             if (packageEntry) {
                 // If the package has been installed as part of this command
-                await connection.upgradeChaincode(packageEntry.name, packageEntry.version, peerNames, channelName, fcn, args);
+                await connection.upgradeChaincode(packageEntry.name, packageEntry.version, peerNames, channelName, fcn, args, collectionPath);
             } else {
                 // If the package was already installed
-                await connection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, peerNames, channelName, fcn, args);
+                await connection.upgradeChaincode(data.packageEntry.name, data.packageEntry.version, peerNames, channelName, fcn, args, collectionPath);
             }
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');

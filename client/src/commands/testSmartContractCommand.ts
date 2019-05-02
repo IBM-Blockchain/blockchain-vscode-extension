@@ -29,11 +29,12 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 
-export async function testSmartContract(chaincode?: InstantiatedContractTreeItem): Promise<void> {
+export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedContractTreeItem | ContractTreeItem): Promise<void> {
 
     let chaincodeLabel: string;
-    let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string}>;
+    let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>;
     let channelName: string;
     let chaincodeName: string;
     let chaincodeVersion: string;
@@ -60,24 +61,48 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         chaincodeName = chosenChaincode.data.name;
         chaincodeVersion = chosenChaincode.data.version;
         channelName = chosenChaincode.data.channel;
-
     } else {
-        // Smart Contract selected from the tree item, so assign label and name
-        chaincodeLabel = chaincode.label;
-        chaincodeName = chaincode.name;
-        channelName = chaincode.channel.label;
-        chaincodeVersion = chaincode.version;
+
+        if (chaincode instanceof ContractTreeItem) {
+            chaincodeLabel = chaincode.instantiatedChaincode.label;
+            chaincodeName = chaincode.instantiatedChaincode.name;
+            channelName = chaincode.instantiatedChaincode.channel.label;
+            chaincodeVersion = chaincode.instantiatedChaincode.version;
+        } else {
+            // Smart Contract selected from the tree item, so assign label and name
+            chaincodeLabel = chaincode.label;
+            chaincodeName = chaincode.name;
+            channelName = chaincode.channel.label;
+            chaincodeVersion = chaincode.version;
+        }
     }
     console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
     // Get metadata
     const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
 
-    const transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
+    let transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
     if (transactions.size === 0) {
         outputAdapter.log(LogType.ERROR, `Populated metadata required for generating smart contract tests, see previous error`);
 
         return;
+    }
+
+    if ((chaincode && chaincode instanceof ContractTreeItem) || (!allContracts && !chaincode && transactions.size > 1)) {
+        let chosenContract: string;
+
+        if (chaincode && chaincode instanceof ContractTreeItem) {
+            chosenContract = chaincode.name;
+        } else {
+            chosenContract = await UserInputUtil.showContractQuickPick('Choose a contract to generate tests for', Array.from(transactions.keys()));
+            if (!chosenContract) {
+                return;
+            }
+        }
+
+        const tempTransactions: Map<string, any[]> = transactions;
+        transactions = new Map<string, any[]>();
+        transactions.set(chosenContract, tempTransactions.get(chosenContract));
     }
 
     // Ask the user which language to write the tests in
@@ -134,7 +159,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         let walletHome: boolean;
         let pathWithoutHomeDir: string;
 
-        if ( fabricGatewayRegistryEntry.connectionProfilePath.includes(homedir)) {
+        if (fabricGatewayRegistryEntry.connectionProfilePath.includes(homedir)) {
             connectionProfilePathString = 'path.join(homedir';
             pathWithoutHomeDir = fabricGatewayRegistryEntry.connectionProfilePath.slice(homedir.length + 1);
             pathWithoutHomeDir.split('/').forEach((item: string) => {
@@ -180,9 +205,13 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
 
         // Create data to write to file from template engine
         const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
+        const functionTemplate: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractFunctionsTemplate.ejs`);
+
         let dataToWrite: string;
+        let functionDataToWrite: string;
         try {
             dataToWrite = await createDataToWrite(template, templateData);
+            functionDataToWrite = await createDataToWrite(functionTemplate, {});
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error creating template data: ${error.message}`, `Error creating template data: ${error.toString()}`);
 
@@ -224,13 +253,17 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
             }
         }
 
+        const testFunctionFile: string = path.join(functionalTestsDirectory, `test-functions.${testFileSuiffix}`);
+
         // Create the test file
         try {
             await fs.ensureFile(testFile);
+            await fs.ensureFile(testFunctionFile);
         } catch (error) {
             console.log('Errored creating test file: ' + testFile);
             outputAdapter.log(LogType.ERROR, `Error creating test file: ${error.message}`, `Error creating test file: ${error.toString()}`);
             await removeTestFile(testFile);
+            await removeTestFile(testFunctionFile);
             return;
         }
         outputAdapter.log(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFile}`);
@@ -246,15 +279,24 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
 
         const lineCount: number = document.lineCount;
         const textEditorResult: boolean = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
-                editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
+            editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
         });
-        if (!textEditorResult) {
+
+        const functionDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(testFunctionFile);
+        const editor: vscode.TextEditor = await vscode.window.showTextDocument(functionDocument);
+        const functionLineCount: number = functionDocument.lineCount;
+        const editorResult: boolean = await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+            editBuilder.replace(new vscode.Range(0, 0, functionLineCount, 0), functionDataToWrite);
+        });
+
+        if (!textEditorResult || !editorResult) {
             outputAdapter.log(LogType.ERROR, `Error editing test file: ${testFile}`);
             await removeTestFile(testFile);
             return;
 
         }
         await document.save();
+        await functionDocument.save();
 
     } // end of for each contract
 
@@ -299,7 +341,7 @@ export async function testSmartContract(chaincode?: InstantiatedContractTreeItem
         try {
             const tsConfigExists: boolean = await fs.pathExists(tsConfigPath);
             if (!tsConfigExists) {
-                await fs.writeJson(tsConfigPath, tsConfigContents, {spaces: '\t'});
+                await fs.writeJson(tsConfigPath, tsConfigContents, { spaces: '\t' });
             } else {
                 // Assume that the users tsconfig.json file is compatible, but don't error
                 outputAdapter.log(LogType.WARNING, `Unable to create tsconfig.json file as it already exists`);
@@ -322,7 +364,7 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
     const ejsOptions: ejs.Options = {
         async: true,
     };
-    return new Promise ( (resolve: any, reject: any): any => {
+    return new Promise((resolve: any, reject: any): any => {
         // TODO: promisify this?
         ejs.renderFile(template, templateData, ejsOptions, (error: any, data: any) => {
             if (error) {
@@ -330,7 +372,7 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
             } else {
                 resolve(data);
             }
-         });
+        });
     });
 }
 
@@ -354,11 +396,11 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0, @types/mocha, ts-node, typescript');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0 @types/mocha ts-node typescript', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.1 fabric-client@1.4.1 @types/mocha ts-node typescript', dir, 'Installing npm and package dependencies in smart contract project');
     } else {
-        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.0, fabric-client@1.4.0');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.0 fabric-client@1.4.0', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1');
+        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.1 fabric-client@1.4.1', dir, 'Installing npm and package dependencies in smart contract project');
     }
     outputAdapter.log(LogType.INFO, undefined, npmInstallOut);
 }

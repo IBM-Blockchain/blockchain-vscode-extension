@@ -83,6 +83,7 @@ export class IntegrationTestUtil {
     public addIdentityMethodStub: sinon.SinonStub;
     public showWalletsQuickPickStub: sinon.SinonStub;
     public showFolderOptions: sinon.SinonStub;
+    public showYesNoQuickPick: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -113,6 +114,7 @@ export class IntegrationTestUtil {
         this.addIdentityMethodStub = this.mySandBox.stub(UserInputUtil, 'addIdentityMethod');
         this.showWalletsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
         this.showFolderOptions = this.mySandBox.stub(UserInputUtil, 'showFolderOptions');
+        this.showYesNoQuickPick = this.mySandBox.stub(UserInputUtil, 'showQuickPickYesNo');
     }
 
     public async createFabricConnection(): Promise<void> {
@@ -269,7 +271,7 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT);
     }
 
-    public async instantiateSmartContract(name: string, version: string, transaction: string = '', args: string = ''): Promise<void> {
+    public async instantiateSmartContract(name: string, version: string, transaction: string = '', args: string = '', privateData: boolean = false): Promise<void> {
         this.showChannelStub.resolves({
             label: 'mychannel',
             data: ['peer0.org1.example.com']
@@ -292,6 +294,13 @@ export class IntegrationTestUtil {
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+
+        this.showYesNoQuickPick.resolves(UserInputUtil.NO);
+        if (privateData) {
+            this.showYesNoQuickPick.resolves(UserInputUtil.YES);
+            const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
+            this.browseStub.resolves(collectionPath);
+        }
         await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     }
 
@@ -324,6 +333,8 @@ export class IntegrationTestUtil {
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('');
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
+
+        this.showYesNoQuickPick.resolves(UserInputUtil.NO);
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
 

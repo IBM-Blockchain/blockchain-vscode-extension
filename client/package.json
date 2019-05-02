@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -93,6 +93,7 @@
             "gatewaysExplorer.refreshEntry",
             "gatewaysExplorer.editGatewayEntry",
             "gatewaysExplorer.testSmartContractEntry",
+            "gatewaysExplorer.testAllSmartContractEntry",
             "gatewaysExplorer.submitTransactionEntry",
             "gatewaysExplorer.evaluateTransactionEntry",
             "gatewaysExplorer.associateWallet",
@@ -355,8 +356,13 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "gatewaysExplorer.testAllSmartContractEntry",
+                "title": "Generate Tests For All Smart Contracts",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "gatewaysExplorer.testSmartContractEntry",
-                "title": "Generate Smart Contract Tests",
+                "title": "Generate Tests for Smart Contract",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -626,8 +632,16 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
+                    "command": "gatewaysExplorer.testAllSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item"
+                },
+                {
                     "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-contract-item"
+                },
+                {
+                    "command": "gatewaysExplorer.testSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-contract-item"
                 },
                 {
                     "command": "gatewaysExplorer.submitTransactionEntry",
@@ -1198,7 +1212,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
-        "generator-fabric": "0.0.27",
+        "generator-fabric": "0.0.29",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.0.0",
@@ -1211,9 +1225,9 @@
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
-        "fabric-ca-client": "1.4.1-snapshot.17",
-        "fabric-client": "1.4.1-snapshot.17",
-        "fabric-network": "1.4.1-snapshot.19"
+        "fabric-ca-client": "1.4.1",
+        "fabric-client": "1.4.1",
+        "fabric-network": "1.4.1"
     },
     "nativeDependencies": {
         "grpc": {
