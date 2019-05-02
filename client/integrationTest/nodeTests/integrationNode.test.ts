@@ -259,7 +259,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 instantiatedSmartContract.should.not.be.null;
 
                 await checkGeneratedSmartContract(language, smartContractName);
-                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '["1001", "hello world"]', 'CongaContract');
+                await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '["1001", "hello world"]', 'CongaContract', '{"key": "value"}');
                 logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);

@@ -85,6 +85,7 @@ describe('SubmitTransactionCommand', () => {
 
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             showInputBoxStub.onFirstCall().resolves('["arg1", "arg2", "arg3"]');
+            showInputBoxStub.onSecondCall().resolves('');
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
@@ -151,7 +152,7 @@ describe('SubmitTransactionCommand', () => {
 
         it('should evaluate the smart contract transaction through the command', async () => {
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', true);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
             reporterStub.should.have.been.calledWith('evaluate transaction');
@@ -194,7 +195,7 @@ describe('SubmitTransactionCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
 
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', true);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.have.been.called;
@@ -241,10 +242,11 @@ describe('SubmitTransactionCommand', () => {
 
             showInputBoxStub.onFirstCall().resolves('transaction1');
             showInputBoxStub.onSecondCall().resolves('["arg1", "arg2" ,"arg3"]');
+            showInputBoxStub.onThirdCall().resolves('');
 
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, instantiatedChainCodes[0]);
 
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3'], undefined, true);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('mySmartContract', 'transaction1', 'channelOne', ['arg1', 'arg2', 'arg3'], undefined, undefined, true);
 
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction');
             reporterStub.should.have.been.calledWith('evaluate transaction');
@@ -275,8 +277,8 @@ describe('SubmitTransactionCommand', () => {
         it('should submit the smart contract through the command with function but no args', async () => {
             showInputBoxStub.onFirstCall().resolves('[]');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
-            showInputBoxStub.should.have.been.calledOnce;
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined);
+            showInputBoxStub.should.have.been.calledTwice;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
@@ -285,14 +287,45 @@ describe('SubmitTransactionCommand', () => {
         it('should submit the smart contract through the command with function but no args or brackets', async () => {
             showInputBoxStub.onFirstCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
-            showInputBoxStub.should.have.been.calledOnce;
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined);
+            showInputBoxStub.should.have.been.calledTwice;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
         });
 
-        it('should error when given incorrect JSON', async () => {
+        it('should submit the smart contract through the command with transient data', async () => {
+            showInputBoxStub.onSecondCall().resolves('{ "key" : "value"}');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', {key: Buffer.from('value')});
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.have.been.called;
+        });
+
+        it('should handle cancelling when required to give transient data', async () => {
+            showInputBoxStub.onSecondCall().resolves(undefined);
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should error when required to give transient data', async () => {
+            showInputBoxStub.onSecondCall().resolves('{"wrong}');
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+            fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error with transaction transient data: Unexpected end of JSON input`);
+            reporterStub.should.not.have.been.calledWith('submit transaction');
+            dockerLogsOutputSpy.should.not.have.been.called;
+        });
+
+        it('should error when given incorrect JSON for args', async () => {
             showInputBoxStub.onFirstCall().resolves('["testArg]');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
             logSpy.should.have.been.calledTwice;
@@ -318,8 +351,8 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.submitTransaction.resolves(result);
             showInputBoxStub.onFirstCall().resolves('[]');
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract');
-            showInputBoxStub.should.have.been.calledOnce;
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined);
+            showInputBoxStub.should.have.been.calledTwice;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction', `Returned value from transaction1: ${result}`);
             reporterStub.should.have.been.calledWith('submit transaction');
             dockerLogsOutputSpy.should.have.been.called;
@@ -332,8 +365,8 @@ describe('SubmitTransactionCommand', () => {
             fabricClientConnectionMock.submitTransaction.resolves(result);
             showInputBoxStub.onFirstCall().resolves('[]');
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
-            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', true);
-            showInputBoxStub.should.have.been.calledOnce;
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWithExactly('myContract', 'transaction1', 'myChannel', [], 'my-contract', undefined, true);
+            showInputBoxStub.should.have.been.calledTwice;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully evaluated transaction', `No value returned from transaction1`);
             reporterStub.should.have.been.calledWith('evaluate transaction');
             dockerLogsOutputSpy.should.have.been.called;
