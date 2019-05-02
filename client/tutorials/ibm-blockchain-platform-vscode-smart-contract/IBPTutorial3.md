@@ -79,7 +79,7 @@ Here's how to get them, using the operational console:
 
    4. Choose `client` as the Type, and leave the Affiliation as whatever is set as the default (it doesn't matter for our purposes!). Click `Next`.
 
-   5. For now we can leave maximum enrolments blank and hit `Next`.
+   5. For now we can leave maximum enrollments blank and hit `Next`.
 
    > **Note:** Setting a max enrollments number would be useful if you intended to send this enroll ID + secret to someone and want to make sure only that person ever uses them. A setting of 1 would mean that enrollment (which we'll see happen a little later in this tutorial) can only happen once: after that, the enroll ID + secret can never be exchanged for an ID again. When you're operating a real environment, working together with other devs, you might want to consider using this setting!
 
