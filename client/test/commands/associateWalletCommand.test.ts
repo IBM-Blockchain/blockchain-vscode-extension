@@ -117,6 +117,21 @@ describe('AssociateWalletCommand', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated "blueWallet" wallet with "myGateway" gateway`);
         });
 
+        it('should display an error message if no user added wallets exist', async () => {
+            await FabricWalletRegistry.instance().clear();
+
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
+            const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
+
+            await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET, gatewayTreeItem);
+
+            showWalletsQuickPickBoxStub.should.not.have.been.called;
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `You must first add a wallet, to then associate with this gateway`);
+        });
+
         it('should test associating a wallet can be cancelled when asked to select a wallet', async () => {
             showWalletsQuickPickBoxStub.resolves();
 
