@@ -21,6 +21,7 @@ import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
+import { ExtensionCommands } from '../../../ExtensionCommands';
 
 export class LocalGatewayTreeItem extends BlockchainTreeItem {
 
@@ -75,13 +76,15 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
         } else if (running) {
             // Running!
             this.disableBusyTicker();
-            const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            gateway.name = this.name;
-            gateway.managedRuntime = true;
             newLabel += '●';
             newTooltip = `Local Fabric is running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET}`;
+            newCommand = {
+                command: ExtensionCommands.CONNECT,
+                title: '',
+                arguments: [this.gateway]
+            };
         } else {
             // Not running!
             this.disableBusyTicker();
@@ -89,6 +92,11 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
             newTooltip = `Local Fabric is not running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET}`;
+            newCommand = {
+                command: ExtensionCommands.CONNECT,
+                title: '',
+                arguments: [this.gateway]
+            };
         }
         if (developmentMode) {
             newLabel += '  ∞';
