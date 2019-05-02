@@ -25,14 +25,16 @@ export abstract class FabricConnection {
 
     public identityName: string;
     public wallet: FabricWalletRegistryEntry;
+    protected connectionProfilePath: string;
     protected outputAdapter: OutputAdapter;
     protected gateway: Gateway = new Gateway();
 
     private discoveryAsLocalhost: boolean;
     private discoveryEnabled: boolean;
 
-    constructor(outputAdapter?: OutputAdapter) {
+    constructor(connectionProfilePath: string, outputAdapter?: OutputAdapter) {
         this.gateway = new Gateway();
+        this.connectionProfilePath = connectionProfilePath;
         if (!outputAdapter) {
             this.outputAdapter = ConsoleOutputAdapter.instance();
         } else {
@@ -132,7 +134,7 @@ export abstract class FabricConnection {
             }
         };
 
-        await this.gateway.connect(connectionProfile, options);
+        await this.gateway.connect(this.connectionProfilePath, options);
     }
 
     protected async getChannel(channelName: string): Promise<Client.Channel> {
