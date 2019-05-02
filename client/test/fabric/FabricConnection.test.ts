@@ -34,8 +34,8 @@ describe('FabricConnection', () => {
 
         private connectionProfile: any;
 
-        constructor(connectionProfile: any, outputAdapter?: OutputAdapter) {
-            super(outputAdapter);
+        constructor(connectionProfilePath: string, connectionProfile: any, outputAdapter: OutputAdapter) {
+            super(connectionProfilePath, outputAdapter);
             this.connectionProfile = connectionProfile;
         }
 
@@ -78,7 +78,7 @@ describe('FabricConnection', () => {
         mockWallet = sinon.createStubInstance(FileSystemWallet);
         mockWallet.list.resolves([{ label: 'admin' }]);
 
-        fabricConnection = new TestFabricConnection(connectionProfile);
+        fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
 
         fabricClientStub = mySandBox.createStubInstance(fabricClient);
         fabricClientStub.newTransactionID.returns({
@@ -129,7 +129,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            const fabConnection: TestFabricConnection = new TestFabricConnection(connectionProfile, adapter);
+            const fabConnection: TestFabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, adapter);
             fabConnection['outputAdapter'].should.deep.equal(adapter);
         });
     });
@@ -144,7 +144,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -158,7 +158,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.false;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -172,7 +172,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.false;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -186,7 +186,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -200,7 +200,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.false;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -214,7 +214,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.false;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -228,7 +228,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.true;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -242,7 +242,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.false;
             fabricConnection['discoveryEnabled'].should.be.true;
@@ -256,7 +256,7 @@ describe('FabricConnection', () => {
                     }
                 }
             };
-            fabricConnection = new TestFabricConnection(connectionProfile);
+            fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
             await fabricConnection.connect(mockWallet, mockIdentityName);
             fabricConnection['discoveryAsLocalhost'].should.be.false;
             fabricConnection['discoveryEnabled'].should.be.true;
