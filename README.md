@@ -26,6 +26,7 @@ You will need the following installed in order to use the extension:
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
+- [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
 
 > ⚠ Please note: From version 0.1.0+, your smart contract package.json should depend on at least fabric-contract@1.4.0-beta2. This is only required for smart contracts not created using version 0.1.0+ of this extension.
 
