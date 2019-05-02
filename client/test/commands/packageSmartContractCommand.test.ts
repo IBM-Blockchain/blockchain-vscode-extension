@@ -24,6 +24,8 @@ import { Package } from 'fabric-client';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -1308,6 +1310,23 @@ describe('packageSmartContract', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
+        });
+
+        it('should send a telemetry event if the extension is for production', async () => {
+            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            reporterStub.should.have.been.calledWith('packageCommand');
         });
     });
 });

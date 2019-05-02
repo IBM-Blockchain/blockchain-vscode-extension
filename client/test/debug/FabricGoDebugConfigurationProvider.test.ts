@@ -29,6 +29,8 @@ import * as dateFormat from 'dateformat';
 import { FabricGoDebugConfigurationProvider } from '../../src/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -261,5 +263,14 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 args: ['--peer.address', 'localhost:12345']
             });
         });
+
+        it('should send a telemetry event if the extension is for production', async () => {
+            mySandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+            const reporterStub: sinon.SinonStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+
+            reporterStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+        });
+
     });
 });

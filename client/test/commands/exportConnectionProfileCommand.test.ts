@@ -32,6 +32,7 @@ import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as fs from 'fs-extra';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { Reporter } from '../../src/util/Reporter';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
@@ -174,5 +175,13 @@ describe('exportConnectionProfileCommand', () => {
 
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
         logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
+    });
+
+    it ('should send a telemetry event if the extension is for production', async () => {
+        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, peerTreeItem);
+
+        reporterStub.should.have.been.calledWith('exportConnectionProfileCommand');
     });
 });

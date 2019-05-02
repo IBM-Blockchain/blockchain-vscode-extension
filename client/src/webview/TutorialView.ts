@@ -14,6 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { Reporter } from '../util/Reporter';
 import { View } from './View';
 
 export class TutorialView extends View {
@@ -36,6 +37,7 @@ export class TutorialView extends View {
         const uri: vscode.Uri = vscode.Uri.file(tutorialPath);
 
         await vscode.commands.executeCommand('markdown.showPreviewToSide', uri);
+        Reporter.instance().sendTelemetryEvent('Tutorial Viewed', {tutorial: this.tutorialName});
     }
 
     // Not needed for a tutorial view

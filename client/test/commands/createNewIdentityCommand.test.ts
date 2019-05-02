@@ -29,6 +29,8 @@ import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem'
 import * as myExtension from '../../src/extension';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
+import { Reporter } from '../../src/util/Reporter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -238,6 +240,16 @@ describe('createNewIdentityCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Issue creating new identity: something bad has occurred`);
+    });
+
+    it('should send a telemetry event if the extension is for production', async () => {
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        identityName = 'sammy';
+        inputBoxStub.resolves(identityName);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
+
+        reporterStub.should.have.been.calledWith('createNewIdentityCommand');
     });
 
 });
