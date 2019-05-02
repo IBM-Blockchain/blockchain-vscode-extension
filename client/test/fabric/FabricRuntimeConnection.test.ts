@@ -158,7 +158,9 @@ describe('FabricRuntimeConnection', () => {
             peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
             peerValues.should.have.lengthOf(2);
             peerValues[0].should.be.an.instanceOf(Client.Peer);
-            peerValues[0].toString().should.match(/url:grpc:\/\/localhost:7051/);
+            const characteristics: any = peerValues[0]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:7051');
+            characteristics.url.should.equal('grpc://localhost:7051');
         });
 
         it('should create secure peer clients for each secure peer node', async () => {
@@ -167,7 +169,34 @@ describe('FabricRuntimeConnection', () => {
             peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
             peerValues.should.have.lengthOf(2);
             peerValues[1].should.be.an.instanceOf(Client.Peer);
-            peerValues[1].toString().should.match(/url:grpcs:\/\/localhost:8051/);
+            const characteristics: any = peerValues[1]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:8051');
+            characteristics.url.should.equal('grpcs://localhost:8051');
+            characteristics.options['grpc.ssl_target_name_override'].should.equal('localhost');
+        });
+
+        it('should create secure peer clients for each secure peer node with an SSL target name override', async () => {
+            const node: FabricNode = FabricNode.newSecurePeer(
+                'peer0.org2.example.com',
+                'peer0.org2.example.com',
+                `grpcs://localhost:8051`,
+                TLS_CA_CERTIFICATE,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org2MSP'
+            );
+            node.ssl_target_name_override = 'peer0.org2.example.com';
+            mockRuntime.getNodes.resolves([node]);
+            await connection.disconnect();
+            await connection.connect();
+            const peerNames: string[] = Array.from(connection['peers'].keys());
+            const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
+            peerNames.should.deep.equal(['peer0.org2.example.com']);
+            peerValues.should.have.lengthOf(1);
+            const characteristics: any = peerValues[0]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:8051');
+            characteristics.url.should.equal('grpcs://localhost:8051');
+            characteristics.options['grpc.ssl_target_name_override'].should.equal('peer0.org2.example.com');
         });
 
         it('should create orderer clients for each orderer node', async () => {
@@ -176,7 +205,9 @@ describe('FabricRuntimeConnection', () => {
             ordererNames.should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
             ordererValues.should.have.lengthOf(2);
             ordererValues[0].should.be.an.instanceOf(Client.Orderer);
-            ordererValues[0].toString().should.match(/url:grpc:\/\/localhost:7050/);
+            const characteristics: any = ordererValues[0]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:7050');
+            characteristics.url.should.equal('grpc://localhost:7050');
         });
 
         it('should create secure orderer clients for each secure orderer node', async () => {
@@ -185,7 +216,35 @@ describe('FabricRuntimeConnection', () => {
             ordererNames.should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
             ordererValues.should.have.lengthOf(2);
             ordererValues[1].should.be.an.instanceOf(Client.Orderer);
-            ordererValues[1].toString().should.match(/url:grpcs:\/\/localhost:8050/);
+            const characteristics: any = ordererValues[1]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:8050');
+            characteristics.url.should.equal('grpcs://localhost:8050');
+            characteristics.options['grpc.ssl_target_name_override'].should.equal('localhost');
+        });
+
+        it('should create secure orderer clients for each secure orderer node with an SSL target name override', async () => {
+            const node: FabricNode = FabricNode.newSecureOrderer(
+                'orderer2.example.com',
+                'orderer2.example.com',
+                `grpcs://localhost:8050`,
+                TLS_CA_CERTIFICATE,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'OrdererMSP'
+            );
+            node.ssl_target_name_override = 'orderer2.example.com';
+            mockRuntime.getNodes.resolves([node]);
+            await connection.disconnect();
+            await connection.connect();
+            const ordererNames: string[] = Array.from(connection['orderers'].keys());
+            const ordererValues: Client.Orderer[] = Array.from(connection['orderers'].values());
+            ordererNames.should.deep.equal(['orderer2.example.com']);
+            ordererValues.should.have.lengthOf(1);
+            ordererValues[0].should.be.an.instanceOf(Client.Orderer);
+            const characteristics: any = ordererValues[0]['getCharacteristics']();
+            characteristics.name.should.equal('localhost:8050');
+            characteristics.url.should.equal('grpcs://localhost:8050');
+            characteristics.options['grpc.ssl_target_name_override'].should.equal('orderer2.example.com');
         });
 
         it('should create certificate authority clients for each certificate authority node', async () => {
