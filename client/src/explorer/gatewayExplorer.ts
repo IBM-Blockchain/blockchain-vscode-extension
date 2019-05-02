@@ -37,6 +37,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
 import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -123,7 +124,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     }
                 }
 
-                // This won't be called before connecting to a gatewawy
+                // This won't be called before connecting to a gateway
                 if (element instanceof InstantiatedContractTreeItem) {
                     this.tree = await this.createContractTree(element as InstantiatedContractTreeItem);
                 }
@@ -233,11 +234,18 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                 tree.push(new InstantiatedChaincodeTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, vscode.TreeItemCollapsibleState.None, contracts, true));
                 continue;
             }
-            let collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+
             if (contracts.length === 0) {
-                collapsedState = vscode.TreeItemCollapsibleState.None;
+                const collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None;
+                tree.push(new InstantiatedContractTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
+
+            } else if (contracts.length === 1) {
+                const collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+                tree.push(new InstantiatedContractTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
+            } else {
+                const collapsedState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
+                tree.push(new InstantiatedMultiContractTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
             }
-            tree.push(new InstantiatedContractTreeItem(this, instantiatedChaincode.name, channelTreeElement, instantiatedChaincode.version, collapsedState, contracts, true));
         }
 
         return tree;

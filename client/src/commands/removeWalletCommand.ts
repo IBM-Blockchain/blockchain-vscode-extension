@@ -20,6 +20,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 
 export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -44,6 +46,14 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
     } else if (deleteFsWallet.title === 'Yes') {
         await fs.remove(walletRegistryEntry.walletPath);
         await FabricWalletRegistry.instance().delete(walletRegistryEntry.name);
+
+        const gateways: FabricGatewayRegistryEntry[] =  FabricGatewayRegistry.instance().getAll();
+        for (const gateway of gateways) {
+            if (gateway.associatedWallet === walletRegistryEntry.name) {
+                gateway.associatedWallet = ''; // If the gateway uses the newly removed wallet, dissociate it from the gateway
+                await FabricGatewayRegistry.instance().update(gateway);
+            }
+        }
 
         outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${walletRegistryEntry.walletPath}`, `Successfully deleted ${walletRegistryEntry.walletPath}`);
 

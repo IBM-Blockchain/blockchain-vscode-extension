@@ -231,7 +231,7 @@ export class UserInputUtil {
         // Next, we get all the instantiated smart contracts
         const allSmartContracts: any[] = [];
         for (const [channelName, peerNames] of channelMap) {
-            const instantiatedSmartContracts: Array<{name: string, version: string}> = await connection.getInstantiatedChaincode(peerNames, channelName);
+            const instantiatedSmartContracts: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(peerNames, channelName);
             allSmartContracts.push(...instantiatedSmartContracts);
         }
 
@@ -282,7 +282,7 @@ export class UserInputUtil {
         const channels: Array<string> = Array.from(channelMap.keys());
 
         const quickPickItems: Array<IBlockchainQuickPickItem<Array<string>>> = channels.map((channel: string) => {
-            return {label: channel, data: channelMap.get(channel)};
+            return { label: channel, data: channelMap.get(channel) };
         });
 
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -530,6 +530,16 @@ export class UserInputUtil {
 
     }
 
+    public static async showContractQuickPick(prompt: string, contracts: Array<string>): Promise<string> {
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(contracts, quickPickOptions);
+    }
+
     public static async showTransactionQuickPick(prompt: string, chaincodeName: string, channelName: string): Promise<IBlockchainQuickPickItem<{ name: string, contract: string }> | undefined> {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const connection: IFabricClientConnection = fabricConnectionManager.getConnection();
@@ -705,7 +715,7 @@ export class UserInputUtil {
 
         const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
         for (const walletRegistryEntry of wallets) {
-            walletQuickPickItems.push( {
+            walletQuickPickItems.push({
                 label: walletRegistryEntry.name,
                 data: walletRegistryEntry
             });
@@ -737,7 +747,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async getCertKey(): Promise<{certificatePath: string, privateKeyPath: string}> {
+    public static async getCertKey(): Promise<{ certificatePath: string, privateKeyPath: string }> {
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
         const openDialogOptions: vscode.OpenDialogOptions = {
             canSelectFiles: true,
@@ -798,26 +808,26 @@ export class UserInputUtil {
     }
 
     public static async packageAndInstallQuestion(): Promise<IBlockchainQuickPickItem<boolean>> {
-            const quickPickItems: IBlockchainQuickPickItem<boolean>[] = [
-                {
-                    label: 'Yes',
-                    data: true,
-                    description: `Create a new debug package and install`
-                },
-                {
-                    label: 'No',
-                    data: false,
-                    description: `Resume from a previous debug session`
-                }
-            ];
+        const quickPickItems: IBlockchainQuickPickItem<boolean>[] = [
+            {
+                label: 'Yes',
+                data: true,
+                description: `Create a new debug package and install`
+            },
+            {
+                label: 'No',
+                data: false,
+                description: `Resume from a previous debug session`
+            }
+        ];
 
-            const quickPickOptions: vscode.QuickPickOptions = {
-                ignoreFocusOut: false,
-                canPickMany: false,
-                placeHolder: 'Start new debug session?'
-            };
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: 'Start new debug session?'
+        };
 
-            return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {
