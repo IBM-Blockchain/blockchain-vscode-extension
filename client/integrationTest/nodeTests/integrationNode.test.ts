@@ -158,7 +158,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await integrationTestUtil.installSmartContract(smartContractName, '0.0.1');
 
-                await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1');
+                 // upgrade and add private data collection in
+                await integrationTestUtil.instantiateSmartContract(smartContractName, '0.0.1', '', '', true);
 
                 let allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
                 let smartContractsChildren: Array<SmartContractsTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[0]) as Array<SmartContractsTreeItem>;

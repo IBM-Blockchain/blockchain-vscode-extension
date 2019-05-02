@@ -740,15 +740,16 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
             mockOrderer.getName.returns('orderer.example.com:7050');
-            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
             should.equal(payload, null);
             sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any, sinon.match.any],
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
+                'targets': [sinon.match.any, sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.1',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
             }, 5 * 60 * 1000);
             sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
@@ -759,15 +760,16 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://localhost:8051');
             mockOrderer.getName.returns('localhost:7050');
-            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
             should.equal(payload, null);
             sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any, sinon.match.any],
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
+                'targets': [sinon.match.any, sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.1',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
             }, 5 * 60 * 1000);
             sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
@@ -788,15 +790,16 @@ describe('FabricRuntimeConnection', () => {
                     proposal: true
                 }
             ]);
-            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
             payload.toString().should.equal('hello world');
             sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any],
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.1',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
+                'targets': [sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.1',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
             }, 5 * 60 * 1000);
             sendTransactionStub.should.have.been.calledOnce;
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
@@ -804,7 +807,7 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should throw an error if the specified chaincode is already instantiated', async () => {
-            await connection.instantiateChaincode('otherChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('otherChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/The smart contract otherChaincode is already instantiated on the channel mychannel/);
         });
 
@@ -817,7 +820,7 @@ describe('FabricRuntimeConnection', () => {
                     proposal: true
                 }
             ]);
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such error/);
         });
 
@@ -835,7 +838,7 @@ describe('FabricRuntimeConnection', () => {
                     proposal: true
                 }
             ]);
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such error/);
         });
 
@@ -843,13 +846,13 @@ describe('FabricRuntimeConnection', () => {
             sendTransactionStub.resolves({
                 status: 'FAILURE'
             });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Response status: FAILURE/);
         });
 
         it('should throw an error if the event hub fails to connect before the transaction is committed', async () => {
             mockEventHub.connect.yields(new Error('such connect error'));
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such connect error/);
         });
 
@@ -857,7 +860,7 @@ describe('FabricRuntimeConnection', () => {
             mockEventHub.registerTxEvent.callsFake((_1: string, _2: void, errorCallback: any): void => {
                 errorCallback(new Error('such connect error'));
             });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such connect error/);
         });
 
@@ -865,7 +868,7 @@ describe('FabricRuntimeConnection', () => {
             mockEventHub.registerTxEvent.callsFake((txId: string, callback: any): void => {
                 callback(txId, 'INVALID', 1);
             });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/with code INVALID in block 1/);
         });
 
@@ -873,7 +876,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -881,7 +884,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -889,7 +892,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://localhost:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -897,7 +900,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://localhost:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -977,15 +980,16 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
             mockOrderer.getName.returns('orderer.example.com:7050');
-            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
             should.equal(payload, null);
             sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any, sinon.match.any],
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.2',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
+                'targets': [sinon.match.any, sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.2',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
             }, 5 * 60 * 1000);
             sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
@@ -996,15 +1000,16 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://localhost:8051');
             mockOrderer.getName.returns('localhost:7050');
-            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
             should.equal(payload, null);
             sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any, sinon.match.any],
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.2',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
+                'targets': [sinon.match.any, sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.2',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
             }, 5 * 60 * 1000);
             sendTransactionStub.should.have.been.calledOnceWithExactly({ proposal: sinon.match.any, proposalResponses: sinon.match.any, orderer: mockOrderer, txId: sinon.match.any });
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
@@ -1025,15 +1030,16 @@ describe('FabricRuntimeConnection', () => {
                     proposal: true
                 }
             ]);
-            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1']);
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
             payload.toString().should.equal('hello world');
             sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
-                targets: [sinon.match.any],
-                chaincodeId: 'myChaincode',
-                chaincodeVersion: '0.0.2',
-                txId: sinon.match.any,
-                fcn: 'instantiate',
-                args: ['arg1']
+                'targets': [sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.2',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
             }, 5 * 60 * 1000);
             sendTransactionStub.should.have.been.calledOnce;
             mockEventHub.registerTxEvent.should.have.been.calledOnce;
@@ -1041,12 +1047,12 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should throw an error if the specified chaincode is not already instantiated', async () => {
-            await connection.upgradeChaincode('noSuchChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('noSuchChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/The smart contract noSuchChaincode is not instantiated on the channel mychannel, so cannot be upgraded/);
         });
 
         it('should throw an error if the specified chaincode is already instantiated with the same version', async () => {
-            await connection.upgradeChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/The smart contract myChaincode with version 0.0.1 is already instantiated on the channel mychannel/);
         });
 
@@ -1059,7 +1065,7 @@ describe('FabricRuntimeConnection', () => {
                     proposal: true
                 }
             ]);
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such error/);
         });
 
@@ -1077,7 +1083,7 @@ describe('FabricRuntimeConnection', () => {
                     proposal: true
                 }
             ]);
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such error/);
         });
 
@@ -1085,13 +1091,13 @@ describe('FabricRuntimeConnection', () => {
             sendTransactionStub.resolves({
                 status: 'FAILURE'
             });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Response status: FAILURE/);
         });
 
         it('should throw an error if the event hub fails to connect before the transaction is committed', async () => {
             mockEventHub.connect.yields(new Error('such connect error'));
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such connect error/);
         });
 
@@ -1099,7 +1105,7 @@ describe('FabricRuntimeConnection', () => {
             mockEventHub.registerTxEvent.callsFake((_1: string, _2: void, errorCallback: any): void => {
                 errorCallback(new Error('such connect error'));
             });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/such connect error/);
         });
 
@@ -1107,7 +1113,7 @@ describe('FabricRuntimeConnection', () => {
             mockEventHub.registerTxEvent.callsFake((txId: string, callback: any): void => {
                 callback(txId, 'INVALID', 1);
             });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/with code INVALID in block 1/);
         });
 
@@ -1115,7 +1121,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -1123,7 +1129,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://peer0.org2.example.com:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -1131,7 +1137,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://localhost:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
@@ -1139,7 +1145,7 @@ describe('FabricRuntimeConnection', () => {
             mockPeer1.getUrl.returns('grpc://localhost:7051');
             mockPeer2.getUrl.returns('grpcs://localhost:8051');
             loadConfigEnvelopeStub.returns({ orderers: ['nosuchorderer.example.com'] });
-            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'])
+            await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer0.org2.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'))
                 .should.be.rejectedWith(/Failed to find Fabric orderer\(s\) nosuchorderer.example.com for channel mychannel/);
         });
 
