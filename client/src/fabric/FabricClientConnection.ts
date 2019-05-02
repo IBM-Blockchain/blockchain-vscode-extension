@@ -21,12 +21,10 @@ import { Network, Contract } from 'fabric-network';
 
 export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
 
-    private connectionProfilePath: string;
     private description: boolean;
 
     constructor(connectionData: { connectionProfilePath: string, walletPath: string }, outputAdapter?: OutputAdapter) {
-        super(outputAdapter);
-        this.connectionProfilePath = connectionData.connectionProfilePath;
+        super(connectionData.connectionProfilePath, outputAdapter);
     }
 
     async connect(wallet: FabricWallet, identityName: string): Promise<void> {
