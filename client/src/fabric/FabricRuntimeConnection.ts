@@ -61,7 +61,11 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                 if (node.pem) {
                     pem = Buffer.from(node.pem, 'base64').toString();
                 }
-                const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': url.hostname });
+                let sslTargetNameOverride: string = url.hostname;
+                if (node.ssl_target_name_override) {
+                    sslTargetNameOverride = node.ssl_target_name_override;
+                }
+                const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
                 this.peers.set(node.name, peer);
                 break;
             }
@@ -71,7 +75,11 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                 if (node.pem) {
                     pem = Buffer.from(node.pem, 'base64').toString();
                 }
-                const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': url.hostname });
+                let sslTargetNameOverride: string = url.hostname;
+                if (node.ssl_target_name_override) {
+                    sslTargetNameOverride = node.ssl_target_name_override;
+                }
+                const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
                 this.orderers.set(node.name, orderer);
                 break;
             }
