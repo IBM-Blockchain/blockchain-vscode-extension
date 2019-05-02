@@ -17,9 +17,9 @@ After developing a smart contract against the local runtime, you'll need somewhe
 
 The cloud service comes with comprehensive documentation and tutorials on IBM Cloud. Here are some good starting points...
 
-* (Optional) Learn about what the cloud service is with this overview: [About IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview)
+* (Optional) Learn about what the cloud service is with this overview: [About IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691)
 
-* (Required) Get started using the cloud service: [Getting started with IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks#ibp-v2-deploy-iks)
+* (Required) Get started using the cloud service: [Getting started with IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Getting+started&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-v2-deploy-iks)
 
 Follow the steps in the "Getting Started" link, and you will have your own instance on the cloud service, with an associated Kubernetes cluster where your created resources will run. Next, it's time to create some resources on IBM Cloud. 
 
@@ -32,7 +32,7 @@ Follow the steps in the "Getting Started" link, and you will have your own insta
 
 You should recognise some of the terms you're about to see in the cloud service (like "Organization", "Peer", "Channel" etc.) from the local_fabric runtime provided with this VSCode extension. What you're doing in this step is creating a similar set of resources running on IBM Cloud (via the Kubernetes service) and managed by the cloud service's operational console.
 
-* (Required) Follow this tutorial to set up your cloud runtime: [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network#ibp-console-build-network)
+* (Required) Follow this tutorial to set up your cloud runtime: [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Build+a+network+tutorial&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-console-build-network)
 
 There's no need to follow the subsequent tutorials in the "sample network tutorial series": this initial configuration is perfectly sufficient for deploying your smart contracts and submitting some transactions.
 
@@ -42,7 +42,7 @@ There's no need to follow the subsequent tutorials in the "sample network tutori
 
 Now you've got a basic network running on IBM Cloud, the next tutorial will teach you to deploy the packages you develop with this VSCode extension into the cloud service, and how to send transactions from your local machine to the cloud-hosted ledger.
 
-> **Important:** Before moving on to the next tutorial, make sure you've got a simple blockchain network running on the cloud service by having followed both the [Getting started with IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks#ibp-v2-deploy-iks) and [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network#ibp-console-build-network) instructions!
+> **Important:** Before moving on to the next tutorial, make sure you've got a simple blockchain network running on the cloud service by having followed both the [Getting started with IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Getting+started&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-v2-deploy-iks) and [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Build+a+network+tutorial&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-console-build-network) instructions!
 
 <a href="./Tutorial-3#top"><h2 align='right'><b>Next: Deploying and transacting with IBM Cloud ➔</b></h2></a>
 

@@ -149,7 +149,7 @@ describe('HomeView', () => {
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
                             command: 'telemetry',
-                            url: 'https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview',
+                            url: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691',
                         });
                         resolve();
                     }
@@ -168,7 +168,7 @@ describe('HomeView', () => {
 
         await Promise.all(onDidReceiveMessagePromises);
 
-        reporterStub.should.have.been.calledWith('Referral', {source: 'homepage', destination: 'https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview'});
+        reporterStub.should.have.been.calledWith('Referral', {source: 'homepage', destination: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691'});
     });
 
     it('should not send a telemetry event if the links were not clicked', async () => {
@@ -180,7 +180,7 @@ describe('HomeView', () => {
                     onDidReceiveMessage: async (callback: any): Promise<void> => {
                         await callback({
                             command: 'randomting',
-                            url: 'https://cloud.ibm.com/docs/services/blockchain?topic=blockchain-ibp-console-overview#ibp-console-overview',
+                            url: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691',
                         });
                         resolve();
                     },
