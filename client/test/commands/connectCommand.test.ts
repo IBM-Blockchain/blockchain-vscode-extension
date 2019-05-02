@@ -459,7 +459,7 @@ describe('ConnectCommand', () => {
 
         it('should send a telemetry event if the extension is for production', async () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+            const reporterSpy: sinon.SinonSpy = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
@@ -470,7 +470,7 @@ describe('ConnectCommand', () => {
 
         it('should send a telemetry event if using IBP', async () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+            const reporterSpy: sinon.SinonSpy = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             mockConnection.isIBPConnection.returns(true);
 
             mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
@@ -482,7 +482,7 @@ describe('ConnectCommand', () => {
 
         it('should send a telemetry event if not using IBP', async () => {
             mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter.instance(), 'sendTelemetryEvent');
+            const reporterSpy: sinon.SinonSpy = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             mockConnection.isIBPConnection.returns(false);
 
             mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
