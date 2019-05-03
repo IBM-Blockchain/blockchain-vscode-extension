@@ -23,12 +23,11 @@ import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOut
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
-import { FabricWalletUtil } from '../../fabric/FabricWalletUtil';
 
 export class RuntimeTreeItem extends BlockchainTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, connection: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
-        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, connection, collapsableState, command);
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
+        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, gateway, collapsableState, command);
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -40,10 +39,10 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
+    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        this.name = connection.name;
+        this.name = gateway.name;
         this.runtime = runtimeManager.getRuntime();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
@@ -73,16 +72,6 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
         } else if (running) {
             // Running!
             this.disableBusyTicker();
-            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            connection.name = this.name;
-            connection.managedRuntime = true;
-            connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            newLabel += '●';
-            newCommand = {
-                command: ExtensionCommands.CONNECT,
-                title: '',
-                arguments: [connection]
-            };
         } else {
             // Not running!
             this.disableBusyTicker();

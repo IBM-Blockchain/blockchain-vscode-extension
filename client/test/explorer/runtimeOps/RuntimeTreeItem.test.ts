@@ -170,12 +170,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ●`);
-            treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
-                title: '',
-                arguments: [connection]
-            });
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  `);
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
