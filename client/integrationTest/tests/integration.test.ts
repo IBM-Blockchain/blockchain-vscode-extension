@@ -444,7 +444,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
                 integrationTestUtil.showIdentitiesQuickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
                 await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, 'admin');
-                await integrationTestUtil.submitTransactionToChaincode(smartContractName, '0.0.1', 'transaction1', 'hello,world');
+                await integrationTestUtil.submitTransactionToChaincode(smartContractName, '0.0.1', 'transaction1', '["hello", "world"]');
                 await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
 
                 let installedChaincodesItems: Array<InstalledTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[0]);

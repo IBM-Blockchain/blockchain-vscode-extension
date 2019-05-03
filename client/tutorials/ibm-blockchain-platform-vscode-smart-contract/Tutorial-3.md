@@ -150,16 +150,16 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
 
 2. Open up `Channels` > `channel1` > `demoContract@0.0.1` to view the list of available transactions. Remember this is a different instance of the contract to the one we were using locally in an earlier tutorial... So the asset with key 001 _shouldn't_ exist yet...
 
-3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `001` as the key, then check the output. You should see:
+3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `["001"]` as the key, then check the output. You should see:
 
    ```
    [5/1/2019 6:35:36 PM] [SUCCESS] Returned value from myAssetExists: false
    ```
    Excellent: the asset we haven't created yet on this ledger doesn't exist! So, let's create one!
 
-4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `001, hello ibm cloud` as the arguments.
+4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `["001", "hello ibm cloud"]` as the arguments.
 
-5. We can prove that worked by choosing `Evaluate Transaction` on `readMyAsset` and entering `001` as the argument. You should see the following output:
+5. We can prove that worked by choosing `Evaluate Transaction` on `readMyAsset` and entering `["001"]` as the argument. You should see the following output:
 
    ```
    [5/1/2019 6:38:29 PM] [SUCCESS] Returned value from readMyAsset: {"value":" hello ibm cloud"}

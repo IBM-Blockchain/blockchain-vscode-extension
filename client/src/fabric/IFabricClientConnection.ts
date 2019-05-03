@@ -38,6 +38,6 @@ export interface IFabricClientConnection {
 
     getMetadata(instantiatedChaincodeName: string, channel: string): Promise<any>;
 
-    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined>;
+    submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: {[key: string]: Buffer}, evaluate?: boolean): Promise<string | undefined>;
 
 }

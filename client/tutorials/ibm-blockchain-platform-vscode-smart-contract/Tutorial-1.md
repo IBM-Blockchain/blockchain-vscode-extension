@@ -204,11 +204,15 @@ So, you've got a Gateway, and an associated wallet with a single identity in it 
 
 2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.1`. You will see a list of all the transactions that were defined in your smart contract.
 
-3. First, we will create an asset.  Right-click on createMyAsset and select `Submit Transaction`. You will be asked to provide arguments for the transaction: try `001, a juicy delicious asset` (or whatever key and value you like, but make sure you remember the key you use!). There should now be a juicy, delicious asset on our ledger. Let's submit another transaction...
+3. First, we will create an asset.  Right-click on createMyAsset and select `Submit Transaction`. You will be asked to provide arguments for the transaction: try `["001", "a juicy delicious asset"]` (or whatever key and value you like, but make sure you remember the key you use!). 
 
-4. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `001, a tremendously delicious asset`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
+4. You will the be asked to set the transient data for the transaction. Don't worry about that for now we will cover it in a later tutorial. For now just hit `Enter`
 
-5. `readMyAsset` is for reading from rather than writing to the ledger, so this time select `Evaluate Transaction`. Enter `001` (or whatever you set your key to) as the argument. You should see the following in the output console:
+5. There should now be a juicy, delicious asset on our ledger. Let's submit another transaction...
+
+6. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `["001", "a tremendously delicious asset"]`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
+
+7. `readMyAsset` is for reading from rather than writing to the ledger, so this time select `Evaluate Transaction`. Enter `["001"]` (or whatever you set your key to) as the argument. You should see the following in the output console:
 
 ```
 [SUCCESS] Returned value from readMyAsset: {"value":" a tremendously delicious asset"}

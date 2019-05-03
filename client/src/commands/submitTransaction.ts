@@ -81,13 +81,38 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     }
 
     let args: Array<string> = [];
-    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (comma seperated)');
+    const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])', '[]');
     if (argsString === undefined) {
         return;
     } else if (argsString === '') {
         args = [];
     } else {
-        args = argsString.split(','); // If empty, args will be ['']
+        try {
+            args = JSON.parse(argsString);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error with transaction arguments: ${error.message}`);
+            return;
+        }
+    }
+
+    let transientData: { [key: string]: Buffer };
+    try {
+
+        const transientDataString: string = await UserInputUtil.showInputBox('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}');
+
+        if (transientDataString === undefined) {
+            return;
+        } else if (transientDataString !== '' && transientDataString !== '{}') {
+            transientData = JSON.parse(transientDataString);
+            const keys: Array<string> = Array.from(Object.keys(transientData));
+
+            keys.forEach((key: string) => {
+                transientData[key] = Buffer.from(transientData[key]);
+            });
+        }
+    } catch (error) {
+        outputAdapter.log(LogType.ERROR, `Error with transaction transient data: ${error.message}`);
+        return;
     }
 
     await vscode.window.withProgress({
@@ -97,15 +122,15 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     }, async (progress: vscode.Progress<{ message: string }>) => {
 
         try {
-            progress.report({message: `${actioning} transaction ${transactionName}`});
+            progress.report({ message: `${actioning} transaction ${transactionName}` });
             outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args}`);
             VSCodeBlockchainDockerOutputAdapter.instance().show();
             let result: string | undefined;
             if (evaluate) {
-                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, true);
+                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, true);
 
             } else {
-                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace);
+                result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData);
             }
 
             Reporter.instance().sendTelemetryEvent(`${action} transaction`);

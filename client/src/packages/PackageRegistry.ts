@@ -17,6 +17,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
 
 export class PackageRegistry {
 
@@ -51,6 +53,11 @@ export class PackageRegistry {
         const pkgFileNames: string[] = await fs.readdir(resolvedPkgDir);
         for (const pkgFileName of pkgFileNames) {
 
+            // Skip the file if it's a hidden file.
+            if (pkgFileName.startsWith('.')) {
+                continue;
+            }
+
             // Get the full path to the package file.
             const pkgPath: string = path.join(resolvedPkgDir, pkgFileName);
 
@@ -61,20 +68,28 @@ export class PackageRegistry {
                 continue;
             }
 
-            // Load the package file.
-            const pkgBuffer: Buffer = await fs.readFile(pkgPath);
+            // Catch all errors (can't read file, file is not a valid package, etc) and log
+            // them instead of having them break the listing of valid packages.
+            try {
 
-            // Parse the package. Need to dynamically load the package class
-            // from the Fabric SDK to avoid early native module loading.
-            const { Package } = await import('fabric-client');
-            const pkg: any = await Package.fromBuffer(pkgBuffer);
+                // Load the package file.
+                const pkgBuffer: Buffer = await fs.readFile(pkgPath);
 
-            // Create the package registry entry.
-            pkgRegistryEntries.push(new PackageRegistryEntry({
-                name: pkg.getName(),
-                version: pkg.getVersion(),
-                path: pkgPath
-            }));
+                // Parse the package. Need to dynamically load the package class
+                // from the Fabric SDK to avoid early native module loading.
+                const { Package } = await import('fabric-client');
+                const pkg: any = await Package.fromBuffer(pkgBuffer);
+
+                // Create the package registry entry.
+                pkgRegistryEntries.push(new PackageRegistryEntry({
+                    name: pkg.getName(),
+                    version: pkg.getVersion(),
+                    path: pkgPath
+                }));
+
+            } catch (error) {
+                VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, null, `Failed to parse package ${pkgFileName}: ${error.message}`);
+            }
 
         }
 
