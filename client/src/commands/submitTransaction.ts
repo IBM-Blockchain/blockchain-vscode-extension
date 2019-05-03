@@ -27,12 +27,15 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let action: string;
     let actioning: string;
+    let actioned: string;
     if (evaluate) {
         action = 'evaluate';
         actioning = 'evaluating';
+        actioned = 'evaluated';
     } else {
         action = 'submit';
         actioning = 'submitting';
+        actioned = 'submitted';
     }
     outputAdapter.log(LogType.INFO, undefined, `${action}Transaction`);
     let smartContract: string;
@@ -113,7 +116,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             } else {
                 message = `Returned value from ${transactionName}: ${result}`;
             }
-            outputAdapter.log(LogType.SUCCESS, `Successful ${action}Transaction`, message);
+            outputAdapter.log(LogType.SUCCESS, `Successfully ${actioned} transaction`, message);
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error ${actioning} transaction: ${error.message}`);
