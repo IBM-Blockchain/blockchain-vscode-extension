@@ -1,7 +1,9 @@
 <!-- # TUTORIAL 3: Deploying and transacting with IBM Cloud -->
 **Tutorial 3**
 ## **Deploying and transacting with IBM Cloud**
-`20-30 mins`
+`15-20 mins`
+
+> **Important:** You will need a **smart contract package** and a suitable **cloud environment** to follow this tutorial. Follow parts 1 and 2 of this series first for instructions.
 
 Now you've got 2 tools in your blockchain-belt: this VSCode extension, and the operational console for the cloud service. Since both are part of IBM Blockchain Platform, they work neatly together to support a workflow of:
 
@@ -28,6 +30,8 @@ The same smart contract package you deployed to the local runtime in Tutorial 1 
 1. In this extension, go the IBM Blockchain Platform view
 
 2. Under `SMART CONTRACT PACKAGES`, locate your contract (named `demoContract@0.0.1` if you followed tutorial 1) and right-click it. Choose `Export Package` then select a location to save the .cds file.
+
+> Command Palette alternative: `Export Package`.
 
 3. Head to the cloud service's operational console (it's a good idea to keep the ops console open in a browser alongside this VSCode extension - if you're lucky enough to have dual monitors, this is a good time to use them!). First, we will install your smart contract...
    * Click the `Smart contracts` tab.
@@ -72,7 +76,7 @@ Here's how to get them, using the operational console:
 1. **Enroll ID + secret**
   
    1. Navigate to the `Nodes` panel, then open the CA for your peer-owning organization. If you were following the tutorials, this is `Org1 CA`.
-
+  
    2. Click `Register user`.
 
    3. Choose an `Enroll ID` and an `Enroll secret` - these can be anything you like. For the purposes of this tutorial, let's go with `vscode` and `vscodepw`. After entering both, click `Next`.
@@ -92,6 +96,8 @@ Here's how to get them, using the operational console:
    2. Find `demoContract` on the list of **instantiated** smart contracts (scroll down past the installed smart contracts to view them), click the `...` menu and select `Connect with SDK`.
 
    3. Pick `org1msp` and `Org1 CA` as your MSP and Certificate Authority, then click `Download connection profile`.
+    
+    > **Note:** Its important you select both the MSP and the CA for the peer-owning organization - make sure you're selecting the right values here.
 
 Ok, we've got both pieces we needed from the operational console. Now, we can return to VSCode, and create the gateway...
 </details>
@@ -103,6 +109,8 @@ Ok, we've got both pieces we needed from the operational console. Now, we can re
 
 1. In the `IBM Blockchain Platform` view, hover over `FABRIC GATEWAYS` and click the `+` button.
 
+> Command Palette alternative: `Add Gateway`.
+
 2. Name your gateway e.g. `ibm_cloud`.
 
 3. You'll be asked for a connection profile, so hit Browse and pick the file you exported from the operational console. Its name will be something like `channel1_demoContract_profile.json`.
@@ -110,6 +118,8 @@ Ok, we've got both pieces we needed from the operational console. Now, we can re
 You should see a new gateway named `ibm_cloud` in your gateways list. If you click on it (to try using it) you'll be asked for a wallet... But you don't have a wallet with your ID in yet! In fact, you haven't even exchanged the enroll ID and secret for an identity. Let's do that next...
 
 1. Hover over `FABRIC WALLETS` and click the `+`.
+
+> Command Palette alternative: `Add Wallet`.
 
 2. Choose `Create a new wallet and add an identity` from the options to create our new wallet.
 
@@ -119,7 +129,7 @@ You should see a new gateway named `ibm_cloud` in your gateways list. If you cli
 
 5. Enter the MSPID - you probably used `org1msp` for your peer-owning org if you were following the tutorials, so enter that.
 
-6. Select `Select a gateway and provide an enrollment ID and secret` from the opions - because that's _exactly_ what we want to do!
+6. Select `Select a gateway and provide an enrollment ID and secret` from the options - because that's _exactly_ what we want to do!
 
 7. Choose your latest gateway (e.g. `ibm_cloud`) from the list.
 
@@ -132,6 +142,8 @@ You should see the new wallet and its ID appear in the `FABRIC WALLETS` section.
 If you tried clicking the `ibm_cloud` gateway after you added it, you'll recall that it asked for a wallet. We could select the wallet every time we want to use the gateway (useful if you plan to use multiple wallets with a gateway for whatever reason), but we can give ourselves a bit of a shortcut by associating the `ibm_cloud_wallet` with the `ibm_cloud` gateway. To do this...
 
 1. Right-click on `ibm_cloud` on the `FABRIC GATEWAYS` list and select `Associate A Wallet`.
+
+> Command Palette alternative: `Associate A Wallet`.
 
 2. Pick `ibm_cloud_wallet`.
 
@@ -148,9 +160,11 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
 
 1. Click on `ibm_cloud` in the `FABRIC GATEWAYS` list.
 
-2. Open up `Channels` > `channel1` > `demoContract@0.0.1` to view the list of available transactions. Remember this is a different instance of the contract to the one we were using locally in an earlier tutorial... So the asset with key 001 _shouldn't_ exist yet...
+2. Open up `Channels` > `channel1` > `demoContract@0.0.1` to view the list of available transactions. Remember this is a different instance of the contract to the one we were using locally in an earlier tutorial... So the asset with key `001` _shouldn't_ exist yet...
 
 3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `001` as the key, then check the output. You should see:
+
+> Command Palette alternative: `Evaluate Transaction`.
 
    ```
    [5/1/2019 6:35:36 PM] [SUCCESS] Returned value from myAssetExists: false
@@ -159,7 +173,10 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
 
 4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `001, hello ibm cloud` as the arguments.
 
+> Command Palette alternative: `Submit Transaction`.
+
 5. We can prove that worked by choosing `Evaluate Transaction` on `readMyAsset` and entering `001` as the argument. You should see the following output:
+
 
    ```
    [5/1/2019 6:38:29 PM] [SUCCESS] Returned value from readMyAsset: {"value":" hello ibm cloud"}
@@ -168,19 +185,21 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
 
 As an interesting additional exercise, we can also look in the operational console to see these transactions coming in! Back in the operational console...
 
-1. Open the `Channels` panel, then click on the `channel1` tile. You'll see a block height of 4 if you followed this tutorial exactly!
+1. Open the `Channels` panel, then click on the `channel1` tile. You'll see a block height of 3 if you followed this tutorial exactly!
 
 2. Click on the most recent block (the one at the top of the list under `Block history`) then on the subsequent page click on the latest (probably only) transaction on the `Transactions` list.
 
 3. Notice the `Input` value in the details that are shown:
 
    ```
-   ["MyAssetContract:readMyAsset","001"]
+   ["MyAssetContract:createMyAsset","001"," hello ibm cloud"]
    ```
 
-Looks like that last transaction we performed in VSCode has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset 001, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
+Looks like that last transaction we submitted VSCode has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset `001`, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
 
 ...Well, unless you're using the free trial of course ;) Remember that free trials of IBM Blockchain Platform on IBM Cloud are deleted after 30 days, so if you want to keep your shared immutable ledgers forever and run real workloads against them, you'll eventually need to look at the non-trial plan!
+
+> **Pro Tip:** You might be wondering "what about the readMyAsset transaction"? Great question! Because that one was **evaluated** rather than submitted, it didn't update the ledger - this is exactly what transaction evaluation is designed to do! Submit transactions when you want to update the ledger, and evaluate them if you just need to query the ledger without updating it.
 
 </details>
 
@@ -188,3 +207,4 @@ Looks like that last transaction we performed in VSCode has been recorded in our
 
 Congratulations, you've completed the set of Introduction tutorials! The smart contract you developed locally is now running on an IBM Blockchain Platform network on IBM Cloud, and you're able to transact from your local machine. 
 
+<a href='./cloud-setup.md'><h4 align='right'><b> ◀ Prev: Create a cloud blockchain deployment</b></h4></a>
