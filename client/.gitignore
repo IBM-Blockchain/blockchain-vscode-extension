@@ -17,6 +17,7 @@ server
 .vscode-test
 coverage
 .DS_Store
+!/test/data/badPackageDir/packages/.DS_Store
 /test/data/fabricProject
 /test/data/smartContractDir/
 /integrationTest/tmp
