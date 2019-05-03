@@ -108,7 +108,7 @@ Now that you have created your smart contract and understand the transactions th
 
 > Command Palette alternative: `IBM Blockchain Platform: Package a smart contract project`
 
-3. You should see a new package on the list, `demoContract@0.0.1` (or the name you gave to the packaged contract), if everything went well.
+3. You should see a new package on the list, `demoContract@0.0.1` (or whatever you named your contract), if everything went well.
 
 The package you just created can be installed onto any Hyperledger Fabric peer (running at the correct version). For example, you could right-click and choose "Export Package", then deploy it into a cloud environment using the IBM Blockchain Platform operational console. We'll learn how to do this later: for now, we'll deploy the package locally on the runtime that comes pre-configured with the VSCode extension, so there's no need to export your package just yet!
 
@@ -134,7 +134,7 @@ That's all you need to do in this step, so if you're in a rush, but whilst you'r
 We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know:
 
 * There is a single organization in this simple blockchain network called `Org1` (this isn't very realistic for real-world use, as the whole point is to _share_ a ledger between _multiple_ organizations, but it's sufficient for local development purposes!). Under `Organizations` you will see `Org1MSP`: this is Org1's `MSP ID`. You don't need to worry too much about this right now: Membership Services Providers (MSPs) will be covered when you start building your own network in later tutorials.
-* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`. (The little infinity-symbol after the peer name indicates that it is currently in "development mode", which you can toggle on/off)
+* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`. (You might see a little infinity-symbol after the peer name, indicating that it is currently in "development mode" - you can toggle this mode on/off via the right-click options, but you don't need to worry about it for now.)
 * There is also a single Certificate Authority (CA) `ca.org1.example.com`, and a single orderer node `orderer.example.com`. Again, you'll learn more about these node types when building your own network later - for now, it is enough to know that they're essential parts of the network, and so the extension has created them for you!
 * Under `Channels` there is a single channel called `mychannel`. In order for a smart contract to be used, it must be __instantiated__ on a channel. This happens in the _next_ step of this tutorial, after we first __install__ the contract on a peer.
 * The `Smart Contracts` section shows you the `Instantiated` and `Installed` contracts on this network. The next couple of steps in this tutorial will have us __install__ then __instantiate__ the smart contract we've packaged.
