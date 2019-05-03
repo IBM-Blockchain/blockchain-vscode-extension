@@ -354,7 +354,7 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
 
-    public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
+    public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string, transientData: string = '{}'): Promise<void> {
         this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
@@ -366,6 +366,8 @@ export class IntegrationTestUtil {
         });
 
         this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])').resolves(args);
+
+        this.inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientData);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
