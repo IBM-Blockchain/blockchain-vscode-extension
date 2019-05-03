@@ -28,7 +28,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
+import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/InstantiateCommandTreeItem';
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
@@ -59,7 +59,7 @@ describe('InstantiateCommand', () => {
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
-        let instantiateCommandTreeItem: InstallCommandTreeItem;
+        let instantiateCommandTreeItem: InstantiateCommandTreeItem;
         let smartContractsChildren: BlockchainTreeItem[];
         let channelsChildren: BlockchainTreeItem[];
         let showYesNo: sinon.SinonStub;
@@ -119,8 +119,8 @@ describe('InstantiateCommand', () => {
 
             const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
-            const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
-            instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstallCommandTreeItem;
+            const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[1]);
+            instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstantiateCommandTreeItem;
 
             const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
             channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);

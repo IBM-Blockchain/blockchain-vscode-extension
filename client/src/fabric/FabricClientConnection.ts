@@ -17,7 +17,7 @@ import { FabricConnection } from './FabricConnection';
 import { FabricWallet } from './FabricWallet';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { IFabricClientConnection } from './IFabricClientConnection';
-import { Network, Contract } from 'fabric-network';
+import { Network, Contract, Transaction } from 'fabric-network';
 
 export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
 
@@ -69,15 +69,20 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         }
     }
 
-    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, evaluate?: boolean): Promise<string | undefined> {
+    public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: { [key: string]: Buffer }, evaluate?: boolean): Promise<string | undefined> {
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(chaincodeName, namespace);
 
+        const transaction: Transaction = smartContract.createTransaction(transactionName);
+        if (transientData) {
+            transaction.setTransient(transientData);
+        }
+
         let response: Buffer;
         if (evaluate) {
-            response = await smartContract.evaluateTransaction(transactionName, ...args);
+            response = await transaction.evaluate(...args);
         } else {
-            response = await smartContract.submitTransaction(transactionName, ...args);
+            response = await transaction.submit(...args);
         }
 
         if (response.buffer.byteLength === 0) {
