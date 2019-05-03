@@ -48,7 +48,6 @@ export class HomeView extends View {
                 if (error) {
                     reject(error);
                 } else {
-                    console.log('data', data);
                     resolve(data);
                 }
             });

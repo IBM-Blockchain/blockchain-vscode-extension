@@ -33,7 +33,6 @@ export class TutorialGalleryView extends View {
                 if (error) {
                     reject(error);
                 } else {
-                    console.log('data', data);
                     resolve(data);
                 }
             });
