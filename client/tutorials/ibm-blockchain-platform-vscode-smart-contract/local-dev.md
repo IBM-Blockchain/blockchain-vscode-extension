@@ -220,11 +220,10 @@ So, you've got a Gateway, and an associated wallet with a single identity in it 
 
 8. `readMyAsset` is for reading from rather than writing to the ledger, so this time select `Evaluate Transaction`. Enter `["001"]` (or whatever you set your key to) as the argument. You should see the following in the output console:
 
-> Command Palette alternative: `IBM Blockchain Platform: Evaluate Transaction`.
-
 ```
 [SUCCESS] Returned value from readMyAsset: {"value":" a tremendously delicious asset"}
 ```
+> Command Palette alternative: `IBM Blockchain Platform: Evaluate Transaction`.
 
 You've proven you can submit and evaluate transactions to update and read your ledger!
 

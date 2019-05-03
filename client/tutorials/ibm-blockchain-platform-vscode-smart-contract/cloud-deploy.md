@@ -96,7 +96,8 @@ Here's how to get them, using the operational console:
    2. Find `demoContract` on the list of **instantiated** smart contracts (scroll down past the installed smart contracts to view them), click the `...` menu and select `Connect with SDK`.
 
    3. Pick `org1msp` and `Org1 CA` as your MSP and Certificate Authority, then click `Download connection profile`.
-    > **Note:** Its important you select the CA for the peer-owning organization. If you were following these tutorials, this is `Org1 CA`. 
+    
+    > **Note:** Its important you select both the MSP and the CA for the peer-owning organization - make sure you're selecting the right values here.
 
 Ok, we've got both pieces we needed from the operational console. Now, we can return to VSCode, and create the gateway...
 </details>
@@ -164,20 +165,21 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
 
 3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `["001"]` as the key, then check the output. You should see:
 
-> Command Palette alternative: `Evaluate Transaction`.
-
    ```
    [5/1/2019 6:35:36 PM] [SUCCESS] Returned value from myAssetExists: false
    ```
    Excellent: the asset we haven't created yet on this ledger doesn't exist! So, let's create one!
 
+   > Command Palette alternative: `Evaluate Transaction`.
+
 4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `["001", "hello ibm cloud"]` as the arguments.
+
+> Command Palette alternative: `Submit Transaction`.
 
 5. We can prove that worked by choosing `Evaluate Transaction` on `readMyAsset` and entering `["001"]` as the argument. You should see the following output:
 
-
    ```
-   [5/1/2019 6:38:29 PM] [SUCCESS] Returned value from readMyAsset: {"value":" hello ibm cloud"}
+   [5/1/2019 6:38:29 PM] [SUCCESS] Returned value from readMyAsset: {"value":"hello ibm cloud"}
    ```
    Excellent: we've created an asset and read it!
 
