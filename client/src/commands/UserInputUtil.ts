@@ -51,8 +51,8 @@ export class UserInputUtil {
     static readonly ADD_TO_WORKSPACE: string = 'Add to workspace';
     static readonly OPEN_IN_CURRENT_WINDOW: string = 'Open in current window';
     static readonly OPEN_IN_NEW_WINDOW: string = 'Open in new window';
-    static readonly YES: string = 'yes';
-    static readonly NO: string = 'no';
+    static readonly YES: string = 'Yes';
+    static readonly NO: string = 'No';
     static readonly OVERWRITE_FILE: string = 'Overwrite file';
     static readonly SKIP_FILE: string = 'Skip file';
     static readonly FORCE_FILES: string = 'Force all files to overwrite';
@@ -173,7 +173,7 @@ export class UserInputUtil {
     }
 
     public static showQuickPickYesNo(prompt: string): Thenable<string | undefined> {
-        const options: Array<string> = [this.YES, this.NO];
+        const options: Array<string> = [this.NO, this.YES];
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
