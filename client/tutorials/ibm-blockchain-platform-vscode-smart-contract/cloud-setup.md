@@ -2,7 +2,7 @@
 **Tutorial 2** 
 
 ## **Create a cloud blockchain deployment**
-`60-90 mins`
+`50-60 mins`
 
 After developing a smart contract against the local runtime, you'll need somewhere more permanent to deploy for further dev, proof of concept, or production use. IBM Blockchain Platform includes an offering on IBM Cloud for creating and operating a suitable runtime environment for such purposes. Its full name is "IBM Blockchain Platform on IBM Cloud", but for the sake of brevity we'll refer to it from here on out as "the cloud service". In this tutorial you will learn how to get a cloud environment set up using the cloud service.
 
@@ -44,5 +44,6 @@ Now you've got a basic network running on IBM Cloud, the next tutorial will teac
 
 > **Important:** Before moving on to the next tutorial, make sure you've got a simple blockchain network running on the cloud service by having followed both the [Getting started with IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Getting+started&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-v2-deploy-iks) and [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Build+a+network+tutorial&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-console-build-network) instructions!
 
-<a href="./Tutorial-3#top"><h2 align='right'><b>Next: Deploying and transacting with IBM Cloud ➔</b></h2></a>
+<a href='./cloud-deploy.md'><h2 align='right'><b>Next: Deploying and transacting with IBM Cloud ➔</h2></a>
 
+<a href='./local-dev.md'><h4 align='right'><b> ◀ Prev: Local Smart Contract Development</b></h4></a>
