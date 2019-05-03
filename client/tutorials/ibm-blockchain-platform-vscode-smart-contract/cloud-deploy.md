@@ -171,7 +171,7 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
    ```
    Excellent: the asset we haven't created yet on this ledger doesn't exist! So, let's create one!
 
-4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `001, hello ibm cloud` as the arguments.
+4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `001,hello ibm cloud` as the arguments.
 
 > Command Palette alternative: `Submit Transaction`.
 
@@ -192,10 +192,10 @@ As an interesting additional exercise, we can also look in the operational conso
 3. Notice the `Input` value in the details that are shown:
 
    ```
-   ["MyAssetContract:createMyAsset","001"," hello ibm cloud"]
+   ["MyAssetContract:createMyAsset","001","hello ibm cloud"]
    ```
 
-Looks like that last transaction we submitted VSCode has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset `001`, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
+Looks like that last transaction we submitted from VSCode has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset `001`, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
 
 ...Well, unless you're using the free trial of course ;) Remember that free trials of IBM Blockchain Platform on IBM Cloud are deleted after 30 days, so if you want to keep your shared immutable ledgers forever and run real workloads against them, you'll eventually need to look at the non-trial plan!
 
