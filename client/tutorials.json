@@ -2,7 +2,7 @@
     "series":[
         {
             "name": "Introduction",
-            "length": "2-3 hours",
+            "length": "2 hours",
             "difficulty": "simple",
             "description": "Series of tutorials that will introduce the basic concepts",
             "tutorials": [
@@ -10,19 +10,19 @@
                     "title": "Local smart contract development",
                     "length": "30-45 mins",
                     "description": "Follow the typical workflow from generating a new smart contract project, deploying code to the local_fabric runtime, and testing your transactions via an application gateway.",
-                    "file": "ibm-blockchain-platform-vscode-smart-contract/Tutorial-1.md"
+                    "file": "ibm-blockchain-platform-vscode-smart-contract/local-dev.md"
                 },
                 {
                     "title": "Create a cloud blockchain deployment",
                     "length": "60-90 mins",
                     "description": "Sign up for the IBM Blockchain Platform service on IBM Cloud, and configure a simple environment ready to deploy your smart contracts to.",
-                    "file": "ibm-blockchain-platform-vscode-smart-contract/Tutorial-2.md"
+                    "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-setup.md"
                 },
                 {
                     "title": "Deploying and transacting with IBM Cloud",
                     "length": "20-30 mins",
                     "description": "Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.",
-                    "file": "ibm-blockchain-platform-vscode-smart-contract/Tutorial-3.md"
+                    "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md"
                 }
             ]
         }
