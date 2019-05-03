@@ -25,13 +25,18 @@ import * as yeoman from 'yeoman-environment';
 export class YeomanUtil {
 
     public static async run(generator: string, options: object): Promise<void> {
-        const env: any = yeoman.createEnv([], {}, new YeomanAdapter());
-        env.registerStub(GeneratorFabric, 'fabric', require.resolve('generator-fabric'));
-        env.registerStub(GeneratorFabricChaincode, 'fabric:chaincode', require.resolve('generator-fabric/generators/chaincode'));
-        env.registerStub(GeneratorFabricContract, 'fabric:contract', require.resolve('generator-fabric/generators/contract'));
-        env.registerStub(GeneratorFabricNetwork, 'fabric:network', require.resolve('generator-fabric/generators/network'));
-        env.runAsync = util.promisify(env.run);
-        await env.runAsync(generator, options);
+        const cwd: string = process.cwd();
+        try {
+            const env: any = yeoman.createEnv([], {}, new YeomanAdapter());
+            env.registerStub(GeneratorFabric, 'fabric', require.resolve('generator-fabric'));
+            env.registerStub(GeneratorFabricChaincode, 'fabric:chaincode', require.resolve('generator-fabric/generators/chaincode'));
+            env.registerStub(GeneratorFabricContract, 'fabric:contract', require.resolve('generator-fabric/generators/contract'));
+            env.registerStub(GeneratorFabricNetwork, 'fabric:network', require.resolve('generator-fabric/generators/network'));
+            env.runAsync = util.promisify(env.run);
+            await env.runAsync(generator, options);
+        } finally {
+            process.chdir(cwd);
+        }
     }
 
 }
