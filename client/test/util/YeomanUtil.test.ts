@@ -41,7 +41,9 @@ describe('YeomanUtil', () => {
 
     describe('#run', () => {
 
-        it('should run the specified Yeoman generator', async () => {
+        it('should run the specified Yeoman generator, and change working directory back on success', async () => {
+            const cwd: string = process.cwd();
+            const chdirSpy: sinon.SinonSpy = mySandBox.spy(process, 'chdir');
             await YeomanUtil.run('fabric:network', { some: 'option', another: 'test' });
             mockEnv.registerStub.should.have.callCount(4);
             mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric', require.resolve('generator-fabric'));
@@ -49,6 +51,22 @@ describe('YeomanUtil', () => {
             mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:contract', require.resolve('generator-fabric/generators/contract'));
             mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:network', require.resolve('generator-fabric/generators/network'));
             mockEnv.run.should.have.been.calledOnceWithExactly('fabric:network', { some: 'option', another: 'test' }, sinon.match.func);
+            chdirSpy.should.have.been.calledOnceWithExactly(cwd);
+        });
+
+        it('should run the specified Yeoman generator, and change working directory back on failure', async () => {
+            const cwd: string = process.cwd();
+            const chdirSpy: sinon.SinonSpy = mySandBox.spy(process, 'chdir');
+            mockEnv.run.yields(new Error('such error'));
+            await YeomanUtil.run('fabric:network', { some: 'option', another: 'test' })
+                .should.be.rejectedWith(/such error/);
+            mockEnv.registerStub.should.have.callCount(4);
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric', require.resolve('generator-fabric'));
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:chaincode', require.resolve('generator-fabric/generators/chaincode'));
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:contract', require.resolve('generator-fabric/generators/contract'));
+            mockEnv.registerStub.should.have.been.calledWithExactly(sinon.match.func, 'fabric:network', require.resolve('generator-fabric/generators/network'));
+            mockEnv.run.should.have.been.calledOnceWithExactly('fabric:network', { some: 'option', another: 'test' }, sinon.match.func);
+            chdirSpy.should.have.been.calledOnceWithExactly(cwd);
         });
 
     });
