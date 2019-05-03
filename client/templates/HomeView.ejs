@@ -402,13 +402,9 @@
                         <div class="panel-top">
                             <p class="panel-sub-text">Learn how to develop and debug your smart contracts, and deploy them to your network.</p>
                         </div>
-                        <% for (const repository of repositories) { %>
-                            <% for (const tutorial of repository.tutorials) { %>
-                                <div class="panel-bottom">
-                                    <a class="panel-button" href='command:<%=commands.OPEN_TUTORIAL_PAGE%>?<%= encodeURIComponent(JSON.stringify([repository.name,tutorial.name])); %>'>Beginner tutorial</a>
-                                </div>
-                            <% } %>
-                        <% } %>
+                        <div class=panel-bottom>
+                            <a class="panel-link" href="command:<%=commands.OPEN_TUTORIAL_GALLERY%>">Follow tutorials</a>
+                        </div>
                     </div>
 
 
