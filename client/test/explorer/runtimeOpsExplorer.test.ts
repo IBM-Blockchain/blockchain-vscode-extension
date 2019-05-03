@@ -126,7 +126,7 @@ describe('runtimeOpsExplorer', () => {
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                await blockchainRuntimeExplorerProvider.getChildren(smartcontractsChildren[0]);
+                await blockchainRuntimeExplorerProvider.getChildren(smartcontractsChildren[1]);
 
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error populating instantiated smart contracts view: Cannot connect to Fabric: Received http2 header with status: 503', 'Error populating instantiated smart contracts view: Cannot connect to Fabric: Received http2 header with status: 503');
             });
@@ -312,14 +312,14 @@ describe('runtimeOpsExplorer', () => {
                 channelsArray.length.should.equal(2);
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
+                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
                 instantiatedChaincodes.length.should.equal(1);
                 const instantiateCommandTreeItem: InstantiateCommandTreeItem = instantiatedChaincodes[0] as InstantiateCommandTreeItem;
                 instantiateCommandTreeItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 instantiateCommandTreeItem.contextValue.should.equal('blockchain-runtime-instantiate-command-item');
                 instantiateCommandTreeItem.label.should.equal('+ Instantiate');
 
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
+                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(5);
 
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating instantiated smart contracts view: some error`, `Error populating instantiated smart contracts view: some error`);
@@ -333,7 +333,7 @@ describe('runtimeOpsExplorer', () => {
                 allChildren.length.should.equal(4);
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
+                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(5);
                 const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
                 installedContractOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -374,7 +374,7 @@ describe('runtimeOpsExplorer', () => {
                 channelsArray.length.should.equal(2);
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
+                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(2);
 
                 const installedContractOne: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
@@ -387,7 +387,7 @@ describe('runtimeOpsExplorer', () => {
                 installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
                 installCommandTreeItem.label.should.equal('+ Install');
 
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
+                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
                 instantiatedChaincodes.length.should.equal(4);
 
                 logSpy.should.not.have.been.called;
@@ -401,7 +401,7 @@ describe('runtimeOpsExplorer', () => {
                 allChildren.length.should.equal(4);
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
+                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(1);
 
                 const installCommandTreeItem: InstantiateCommandTreeItem = installedContractsTree[0] as InstantiateCommandTreeItem;
@@ -409,7 +409,7 @@ describe('runtimeOpsExplorer', () => {
                 installCommandTreeItem.contextValue.should.equal('blockchain-runtime-installed-command-item');
                 installCommandTreeItem.label.should.equal('+ Install');
 
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
+                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
                 instantiatedChaincodes.length.should.equal(4);
 
                 logSpy.should.have.been.calledOnceWith(LogType.ERROR, `Error populating installed smart contracts view: some error`, `Error populating installed smart contracts view: some error`);
@@ -425,7 +425,7 @@ describe('runtimeOpsExplorer', () => {
                 channelsArray.length.should.equal(2);
 
                 const contractTreeItems: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[0]);
-                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
+                const instantiatedChaincodes: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
                 instantiatedChaincodes.length.should.equal(4);
                 const instantiatedChaincodeOne: InstantiatedChaincodeTreeItem = instantiatedChaincodes[0] as InstantiatedChaincodeTreeItem;
                 instantiatedChaincodeOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -447,7 +447,7 @@ describe('runtimeOpsExplorer', () => {
                 instantiateCommandTreeItem.contextValue.should.equal('blockchain-runtime-instantiate-command-item');
                 instantiateCommandTreeItem.label.should.equal('+ Instantiate');
 
-                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[1]);
+                const installedContractsTree: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(contractTreeItems[0]);
                 installedContractsTree.length.should.equal(5);
 
                 logSpy.should.not.have.been.called;

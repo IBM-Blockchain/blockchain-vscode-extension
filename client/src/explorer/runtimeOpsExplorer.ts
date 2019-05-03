@@ -168,9 +168,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     private async createSmartContractsTree(): Promise<Array<BlockchainTreeItem>> {
         const tree: Array<BlockchainTreeItem> = [];
 
-        tree.push(new InstantiatedTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
-
         tree.push(new InstalledTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
+
+        tree.push(new InstantiatedTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
 
         return tree;
     }
