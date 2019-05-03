@@ -136,7 +136,6 @@ The extension uses telemetry reporting to track usage data and help improve futu
 For instructions on how to disable telemetry reporting, please visit the [Visual Studio Code FAQ](https://code.visualstudio.com/docs/supporting/FAQ#_how-to-disable-telemetry-reporting)
 
 ## License <a name="license"></a>
-
 The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE.txt) file.
 
 This software uses the IBM Plex Sans font licensed under the SIL Open Font License, Version 1.1.
