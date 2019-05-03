@@ -82,7 +82,8 @@
             "walletExplorer.editWalletEntry",
             "walletExplorer.removeWalletEntry",
             "walletExplorer.deleteIdentityEntry",
-            "extensionHome.open"
+            "extensionHome.open",
+            "tutorialGallery.open"
         ]
     },
     "main": "./out/src/extension",
@@ -180,6 +181,11 @@
                     "light": "resources/icon_light.svg",
                     "dark": "resources/icon_dark.svg"
                 }
+            },
+            {
+                "command": "tutorialGallery.open",
+                "title": "View Tutorial Gallery",
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "gatewaysExplorer.refreshEntry",
@@ -1240,6 +1246,7 @@
             "templates/jsTestSmartContractTemplate.ejs",
             "templates/HomeView.ejs",
             "templates/SampleView.ejs",
+            "templates/TutorialGallery.ejs",
             "tutorials"
         ],
         "file_type_method": "EXCLUDE",

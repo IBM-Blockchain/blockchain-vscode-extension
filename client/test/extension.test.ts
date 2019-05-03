@@ -30,6 +30,7 @@ import { LogType } from '../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
 import { TutorialView } from '../src/webview/TutorialView';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
+import { TutorialGalleryView } from '../src/webview/TutorialGalleryView';
 
 chai.use(sinonChai);
 
@@ -170,6 +171,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.REMOVE_WALLET}`,
             `onCommand:${ExtensionCommands.DELETE_IDENTITY}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
+            `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
             `onDebug`
         ]);
     });
@@ -364,6 +366,17 @@ describe('Extension Tests', () => {
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, 'hyperledger/fabric-samples', 'FabCar');
 
         sampleViewStub.should.have.been.called;
+    });
+
+    it('should register and show the tutorial gallery page', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        const tutorialGalleryViewStub: sinon.SinonStub = mySandBox.stub(TutorialGalleryView.prototype, 'openView');
+        tutorialGalleryViewStub.resolves();
+        await myExtension.activate(context);
+
+        await vscode.commands.executeCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY);
+
+        tutorialGalleryViewStub.should.have.been.called;
     });
 
     it('should register and show tutorial page', async () => {

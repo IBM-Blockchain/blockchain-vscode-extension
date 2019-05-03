@@ -44,5 +44,5 @@ Now you've got a basic network running on IBM Cloud, the next tutorial will teac
 
 > **Important:** Before moving on to the next tutorial, make sure you've got a simple blockchain network running on the cloud service by having followed both the [Getting started with IBM Blockchain Platform free 2.0 beta](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-v2-deploy-iks#ibp-v2-deploy-iks) and [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network#ibp-console-build-network) instructions!
 
-<a href='./IBPTutorial3#top'><h2 align='right'><b>Next: Deploying and transacting with IBM Cloud ➔</h2></a>
+<a href="./Tutorial-3#top"><h2 align='right'><b>Next: Deploying and transacting with IBM Cloud ➔</b></h2></a>
 
