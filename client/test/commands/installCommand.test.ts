@@ -111,7 +111,7 @@ describe('InstallCommand', () => {
 
             const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
-            const installedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[1]);
+            const installedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
             installCommandTreeItem = installedSmartContractsList[0] as InstallCommandTreeItem;
 
             const nodesTreeItem: NodesTreeItem = allChildren[2] as NodesTreeItem;

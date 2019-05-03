@@ -123,7 +123,7 @@ describe('UpgradeCommand', () => {
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
             const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
-            instantiatedSmartContractsList = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
+            instantiatedSmartContractsList = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[1]);
 
             const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
             channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
