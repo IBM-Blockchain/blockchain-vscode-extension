@@ -100,7 +100,6 @@ describe('TutorialGalleryView', () => {
 
         const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
 
-        mySandBox.stub(tutorialGalleryView, 'getHTMLString').resolves('<html>Tutorial Gallery</html>');
         await tutorialGalleryView.openView(true);
 
         createWebviewPanelStub.should.have.been.calledWith(
@@ -119,7 +118,22 @@ describe('TutorialGalleryView', () => {
 
         createWebviewPanelStub.should.have.been.calledOnce;
 
-        filterSpy.getCall(1).thisValue[filterSpy.getCall(1).thisValue.length - 1].webview.html.should.equal('<html>Tutorial Gallery</html>');
+        const html: string = filterSpy.getCall(1).thisValue[filterSpy.getCall(1).thisValue.length - 1].webview.html;
+        html.should.contain('<h2>Introduction</h2>');
+        html.should.contain('<div class="series-description">Series of tutorials that will introduce the basic concepts</div>');
+
+        html.should.contain('<div class="tutorial-number">Tutorial 1</div>');
+        html.should.contain('<h3>Local smart contract development</h3>');
+        html.should.contain('<div class="tutorial-description">Follow the typical workflow from generating a new smart contract project, deploying code to the local_fabric runtime, and testing your transactions via an application gateway.</div>');
+
+        html.should.contain('<div class="tutorial-number">Tutorial 2</div>');
+        html.should.contain('<h3>Create a cloud blockchain deployment</h3>');
+        html.should.contain('<div class="tutorial-description">Sign up for the IBM Blockchain Platform service on IBM Cloud, and configure a simple environment ready to deploy your smart contracts to.</div>');
+
+        html.should.contain('<div class="tutorial-number">Tutorial 3</div>');
+        html.should.contain('<h3>Deploying and transacting with IBM Cloud</h3>');
+        html.should.contain('<div class="tutorial-description">Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.</div>');
+
     });
 
     it('should send telemetry event on openPanelInner', async () => {
@@ -142,10 +156,23 @@ describe('TutorialGalleryView', () => {
 
         const tutorialView: TutorialGalleryView = new TutorialGalleryView(context);
 
-        const getTutorialGalleryPage: sinon.SinonStub = mySandBox.stub(TutorialGalleryView.prototype, 'getTutorialGalleryPage').resolves('<html>Tutorial Gallery</html>');
+        const getTutorialGalleryPage: sinon.SinonSpy = mySandBox.spy(TutorialGalleryView.prototype, 'getTutorialGalleryPage');
 
         const result: string = await tutorialView['getHTMLString']();
-        result.should.equal('<html>Tutorial Gallery</html>');
+        result.should.contain('<h2>Introduction</h2>');
+        result.should.contain('<div class="series-description">Series of tutorials that will introduce the basic concepts</div>');
+
+        result.should.contain('<div class="tutorial-number">Tutorial 1</div>');
+        result.should.contain('<h3>Local smart contract development</h3>');
+        result.should.contain('<div class="tutorial-description">Follow the typical workflow from generating a new smart contract project, deploying code to the local_fabric runtime, and testing your transactions via an application gateway.</div>');
+
+        result.should.contain('<div class="tutorial-number">Tutorial 2</div>');
+        result.should.contain('<h3>Create a cloud blockchain deployment</h3>');
+        result.should.contain('<div class="tutorial-description">Sign up for the IBM Blockchain Platform service on IBM Cloud, and configure a simple environment ready to deploy your smart contracts to.</div>');
+
+        result.should.contain('<div class="tutorial-number">Tutorial 3</div>');
+        result.should.contain('<h3>Deploying and transacting with IBM Cloud</h3>');
+        result.should.contain('<div class="tutorial-description">Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.</div>');
 
         getTutorialGalleryPage.should.have.been.calledOnceWithExactly({
             commands : {
