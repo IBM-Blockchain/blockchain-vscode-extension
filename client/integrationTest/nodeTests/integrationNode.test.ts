@@ -260,7 +260,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await checkGeneratedSmartContract(language, smartContractName);
                 await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '1001,hello world', 'CongaContract');
-                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             }).timeout(0);
@@ -334,7 +334,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 const message: string = `"{\\"color\\":\\"blue\\",\\"docType\\":\\"car\\",\\"make\\":\\"Toyota\\",\\"model\\":\\"Prius\\",\\"owner\\":\\"Tomoko\\"}"`;
                 logSpy.should.have.been.calledThrice;
-                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction', `Returned value from queryCar: ${message}`);
+                logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction', `Returned value from queryCar: ${message}`);
 
             }).timeout(0);
         });
@@ -430,7 +430,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             it(`should ${language} submit transaction`, async () => {
                 await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '1001,hello world', 'CongaContract');
 
-                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successful submitTransaction');
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             }).timeout(0);
