@@ -43,6 +43,8 @@ import { LocalWalletTreeItem } from '../../src/explorer/wallets/LocalWalletTreeI
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
+import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
+import { FabricNodeType } from '../../src/fabric/FabricNode';
 
 chai.should();
 chai.use(sinonChai);
@@ -190,13 +192,14 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             // Ensure that the Fabric runtime is showing a single channel.
             const allChildren: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const channelItems: ChannelTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[1]) as Array<ChannelTreeItem>;
-
             channelItems.length.should.equal(1);
             channelItems[0].label.should.equal('mychannel');
 
             // Open a Fabric runtime terminal.
-            await vscode.commands.executeCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL);
-            const terminal: vscode.Terminal = vscode.window.terminals.find((item: vscode.Terminal) => item.name === `Fabric runtime - ${FabricRuntimeUtil.LOCAL_FABRIC}`);
+            const nodeItems: NodeTreeItem[] = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(allChildren[2]) as Array<NodeTreeItem>;
+            const peerItem: NodeTreeItem = nodeItems.find((nodeItem: NodeTreeItem) => nodeItem.node.type === FabricNodeType.PEER);
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL, peerItem);
+            const terminal: vscode.Terminal = vscode.window.terminals.find((item: vscode.Terminal) => item.name === `Fabric runtime - ${peerItem.label}`);
             terminal.should.not.be.null;
 
             // Disconnect from the Fabric runtime.

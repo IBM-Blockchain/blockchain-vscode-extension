@@ -14,17 +14,18 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
+import { NodeTreeItem } from './NodeTreeItem';
+import { FabricNode } from '../../fabric/FabricNode';
 
-export class PeerTreeItem extends BlockchainTreeItem {
+export class PeerTreeItem extends NodeTreeItem {
 
-    static async newPeerTreeItem(provider: BlockchainExplorerProvider, peerName: string, chaincodes: Map<string, Array<string>>, collapsibleState: vscode.TreeItemCollapsibleState, removeIcon?: boolean): Promise<PeerTreeItem> {
-        const treeItem: PeerTreeItem = new PeerTreeItem(provider, peerName, chaincodes, collapsibleState, removeIcon);
+    static async newPeerTreeItem(provider: BlockchainExplorerProvider, peerName: string, chaincodes: Map<string, Array<string>>, collapsibleState: vscode.TreeItemCollapsibleState, node: FabricNode, removeIcon?: boolean): Promise<PeerTreeItem> {
+        const treeItem: PeerTreeItem = new PeerTreeItem(provider, peerName, chaincodes, collapsibleState, node, removeIcon);
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -38,8 +39,8 @@ export class PeerTreeItem extends BlockchainTreeItem {
 
     private runtime: FabricRuntime;
 
-    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly chaincodes: Map<string, Array<string>>, collapsibleState: vscode.TreeItemCollapsibleState, removeIcon?: boolean) {
-        super(provider, peerName, collapsibleState);
+    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly chaincodes: Map<string, Array<string>>, collapsibleState: vscode.TreeItemCollapsibleState, node: FabricNode, removeIcon?: boolean) {
+        super(provider, peerName, collapsibleState, node);
 
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         this.runtime = runtimeManager.getRuntime();

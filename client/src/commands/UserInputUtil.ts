@@ -32,6 +32,8 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
+import { FabricRuntime } from '../fabric/FabricRuntime';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -828,6 +830,30 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    public static async showRuntimeNodeQuickPick(prompt: string, filter: FabricNodeType[]): Promise<FabricNode> {
+        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+        const nodes: FabricNode[] = await runtime.getNodes();
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = nodes
+            .filter((node: FabricNode) => filter.indexOf(node.type) !== -1)
+            .map((node: FabricNode) => {
+                return {
+                    label: node.name,
+                    data: node
+                };
+            });
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+        const result: IBlockchainQuickPickItem<FabricNode> = await vscode.window.showQuickPick<IBlockchainQuickPickItem<FabricNode>>(quickPickItems, quickPickOptions);
+        if (result) {
+            return result.data;
+        } else {
+            return undefined;
+        }
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

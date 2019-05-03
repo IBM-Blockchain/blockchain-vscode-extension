@@ -72,7 +72,7 @@
             "aRuntimeOpsExplorer.restartFabricRuntime",
             "aRuntimeOpsExplorer.teardownFabricRuntime",
             "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
-            "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
+            "aRuntimeOpsExplorer.openNewTerminal",
             "aRuntimeOpsExplorer.exportConnectionProfileEntry",
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
             "aRuntimeOpsExplorer.createNewIdentityEntry",
@@ -297,8 +297,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
-                "title": "Open Fabric Runtime Terminal",
+                "command": "aRuntimeOpsExplorer.openNewTerminal",
+                "title": "Open New Terminal",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -433,7 +433,7 @@
                     "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.openFabricRuntimeTerminal"
+                    "command": "aRuntimeOpsExplorer.openNewTerminal"
                 },
                 {
                     "command": "sample.open",
@@ -554,8 +554,16 @@
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-installed-item"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
+                    "command": "aRuntimeOpsExplorer.openNewTerminal",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.openNewTerminal",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.openNewTerminal",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",

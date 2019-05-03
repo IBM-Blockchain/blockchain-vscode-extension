@@ -25,7 +25,7 @@ export class ExtensionCommands {
     // LOCAL OPS VIEW
     static readonly INSTALL_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.installSmartContractEntry';
     static readonly INSTANTIATE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.instantiateSmartContractEntry';
-    static readonly OPEN_FABRIC_RUNTIME_TERMINAL: string = 'aRuntimeOpsExplorer.openFabricRuntimeTerminal';
+    static readonly OPEN_NEW_TERMINAL: string = 'aRuntimeOpsExplorer.openNewTerminal';
     static readonly REFRESH_LOCAL_OPS: string = 'aRuntimeOpsExplorer.refreshEntry';
     static readonly RESTART_FABRIC: string = 'aRuntimeOpsExplorer.restartFabricRuntime';
     static readonly START_FABRIC: string = 'aRuntimeOpsExplorer.startFabricRuntime';
