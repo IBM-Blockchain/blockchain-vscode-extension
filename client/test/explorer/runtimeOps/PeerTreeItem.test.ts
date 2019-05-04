@@ -24,12 +24,14 @@ import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockc
 import { LogType } from '../../../src/logging/OutputAdapter';
 
 import * as sinon from 'sinon';
+import { FabricNode } from '../../../src/fabric/FabricNode';
 
 describe('PeerTreeItem', () => {
 
     let sandbox: sinon.SinonSandbox;
     let provider: BlockchainGatewayExplorerProvider;
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+    let node: FabricNode;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -49,6 +51,7 @@ describe('PeerTreeItem', () => {
         provider = getBlockchainGatewayExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
+        node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
         sandbox = sinon.createSandbox();
         sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
     });
@@ -61,7 +64,7 @@ describe('PeerTreeItem', () => {
         it('should have the right properties for a runtime that is not running in development mode', async () => {
             mockRuntime.isDevelopmentMode.returns(false);
 
-            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, false);
+            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, node, false);
 
             treeItem.label.should.equal('myPeer.org1.example.com');
 
@@ -71,7 +74,7 @@ describe('PeerTreeItem', () => {
         it('should have the right properties for a runtime that is running in development mode', async () => {
             mockRuntime.isDevelopmentMode.returns(true);
 
-            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, false);
+            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, node, false);
 
             treeItem.label.should.equal('myPeer.org1.example.com   ∞');
 
@@ -82,7 +85,7 @@ describe('PeerTreeItem', () => {
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             mockRuntime.isDevelopmentMode.onCall(0).throws(new Error('some error'));
 
-            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, false);
+            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, node, false);
 
             treeItem.label.should.equal('myPeer.org1.example.com');
 

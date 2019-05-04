@@ -56,7 +56,7 @@ import { testSmartContract } from './commands/testSmartContractCommand';
 import { TransactionTreeItem } from './explorer/model/TransactionTreeItem';
 import { submitTransaction } from './commands/submitTransaction';
 import { upgradeSmartContract } from './commands/upgradeCommand';
-import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
+import { openNewTerminal } from './commands/openNewTerminal';
 import { exportConnectionProfile } from './commands/exportConnectionProfileCommand';
 import { createNewIdentity } from './commands/createNewIdentityCommand';
 import { addWallet } from './commands/addWalletCommand';
@@ -88,6 +88,7 @@ import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
 import { TutorialView } from './webview/TutorialView';
 import { ContractTreeItem } from './explorer/model/ContractTreeItem';
 import { TutorialGalleryView } from './webview/TutorialGalleryView';
+import { NodeTreeItem } from './explorer/runtimeOps/NodeTreeItem';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -218,7 +219,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, () => teardownFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, () => toggleFabricRuntimeDevMode()));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL, () => openFabricRuntimeTerminal()));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, () => exportConnectionProfile()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, (project: PackageTreeItem) => exportSmartContractPackage(project)));

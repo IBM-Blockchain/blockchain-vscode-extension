@@ -115,7 +115,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Import Package | Import a smart contract package |
 | Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
-| Open Fabric Runtime Terminal | Open a terminal with access to the Fabric runtime (peer CLI) |
+| Open New Terminal | Open a new terminal on a specified Fabric node (peer, orderer, and fabric-ca-client CLIs) |
 | Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer |
 | Remove Wallet | Remove a wallet from the Fabric Wallets view |
 | Restart Fabric Runtime | Restart the local_fabric instance |

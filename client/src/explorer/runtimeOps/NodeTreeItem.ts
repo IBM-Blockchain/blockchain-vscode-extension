@@ -11,17 +11,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+
 'use strict';
-import * as vscode from 'vscode';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+
+import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { FabricNode } from '../../fabric/FabricNode';
-import { NodeTreeItem } from './NodeTreeItem';
+import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import * as vscode from 'vscode';
 
-export class CertificateAuthorityTreeItem extends NodeTreeItem {
-    contextValue: string = 'blockchain-runtime-certificate-authority-item';
+export abstract class NodeTreeItem extends BlockchainTreeItem {
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly node: FabricNode) {
-        super(provider, name, vscode.TreeItemCollapsibleState.None, node);
-
+    constructor(provider: BlockchainExplorerProvider, label: string, collapsibleState: vscode.TreeItemCollapsibleState, public readonly node: FabricNode) {
+        super(provider, label, collapsibleState);
     }
+
 }
