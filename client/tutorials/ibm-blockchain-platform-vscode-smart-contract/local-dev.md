@@ -210,6 +210,8 @@ So, you've got a Gateway, and an associated wallet with a single identity in it 
 
 4. You will the be asked to set the transient data for the transaction. Don't worry about that for now we will cover it in a later tutorial. For now just hit `Enter`.
 
+> **Pro Tip:** Arguments are submitted as JSON, so make sure you type the inputs exactly as shown, so that you're submitting an array of 2 strings as required by this transaction!
+
 > Command Palette alternative: `IBM Blockchain Platform: Submit Transaction`.
 
 5. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `["001", "a tremendously delicious asset"]`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
