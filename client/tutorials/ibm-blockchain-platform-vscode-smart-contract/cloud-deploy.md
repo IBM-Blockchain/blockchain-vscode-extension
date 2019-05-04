@@ -136,7 +136,6 @@ You should see a new gateway named `ibm_cloud` in your gateways list. If you cli
 8. Enter the enrollment ID - if you followed this tutorial's suggestion, that's `vscode`.
 
 9. Enter the enrollment secret - if you followed this tutorial's suggestion, that's `vscodepw`.
-> **Note:** If you followed the Build a network tutorial on cloud.ibm.com, the enrollment ID is `admin` and the enrollment secret is `adminpw`.
 
 You should see the new wallet and its ID appear in the `FABRIC WALLETS` section. What just happened is actually quite cool - we just used the dev tools to send an enrollment ID and secret off to the CA we set up running on IBM Cloud, and received back an ID suitable for transacting on that blockchain network, which we stowed neatly in a wallet.
 
