@@ -191,7 +191,7 @@ As an interesting additional exercise, we can also look in the operational conso
 3. Notice the `Input` value in the details that are shown:
 
    ```
-   ["MyAssetContract:createMyAsset","001"," hello ibm cloud"]
+   ["MyAssetContract:createMyAsset","001","hello ibm cloud"]
    ```
 
 Looks like that last transaction we submitted from VSCode has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset `001`, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
