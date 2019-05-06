@@ -185,6 +185,8 @@ For now though, we've got our contract installed on all (one) of the peers that 
 
 4. You'll be asked what function to call. If you wanted to use a specific function as part of your instantiate, you could enter something here.  We'll see that happen in future tutorials, but for now just hit `Enter` to skip this step.
 
+5. You'll be asked if you want to provide a private data configuration file. For this tutorial just click `No`, in future tutorials we will explain more about this.
+
 Instantiation can take a while longer than install - watch out for the success message and `demoContract@0.0.1` appearing in the Smart Contracts > Instantiated list to confirm it's worked!
 
 > Command Palette alternative: `IBM Blockchain Platform: Instantiate Smart Contract`.

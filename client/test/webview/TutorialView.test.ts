@@ -44,7 +44,7 @@ describe('TutorialView', () => {
         const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         await tutorialView.openView();
 
-        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'ibm-blockchain-platform-vscode-smart-contract/Tutorial-1.md');
+        const filePath: string = path.join(__dirname, '..', '..', '..', 'tutorials', 'ibm-blockchain-platform-vscode-smart-contract/local-dev.md');
         const uri: vscode.Uri = vscode.Uri.file(filePath);
 
         commandSpy.should.have.been.calledWith('markdown.showPreviewToSide', uri);
