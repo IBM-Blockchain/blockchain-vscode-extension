@@ -213,15 +213,6 @@
             font-weight: 300;
         }
 
-
-        #repository-name{
-            margin-top: 4px;
-            margin-bottom: 4px;
-            font-weight:100;
-            font-style:italic;
-            letter-spacing:0.06px;
-        }
-
         .sample-description{
             margin-bottom: 16px;
             font-family: 'IBM Plex Sans', Arial, Helvetica, sans-serif;
@@ -233,36 +224,6 @@
             margin-bottom: 16px;
             margin-left: 32px;
             position: relative;
-        }
-
-        .docLink.github-icon:before {
-            content: " ";
-            width:16px;
-            height:16px;
-            display: inline-block;
-            margin-right: 16px;
-            position: absolute;
-            left: -31px;
-        }
-
-        .docLink.document-icon:before {
-            content: " ";
-            width:16px;
-            height:16px;
-            display: inline-block;
-            margin-right: 16px;
-            position: absolute;
-            left: -34px;
-        }
-
-        .docLink.search-icon:before {
-            content: " ";
-            width:16px;
-            height:16px;
-            display: inline-block;
-            margin-right: 16px;
-            position: absolute;
-            left: -29px;
         }
 
         /*
@@ -299,24 +260,8 @@
             background-color: #242A2E;
         }
 
-        body.vscode-dark #repository-name {
-            color: #B1B1B1;
-        }
-
         body.vscode-dark .sample-description{
             color: #B9BFC7;
-        }
-
-        body.vscode-dark .docLink.github-icon:before {
-            background: url(<%= images.githubDark %>) no-repeat right center;
-        }
-
-        body.vscode-dark .docLink.document-icon:before {
-            background: url(<%= images.documentDark %>) no-repeat right center;
-        }
-
-        body.vscode-dark .docLink.search-icon:before {
-            background: url(<%= images.searchDark %>) no-repeat right center;
         }
 
         /*
@@ -353,17 +298,6 @@
             color: #565656;
         }
 
-        body.vscode-light .docLink.github-icon:before {
-            background: url(<%= images.githubLight %>) no-repeat right center;
-        }
-
-        body.vscode-light .docLink.document-icon:before {
-            background: url(<%= images.documentLight %>) no-repeat right center;
-        }
-
-        body.vscode-light .docLink.search-icon:before {
-            background: url(<%= images.searchLight %>) no-repeat right center;
-        }
     </style>
 </head>
 
@@ -381,7 +315,7 @@
 
             <div id="content-top">
                 <div id="content-top-left">
-                    <h1 id="about-title">Welcome</h2>
+                    <h1 id="about-title">Welcome</h1>
                     <p id="about-sub-text">This extension provides an integrated workflow for building the applications that you will use to transact on your blockchain network:</p>
 
                     <div id="capabilities">
@@ -414,9 +348,10 @@
                 <div id="content-bottom-left">
                     <div>
                         <h2 id="help-support-title">Help & Support</h2>
-                        <p class="docLink document-icon"><a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features">Read the documentation</a>
-                        <p class="docLink github-icon"><a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension" onclick="#">Raise a GitHub issue</a></p>
-                        <p class="docLink search-icon"><a href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension" onclick="#">Search Stack Overflow</a></p>
+                        <p class="docLink"><a href="https://www.ibm.com/account/reg/signup?formid=urx-38322&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Oreilly+book+promo&cm_mmca1=000026VG&cm_mmca2=10008691" onclick="#">Free e-book: Getting Started with Enterprise Blockchain</a></p>
+                        <p class="docLink"><a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension/blob/master/README.md#features">Read the documentation</a></p>
+                        <p class="docLink"><a href="https://github.com/IBM-Blockchain/blockchain-vscode-extension" onclick="#">Raise a GitHub issue</a></p>
+                        <p class="docLink"><a href="https://stackoverflow.com/questions/tagged/ibp-vscode-extension" onclick="#">Search Stack Overflow</a></p>
                     </div>
                 </div>
                 <div id="content-bottom-right">
