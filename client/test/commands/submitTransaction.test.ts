@@ -210,6 +210,15 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.not.have.been.called;
         });
 
+        it('should submit the smart contract transaction through the debug command', async () => {
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, undefined, 'myChannel', 'myContract');
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract');
+            showInstantiatedSmartContractQuickPickStub.should.not.have.been.called;
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
+            reporterStub.should.have.been.calledWith('submit transaction');
+        });
+
         it('should submit transaction through the tree (transaction item)', async () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
@@ -241,8 +250,13 @@ describe('SubmitTransactionCommand', () => {
             instantiatedChainCodes.length.should.equal(1);
 
             showInputBoxStub.onFirstCall().resolves('transaction1');
-            showInputBoxStub.onSecondCall().resolves('["arg1", "arg2" ,"arg3"]');
-            showInputBoxStub.onThirdCall().resolves('');
+
+            showTransactionQuickPickStub.withArgs(sinon.match.any, 'mySmartContract', 'channelOne').resolves({
+                label: null,
+                data: { name: 'transaction1', contract: undefined}
+            });
+            showInputBoxStub.onFirstCall().resolves('["arg1", "arg2" ,"arg3"]');
+            showInputBoxStub.onSecondCall().resolves('');
 
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION, instantiatedChainCodes[0]);
 
