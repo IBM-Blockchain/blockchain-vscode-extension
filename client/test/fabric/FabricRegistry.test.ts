@@ -19,13 +19,14 @@ import { FabricRegistryEntry } from '../../src/fabric/FabricRegistryEntry';
 import * as chai from 'chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 
 // tslint:disable no-unused-expression
 describe('FabricRegistry', () => {
 
-    const testFabricRegistryName: string = 'fabric.gateways';
+    const testFabricRegistryName: string = SettingConfigurations.FABRIC_GATEWAYS;
 
     // tslint:disable max-classes-per-file
     class TestFabricRegistryEntry extends FabricRegistryEntry {

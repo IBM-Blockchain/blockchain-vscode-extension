@@ -26,6 +26,7 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -58,7 +59,7 @@ describe('AddWalletCommand', () => {
         mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
         showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
         browseStub = mySandBox.stub(UserInputUtil, 'browse');
         choseWalletAddMethod = mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick');
@@ -95,7 +96,7 @@ describe('AddWalletCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
             showInputBoxStub.should.not.have.been.called;
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get('fabric.wallets');
+            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 managedWallet: false,
@@ -139,7 +140,7 @@ describe('AddWalletCommand', () => {
 
             browseStub.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledOnce;
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get('fabric.wallets');
+            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
             wallets.length.should.equal(1);
             wallets[0].should.deep.equal({
                 managedWallet: false,
@@ -183,7 +184,7 @@ describe('AddWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
 
-            const wallets: Array<any> = vscode.workspace.getConfiguration().get('fabric.wallets');
+            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to add a new wallet: some issue importing identity', 'Failed to add a new wallet: some issue importing identity');
         });

@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import { version as currentExtensionVersion } from '../package.json';
 import { ExtensionUtil } from '../src/util/ExtensionUtil';
 import { DependencyManager } from '../src/dependencies/DependencyManager';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
@@ -31,6 +32,8 @@ import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
 import { TutorialView } from '../src/webview/TutorialView';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { TutorialGalleryView } from '../src/webview/TutorialGalleryView';
+import { SettingConfigurations } from '../SettingConfigurations';
+import { version } from 'punycode';
 
 chai.use(sinonChai);
 
@@ -38,12 +41,13 @@ chai.use(sinonChai);
 describe('Extension Tests', () => {
 
     let mySandBox: sinon.SinonSandbox;
-    let migrateStub: sinon.SinonStub;
+    let migrateRuntimeStub: sinon.SinonStub;
     let initializeStub: sinon.SinonStub;
+    let migrateSettingConfigurations: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeShowHomeOnStart();
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
         await TestUtil.setupTests();
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
@@ -61,10 +65,11 @@ describe('Extension Tests', () => {
         const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
         mySandBox = sinon.createSandbox();
-        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
-        await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
-        migrateStub = mySandBox.stub(FabricRuntimeManager.instance(), 'migrate');
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+        migrateRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'migrate');
         initializeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize');
+        migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
     });
 
     afterEach(async () => {
@@ -177,7 +182,7 @@ describe('Extension Tests', () => {
     });
 
     it('should refresh the tree when a connection is added', async () => {
-        await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 
         const treeDataProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
@@ -194,14 +199,14 @@ describe('Extension Tests', () => {
             }]
         };
 
-        await vscode.workspace.getConfiguration().update('fabric.gateways', [myConnection], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [myConnection], vscode.ConfigurationTarget.Global);
 
         treeSpy.should.have.been.called;
     });
 
     it('should refresh the tree when a runtime is added', async () => {
 
-        await vscode.workspace.getConfiguration().update('fabric.runtime', {}, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
 
         const treeDataProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
@@ -212,7 +217,7 @@ describe('Extension Tests', () => {
             developmentMode: false
         };
 
-        await vscode.workspace.getConfiguration().update('fabric.runtime', myRuntime, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, myRuntime, vscode.ConfigurationTarget.Global);
 
         treeSpy.should.have.been.called;
     });
@@ -316,7 +321,7 @@ describe('Extension Tests', () => {
     });
 
     it('should not open home page if disabled in settings', async () => {
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
@@ -328,7 +333,7 @@ describe('Extension Tests', () => {
     });
 
     it('should open home page if enabled in settings on first activation', async () => {
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
@@ -340,7 +345,7 @@ describe('Extension Tests', () => {
     });
 
     it('should not open home page if enabled in settings on second activation', async () => {
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
@@ -391,7 +396,7 @@ describe('Extension Tests', () => {
     });
 
     it('should reload blockchain explorer when debug event emitted', async () => {
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
         const session: any = {
             some: 'thing'
@@ -405,7 +410,7 @@ describe('Extension Tests', () => {
     });
 
     it('should set blockchain-debug false when no debug session', async () => {
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', false, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
         const session: any = undefined;
         mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
@@ -415,15 +420,38 @@ describe('Extension Tests', () => {
         executeCommand.should.have.been.calledOnceWith('setContext', 'blockchain-debug', false);
     });
 
-    it('should always migrate and initialize the runtime manager', async () => {
+    it('should always migrate runtime and initialize the runtime manager', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
             activationCount: 0,
-            version: '0.0.7'
+            version: '0.0.7',
+            migrationCheck: 1
         });
         await myExtension.activate(context);
-        migrateStub.should.have.been.calledOnceWithExactly('0.0.7');
+        migrateRuntimeStub.should.have.been.calledOnceWithExactly('0.0.7');
         initializeStub.should.have.been.calledOnceWithExactly();
+    });
+
+    it('should migrate setting configurations, if not done already', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 0
+        });
+        await myExtension.activate(context);
+        migrateSettingConfigurations.should.have.been.calledOnce;
+    });
+
+    it('should not migrate user settings, if done already', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: version,
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        migrateSettingConfigurations.should.not.have.been.called;
     });
 
 });

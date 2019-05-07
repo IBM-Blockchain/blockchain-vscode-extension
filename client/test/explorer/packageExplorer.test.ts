@@ -24,6 +24,7 @@ import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExp
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 chai.should();
@@ -54,7 +55,7 @@ describe('packageExplorer', () => {
         mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', testDir, true);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, testDir, true);
     });
 
     afterEach(async () => {

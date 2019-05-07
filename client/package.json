@@ -121,32 +121,32 @@
             "type": "object",
             "title": "Blockchain configuration",
             "properties": {
-                "fabric.gateways": {
+                "ibm-blockchain-platform.fabric.gateways": {
                     "type": "array",
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
                 },
-                "fabric.wallets": {
+                "ibm-blockchain-platform.fabric.wallets": {
                     "type": "array",
                     "default": [],
                     "description": "Wallets for connecting to a Blockchain network"
                 },
-                "fabric.runtime": {
+                "ibm-blockchain-platform.fabric.runtime": {
                     "type": "object",
                     "default": {},
                     "description": "Configurations for the local Blockchain managed runtime"
                 },
-                "blockchain.ext.directory": {
+                "ibm-blockchain-platform.ext.directory": {
                     "type": "string",
                     "default": "~/.fabric-vscode",
                     "description": "Configurations for IBM Blockchain extension directory"
                 },
-                "blockchain.repositories": {
+                "ibm-blockchain-platform.ext.repositories": {
                     "type": "array",
                     "default": [],
                     "description": "Repositories for accessing samples stored on disk"
                 },
-                "extension.home.showOnStartup": {
+                "ibm-blockchain-platform.home.showOnStartup": {
                     "type": "boolean",
                     "default": true,
                     "description": "Show home page when clicking on extension for the first time"

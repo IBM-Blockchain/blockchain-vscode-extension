@@ -17,6 +17,7 @@ import { ExtensionUtil } from '../src/util/ExtensionUtil';
 import * as myExtension from '../src/extension';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
+import { SettingConfigurations } from '../SettingConfigurations';
 
 export class TestUtil {
     static async setupTests(): Promise<void> {
@@ -28,56 +29,56 @@ export class TestUtil {
         }
     }
     static async storeExtensionDirectoryConfig(): Promise<void> {
-        this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        this.USER_PACKAGE_DIR_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         console.log('Storing user extension directory:', this.USER_PACKAGE_DIR_CONFIG);
     }
     static async restoreExtensionDirectoryConfig(): Promise<void> {
         console.log('Restoring user extension directory to settings:', this.USER_PACKAGE_DIR_CONFIG);
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, this.USER_PACKAGE_DIR_CONFIG, vscode.ConfigurationTarget.Global);
     }
     static async storeGatewaysConfig(): Promise<void> {
-        this.USER_GATEWAYS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.gateways');
+        this.USER_GATEWAYS_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
         console.log('Storing user connections config:', this.USER_GATEWAYS_CONFIG);
     }
     static async restoreGatewaysConfig(): Promise<void> {
         console.log('Restoring user connections config to settings:', this.USER_GATEWAYS_CONFIG);
-        await vscode.workspace.getConfiguration().update('fabric.gateways', this.USER_GATEWAYS_CONFIG, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, this.USER_GATEWAYS_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
     static async storeRuntimesConfig(): Promise<void> {
-        this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get('fabric.runtime');
+        this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME);
         console.log('Storing user runtimes:', this.USER_RUNTIMES_CONFIG);
     }
     static async restoreRuntimesConfig(): Promise<void> {
         console.log('Restoring user runtimes config to settings:', this.USER_RUNTIMES_CONFIG);
-        await vscode.workspace.getConfiguration().update('fabric.runtime', this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, this.USER_RUNTIMES_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
     static async storeWalletsConfig(): Promise<void> {
-        this.USER_WALLETS_CONFIG = await vscode.workspace.getConfiguration().get('fabric.wallets');
+        this.USER_WALLETS_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
         console.log('Storing user wallets:', this.USER_WALLETS_CONFIG);
     }
     static async restoreWalletsConfig(): Promise<void> {
         console.log('Restoring user wallets config to settings:', this.USER_WALLETS_CONFIG);
-        await vscode.workspace.getConfiguration().update('fabric.wallets', this.USER_WALLETS_CONFIG, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, this.USER_WALLETS_CONFIG, vscode.ConfigurationTarget.Global);
     }
 
     static async storeRepositoriesConfig(): Promise<void> {
-        this.USER_REPOSITORIES = await vscode.workspace.getConfiguration().get('blockchain.repositories');
+        this.USER_REPOSITORIES = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_REPOSITORIES);
         console.log('Storing repositories:', this.USER_REPOSITORIES);
     }
     static async restoreRepositoriesConfig(): Promise<void> {
         console.log('Restoring repositories config to settings:', this.USER_REPOSITORIES);
-        await vscode.workspace.getConfiguration().update('blockchain.repositories', this.USER_REPOSITORIES, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, this.USER_REPOSITORIES, vscode.ConfigurationTarget.Global);
     }
 
     static async storeShowHomeOnStart(): Promise<void> {
-        this.HOME_STARTUP = await vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
+        this.HOME_STARTUP = await vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_STARTUP);
         console.log('Storing home startup:', this.HOME_STARTUP);
     }
     static async restoreShowHomeOnStart(): Promise<void> {
         console.log('Restoring show home on startup config to settings:', this.HOME_STARTUP);
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', this.HOME_STARTUP, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, this.HOME_STARTUP, vscode.ConfigurationTarget.Global);
     }
 
     static async deleteTestFiles(deletePath: string): Promise<void> {

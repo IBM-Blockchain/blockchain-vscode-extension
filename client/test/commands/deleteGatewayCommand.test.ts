@@ -26,6 +26,7 @@ import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExp
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -57,7 +58,7 @@ describe('DeleteGatewayCommand', () => {
             warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
 
             // reset the available gateways
-            await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 
             gateways = [];
 
@@ -73,7 +74,7 @@ describe('DeleteGatewayCommand', () => {
             };
             gateways.push(myGatewayB);
 
-            await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
             quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
                 label: 'myGatewayB',
@@ -91,7 +92,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal(myGatewayA);
@@ -105,7 +106,7 @@ describe('DeleteGatewayCommand', () => {
             const connectionToDelete: BlockchainTreeItem = allChildren[0];
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, connectionToDelete);
 
-            gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal(myGatewayB);
@@ -116,7 +117,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(2);
         });
@@ -126,7 +127,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);
@@ -139,7 +140,7 @@ describe('DeleteGatewayCommand', () => {
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
             };
             gateways.push(myGatewayC);
-            await vscode.workspace.getConfiguration().update('fabric.gateways', gateways, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
             quickPickStub.resolves({
                 label: 'myGatewayC',
@@ -150,7 +151,7 @@ describe('DeleteGatewayCommand', () => {
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
-            gateways = vscode.workspace.getConfiguration().get('fabric.gateways');
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);
             gateways[1].should.deep.equal(myGatewayB);

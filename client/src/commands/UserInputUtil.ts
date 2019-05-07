@@ -34,6 +34,7 @@ import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { FabricRuntime } from '../fabric/FabricRuntime';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -384,9 +385,9 @@ export class UserInputUtil {
 
             // Find the user settings line number
             for (let index: number = 0; index < settingsText.length; index++) {
-                let section: string = '"fabric.gateways": [';
+                let section: string = `"${SettingConfigurations.FABRIC_GATEWAYS}": [`;
                 if (searchWallets) {
-                    section = '"fabric.wallets": [';
+                    section = `"${SettingConfigurations.FABRIC_WALLETS}": [`;
                 }
                 if (settingsText[index].includes(section)) {
                     // We've found the section

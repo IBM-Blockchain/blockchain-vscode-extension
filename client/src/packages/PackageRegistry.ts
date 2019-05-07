@@ -19,6 +19,7 @@ import * as path from 'path';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class PackageRegistry {
 
@@ -43,7 +44,7 @@ export class PackageRegistry {
     private async getEntries(): Promise<PackageRegistryEntry[]> {
 
         // Determine the directory that will contain the packages and ensure it exists.
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const pkgDir: string = path.join(extDir, 'packages');
         const resolvedPkgDir: string = UserInputUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);

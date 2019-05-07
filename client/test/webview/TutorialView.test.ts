@@ -22,6 +22,7 @@ import * as path from 'path';
 import { TutorialView } from '../../src/webview/TutorialView';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 
@@ -31,7 +32,7 @@ describe('TutorialView', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
 
-        await vscode.workspace.getConfiguration().update('extension.home.showOnStartup', true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
     });
 
     afterEach(() => {

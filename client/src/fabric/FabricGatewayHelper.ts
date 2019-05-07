@@ -18,6 +18,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricGatewayHelper {
     // Wanted to type with FabricGatewayRegistryEntry but it failed
@@ -25,7 +26,7 @@ export class FabricGatewayHelper {
     public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: string): Promise<string> {
         try {
 
-            const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const homeExtDir: string = UserInputUtil.getDirPath(extDir);
             const profileDirPath: string = path.join(homeExtDir, gatewayName);
             const profileExists: boolean = await fs.pathExists(profileDirPath);

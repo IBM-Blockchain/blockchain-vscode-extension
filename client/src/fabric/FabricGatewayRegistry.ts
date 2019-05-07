@@ -14,6 +14,7 @@
 
 import { FabricRegistry } from './FabricRegistry';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricGatewayRegistry extends FabricRegistry<FabricGatewayRegistryEntry> {
 
@@ -24,7 +25,7 @@ export class FabricGatewayRegistry extends FabricRegistry<FabricGatewayRegistryE
     private static _instance: FabricGatewayRegistry = new FabricGatewayRegistry();
 
     private constructor() {
-        super('fabric.gateways');
+        super(SettingConfigurations.FABRIC_GATEWAYS);
     }
 
 }

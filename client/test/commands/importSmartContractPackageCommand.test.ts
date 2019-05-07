@@ -28,6 +28,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { Reporter } from '../../src/util/Reporter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 
@@ -39,7 +40,7 @@ describe('importSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeExtensionDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {

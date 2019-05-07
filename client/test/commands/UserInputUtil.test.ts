@@ -40,6 +40,7 @@ import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -79,7 +80,7 @@ describe('UserInputUtil', () => {
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 }
             ],
-            "fabric.gateways": [
+            "${SettingConfigurations.FABRIC_GATEWAYS}": [
                 {
                     "name": "one",
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
@@ -89,7 +90,7 @@ describe('UserInputUtil', () => {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
                 }
             ],
-            "fabric.wallets": [
+            "${SettingConfigurations.FABRIC_WALLETS}": [
                 {
                     "name": "walletOne",
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"

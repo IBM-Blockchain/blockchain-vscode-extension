@@ -43,6 +43,7 @@ import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -74,14 +75,14 @@ describe('Integration Tests for Node Smart Contracts', () => {
         vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
 
         const extDir: string = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
         const packageDir: string = path.join(extDir, 'packages');
         const exists: boolean = await fs.pathExists(packageDir);
         if (exists) {
             await fs.remove(packageDir);
         }
 
-        await vscode.workspace.getConfiguration().update('blockchain.repositories', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
         sinon.stub(vscode.window, 'showSaveDialog').withArgs({
             defaultUri: sinon.match.any,
             saveLabel: 'Clone Repository'
