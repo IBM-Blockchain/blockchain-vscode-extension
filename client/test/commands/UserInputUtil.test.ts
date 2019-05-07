@@ -273,7 +273,8 @@ describe('UserInputUtil', () => {
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
                 ignoreFocusOut: true,
-                value: undefined
+                value: undefined,
+                valueSelection: [0, 0]
             });
         });
 
@@ -285,7 +286,8 @@ describe('UserInputUtil', () => {
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
                 ignoreFocusOut: true,
-                value: 'a sensible answer'
+                value: 'a sensible answer',
+                valueSelection: [0, 0]
             });
         });
     });
@@ -1759,10 +1761,11 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'orderer.example.com', data: nodes[2] }
-            ], { ignoreFocusOut: false,
-                canPickMany: false,
-                placeHolder: 'Gimme a node'
-            });
+            ], {
+                ignoreFocusOut: false,
+                    canPickMany: false,
+                    placeHolder: 'Gimme a node'
+                });
         });
 
         it('should return undefined if the user cancels selecting a node', async () => {
@@ -1772,10 +1775,11 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'orderer.example.com', data: nodes[2] }
-            ], { ignoreFocusOut: false,
-                canPickMany: false,
-                placeHolder: 'Gimme a node'
-            });
+            ], {
+                ignoreFocusOut: false,
+                    canPickMany: false,
+                    placeHolder: 'Gimme a node'
+                });
         });
 
     });

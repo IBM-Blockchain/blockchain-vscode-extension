@@ -110,7 +110,8 @@ export class UserInputUtil {
         const inputBoxOptions: vscode.InputBoxOptions = {
             prompt: question,
             ignoreFocusOut: true,
-            value: defaultValue
+            value: defaultValue,
+            valueSelection: [0, 0]
         };
 
         return vscode.window.showInputBox(inputBoxOptions);
@@ -710,7 +711,7 @@ export class UserInputUtil {
             runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
             runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
             runtimeWalletRegistryEntry.managedWallet = true;
-            walletQuickPickItems.push( {
+            walletQuickPickItems.push({
                 label: runtimeWalletRegistryEntry.name,
                 data: runtimeWalletRegistryEntry
             });
