@@ -20,18 +20,12 @@
 
 import * as assert from 'assert';
 import * as fabricNetwork from 'fabric-network';
-import * as fs from 'fs-extra';
-import * as yaml from 'js-yaml';
-<<<<<<< HEAD
-=======
-import { URL } from 'url';
-import { testFunctions } from './testFunctions';
->>>>>>> initial changes to the test boiler plate
+import { SmartContractUtil } from './ts-smart-contract-util';
+
 <%_ if (connectionProfileHome || walletHome) {-%>
 import * as os from 'os';
 import * as path from 'path';
 <%_ }-%>
-import { URL } from 'url';
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -53,21 +47,11 @@ describe('<%=chaincodeLabel%>' , () => {
     let connectionProfile: any;
 
     before(async () => {
-        <%_ if (connectionProfileHome) { _%>
-        const connectionProfilePath: string = <%-connectionProfilePath%>;
-        <%_ } else { _%>
-        const connectionProfilePath: string = '<%-connectionProfilePath%>';
-        <%_ } _%>
-        const connectionProfileContents: any = await fs.readFile(connectionProfilePath, 'utf8');
-        if (connectionProfilePath.endsWith('.json')) {
-            connectionProfile = JSON.parse(connectionProfileContents);
-        } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
-            connectionProfile = yaml.safeLoad(connectionProfileContents);
-        }
+        connectionProfile = await SmartContractUtil.getConnectionProfile();
     });
 
     beforeEach(async () => {
-        const discoveryAsLocalhost: boolean = testFunctions.hasLocalhostURLs(connectionProfile);
+        const discoveryAsLocalhost: boolean = SmartContractUtil.hasLocalhostURLs(connectionProfile);
         const discoveryEnabled: boolean = true;
 
         const options: fabricNetwork.GatewayOptions = {
@@ -116,56 +100,11 @@ describe('<%=chaincodeLabel%>' , () => {
         const args: string[] = [];
         <%_ } _%>
 
-        const response: Buffer = await testFunctions.submitTransaction('<%=transaction.name%>', args);
+        const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway);
         // submitTransaction returns buffer of transcation return value
         // TODO: Update with return value of transaction
         assert.equal(true, true);
         // assert.equal(JSON.parse(response.toString()), undefined);
     }).timeout(10000);
 <% }) %>
-<<<<<<< HEAD
-    async function submitTransaction(functionName: string, args: string[]): Promise<Buffer> {
-        // Submit transaction
-
-        const network: fabricNetwork.Network = await gateway.getNetwork('<%=channelName%>');
-        <%_ if (contractName !== '') { _%>
-        const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>', '<%=contractName%>');
-        <%_ } else { _%>
-        const contract: fabricNetwork.Contract = await network.getContract('<%=chaincodeName%>');
-        <%_ } _%>
-
-        const responseBuffer: Buffer = await contract.submitTransaction(functionName, ...args);
-        return responseBuffer;
-    }
-
-    // Checks if URL is localhost
-    function isLocalhostURL(url: string): boolean {
-        const parsedURL: URL = new URL(url);
-        const localhosts: string[] = [
-            'localhost',
-            '127.0.0.1',
-        ];
-        return localhosts.indexOf(parsedURL.hostname) !== -1;
-    }
-
-    // Used for determining whether to use discovery
-    function hasLocalhostURLs(profile: any): boolean {
-        const urls: string[] = [];
-        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
-            if (!profile[nodeType]) {
-                continue;
-            }
-            const nodes: any = profile[nodeType];
-            for (const nodeName in nodes) {
-                if (!nodes[nodeName].url) {
-                    continue;
-                }
-                urls.push(nodes[nodeName].url);
-            }
-        }
-        return urls.some((url: string) => isLocalhostURL(url));
-    }
-
-=======
->>>>>>> initial changes to the test boiler plate
 });
