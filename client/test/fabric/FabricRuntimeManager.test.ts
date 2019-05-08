@@ -300,8 +300,130 @@ describe('FabricRuntimeManager', () => {
             sendCommandWithOutputStub.should.not.have.been.called;
         });
 
-        it('should not migrate anything for an old configuration with a new configuration', async () => {
+        it(`should migrate from fabric.runtimes to ${SettingConfigurations.FABRIC_RUNTIME}`, async () => {
+            findFreePortStub.returns([17056]);
+            getStub.withArgs('fabric.runtimes').returns([{
+                name: 'local_fabric',
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }]);
+
+            getStub.withArgs('fabric.runtime').returns(undefined);
+            getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
+
+            await runtimeManager.migrate(version);
+
+            updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME, {
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }, vscode.ConfigurationTarget.Global);
+
+            findFreePortStub.should.have.been.calledOnce;
+
+        });
+
+        it(`should migrate from fabric.runtime to ${SettingConfigurations.FABRIC_RUNTIME} (not previously migrated)`, async () => {
+            findFreePortStub.returns([17056]);
+            getStub.withArgs('fabric.runtimes').returns(undefined);
+
             getStub.withArgs('fabric.runtime').returns({
+                name: 'local_fabric',
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            });
+            getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
+
+            await runtimeManager.migrate(version);
+
+            updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME, {
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }, vscode.ConfigurationTarget.Global);
+
+            findFreePortStub.should.have.been.calledOnce;
+        });
+
+        it(`should migrate from fabric.runtime to ${SettingConfigurations.FABRIC_RUNTIME} (previously migrated)`, async () => {
+            findFreePortStub.returns([17056]);
+            getStub.withArgs('fabric.runtimes').returns([
+                {
+                    name: 'local_fabric',
+                    ports: {
+                        certificateAuthority: 17054,
+                        couchDB: 17055,
+                        orderer: 17050,
+                        peerChaincode: 17052,
+                        peerEventHub: 17053,
+                        peerRequest: 17051
+                    },
+                    developmentMode: true
+                }
+            ]);
+
+            getStub.withArgs('fabric.runtime').returns({
+                name: 'local_fabric',
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    orderer: 17050,
+                    logs: 17056,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            });
+            getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
+
+            await runtimeManager.migrate(version);
+
+            updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME, {
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: true
+            }, vscode.ConfigurationTarget.Global);
+            findFreePortStub.should.not.have.been.called;
+        });
+
+        it('should not migrate the old configuration value when there is a value for the new configuration', async () => {
+            getStub.withArgs('fabric.runtimes').returns([{
                 name: 'local_fabric',
                 ports: {
                     certificateAuthority: 17054,
@@ -313,20 +435,30 @@ describe('FabricRuntimeManager', () => {
                     peerRequest: 17051
                 },
                 developmentMode: true
-            });
+            }]);
             await runtimeManager.migrate(version);
             updateStub.should.not.have.been.called;
             sendCommandWithOutputStub.should.not.have.been.called;
         });
 
-        it('should migrate an old configuration with the name "local_fabric" when no new configuration', async () => {
-            findFreePortStub.returns([17056]);
+        it('should not migrate old configurations when there is no value for the new configuration', async () => {
+            getStub.withArgs('fabric.runtimes').returns(undefined);
+            getStub.withArgs('fabric.runtime').returns(undefined);
+            getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
+
+            await runtimeManager.migrate(version);
+            updateStub.should.not.have.been.called;
+            sendCommandWithOutputStub.should.not.have.been.called;
+        });
+
+        it('should copy logs port if already set', async () => {
             getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
             getStub.withArgs('fabric.runtime').returns({
                 name: 'local_fabric',
                 ports: {
                     certificateAuthority: 17054,
                     couchDB: 17055,
+                    logs: 17056,
                     orderer: 17050,
                     peerChaincode: 17052,
                     peerEventHub: 17053,
@@ -348,11 +480,12 @@ describe('FabricRuntimeManager', () => {
                 developmentMode: true
             }, vscode.ConfigurationTarget.Global);
             sendCommandWithOutputStub.should.not.have.been.called;
+            findFreePortStub.should.not.have.been.called;
         });
 
         it('should not migrate an old configuration with any other name when no new configuration', async () => {
             getStub.withArgs(SettingConfigurations.FABRIC_WALLETS).returns({});
-            getStub.withArgs('fabric.runtime').returns({
+            getStub.withArgs('fabric.runtimes').returns([{
                 name: 'some_other_fabric',
                 ports: {
                     certificateAuthority: 17054,
@@ -363,7 +496,7 @@ describe('FabricRuntimeManager', () => {
                     peerRequest: 17051
                 },
                 developmentMode: true
-            });
+            }]);
             await runtimeManager.migrate(version);
             updateStub.should.not.have.been.called;
             sendCommandWithOutputStub.should.not.have.been.called;
