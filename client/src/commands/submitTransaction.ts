@@ -88,6 +88,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         args = [];
     } else {
         try {
+            if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
+                throw new Error('transaction arguments should be in the format ["arg1", {"key" : "value"}]');
+            }
             args = JSON.parse(argsString);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error with transaction arguments: ${error.message}`);
@@ -103,6 +106,9 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         if (transientDataString === undefined) {
             return;
         } else if (transientDataString !== '' && transientDataString !== '{}') {
+            if (!transientDataString.startsWith('{') || !transientDataString.endsWith('}')) {
+                throw new Error('transient data should be in the format {"key": "value"}');
+            }
             transientData = JSON.parse(transientDataString);
             const keys: Array<string> = Array.from(Object.keys(transientData));
 
