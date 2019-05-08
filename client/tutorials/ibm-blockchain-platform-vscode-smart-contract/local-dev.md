@@ -21,13 +21,13 @@ The extension can generate a smart contract skeleton in your chosen Hyperledger 
 
 For the purposes of this tutorial, we'll use TypeScript as the example language.
 
-> In VSCode, every command can be executed from the Command Palette (press `Ctrl+Shift+P`, or `Cmd+Shift+P` on MacOS). All of this extension's commands start with `IBM Blockchain Platform:`. In the tutorial steps, we'll explain where to click in the UI, but look out for comment-boxes like this one if you want to know the Command Palette alternatives.
+> In VS Code, every command can be executed from the Command Palette (press `Ctrl+Shift+P`, or `Cmd+Shift+P` on MacOS). All of this extension's commands start with `IBM Blockchain Platform:`. In the tutorial steps, we'll explain where to click in the UI, but look out for comment-boxes like this one if you want to know the Command Palette alternatives.
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon (it looks like a square, and will probably be at the bottom of the set of icons if this was the latest extension you installed!)
 
 2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create Smart Contract Project` from the dropdown.
 
-> Command Palette alternative: `IBM Blockchain Platform: Create Smart Contract Project`
+> Command Palette alternative: `Create Smart Contract Project`
 
 3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
 
@@ -56,7 +56,7 @@ The generated smart contract code scaffold provides a good example of some commo
 
 Notice the lines that start with `@Transaction` - these are functions that define your contract's transactions i.e. the things it allows you to do to interact with the ledger.
 
-Skipping over the first one, take a look at the `createAsset` function:
+Skipping over the first one (`myAssetExists`), take a look at the `createMyAsset` function:
 
 ```
     @Transaction()
@@ -106,11 +106,11 @@ Now that you have created your smart contract and understand the transactions th
 
 2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Package a Smart Contract Project` from the dropdown.
 
-> Command Palette alternative: `IBM Blockchain Platform: Package a smart contract project`
+> Command Palette alternative: `Package a smart contract project`
 
 3. You should see a new package on the list, `demoContract@0.0.1` (or the name you gave to the packaged contract), if everything went well.
 
-The package you just created can be installed onto any Hyperledger Fabric peer (running at the correct version). For example, you could right-click and choose "Export Package", then deploy it into a cloud environment using the IBM Blockchain Platform operational console. We'll learn how to do this later: for now, we'll deploy the package locally on the runtime that comes pre-configured with the VSCode extension, so there's no need to export your package just yet!
+The package you just created can be installed onto any Hyperledger Fabric peer (running at the correct version). For example, you could right-click and choose "Export Package", then deploy it into a cloud environment using the IBM Blockchain Platform operational tooling console. We'll learn how to do this later: for now, we'll deploy the package locally on the runtime that comes pre-configured with the VS Code extension, so there's no need to export your package just yet!
 
 </details>
 
@@ -127,17 +127,17 @@ Local Fabric runtime is stopped. Click to start.
 
 Click that message and the extension will start spinning up Docker containers for you. The message "Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sectioned labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
 
-> Command Palette alternative: `IBM Blockchain Platform: Start Fabric Runtime`
+> Command Palette alternative: `Start Fabric Runtime`
 
 That's all you need to do in this step, so if you're in a rush, but whilst you're waiting for local_fabric to start up, let's learn a little more about what it comprises. 
 
 We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know:
 
-* There is a single organization in this simple blockchain network called `Org1` (this isn't very realistic for real-world use, as the whole point is to _share_ a ledger between _multiple_ organizations, but it's sufficient for local development purposes!). Under `Organizations` you will see `Org1MSP`: this is Org1's `MSP ID`. You don't need to worry too much about this right now: Membership Services Providers (MSPs) will be covered when you start building your own network in later tutorials.
-* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`. (The little infinity-symbol after the peer name indicates that it is currently in "development mode", which you can toggle on/off)
-* There is also a single Certificate Authority (CA) `ca.org1.example.com`, and a single orderer node `orderer.example.com`. Again, you'll learn more about these node types when building your own network later - for now, it is enough to know that they're essential parts of the network, and so the extension has created them for you!
-* Under `Channels` there is a single channel called `mychannel`. In order for a smart contract to be used, it must be __instantiated__ on a channel. This happens in the _next_ step of this tutorial, after we first __install__ the contract on a peer.
 * The `Smart Contracts` section shows you the `Instantiated` and `Installed` contracts on this network. The next couple of steps in this tutorial will have us __install__ then __instantiate__ the smart contract we've packaged.
+* Under `Channels` there is a single channel called `mychannel`. In order for a smart contract to be used, it must be __instantiated__ on a channel. This happens in the _next_ step of this tutorial, after we first __install__ the contract on a peer.
+* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`. (You *may* see a little infinity-symbol after the peer name indicating that it is currently in "development mode" - this can be toggled on/off via right-click menu, but you don't need to worry about it for now.)
+* There is also a single Certificate Authority (CA) `ca.org1.example.com`, and a single orderer node `orderer.example.com`. Again, you'll learn more about these node types when building your own network later - for now, it is enough to know that they're essential parts of the network, and so the extension has created them for you!
+* There is a single organization in this simple blockchain network called `Org1`. Recall that `Org1` owns the peer we saw in the `Nodes` section. A network with just a single organization isn't very realistic for real-world use, as the whole point is to _share_ a ledger between _multiple_ organizations, but it's sufficient for local development purposes! Under `Organizations` you will see `Org1MSP`: this is Org1's `MSP ID`. You don't need to worry too much about this right now: Membership Services Providers (MSPs) will be covered when you start building your own network in later tutorials. 
 * If you're a big Docker fan, you may find it useful to know that the following containers are started on your local machine: Orderer, Certificate Authority, CouchDB, and Peer.
 
 Now you've started up the local Fabric runtime, it's time to install and instantiate your smart contract...
@@ -162,7 +162,7 @@ To do this...
 
 You should see `demoContract@0.0.1` appear under the Smart Contracts > Installed list.
 
-> Command Palette alternative: `IBM Blockchain Platform: Install Smart Contract`.
+> Command Palette alternative: `Install Smart Contract`
 
 That's it - job done! Next up, we'll instantiate the smart contract...
 
@@ -189,7 +189,7 @@ For now though, we've got our contract installed on all (one) of the peers that 
 
 Instantiation can take a while longer than install - watch out for the success message and `demoContract@0.0.1` appearing in the Smart Contracts > Instantiated list to confirm it's worked!
 
-> Command Palette alternative: `IBM Blockchain Platform: Instantiate Smart Contract`.
+> Command Palette alternative: `Instantiate Smart Contract`
 
 </details>
 
@@ -214,7 +214,7 @@ So, you've got a Gateway, and an associated wallet with a single identity in it 
 
 > **Pro Tip:** Arguments are submitted as JSON, so make sure you type the inputs exactly as shown, so that you're submitting an array of 2 strings as required by this transaction!
 
-> Command Palette alternative: `IBM Blockchain Platform: Submit Transaction`.
+> Command Palette alternative: `Submit Transaction`
 
 5. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `["001", "a tremendously delicious asset"]`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
 
@@ -227,7 +227,7 @@ So, you've got a Gateway, and an associated wallet with a single identity in it 
 ```
 [SUCCESS] Returned value from readMyAsset: {"value":" a tremendously delicious asset"}
 ```
-> Command Palette alternative: `IBM Blockchain Platform: Evaluate Transaction`.
+> Command Palette alternative: `Evaluate Transaction`
 
 You've proven you can submit and evaluate transactions to update and read your ledger!
 
@@ -242,4 +242,3 @@ If you wish to spend some more time locally developing your own smart contracts,
 There's no need to worry about those concepts yet if you don't want to though: `demoContract@0.0.1` is perfect for carrying on with this tutorial series!
 
 <a href='./cloud-setup.md'><h2 align='right'><b> Next: Create a cloud blockchain deployment ➔ </h2></b></a>
-

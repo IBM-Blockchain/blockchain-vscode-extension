@@ -5,20 +5,20 @@
 
 > **Important:** You will need a **smart contract package** and a suitable **cloud environment** to follow this tutorial. Follow parts 1 and 2 of this series first for instructions.
 
-Now you've got 2 tools in your blockchain-belt: this VSCode extension, and the operational console for the cloud service. Since both are part of IBM Blockchain Platform, they work neatly together to support a workflow of:
+Now you've got 2 tools in your blockchain-belt: this VS Code extension, and the operational tooling console for the cloud service. Since both are part of IBM Blockchain Platform, they work neatly together to support a workflow of:
 
-- Develop smart contracts (VSCode)
-- Manage a blockchain network (operational console)
-- Deploy smart contracts (operational console)
-- Develop client applications (VSCode)
+- Develop smart contracts (VS Code)
+- Manage a blockchain network (operational tooling console)
+- Deploy smart contracts (operational tooling console)
+- Develop client applications (VS Code)
 
 You've already completed the first 2 parts of that flow in tutorials 1 and 2. Now, we'll cover the last 2 pieces!
 
 
 ### **Learning Objectives**
 
-* Export packages from this VSCode extension and deploy to the cloud service
-* Connect from this VSCode extension to contracts on the cloud service via a gateway
+* Export packages from this VS Code extension and deploy to the cloud service
+* Connect from this VS Code extension to contracts on the cloud service via a gateway
 * Send transactions from your local machine to a blockchain ledger hosted on IBM Cloud
 
 ---
@@ -31,15 +31,15 @@ The same smart contract package you deployed to the local runtime in Tutorial 1 
 
 2. Under `SMART CONTRACT PACKAGES`, locate your contract (named `demoContract@0.0.1` if you followed tutorial 1) and right-click it. Choose `Export Package` then select a location to save the .cds file.
 
-> Command Palette alternative: `Export Package`.
+> Command Palette alternative: `Export Package`
 
-3. Head to the cloud service's operational console (it's a good idea to keep the ops console open in a browser alongside this VSCode extension - if you're lucky enough to have dual monitors, this is a good time to use them!). First, we will install your smart contract...
+3. Head to the cloud service's operational tooling console (it's a good idea to keep the ops console open in a browser alongside this VS Code extension - if you're lucky enough to have dual monitors, this is a good time to use them!). First, we will install your smart contract...
    * Click the `Smart contracts` tab.
 
    * Click `Install smart contract` and upload the `demoContract@0.0.1.cds`file you exported earlier. If you had more than one peer in your network, you'd have to select which peer(s) to install on (but if you're following these tutorials, you should only have 1, so it's an easy choice!).
    * Click the `Install smart contract` button to finalise the flow.
 
-4. Just like with the local runtime, after installing a contract on a peer, we must now instantiate it on a channel. To do this via the operational console...
+4. Just like with the local runtime, after installing a contract on a peer, we must now instantiate it on a channel. To do this via the operational tooling console...
 
    * On the smart contracts tab, find the smart contract from the list installed on your peers and click `Instantiate` from the overflow menu on the right side of the row.
 
@@ -53,25 +53,25 @@ The same smart contract package you deployed to the local runtime in Tutorial 1 
 
    * On the last panel you are prompted to specify the smart contract function that you want to run when the smart contract starts, along with the associated arguments to pass to that function. As you may recall from when you instantiated this contract locally...  There's no need to enter anything here! Leave it blank and finalise the flow.
 
-Job done! The contract you developed locally in VSCode is now instantiated remotely in your cloud service. The whole point of instantiating a smart contract is so that its transactions can be _used_ to interact with a ledger, so let's carry on to do just that!
+Job done! The contract you developed locally in VS Code is now instantiated remotely in your cloud service. The whole point of instantiating a smart contract is so that its transactions can be _used_ to interact with a ledger, so let's carry on to do just that!
 
-At this point, you will have installed the contract on your IBM Cloud peer, and instantiated it on your IBM Cloud channel. In the local dev tutorial, the next thing you did was to use the automatically-configured gateway to discover the transactions available. You can do the same thing with the contract you just instantiated using the cloud service, but you'll need to create a new gateway first to tell this VSCode extension where to find it. Next, we'll learn how to do just that...
+At this point, you will have installed the contract on your IBM Cloud peer, and instantiated it on your IBM Cloud channel. In the local dev tutorial, the next thing you did was to use the automatically-configured gateway to discover the transactions available. You can do the same thing with the contract you just instantiated using the cloud service, but you'll need to create a new gateway first to tell this VS Code extension where to find it. Next, we'll learn how to do just that...
 
 </details>
 
 ---
 
 <details>
-<summary><b>2. Obtain connection details from the operational console</b></summary>
+<summary><b>2. Obtain connection details from the operational tooling console</b></summary>
 
-To interact with the contract you instantiated on IBM cloud, a gateway is required. Client applications written using Hyperledger Fabric SDKs can use gateways, and so can this VSCode extension! In this step, we'll add a gateway in VSCode and use it to submit/evaluate some transactions to the remote network. In later tutorials, we'll cover developing client apps, but the same gateway concepts will apply.
+To interact with the contract you instantiated on IBM cloud, a gateway is required. Client applications written using Hyperledger Fabric SDKs can use gateways, and so can this VS Code extension! In this step, we'll add a gateway in VS Code and use it to submit/evaluate some transactions to the remote network. In later tutorials, we'll cover developing client apps, but the same gateway concepts will apply.
 
-You'll need to get two things from the operational console to create your gateway in VSCode:
+You'll need to get two things from the operational tooling console to create your gateway in VS Code:
 
 1. An   `enroll ID` + `secret` (ok, that's 2 things, but they come as a pair!)
 2. A `Connection Profile`
 
-Here's how to get them, using the operational console:
+Here's how to get them, using the operational tooling console:
 
 1. **Enroll ID + secret**
   
@@ -91,7 +91,7 @@ Here's how to get them, using the operational console:
 
 2. **Connection profile**
 
-   1. Navigate to the `Smart contracts` panel in the operational console.
+   1. Navigate to the `Smart contracts` panel in the operational tooling console.
 
    2. Find `demoContract` on the list of **instantiated** smart contracts (scroll down past the installed smart contracts to view them), click the `...` menu and select `Connect with SDK`.
 
@@ -99,27 +99,27 @@ Here's how to get them, using the operational console:
     
     > **Note:** Its important you select both the MSP and the CA for the peer-owning organization - make sure you're selecting the right values here.
 
-Ok, we've got both pieces we needed from the operational console. Now, we can return to VSCode, and create the gateway...
+Ok, we've got both pieces we needed from the operational tooling console. Now, we can return to VS Code, and create the gateway...
 </details>
 
 ---
 
 <details>
-<summary><b>3. Create a gateway and wallet in VSCode</b></summary>
+<summary><b>3. Create a gateway and wallet in VS Code</b></summary>
 
 1. In the `IBM Blockchain Platform` view, hover over `FABRIC GATEWAYS` and click the `+` button.
 
-> Command Palette alternative: `Add Gateway`.
+> Command Palette alternative: `Add Gateway`
 
 2. Name your gateway e.g. `ibm_cloud`.
 
-3. You'll be asked for a connection profile, so hit Browse and pick the file you exported from the operational console. Its name will be something like `channel1_demoContract_profile.json`.
+3. You'll be asked for a connection profile, so hit Browse and pick the file you exported from the operational tooling console. Its name will be something like `channel1_demoContract_profile.json`.
 
 You should see a new gateway named `ibm_cloud` in your gateways list. If you click on it (to try using it) you'll be asked for a wallet... But you don't have a wallet with your ID in yet! In fact, you haven't even exchanged the enroll ID and secret for an identity. Let's do that next...
 
 1. Hover over `FABRIC WALLETS` and click the `+`.
 
-> Command Palette alternative: `Add Wallet`.
+> Command Palette alternative: `Add Wallet`
 
 2. Choose `Create a new wallet and add an identity` from the options to create our new wallet.
 
@@ -143,7 +143,7 @@ If you tried clicking the `ibm_cloud` gateway after you added it, you'll recall 
 
 1. Right-click on `ibm_cloud` on the `FABRIC GATEWAYS` list and select `Associate A Wallet`.
 
-> Command Palette alternative: `Associate A Wallet`.
+> Command Palette alternative: `Associate A Wallet`
 
 2. Pick `ibm_cloud_wallet`.
 
@@ -156,7 +156,7 @@ You'll see a new icon appear next to the gateway to show that a wallet has been 
 <details>
 <summary><b>4. Submit transactions</b></summary>
 
-Everything is set! Let's submit a transaction from VSCode and make sure it gets through to the ledger on IBM Cloud.
+Everything is set! Let's submit a transaction from VS Code and make sure it gets through to the ledger on IBM Cloud.
 
 1. Click on `ibm_cloud` in the `FABRIC GATEWAYS` list.
 
@@ -169,11 +169,11 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
    ```
    Excellent: the asset we haven't created yet on this ledger doesn't exist! So, let's create one!
 
-   > Command Palette alternative: `Evaluate Transaction`.
+   > Command Palette alternative: `Evaluate Transaction`
 
 4. Right-click `createMyAsset`, choose `Submit Transaction` then enter `["001", "hello ibm cloud"]` as the arguments.
 
-> Command Palette alternative: `Submit Transaction`.
+> Command Palette alternative: `Submit Transaction`
 
 5. We can prove that worked by choosing `Evaluate Transaction` on `readMyAsset` and entering `["001"]` as the argument. You should see the following output:
 
@@ -182,7 +182,7 @@ Everything is set! Let's submit a transaction from VSCode and make sure it gets 
    ```
    Excellent: we've created an asset and read it!
 
-As an interesting additional exercise, we can also look in the operational console to see these transactions coming in! Back in the operational console...
+As an interesting additional exercise, we can also look in the operational tooling console to see these transactions coming in! Back in the operational tooling console...
 
 1. Open the `Channels` panel, then click on the `channel1` tile. You'll see a block height of 3 if you followed this tutorial exactly!
 
@@ -194,7 +194,7 @@ As an interesting additional exercise, we can also look in the operational conso
    ["MyAssetContract:createMyAsset","001","hello ibm cloud"]
    ```
 
-Looks like that last transaction we submitted from VSCode has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset `001`, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
+Looks like that last transaction we submitted from VS Code has been recorded in our blockchain ledger. There's no way to edit this list of transactions: it's there forever, and is why we say blockchains are "immutable". Even though you may later delete asset `001`, its full history from creation, through any updates and reads and even the deletion itself are forever recorded on the ledger you are now viewing...
 
 ...Well, unless you're using the free trial of course ;) Remember that free trials of IBM Blockchain Platform on IBM Cloud are deleted after 30 days, so if you want to keep your shared immutable ledgers forever and run real workloads against them, you'll eventually need to look at the non-trial plan!
 
