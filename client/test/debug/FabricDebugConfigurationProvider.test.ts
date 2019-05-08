@@ -83,7 +83,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
-            runtimeStub.getPeerChaincodeURL.resolves('127.0.0.1:54321');
+            runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
             runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);

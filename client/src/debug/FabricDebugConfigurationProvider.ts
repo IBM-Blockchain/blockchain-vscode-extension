@@ -24,6 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { UserInputUtil, IBlockchainQuickPickItem } from '../commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { URL } from 'url';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -146,7 +147,10 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     protected abstract async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string>;
 
     protected async getChaincodeAddress(): Promise<string> {
-        return this.runtime.getPeerChaincodeURL();
+        // Need to strip off the protocol (grpc:// or grpcs://).
+        const url: string = await this.runtime.getPeerChaincodeURL();
+        const parsedURL: URL = new URL(url);
+        return parsedURL.host;
     }
 
     protected abstract async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration>;
