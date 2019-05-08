@@ -201,9 +201,12 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await integrationTestUtil.connectToFabric(FabricRuntimeUtil.LOCAL_FABRIC, FabricWalletUtil.LOCAL_WALLET, otherUserName);
 
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, FabricRuntimeUtil.LOCAL_FABRIC);
-                // TODO: the generated smart contract tests for a generated smart contract can never pass out of the box
+                // TODO: generated JavaScript smart contract tests for a generated smart contract can never pass out of the box
                 // until the tests are edited to provide the correct set of arguments for each transaction.
-                // const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+                if (language === 'TypeScript') {
+                    const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+                    testRunResult.includes('1 passing').should.be.true;
+                }
 
                 await integrationTestUtil.updatePackageJsonVersion('0.0.2');
 
@@ -501,9 +504,12 @@ describe('Integration Tests for Node Smart Contracts', () => {
             it(`should ${language} generate tests`, async () => {
                 integrationTestUtil.testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp', language + 'SmartContract');
                 await integrationTestUtil.generateSmartContractTests(smartContractName, '0.0.1', language, 'myGateway');
-                // TODO: the generated smart contract tests for a generated smart contract can never pass out of the box
+                // TODO: generated JavaScript smart contract tests for a generated smart contract can never pass out of the box
                 // until the tests are edited to provide the correct set of arguments for each transaction.
-                // const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+                if (language === 'TypeScript') {
+                    const testRunResult: string = await integrationTestUtil.runSmartContractTests(smartContractName, language);
+                    testRunResult.includes('1 passing').should.be.true;
+                }
 
                 await checkGeneratedSmartContract(language, smartContractName);
             }).timeout(0);

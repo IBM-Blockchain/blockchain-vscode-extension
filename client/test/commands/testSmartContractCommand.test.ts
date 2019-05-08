@@ -272,7 +272,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`getContract('${smartContractName.replace(`"`, '')}', 'my-contract')`).should.be.true;
             templateData.includes('require').should.be.true;
             templateData.includes(`const args = [];`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = '';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')} = 0;`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')} = true;`).should.be.true;
@@ -312,7 +312,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`const args: string[] = [];`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')} = '';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')}: ${transactionOne.parameters[1].schema.type.replace(`""`, '')} = 0;`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')}: ${transactionOne.parameters[3].schema.type.replace(`"`, '')} = true;`).should.be.true;
@@ -924,7 +924,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes('gateway.connect').should.be.true;
             templateData.includes('submitTransaction').should.be.true;
             templateData.includes(`const args = [];`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = '';`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')} = 0;`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')} = true;`).should.be.true;

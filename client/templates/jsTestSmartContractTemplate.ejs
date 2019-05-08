@@ -43,7 +43,7 @@ describe('<%=chaincodeLabel%>' , () => {
     const walletPath = <%-walletPath%>;
     <%_ } else { _%>
     const walletPath = '<%-walletPath%>';
-    <%_ } _%>    
+    <%_ } _%>
     const gateway = new fabricNetwork.Gateway();
     const wallet = new fabricNetwork.FileSystemWallet(walletPath);
     const identityName = '<%-identityName%>';
@@ -92,7 +92,7 @@ describe('<%=chaincodeLabel%>' , () => {
                 <%_ if (parameter.schema && parameter.schema.type) { _%>
                     <%_ if (parameter.schema.type === 'string') { _%>
                         <%_  params.push(` ${parameter.name.replace(`"`,'')}`) _%>
-        const <%=parameter.name.replace(`"`,'')%> = '';
+        const <%=parameter.name.replace(`"`,'')%> = 'EXAMPLE';
                     <%_ } else if (parameter.schema.type === 'number') { _%>
                         <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
         const <%=parameter.name.replace(`"`,'')%> = 0;
