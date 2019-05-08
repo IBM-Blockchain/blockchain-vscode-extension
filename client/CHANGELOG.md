@@ -1,5 +1,27 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.0: May 9th 2019
+
+* Added Tutorial 2 and 3 and added links [#896](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/896)
+* Added tutorial gallery page [#810](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/810)
+* Enable SSL target name override for local_fabric nodes [#892](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/892)
+* Enable adding private data collections for instantiate and upgrade [#842](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/842)
+* Allow transient data to be specified during submitting transaction[#832](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/832)
+* Allow JSON as transaction arguments[#915](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/915)
+* Update transaction arguments for instantiate and upgrade commands [#950](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/950)
+* Removed protcol from peer chaincode address[#930](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/930)
+* Renamed Open New Terminal command and enable for all nodes [#624](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/624)
+* Allow selection of contacts for generating smart contract tests [#760](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/760)
+* Support fabric 1.4.1 [#866](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/866)
+* Refactored all extension user settings contributions [#880](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/880)
+* Increased and improved telemetry reporting [883](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/883)
+* Fix tree population bug after toggling dev mode [#886](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/886)
+* Bug fix for generating smart contract tests [#748](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/748)
+* Documentation updates (863, 917, 919, 924, 925)
+* Minor bug fixes (889, 904, 906, 902, 912, 913, 922, 932)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-50.png)
+
 ## 0.4.0: May 1st 2019
 
 * Separate wallets and gateways and allow for wallet management [#524](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/524)
