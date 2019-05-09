@@ -17,6 +17,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function editWalletCommand(treeItem: WalletTreeItem): Promise<void> {
 
@@ -28,6 +30,14 @@ export async function editWalletCommand(treeItem: WalletTreeItem): Promise<void>
     if (!treeItem) {
         // If called from command palette
         // Ask for wallet to edit
+        // First check there is at least one that isn't local_fabric_wallet
+        let wallets: Array<FabricWalletRegistryEntry> = [];
+        wallets = FabricWalletRegistry.instance().getAll();
+        if (wallets.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No wallets to edit found. ${FabricWalletUtil.LOCAL_WALLET} cannot be edited.`, `No wallets to edit found. ${FabricWalletUtil.LOCAL_WALLET} cannot be edited.`);
+            return;
+        }
+
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet that you want to edit', false);
         if (!chosenWallet) {
             return;

@@ -22,12 +22,23 @@ import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteGateway`);
     let gatewayRegistryEntry: FabricGatewayRegistryEntry;
     if (!gatewayTreeItem) {
+        // If called from command palette
+        // Ask for gateway to delete
+        // First check there is at least one that isn't local_fabric
+        let gateways: Array<FabricGatewayRegistryEntry> = [];
+        gateways = FabricGatewayRegistry.instance().getAll();
+        if (gateways.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+            return;
+        }
+
         const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to delete', false);
         if (!chosenGateway) {
             return;

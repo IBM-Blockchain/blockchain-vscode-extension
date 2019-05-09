@@ -65,7 +65,7 @@ export class UserInputUtil {
     static readonly WALLET: string = 'Specify an existing file system wallet';
     static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
-    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
+    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to certificate and private key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
 

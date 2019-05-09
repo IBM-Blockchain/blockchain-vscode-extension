@@ -39,13 +39,17 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
         });
     }
 
-    const packageRegistry: PackageRegistry = PackageRegistry.instance();
+    const areYouSure: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will delete the selected package(s) from your file system. Do you want to continue?`);
 
-    for (const _package of packagesToDelete) {
-        await packageRegistry.delete(_package);
+    if (areYouSure) {
+        const packageRegistry: PackageRegistry = PackageRegistry.instance();
+
+        for (const _package of packagesToDelete) {
+            await packageRegistry.delete(_package);
+        }
+
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
+
+        outputAdapter.log(LogType.SUCCESS, `Succesfully deleted package(s)`);
     }
-
-    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
-
-    outputAdapter.log(LogType.SUCCESS, `Succesfully deleted package(s)`);
 }

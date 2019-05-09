@@ -32,6 +32,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -116,6 +118,17 @@ describe('AssociateWalletCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated "blueWallet" wallet with "myGateway" gateway`);
+        });
+
+        it('should display an error message if no user added gateways exist', async () => {
+            await FabricGatewayRegistry.instance().clear();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_WALLET);
+
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC} is associated with ${FabricWalletUtil.LOCAL_WALLET}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC} is associated with ${FabricWalletUtil.LOCAL_WALLET}.`);
         });
 
         it('should display an error message if no user added wallets exist', async () => {

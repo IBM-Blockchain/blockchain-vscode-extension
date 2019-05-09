@@ -223,6 +223,19 @@ describe('ConnectCommand', () => {
                 mockConnection.connect.should.not.have.been.called;
             });
 
+            it('should display an error if there are no wallets to connect with', async () => {
+                const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+                await FabricWalletRegistry.instance().clear();
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+                refreshSpy.should.have.been.calledWith(ExtensionCommands.CONNECT);
+                choseWalletQuickPick.should.not.have.been.called;
+                mockConnection.connect.should.not.have.been.called;
+                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `You must first add a wallet with identities to connect to this gateway`);
+            });
+
             it('should do nothing if the user cancels choosing a wallet to connect with', async () => {
                 const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 

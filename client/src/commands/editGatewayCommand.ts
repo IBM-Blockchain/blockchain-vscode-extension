@@ -17,6 +17,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
+import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function editGatewayCommand(treeItem: GatewayTreeItem): Promise<void> {
 
@@ -28,6 +30,14 @@ export async function editGatewayCommand(treeItem: GatewayTreeItem): Promise<voi
     if (!treeItem) {
         // If called from command palette
         // Ask for gateway
+        // Check there is at least one that is not local_fabric
+        let gateways: Array<FabricGatewayRegistryEntry> = [];
+        gateways = FabricGatewayRegistry.instance().getAll();
+        if (gateways.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`);
+            return;
+        }
+
         const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to edit', false);
         if (!chosenGateway) {
             return;
