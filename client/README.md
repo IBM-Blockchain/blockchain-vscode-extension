@@ -1,10 +1,10 @@
-# IBM Blockchain Platform Extension for VSCode
+# IBM Blockchain Platform Extension for VS Code
 
 [![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Build Status](https://travis-ci.org/IBM-Blockchain/blockchain-vscode-extension.svg?branch=master)](https://travis-ci.org/IBM-Blockchain/blockchain-vscode-extension)
 
 The IBM Blockchain Platform extension helps developers to create, test and debug smart contracts, connect to Hyperledger Fabric environments, and build applications that transact on your blockchain network.
 
-For a step-by-step guide on getting started with the extension's features, access our Beginner Tutorial via our integrated Home page. Alternatively, explore, clone and open the Hyperledger Fabric samples, all without leaving VSCode. For more comprehensive documentation, [follow this link](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-develop-vscode)
+For a step-by-step guide on getting started with the extension's features, access our Beginner Tutorial via our integrated Home page. Alternatively, explore, clone and open the Hyperledger Fabric samples, all without leaving VS Code. For more comprehensive documentation, [follow this link](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-develop-vscode)
 
 ![IBP Extension Homepage](media/ibp_vscode_homepage.png)
 
@@ -12,7 +12,7 @@ For a step-by-step guide on getting started with the extension's features, acces
 
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
-- [VSCode version 1.32 or greater](https://code.visualstudio.com)
+- [VS Code version 1.32 or greater](https://code.visualstudio.com)
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
@@ -34,9 +34,9 @@ You can check your installed versions by running the following commands from a t
 - `go version`
 
 ## Smart Contract Development Lifecycle
-_Please note that all commands contributed by this extension are accesible via the VSCode Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
+_Please note that all commands contributed by this extension are accesible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
 
-The expected smart contract development lifecycle follows several broad points, all possible entirely within VSCode using this extension:
+The expected smart contract development lifecycle follows several broad points, all possible entirely within VS Code using this extension:
 1. Creating and packaging a smart contract
 2. Connecting to an instance of Hyperledger Fabric
 3. Running and debugging a smart contract
@@ -46,7 +46,7 @@ The expected smart contract development lifecycle follows several broad points, 
 A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create Smart Contract Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
 
 ### Package a smart contract project
-To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages are listed in the `Smart Contract Packages` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import Package` command to import a pre-existing .cds package to be used within VSCode. 
+To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages are listed in the `Smart Contract Packages` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import Package` command to import a pre-existing .cds package to be used within VS Code. 
 
 ### Operate the local_fabric runtime
 The extension contains a pre-configured local instance of Hyperledger Fabric named `local_fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Local Fabric Ops` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `local_fabric_wallet` wallet. 
@@ -65,9 +65,10 @@ Debugging your smart contract allows you to run through the smart contract trans
 4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
 5. Package and install the smart contract by clicking the **play** button.
 6. Select whether to `Create a new debug package and install` or `Resume from a previous debug session`.
-7. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
-8. If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
-9. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
+7. From the dropdown box, select the peer to install the package on.
+8. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
+9. If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
+10. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. You do not need to instantiate the contract again upon restarting the debug session. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract. If you restart the `local_fabric` runtime after stopping a debugging session, you must choose the "new debugging session" option in step 6. You must then upgrade the smart contract to the new `vscode-debug-XXXXXXX` version before submitting and debugging transactions.
 
@@ -110,7 +111,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Edit Wallet | Edit wallet containing identities used for connecting to a blockchain gateway |
 | Evaluate Transaction | Evaluate a smart contract transaction |
 | Export Connection Profile | Export connection profile for the local_fabric gateway |
-| Export Package | Export a smart contract package to use outside VSCode |
+| Export Package | Export a smart contract package to use outside VS Code |
 | Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
 | Import Package | Import a smart contract package |
 | Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
@@ -132,7 +133,7 @@ If you have find any problems or want to make suggestions for future features pl
 
 ## Just so you know
 
-The extension uses telemetry reporting to track usage data and help improve future extension versions. Disabling VSCode telemetry reporting also disables the extension's telemetry reporting.
+The extension uses telemetry reporting to track usage data and help improve future extension versions. Disabling VS Code telemetry reporting also disables the extension's telemetry reporting.
 For instructions on how to disable telemetry reporting, please visit the [Visual Studio Code FAQ](https://code.visualstudio.com/docs/supporting/FAQ#_how-to-disable-telemetry-reporting)
 
 ## License <a name="license"></a>

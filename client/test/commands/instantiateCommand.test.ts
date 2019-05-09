@@ -100,7 +100,7 @@ describe('InstantiateCommand', () => {
 
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             showInputBoxStub.onFirstCall().resolves('instantiate');
-            showInputBoxStub.onSecondCall().resolves('arg1,arg2,arg3');
+            showInputBoxStub.onSecondCall().resolves('["arg1", "arg2", "arg3"]');
 
             showYesNo = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
@@ -323,6 +323,45 @@ describe('InstantiateCommand', () => {
 
             dockerLogsOutputSpy.should.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should throw error if args not valid json', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves('["wrong]');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with instantiate function arguments: Unexpected end of JSON input');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should throw error if args does not start with [', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves('{"name": "bob"}');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with instantiate function arguments: instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should throw error if args does not end with ]', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves('1');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with instantiate function arguments: instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
         });
 
