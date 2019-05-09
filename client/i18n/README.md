@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension translations
 
-To provide translate versions of externalised strings in the VSCode extension requires localized JSON files which should be placed in this directory.
+To provide translate versions of externalised strings in the VS Code extension requires localized JSON files which should be placed in this directory.
 
 For information regarding the required format and directory layout, see:
 
