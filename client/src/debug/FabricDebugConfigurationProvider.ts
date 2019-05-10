@@ -44,8 +44,24 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             }
 
             if (!this.runtime.isDevelopmentMode()) {
-                outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is in development mode before trying to debug a smart contract`);
-                return;
+
+                // Error but allow the user to select to run the command
+                outputAdapter.log(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC} peer is not in development mode`);
+                const prompt: string = 'Toggle development mode';
+                const answer: string = await vscode.window.showErrorMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} peer is not in development mode.`, prompt);
+
+                if (answer === prompt) {
+
+                    await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
+                    if (!this.runtime.isDevelopmentMode()) {
+                        // It didn't work so return
+                        outputAdapter.log(LogType.ERROR, `Failed to toggle development mode`, `Failed to toggle development mode`);
+                        return;
+                    }
+
+                } else {
+                    return;
+                }
             }
 
             if (!config.env) {
