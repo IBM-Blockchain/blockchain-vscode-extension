@@ -15,6 +15,8 @@
 import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function debugCommandList(): Promise<void> {
 
@@ -42,5 +44,20 @@ export async function debugCommandList(): Promise<void> {
         return;
     }
 
-    vscode.commands.executeCommand(chosenCommand.data);
+    if (chosenCommand.data === ExtensionCommands.SUBMIT_TRANSACTION || chosenCommand.data === ExtensionCommands.EVALUATE_TRANSACTION) {
+        const configuration: vscode.DebugConfiguration = vscode.debug.activeDebugSession.configuration;
+        const chaincode: string = configuration.env.CORE_CHAINCODE_ID_NAME;
+
+        const runtime: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const channelMap: Map<string, string[]> = await runtime.createChannelMap();
+
+        // only one channel currently so just get the first
+        const channelName: string = Array.from(channelMap.keys())[0];
+        const smartContractName: string = chaincode.split(':')[0];
+
+        vscode.commands.executeCommand(chosenCommand.data, undefined, channelName, smartContractName);
+
+    } else {
+        vscode.commands.executeCommand(chosenCommand.data);
+    }
 }

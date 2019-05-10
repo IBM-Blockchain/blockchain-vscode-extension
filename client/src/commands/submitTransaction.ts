@@ -23,7 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 
-export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem): Promise<void> {
+export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     let action: string;
     let actioning: string;
@@ -38,26 +38,35 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         actioned = 'submitted';
     }
     outputAdapter.log(LogType.INFO, undefined, `${action}Transaction`);
-    let smartContract: string;
     let transactionName: string;
-    let channelName: string;
     let namespace: string;
-    if (!treeItem) {
-        if (!FabricConnectionManager.instance().getConnection()) {
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+    if (treeItem instanceof TransactionTreeItem) {
+        smartContract = treeItem.chaincodeName;
+        transactionName = treeItem.name;
+        channelName = treeItem.channelName;
+        namespace = treeItem.contractName;
+    } else {
+        if (!treeItem && !channelName && !smartContract) {
             if (!FabricConnectionManager.instance().getConnection()) {
-                // either the user cancelled or ther was an error so don't carry on
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                if (!FabricConnectionManager.instance().getConnection()) {
+                    // either the user cancelled or ther was an error so don't carry on
+                    return;
+                }
+            }
+
+            const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
+            if (!chosenSmartContract) {
                 return;
             }
-        }
 
-        const chosenSmartContract: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }> = await UserInputUtil.showClientInstantiatedSmartContractsQuickPick(`Choose a smart contract to ${action} a transaction from`, null);
-        if (!chosenSmartContract) {
-            return;
+            channelName = chosenSmartContract.data.channel;
+            smartContract = chosenSmartContract.data.name;
+        } else if (treeItem instanceof InstantiatedTreeItem) {
+            channelName = treeItem.channel.label;
+            smartContract = treeItem.name;
         }
-
-        channelName = chosenSmartContract.data.channel;
-        smartContract = chosenSmartContract.data.name;
 
         const chosenTransaction: IBlockchainQuickPickItem<{ name: string, contract: string }> = await UserInputUtil.showTransactionQuickPick(`Choose a transaction to ${action}`, smartContract, channelName);
         if (!chosenTransaction) {
@@ -66,18 +75,6 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             transactionName = chosenTransaction.data.name;
             namespace = chosenTransaction.data.contract;
         }
-    } else if (treeItem instanceof InstantiatedTreeItem) {
-        channelName = treeItem.channel.label;
-        smartContract = treeItem.name;
-        transactionName = await UserInputUtil.showInputBox(`What transaction do you want to ${action}?`);
-        if (!transactionName) {
-            return;
-        }
-    } else {
-        smartContract = treeItem.chaincodeName;
-        transactionName = treeItem.name;
-        channelName = treeItem.channelName;
-        namespace = treeItem.contractName;
     }
 
     let args: Array<string> = [];
