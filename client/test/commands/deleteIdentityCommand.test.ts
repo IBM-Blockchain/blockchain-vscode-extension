@@ -146,6 +146,30 @@ describe('deleteIdentityCommand', () => {
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities in wallet: ${blueWallet.walletPath}`, `No identities in wallet: ${blueWallet.walletPath}`);
     });
 
+    it('should show a different error if there are no non-admin identities in the local_fabric wallet', async () => {
+        identityName = 'bob';
+
+        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+
+        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        runtimeWalletRegistryEntry.walletPath = 'wallet_path';
+        runtimeWalletRegistryEntry.managedWallet = true;
+
+        showWalletsQuickPickStub.resolves({
+            label: FabricWalletUtil.LOCAL_WALLET,
+            data: runtimeWalletRegistryEntry
+        });
+        walletIdentitiesStub.resolves([]);
+
+        await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
+
+        walletIdentitiesStub.should.have.been.calledOnce;
+        fsRemoveStub.should.not.have.been.called;
+        logSpy.should.have.been.calledTwice;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `deleteIdentity`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.name}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.name}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
+    });
+
     it('should handle the user cancelling selecting an identity to delete', async () => {
         identityName = 'greenConga';
         showWalletsQuickPickStub.resolves({

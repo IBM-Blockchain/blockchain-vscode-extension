@@ -27,6 +27,9 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -52,10 +55,12 @@ describe('DeleteGatewayCommand', () => {
         let myGatewayA: any;
         let myGatewayB: any;
         const rootPath: string = path.dirname(__dirname);
+        let logSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+            logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // reset the available gateways
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
@@ -88,38 +93,53 @@ describe('DeleteGatewayCommand', () => {
             mySandBox.restore();
         });
 
-        it('should test a connection can be deleted from the command', async () => {
+        it('should test a gateway can be deleted from the command', async () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
             gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
-
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal(myGatewayA);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayB.name} gateway`);
         });
 
-        it('should test a connection can be deleted from tree', async () => {
+        it('should test a gateway can be deleted from tree', async () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
-            const connectionToDelete: BlockchainTreeItem = allChildren[0];
-            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, connectionToDelete);
+            const gatewayToDelete: BlockchainTreeItem = allChildren[0];
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY, gatewayToDelete);
 
             gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
-
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal(myGatewayB);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayA.name} gateway`);
         });
 
-        it('should test delete connection can be cancelled', async () => {
+        it('should test delete gateway can be cancelled', async () => {
             quickPickStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
             gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
-
             gateways.length.should.equal(2);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteGateway`);
+        });
+
+        it('should show an error message if no gateways have been added', async () => {
+            await FabricGatewayRegistry.instance().clear();
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
+
+            quickPickStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
         });
 
         it('should handle no from confirmation message', async () => {
@@ -128,10 +148,11 @@ describe('DeleteGatewayCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
             gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
-
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal(myGatewayA);
             gateways[1].should.deep.equal(myGatewayB);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteGateway`);
         });
 
         it('should delete the local gateway directory if the extension owns it', async () => {
@@ -158,6 +179,9 @@ describe('DeleteGatewayCommand', () => {
 
             getDirPathStub.should.have.been.calledOnce;
             fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'myGatewayC'));
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayC.name} gateway`);
 
         });
     });

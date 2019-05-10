@@ -20,6 +20,8 @@ import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeItem): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -31,6 +33,13 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
         // If called from command palette
 
         // Ask for gateway
+        // Check there is at least one that is not local_fabric
+        let gateways: Array<FabricGatewayRegistryEntry> = [];
+        gateways = FabricGatewayRegistry.instance().getAll();
+        if (gateways.length === 0) {
+            outputAdapter.log(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC} is associated with ${FabricWalletUtil.LOCAL_WALLET}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC} is associated with ${FabricWalletUtil.LOCAL_WALLET}.`);
+            return;
+        }
         const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Pick a gateway to associate a wallet with', false, false);
         if (!chosenGateway) {
             return;

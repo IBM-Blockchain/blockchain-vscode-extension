@@ -26,6 +26,8 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { GatewayDissociatedTreeItem } from '../../src/explorer/model/GatewayDissociatedTreeItem';
 import { GatewayAssociatedTreeItem } from '../../src/explorer/model/GatewayAssociatedTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -37,6 +39,7 @@ describe('EditGatewayCommand', () => {
     let openUserSettingsStub: sinon.SinonStub;
     let showGatewayQuickPickStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
+    let gatewayRegistryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -52,6 +55,8 @@ describe('EditGatewayCommand', () => {
         openUserSettingsStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
         showGatewayQuickPickStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        gatewayRegistryStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll');
+        gatewayRegistryStub.returns([{name: 'someGateway'}, {name: 'someOtherGateway'}]);
     });
 
     afterEach(() => {
@@ -67,6 +72,16 @@ describe('EditGatewayCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
                 openUserSettingsStub.should.not.have.been.called;
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editGateway`);
+            });
+
+            it('should display an error message if no user-added gateways exist', async () => {
+                gatewayRegistryStub.returns([]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
+                showGatewayQuickPickStub.should.not.have.been.called;
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `editGateway`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`);
             });
 
             it('should open user settings to edit a gateway', async () => {
@@ -78,8 +93,7 @@ describe('EditGatewayCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
                 openUserSettingsStub.should.have.been.calledWith('myGateway');
-                logSpy.should.have.been.calledOnce;
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editGateway`);
             });
         });
 
@@ -91,8 +105,7 @@ describe('EditGatewayCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myGateway');
-                logSpy.should.have.been.calledOnce;
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editGateway`);
             });
 
             it('should open the user settings to edit an dissociated gateway', async () => {
@@ -101,8 +114,7 @@ describe('EditGatewayCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myGateway');
-                logSpy.should.have.been.calledOnce;
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editGateway`);
             });
         });
     });

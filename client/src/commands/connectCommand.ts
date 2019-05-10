@@ -54,6 +54,13 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
     // If the user is trying to connect to the local_fabric, we should always use the local_fabric_wallet
     if (!gatewayRegistryEntry.associatedWallet && !gatewayRegistryEntry.managedRuntime) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
+        // First check there is at least one that isn't local_fabric_wallet
+        let wallets: Array<FabricWalletRegistryEntry> = [];
+        wallets = FabricWalletRegistry.instance().getAll();
+        if (wallets.length === 0) {
+            outputAdapter.log(LogType.ERROR, `You must first add a wallet with identities to connect to this gateway`);
+            return;
+        }
 
         // Choose a wallet to connect with
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', false);

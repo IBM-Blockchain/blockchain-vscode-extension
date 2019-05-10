@@ -27,7 +27,9 @@ import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplo
 import * as myExtension from '../../src/extension';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -98,6 +100,16 @@ describe('removeWalletCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`);
+    });
+
+    it('should show an error if no other wallets have been added', async () => {
+        await FabricWalletRegistry.instance().clear();
+
+        await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
+
+        showWalletsQuickPickStub.should.not.have.been.called;
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`);
     });
 
     it('should handle the user cancelling selecting a wallet', async () => {
