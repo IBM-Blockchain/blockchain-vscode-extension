@@ -161,7 +161,7 @@ describe('AddGatewayCommand', () => {
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new connection: already exists`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: already exists`);
         });
 
         it ('should send a telemetry event if the extension is for production', async () => {
