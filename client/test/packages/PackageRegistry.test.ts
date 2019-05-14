@@ -125,4 +125,37 @@ describe('PackageRegistry', () => {
 
     });
 
+    describe('#get', () => {
+
+        it('should get one of the entries', async () => {
+            mySandBox.stub(packageRegistry, 'getAll').resolves(
+                [
+                    {
+                        name: 'vscode-pkg-1',
+                        version: '0.0.1',
+                        path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-1@0.0.1.cds')
+                    },
+                    {
+                        name: 'vscode-pkg-2',
+                        version: '0.0.2',
+                        path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+                    },
+                    {
+                        name: 'vscode-pkg-3',
+                        version: '1.2.3',
+                        path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-3@1.2.3.cds')
+                    }
+                ]
+            );
+
+            const _package: PackageRegistryEntry = await packageRegistry.get('vscode-pkg-2', '0.0.2');
+            _package.should.deep.equal({
+                name: 'vscode-pkg-2',
+                version: '0.0.2',
+                path: path.join(TEST_GOOD_PACKAGE_DIRECTORY, 'packages', 'vscode-pkg-2@0.0.2.cds')
+            });
+        });
+
+    });
+
 });

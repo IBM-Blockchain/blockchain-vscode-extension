@@ -108,6 +108,21 @@
         "${workspaceFolder}/out/integrationTest/**/*.js"
       ],
       "preLaunchTask": "npm: integrationTests"
+    },
+    {
+      "name": "Cucumber",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/integrationTest/data/integrationTest.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: watch"
     }
   ]
 }
