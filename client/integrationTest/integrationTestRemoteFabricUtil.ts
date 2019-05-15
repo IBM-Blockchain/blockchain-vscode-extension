@@ -53,7 +53,7 @@ export class IntegrationTestRemoteFabricUtil {
             skipPersistence: false
         });
 
-        this.client.setUserContext(user);
+        await this.client.setUserContext(user);
     }
 
     public async installChaincode(language: string): Promise<void> {

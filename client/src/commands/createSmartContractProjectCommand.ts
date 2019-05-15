@@ -86,7 +86,8 @@ export async function createSmartContractProject(): Promise<void> {
 
     try {
 
-        const packageJson: any = ExtensionUtil.getPackageJSON();
+        const skipInstall: boolean = ExtensionUtil.skipNpmInstall();
+
         const runOptions: any = {
             'destination': folderPath,
             'language': smartContractLanguage,
@@ -95,7 +96,7 @@ export async function createSmartContractProject(): Promise<void> {
             'description': 'My Smart Contract',
             'author': 'John Doe',
             'license': 'Apache-2.0',
-            'skip-install': !packageJson.production,
+            'skip-install': skipInstall,
             'asset': assetType
         };
 

@@ -284,11 +284,11 @@ describe('Extension Tests', () => {
         await vscode.commands.executeCommand('blockchain.refreshEntry').should.be.rejectedWith(`command 'blockchain.refreshEntry' not found`);
     });
 
-    it('should check if production flag is false on extension activiation', async () => {
+    it('should check if production flag is false on extension activation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
-        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'dispose');
+        const reporterDisposeStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'dispose');
 
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
@@ -299,10 +299,10 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        reporterStub.should.have.been.called;
+        reporterDisposeStub.should.have.been.called;
     });
 
-    it('should check if production flag is true on extension activiation', async () => {
+    it('should check if production flag is true on extension activation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
         mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
