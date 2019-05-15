@@ -208,26 +208,24 @@ So, you've got a Gateway, and an associated wallet with a single identity in it 
 
 2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.1`. You will see a list of all the transactions that were defined in your smart contract.
 
-3. First, we will create an asset.  Right-click on createMyAsset and select `Submit Transaction`. You will be asked to provide arguments for the transaction: try `["001", "a juicy delicious asset"]` (or whatever key and value you like, but make sure you remember the key you use!). 
+3. First, we will create an asset.  Right-click on createMyAsset and select `Submit Transaction`. You will be asked to provide arguments for the transaction: try `["001", "a juicy delicious asset"]` (or whatever key and value you like, but make sure you remember the key you use!).
 
-4. You will the be asked to set the transient data for the transaction. Don't worry about that for now we will cover it in a later tutorial. For now just hit `Enter`.
+   > Pro Tip: Arguments are submitted as JSON, so make sure you type the inputs exactly as shown, so that you're submitting an array of 2 strings as required by this transaction!
 
-> **Pro Tip:** Arguments are submitted as JSON, so make sure you type the inputs exactly as shown, so that you're submitting an array of 2 strings as required by this transaction!
+   > Command Palette alternative: Submit Transaction
 
-> Command Palette alternative: `Submit Transaction`
+4. You will then be asked to set the transient data for the transaction. Don't worry about that for now we will cover it in a later tutorial. For now just hit Enter.
 
-5. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `["001", "a tremendously delicious asset"]`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
+   Success: there is now a juicy, delicious asset on our ledger!
 
-6. There should now be a juicy, delicious asset on our ledger. Let's submit another transaction...
+5. Next, submit updateMyAsset in a similar way. This time, for the arguments, provide the same key and a different value e.g. `["001", "a tremendously delicious asset"]`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
 
-7. Next, submit `updateMyAsset` in a similar way. This time, for the arguments, provide the same key and a different value e.g. `["001", "a tremendously delicious asset"]`. So, now the value of key 001 on our ledger should be "a tremendously delicious asset". Lets check that by reading the value back...
+6. `readMyAsset` is for reading from rather than writing to the ledger, so this time select `Evaluate Transaction`. Enter `["001"]` (or whatever you set your key to) as the argument. You should see the following in the output console:
 
-8. `readMyAsset` is for reading from rather than writing to the ledger, so this time select `Evaluate Transaction`. Enter `["001"]` (or whatever you set your key to) as the argument. You should see the following in the output console:
-
-```
-[SUCCESS] Returned value from readMyAsset: {"value":" a tremendously delicious asset"}
-```
-> Command Palette alternative: `Evaluate Transaction`
+   ```
+   [SUCCESS] Returned value from readMyAsset: {"value":"a tremendously delicious asset"}
+   ```
+   > Command Palette alternative: `Evaluate Transaction`
 
 You've proven you can submit and evaluate transactions to update and read your ledger!
 
