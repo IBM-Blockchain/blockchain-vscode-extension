@@ -252,4 +252,14 @@ describe('ExtensionUtil Tests', () => {
         });
 
     });
+
+    describe('skipNpmInstall', () => {
+
+        it('skipNpmInstall should return false', async () => {
+
+            const result: boolean = await ExtensionUtil.skipNpmInstall();
+            result.should.equal(false);
+
+        });
+    });
 });
