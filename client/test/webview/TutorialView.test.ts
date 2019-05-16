@@ -21,16 +21,17 @@ import * as sinonChai from 'sinon-chai';
 import * as path from 'path';
 import { TutorialView } from '../../src/webview/TutorialView';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 
 describe('TutorialView', () => {
     let mySandBox: sinon.SinonSandbox;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
     });
@@ -49,25 +50,18 @@ describe('TutorialView', () => {
         const uri: vscode.Uri = vscode.Uri.file(filePath);
 
         commandSpy.should.have.been.calledWith('markdown.showPreviewToSide', uri);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Tutorial Viewed', {series: 'Introduction', tutorial: 'Local smart contract development'});
     });
 
     it('should do nothing on openPanelInner', async () => {
         const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         await tutorialView['openPanelInner']();
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should return empty string on getHTMLString', async () => {
         const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
         const result: string = await tutorialView['getHTMLString']();
         result.should.equal('');
-    });
-
-    it('should send a telemetry event if the extension is for production', async () => {
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        const tutorialView: TutorialView = new TutorialView('Introduction', 'Local smart contract development');
-        await tutorialView.openView();
-
-        reporterStub.should.have.been.calledWith('Tutorial Viewed', {series: 'Introduction', tutorial: 'Local smart contract development'});
     });
 });

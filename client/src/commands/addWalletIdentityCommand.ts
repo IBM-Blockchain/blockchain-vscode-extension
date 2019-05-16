@@ -115,7 +115,6 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
         }
         certificatePath = certKey.certificatePath;
         privateKeyPath = certKey.privateKeyPath;
-        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'Certificate'});
     } else {
         // User wants to add an identity by providing a enrollment id and secret
 
@@ -160,7 +159,6 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
         const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
         certificate = enrollment.certificate;
         privateKey = enrollment.privateKey;
-        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'enrollmentID'});
     }
 
     if (certificatePath && privateKeyPath) {
@@ -178,4 +176,11 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
 
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
     outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
+
+    // Send telemetry event
+    if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'Certificate'});
+    } else {
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'enrollmentID'});
+    }
 }

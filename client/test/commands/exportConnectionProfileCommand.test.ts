@@ -48,6 +48,7 @@ describe('exportConnectionProfileCommand', () => {
     let logSpy: sinon.SinonSpy;
     let ensureDirStub: sinon.SinonStub;
     let copyFileStub: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -87,6 +88,8 @@ describe('exportConnectionProfileCommand', () => {
         ]);
         ensureDirStub = sandbox.stub(fs, 'ensureDir');
         copyFileStub = sandbox.stub(fs, 'copyFile');
+        sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
     });
 
     afterEach(async () => {
@@ -100,6 +103,7 @@ describe('exportConnectionProfileCommand', () => {
         ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
         copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
     it('should export the connection profile when called from the command palette', async () => {
@@ -109,6 +113,7 @@ describe('exportConnectionProfileCommand', () => {
         ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
         copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
     it('should export the connection profile and ask which project if more than one is open in workspace', async () => {
@@ -131,11 +136,12 @@ describe('exportConnectionProfileCommand', () => {
         ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
         copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder2.uri.fsPath, runtime.getName()));
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
     it('should handle undefined workspace folders', async () => {
-
         workspaceFolderStub.returns(null);
+
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
         ensureDirStub.should.not.have.been.called;
         copyFileStub.should.not.have.been.called;
@@ -175,13 +181,5 @@ describe('exportConnectionProfileCommand', () => {
 
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
         logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
-    });
-
-    it ('should send a telemetry event if the extension is for production', async () => {
-        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, peerTreeItem);
-
-        reporterStub.should.have.been.calledWith('exportConnectionProfileCommand');
     });
 });
