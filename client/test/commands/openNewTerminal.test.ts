@@ -38,6 +38,7 @@ describe('openNewTerminal', () => {
     let node: FabricNode;
     let mockTerminal: any;
     let createTerminalStub: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -61,6 +62,7 @@ describe('openNewTerminal', () => {
             show: sinon.stub()
         };
         createTerminalStub = sandbox.stub(vscode.window, 'createTerminal').returns(mockTerminal);
+        sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
     });
 
     afterEach(async () => {
@@ -80,6 +82,7 @@ describe('openNewTerminal', () => {
             ]
         );
         mockTerminal.show.should.have.been.calledOnce;
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openFabricRuntimeTerminalCommand', { type: FabricNodeType.PEER });
     });
 
     it('should open a terminal for a Fabric node specified by user selection', async () => {
@@ -96,19 +99,12 @@ describe('openNewTerminal', () => {
             ]
         );
         mockTerminal.show.should.have.been.calledOnce;
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openFabricRuntimeTerminalCommand', { type: FabricNodeType.PEER });
     });
 
     it('should not open a terminal if a user cancels specifying a Fabric node', async () => {
         sandbox.stub(UserInputUtil, 'showRuntimeNodeQuickPick').resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL);
         createTerminalStub.should.not.have.been.called;
-    });
-
-    it('should send a telemetry event if the extension is for production', async () => {
-        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL, nodeItem);
-
-        reporterStub.should.have.been.calledWithExactly('openFabricRuntimeTerminalCommand', { type: FabricNodeType.PEER });
     });
 });

@@ -22,7 +22,6 @@ import * as path from 'path';
 import { HomeView } from '../../src/webview/HomeView';
 import { View } from '../../src/webview/View';
 import * as ejs from 'ejs';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
@@ -34,7 +33,7 @@ describe('HomeView', () => {
     let onDidReceiveMessagePromises: any[];
     let createWebviewPanelStub: sinon.SinonStub;
     let context: vscode.ExtensionContext;
-    let reporterStub: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         context = {
@@ -52,7 +51,7 @@ describe('HomeView', () => {
             reveal: (): void => { return; }
         });
 
-        reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, true, vscode.ConfigurationTarget.Global);
 
@@ -141,7 +140,7 @@ describe('HomeView', () => {
         await homeView.openView(true).should.be.rejectedWith(error);
     });
 
-    it('should send a telemetry event if the extension is for production', async () => {
+    it('should send a telemetry event if a link was clicked', async () => {
         onDidReceiveMessagePromises = [];
 
         onDidReceiveMessagePromises.push(new Promise((resolve: any): void => {
@@ -163,13 +162,12 @@ describe('HomeView', () => {
             });
         }));
 
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
         const homeView: HomeView = new HomeView(context);
         await homeView.openView(false);
 
         await Promise.all(onDidReceiveMessagePromises);
 
-        reporterStub.should.have.been.calledWith('Referral', {source: 'homepage', destination: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691'});
+        sendTelemetryEventStub.should.have.been.calledWith('Referral', {source: 'homepage', destination: 'https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-overview&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+about+IBM+Blockchain+Platform&cm_mmca1=000026VG&cm_mmca2=10008691'});
     });
 
     it('should not send a telemetry event if the links were not clicked', async () => {
@@ -195,13 +193,12 @@ describe('HomeView', () => {
             });
         }));
 
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
         const homeView: HomeView = new HomeView(context);
         await homeView.openView(false);
 
         await Promise.all(onDidReceiveMessagePromises);
 
-        reporterStub.should.have.been.calledOnceWithExactly('openedView', {name: 'IBM Blockchain Platform Home'});
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {name: 'IBM Blockchain Platform Home'});
     });
 
     it('should send telemetry event on openPanelInner', async () => {
@@ -215,7 +212,7 @@ describe('HomeView', () => {
         const homeView: HomeView = new HomeView(context);
         await homeView.openPanelInner(panel);
 
-        reporterStub.should.have.been.calledWith('openedView', {name: 'IBM Blockchain Platform Home'});
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {name: 'IBM Blockchain Platform Home'});
 
     });
 

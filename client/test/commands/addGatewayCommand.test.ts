@@ -25,7 +25,6 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 // tslint:disable no-unused-expression
@@ -40,6 +39,7 @@ describe('AddGatewayCommand', () => {
     let browseStub: sinon.SinonStub;
     let copyConnectionProfileStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -64,6 +64,7 @@ describe('AddGatewayCommand', () => {
             copyConnectionProfileStub.onFirstCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
             copyConnectionProfileStub.onSecondCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'));
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
 
         afterEach(async () => {
@@ -88,6 +89,7 @@ describe('AddGatewayCommand', () => {
             copyConnectionProfileStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
         });
 
         it('should test multiple gateways can be added', async () => {
@@ -125,6 +127,8 @@ describe('AddGatewayCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.have.been.calledWithExactly('addGatewayCommand');
         });
 
         it('should test adding a gateway can be cancelled when giving a gateway name', async () => {
@@ -135,6 +139,7 @@ describe('AddGatewayCommand', () => {
             const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should test adding a gateway can be cancelled when giving a connection profile', async () => {
@@ -147,6 +152,7 @@ describe('AddGatewayCommand', () => {
             const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should handle errors when adding a gateway', async () => {
@@ -162,18 +168,7 @@ describe('AddGatewayCommand', () => {
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: already exists`);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
-
-        it ('should send a telemetry event if the extension is for production', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            showInputBoxStub.onFirstCall().resolves('myGateway');
-            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
-
-            reporterStub.should.have.been.calledWith('addGatewayCommand');
-        });
-
     });
 });
