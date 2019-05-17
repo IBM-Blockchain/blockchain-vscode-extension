@@ -316,6 +316,13 @@ describe('ConnectCommand', () => {
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + connectionSingleWallet.name);
             });
 
+            it('should show error if local_fabric is not started', async () => {
+                mockRuntime.isRunning.resolves(false);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'local_fabric has not been started, please start it before connecting.');
+            });
+
             it('should handle error from connecting', async () => {
                 const error: Error = new Error('some error');
                 mockConnection.connect.rejects(error);
