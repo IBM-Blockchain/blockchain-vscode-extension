@@ -241,7 +241,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
+            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{ name: 'wagonwheeling' }]);
             writeJsonStub = mySandBox.stub(fs, 'writeJson').resolves();
             // Other stubs
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves('some npm install output');
@@ -476,7 +476,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should show an error message if the user has no workspaces open', async () => {
-            workspaceFoldersStub.resolves([]);
+            workspaceFoldersStub.returns([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);

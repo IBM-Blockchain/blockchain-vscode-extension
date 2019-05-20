@@ -24,3 +24,5 @@ coverage
 /integrationTest/data/myWallet/redConga
 /integrationTest/hfc-key-store
 /integrationTest/data/fabric-samples
+/cucumber/cucumber-report.html
+/cucumber/cucumber-report.json

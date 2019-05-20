@@ -175,7 +175,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
     let workspaceFolderOptions: Array<vscode.WorkspaceFolder>;
     let workspaceFolder: vscode.WorkspaceFolder;
-    workspaceFolderOptions = await UserInputUtil.getWorkspaceFolders();
+    workspaceFolderOptions = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolderOptions.length === 0) {
         const message: string = `Issue determining available smart contracts. Please open the smart contract you want to be packaged.`;
         throw new Error(message);
