@@ -1159,6 +1159,8 @@
         "angular-tslint-rules": "1.5.0",
         "chai": "4.1.2",
         "chai-as-promised": "7.1.1",
+        "cucumber": "2.2.0",
+        "cucumber-html-reporter": "^5.0.0",
         "decache": "4.4.0",
         "glob": "7.1.2",
         "istanbul": "0.4.5",
@@ -1273,7 +1275,8 @@
             ".block",
             ".log",
             ".pid",
-            ".port"
+            ".port",
+            ".feature"
         ],
         "insert_license": false,
         "clear_license": false,

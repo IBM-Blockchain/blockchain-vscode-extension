@@ -28,7 +28,6 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -82,12 +81,14 @@ describe('ConnectCommand', () => {
         let choseWalletQuickPick: sinon.SinonStub;
         let identity: IdentityInfo;
         let walletGenerator: FabricWalletGenerator;
+        let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
             mockConnection = sinon.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
+            mockConnection.isIBPConnection.returns(false);
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricClientConnection').returns(mockConnection);
 
@@ -171,6 +172,7 @@ describe('ConnectCommand', () => {
                 label: 'myGatewayAWallet',
                 data: FabricWalletRegistry.instance().get('myGatewayAWallet')
             });
+            sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         });
 
@@ -188,6 +190,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should test that a fabric gateway with multiple identities can be connected to from the quick pick', async () => {
@@ -208,6 +211,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.calledOnce;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should do nothing if the user cancels choosing a gateway', async () => {
@@ -277,6 +281,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should test that a fabric gateway with multiple identities can be connected to from the tree', async () => {
@@ -292,6 +297,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), FabricRuntimeUtil.ADMIN_USER);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should handle no identities found in wallet', async () => {
@@ -306,7 +312,15 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
+                mockConnection.connect.should.not.have.been.called;
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + connectionSingleWallet.name);
+            });
+
+            it('should show error if local_fabric is not started', async () => {
+                mockRuntime.isRunning.resolves(false);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'local_fabric has not been started, please start it before connecting.');
             });
 
             it('should handle error from connecting', async () => {
@@ -318,6 +332,7 @@ describe('ConnectCommand', () => {
                 logSpy.should.have.been.calledTwice;
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connect`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
+                sendTelemetryEventStub.should.not.have.been.called;
             });
         });
 
@@ -361,6 +376,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime' });
             });
 
             it('should connect to a managed runtime with multiple identities, using a quick pick', async () => {
@@ -374,6 +390,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime' });
             });
 
             it('should connect to a managed runtime from the tree', async () => {
@@ -386,6 +403,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime' });
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
@@ -428,8 +446,8 @@ describe('ConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
-                console.log('aas', mockConnection.connect.getCalls());
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should connect to a non-local fabric with multiple identities, using a quick pick', async () => {
@@ -443,6 +461,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should connect to a non-local runtime from the tree', async () => {
@@ -456,6 +475,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
@@ -470,39 +490,13 @@ describe('ConnectCommand', () => {
 
         });
 
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterSpy: sinon.SinonSpy = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
-            mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
-
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
-
-            reporterSpy.should.have.been.calledWith('connectCommand', { runtimeData: 'user runtime' });
-        });
-
-        it('should send a telemetry event if using IBP', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterSpy: sinon.SinonSpy = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        it('should send a connectCommand telemetry event if connecting to IBP', async () => {
             mockConnection.isIBPConnection.returns(true);
-
             mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-            reporterSpy.should.have.been.calledWith('connectCommand', { runtimeData: 'IBP instance' });
-        });
-
-        it('should send a telemetry event if not using IBP', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterSpy: sinon.SinonSpy = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            mockConnection.isIBPConnection.returns(false);
-
-            mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
-
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
-
-            reporterSpy.should.have.been.calledWith('connectCommand', { runtimeData: 'user runtime' });
+            sendTelemetryEventStub.should.have.been.calledWith('connectCommand', { runtimeData: 'IBP instance' });
         });
     });
 });

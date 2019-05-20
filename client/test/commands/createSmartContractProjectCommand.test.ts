@@ -24,10 +24,10 @@ import { UserInputUtil, LanguageType, LanguageQuickPickItem } from '../../src/co
 import { TestUtil } from '../TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { YeomanUtil } from '../../src/util/YeomanUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
@@ -44,6 +44,8 @@ describe('CreateSmartContractProjectCommand', () => {
     let executeCommandStub: sinon.SinonStub;
     let updateWorkspaceFoldersStub: sinon.SinonStub;
     let uri: vscode.Uri;
+    let skipNpmInstallStub: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -71,14 +73,17 @@ describe('CreateSmartContractProjectCommand', () => {
         updateWorkspaceFoldersStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
         // Create a tmp directory for Smart Contract packages, and create a Uri of it
         uri = vscode.Uri.file(tmp.dirSync().name);
+        skipNpmInstallStub = mySandBox.stub(ExtensionUtil, 'skipNpmInstall');
+        skipNpmInstallStub.resolves(true);  // we don't want npm install running during unit tests
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
     });
     afterEach(() => {
         mySandBox.restore();
     });
 
     const testLanguageItems: LanguageQuickPickItem[] = [
-        { label: 'TypeScript', type: LanguageType.CONTRACT },
-        { label: 'Go', type: LanguageType.CHAINCODE }
+        { label: 'typescript', type: LanguageType.CONTRACT },
+        { label: 'go', type: LanguageType.CHAINCODE }
     ];
 
     for (const testLanguageItem of testLanguageItems) {
@@ -106,9 +111,9 @@ describe('CreateSmartContractProjectCommand', () => {
         }
 
         async function checkSmartContract(): Promise<void> {
-            if (testLanguageItem.label === 'TypeScript') {
+            if (testLanguageItem.label === 'typescript') {
                 return checkTypeScriptSmartContract();
-            } else if (testLanguageItem.label === 'Go') {
+            } else if (testLanguageItem.label === 'go') {
                 return checkGoSmartContract();
             } else {
                 throw new Error(`You must update this test to support the ${testLanguageItem.label} language`);
@@ -128,6 +133,7 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window`, async () => {
@@ -143,6 +149,7 @@ describe('CreateSmartContractProjectCommand', () => {
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and save`, async () => {
@@ -164,6 +171,7 @@ describe('CreateSmartContractProjectCommand', () => {
             saveDialogStub.should.have.been.calledWith(true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in current window with unsaved files and not save`, async () => {
@@ -185,6 +193,7 @@ describe('CreateSmartContractProjectCommand', () => {
             saveDialogStub.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with no folders`, async () => {
@@ -202,6 +211,7 @@ describe('CreateSmartContractProjectCommand', () => {
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
         });
 
         it(`should start a ${testLanguageItem.label} smart contract project, in a new workspace with folders`, async () => {
@@ -217,6 +227,7 @@ describe('CreateSmartContractProjectCommand', () => {
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createSmartContractProject', {contractLanguage: testLanguageItem.label});
         });
 
     }
@@ -230,6 +241,7 @@ describe('CreateSmartContractProjectCommand', () => {
         browseStub.resolves(uri);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue creating smart contract project: such error');
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should not do anything if the user cancels the open dialog', async () => {
@@ -268,20 +280,6 @@ describe('CreateSmartContractProjectCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
         quickPickStub.should.have.been.calledOnce;
         browseStub.should.not.have.been.called;
-    });
-
-    it('should send a telemetry event if the extension is for production', async () => {
-        const getPackageJSONStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
-        getPackageJSONStub.onCall(0).returns({production: false}); // To disable npm install!
-        getPackageJSONStub.onCall(1).returns({production: true}); // For the reporter!
-        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
-        quickPickStub.onFirstCall().resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-        showInputBoxStub.onFirstCall().resolves('Conga');
-        quickPickStub.onSecondCall().resolves(UserInputUtil.OPEN_IN_NEW_WINDOW);
-        browseStub.resolves(uri);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        reporterStub.should.have.been.calledWith('createSmartContractProject', {contractLanguage: 'typescript'});
     });
 
     it('should check if Mac (Darwin) devices have Xcode installed', async () => {

@@ -116,6 +116,10 @@ export class ExtensionUtil {
 
     }
 
+    public static skipNpmInstall(): boolean {
+        return false; // We should never skip npm install, except for unit tests
+    }
+
     private static extensionContext: vscode.ExtensionContext;
 
     private static getExtension(): vscode.Extension<any> {

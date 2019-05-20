@@ -30,7 +30,6 @@ import * as dateFormat from 'dateformat';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -67,6 +66,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let date: Date;
         let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
+        let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -140,6 +140,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 data: true,
                 description: `Create a new debug package and install`
             });
+            sendTelemetryEventStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
 
         afterEach(() => {
@@ -159,6 +160,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
         it('should add start arg if not in there', async () => {
@@ -175,6 +177,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
         it('should set program if not set', async () => {
@@ -191,6 +194,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
         it('should add cwd if not set', async () => {
@@ -207,6 +211,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
         it('should add args if not defined', async () => {
@@ -222,6 +227,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
         it('should add more args if some args exist', async () => {
@@ -237,6 +243,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
 
         it('should add in request if not defined', async () => {
@@ -252,15 +259,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
         });
-
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            reporterStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
-        });
-
     });
 });

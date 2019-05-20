@@ -29,7 +29,6 @@ import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
@@ -49,7 +48,7 @@ describe('testSmartContractCommand', () => {
     let executeCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let fsRemoveStub: sinon.SinonStub;
-    let reporterStub: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
     let getConnectionStub: sinon.SinonStub;
     let showInstantiatedSmartContractsQuickPickStub: sinon.SinonStub;
     let openTextDocumentStub: sinon.SinonStub;
@@ -80,6 +79,7 @@ describe('testSmartContractCommand', () => {
     let getConfigurationStub: sinon.SinonStub;
     let workspaceConfigurationUpdateStub: sinon.SinonStub;
     let workspaceConfigurationGetStub: sinon.SinonStub;
+    let writeJsonStub: sinon.SinonStub;
     let fakeMetadata: any;
     let transactionOne: any;
     let transactionTwo: any;
@@ -98,6 +98,7 @@ describe('testSmartContractCommand', () => {
         include: ['./functionalTests/**/*']
     };
     const tsConfigFormat: any = { spaces: '\t' };
+
     before(async () => {
         await TestUtil.setupTests();
     });
@@ -113,7 +114,7 @@ describe('testSmartContractCommand', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
             // ExecuteCommand stub
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -215,7 +216,6 @@ describe('testSmartContractCommand', () => {
             smartContractLabel = instantiatedSmartContract.label;
             smartContractName = instantiatedSmartContract.name;
             // Document editor stubs
-
             testFileDir = path.join(rootPath, '..', '..', 'data', 'smartContractTests');
             mockDocumentStub = {
                 lineCount: 8,
@@ -241,9 +241,10 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').resolves([{ name: 'wagonwheeling' }]);
+            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{ name: 'wagonwheeling' }]);
+            writeJsonStub = mySandBox.stub(fs, 'writeJson').resolves();
             // Other stubs
-            sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
+            sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves('some npm install output');
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
@@ -282,6 +283,10 @@ describe('testSmartContractCommand', () => {
             sendCommandStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should generate a typescript test file for a selected instantiated smart contract', async () => {
@@ -323,6 +328,10 @@ describe('testSmartContractCommand', () => {
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should provide a path.join if the wallet path contains the home directory', async () => {
@@ -366,6 +375,7 @@ describe('testSmartContractCommand', () => {
             showTextDocumentStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should handle connecting being cancelled', async () => {
@@ -420,7 +430,6 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-            const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
             fabricClientConnectionMock.getMetadata.resolves(
                 {
                     contracts: {
@@ -463,10 +472,11 @@ describe('testSmartContractCommand', () => {
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should show an error message if the user has no workspaces open', async () => {
-            workspaceFoldersStub.resolves([]);
+            workspaceFoldersStub.returns([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -489,6 +499,7 @@ describe('testSmartContractCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should generate a test file for each smart contract defined in the metadata (from tree)', async () => {
@@ -570,6 +581,8 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
+
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should generate a test file for just the contract tree item passed in', async () => {
@@ -647,6 +660,8 @@ describe('testSmartContractCommand', () => {
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
+
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should generate a test file for just the selected contract', async () => {
@@ -721,6 +736,8 @@ describe('testSmartContractCommand', () => {
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
             firstTemplateData.includes(morefakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
+
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should generate a test file for all contracts', async () => {
@@ -804,6 +821,8 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
             secondTemplateData.includes(morefakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
+
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should handle cancel from choosing contract', async () => {
@@ -932,6 +951,10 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const args = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')})`).should.be.true;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should generate a copy of the test file if the user tells it to', async () => {
@@ -954,6 +977,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionTwo.name).should.be.true;
             templateData.includes(transactionThree.name).should.be.true;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should generate a copy of the test file and name it correctly if the smart contract namespace isnt defined', async () => {
@@ -998,7 +1022,10 @@ describe('testSmartContractCommand', () => {
             templateData.includes('transaction2').should.be.true;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should show an error if it fails to create test file', async () => {
@@ -1029,24 +1056,6 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.ERROR, `Error editing test file: ${testFilePath}`);
             fsRemoveStub.should.have.been.called;
-        });
-
-        it('should send a telemetry event for testSmartContract if the extension is for production', async () => {
-            const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
-
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            mySandBox.stub(fs, 'pathExists').resolves(false);
-            mySandBox.stub(fs, 'ensureFile').resolves();
-
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
-            openTextDocumentStub.should.have.been.called;
-            showTextDocumentStub.should.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-
-            reporterStub.should.have.been.calledWith('testSmartContractCommand');
-
         });
 
         it('should handle errors when attempting to remove created test file', async () => {
@@ -1092,6 +1101,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should correctly detect existing test runner user settings for typescript tests', async () => {
@@ -1107,14 +1117,16 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-            const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
+
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.not.have.been.called;
             writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should correctly detect no test runner user settings for typescript tests', async () => {
@@ -1129,7 +1141,6 @@ describe('testSmartContractCommand', () => {
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
-            const writeJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'writeJson').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.have.been.called;
@@ -1137,7 +1148,9 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
         });
 
         it('should error if tsconfig.json file cannot be created', async () => {
@@ -1154,7 +1167,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             const error: Error = new Error('failed for some reason');
-            mySandBox.stub(fs, 'writeJson').throws(error);
+            writeJsonStub.throws(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.have.been.called;
@@ -1162,6 +1175,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.ERROR, 'Unable to create tsconfig.json file: failed for some reason', `Unable to create tsconfig.json file: ${error.toString()}`);
         });
 
@@ -1180,14 +1194,13 @@ describe('testSmartContractCommand', () => {
             pathExistsStub.onSecondCall().resolves(true);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            const writeJsonSpy: sinon.SinonSpy = mySandBox.spy(fs, 'writeJson');
-
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             workspaceConfigurationUpdateStub.should.have.been.called;
-            writeJsonSpy.should.not.have.been.called;
+            writeJsonStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.WARNING, 'Unable to create tsconfig.json file as it already exists');
             logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });

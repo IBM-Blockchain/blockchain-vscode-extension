@@ -32,12 +32,19 @@ export class PackageRegistry {
     private constructor() {
     }
 
+    public async get(name: string, version: string): Promise<PackageRegistryEntry> {
+        const packages: PackageRegistryEntry[] = await this.getAll();
+        const _package: PackageRegistryEntry = packages.find((pkg: PackageRegistryEntry) => {
+            return pkg.name === name && pkg.version === version;
+        });
+        return _package;
+    }
+
     public async getAll(): Promise<PackageRegistryEntry[]> {
         return await this.getEntries();
     }
 
     public async delete(packageEntry: PackageRegistryEntry): Promise<void> {
-        console.log('delete', packageEntry.name);
         await fs.remove(packageEntry.path);
     }
 

@@ -18,7 +18,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { TestUtil } from '../TestUtil';
-
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -27,7 +26,6 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
@@ -52,6 +50,7 @@ describe('importSmartContractPackageCommand', () => {
     let logSpy: sinon.SinonSpy;
     let browseStub: sinon.SinonStub;
     let commandSpy: sinon.SinonSpy;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     const srcPackage: string = path.join('myPath', 'test.cds');
 
@@ -62,6 +61,8 @@ describe('importSmartContractPackageCommand', () => {
         copyStub = sandbox.stub(fs, 'copyFile').resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
     });
 
     afterEach(async () => {
@@ -76,6 +77,7 @@ describe('importSmartContractPackageCommand', () => {
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.SUCCESS, 'Successfully imported smart contract package', 'Successfully imported smart contract package test.cds');
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('importSmartContractPackageCommand');
     });
 
     it('should handle cancel choosing package', async () => {
@@ -97,13 +99,6 @@ describe('importSmartContractPackageCommand', () => {
         copyStub.should.have.been.calledWith(srcPackage, endPackage);
         logSpy.firstCall.should.have.been.calledWith(LogType.INFO, undefined, 'Import smart contract package');
         logSpy.secondCall.should.have.been.calledWith(LogType.ERROR, `Failed to import smart contract package: ${error.message}`, `Failed to import smart contract package: ${error.toString()}`);
-    });
-
-    it('should send a telemetry event if the extension is for production', async () => {
-        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        await vscode.commands.executeCommand(ExtensionCommands.IMPORT_SMART_CONTRACT);
-
-        reporterStub.should.have.been.calledWith('importSmartContractPackageCommand');
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 });
