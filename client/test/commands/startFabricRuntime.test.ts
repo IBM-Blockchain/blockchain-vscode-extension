@@ -37,6 +37,7 @@ describe('startFabricRuntime', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let runtimeTreeItem: RuntimeTreeItem;
+    let blockchainLogsOutputSpy: sinon.SinonSpy;
     let commandSpy: sinon.SinonSpy;
 
     before(async () => {
@@ -61,6 +62,7 @@ describe('startFabricRuntime', () => {
         mockRuntime.start.resolves();
         mockRuntime.importWalletsAndIdentities.resolves();
         sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        blockchainLogsOutputSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
@@ -81,6 +83,7 @@ describe('startFabricRuntime', () => {
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        blockchainLogsOutputSpy.should.have.been.called;
     });
 
     it('should start a Fabric runtime', async () => {
@@ -91,6 +94,7 @@ describe('startFabricRuntime', () => {
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        blockchainLogsOutputSpy.should.have.been.called;
     });
 
     it('should generate and start a Fabric runtime specified by clicking the tree', async () => {
@@ -101,6 +105,7 @@ describe('startFabricRuntime', () => {
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        blockchainLogsOutputSpy.should.have.been.called;
     });
 
     it('should generate and start a Fabric runtime', async () => {
@@ -111,6 +116,7 @@ describe('startFabricRuntime', () => {
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        blockchainLogsOutputSpy.should.have.been.called;
     });
 
 });
