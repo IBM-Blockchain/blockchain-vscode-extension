@@ -92,7 +92,11 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call?');
 
         let args: Array<string>;
-        if (fcn) {
+        if (fcn === undefined) {
+            return;
+        } else if (fcn === '') {
+            args = [];
+        } else {
             const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]');
             if (argsString === undefined) {
                 return;
