@@ -12,13 +12,13 @@
  * limitations under the License.
 */
 'use strict';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import * as path from 'path';
 import { FabricWalletRegistryEntry } from '../../fabric/FabricWalletRegistryEntry';
+import { WalletTreeItem } from './WalletTreeItem';
 
-export class LocalWalletTreeItem extends BlockchainTreeItem {
+export class LocalWalletTreeItem extends WalletTreeItem {
     contextValue: string = 'blockchain-local-wallet-item';
 
     iconPath: {light: string, dark: string} = {
@@ -27,7 +27,7 @@ export class LocalWalletTreeItem extends BlockchainTreeItem {
     };
 
     constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly identities: string[], public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly registryEntry: FabricWalletRegistryEntry) {
-        super(provider, name, collapsibleState);
+        super(provider, name, identities, collapsibleState, registryEntry);
 
     }
 }

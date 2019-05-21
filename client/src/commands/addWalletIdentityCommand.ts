@@ -23,17 +23,14 @@ import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
-import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
-import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
-import { LocalWalletTreeItem } from '../explorer/wallets/LocalWalletTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 
-export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabricWallet): Promise<{} | void> {
+export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
@@ -41,27 +38,19 @@ export async function addWalletIdentity(walletItem: BlockchainTreeItem | IFabric
     let wallet: IFabricWallet;
     let walletRegistryEntry: FabricWalletRegistryEntry;
 
-    if (walletItem && walletItem instanceof BlockchainTreeItem) {
+    if (walletItem) {
         // Command called from the tree by selecting a WalletTreeItem or LocalWalletTreeItem
+        if (walletItem instanceof WalletTreeItem) {
 
-        // can't get it from the registry if it's local_fabric because it doesn't exist
-        if (walletItem.label === FabricWalletUtil.LOCAL_WALLET) {
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
-
-            // cast the tree item to get the registry entry
-            const walletTreeItem: LocalWalletTreeItem = walletItem as LocalWalletTreeItem;
-            walletRegistryEntry = walletTreeItem.registryEntry;
+            walletRegistryEntry = walletItem.registryEntry;
+            wallet = fabricWalletGenerator.getNewWallet(walletRegistryEntry.walletPath);
 
         } else {
-            walletRegistryEntry = FabricWalletRegistry.instance().get(walletItem.label);
-            wallet = fabricWalletGenerator.getNewWallet(walletRegistryEntry.walletPath);
+            // called from addWallet command - walletItem is IFabricWallet
+            // walletRegistryEntry remains undefined, as we've not created it yet
+            // If this command fails, we don't want to add the non existent wallet to the registry
+            wallet = walletItem;
         }
-    } else if (walletItem && !(walletItem instanceof BlockchainTreeItem) ) {
-        // called from addWallet command - walletItem is IFabricWallet
-        // walletRegistryEntry remains undefined, as we've not created it yet
-        // If this command fails, we don't want to add the non existent wallet to the registry
-        wallet = walletItem;
-
     } else {
         // Called from the command palette
         const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to add identity to', true);

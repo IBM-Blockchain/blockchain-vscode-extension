@@ -16,47 +16,51 @@
 
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
-import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
+import { UserInputUtil } from './UserInputUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as path from 'path';
+import * as os from 'os';
+import * as fs from 'fs-extra';
 import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import * as fs from 'fs-extra';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function exportConnectionProfile(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+    outputAdapter.log(LogType.INFO, undefined, 'exportConnectionProfileCommand');
 
     // Assume there's only one registry entry for now.
     const runtimeGatewayRegistryEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
     const runtimeGatewayRegistryEntry: FabricGatewayRegistryEntry = runtimeGatewayRegistryEntries[0];
 
-    let dir: string;
+    // Ask the user where they want to export it to
+    // set the default path to be the first open workspace folder
+    let defaultPath: string;
+    const fileName: string = `${FabricRuntimeUtil.LOCAL_FABRIC}_connection.json`;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-        VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, 'A folder must be open to export connection profile to');
-        return;
-    } else if (workspaceFolders.length > 1) {
-        const chosenFolder: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('Choose which folder to save the connection profile to');
-        if (!chosenFolder) {
-            return;
-        }
-
-        dir = chosenFolder.data.uri.fsPath;
+    if (workspaceFolders.length > 0) {
+        defaultPath = path.join(workspaceFolders[0].uri.fsPath, fileName);
     } else {
-        dir = workspaceFolders[0].uri.fsPath;
+        defaultPath = path.join(os.homedir(), fileName);
     }
 
-    try {
-        dir = path.resolve(dir, FabricRuntimeUtil.LOCAL_FABRIC);
-        await fs.ensureDir(dir);
-        const targetConnectionProfilePath: string = path.resolve(dir, 'connection.json');
-        await fs.copyFile(runtimeGatewayRegistryEntry.connectionProfilePath, targetConnectionProfilePath);
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
+    const chosenPathUri: vscode.Uri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file(defaultPath),
+        saveLabel: 'Export'
+    });
+    if (!chosenPathUri) {
+        // User cancelled save dialog box
         return;
     }
-    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection profile to ${dir}`);
+
+    // Copy the connection profile to the chosen location
+    try {
+        await fs.copy(runtimeGatewayRegistryEntry.connectionProfilePath, chosenPathUri.fsPath, { overwrite: false });
+    } catch (error) {
+        outputAdapter.log(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
+        return;
+    }
+    outputAdapter.log(LogType.SUCCESS, `Successfully exported connection profile to ${chosenPathUri.fsPath}`);
     Reporter.instance().sendTelemetryEvent('exportConnectionProfileCommand');
 }

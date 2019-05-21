@@ -74,7 +74,6 @@ describe('AddWalletIdentityCommand', () => {
         let getEnrollIdSecretStub: sinon.SinonStub;
         let enrollStub: sinon.SinonStub;
         let executeCommandSpy: sinon.SinonSpy;
-        let createLocalWalletStub: sinon.SinonStub;
         let getNewWalletStub: sinon.SinonStub;
         let showWalletsQuickPickStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
@@ -123,8 +122,6 @@ describe('AddWalletIdentityCommand', () => {
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
             fabricWallet = new FabricWallet(walletPath);
-            createLocalWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-            createLocalWalletStub.resolves(fabricWallet);
             getNewWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet');
             getNewWalletStub.returns(fabricWallet);
             importIdentityStub = mySandBox.stub(fabricWallet, 'importIdentity');

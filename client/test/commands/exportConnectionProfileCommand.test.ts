@@ -17,7 +17,6 @@ import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
-import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
@@ -31,23 +30,24 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as fs from 'fs-extra';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../src/util/Reporter';
+import * as os from 'os';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
 
     let sandbox: sinon.SinonSandbox;
-    const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+    const fakeTargetPath: string = path.join('/', 'a', 'fake', 'path');
     let runtime: FabricRuntime;
     let workspaceFolderStub: sinon.SinonStub;
     let workspaceFolder: any;
     let nodes: NodesTreeItem;
     let peerTreeItem: PeerTreeItem;
     let logSpy: sinon.SinonSpy;
-    let ensureDirStub: sinon.SinonStub;
-    let copyFileStub: sinon.SinonStub;
+    let copyStub: sinon.SinonStub;
+    let showSaveDialogStub: sinon.SinonStub;
+    let homeDirStub: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
@@ -64,7 +64,6 @@ describe('exportConnectionProfileCommand', () => {
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
-        await connectionRegistry.clear();
         await runtimeManager.initialize();
         runtime = runtimeManager.getRuntime();
         sandbox.stub(runtime, 'isRunning').resolves(true);
@@ -86,10 +85,11 @@ describe('exportConnectionProfileCommand', () => {
                 connectionProfilePath: '/tmp/doggo.json'
             }
         ]);
-        ensureDirStub = sandbox.stub(fs, 'ensureDir');
-        copyFileStub = sandbox.stub(fs, 'copyFile');
+        copyStub = sandbox.stub(fs, 'copy').resolves();
+        showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(fakeTargetPath));
+        homeDirStub = sandbox.stub(os, 'homedir');
+        homeDirStub.returns('homedir');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
     });
 
     afterEach(async () => {
@@ -98,88 +98,40 @@ describe('exportConnectionProfileCommand', () => {
 
     it('should export the connection profile by right clicking on a peer in the runtime ops tree', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, peerTreeItem);
-        const targetDirectory: string = path.resolve(workspaceFolder.uri.fsPath, FabricRuntimeUtil.LOCAL_FABRIC);
-        const targetFile: string = path.resolve(targetDirectory, 'connection.json');
-        ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
-        copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
+        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath, { overwrite: false} );
+        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
     it('should export the connection profile when called from the command palette', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        const targetDirectory: string = path.resolve(workspaceFolder.uri.fsPath, FabricRuntimeUtil.LOCAL_FABRIC);
-        const targetFile: string = path.resolve(targetDirectory, 'connection.json');
-        ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
-        copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder.uri.fsPath, runtime.getName()));
+        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath, { overwrite: false} );
+        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
-    it('should export the connection profile and ask which project if more than one is open in workspace', async () => {
-        workspaceFolder = {
-            name: 'myFolder',
-            uri: vscode.Uri.file('myPath')
-        };
-
-        const workspaceFolder2: any = {
-            name: 'myFolder2',
-            uri: vscode.Uri.file('myPath2')
-        };
-
-        workspaceFolderStub.returns([workspaceFolder, workspaceFolder2]);
-        sandbox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').resolves({ label: workspaceFolder2.name, data: workspaceFolder2 });
-
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        const targetDirectory: string = path.resolve(workspaceFolder2.uri.fsPath, FabricRuntimeUtil.LOCAL_FABRIC);
-        const targetFile: string = path.resolve(targetDirectory, 'connection.json');
-        ensureDirStub.should.have.been.called.calledOnceWithExactly(targetDirectory);
-        copyFileStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', targetFile);
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully exported connection profile to ' + path.join(workspaceFolder2.uri.fsPath, runtime.getName()));
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
-    });
-
-    it('should handle undefined workspace folders', async () => {
-        workspaceFolderStub.returns(null);
-
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        ensureDirStub.should.not.have.been.called;
-        copyFileStub.should.not.have.been.called;
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection profile to');
-    });
-
-    it('should handle empty workspace folders', async () => {
+    it('should handle no open workspace folders', async () => {
         workspaceFolderStub.returns([]);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        ensureDirStub.should.not.have.been.called;
-        copyFileStub.should.not.have.been.called;
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'A folder must be open to export connection profile to');
+        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath, { overwrite: false} );
+        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
     });
 
-    it('should handle cancel choosing folders', async () => {
-        workspaceFolder = {
-            name: 'myFolder',
-            uri: vscode.Uri.file('myPath')
-        };
-
-        const workspaceFolder2: any = {
-            name: 'myFolder2',
-            uri: vscode.Uri.file('myPath2')
-        };
-
-        workspaceFolderStub.returns([workspaceFolder, workspaceFolder2]);
-        sandbox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').resolves();
+    it('should handle cancel choosing location to export the connection profile to', async () => {
+        showSaveDialogStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        ensureDirStub.should.not.have.been.called;
-        copyFileStub.should.not.have.been.called;
+        copyStub.should.not.have.been.called;
     });
 
-    it('should not print the successSpy if there was an error', async () => {
-        ensureDirStub.rejects(new Error('such error'));
+    it('should not print the successSpy if there was an error copying the connection profile', async () => {
+        const error: Error = new Error('such error');
+        copyStub.rejects(error);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
 
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Issue exporting connection profile, see output channel for more information');
-        logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
+        logSpy.callCount.should.equal(2);
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'exportConnectionProfileCommand');
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 });
