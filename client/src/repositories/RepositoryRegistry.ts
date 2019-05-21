@@ -14,6 +14,7 @@
 
 import { FabricRegistry } from '../fabric/FabricRegistry';
 import { RepositoryRegistryEntry } from './RepositoryRegistryEntry';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class RepositoryRegistry extends FabricRegistry<RepositoryRegistryEntry> {
 
@@ -24,7 +25,7 @@ export class RepositoryRegistry extends FabricRegistry<RepositoryRegistryEntry> 
     private static _instance: RepositoryRegistry = new RepositoryRegistry();
 
     private constructor() {
-        super('blockchain.repositories');
+        super(SettingConfigurations.EXTENSION_REPOSITORIES);
     }
 
     public get(name: string): RepositoryRegistryEntry {

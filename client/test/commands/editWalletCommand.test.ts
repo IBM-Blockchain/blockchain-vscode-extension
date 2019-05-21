@@ -24,6 +24,8 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -35,6 +37,7 @@ describe('EditWalletCommand', () => {
     let openUserSettingsStub: sinon.SinonStub;
     let showWalletsQuickPickStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
+    let walletRegistryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -50,6 +53,8 @@ describe('EditWalletCommand', () => {
         openUserSettingsStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
         showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        walletRegistryStub = mySandBox.stub(FabricWalletRegistry.instance(), 'getAll');
+        walletRegistryStub.returns([{name: 'someWallet'}, {name: 'someOtherWallet'}]);
     });
 
     afterEach(() => {
@@ -65,7 +70,16 @@ describe('EditWalletCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_WALLET);
                 openUserSettingsStub.should.not.have.been.called;
-                logSpy.should.have.been.calledOnceWith(LogType.INFO);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editWallet`);
+            });
+
+            it('should show an error if the user hasn\'t added a wallet', async () => {
+                walletRegistryStub.returns([]);
+
+                await vscode.commands.executeCommand(ExtensionCommands.EDIT_WALLET);
+                showWalletsQuickPickStub.should.not.have.been.called;
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `editWallet`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No wallets to edit found. ${FabricWalletUtil.LOCAL_WALLET} cannot be edited.`, `No wallets to edit found. ${FabricWalletUtil.LOCAL_WALLET} cannot be edited.`);
             });
 
             it('should open user settings to edit a wallet', async () => {
@@ -77,8 +91,7 @@ describe('EditWalletCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_WALLET);
                 openUserSettingsStub.should.have.been.calledWith('myWallet');
-                logSpy.should.have.been.calledOnce;
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editWallet`);
             });
         });
 
@@ -90,8 +103,7 @@ describe('EditWalletCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_WALLET, treeItem);
                 openUserSettingsStub.should.have.been.calledWith('myWallet');
-                logSpy.should.have.been.calledOnce;
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `editWallet`);
 
             });
         });

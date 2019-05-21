@@ -30,7 +30,6 @@ import * as myExtension from '../../src/extension';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -49,6 +48,7 @@ describe('createNewIdentityCommand', () => {
     let importIdentityStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -83,6 +83,7 @@ describe('createNewIdentityCommand', () => {
         executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
         executeCommandStub.callThrough();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         const runtimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren();
@@ -112,6 +113,7 @@ describe('createNewIdentityCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
     it('should create a new identity when selected from a CA in the tree', async () => {
@@ -131,6 +133,7 @@ describe('createNewIdentityCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
     it('should allow the user to create multiple identities from the CA', async () => {
@@ -158,6 +161,8 @@ describe('createNewIdentityCommand', () => {
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
         logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${secondIdentityName} to runtime gateway`);
+        sendTelemetryEventStub.should.have.been.calledTwice;
+        sendTelemetryEventStub.should.have.been.calledWithExactly('createNewIdentityCommand');
 
     });
 
@@ -181,6 +186,7 @@ describe('createNewIdentityCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
     it('should handle starting local_fabric failing', async () => {
@@ -191,6 +197,7 @@ describe('createNewIdentityCommand', () => {
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.START_FABRIC);
         logSpy.should.have.been.calledOnce;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should handle the user cancelling selecting a CA', async () => {
@@ -225,6 +232,7 @@ describe('createNewIdentityCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists in the runtime wallet`, `An identity called ${identityName} already exists in the runtime wallet`);
+        sendTelemetryEventStub.should.not.have.been.called;
     });
 
     it('should handle an error', async () => {
@@ -241,15 +249,4 @@ describe('createNewIdentityCommand', () => {
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Issue creating new identity: something bad has occurred`);
     });
-
-    it('should send a telemetry event if the extension is for production', async () => {
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        identityName = 'sammy';
-        inputBoxStub.resolves(identityName);
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
-
-        reporterStub.should.have.been.calledWith('createNewIdentityCommand');
-    });
-
 });

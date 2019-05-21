@@ -32,6 +32,7 @@ import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -71,7 +72,7 @@ describe('deleteIdentityCommand', () => {
         showIdentitiesQuickPickStub = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
 
         // Reset the wallet registry
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
         // Add wallets to the registry
         purpleWallet = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
@@ -81,7 +82,7 @@ describe('deleteIdentityCommand', () => {
             name: 'blueWallet',
             walletPath: '/some/bluer/path'
         });
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
 
         testWallet = new FabricWallet('some/path');
         walletIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');
@@ -143,6 +144,30 @@ describe('deleteIdentityCommand', () => {
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `deleteIdentity`);
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities in wallet: ${blueWallet.walletPath}`, `No identities in wallet: ${blueWallet.walletPath}`);
+    });
+
+    it('should show a different error if there are no non-admin identities in the local_fabric wallet', async () => {
+        identityName = 'bob';
+
+        const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+
+        runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        runtimeWalletRegistryEntry.walletPath = 'wallet_path';
+        runtimeWalletRegistryEntry.managedWallet = true;
+
+        showWalletsQuickPickStub.resolves({
+            label: FabricWalletUtil.LOCAL_WALLET,
+            data: runtimeWalletRegistryEntry
+        });
+        walletIdentitiesStub.resolves([]);
+
+        await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
+
+        walletIdentitiesStub.should.have.been.calledOnce;
+        fsRemoveStub.should.not.have.been.called;
+        logSpy.should.have.been.calledTwice;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `deleteIdentity`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.name}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${runtimeWalletRegistryEntry.name}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
     });
 
     it('should handle the user cancelling selecting an identity to delete', async () => {

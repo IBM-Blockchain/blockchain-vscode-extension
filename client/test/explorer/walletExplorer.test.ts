@@ -35,6 +35,7 @@ import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricIdentity } from '../../src/fabric/FabricIdentity';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 chai.should();
@@ -90,7 +91,7 @@ describe('walletExplorer', () => {
         const localWallet: FabricWallet = new FabricWallet('/some/local/path');
         getLocalWalletIdentityNamesStub = mySandBox.stub(localWallet, 'getIdentityNames').resolves([FabricRuntimeUtil.ADMIN_USER, 'yellowConga', 'orangeConga']);
         getNewWalletStub.withArgs('/some/local/path').returns(localWallet);
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
     });
 
     afterEach(async () => {
@@ -100,7 +101,7 @@ describe('walletExplorer', () => {
     it('should show wallets and identities in the BlockchainWalletExplorer view', async () => {
         getIdentityNamesStub.resolves(['violetConga', 'purpleConga']);
         getIdentityNamesStub.onCall(1).resolves([]);
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
         wallets.length.should.equal(3);
@@ -153,7 +154,7 @@ describe('walletExplorer', () => {
 
     it('should get a tree item in the BlockchainWalletExplorer view', async () => {
         getIdentityNamesStub.resolves([]);
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         const blueWallet: WalletTreeItem = blockchainWalletExplorerProvider.getTreeItem(wallets[1]) as WalletTreeItem;
@@ -174,7 +175,7 @@ describe('walletExplorer', () => {
             name: 'purpleWallet',
             walletPath: undefined
         });
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [blueWalletEntry, greenWalletEntry, purpleWallet], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [blueWalletEntry, greenWalletEntry, purpleWallet], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         wallets.length.should.equal(3);

@@ -31,6 +31,9 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -60,10 +63,10 @@ describe('DissociateWalletCommand', () => {
             mySandBox = sinon.createSandbox();
 
             // reset the stored gateways and wallets
-            await vscode.workspace.getConfiguration().update('fabric.gateways', [], vscode.ConfigurationTarget.Global);
-            await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
 
-            const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+            const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 managedRuntime: false,
@@ -71,15 +74,15 @@ describe('DissociateWalletCommand', () => {
             });
 
             await FabricGatewayRegistry.instance().clear();
-            await FabricGatewayRegistry.instance().add(connectionOne);
+            await FabricGatewayRegistry.instance().add(gatewayOne);
 
-            const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+            const gatewayOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
                 walletPath: walletPath
             });
 
             await FabricWalletRegistry.instance().clear();
-            await FabricWalletRegistry.instance().add(connectionOneWallet);
+            await FabricWalletRegistry.instance().add(gatewayOneWallet);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricGatewayRegistryUpdateStub = mySandBox.stub(FabricGatewayRegistry.instance(), 'update').resolves();
@@ -109,6 +112,16 @@ describe('DissociateWalletCommand', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully dissociated wallet from "myGateway" gateway`);
         });
 
+        it('should show an error if no user-added gateways exist', async () => {
+            await FabricGatewayRegistry.instance().clear();
+
+            await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET);
+
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateWallet');
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET}.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET}.`);
+        });
+
         it('should test dissociating a wallet can be cancelled when asked to select a gateway', async () => {
             showGatewayQuickPickBoxStub.resolves();
 
@@ -116,8 +129,7 @@ describe('DissociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.not.have.been.called;
 
-            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateWallet');
-            should.not.exist(logSpy.getCall(1));
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'dissociateWallet');
         });
 
         it('should test a wallet can be dissociated from a gateway using the command', async () => {

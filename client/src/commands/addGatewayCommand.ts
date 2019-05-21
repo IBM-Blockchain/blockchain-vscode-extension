@@ -59,6 +59,6 @@ export async function addGateway(): Promise<{} | void> {
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');
         Reporter.instance().sendTelemetryEvent('addGatewayCommand');
     } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Failed to add a new connection: ${error.message}`, `Failed to add a new connection: ${error.toString()}`);
+        outputAdapter.log(LogType.ERROR, `Failed to add a new gateway: ${error.message}`, `Failed to add a new gateway: ${error.toString()}`);
     }
 }

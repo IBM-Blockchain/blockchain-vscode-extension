@@ -22,6 +22,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 /**
  * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
@@ -37,7 +38,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
     try {
         // Determine the directory that will contain the packages and ensure it exists.
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const pkgDir: string = path.join(extDir, 'packages');
         resolvedPkgDir = UserInputUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
@@ -174,7 +175,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
     let workspaceFolderOptions: Array<vscode.WorkspaceFolder>;
     let workspaceFolder: vscode.WorkspaceFolder;
-    workspaceFolderOptions = await UserInputUtil.getWorkspaceFolders();
+    workspaceFolderOptions = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolderOptions.length === 0) {
         const message: string = `Issue determining available smart contracts. Please open the smart contract you want to be packaged.`;
         throw new Error(message);

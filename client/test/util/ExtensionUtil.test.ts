@@ -20,6 +20,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 
 import * as chaiAsPromised from 'chai-as-promised';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -104,6 +105,161 @@ describe('ExtensionUtil Tests', () => {
 
             mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
             should.equal(await ExtensionUtil.getContractNameAndVersion(workspaceFolder), undefined);
+        });
+    });
+
+    describe('migrateSettingConfigurations', () => {
+        let getConfigurationStub: sinon.SinonStub;
+        let workspaceConfigurationGetStub: sinon.SinonStub;
+        let workspaceConfigurationUpdateStub: sinon.SinonStub;
+
+        beforeEach(() => {
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            workspaceConfigurationGetStub = mySandBox.stub();
+            workspaceConfigurationUpdateStub = mySandBox.stub();
+        });
+        it('should ignore migration if old configuration values no longer exist', async () => {
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            await ExtensionUtil.migrateSettingConfigurations();
+            workspaceConfigurationGetStub.callCount.should.equal(4);
+            workspaceConfigurationUpdateStub.should.not.have.been.called;
+        });
+
+        it('should migration old configuration values to new values', async () => {
+            workspaceConfigurationGetStub.returns([]);
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            workspaceConfigurationGetStub.onCall(0).returns([
+                {
+                    name: 'myGateway',
+                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
+                    associatedWallet: ''
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(2).returns([
+                {
+                    managedWallet: false,
+                    name: 'myWallet',
+                    walletPath: '/some/path'
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(4).returns([
+                {
+                    name: 'hyperledger/fabric-samples',
+                    path: '/sample/path/fabric-samples'
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(6).returns('some_directory');
+
+            await ExtensionUtil.migrateSettingConfigurations();
+            workspaceConfigurationGetStub.callCount.should.equal(7);
+            workspaceConfigurationUpdateStub.callCount.should.equal(4);
+            workspaceConfigurationUpdateStub.getCall(0).should.have.been.calledWithExactly(SettingConfigurations.FABRIC_GATEWAYS, [
+                {
+                    name: 'myGateway',
+                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
+                    associatedWallet: ''
+                }
+            ], vscode.ConfigurationTarget.Global);
+
+            workspaceConfigurationUpdateStub.getCall(1).should.have.been.calledWithExactly(SettingConfigurations.FABRIC_WALLETS, [
+                {
+                    managedWallet: false,
+                    name: 'myWallet',
+                    walletPath: '/some/path'
+                }
+            ], vscode.ConfigurationTarget.Global);
+
+            workspaceConfigurationUpdateStub.getCall(2).should.have.been.calledWithExactly(SettingConfigurations.EXTENSION_REPOSITORIES, [
+                {
+                    name: 'hyperledger/fabric-samples',
+                    path: '/sample/path/fabric-samples'
+                }
+            ], vscode.ConfigurationTarget.Global);
+
+            workspaceConfigurationUpdateStub.getCall(3).should.have.been.calledWithExactly(SettingConfigurations.EXTENSION_DIRECTORY, 'some_directory', vscode.ConfigurationTarget.Global);
+
+        });
+
+        it('should ignore migration if values already exist in new config', async () => {
+            getConfigurationStub.returns({
+                get: workspaceConfigurationGetStub,
+                update: workspaceConfigurationUpdateStub
+            });
+
+            workspaceConfigurationGetStub.onCall(0).returns([
+                {
+                    name: 'myGateway',
+                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
+                    associatedWallet: ''
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(1).returns([
+                {
+                    name: 'alreadyStoredGateway',
+                    connectionProfilePath: 'blockchain/extension/directory/gatewayOne/connection.json',
+                    associatedWallet: ''
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(2).returns([
+                {
+                    managedWallet: false,
+                    name: 'myWallet',
+                    walletPath: '/some/path'
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(3).returns([
+                {
+                    managedWallet: false,
+                    name: 'alreadyStoredWallet',
+                    walletPath: '/some/path'
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(4).returns([
+                {
+                    name: 'hyperledger/fabric-samples',
+                    path: '/sample/path/fabric-samples'
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(5).returns([
+                {
+                    name: 'hyperledger/fabric-samples',
+                    path: '/already/stored/fabric-samples'
+                }
+            ]);
+
+            workspaceConfigurationGetStub.onCall(6).returns(undefined);
+
+            await ExtensionUtil.migrateSettingConfigurations();
+            workspaceConfigurationGetStub.callCount.should.equal(7);
+            workspaceConfigurationUpdateStub.callCount.should.equal(0);
+
+        });
+
+    });
+
+    describe('skipNpmInstall', () => {
+
+        it('skipNpmInstall should return false', async () => {
+
+            const result: boolean = await ExtensionUtil.skipNpmInstall();
+            result.should.equal(false);
+
         });
     });
 });

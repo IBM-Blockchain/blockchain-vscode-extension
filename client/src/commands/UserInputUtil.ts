@@ -32,6 +32,9 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
+import { FabricRuntime } from '../fabric/FabricRuntime';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -62,7 +65,7 @@ export class UserInputUtil {
     static readonly WALLET: string = 'Specify an existing file system wallet';
     static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
-    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to Certificate and Key files';
+    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to certificate and private key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
 
@@ -107,7 +110,8 @@ export class UserInputUtil {
         const inputBoxOptions: vscode.InputBoxOptions = {
             prompt: question,
             ignoreFocusOut: true,
-            value: defaultValue
+            value: defaultValue,
+            valueSelection: [0, 0]
         };
 
         return vscode.window.showInputBox(inputBoxOptions);
@@ -382,9 +386,9 @@ export class UserInputUtil {
 
             // Find the user settings line number
             for (let index: number = 0; index < settingsText.length; index++) {
-                let section: string = '"fabric.gateways": [';
+                let section: string = `"${SettingConfigurations.FABRIC_GATEWAYS}": [`;
                 if (searchWallets) {
-                    section = '"fabric.wallets": [';
+                    section = `"${SettingConfigurations.FABRIC_WALLETS}": [`;
                 }
                 if (settingsText[index].includes(section)) {
                     // We've found the section
@@ -707,7 +711,7 @@ export class UserInputUtil {
             runtimeWalletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
             runtimeWalletRegistryEntry.walletPath = runtimeWallet.getWalletPath();
             runtimeWalletRegistryEntry.managedWallet = true;
-            walletQuickPickItems.push( {
+            walletQuickPickItems.push({
                 label: runtimeWalletRegistryEntry.name,
                 data: runtimeWalletRegistryEntry
             });
@@ -828,6 +832,30 @@ export class UserInputUtil {
         };
 
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+    }
+
+    public static async showRuntimeNodeQuickPick(prompt: string, filter: FabricNodeType[]): Promise<FabricNode> {
+        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+        const nodes: FabricNode[] = await runtime.getNodes();
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = nodes
+            .filter((node: FabricNode) => filter.indexOf(node.type) !== -1)
+            .map((node: FabricNode) => {
+                return {
+                    label: node.name,
+                    data: node
+                };
+            });
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+        const result: IBlockchainQuickPickItem<FabricNode> = await vscode.window.showQuickPick<IBlockchainQuickPickItem<FabricNode>>(quickPickItems, quickPickOptions);
+        if (result) {
+            return result.data;
+        } else {
+            return undefined;
+        }
     }
 
     private static async checkForUnsavedFiles(): Promise<void> {

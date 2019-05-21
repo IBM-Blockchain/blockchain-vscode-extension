@@ -28,13 +28,12 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
+import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/InstantiateCommandTreeItem';
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -59,10 +58,11 @@ describe('InstantiateCommand', () => {
 
         let allChildren: Array<BlockchainTreeItem>;
         let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
-        let instantiateCommandTreeItem: InstallCommandTreeItem;
+        let instantiateCommandTreeItem: InstantiateCommandTreeItem;
         let smartContractsChildren: BlockchainTreeItem[];
         let channelsChildren: BlockchainTreeItem[];
         let showYesNo: sinon.SinonStub;
+        let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -100,12 +100,13 @@ describe('InstantiateCommand', () => {
 
             showInputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             showInputBoxStub.onFirstCall().resolves('instantiate');
-            showInputBoxStub.onSecondCall().resolves('arg1,arg2,arg3');
+            showInputBoxStub.onSecondCall().resolves('["arg1", "arg2", "arg3"]');
 
             showYesNo = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             dockerLogsOutputSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
+            sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
@@ -119,8 +120,8 @@ describe('InstantiateCommand', () => {
 
             const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
-            const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
-            instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstallCommandTreeItem;
+            const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[1]);
+            instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstantiateCommandTreeItem;
 
             const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
             channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
@@ -139,6 +140,7 @@ describe('InstantiateCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should instantiate the smart contract through the command when not connected', async () => {
@@ -151,6 +153,7 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should stop if starting the local_fabric fails', async () => {
@@ -160,7 +163,7 @@ describe('InstantiateCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
             fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
 
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
         it('should instantiate the smart contract through the command with collection', async () => {
@@ -176,6 +179,7 @@ describe('InstantiateCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should instantiate the smart contract through the command with collection and set dialog folder', async () => {
@@ -206,6 +210,7 @@ describe('InstantiateCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should handle cancel when choosing if want collection', async () => {
@@ -232,8 +237,7 @@ describe('InstantiateCommand', () => {
 
             fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            should.not.exist(logSpy.getCall(1));
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
         it('should handle error from instantiating smart contract', async () => {
@@ -248,6 +252,7 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should handle cancel when choosing chaincode and version', async () => {
@@ -257,8 +262,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
 
             dockerLogsOutputSpy.should.not.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            should.not.exist(logSpy.getCall(1));
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
         it('should instantiate smart contract through the tree by clicking + Instantiate in the runtime ops view', async () => {
@@ -269,6 +273,7 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should instantiate smart contract through the tree by right-clicking Instantiated in the runtime ops view', async () => {
@@ -279,6 +284,7 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should instantiate smart contract through the tree by right-clicking on channel in the runtime ops view', async () => {
@@ -289,17 +295,19 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should instantiate the smart contract through the command with no function', async () => {
-            showInputBoxStub.onFirstCall().resolves();
+            showInputBoxStub.onFirstCall().resolves('');
             await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', undefined, undefined, undefined);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWithExactly('myContract', '0.0.1', ['peerOne'], 'myChannel', '', [], undefined);
             showInputBoxStub.should.have.been.calledOnce;
 
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should instantiate the smart contract through the command with function but no args', async () => {
@@ -312,6 +320,17 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should cancel instantiating when user escape entering function', async () => {
+            showInputBoxStub.onFirstCall().resolves(undefined);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledOnce;
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
         });
 
         it('should cancel instantiating when user escape entering args', async () => {
@@ -323,6 +342,45 @@ describe('InstantiateCommand', () => {
 
             dockerLogsOutputSpy.should.not.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should throw error if args not valid json', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves('["wrong]');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with instantiate function arguments: Unexpected end of JSON input');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should throw error if args does not start with [', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves('{"name": "bob"}');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with instantiate function arguments: instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+        });
+
+        it('should throw error if args does not end with ]', async () => {
+            showInputBoxStub.onFirstCall().resolves('instantiate');
+            showInputBoxStub.onSecondCall().resolves('1');
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledTwice;
+
+            dockerLogsOutputSpy.should.not.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with instantiate function arguments: instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
         });
 
@@ -349,6 +407,7 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should be able to cancel install and instantiate for package', async () => {
@@ -372,8 +431,7 @@ describe('InstantiateCommand', () => {
 
             fabricRuntimeMock.instantiateChaincode.should.not.been.calledWith('somepackage', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
             dockerLogsOutputSpy.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            should.not.exist(logSpy.getCall(1));
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
         it('should package, install and instantiate a project', async () => {
@@ -396,6 +454,7 @@ describe('InstantiateCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
         });
 
         it('should be able to cancel a project packaging, installing and instantiating', async () => {
@@ -416,8 +475,7 @@ describe('InstantiateCommand', () => {
 
             fabricRuntimeMock.instantiateChaincode.should.not.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
-            should.not.exist(logSpy.getCall(1));
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
 
         it('should be able to handle a project failing to package', async () => {
@@ -436,17 +494,7 @@ describe('InstantiateCommand', () => {
             should.not.exist(packageEntry);
 
             fabricRuntimeMock.instantiateChaincode.should.not.been.called;
-            logSpy.should.have.been.calledOnce;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
-
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
-
-            reporterStub.should.have.been.calledWith('instantiateCommand');
-        });
-
     });
 });

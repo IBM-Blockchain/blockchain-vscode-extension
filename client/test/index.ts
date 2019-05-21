@@ -35,8 +35,8 @@ if (process.env.WITHOUTCOVERAGE) {
     const Mocha: any = require('mocha');
     const remapIstanbul: any = require('remap-istanbul');
 
-// Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
-// Since we are not running in a tty environment, we just implementt he method statically
+    // Linux: prevent a weird NPE when mocha on Linux requires the window size from the TTY
+    // Since we are not running in a tty environment, we just implementt he method statically
     const tty: any = require('tty');
     if (!tty.getWindowSize) {
         tty.getWindowSize = (): number[] => {

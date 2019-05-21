@@ -55,7 +55,10 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
             });
         }
 
-        if (identityNames.length === 0) {
+        if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET && identityNames.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No identities to delete in wallet: ${chosenWallet.label}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`, `No identities to delete in wallet: ${chosenWallet.label}. The ${FabricRuntimeUtil.ADMIN_USER} identity cannot be deleted.`);
+            return;
+        } else if (identityNames.length === 0) {
             outputAdapter.log(LogType.ERROR, `No identities in wallet: ${walletPath}`, `No identities in wallet: ${walletPath}`);
             return;
         }

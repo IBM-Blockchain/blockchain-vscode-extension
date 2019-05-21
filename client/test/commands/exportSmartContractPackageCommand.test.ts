@@ -31,7 +31,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -45,7 +45,7 @@ describe('exportSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeExtensionDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
@@ -56,12 +56,15 @@ describe('exportSmartContractPackageCommand', () => {
     let showSaveDialogStub: sinon.SinonStub;
     let copyStub: sinon.SinonStub;
     let logSpy: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
         sandbox = sinon.createSandbox();
         showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(targetPath));
         copyStub = sandbox.stub(fs, 'copy').resolves();
         logSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
     });
 
     afterEach(async () => {
@@ -80,6 +83,7 @@ describe('exportSmartContractPackageCommand', () => {
         copyStub.should.have.been.calledOnceWithExactly(_package.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
     it('should export a package to the file system using the tree menu item', async () => {
@@ -91,6 +95,7 @@ describe('exportSmartContractPackageCommand', () => {
         copyStub.should.have.been.calledOnceWithExactly(_package.packageEntry.path, targetPath, { overwrite: true });
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Exported smart contract package vscode-pkg-1@0.0.1 to ${targetPath}.`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportSmartContractPackageCommand');
     });
 
     it('should handle the user cancelling the package quick pick', async () => {
@@ -128,20 +133,6 @@ describe('exportSmartContractPackageCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'exportSmartContractPackage');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+        sendTelemetryEventStub.should.not.have.been.called;
     });
-
-    it('should send a telemetry event if the extension is for production', async () => {
-        sandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-        const reporterStub: sinon.SinonStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-        const _packages: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
-        const _package: PackageRegistryEntry = _packages[0];
-        sandbox.stub(vscode.window, 'showQuickPick').resolves({
-            label: 'vscode-pkg-1@0.0.1',
-            data: _package
-        });
-        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT);
-
-        reporterStub.should.have.been.calledWith('exportSmartContractPackageCommand');
-    });
-
 });

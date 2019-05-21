@@ -56,7 +56,7 @@ import { testSmartContract } from './commands/testSmartContractCommand';
 import { TransactionTreeItem } from './explorer/model/TransactionTreeItem';
 import { submitTransaction } from './commands/submitTransaction';
 import { upgradeSmartContract } from './commands/upgradeCommand';
-import { openFabricRuntimeTerminal } from './commands/openFabricRuntimeTerminal';
+import { openNewTerminal } from './commands/openNewTerminal';
 import { exportConnectionProfile } from './commands/exportConnectionProfileCommand';
 import { createNewIdentity } from './commands/createNewIdentityCommand';
 import { addWallet } from './commands/addWalletCommand';
@@ -88,6 +88,8 @@ import { GatewayTreeItem } from './explorer/model/GatewayTreeItem';
 import { TutorialView } from './webview/TutorialView';
 import { ContractTreeItem } from './explorer/model/ContractTreeItem';
 import { TutorialGalleryView } from './webview/TutorialGalleryView';
+import { NodeTreeItem } from './explorer/runtimeOps/NodeTreeItem';
+import { SettingConfigurations } from '../SettingConfigurations';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -97,12 +99,14 @@ let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
 class ExtensionData {
     public activationCount: number;
     public version: string;
+    public migrationCheck: number;
 }
 
 export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
 export const DEFAULT_EXTENSION_DATA: ExtensionData = {
     activationCount: 0,
-    version: null
+    version: null,
+    migrationCheck: 0
 };
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -110,8 +114,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const originalExtensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
     const newExtensionData: ExtensionData = {
         activationCount: originalExtensionData.activationCount + 1,
-        version: currentExtensionVersion
+        version: currentExtensionVersion,
+        migrationCheck: 1 // Every time we change the setting configurations we need to change this to any other value
     };
+
+    if (originalExtensionData.migrationCheck !== newExtensionData.migrationCheck) {
+        // Migrate old user setting configurations to use newer values
+        await ExtensionUtil.migrateSettingConfigurations();
+    }
+
     await context.globalState.update(EXTENSION_DATA_KEY, newExtensionData);
     const extensionUpdated: boolean = newExtensionData.version !== originalExtensionData.version;
 
@@ -164,7 +175,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
         // Only do this if the extension has been updated.
-        const showPage: boolean = vscode.workspace.getConfiguration().get('extension.home.showOnStartup');
+        const showPage: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_STARTUP);
         if (extensionUpdated && showPage) {
             // Open the Home page
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
@@ -218,7 +229,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, () => teardownFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, () => toggleFabricRuntimeDevMode()));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_FABRIC_RUNTIME_TERMINAL, () => openFabricRuntimeTerminal()));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, () => exportConnectionProfile()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, (project: PackageTreeItem) => exportSmartContractPackage(project)));
@@ -228,8 +239,8 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_GATEWAY, (treeItem: GatewayTreeItem) => editGatewayCommand(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (contract: ContractTreeItem) => testSmartContract(false, contract)));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem) => submitTransaction(false, transactionTreeItem)));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EVALUATE_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem) => submitTransaction(true, transactionTreeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string) => submitTransaction(false, transactionTreeItem, channelName, smartContract)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EVALUATE_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string) => submitTransaction(true, transactionTreeItem, channelName, smartContract)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, (instantiatedChainCodeTreeItem?: InstantiatedTreeItem) => upgradeSmartContract(instantiatedChainCodeTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_NEW_IDENTITY, (certificateAuthorityTreeItem?: CertificateAuthorityTreeItem) => createNewIdentity(certificateAuthorityTreeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_WALLETS, (element: BlockchainTreeItem) => blockchainWalletExplorerProvider.refresh(element)));
@@ -263,7 +274,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
-        if (e.affectsConfiguration('fabric.gateways') || e.affectsConfiguration('fabric.runtime') || e.affectsConfiguration('fabric.wallets') ) {
+        if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_WALLETS) ) {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);

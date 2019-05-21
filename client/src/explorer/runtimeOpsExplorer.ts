@@ -41,6 +41,7 @@ import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityT
 import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricNode } from '../fabric/FabricNode';
 
 export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
 
@@ -168,9 +169,9 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     private async createSmartContractsTree(): Promise<Array<BlockchainTreeItem>> {
         const tree: Array<BlockchainTreeItem> = [];
 
-        tree.push(new InstantiatedTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
-
         tree.push(new InstalledTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
+
+        tree.push(new InstantiatedTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
 
         return tree;
     }
@@ -201,24 +202,27 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
 
         try {
             const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-            const allPeerNames: Array<string> = connection.getAllPeerNames();
+            const peerNames: Array<string> = connection.getAllPeerNames();
 
-            for (const peer of allPeerNames) {
+            for (const peerName of peerNames) {
+                const node: FabricNode = connection.getNode(peerName);
                 const chaincodes: Map<string, Array<string>> = null;
-                const peerTreeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(this, peer, chaincodes, vscode.TreeItemCollapsibleState.None, true);
+                const peerTreeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(this, peerName, chaincodes, vscode.TreeItemCollapsibleState.None, node, true);
                 tree.push(peerTreeItem);
             }
 
             // Push Certificate Authority tree item
             const certificateAuthorityNames: Array<string> = connection.getAllCertificateAuthorityNames();
             for (const certificateAuthorityName of certificateAuthorityNames) {
-                const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName);
+                const node: FabricNode = connection.getNode(certificateAuthorityName);
+                const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName, node);
                 tree.push(caTreeItem);
             }
 
-            const orderers: Array<string> = connection.getAllOrdererNames();
-            for (const orderer of orderers) {
-                tree.push(new OrdererTreeItem(this, orderer));
+            const ordererNames: Array<string> = connection.getAllOrdererNames();
+            for (const ordererName of ordererNames) {
+                const node: FabricNode = connection.getNode(ordererName);
+                tree.push(new OrdererTreeItem(this, ordererName, node));
             }
 
         } catch (error) {

@@ -92,14 +92,26 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem): P
         const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call?');
 
         let args: Array<string>;
-        if (fcn) {
-            const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (comma seperated)');
+        if (fcn === undefined) {
+            return;
+        } else if (fcn === '') {
+            args = [];
+        } else {
+            const argsString: string = await UserInputUtil.showInputBox('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]');
             if (argsString === undefined) {
                 return;
             } else if (argsString === '') {
                 args = [];
             } else {
-                args = argsString.split(','); // If empty, args will be ['']
+                try {
+                    if (!argsString.startsWith('[') || !argsString.endsWith(']')) {
+                        throw new Error('instantiate function arguments should be in the format ["arg1", {"key" : "value"}]');
+                    }
+                    args = JSON.parse(argsString);
+                } catch (error) {
+                    outputAdapter.log(LogType.ERROR, `Error with instantiate function arguments: ${error.message}`);
+                    return;
+                }
             }
         }
 

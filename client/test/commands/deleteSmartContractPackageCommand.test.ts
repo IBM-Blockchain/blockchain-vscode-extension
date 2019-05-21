@@ -29,8 +29,9 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
-const should: Chai.Should = chai.should();
+chai.should();
 chai.use(sinonChai);
 
 describe('DeleteSmartContractPackageCommand', () => {
@@ -40,7 +41,7 @@ describe('DeleteSmartContractPackageCommand', () => {
     before(async () => {
         await TestUtil.setupTests();
         await TestUtil.storeExtensionDirectoryConfig();
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 
     after(async () => {
@@ -48,9 +49,12 @@ describe('DeleteSmartContractPackageCommand', () => {
     });
 
     describe('deleteSmartContractPackage', () => {
+
         let mySandBox: sinon.SinonSandbox;
         let _package: PackageRegistryEntry;
         let logStub: sinon.SinonStub;
+        let areYouSureStub: sinon.SinonStub;
+
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
@@ -62,6 +66,8 @@ describe('DeleteSmartContractPackageCommand', () => {
             packagesStub.resolves([_package]);
 
             logStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
+            areYouSureStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            areYouSureStub.resolves(true);
         });
 
         afterEach(async () => {
@@ -131,7 +137,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully deleted package(s)`);
         });
 
-        it("should test delete 'smart contract package' can be cancelled", async () => {
+        it(`should test deleting smart contract package can be cancelled`, async () => {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             const initialPackages: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             const initialLength: number = initialPackages.length;
@@ -140,8 +146,22 @@ describe('DeleteSmartContractPackageCommand', () => {
             const newPackageList: Array<BlockchainTreeItem> = await blockchainPackageExplorerProvider.getChildren();
             newPackageList.length.should.equal(initialLength);
             newPackageList.should.deep.equal(initialPackages);
-            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
-            should.not.exist(logStub.getCall(1));
+            logStub.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
+        });
+
+        it('should stop if user doesn\'t select to continue', async () => {
+            mySandBox.stub(UserInputUtil, 'showSmartContractPackagesQuickPickBox').resolves([{
+                label: 'vscode-pkg-1@0.0.1',
+                data: _package
+            }]);
+            areYouSureStub.resolves(false);
+
+            // Execute the delete 'smart contract package' command
+            const deleteSpy: sinon.SinonSpy = mySandBox.spy(PackageRegistry.instance(), 'delete');
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
+
+            deleteSpy.should.not.have.been.called;
+            logStub.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
         });
 
         it('should stop if user doesn\'t pass any smart contract packages to delete', async () => {
@@ -152,8 +172,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_SMART_CONTRACT);
 
             deleteSpy.should.not.have.been.called;
-            logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
-            should.not.exist(logStub.getCall(1));
+            logStub.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
         });
     });
 });

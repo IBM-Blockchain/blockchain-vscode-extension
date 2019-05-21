@@ -293,7 +293,7 @@ export class IntegrationTestUtil {
         });
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves(args);
 
         this.showYesNoQuickPick.resolves(UserInputUtil.NO);
         if (privateData) {
@@ -332,7 +332,7 @@ export class IntegrationTestUtil {
         });
 
         this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('');
-        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves('');
+        this.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves('');
 
         this.showYesNoQuickPick.resolves(UserInputUtil.NO);
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
@@ -354,7 +354,7 @@ export class IntegrationTestUtil {
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }
 
-    public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string): Promise<void> {
+    public async submitTransactionToContract(name: string, version: string, transaction: string, args: string, contractName: string, transientData: string = '{}'): Promise<void> {
         this.showClientInstantiatedSmartContractsStub.resolves({
             label: `${name}@${version}`,
             data: { name: name, channel: 'mychannel', version: version }
@@ -365,7 +365,9 @@ export class IntegrationTestUtil {
             data: { name: transaction, contract: contractName }
         });
 
-        this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (comma seperated)').resolves(args);
+        this.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])').resolves(args);
+
+        this.inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientData);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }

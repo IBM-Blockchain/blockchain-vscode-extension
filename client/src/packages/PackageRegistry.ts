@@ -17,6 +17,9 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { UserInputUtil } from '../commands/UserInputUtil';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../logging/OutputAdapter';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class PackageRegistry {
 
@@ -29,19 +32,26 @@ export class PackageRegistry {
     private constructor() {
     }
 
+    public async get(name: string, version: string): Promise<PackageRegistryEntry> {
+        const packages: PackageRegistryEntry[] = await this.getAll();
+        const _package: PackageRegistryEntry = packages.find((pkg: PackageRegistryEntry) => {
+            return pkg.name === name && pkg.version === version;
+        });
+        return _package;
+    }
+
     public async getAll(): Promise<PackageRegistryEntry[]> {
         return await this.getEntries();
     }
 
     public async delete(packageEntry: PackageRegistryEntry): Promise<void> {
-        console.log('delete', packageEntry.name);
         await fs.remove(packageEntry.path);
     }
 
     private async getEntries(): Promise<PackageRegistryEntry[]> {
 
         // Determine the directory that will contain the packages and ensure it exists.
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const pkgDir: string = path.join(extDir, 'packages');
         const resolvedPkgDir: string = UserInputUtil.getDirPath(pkgDir);
         await fs.ensureDir(resolvedPkgDir);
@@ -50,6 +60,11 @@ export class PackageRegistry {
         const pkgRegistryEntries: PackageRegistryEntry[] = [];
         const pkgFileNames: string[] = await fs.readdir(resolvedPkgDir);
         for (const pkgFileName of pkgFileNames) {
+
+            // Skip the file if it's a hidden file.
+            if (pkgFileName.startsWith('.')) {
+                continue;
+            }
 
             // Get the full path to the package file.
             const pkgPath: string = path.join(resolvedPkgDir, pkgFileName);
@@ -61,20 +76,28 @@ export class PackageRegistry {
                 continue;
             }
 
-            // Load the package file.
-            const pkgBuffer: Buffer = await fs.readFile(pkgPath);
+            // Catch all errors (can't read file, file is not a valid package, etc) and log
+            // them instead of having them break the listing of valid packages.
+            try {
 
-            // Parse the package. Need to dynamically load the package class
-            // from the Fabric SDK to avoid early native module loading.
-            const { Package } = await import('fabric-client');
-            const pkg: any = await Package.fromBuffer(pkgBuffer);
+                // Load the package file.
+                const pkgBuffer: Buffer = await fs.readFile(pkgPath);
 
-            // Create the package registry entry.
-            pkgRegistryEntries.push(new PackageRegistryEntry({
-                name: pkg.getName(),
-                version: pkg.getVersion(),
-                path: pkgPath
-            }));
+                // Parse the package. Need to dynamically load the package class
+                // from the Fabric SDK to avoid early native module loading.
+                const { Package } = await import('fabric-client');
+                const pkg: any = await Package.fromBuffer(pkgBuffer);
+
+                // Create the package registry entry.
+                pkgRegistryEntries.push(new PackageRegistryEntry({
+                    name: pkg.getName(),
+                    version: pkg.getVersion(),
+                    path: pkgPath
+                }));
+
+            } catch (error) {
+                VSCodeBlockchainOutputAdapter.instance().log(LogType.ERROR, null, `Failed to parse package ${pkgFileName}: ${error.message}`);
+            }
 
         }
 

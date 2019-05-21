@@ -17,9 +17,12 @@ server
 .vscode-test
 coverage
 .DS_Store
+!/test/data/badPackageDir/packages/.DS_Store
 /test/data/fabricProject
 /test/data/smartContractDir/
 /integrationTest/tmp
 /integrationTest/data/myWallet/redConga
 /integrationTest/hfc-key-store
 /integrationTest/data/fabric-samples
+/cucumber/cucumber-report.html
+/cucumber/cucumber-report.json

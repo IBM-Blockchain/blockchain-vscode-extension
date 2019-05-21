@@ -27,6 +27,9 @@ import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplo
 import * as myExtension from '../../src/extension';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -62,7 +65,7 @@ describe('removeWalletCommand', () => {
         showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
 
         // Reset the wallet registry
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
         // Add wallets to the registry
         purpleWallet = new FabricWalletRegistryEntry({
             name: 'purpleWallet',
@@ -72,7 +75,7 @@ describe('removeWalletCommand', () => {
             name: 'blueWallet',
             walletPath: '/some/bluer/path'
         });
-        await vscode.workspace.getConfiguration().update('fabric.wallets', [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
 
         getAllFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
         updateFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
@@ -90,7 +93,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
-        const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
         wallets.length.should.equal(1);
         wallets[0].name.should.equal(blueWallet.name);
         fsRemoveStub.should.not.have.been.called;
@@ -99,12 +102,22 @@ describe('removeWalletCommand', () => {
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`);
     });
 
+    it('should show an error if no other wallets have been added', async () => {
+        await FabricWalletRegistry.instance().clear();
+
+        await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
+
+        showWalletsQuickPickStub.should.not.have.been.called;
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`);
+    });
+
     it('should handle the user cancelling selecting a wallet', async () => {
         showWalletsQuickPickStub.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
-        const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
         wallets.length.should.equal(2);
         wallets[0].name.should.equal(purpleWallet.name);
         wallets[1].name.should.equal(blueWallet.name);
@@ -121,7 +134,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
-        const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
         wallets.length.should.equal(1);
         wallets[0].name.should.equal(purpleWallet.name);
         fsRemoveStub.should.have.been.calledOnceWithExactly(blueWallet.walletPath);
@@ -139,7 +152,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
-        const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
         wallets.length.should.equal(2);
         wallets[0].name.should.equal(purpleWallet.name);
         wallets[1].name.should.equal(blueWallet.name);
@@ -158,7 +171,7 @@ describe('removeWalletCommand', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
-        const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
         wallets.length.should.equal(1);
         wallets[0].name.should.equal(purpleWallet.name);
 
@@ -181,7 +194,7 @@ describe('removeWalletCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET, purpleWalletTreeItem);
 
-            const wallets: any[] = vscode.workspace.getConfiguration().get('fabric.wallets');
+            const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
             wallets.length.should.equal(1);
             wallets[0].name.should.equal(blueWallet.name);
             fsRemoveStub.should.not.have.been.called;

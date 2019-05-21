@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "0.4.1",
+    "version": "1.0.1",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -112,7 +112,7 @@
             "aRuntimeOpsExplorer.restartFabricRuntime",
             "aRuntimeOpsExplorer.teardownFabricRuntime",
             "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
-            "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
+            "aRuntimeOpsExplorer.openNewTerminal",
             "aRuntimeOpsExplorer.exportConnectionProfileEntry",
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
             "aRuntimeOpsExplorer.createNewIdentityEntry",
@@ -161,32 +161,32 @@
             "type": "object",
             "title": "Blockchain configuration",
             "properties": {
-                "fabric.gateways": {
+                "ibm-blockchain-platform.fabric.gateways": {
                     "type": "array",
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
                 },
-                "fabric.wallets": {
+                "ibm-blockchain-platform.fabric.wallets": {
                     "type": "array",
                     "default": [],
                     "description": "Wallets for connecting to a Blockchain network"
                 },
-                "fabric.runtime": {
+                "ibm-blockchain-platform.fabric.runtime": {
                     "type": "object",
                     "default": {},
                     "description": "Configurations for the local Blockchain managed runtime"
                 },
-                "blockchain.ext.directory": {
+                "ibm-blockchain-platform.ext.directory": {
                     "type": "string",
                     "default": "~/.fabric-vscode",
                     "description": "Configurations for IBM Blockchain extension directory"
                 },
-                "blockchain.repositories": {
+                "ibm-blockchain-platform.ext.repositories": {
                     "type": "array",
                     "default": [],
                     "description": "Repositories for accessing samples stored on disk"
                 },
-                "extension.home.showOnStartup": {
+                "ibm-blockchain-platform.home.showOnStartup": {
                     "type": "boolean",
                     "default": true,
                     "description": "Show home page when clicking on extension for the first time"
@@ -337,8 +337,8 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
-                "title": "Open Fabric Runtime Terminal",
+                "command": "aRuntimeOpsExplorer.openNewTerminal",
+                "title": "Open New Terminal",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -473,7 +473,7 @@
                     "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.openFabricRuntimeTerminal"
+                    "command": "aRuntimeOpsExplorer.openNewTerminal"
                 },
                 {
                     "command": "sample.open",
@@ -594,8 +594,16 @@
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-installed-item"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.openFabricRuntimeTerminal",
+                    "command": "aRuntimeOpsExplorer.openNewTerminal",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.openNewTerminal",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.openNewTerminal",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
@@ -1191,6 +1199,8 @@
         "angular-tslint-rules": "1.5.0",
         "chai": "4.1.2",
         "chai-as-promised": "7.1.1",
+        "cucumber": "2.2.0",
+        "cucumber-html-reporter": "^5.0.0",
         "decache": "4.4.0",
         "glob": "7.1.2",
         "istanbul": "0.4.5",
@@ -1305,7 +1315,8 @@
             ".block",
             ".log",
             ".pid",
-            ".port"
+            ".port",
+            ".feature"
         ],
         "insert_license": false,
         "clear_license": false,

@@ -31,7 +31,6 @@ import * as ejs from 'ejs';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { View } from '../../src/webview/View';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -44,6 +43,7 @@ describe('SampleView', () => {
     let createWebviewPanelStub: sinon.SinonStub;
     let context: vscode.ExtensionContext;
     let sendCommandWithOutputAndProgress: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -69,6 +69,7 @@ describe('SampleView', () => {
 
         sendCommandWithOutputAndProgress = mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress').resolves();
         View['openPanels'].splice(0, View['openPanels'].length);
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
     });
 
     afterEach(() => {
@@ -363,6 +364,7 @@ describe('SampleView', () => {
             outputAdapterSpy.should.have.been.calledTwice;
             repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Cloned', {sample: 'FabCar'});
         });
 
         it('should stop if user cancels dialog', async () => {
@@ -422,24 +424,8 @@ describe('SampleView', () => {
                 path: '/some/path'
             });
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Cloned', {sample: 'FabCar'});
         });
-
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            setUpTest(false);
-            mySandBox.stub(RepositoryRegistry.prototype, 'add').resolves();
-
-            mySandBox.stub(vscode.window, 'showSaveDialog').resolves({fsPath: '/some/path'});
-            mySandBox.stub(CommandUtil, 'sendCommandWithProgress').resolves();
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
-
-            await sampleView.openView(false);
-            await Promise.all(onDidReceiveMessagePromises);
-
-            reporterStub.should.have.been.calledWith('Sample Cloned', {sample: 'FabCar'});
-        });
-
     });
 
     describe('openFile', () => {
@@ -514,6 +500,7 @@ describe('SampleView', () => {
             openNewProjectStub.should.have.been.calledOnce;
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
         });
 
         it(`should show error if the repository isn't in the user settings`, async () => {
@@ -597,6 +584,7 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
         });
 
         it('should handle other errors', async () => {
@@ -652,7 +640,7 @@ describe('SampleView', () => {
         });
 
         it('should open application', async () => {
-            await setupTest('applications', 'JavaScript Application', 'Go');
+            await setupTest('applications', 'JavaScript Application', 'JavaScript');
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves();
@@ -674,6 +662,7 @@ describe('SampleView', () => {
 
             const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, outputAdapter);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Opened', {sample: 'FabCar', name: 'JavaScript Application', type: 'applications', language: 'JavaScript'});
         });
 
         it('should throw an error if fileType not recognised', async () => {
@@ -701,26 +690,5 @@ describe('SampleView', () => {
 
             openNewProjectStub.should.not.have.been.called;
         });
-
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            await setupTest('contracts', 'FabCar Contract', 'Go');
-            mySandBox.stub(fs, 'pathExists').resolves(true);
-            mySandBox.stub(shell, 'cd').returns(undefined);
-            mySandBox.stub(CommandUtil, 'sendCommand').resolves();
-            mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
-            mySandBox.stub(UserInputUtil, 'showFolderOptions').resolves(UserInputUtil.ADD_TO_WORKSPACE);
-            mySandBox.stub(UserInputUtil, 'openNewProject').resolves();
-
-            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
-
-            await sampleView.openView(false);
-
-            await Promise.all(onDidReceiveMessagePromises);
-
-            reporterStub.should.have.been.calledWith('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
-        });
-
     });
 });

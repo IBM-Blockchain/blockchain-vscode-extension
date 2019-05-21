@@ -38,6 +38,9 @@ import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnectio
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -77,7 +80,7 @@ describe('UserInputUtil', () => {
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
                 }
             ],
-            "fabric.gateways": [
+            "${SettingConfigurations.FABRIC_GATEWAYS}": [
                 {
                     "name": "one",
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
@@ -87,7 +90,7 @@ describe('UserInputUtil', () => {
                     "connectionProfilePath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/connectionOne/connection.json"
                 }
             ],
-            "fabric.wallets": [
+            "${SettingConfigurations.FABRIC_WALLETS}": [
                 {
                     "name": "walletOne",
                     "walletPath": "/Users/jake/Documents/blockchain-vscode-extension/client/test/data/walletDir/wallet"
@@ -270,7 +273,8 @@ describe('UserInputUtil', () => {
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
                 ignoreFocusOut: true,
-                value: undefined
+                value: undefined,
+                valueSelection: [0, 0]
             });
         });
 
@@ -282,7 +286,8 @@ describe('UserInputUtil', () => {
             inputStub.should.have.been.calledWith({
                 prompt: 'a question',
                 ignoreFocusOut: true,
-                value: 'a sensible answer'
+                value: 'a sensible answer',
+                valueSelection: [0, 0]
             });
         });
     });
@@ -1733,4 +1738,50 @@ describe('UserInputUtil', () => {
             should.not.exist(result);
         });
     });
+
+    describe('showRuntimeNodeQuickPick', () => {
+
+        const nodes: FabricNode[] = [
+            FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP'),
+            FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'local_fabric_wallet', 'admin', 'Org1MSP'),
+            FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'local_fabric_wallet', 'admin', 'OrdererMSP'),
+            FabricNode.newCouchDB('couchdb', 'couchdb', 'http://localhost:5984')
+        ];
+
+        beforeEach(() => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.getNodes.resolves(nodes);
+        });
+
+        it('should allow the user to select a node', async () => {
+            quickPickStub.resolves({ data: nodes[0] });
+            const node: FabricNode = await UserInputUtil.showRuntimeNodeQuickPick('Gimme a node', [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            node.should.equal(nodes[0]);
+            quickPickStub.should.have.been.calledOnceWithExactly([
+                { label: 'peer0.org1.example.com', data: nodes[0] },
+                { label: 'orderer.example.com', data: nodes[2] }
+            ], {
+                ignoreFocusOut: false,
+                    canPickMany: false,
+                    placeHolder: 'Gimme a node'
+                });
+        });
+
+        it('should return undefined if the user cancels selecting a node', async () => {
+            quickPickStub.resolves(undefined);
+            const node: FabricNode = await UserInputUtil.showRuntimeNodeQuickPick('Gimme a node', [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            should.equal(node, undefined);
+            quickPickStub.should.have.been.calledOnceWithExactly([
+                { label: 'peer0.org1.example.com', data: nodes[0] },
+                { label: 'orderer.example.com', data: nodes[2] }
+            ], {
+                ignoreFocusOut: false,
+                    canPickMany: false,
+                    placeHolder: 'Gimme a node'
+                });
+        });
+
+    });
+
 });

@@ -86,14 +86,16 @@ describe('FabricClientConnection', () => {
 
         fabricTransactionStub = {
             _validatePeerResponses: mySandBox.stub().returns(responsesStub),
-            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub)
+            _createTxEventHandler: mySandBox.stub().returns(eventHandlerStub),
+            setTransient: mySandBox.stub(),
+            evaluate: mySandBox.stub(),
+            submit: mySandBox.stub(),
         };
 
         fabricContractStub = {
             createTransaction: mySandBox.stub().returns(fabricTransactionStub),
-            evaluateTransaction: mySandBox.stub(),
-            submitTransaction: mySandBox.stub(),
-            getEventHandlerOptions: mySandBox.stub().returns(eventHandlerOptions)
+            getEventHandlerOptions: mySandBox.stub().returns(eventHandlerOptions),
+            evaluateTransaction: mySandBox.stub()
         };
 
         const fabricNetworkStub: any = {
@@ -274,63 +276,85 @@ describe('FabricClientConnection', () => {
             await fabricClientConnection.getMetadata('myChaincode', 'channelConga')
                 .should.be.rejectedWith(/Transaction function "org.hyperledger.fabric:GetMetadata" did not return valid JSON metadata/);
         });
-
     });
 
     describe('submitTransaction', () => {
         it('should handle no response from a submitted transaction', async () => {
             const buffer: Buffer = Buffer.from([]);
-            fabricContractStub.submitTransaction.resolves(buffer);
+            fabricTransactionStub.submit.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
+            should.equal(result, undefined);
+        });
+
+        it('should handle setting transient data', async () => {
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.submit.resolves(buffer);
+
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', {key: Buffer.from('value')});
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.have.been.calledWith({key: Buffer.from('value')});
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
         });
 
         it('should handle a returned string response from a submitted transaction', async () => {
             const buffer: Buffer = Buffer.from('hello world');
-            fabricContractStub.submitTransaction.resolves(buffer);
+            fabricTransactionStub.submit.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             result.should.equal('hello world');
         });
 
         it('should handle a returned empty string response from a submitted transaction', async () => {
             const buffer: Buffer = Buffer.from('');
-            fabricContractStub.submitTransaction.resolves(buffer);
+            fabricTransactionStub.submit.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
         });
 
         it('should handle a returned array from a submitted transaction', async () => {
 
             const buffer: Buffer = Buffer.from(JSON.stringify(['hello', 'world']));
-            fabricContractStub.submitTransaction.resolves(buffer);
+            fabricTransactionStub.submit.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, '["hello","world"]');
         });
 
         it('should handle returned object from a submitted transaction', async () => {
 
             const buffer: Buffer = Buffer.from(JSON.stringify({hello: 'world'}));
-            fabricContractStub.submitTransaction.resolves(buffer);
+            fabricTransactionStub.submit.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract');
-            fabricContractStub.submitTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, '{"hello":"world"}');
         });
 
         it('should evaluate a transaction if specified', async () => {
             const buffer: Buffer = Buffer.from([]);
-            fabricContractStub.evaluateTransaction.resolves(buffer);
+            fabricTransactionStub.evaluate.resolves(buffer);
 
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', true);
-            fabricContractStub.evaluateTransaction.should.have.been.calledWith('transaction1', 'arg1', 'arg2');
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, true);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
         });
     });

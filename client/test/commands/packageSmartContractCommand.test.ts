@@ -25,7 +25,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(sinonChai);
@@ -141,6 +141,7 @@ describe('packageSmartContract', () => {
     let findFilesStub: sinon.SinonStub;
     let buildTasks: vscode.Task[];
     let executeTaskStub: sinon.SinonStub;
+    let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -159,7 +160,8 @@ describe('packageSmartContract', () => {
         showInputStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         showWorkspaceQuickPickStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
         workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
-        await vscode.workspace.getConfiguration().update('blockchain.ext.directory', extDir, true);
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, true);
 
         findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles').resolves([]);
 
@@ -273,8 +275,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
-            logSpy;
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the JavaScript project with specified folder and name', async () => {
@@ -305,6 +307,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the JavaScript project with specified folder and version', async () => {
@@ -335,6 +338,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the JavaScript project with specified folder, name and version', async () => {
@@ -365,6 +369,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the JavaScript project with a META-INF directory', async () => {
@@ -400,6 +405,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(6).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         }).timeout(10000);
 
         it('should package the TypeScript project', async () => {
@@ -431,8 +437,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.ts`);
             logSpy.getCall(5).should.have.been.calledWith(LogType.INFO, undefined, '- src/package.json');
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project', async () => {
@@ -466,8 +472,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project with specified name', async () => {
@@ -500,8 +506,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project with specified version', async () => {
@@ -534,8 +540,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project with specified name and version', async () => {
@@ -566,8 +572,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should use the GOPATH if set', async () => {
@@ -603,8 +609,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Java (Gradle) project', async () => {
@@ -638,8 +644,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Java (Gradle) project with specified name', async () => {
@@ -672,8 +678,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Java (Gradle) project with specified version', async () => {
@@ -706,8 +712,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Java (Gradle) project with specified name and version', async () => {
@@ -741,8 +747,8 @@ describe('packageSmartContract', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Java (Maven) project', async () => {
@@ -772,15 +778,13 @@ describe('packageSmartContract', () => {
                 'src/pom.xml'
             ]);
 
-            executeTaskStub.should.have.been.calledOnce;
-            executeTaskStub.should.have.been.calledWithExactly(buildTasks[testIndex]);
-
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/pom.xml`);
-
+            executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
@@ -804,6 +808,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Please enter a package name and/or package version into your package.json`);
             logSpy.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
         it('should throw an error as the project does not contain a chaincode file', async () => {
@@ -1096,7 +1101,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-            logSpy.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
         });
 
         it('should handle cancelling the input box for the Go project name', async () => {
@@ -1120,7 +1125,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-            logSpy.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
         });
 
         it('should handle cancelling the input box for the Go project version', async () => {
@@ -1145,7 +1150,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-            logSpy.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
         });
 
         it('should handle cancelling the input box for the Java project name', async () => {
@@ -1167,7 +1172,7 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-            logSpy.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
         });
 
         it('should handle cancelling the input box for the Java project version', async () => {
@@ -1190,7 +1195,8 @@ describe('packageSmartContract', () => {
             const smartContractExists: boolean = await fs.pathExists(packageDir);
 
             smartContractExists.should.equal(false);
-            logSpy.should.have.been.calledOnce;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'packageSmartContract');
+
         }).timeout(4000);
 
         it('should package a smart contract given a project workspace', async () => {
@@ -1222,6 +1228,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
             logSpy.callCount.should.equal(5);
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         }).timeout(10000);
 
         it('should throw an error if there are errors in project', async () => {
@@ -1279,6 +1286,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should ignore if errors in another project', async () => {
@@ -1310,23 +1318,7 @@ describe('packageSmartContract', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
-        });
-
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
-            const testIndex: number = 0;
-
-            workspaceFoldersStub.returns(folders);
-            showWorkspaceQuickPickStub.onFirstCall().resolves({
-                label: folders[testIndex].name,
-                data: folders[testIndex]
-            });
-
-            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
-
-            reporterStub.should.have.been.calledWith('packageCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
     });
 });

@@ -19,6 +19,7 @@ import * as fs from 'fs-extra';
 import { FabricWallet } from './FabricWallet';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricWalletGenerator implements IFabricWalletGenerator {
 
@@ -30,7 +31,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     public async createLocalWallet(walletName: string): Promise<FabricWallet> {
 
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
         const walletPath: string = path.join(homeExtDir, walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
@@ -44,7 +45,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     public async deleteLocalWallet(walletName: string): Promise<void> {
 
-        const extDir: string = vscode.workspace.getConfiguration().get('blockchain.ext.directory');
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
         const walletPath: string = path.join(homeExtDir, walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);

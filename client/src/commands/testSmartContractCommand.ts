@@ -118,7 +118,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     const testFileSuiffix: string = languagesToSuffixes[testLanguage];
 
     // Only generate the test file(s) if the smart contract is open in the workspace
-    const workspaceFolders: Array<vscode.WorkspaceFolder> = await UserInputUtil.getWorkspaceFolders();
+    const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length === 0) {
         outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} is not open in workspace`);
 
@@ -151,7 +151,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     const fabricWalletRegistryEntry: FabricWalletRegistryEntry = fabricConnectionManager.getConnectionWallet();
     const connectionIdentityName: string = fabricConnectionManager.getConnectionIdentity();
 
-    for (const [name, transactionArray] of transactions) {
+    for (const [contractName, transactionArray] of transactions) {
         const homedir: string = os.homedir();
         let connectionProfileHome: boolean;
         let connectionProfilePathString: string;
@@ -188,7 +188,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         }
         // Populate the template data
         const templateData: any = {
-            contractName: name,
+            contractName: contractName,
             chaincodeLabel: chaincodeLabel,
             transactions: transactionArray,
             connectionProfileHome: connectionProfileHome,
@@ -220,8 +220,8 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
         // Determine if test file already exists
         let testFile: string;
-        if (name !== '') {
-            testFile = path.join(functionalTestsDirectory, `${name}-${chaincodeLabel}.test.${testFileSuiffix}`);
+        if (contractName !== '') {
+            testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}.test.${testFileSuiffix}`);
         } else {
             testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuiffix}`);
         }
@@ -244,8 +244,8 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             // Generate copy of test file, indicate a copy has been created in the file name
             let i: number = 1;
             while (await fs.pathExists(testFile)) {
-                if (name !== '') {
-                    testFile = path.join(functionalTestsDirectory, `${name}-${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
+                if (contractName !== '') {
+                    testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
                 } else {
                     testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
                 }

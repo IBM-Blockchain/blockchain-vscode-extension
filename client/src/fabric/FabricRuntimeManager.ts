@@ -23,7 +23,6 @@ import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from './FabricWalletUtil';
-import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 import { FabricGateway } from './FabricGateway';
 import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
 import * as semver from 'semver';
@@ -31,6 +30,8 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
+import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 
 export class FabricRuntimeManager {
 
@@ -133,12 +134,13 @@ export class FabricRuntimeManager {
     }
 
     public async migrate(oldVersion: string): Promise<void> {
-        await this.migrateRuntimeConfiguration();
+        const runtimeSetting: any = await this.migrateRuntimesConfiguration();
+        await this.migrateRuntimeConfiguration(runtimeSetting);
         await this.migrateRuntimeContainers(oldVersion);
     }
 
     private readRuntimeUserSettings(): any {
-        const runtimeSettings: any = vscode.workspace.getConfiguration().get('fabric.runtime') as {
+        const runtimeSettings: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME) as {
             ports: {
                 orderer: number,
                 peerRequest: number,
@@ -169,29 +171,66 @@ export class FabricRuntimeManager {
         }
     }
 
-    private async migrateRuntimeConfiguration(): Promise<void> {
-        const oldRuntimeSettings: any[] = vscode.workspace.getConfiguration().get('fabric.runtimes');
+    private async migrateRuntimesConfiguration(): Promise<any> {
+            const oldRuntimeSettings: any[] = vscode.workspace.getConfiguration().get('fabric.runtimes');
+            let runtimeObj: any = vscode.workspace.getConfiguration().get('fabric.runtime');
+            if (!runtimeObj) { // If the user has no fabric.runtime setting
+                runtimeObj = {};
+            }
+            if (oldRuntimeSettings && !runtimeObj.ports) {
+                const runtimeToCopy: any = {
+                    ports: {},
+                    developmentMode: false
+                };
+                for (const oldRuntime of oldRuntimeSettings) {
+                    if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                        runtimeToCopy.ports = oldRuntime.ports;
+                        runtimeToCopy.developmentMode = oldRuntime.developmentMode;
+
+                        // Generate a logs port
+                        const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
+                        runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
+
+                    }
+                }
+
+                return runtimeToCopy;
+
+            } else {
+                return runtimeObj;
+            }
+
+    }
+
+    private async migrateRuntimeConfiguration(oldRuntimeSetting: any): Promise<void> {
         const runtimeObj: any = await this.readRuntimeUserSettings();
-        if (oldRuntimeSettings && !runtimeObj.ports) {
+        if (oldRuntimeSetting && !runtimeObj.ports) {
             const runtimeToCopy: any = {
                 ports: {},
                 developmentMode: false
             };
-            for (const oldRuntime of oldRuntimeSettings) {
-                if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
-                    runtimeToCopy.ports = oldRuntime.ports;
-                    runtimeToCopy.developmentMode = oldRuntime.developmentMode;
 
-                    // Generate a logs port
+            runtimeToCopy.ports = oldRuntimeSetting.ports;
+            runtimeToCopy.developmentMode = oldRuntimeSetting.developmentMode;
+
+            // If either fabric.runtimes and fabric.runtime existed and has ports
+            if (runtimeToCopy.ports) {
+
+                // If previous settings didn't have 'logs' property
+                if (!runtimeToCopy.ports.logs) {
+                        // Generate a logs port
                     const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
                     runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
-
-                    // Update the new user settings
-                    await vscode.workspace.getConfiguration().update('fabric.runtime', runtimeToCopy, vscode.ConfigurationTarget.Global);
                 }
-            }
-        }
 
+                    // Update new property with old settings values
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeToCopy, vscode.ConfigurationTarget.Global);
+
+            }
+
+            // Else fabric.runtimes/fabric.runtime didn't exist, hence no migration is required
+
+        }
     }
 
     private async migrateRuntimeContainers(oldVersion: string): Promise<void> {

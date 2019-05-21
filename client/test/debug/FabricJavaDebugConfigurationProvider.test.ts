@@ -30,7 +30,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../src/debug/FabricJavaDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -67,6 +66,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
         let date: Date;
         let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
+        let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -77,7 +77,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
-            runtimeStub.getPeerChaincodeURL.resolves('127.0.0.1:54321');
+            runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
             runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
@@ -141,6 +141,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 data: true,
                 description: `Create a new debug package and install`
             });
+            sendTelemetryEventStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
 
         afterEach(() => {
@@ -159,6 +160,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
         });
 
         it('should add cwd if not set', async () => {
@@ -174,6 +176,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
         });
 
         it('should add args if not defined', async () => {
@@ -188,6 +191,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', '127.0.0.1:54321']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
         });
 
         it('should add more args if some args exist', async () => {
@@ -202,6 +206,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
             });
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
         });
 
         it('should add in request if not defined', async () => {
@@ -216,14 +221,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
                 args: ['--peer.address', 'localhost:12345']
             });
-        });
-
-        it('should send a telemetry event if the extension is for production', async () => {
-            mySandbox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
-            const reporterStub: sinon.SinonStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
-            await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-
-            reporterStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
         });
     });
 });
