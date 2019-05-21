@@ -23,6 +23,7 @@ export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'startFabricRuntime');
     const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+    VSCodeBlockchainOutputAdapter.instance().show();
 
     await vscode.window.withProgress({
         location: vscode.ProgressLocation.Notification,
