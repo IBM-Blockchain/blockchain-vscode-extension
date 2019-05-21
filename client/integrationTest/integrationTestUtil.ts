@@ -212,7 +212,7 @@ export class IntegrationTestUtil {
 
         const uri: vscode.Uri = vscode.Uri.file(this.testContractDir);
 
-        this.browseStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
+        this.browseStub.withArgs('Choose the location to save the smart contract, please do not include spaces in the folder name', [UserInputUtil.BROWSE_LABEL], {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,

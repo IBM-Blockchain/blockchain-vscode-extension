@@ -36,11 +36,12 @@ describe('packageSmartContract', () => {
     const extDir: string = path.join(rootPath, '../../test/data');
     const fileDest: string = path.join(extDir, 'packages');
     const testWorkspace: string = path.join(rootPath, '..', '..', 'test', 'data', 'testWorkspace');
-    const javascriptPath: string = path.join(testWorkspace, 'javascriptProject');
-    const typescriptPath: string = path.join(testWorkspace, 'typescriptProject');
-    const golangPath: string = path.join(testWorkspace, 'src', 'goProject');
-    const wrongGolangPath: string = path.join(testWorkspace, 'goProject');
-    const javaPath: string = path.join(testWorkspace, 'javaProject');
+    const javascriptPath: string = path.join(testWorkspace, 'javascript-project');
+    const invalidJavascriptPath: string = path.join(testWorkspace, 'javascript  Project');
+    const typescriptPath: string = path.join(testWorkspace, 'typescript-project');
+    const golangPath: string = path.join(testWorkspace, 'src', 'go-project');
+    const wrongGolangPath: string = path.join(testWorkspace, 'go-project');
+    const javaPath: string = path.join(testWorkspace, 'java-project');
     const emptyContent: string = '{}';
 
     let folders: Array<any> = [];
@@ -150,10 +151,11 @@ describe('packageSmartContract', () => {
         await TestUtil.deleteTestFiles(testWorkspace);
 
         folders = [
-            { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) },
-            { name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) },
-            { name: 'goProject', uri: vscode.Uri.file(golangPath) },
-            { name: 'javaProject', uri: vscode.Uri.file(javaPath) }
+            { name: 'javascript-project', uri: vscode.Uri.file(javascriptPath) },
+            { name: 'typescript-project', uri: vscode.Uri.file(typescriptPath) },
+            { name: 'go-project', uri: vscode.Uri.file(golangPath) },
+            { name: 'java-project', uri: vscode.Uri.file(javaPath) },
+            { name: 'javascript  Project', uri: vscode.Uri.file(invalidJavascriptPath) }
         ];
 
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -171,29 +173,32 @@ describe('packageSmartContract', () => {
         const workspaceTask: vscode.Task = new vscode.Task({ type: 'npm' }, vscode.TaskScope.Workspace, 'workspaceTask', 'npm');
         const differentUriTask: vscode.Task = new vscode.Task({ type: 'npm' }, { index: 0, name: 'randomProject', uri: vscode.Uri.file('/randomProject') }, 'workspaceTask', 'npm');
         const testTasks: vscode.Task[] = [
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) }, 'javascriptProject test task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject test task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject test task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javaProject', uri: vscode.Uri.file(javaPath) }, 'javaProject test task', 'npm')
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascript-project', uri: vscode.Uri.file(javascriptPath) }, 'javascript-project test task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescript-project', uri: vscode.Uri.file(typescriptPath) }, 'typescript-project test task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'go-project', uri: vscode.Uri.file(golangPath) }, 'go-project test task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'java-project', uri: vscode.Uri.file(javaPath) }, 'java-project test task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascript  Project', uri: vscode.Uri.file(javascriptPath) }, 'javascript  Project test task', 'npm')
         ].map((task: vscode.Task) => {
             task.group = vscode.TaskGroup.Test;
             return task;
         });
         const backgroundTasks: vscode.Task[] = [
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) }, 'javascriptProject build task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject build task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject build task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javaProject', uri: vscode.Uri.file(javaPath) }, 'javaProject build task', 'npm')
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascript-project', uri: vscode.Uri.file(javascriptPath) }, 'javascript-project build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescript-project', uri: vscode.Uri.file(typescriptPath) }, 'typescript-project build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'go-project', uri: vscode.Uri.file(golangPath) }, 'go-project build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'java-project', uri: vscode.Uri.file(javaPath) }, 'java-project build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascript  Project', uri: vscode.Uri.file(javascriptPath) }, 'javascript  Project build task', 'npm')
         ].map((task: vscode.Task) => {
             task.group = vscode.TaskGroup.Build;
             task.isBackground = true;
             return task;
         });
         const watchTasks: vscode.Task[] = [
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) }, 'javascriptProject watch task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject Watch task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject WATCH task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javaProject', uri: vscode.Uri.file(javaPath) }, 'javaProject WaTcH task', 'npm')
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascript-project', uri: vscode.Uri.file(javascriptPath) }, 'javascript-project watch task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescript-project', uri: vscode.Uri.file(typescriptPath) }, 'typescript-project Watch task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'go-project', uri: vscode.Uri.file(golangPath) }, 'go-project WATCH task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'java-project', uri: vscode.Uri.file(javaPath) }, 'java-project WaTcH task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javascript  Project', uri: vscode.Uri.file(javaPath) }, 'javascript  Project WaTCH task', 'npm')
         ].map((task: vscode.Task) => {
             task.group = vscode.TaskGroup.Build;
             return task;
@@ -202,9 +207,9 @@ describe('packageSmartContract', () => {
         // These are the tasks we do want to execute.
         buildTasks = [
             undefined, // no build task for javascript
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) }, 'typescriptProject build task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'goProject', uri: vscode.Uri.file(golangPath) }, 'goProject build task', 'npm'),
-            new vscode.Task({ type: 'npm' }, { index: 0, name: 'javaProject', uri: vscode.Uri.file(javaPath) }, 'javaProject build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'typescript-project', uri: vscode.Uri.file(typescriptPath) }, 'typescript-project build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'go-project', uri: vscode.Uri.file(golangPath) }, 'go-project build task', 'npm'),
+            new vscode.Task({ type: 'npm' }, { index: 0, name: 'java-project', uri: vscode.Uri.file(javaPath) }, 'java-project build task', 'npm'),
         ].map((task: vscode.Task) => {
             if (!task) {
                 return task;
@@ -249,7 +254,7 @@ describe('packageSmartContract', () => {
     describe('#packageSmartContract', () => {
 
         it('should package the JavaScript project', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -263,7 +268,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -280,7 +285,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the JavaScript project with specified folder and name', async () => {
-            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.3', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -311,7 +316,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the JavaScript project with specified folder and version', async () => {
-            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.3', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -325,7 +330,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.3');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -342,7 +347,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the JavaScript project with specified folder, name and version', async () => {
-            await createTestFiles('javascriptProject', '0.0.3', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.3', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -373,7 +378,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the JavaScript project with a META-INF directory', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, true);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, true);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);
@@ -387,7 +392,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -409,7 +414,7 @@ describe('packageSmartContract', () => {
         }).timeout(10000);
 
         it('should package the TypeScript project', async () => {
-            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);
+            await createTestFiles('typescript-project', '0.0.1', 'typescript', true, false);
 
             const testIndex: number = 1;
             workspaceFoldersStub.returns(folders);
@@ -423,7 +428,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('typescriptProject');
+            pkg.getName().should.equal('typescript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -442,7 +447,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Go project', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -452,32 +457,32 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'my-project@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
+            pkg.getName().should.equal('my-project');
             pkg.getVersion().should.equal('0.0.3');
             pkg.getType().should.equal('golang');
             pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
+                'src/go-project/chaincode.go'
             ]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/go-project/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project with specified name', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -500,18 +505,18 @@ describe('packageSmartContract', () => {
             pkg.getVersion().should.equal('0.0.3');
             pkg.getType().should.equal('golang');
             pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
+                'src/go-project/chaincode.go'
             ]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/go-project/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project with specified version', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -521,31 +526,31 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'my-project@1.2.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
+            pkg.getName().should.equal('my-project');
             pkg.getVersion().should.equal('1.2.3');
             pkg.getType().should.equal('golang');
             pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
+                'src/go-project/chaincode.go'
             ]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/go-project/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Go project with specified name and version', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -566,18 +571,18 @@ describe('packageSmartContract', () => {
             pkg.getVersion().should.equal('1.2.3');
             pkg.getType().should.equal('golang');
             pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
+                'src/go-project/chaincode.go'
             ]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/go-project/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should use the GOPATH if set', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -587,7 +592,7 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
 
             process.env.GOPATH = testWorkspace;
@@ -596,25 +601,25 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'my-project@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
+            pkg.getName().should.equal('my-project');
             pkg.getVersion().should.equal('0.0.3');
             pkg.getType().should.equal('golang');
             pkg.getFileNames().should.deep.equal([
-                'src/goProject/chaincode.go'
+                'src/go-project/chaincode.go'
             ]);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/go-project/chaincode.go`);
             executeTaskStub.should.have.been.calledOnceWithExactly(buildTasks[testIndex]);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
         });
 
         it('should package the Java (Gradle) project', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
 
@@ -624,15 +629,15 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'my-project@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
+            pkg.getName().should.equal('my-project');
             pkg.getVersion().should.equal('0.0.3');
             pkg.getType().should.equal('java');
             pkg.getFileNames().should.deep.equal([
@@ -649,7 +654,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Java (Gradle) project with specified name', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
 
@@ -683,7 +688,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Java (Gradle) project with specified version', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
 
@@ -693,14 +698,14 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, null, null, '1.2.3');
 
-            const pkgFile: string = path.join(fileDest, 'myProject@1.2.3.cds');
+            const pkgFile: string = path.join(fileDest, 'my-project@1.2.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
+            pkg.getName().should.equal('my-project');
             pkg.getVersion().should.equal('1.2.3');
             pkg.getType().should.equal('java');
             pkg.getFileNames().should.deep.equal([
@@ -717,7 +722,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Java (Gradle) project with specified name and version', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
 
@@ -752,7 +757,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should package the Java (Maven) project', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-maven', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-maven', true, false);
 
             const testIndex: number = 3;
 
@@ -762,15 +767,15 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
-            const pkgFile: string = path.join(fileDest, 'myProject@0.0.3.cds');
+            const pkgFile: string = path.join(fileDest, 'my-project@0.0.3.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('myProject');
+            pkg.getName().should.equal('my-project');
             pkg.getVersion().should.equal('0.0.3');
             pkg.getType().should.equal('java');
             pkg.getFileNames().should.deep.equal([
@@ -788,7 +793,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error as the package json does not contain a name or version', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -811,8 +816,70 @@ describe('packageSmartContract', () => {
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
+        it('should throw an error as the node package.json name is not valid', async () => {
+            await createTestFiles('javascript  Project', '0.0.1', 'javascript', true, false);
+
+            const testIndex: number = 4;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Invalid package.json name, please include alpha-numerics, "_" and "_" characters only');
+            logSpy.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should throw an error as the golang package name is not valid', async () => {
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
+
+            const testIndex: number = 2;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Invalid golang package name, please include alpha-numerics, "_" and "_" characters only');
+            logSpy.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should throw an error as the java package name is not valid', async () => {
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
+
+            const testIndex: number = 3;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onSecondCall().resolves('0.0.3');
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, 'Invalid java package name, please include alpha-numerics, "_" and "_" characters only');
+            logSpy.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         it('should throw an error as the project does not contain a chaincode file', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
 
@@ -835,7 +902,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the JavaScript project already exists', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -852,7 +919,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascript-project@0.0.1.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
@@ -862,7 +929,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error as the Go project already exists', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
@@ -873,9 +940,9 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onThirdCall().resolves('my-project');
             showInputStub.onCall(3).resolves('0.0.3');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
@@ -884,16 +951,16 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'my-project@0.0.3.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `1 file(s) packaged:`);
-            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/goProject/chaincode.go`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/go-project/chaincode.go`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(5).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
             logSpy.callCount.should.equal(6);
         });
 
         it('should throw an error as the Java project already exists', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
             workspaceFoldersStub.returns(folders);
@@ -902,9 +969,9 @@ describe('packageSmartContract', () => {
                 data: folders[testIndex]
             });
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onThirdCall().resolves('my-project');
             showInputStub.onCall(3).resolves('0.0.3');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
@@ -913,7 +980,7 @@ describe('packageSmartContract', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'myProject@0.0.3.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'my-project@0.0.3.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/build.gradle`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.java`);
@@ -923,7 +990,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if project not child of src dir', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', false, false, true);
+            await createTestFiles('go-project', '0.0.1', 'golang', false, false, true);
             const error: Error = new Error('The enviroment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -935,9 +1002,9 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onThirdCall().resolves('my-project');
             showInputStub.onCall(3).resolves('0.0.3');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
@@ -947,7 +1014,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the GOPATH environment variable is set to the project directory', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
             const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -959,9 +1026,9 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onThirdCall().resolves('my-project');
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = golangPath;
@@ -972,7 +1039,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the project directory is not inside the directory specified by the GOPATH environment variable ', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
             const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -984,9 +1051,9 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onThirdCall().resolves('my-project');
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = javascriptPath;
@@ -997,7 +1064,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should throw an error if the GOPATH environment variable is set to the root directory', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
             const error: Error = new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
 
             const testIndex: number = 2;
@@ -1009,9 +1076,9 @@ describe('packageSmartContract', () => {
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves('0.0.3');
-            showInputStub.onThirdCall().resolves('myProject');
+            showInputStub.onThirdCall().resolves('my-project');
             showInputStub.onCall(3).resolves('0.0.3');
 
             process.env.GOPATH = path.resolve('/');
@@ -1022,7 +1089,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should run execute the refreshEntry command', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
@@ -1035,7 +1102,7 @@ describe('packageSmartContract', () => {
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_PACKAGES);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascriptProject@0.0.1.cds')}`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${path.join(extDir, 'packages', 'javascript-project@0.0.1.cds')}`);
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
             logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
@@ -1043,7 +1110,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should not show package chooser when only one folder', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             folders.splice(1, folders.length - 1);
@@ -1057,7 +1124,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -1073,7 +1140,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle error from get workspace folders', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             folders.splice(1, folders.length - 1);
 
@@ -1088,7 +1155,7 @@ describe('packageSmartContract', () => {
         }).timeout(4000);
 
         it('should handle not choosing folder', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -1105,7 +1172,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Go project name', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -1114,7 +1181,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'my-project' + '@0.0.1');
 
             showInputStub.onFirstCall().resolves();
 
@@ -1129,7 +1196,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Go project version', async () => {
-            await createTestFiles('goProject', '0.0.1', 'golang', true, false);
+            await createTestFiles('go-project', '0.0.1', 'golang', true, false);
 
             const testIndex: number = 2;
 
@@ -1138,9 +1205,9 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'my-project' + '@0.0.1');
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves();
 
             findFilesStub.withArgs(new vscode.RelativePattern(folders[testIndex], '**/*.go'), null, 1).resolves([vscode.Uri.file('chaincode.go')]);
@@ -1154,7 +1221,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Java project name', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
 
@@ -1163,7 +1230,7 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'my-project' + '@0.0.1');
 
             showInputStub.onFirstCall().resolves();
 
@@ -1176,7 +1243,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should handle cancelling the input box for the Java project version', async () => {
-            await createTestFiles('javaProject', '0.0.1', 'java-gradle', true, false);
+            await createTestFiles('java-project', '0.0.1', 'java-gradle', true, false);
 
             const testIndex: number = 3;
 
@@ -1185,9 +1252,9 @@ describe('packageSmartContract', () => {
                 label: folders[testIndex].name,
                 data: folders[testIndex]
             });
-            const packageDir: string = path.join(fileDest, 'myProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'my-project' + '@0.0.1');
 
-            showInputStub.onFirstCall().resolves('myProject');
+            showInputStub.onFirstCall().resolves('my-project');
             showInputStub.onSecondCall().resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
@@ -1200,10 +1267,10 @@ describe('packageSmartContract', () => {
         }).timeout(4000);
 
         it('should package a smart contract given a project workspace', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
-            const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
+            const workspaceFolderMock: vscode.WorkspaceFolder = { name: 'javascript-project', uri: vscode.Uri.file(javascriptPath) } as vscode.WorkspaceFolder;
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolderMock);
 
@@ -1213,7 +1280,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -1232,9 +1299,9 @@ describe('packageSmartContract', () => {
         }).timeout(10000);
 
         it('should throw an error if there are errors in project', async () => {
-            await createTestFiles('typescriptProject', '0.0.1', 'typescript', true, false);
+            await createTestFiles('typescript-project', '0.0.1', 'typescript', true, false);
 
-            const packageDir: string = path.join(fileDest, 'typescriptProject' + '@0.0.1');
+            const packageDir: string = path.join(fileDest, 'typescript-project' + '@0.0.1');
 
             const testIndex: number = 1;
             workspaceFoldersStub.returns(folders);
@@ -1258,7 +1325,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should only throw error if there are errors', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -1276,7 +1343,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([
@@ -1290,7 +1357,7 @@ describe('packageSmartContract', () => {
         });
 
         it('should ignore if errors in another project', async () => {
-            await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            await createTestFiles('javascript-project', '0.0.1', 'javascript', true, false);
 
             const testIndex: number = 0;
             workspaceFoldersStub.returns(folders);
@@ -1308,7 +1375,7 @@ describe('packageSmartContract', () => {
             const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
             const pkgBuffer: Buffer = await fs.readFile(pkgFile);
             const pkg: Package = await Package.fromBuffer(pkgBuffer);
-            pkg.getName().should.equal('javascriptProject');
+            pkg.getName().should.equal('javascript-project');
             pkg.getVersion().should.equal('0.0.1');
             pkg.getType().should.equal('node');
             pkg.getFileNames().should.deep.equal([

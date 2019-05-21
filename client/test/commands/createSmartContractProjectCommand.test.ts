@@ -255,6 +255,19 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
     });
 
+    it('should throw an error if the user includes a space in the smart contract name', async () => {
+        uri = vscode.Uri.file(tmp.dirSync().name + 'Badminton Winner');
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onFirstCall().resolves('BadmintonConga');
+
+        browseStub.resolves(uri);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        browseStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'You cannot include a space in the name of your smart contract');
+    });
+
     it('should not do anything if the user cancels the open project ', async () => {
         quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');

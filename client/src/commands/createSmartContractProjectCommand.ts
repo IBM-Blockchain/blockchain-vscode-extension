@@ -71,7 +71,7 @@ export async function createSmartContractProject(): Promise<void> {
         filters: undefined
     };
 
-    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract', quickPickItems, openDialogOptions, true) as vscode.Uri;
+    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract, please do not include spaces in the folder name', quickPickItems, openDialogOptions, true) as vscode.Uri;
     if (!folderUri) {
         return;
     }

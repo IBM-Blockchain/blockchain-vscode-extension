@@ -15,6 +15,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as validate from 'validate-npm-package-name';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { ChaincodeType } from 'fabric-client';
@@ -35,6 +36,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
     let resolvedPkgDir: string;
     let properties: { workspacePackageName: string, workspacePackageVersion: string };
     let language: ChaincodeType;
+    let packageError: string;
 
     try {
         // Determine the directory that will contain the packages and ensure it exists.
@@ -63,13 +65,22 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         // Determine the package name and version.
         if (language === 'golang') {
             properties = await golangPackageAndVersion(overrideName, overrideVersion);
+            packageError = 'golang package name';
         } else if (language === 'java') {
             properties = await javaPackageAndVersion(overrideName, overrideVersion);
+            packageError = 'java package name';
         } else {
             properties = await packageJsonNameAndVersion(workspace, overrideName, overrideVersion);
+            packageError = 'package.json name';
         }
         if (!properties) {
             // User cancelled.
+            return;
+        }
+        // Checking to see if the package.json contains a valid name property
+        const packageJSONValidator: any = validate(properties.workspacePackageName);
+        if (!packageJSONValidator.validForNewPackages) {
+            outputAdapter.log(LogType.ERROR, `Invalid ${packageError}, please include alpha-numerics, "_" and "_" characters only`);
             return;
         }
 
@@ -100,13 +111,13 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             }
 
             // Determine the path argument.
-            let pkgPath: string = workspace.uri.fsPath;
+            let contractPath: string = workspace.uri.fsPath; // This is actually the workspace path!
             if (language === 'golang') {
 
                 if (!process.env.GOPATH) {
                     // The path is relative to $GOPATH/src for Go smart contracts.
-                    const srcPath: string = path.join(pkgPath, '..', '..', 'src');
-                    pkgPath = path.basename(pkgPath);
+                    const srcPath: string = path.join(contractPath, '..', '..', 'src');
+                    contractPath = path.basename(contractPath);
                     const exists: boolean = await fs.pathExists(srcPath);
 
                     if (!exists) {
@@ -118,8 +129,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
                 } else {
                     // The path is relative to $GOPATH/src for Go smart contracts.
                     const srcPath: string = path.join(process.env.GOPATH, 'src');
-                    pkgPath = path.relative(srcPath, pkgPath);
-                    if (!pkgPath || pkgPath.startsWith('..') || path.isAbsolute(pkgPath)) {
+                    contractPath = path.relative(srcPath, contractPath);
+                    if (!contractPath || contractPath.startsWith('..') || path.isAbsolute(contractPath)) {
                         // Project path is not under GOPATH.
                         throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
                     }
@@ -127,7 +138,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             }
 
             // Determine if there is a metadata path.
-            const metadataPath: string = path.join(workspace.uri.fsPath, 'META-INF');
+            const metadataPath: string = path.join(contractPath, 'META-INF');
             const metadataPathExists: boolean = await fs.pathExists(metadataPath);
 
             // Create the package. Need to dynamically load the package class
@@ -136,10 +147,11 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             const pkg: any = await Package.fromDirectory({
                 name: properties.workspacePackageName,
                 version: properties.workspacePackageVersion,
-                path: pkgPath,
+                path: contractPath,
                 type: language,
                 metadataPath: metadataPathExists ? metadataPath : null
             });
+
             const pkgBuffer: any = await pkg.toBuffer();
             await fs.writeFile(pkgFile, pkgBuffer);
 
@@ -258,6 +270,7 @@ async function packageJsonNameAndVersion(workspaceDir: vscode.WorkspaceFolder, o
         const message: string = 'Please enter a package name and/or package version into your package.json';
         throw new Error(message);
     }
+
     return { workspacePackageName, workspacePackageVersion };
 }
 

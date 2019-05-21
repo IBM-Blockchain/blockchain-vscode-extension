@@ -558,7 +558,7 @@ module.exports = function(): any {
 
         const uri: vscode.Uri = vscode.Uri.file(contractDirectory);
 
-        browseStub.withArgs('Choose the location to save the smart contract', [UserInputUtil.BROWSE_LABEL], {
+        browseStub.withArgs('Choose the location to save the smart contract, please do not include spaces in the folder name', [UserInputUtil.BROWSE_LABEL], {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
