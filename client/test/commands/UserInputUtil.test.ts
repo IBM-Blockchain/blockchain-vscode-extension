@@ -1784,4 +1784,21 @@ describe('UserInputUtil', () => {
 
     });
 
+    describe('failedActivationWindow', () => {
+
+        it('should display failed to activate message', async () => {
+            const showErrorMessageStub: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage').resolves();
+            await UserInputUtil.failedActivationWindow('some error');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Retry activation');
+        });
+
+        it('should reload window if selected', async () => {
+            const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+            const showErrorMessageStub: sinon.SinonSpy = mySandBox.stub(vscode.window, 'showErrorMessage').resolves('Retry activation');
+            await UserInputUtil.failedActivationWindow('some error');
+            showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Retry activation');
+            executeCommandStub.should.have.been.calledOnceWithExactly('workbench.action.reloadWindow');
+        });
+    });
+
 });

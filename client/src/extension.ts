@@ -91,6 +91,7 @@ import { TutorialGalleryView } from './webview/TutorialGalleryView';
 import { NodeTreeItem } from './explorer/runtimeOps/NodeTreeItem';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { exportWallet } from './commands/exportWalletCommand';
+import { UserInputUtil } from './commands/UserInputUtil';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -182,8 +183,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
         }
     } catch (error) {
-        console.log(error);
-        outputAdapter.log(LogType.ERROR, 'Failed to activate extension: open output view', 'Failed to activate extension see previous messages for reason');
+        outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
+        await UserInputUtil.failedActivationWindow(error.message);
     }
 }
 

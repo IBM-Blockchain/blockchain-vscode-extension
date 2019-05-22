@@ -50,9 +50,8 @@ describe('DependencyManager Tests', () => {
 
         it('should return true if the dependencies are installed', async () => {
             mySandBox.stub(fs, 'readFile').resolves(JSON.stringify({activationEvents: ['myActivationOne', 'myActivationTwo']}));
-
             const dependencyManager: DependencyManager = DependencyManager.instance();
-
+            mySandBox.stub(dependencyManager, 'requireNativeDependencies').resolves();
             await dependencyManager.hasNativeDependenciesInstalled().should.eventually.equal(true);
         });
 
@@ -62,6 +61,45 @@ describe('DependencyManager Tests', () => {
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
             await dependencyManager.hasNativeDependenciesInstalled().should.eventually.equal(false);
+        });
+
+        it(`should return false if native dependencies can't be required`, async () => {
+
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
+            const error: Error = new Error(`gRPC error`);
+
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            mySandBox.stub(DependencyManager.instance(), 'requireNativeDependencies').throws(error);
+            await dependencyManager.hasNativeDependenciesInstalled().should.eventually.equal(false);
+            logSpy.should.have.been.calledWithExactly(LogType.INFO, undefined, `Error requiring dependency: ${error.message}`);
+
+        });
+    });
+
+    describe('requireNativeDependencies', () => {
+
+        let mySandBox: sinon.SinonSandbox;
+        let logSpy: sinon.SinonSpy;
+        beforeEach(async () => {
+            mySandBox = sinon.createSandbox();
+            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        });
+
+        afterEach(() => {
+            mySandBox.restore();
+        });
+
+        it('should require all native dependencies', async () => {
+            mySandBox.stub(fs, 'readFile').resolves(JSON.stringify({nativeDependencies: {
+                grpc: {}
+            }}));
+
+            const dependencyManager: DependencyManager = DependencyManager.instance();
+            await dependencyManager.requireNativeDependencies();
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Attempting to require dependency: grpc`);
+
         });
     });
 
@@ -91,12 +129,14 @@ describe('DependencyManager Tests', () => {
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').resolves();
             const dependencyManager: DependencyManager = DependencyManager.instance();
 
+            mySandBox.stub(process, 'arch').value('x64');
+
             await dependencyManager.installNativeDependencies();
 
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
             removeStub.should.have.been.called;
             renameStub.should.have.been.called;
 
@@ -109,7 +149,7 @@ describe('DependencyManager Tests', () => {
 
         it('should install the dependencies using npm.cmd script on Windows', async () => {
             mySandBox.stub(process, 'platform').value('win32');
-
+            mySandBox.stub(process, 'arch').value('x64');
             const removeStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
             const renameStub: sinon.SinonStub = mySandBox.stub(fs, 'rename').resolves();
             const writeFileStub: sinon.SinonStub = mySandBox.stub(fs, 'writeFile').resolves();
@@ -126,7 +166,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter), sinon.match.truthy);
             removeStub.should.have.been.called;
             renameStub.should.have.been.called;
 
@@ -138,6 +178,8 @@ describe('DependencyManager Tests', () => {
         });
 
         it('should handle errors', async () => {
+            mySandBox.stub(process, 'arch').value('x64');
+
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             const sendCommandStub: sinon.SinonStub = mySandBox.stub(CommandUtil, 'sendCommandWithOutput').rejects({message: 'some error'});
 
@@ -150,7 +192,7 @@ describe('DependencyManager Tests', () => {
             dependencyManager['dependencies'].length.should.equal(1);
             dependencyManager['dependencies'][0].moduleName.should.equal('grpc');
 
-            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
+            sendCommandStub.should.have.been.calledWith('npm', ['rebuild', 'grpc', '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=x64`], sinon.match.string, null, sinon.match.instanceOf(VSCodeBlockchainOutputAdapter));
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Could not rebuild native dependencies some error. Please ensure that you have node and npm installed');
         });
