@@ -90,6 +90,7 @@ import { ContractTreeItem } from './explorer/model/ContractTreeItem';
 import { TutorialGalleryView } from './webview/TutorialGalleryView';
 import { NodeTreeItem } from './explorer/runtimeOps/NodeTreeItem';
 import { SettingConfigurations } from '../SettingConfigurations';
+import { exportWallet } from './commands/exportWalletCommand';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -219,7 +220,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT, () => FabricConnectionManager.instance().disconnect()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY, addGateway));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_GATEWAY, (gateway: GatewayTreeItem) => deleteGateway(gateway)));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET_IDENTITY, (walletItem: BlockchainTreeItem | IFabricWallet) => addWalletIdentity(walletItem)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET_IDENTITY, (walletItem: WalletTreeItem | IFabricWallet) => addWalletIdentity(walletItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, createSmartContractProject));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, (workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string) => packageSmartContract(workspace, overrideName, overrideVersion)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
@@ -251,6 +252,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_IDENTITY, (treeItem: IdentityTreeItem) => deleteIdentity(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_WALLET, (treeItem: GatewayDissociatedTreeItem) => associateWallet(treeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_WALLET, (treeItem: GatewayAssociatedTreeItem) => dissociateWallet(treeItem)));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_WALLET, (treeItem?: WalletTreeItem) => exportWallet(treeItem)));
 
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
         const homeView: HomeView = new HomeView(context);

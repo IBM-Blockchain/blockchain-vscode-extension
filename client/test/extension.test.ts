@@ -126,6 +126,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.DELETE_IDENTITY,
             ExtensionCommands.ASSOCIATE_WALLET,
             ExtensionCommands.DISSOCIATE_WALLET,
+            ExtensionCommands.EXPORT_WALLET,
             ExtensionCommands.OPEN_HOME_PAGE
         ]);
     });
@@ -175,6 +176,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.EDIT_WALLET}`,
             `onCommand:${ExtensionCommands.REMOVE_WALLET}`,
             `onCommand:${ExtensionCommands.DELETE_IDENTITY}`,
+            `onCommand:${ExtensionCommands.EXPORT_WALLET}`,
             `onCommand:${ExtensionCommands.OPEN_HOME_PAGE}`,
             `onCommand:${ExtensionCommands.OPEN_TUTORIAL_GALLERY}`,
             `onDebug`

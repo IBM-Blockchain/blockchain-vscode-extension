@@ -13,7 +13,6 @@
 */
 
 'use strict';
-
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import { IBlockchainQuickPickItem, UserInputUtil } from './UserInputUtil';
