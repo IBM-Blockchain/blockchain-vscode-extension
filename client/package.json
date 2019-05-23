@@ -122,6 +122,7 @@
             "walletExplorer.editWalletEntry",
             "walletExplorer.removeWalletEntry",
             "walletExplorer.deleteIdentityEntry",
+            "walletExplorer.exportWalletEntry",
             "extensionHome.open",
             "tutorialGallery.open"
         ]
@@ -438,6 +439,11 @@
                 "command": "gatewaysExplorer.dissociateWallet",
                 "title": "Dissociate A Wallet",
                 "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "walletExplorer.exportWalletEntry",
+                "title": "Export Wallet",
+                "category": "IBM Blockchain Platform"
             }
         ],
         "menus": {
@@ -696,6 +702,14 @@
                 {
                     "command": "gatewaysExplorer.dissociateWallet",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
+                },
+                {
+                    "command": "walletExplorer.exportWalletEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
+                },
+                {
+                    "command": "walletExplorer.exportWalletEntry",
+                    "when": "view == walletExplorer && viewItem == blockchain-local-wallet-item"
                 }
             ]
         },
