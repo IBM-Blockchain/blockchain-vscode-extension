@@ -14,6 +14,7 @@
 'use strict';
 import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -23,6 +24,7 @@ import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -50,12 +52,21 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
         walletRegistryEntry = FabricWalletRegistry.instance().get(treeItem.name);
     }
 
-    const deleteFsWallet: vscode.MessageItem = await vscode.window.showWarningMessage(`This will remove ${walletRegistryEntry.name} from Fabric Wallets. Do you want to delete this wallet from your file system?`, { title: 'Yes' }, { title: 'No' });
+    const deleteFsWallet: string = await vscode.window.showWarningMessage(`This will remove the wallet. Do you want to continue?`, 'Yes', 'No');
 
     if (deleteFsWallet === undefined) { // warning box was cancelled - do nothing
         return;
-    } else if (deleteFsWallet.title === 'Yes') {
-        await fs.remove(walletRegistryEntry.walletPath);
+    } else if (deleteFsWallet === 'Yes') {
+        const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const directoryPath: string = UserInputUtil.getDirPath(extensionDirectory);
+        const expectedDirectory: string = path.join(directoryPath, walletRegistryEntry.name);
+
+        // Check if the wallet is in the extension directory.
+        if (walletRegistryEntry.walletPath === expectedDirectory) {
+            // If the wallet is in the extension directory, we want to actually delete it off the file system as well
+            await fs.remove(walletRegistryEntry.walletPath);
+        }
+
         await FabricWalletRegistry.instance().delete(walletRegistryEntry.name);
 
         const gateways: FabricGatewayRegistryEntry[] =  FabricGatewayRegistry.instance().getAll();
@@ -66,12 +77,8 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
             }
         }
 
-        outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${walletRegistryEntry.walletPath}`, `Successfully deleted ${walletRegistryEntry.walletPath}`);
-
-    } else {
-        await FabricWalletRegistry.instance().delete(walletRegistryEntry.name);
-
-        outputAdapter.log(LogType.SUCCESS, `Successfully removed ${walletRegistryEntry.name} from Fabric Wallets view`, `Successfully removed ${walletRegistryEntry.name} from Fabric Wallets view`);
-
+        outputAdapter.log(LogType.SUCCESS, `Successfully removed ${walletRegistryEntry.name} wallet`);
     }
+
+    // Else, do nothing.
 }

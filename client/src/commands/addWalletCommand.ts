@@ -25,6 +25,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export async function addWallet(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -35,6 +36,7 @@ export async function addWallet(): Promise<void> {
     let walletUri: vscode.Uri;
     let wallet: IFabricWallet;
     let identities: string[];
+    const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
 
     try {
         // Ask for method to add wallet
@@ -43,7 +45,7 @@ export async function addWallet(): Promise<void> {
             // User cancelled dialog box
             return Promise.resolve();
         }
-        if (walletMethod === UserInputUtil.WALLET) {
+        if (walletMethod === UserInputUtil.IMPORT_WALLET) {
             // User has a wallet - get the path
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -60,6 +62,11 @@ export async function addWallet(): Promise<void> {
             walletPath = walletUri.fsPath;
             walletName = path.basename(walletPath);
 
+            // Check if a wallet with the same name already exists
+            if (fabricWalletRegistry.exists(walletName) || walletName === FabricWalletUtil.LOCAL_WALLET) {
+                throw new Error('A wallet with this name already exists.');
+            }
+
             // Check it contains identities
             const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
             wallet = fabricWalletGenerator.getNewWallet(walletPath);
@@ -74,6 +81,11 @@ export async function addWallet(): Promise<void> {
             if (!walletName) {
                 // User cancelled dialog box
                 return Promise.resolve();
+            }
+
+            // Check if a wallet with the same name already exists
+            if (fabricWalletRegistry.exists(walletName) || walletName === FabricWalletUtil.LOCAL_WALLET) {
+                throw new Error('A wallet with this name already exists.');
             }
 
             // Create a local file system wallet
@@ -93,7 +105,6 @@ export async function addWallet(): Promise<void> {
         }
 
         // Add the wallet to the registry
-        const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
         const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
         fabricWalletRegistryEntry.name = walletName;
         fabricWalletRegistryEntry.walletPath = walletPath;
