@@ -1,5 +1,17 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.1: May 23rd 2019
+
+We've reached 10,000 installs :tada: - a big thank you to everyone who has contributed so far!
+
+* Added Export Wallet command [#659](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/659)
+* Improved Export Connection Profile command to ask for location to export to [#985](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/985)
+* Fixed errors with first tutorial [#969](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/969)
+* Allow the user to select to toggle development mode when attempting to debug [#959](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/959)
+* Minor bug fixes (862, 865, 885, 887, 935, 964, 973, 976)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-51.png)
+
 ## 1.0.0: May 9th 2019
 
 * Added Tutorial 2 and 3 and added links [#896](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/896)
