@@ -163,4 +163,19 @@ describe('toggleFabricRuntimeDevMode', () => {
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
     });
+
+    it('should display an error when restarting fabric fails', async () => {
+        sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(true);
+        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        await runtime.setDevelopmentMode(true);
+        sandbox.stub(runtime, 'isRunning').resolves(true);
+        const error: Error = new Error('something terrible is about to happen');
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').rejects(error);
+
+        await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
+        restartStub.should.have.been.called;
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);
+    });
 });

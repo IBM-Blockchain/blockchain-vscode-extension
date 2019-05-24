@@ -31,12 +31,16 @@ export async function startFabricRuntime(): Promise<void> {
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
-        const generated: boolean = await runtime.isGenerated();
-        if (!generated) {
-            await runtime.generate(outputAdapter);
+        try {
+            const generated: boolean = await runtime.isGenerated();
+            if (!generated) {
+                await runtime.generate(outputAdapter);
+            }
+            await runtime.start(outputAdapter);
+            await runtime.importWalletsAndIdentities();
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Failed to start local_fabric: ${error.message}`, `Failed to start local_fabric: ${error.toString()}`);
         }
-        await runtime.start(outputAdapter);
-        await runtime.importWalletsAndIdentities();
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);

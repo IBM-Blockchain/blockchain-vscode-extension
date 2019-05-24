@@ -43,11 +43,16 @@ export async function teardownFabricRuntime(): Promise<void> {
         if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
         }
-        await runtime.teardown(outputAdapter);
-        await runtime.deleteWalletsAndIdentities();
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
 
+        try {
+            await runtime.teardown(outputAdapter);
+            await runtime.deleteWalletsAndIdentities();
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Failed to teardown local_fabric: ${error.message}`, `Failed to teardown local_fabric: ${error.toString()}`);
+        }
     });
+
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
 }

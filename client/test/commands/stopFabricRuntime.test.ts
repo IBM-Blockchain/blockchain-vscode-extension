@@ -19,7 +19,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { TestUtil } from '../TestUtil';
-
+import { LogType } from '../../src/logging/OutputAdapter';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -37,6 +37,9 @@ describe('stopFabricRuntime', () => {
     let runtime: FabricRuntime;
     let gatewayRegistyEntry: FabricGatewayRegistryEntry;
     let getRegistryEntryStub: sinon.SinonStub;
+    let logSpy: sinon.SinonSpy;
+    let stopStub: sinon.SinonStub;
+    let executeCommandSpy: sinon.SinonSpy;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -62,6 +65,10 @@ describe('stopFabricRuntime', () => {
         gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
 
         getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
+
+        logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        stopStub = sandbox.stub(runtime, 'stop').resolves();
+        executeCommandSpy = sandbox.spy(vscode.commands, 'executeCommand');
     });
 
     afterEach(async () => {
@@ -70,24 +77,31 @@ describe('stopFabricRuntime', () => {
     });
 
     it('should stop a Fabric runtime and refresh the view', async () => {
-        const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
-        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        executeCommandSpy.should.have.been.calledThrice;
         executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 
     it('should stop a Fabric runtime, disconnect from gateway and refresh the view', async () => {
         gatewayRegistyEntry.managedRuntime = true;
         getRegistryEntryStub.returns(gatewayRegistyEntry);
 
-        const stopStub: sinon.SinonStub = sandbox.stub(runtime, 'stop').resolves();
-        const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+    });
+
+    it('should display an error if stopping Fabric Runtime fails', async () => {
+        const error: Error = new Error('what the fabric has happened');
+        stopStub.rejects(error);
+
+        await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+        stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to stop local_fabric: ${error.message}`, `Failed to stop local_fabric: ${error.toString()}`);
     });
 });

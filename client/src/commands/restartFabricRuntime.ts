@@ -29,6 +29,11 @@ export async function restartFabricRuntime(): Promise<void> {
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
-        await runtime.restart(outputAdapter);
+
+        try {
+            await runtime.restart(outputAdapter);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);
+        }
     });
 }
