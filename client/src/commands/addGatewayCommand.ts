@@ -20,15 +20,23 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function addGateway(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'addGateway');
 
+        const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
+
         const gatewayName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
         if (!gatewayName) {
             return Promise.resolve();
+        }
+
+        if (fabricGatewayRegistry.exists(gatewayName) || gatewayName === FabricRuntimeUtil.LOCAL_FABRIC) {
+            // Gateway already exists
+            throw new Error('A gateway with this name already exists.');
         }
 
         const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
@@ -53,7 +61,6 @@ export async function addGateway(): Promise<{} | void> {
         fabricGatewayEntry.name = gatewayName;
         fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
         fabricGatewayEntry.associatedWallet = '';
-        const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
         await fabricGatewayRegistry.add(fabricGatewayEntry);
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new gateway');

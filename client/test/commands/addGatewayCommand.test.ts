@@ -170,5 +170,33 @@ describe('AddGatewayCommand', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: already exists`);
             sendTelemetryEventStub.should.not.have.been.called;
         });
+
+        it('should error if a gateway with the same name already exists', async () => {
+            const error: Error = new Error('A gateway with this name already exists.');
+
+            // Stub first gateway details
+            showInputBoxStub.resolves('myGatewayOne'); // First gateway name
+            browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json')); // First gateway connection profile
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways.length.should.equal(1);
+            gateways[0].should.deep.equal({
+                name: 'myGatewayOne',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
+                associatedWallet: ''
+            });
+
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            copyConnectionProfileStub.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: ${error.message}`, `Failed to add a new gateway: ${error.toString()}`);
+            sendTelemetryEventStub.should.have.been.calledOnce;
+        });
     });
 });
