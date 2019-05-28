@@ -39,7 +39,27 @@ export class DependencyManager {
 
     }
 
+    // Need this function as proxyquire doesn't work
+    public async requireNativeDependencies(): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        const packageJSON: any = await this.getRawPackageJson();
+        const nativeModules: string[] = Object.keys(packageJSON.nativeDependencies);
+        for (const _module of nativeModules) {
+            outputAdapter.log(LogType.INFO, undefined, `Attempting to require dependency: ${_module}`);
+            require(_module);
+        }
+    }
+
     public async hasNativeDependenciesInstalled(): Promise<boolean> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+        try {
+            await this.requireNativeDependencies();
+        } catch (error) {
+            outputAdapter.log(LogType.INFO, undefined, `Error requiring dependency: ${error.message}`);
+            return false; // Dependency cannot be required
+        }
+
         const packageJSON: any = await this.getRawPackageJson();
         return packageJSON.activationEvents.length > 1;
     }
@@ -110,7 +130,8 @@ export class DependencyManager {
                 const shell: boolean = (process.platform === 'win32') ? true : false;
 
                 try {
-                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary'], extensionPath, null, outputAdapter, shell);
+                    const architecture: string = process.arch; // Returns the architecture Code is running on
+                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=3.0.0', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);

@@ -34,6 +34,7 @@ import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { TutorialGalleryView } from '../src/webview/TutorialGalleryView';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { version } from 'punycode';
+import { UserInputUtil } from '../src/commands/UserInputUtil';
 
 chai.use(sinonChai);
 
@@ -258,12 +259,17 @@ describe('Extension Tests', () => {
         const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
-        mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
+        const error: Error = new Error('some error');
+        mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects(error);
+
+        const failedActivationWindowStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'failedActivationWindow').resolves();
+
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         await myExtension.activate(context);
 
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to activate extension: open output view');
+        failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
+        logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
     });
 
     it('should handle any errors when installing dependencies', async () => {
@@ -272,12 +278,15 @@ describe('Extension Tests', () => {
         const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         mySandBox.stub(vscode.commands, 'registerCommand');
         mySandBox.stub(dependencyManager, 'hasNativeDependenciesInstalled').returns(false);
-        mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects({message: 'some error'});
+        const error: Error = new Error('some error');
+        mySandBox.stub(dependencyManager, 'installNativeDependencies').rejects(error);
+        const failedActivationWindowStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'failedActivationWindow').resolves();
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         await myExtension.activate(context);
 
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to activate extension: open output view');
+        failedActivationWindowStub.should.have.been.calledOnceWithExactly('some error');
+        logSpy.should.have.been.calledWith(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
     });
 
     it('should deactivate extension', async () => {
