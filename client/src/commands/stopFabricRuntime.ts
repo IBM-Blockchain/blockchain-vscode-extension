@@ -38,7 +38,12 @@ export async function stopFabricRuntime(): Promise<void> {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
         }
 
-        await runtime.stop(outputAdapter);
+        try {
+            await runtime.stop(outputAdapter);
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Failed to stop local_fabric: ${error.message}`, `Failed to stop local_fabric: ${error.toString()}`);
+        }
+
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     });
