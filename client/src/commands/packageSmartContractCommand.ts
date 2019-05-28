@@ -35,6 +35,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
     let resolvedPkgDir: string;
     let properties: { workspacePackageName: string, workspacePackageVersion: string };
     let language: ChaincodeType;
+    let packageError: string;
 
     try {
         // Determine the directory that will contain the packages and ensure it exists.
@@ -63,13 +64,23 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         // Determine the package name and version.
         if (language === 'golang') {
             properties = await golangPackageAndVersion(overrideName, overrideVersion);
+            packageError = 'Go package name';
         } else if (language === 'java') {
             properties = await javaPackageAndVersion(overrideName, overrideVersion);
+            packageError = 'Java package name';
         } else {
             properties = await packageJsonNameAndVersion(workspace, overrideName, overrideVersion);
+            packageError = 'package.json name';
         }
         if (!properties) {
             // User cancelled.
+            return;
+        }
+
+        const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
+        const validPackageName: boolean = regex.test(properties.workspacePackageName); // Check contract meets Fabric naming requirement
+        if (!validPackageName) {
+            outputAdapter.log(LogType.ERROR, `Invalid ${packageError}. Name can only include alphanumeric, "_" and "-" characters.`);
             return;
         }
 
@@ -100,13 +111,13 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             }
 
             // Determine the path argument.
-            let pkgPath: string = workspace.uri.fsPath;
+            let contractPath: string = workspace.uri.fsPath; // Workspace path
             if (language === 'golang') {
 
                 if (!process.env.GOPATH) {
                     // The path is relative to $GOPATH/src for Go smart contracts.
-                    const srcPath: string = path.join(pkgPath, '..', '..', 'src');
-                    pkgPath = path.basename(pkgPath);
+                    const srcPath: string = path.join(contractPath, '..', '..', 'src');
+                    contractPath = path.basename(contractPath);
                     const exists: boolean = await fs.pathExists(srcPath);
 
                     if (!exists) {
@@ -118,8 +129,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
                 } else {
                     // The path is relative to $GOPATH/src for Go smart contracts.
                     const srcPath: string = path.join(process.env.GOPATH, 'src');
-                    pkgPath = path.relative(srcPath, pkgPath);
-                    if (!pkgPath || pkgPath.startsWith('..') || path.isAbsolute(pkgPath)) {
+                    contractPath = path.relative(srcPath, contractPath);
+                    if (!contractPath || contractPath.startsWith('..') || path.isAbsolute(contractPath)) {
                         // Project path is not under GOPATH.
                         throw new Error('The Go smart contract is not a subdirectory of the path specified by the environment variable GOPATH. Please correct the environment variable GOPATH.');
                     }
@@ -136,7 +147,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             const pkg: any = await Package.fromDirectory({
                 name: properties.workspacePackageName,
                 version: properties.workspacePackageVersion,
-                path: pkgPath,
+                path: contractPath,
                 type: language,
                 metadataPath: metadataPathExists ? metadataPath : null
             });

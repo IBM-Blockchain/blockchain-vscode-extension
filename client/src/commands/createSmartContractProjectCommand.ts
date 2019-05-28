@@ -62,7 +62,7 @@ export async function createSmartContractProject(): Promise<void> {
         }
     }
 
-    const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+    const quickPickItems: {label: string, description: string}[] = [{label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME}];
     const openDialogOptions: vscode.OpenDialogOptions = {
         canSelectFiles: false,
         canSelectFolders: true,
@@ -71,12 +71,19 @@ export async function createSmartContractProject(): Promise<void> {
         filters: undefined
     };
 
-    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract', quickPickItems, openDialogOptions, true) as vscode.Uri;
+    const folderUri: vscode.Uri = await UserInputUtil.browse('Choose the location to save the smart contract.', quickPickItems, openDialogOptions, true) as vscode.Uri;
     if (!folderUri) {
         return;
     }
     const folderPath: string = folderUri.fsPath;
     const folderName: string = path.basename(folderPath);
+
+    const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
+    const validPackageName: boolean = regex.test(folderName); // Check contract meets Fabric naming requirement
+    if (!validPackageName) {
+        outputAdapter.log(LogType.ERROR, `Please choose a folder which only includes alphanumeric, "_" and "-" characters.`);
+        return;
+    }
 
     const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open your new project');
 
