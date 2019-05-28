@@ -858,6 +858,15 @@ export class UserInputUtil {
         }
     }
 
+    public static async failedActivationWindow(error: string): Promise<void> {
+
+        const retryPrompt: string = 'Retry activation';
+        const response: string = await vscode.window.showErrorMessage(`Failed to activate extension: ${error}`, retryPrompt);
+        if (response === retryPrompt) {
+            await vscode.commands.executeCommand('workbench.action.reloadWindow');
+        }
+    }
+
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
             return document.isDirty;
