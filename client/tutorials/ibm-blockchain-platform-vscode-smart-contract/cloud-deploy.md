@@ -79,21 +79,17 @@ Here's how to get them, using the operational tooling console:
   
    2. Click `Register user`.
 
-   3. Choose an `Enroll ID` and an `Enroll secret` - these can be anything you like. For the purposes of this tutorial, let's go with `vscode` and `vscodepw`. After entering both, click `Next`.
+   3. Choose an `Enroll ID` and an `Enroll secret` - these can be anything you like. For the purposes of this tutorial, let's go with `vscode` and `vscodepw`. Choose `client` as the Type, and use the root affiliation (it doesn't matter for our purposes!). For now we can leave maximum enrollments blank and hit `Next`.
 
-   4. Choose `client` as the Type, and leave the Affiliation as whatever is set as the default (it doesn't matter for our purposes!). Click `Next`.
+   4. There is no need to add any attributes, so hit `Register user` and we're done!
 
-   5. For now we can leave maximum enrollments blank and hit `Next`.
-
-   > **Note:** Setting a max enrollments number would be useful if you intended to send this enroll ID + secret to someone and want to make sure only that person ever uses them. A setting of 1 would mean that enrollment (which we'll see happen a little later in this tutorial) can only happen once: after that, the enroll ID + secret can never be exchanged for an ID again. When you're operating a real environment, working together with other devs, you might want to consider using this setting!
-
-   6. No need to add any attributes, so hit `Register user` and we're done!
+   > **Note:** Setting a max enrollments number would be useful if you intended to send this enroll ID + secret to someone and want to make sure only that person ever uses them. A setting of 1 would mean that enrollment (which we'll see happen a little later in this tutorial) can only happen once: after that, the enroll ID + secret can never be exchanged for an identity again. When you're operating a real environment, working together with other developers, you might want to consider using this setting!
 
 2. **Connection profile**
 
    1. Navigate to the `Smart contracts` panel in the operational tooling console.
 
-   2. Find `demoContract` on the list of **instantiated** smart contracts (scroll down past the installed smart contracts to view them), click the `...` menu and select `Connect with SDK`.
+   2. Find `demoContract` on the list of **instantiated** smart contracts (scroll down past the installed smart contracts to view them), click the `...` overflow menu and select `Connect with SDK`.
 
    3. Pick `org1msp` and `Org1 CA` as your MSP and Certificate Authority, then click `Download connection profile`.
     
