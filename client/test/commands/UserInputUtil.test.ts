@@ -357,13 +357,25 @@ describe('UserInputUtil', () => {
         });
     });
 
-    describe('showPeerQuickPickBox', () => {
+    describe('showPeersQuickPickBox', () => {
         it('should show the peer names', async () => {
-            quickPickStub.resolves('myPeerOne');
-            const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
-            result.should.equal('myPeerOne');
+            quickPickStub.resolves(['myPeerOne']);
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
+            quickPickStub.should.have.been.calledWith(['myPeerOne', 'myPeerTwo'],  {
+                ignoreFocusOut: false,
+                canPickMany: true,
+                placeHolder: 'Choose a peer'
+            });
+            result.should.deep.equal(['myPeerOne']);
         });
 
+        it('should not show quickPick if only one peer', async () => {
+            fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne']);
+
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
+            result.should.deep.equal(['myPeerOne']);
+            quickPickStub.should.not.have.been.called;
+        });
     });
 
     describe('showSmartContractPackagesQuickPickBox', () => {
