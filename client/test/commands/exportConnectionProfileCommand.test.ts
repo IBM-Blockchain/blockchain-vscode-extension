@@ -98,14 +98,14 @@ describe('exportConnectionProfileCommand', () => {
 
     it('should export the connection profile by right clicking on a peer in the runtime ops tree', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, peerTreeItem);
-        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath, { overwrite: false} );
+        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath);
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
 
     it('should export the connection profile when called from the command palette', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath, { overwrite: false} );
+        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath);
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
     });
@@ -113,7 +113,7 @@ describe('exportConnectionProfileCommand', () => {
     it('should handle no open workspace folders', async () => {
         workspaceFolderStub.returns([]);
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
-        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath, { overwrite: false} );
+        copyStub.should.have.been.called.calledOnceWithExactly('/tmp/doggo.json', fakeTargetPath);
         logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
     });
 

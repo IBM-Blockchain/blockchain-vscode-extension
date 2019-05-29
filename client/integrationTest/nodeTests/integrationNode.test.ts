@@ -135,7 +135,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
             }
             localFabricItem.should.not.be.null;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
         });
 
         afterEach(async () => {
@@ -267,7 +267,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 await integrationTestUtil.submitTransactionToContract(smartContractName, '0.0.1', 'createConga', '["1001", "hello world"]', 'CongaContract', '{"key": "value"}');
                 logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully submitted transaction');
 
-                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+                logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
             }).timeout(0);
 
             it(`should install and instantiate the ${language} FabCar sample and submit transactions`, async () => {
@@ -547,6 +547,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
         testFileContents.includes(smartContractTransactionsArray[1]).should.be.true;
         testFileContents.includes(smartContractTransactionsArray[2]).should.be.true;
 
-        logSpy.should.not.have.been.calledWith(LogType.ERROR);
+        logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
     }
 });

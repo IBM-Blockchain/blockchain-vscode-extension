@@ -56,7 +56,7 @@ export async function exportConnectionProfile(): Promise<void> {
 
     // Copy the connection profile to the chosen location
     try {
-        await fs.copy(runtimeGatewayRegistryEntry.connectionProfilePath, chosenPathUri.fsPath, { overwrite: false });
+        await fs.copy(runtimeGatewayRegistryEntry.connectionProfilePath, chosenPathUri.fsPath);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
         return;
