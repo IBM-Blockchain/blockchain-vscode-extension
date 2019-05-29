@@ -66,7 +66,7 @@ export class IntegrationTestUtil {
     public findFilesStub: sinon.SinonStub;
     public inputBoxStub: sinon.SinonStub;
     public browseStub: sinon.SinonStub;
-    public showPeerQuickPickStub: sinon.SinonStub;
+    public showPeersQuickPickStub: sinon.SinonStub;
     public showInstallableStub: sinon.SinonStub;
     public showChannelStub: sinon.SinonStub;
     public showChaincodeAndVersionStub: sinon.SinonStub;
@@ -99,7 +99,7 @@ export class IntegrationTestUtil {
         this.gatewayRegistry = FabricGatewayRegistry.instance();
         this.walletRegistry = FabricWalletRegistry.instance();
         this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse');
-        this.showPeerQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox');
+        this.showPeersQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox');
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick');
         this.showClientInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick');
         this.showRuntimeInstantiatedSmartContractsStub = this.mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick');
@@ -252,7 +252,7 @@ export class IntegrationTestUtil {
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {
-        this.showPeerQuickPickStub.resolves('peer0.org1.example.com');
+        this.showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
         const allPackages: Array<PackageRegistryEntry> = await this.packageRegistry.getAll();
 
         const packageToInstall: PackageRegistryEntry = allPackages.find((packageEntry: PackageRegistryEntry): boolean => {

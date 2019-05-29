@@ -188,17 +188,19 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
-    public static async showPeerQuickPickBox(prompt: string): Promise<string | undefined> {
+    public static async showPeersQuickPickBox(prompt: string): Promise<string[] | undefined> {
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const peerNames: Array<string> = connection.getAllPeerNames();
 
-        const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
-            canPickMany: false,
-            placeHolder: prompt
-        };
-
-        return vscode.window.showQuickPick(peerNames, quickPickOptions);
+        if (peerNames.length > 1) {
+            return vscode.window.showQuickPick(peerNames,  {
+                ignoreFocusOut: false,
+                canPickMany: true,
+                placeHolder: prompt
+            });
+        } else {
+            return peerNames;
+        }
     }
 
     public static async showChaincodeAndVersionQuickPick(prompt: string, peers: Array<string>, contractName?: string, contractVersion?: string): Promise<IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> | undefined> {
