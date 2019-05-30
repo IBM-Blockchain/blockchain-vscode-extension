@@ -55,45 +55,45 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         this.client.setCryptoSuite(Client.newCryptoSuite());
         for (const node of nodes) {
             switch (node.type) {
-            case FabricNodeType.PEER: {
-                const url: URL = new URL(node.api_url);
-                let pem: string;
-                if (node.pem) {
-                    pem = Buffer.from(node.pem, 'base64').toString();
+                case FabricNodeType.PEER: {
+                    const url: URL = new URL(node.api_url);
+                    let pem: string;
+                    if (node.pem) {
+                        pem = Buffer.from(node.pem, 'base64').toString();
+                    }
+                    let sslTargetNameOverride: string = url.hostname;
+                    if (node.ssl_target_name_override) {
+                        sslTargetNameOverride = node.ssl_target_name_override;
+                    }
+                    const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
+                    this.peers.set(node.name, peer);
+                    break;
                 }
-                let sslTargetNameOverride: string = url.hostname;
-                if (node.ssl_target_name_override) {
-                    sslTargetNameOverride = node.ssl_target_name_override;
+                case FabricNodeType.ORDERER: {
+                    const url: URL = new URL(node.api_url);
+                    let pem: string;
+                    if (node.pem) {
+                        pem = Buffer.from(node.pem, 'base64').toString();
+                    }
+                    let sslTargetNameOverride: string = url.hostname;
+                    if (node.ssl_target_name_override) {
+                        sslTargetNameOverride = node.ssl_target_name_override;
+                    }
+                    const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
+                    this.orderers.set(node.name, orderer);
+                    break;
                 }
-                const peer: Client.Peer = this.client.newPeer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
-                this.peers.set(node.name, peer);
-                break;
-            }
-            case FabricNodeType.ORDERER: {
-                const url: URL = new URL(node.api_url);
-                let pem: string;
-                if (node.pem) {
-                    pem = Buffer.from(node.pem, 'base64').toString();
+                case FabricNodeType.CERTIFICATE_AUTHORITY: {
+                    let trustedRoots: Buffer;
+                    if (node.pem) {
+                        trustedRoots = Buffer.from(node.pem, 'base64');
+                    }
+                    const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, node.name, this.client.getCryptoSuite());
+                    this.certificateAuthorities.set(node.name, certificateAuthority);
+                    break;
                 }
-                let sslTargetNameOverride: string = url.hostname;
-                if (node.ssl_target_name_override) {
-                    sslTargetNameOverride = node.ssl_target_name_override;
-                }
-                const orderer: Client.Orderer = this.client.newOrderer(node.api_url, { pem, 'ssl-target-name-override': sslTargetNameOverride });
-                this.orderers.set(node.name, orderer);
-                break;
-            }
-            case FabricNodeType.CERTIFICATE_AUTHORITY: {
-                let trustedRoots: Buffer;
-                if (node.pem) {
-                    trustedRoots = Buffer.from(node.pem, 'base64');
-                }
-                const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, node.name, this.client.getCryptoSuite());
-                this.certificateAuthorities.set(node.name, certificateAuthority);
-                break;
-            }
-            default:
-                continue;
+                default:
+                    continue;
             }
             this.nodes.set(node.name, node);
         }
@@ -138,7 +138,7 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         }
     }
 
-    public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<{name: string, version: string}>> {
+    public async getInstantiatedChaincode(peerNames: Array<string>, channelName: string): Promise<Array<{ name: string, version: string }>> {
 
         // Locate all of the requested peer nodes.
         const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
@@ -158,18 +158,18 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
 
     }
 
-    public async getAllInstantiatedChaincodes(): Promise<Array<{name: string, version: string}>> {
+    public async getAllInstantiatedChaincodes(): Promise<Array<{ name: string, version: string }>> {
 
         try {
             const channelMap: Map<string, Array<string>> = await this.createChannelMap();
 
-            const chaincodes: Array<{name: string, version: string}> = []; // We can change the array type if we need more detailed chaincodes in future
+            const chaincodes: Array<{ name: string, version: string }> = []; // We can change the array type if we need more detailed chaincodes in future
 
             for (const [channelName, peerNames] of channelMap) {
-                const channelChaincodes: Array<{name: string, version: string}> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
+                const channelChaincodes: Array<{ name: string, version: string }> = await this.getInstantiatedChaincode(peerNames, channelName); // Returns channel chaincodes
                 for (const chaincode of channelChaincodes) { // For each channel chaincodes, push it to the 'chaincodes' array if it doesn't exist
 
-                    const alreadyExists: boolean = chaincodes.some((_chaincode: {name: string, version: string}) => {
+                    const alreadyExists: boolean = chaincodes.some((_chaincode: { name: string, version: string }) => {
                         return _chaincode.name === chaincode.name && _chaincode.version === chaincode.version;
                     });
                     if (!alreadyExists) {
@@ -262,7 +262,7 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         return this.instantiateOrUpgradeChaincode(name, version, peerNames, channelName, fcn, args, collectionPath, true);
     }
 
-    public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+    public async enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{ certificate: string, privateKey: string }> {
         const certificateAuthority: FabricCAServices = this.getCertificateAuthority(certificateAuthorityName);
         const enrollment: FabricCAServices.IEnrollResponse = await certificateAuthority.enroll({ enrollmentID, enrollmentSecret });
         return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
@@ -297,8 +297,19 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
 
     private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, upgrade: boolean): Promise<Buffer> {
 
-        // Locate all of the requested peer nodes.
-        const peers: Array<Client.Peer> = peerNames.map((peerName: string) => this.getPeer(peerName));
+        const peers: Array<Client.Peer> = [];
+        // filter out the peers that don't have the smart contract installed
+        for (const peerName of peerNames) {
+            const installedChaicodes: Map<string, string[]> = await this.getInstalledChaincode(peerName);
+            const chaincodeVersions: string[] = installedChaicodes.get(name);
+            if (chaincodeVersions) {
+                const foundVersion: string = chaincodeVersions.find((_version: string) => version === _version);
+                if (foundVersion) {
+                    const peer: Client.Peer = this.getPeer(peerName);
+                    peers.push(peer);
+                }
+            }
+        }
 
         // Get the channel.
         const channel: Client.Channel = this.getOrCreateChannel(channelName);
@@ -398,9 +409,9 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                     return reject(err);
                 }
             }, {
-                disconnect: true,
-                unregister: true
-            });
+                    disconnect: true,
+                    unregister: true
+                });
         });
 
         // Send the proposal responses to the ordering service.

@@ -63,6 +63,22 @@ describe('FabricRuntimeConnection', () => {
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
+            FabricNode.newPeer(
+                'peer1.org1.example.com',
+                'peer1.org1.example.com',
+                `grpc://localhost:7051`,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            ),
+            FabricNode.newPeer(
+                'peer2.org1.example.com',
+                'peer2.org1.example.com',
+                `grpc://localhost:7051`,
+                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
+            ),
             FabricNode.newSecurePeer(
                 'peer0.org2.example.com',
                 'peer0.org2.example.com',
@@ -155,8 +171,8 @@ describe('FabricRuntimeConnection', () => {
         it('should create peer clients for each peer node', async () => {
             const peerNames: string[] = Array.from(connection['peers'].keys());
             const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
-            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
-            peerValues.should.have.lengthOf(2);
+            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
+            peerValues.should.have.lengthOf(4);
             peerValues[0].should.be.an.instanceOf(Client.Peer);
             const characteristics: any = peerValues[0]['getCharacteristics']();
             characteristics.name.should.equal('localhost:7051');
@@ -166,10 +182,10 @@ describe('FabricRuntimeConnection', () => {
         it('should create secure peer clients for each secure peer node', async () => {
             const peerNames: string[] = Array.from(connection['peers'].keys());
             const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
-            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
-            peerValues.should.have.lengthOf(2);
-            peerValues[1].should.be.an.instanceOf(Client.Peer);
-            const characteristics: any = peerValues[1]['getCharacteristics']();
+            peerNames.should.deep.equal(['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com', 'peer0.org2.example.com']);
+            peerValues.should.have.lengthOf(4);
+            peerValues[3].should.be.an.instanceOf(Client.Peer);
+            const characteristics: any = peerValues[3]['getCharacteristics']();
             characteristics.name.should.equal('localhost:8051');
             characteristics.url.should.equal('grpcs://localhost:8051');
             characteristics.options['grpc.ssl_target_name_override'].should.equal('localhost');
@@ -291,7 +307,7 @@ describe('FabricRuntimeConnection', () => {
     describe('getAllPeerNames', () => {
 
         it('should get all of the peer names', () => {
-            connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com']);
+            connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
         });
     });
 
@@ -308,7 +324,7 @@ describe('FabricRuntimeConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['peers'].has('peer0.org2.example.com').should.be.true;
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
-            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
+            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels').resolves({channels: []});
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
                 channels: [
                     { channel_id: 'channel1' },
@@ -374,7 +390,7 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should return the list of instantiated chaincodes', async () => {
-            const chaincodes: Array<{name: string, version: string}> = await connection.getInstantiatedChaincode(['peer0.org1.example.com'], 'mychannel');
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getInstantiatedChaincode(['peer0.org1.example.com'], 'mychannel');
             chaincodes.should.deep.equal([
                 {
                     name: 'myChaincode',
@@ -406,7 +422,7 @@ describe('FabricRuntimeConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['peers'].has('peer0.org2.example.com').should.be.true;
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
-            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels');
+            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels').resolves({channels: []});
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
                 channels: [
                     { channel_id: 'channel1' },
@@ -456,7 +472,7 @@ describe('FabricRuntimeConnection', () => {
         });
 
         it('should return the list of instantiated chaincodes on all channels', async () => {
-            const chaincodes: Array<{name: string, version: string}> = await connection.getAllInstantiatedChaincodes();
+            const chaincodes: Array<{ name: string, version: string }> = await connection.getAllInstantiatedChaincodes();
             chaincodes.should.deep.equal([
                 {
                     name: 'kittyChaincode',
@@ -678,12 +694,18 @@ describe('FabricRuntimeConnection', () => {
         let sendTransactionStub: sinon.SinonStub;
         let mockEventHub: sinon.SinonStubbedInstance<Client.ChannelEventHub>;
         let outputSpy: sinon.SinonSpy;
+        let getInstalledChaincodeStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandBox.stub(connection['client'], 'newTransactionID').returns({
                 getTransactionID: mySandBox.stub().returns('1234')
             });
             channel = connection['getOrCreateChannel']('mychannel');
+
+            const chaincodeMap: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap.set('myChaincode', ['0.0.1']);
+            getInstalledChaincodeStub = mySandBox.stub(connection, 'getInstalledChaincode').resolves(chaincodeMap);
+
             queryInstantiatedChaincodesStub = mySandBox.stub(channel, 'queryInstantiatedChaincodes');
             queryInstantiatedChaincodesStub.resolves({
                 chaincodes: [
@@ -695,7 +717,7 @@ describe('FabricRuntimeConnection', () => {
             });
             mySandBox.stub(channel, 'getChannelConfig').resolves({ config: 'envelope' });
             loadConfigEnvelopeStub = mySandBox.stub(channel, 'loadConfigEnvelope');
-            loadConfigEnvelopeStub.returns({ orderers: ['orderer.example.com:7050' ]});
+            loadConfigEnvelopeStub.returns({ orderers: ['orderer.example.com:7050'] });
             sendInstantiateProposalStub = mySandBox.stub(channel, 'sendInstantiateProposal');
             sendInstantiateProposalStub.resolves([
                 [
@@ -794,6 +816,38 @@ describe('FabricRuntimeConnection', () => {
             payload.toString().should.equal('hello world');
             sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
                 'targets': [sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.1',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnce;
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Instantiating with function: 'instantiate' and arguments: 'arg1'`);
+        });
+
+        it('should only instantiate with peers with the correct name and version installed', async () => {
+            const chaincodeMap: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap.set('myChaincode', ['0.0.1']);
+            getInstalledChaincodeStub.onFirstCall().resolves(chaincodeMap);
+
+            const chaincodeMap1: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap1.set('otherChaincode', ['0.0.1']);
+            getInstalledChaincodeStub.onSecondCall().resolves(chaincodeMap1);
+
+            const chaincodeMap2: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap2.set('myChaincode', ['0.0.2']);
+            getInstalledChaincodeStub.onThirdCall().resolves(chaincodeMap2);
+
+            const payload: Buffer = await connection.instantiateChaincode('myChaincode', '0.0.1', ['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
+            should.equal(payload, null);
+
+            const peer: Client.Peer = connection['getPeer']('peer0.org1.example.com');
+
+            sendInstantiateProposalStub.should.have.been.calledOnceWithExactly({
+                'targets': [peer],
                 'chaincodeId': 'myChaincode',
                 'chaincodeVersion': '0.0.1',
                 'txId': sinon.match.any,
@@ -918,6 +972,7 @@ describe('FabricRuntimeConnection', () => {
         let sendTransactionStub: sinon.SinonStub;
         let mockEventHub: sinon.SinonStubbedInstance<Client.ChannelEventHub>;
         let outputSpy: sinon.SinonSpy;
+        let getInstalledChaincodeStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandBox.stub(connection['client'], 'newTransactionID').returns({
@@ -933,9 +988,14 @@ describe('FabricRuntimeConnection', () => {
                     }
                 ]
             });
+
+            const chaincodeMap: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap.set('myChaincode', ['0.0.2']);
+            getInstalledChaincodeStub = mySandBox.stub(connection, 'getInstalledChaincode').resolves(chaincodeMap);
+
             mySandBox.stub(channel, 'getChannelConfig').resolves({ config: 'envelope' });
             loadConfigEnvelopeStub = mySandBox.stub(channel, 'loadConfigEnvelope');
-            loadConfigEnvelopeStub.returns({ orderers: ['orderer.example.com:7050' ]});
+            loadConfigEnvelopeStub.returns({ orderers: ['orderer.example.com:7050'] });
             sendUpgradeProposalStub = mySandBox.stub(channel, 'sendUpgradeProposal');
             sendUpgradeProposalStub.resolves([
                 [
@@ -1034,6 +1094,37 @@ describe('FabricRuntimeConnection', () => {
             payload.toString().should.equal('hello world');
             sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
                 'targets': [sinon.match.any],
+                'chaincodeId': 'myChaincode',
+                'chaincodeVersion': '0.0.2',
+                'txId': sinon.match.any,
+                'fcn': 'instantiate',
+                'args': ['arg1'],
+                'collections-config': path.join('myPath')
+            }, 5 * 60 * 1000);
+            sendTransactionStub.should.have.been.calledOnce;
+            mockEventHub.registerTxEvent.should.have.been.calledOnce;
+            outputSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `Upgrading with function: 'instantiate' and arguments: 'arg1'`);
+        });
+
+        it('should upgrade the specified chaincode using peers with the correct name and version installed', async () => {
+            const chaincodeMap: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap.set('myChaincode', ['0.0.2']);
+            getInstalledChaincodeStub.onFirstCall().resolves(chaincodeMap);
+
+            const chaincodeMap1: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap1.set('otherChaincode', ['0.0.2']);
+            getInstalledChaincodeStub.onSecondCall().resolves(chaincodeMap1);
+
+            const chaincodeMap2: Map<string, string[]> = new Map<string, string[]>();
+            chaincodeMap2.set('myChaincode', ['0.0.3']);
+            getInstalledChaincodeStub.onThirdCall().resolves(chaincodeMap2);
+
+            const payload: Buffer = await connection.upgradeChaincode('myChaincode', '0.0.2', ['peer0.org1.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com'], 'mychannel', 'instantiate', ['arg1'], path.join('myPath'));
+            should.equal(payload, null);
+
+            const peer: Client.Peer = connection['getPeer']('peer0.org1.example.com');
+            sendUpgradeProposalStub.should.have.been.calledOnceWithExactly({
+                'targets': [peer],
                 'chaincodeId': 'myChaincode',
                 'chaincodeVersion': '0.0.2',
                 'txId': sinon.match.any,
@@ -1155,14 +1246,14 @@ describe('FabricRuntimeConnection', () => {
 
         beforeEach(() => {
             const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
-            mockFabricCA.enroll.resolves({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
+            mockFabricCA.enroll.resolves({ certificate: 'myCert', key: { toBytes: mySandBox.stub().returns('myKey') } });
             connection['certificateAuthorities'].has('ca.example.com').should.be.true;
             connection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
         });
 
         it('should enroll an identity using a certificate authority that exists', async () => {
-            const result: {certificate: string, privateKey: string} =  await connection.enroll('ca.example.com', 'myId', 'mySecret');
-            result.should.deep.equal({certificate : 'myCert', privateKey: 'myKey'});
+            const result: { certificate: string, privateKey: string } = await connection.enroll('ca.example.com', 'myId', 'mySecret');
+            result.should.deep.equal({ certificate: 'myCert', privateKey: 'myKey' });
         });
 
         it('should throw trying to enroll an identity using a certificate authority that does not exist', async () => {
