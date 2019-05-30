@@ -297,7 +297,11 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        if (quickPickItems.length > 1) {
+            return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
+        } else {
+            return quickPickItems[0];
+        }
     }
 
     public static async showSmartContractPackagesQuickPickBox(prompt: string, canPickMany: boolean): Promise<Array<IBlockchainQuickPickItem<PackageRegistryEntry>> | IBlockchainQuickPickItem<PackageRegistryEntry> | undefined> {
@@ -891,7 +895,13 @@ export class UserInputUtil {
                     const _package: PackageRegistryEntry = new PackageRegistryEntry({ name: chaincodeName, version: version, path: undefined });
                     const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: _package, workspace: undefined };
                     const label: string = `${chaincodeName}@${version}`;
-                    tempQuickPickItems.push({ label: label, description: 'Installed', data: data });
+                    const foundItem: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = tempQuickPickItems.find((item: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>) => {
+                        return item.label === label;
+                    });
+
+                    if (!foundItem) {
+                        tempQuickPickItems.push({ label: label, description: 'Installed', data: data });
+                    }
                 });
             });
         }
