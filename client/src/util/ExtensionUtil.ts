@@ -19,8 +19,11 @@ import * as yaml from 'js-yaml';
 import * as os from 'os';
 
 import { SettingConfigurations } from '../../SettingConfigurations';
+import * as dateFormat from 'dateformat';
 
 export class ExtensionUtil {
+
+    static readonly DEBUG_PACKAGE_PREFIX: string = 'vscode-debug';
 
     public static getPackageJSON(): any {
         return this.getExtension().packageJSON;
@@ -137,6 +140,12 @@ export class ExtensionUtil {
             }
         });
         return isIBMer;
+    }
+
+    public static async getNewDebugVersion(): Promise<string> {
+        const date: Date = new Date();
+        const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
+        return `${this.DEBUG_PACKAGE_PREFIX}-${formattedDate}`;
     }
 
     private static extensionContext: vscode.ExtensionContext;

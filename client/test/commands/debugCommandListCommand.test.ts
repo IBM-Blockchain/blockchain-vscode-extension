@@ -21,6 +21,11 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -31,6 +36,8 @@ describe('DebugCommandListCommand', () => {
     let mySandBox: sinon.SinonSandbox;
     let showDebugCommandListStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
+    const runtimeStub: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
+    let connectionManagerGetConnectionStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests();
@@ -46,11 +53,13 @@ describe('DebugCommandListCommand', () => {
         executeCommandStub.withArgs(ExtensionCommands.INSTANTIATE_SMART_CONTRACT).resolves();
         executeCommandStub.withArgs(ExtensionCommands.SUBMIT_TRANSACTION).resolves();
         executeCommandStub.withArgs(ExtensionCommands.EVALUATE_TRANSACTION).resolves();
+        executeCommandStub.withArgs(ExtensionCommands.UPGRADE_SMART_CONTRACT).resolves();
+        executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
 
         const activeDebugSessionStub: any = {
             configuration: {
                 env: {
-                    CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscodedebug123456'
+                    CORE_CHAINCODE_ID_NAME: 'mySmartContract:vscode-debug-123456'
                 }
             }
         };
@@ -59,21 +68,21 @@ describe('DebugCommandListCommand', () => {
 
         const channelMap: Map<string, string[]> = new Map<string, string[]>();
         channelMap.set('mychannel', ['peerOne']);
-        const runtimeStub: any = {
-            createChannelMap: mySandBox.stub().resolves(channelMap)
-        };
+        runtimeStub.createChannelMap.resolves(channelMap);
+        runtimeStub.getInstantiatedChaincode.resolves([]);
 
         mySandBox.stub(FabricRuntimeManager.instance(), 'getConnection').resolves(runtimeStub);
+        connectionManagerGetConnectionStub = mySandBox.stub(FabricConnectionManager.instance(), 'getConnection').returns(runtimeStub);
     });
 
     afterEach(async () => {
         mySandBox.restore();
     });
 
-    it('should show the commands and run the chosen one', async () => {
+    it('should show the submit, evaluate and instantiate commands and run the chosen one', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'mychannel', ['peerOne']);
     });
 
     it('should handle cancel', async () => {
@@ -94,10 +103,56 @@ describe('DebugCommandListCommand', () => {
     });
 
     it('should evaluate transaction with channel name and contract name', async () => {
-        showDebugCommandListStub.resolves({ label: 'Submit transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
+        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
 
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
         executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.EVALUATE_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
+    });
+
+    it('should connect to local_fabric before running the submit or evaluate commands', async () => {
+        const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+        registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        registryEntry.connectionProfilePath = '/some/path';
+        registryEntry.managedRuntime =  true;
+        registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+        connectionManagerGetConnectionStub.onCall(0).returns(undefined);
+        connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([registryEntry]);
+        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
+
+        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
+
+        executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.CONNECT, registryEntry);
+        executeCommandStub.should.have.been.calledWithExactly(ExtensionCommands.EVALUATE_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
+    });
+
+    it('should handle connect failing', async () => {
+        showDebugCommandListStub.resolves({ label: 'Evaluate transaction', data: ExtensionCommands.EVALUATE_TRANSACTION});
+        connectionManagerGetConnectionStub.returns(undefined);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
+
+        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT);
+        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION);
+    });
+
+    it('should show the upgrade command when a smart contract of the same name is instantiated', async () => {
+        showDebugCommandListStub.resolves({ label: 'Upgrade Smart Contract', data: ExtensionCommands.UPGRADE_SMART_CONTRACT});
+        runtimeStub.getInstantiatedChaincode.resolves([
+            {
+                name: 'mySmartContract',
+                version: 'vscode-debug-13232112018'
+            },
+            {
+                name: 'cake-network',
+                version: '0.0.2'
+            }
+        ]);
+
+        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
+
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'mychannel', ['peerOne']);
     });
 });
