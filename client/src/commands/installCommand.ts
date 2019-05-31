@@ -24,7 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
-export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
+export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
@@ -72,6 +72,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
 
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
+        let successfulInstall: boolean = true; // Have all packages been installed successfully
         await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'IBM Blockchain Platform Extension',
@@ -79,9 +80,8 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
         }, async (progress: vscode.Progress<{ message: string }>) => {
             VSCodeBlockchainDockerOutputAdapter.instance().show();
 
-            let successfulInstall: boolean = true; // Have all packages been installed successfully
             for (const peer of peerNames) {
-                progress.report({message: `Installing Smart Contract on peer ${peer}`});
+                progress.report({ message: `Installing Smart Contract on peer ${peer}` });
                 try {
                     await connection.installChaincode(chosenPackage, peer);
                     outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
@@ -93,19 +93,20 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
 
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
-
-            if (successfulInstall) {
-                // Package was installed on all peers successfully
-                if (peerNames.size > 1) {
-                    // If the package has only been installed on one peer, we disregard this success message
-                    outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-                }
-                return chosenPackage;
-            } else {
-                // Failed to install package on all peers
-                return;
-            }
         });
+
+        if (successfulInstall) {
+            // Package was installed on all peers successfully
+            if (peerNames.size > 1) {
+                // If the package has only been installed on one peer, we disregard this success message
+                outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
+            }
+            return chosenPackage;
+        } else {
+            // Failed to install package on all peers
+            return;
+        }
+
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error installing smart contract: ${error.message}`, `Error installing smart contract: ${error.toString()}`);
         return;
