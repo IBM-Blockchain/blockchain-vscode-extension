@@ -164,7 +164,7 @@ describe('UserInputUtil', () => {
         fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
         fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(new Map<string, Array<string>>());
         fabricRuntimeConnectionStub.getInstantiatedChaincode.withArgs(['myPeerOne', 'myPeerTwo'], 'channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
-        fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.resolves('ca.example.cake.com');
+        fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.returns(['ca.example.cake.com', 'ca1.example.cake.com']);
         const map: Map<string, Array<string>> = new Map<string, Array<string>>();
         map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
         fabricRuntimeConnectionStub.createChannelMap.resolves(map);
@@ -931,11 +931,19 @@ describe('UserInputUtil', () => {
             const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please choose a CA');
 
             result.should.deep.equal('ca.example.cake.com');
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith(['ca.example.cake.com', 'ca1.example.cake.com'], {
                 ignoreFocusOut: false,
                 canPickMany: false,
                 placeHolder: 'Please choose a CA'
             });
+        });
+
+        it('should not show quick pick if only one certificate authority', async () => {
+            fabricRuntimeConnectionStub.getAllCertificateAuthorityNames.returns(['ca.example.cake.com']);
+            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please choose a CA');
+
+            result.should.deep.equal('ca.example.cake.com');
+            quickPickStub.should.not.have.been.called;
         });
     });
 
@@ -1795,7 +1803,7 @@ describe('UserInputUtil', () => {
 
         const nodes: FabricNode[] = [
             FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP'),
-            FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'local_fabric_wallet', 'admin', 'Org1MSP'),
+            FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP'),
             FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'local_fabric_wallet', 'admin', 'OrdererMSP'),
             FabricNode.newCouchDB('couchdb', 'couchdb', 'http://localhost:5984')
         ];

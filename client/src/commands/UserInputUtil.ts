@@ -194,7 +194,7 @@ export class UserInputUtil {
         const peerNames: Array<string> = connection.getAllPeerNames();
 
         if (peerNames.length > 1) {
-            return vscode.window.showQuickPick(peerNames,  {
+            return vscode.window.showQuickPick(peerNames, {
                 ignoreFocusOut: false,
                 canPickMany: true,
                 placeHolder: prompt
@@ -704,7 +704,11 @@ export class UserInputUtil {
             placeHolder: prompt
         };
 
-        return vscode.window.showQuickPick(caNames, quickPickOptions);
+        if (caNames.length > 1) {
+            return vscode.window.showQuickPick(caNames, quickPickOptions);
+        } else {
+            return caNames[0];
+        }
     }
 
     public static async showWalletsQuickPickBox(prompt: string, showLocalWallet?: boolean): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
