@@ -255,6 +255,18 @@ describe('CreateSmartContractProjectCommand', () => {
         executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
     });
 
+    it('should throw an error if the chosen folder has an invalid name', async () => {
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onFirstCall().resolves('Conga');
+        const badUri: vscode.Uri = vscode.Uri.file(' Invalid Directory! ');
+        browseStub.resolves(badUri);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        browseStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
+        logSpy.should.have.been.calledWith(LogType.ERROR, `Please choose a folder which only includes alphanumeric, "_" and "-" characters.`);
+    });
+
     it('should not do anything if the user cancels the open project ', async () => {
         quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
         showInputBoxStub.onFirstCall().resolves('Conga');

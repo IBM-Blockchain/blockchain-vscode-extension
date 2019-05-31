@@ -61,6 +61,7 @@ export class UserInputUtil {
     static readonly FORCE_FILES: string = 'Force all files to overwrite';
     static readonly ABORT_GENERATOR: string = 'Abort generator';
     static readonly BROWSE_LABEL: string = '📁 Browse';
+    static readonly VALID_FOLDER_NAME: string = '- Folder can only contain alphanumeric, "-" and "_" characters';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
     static readonly WALLET: string = 'Specify an existing file system wallet';
     static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
@@ -662,11 +663,12 @@ export class UserInputUtil {
 
     }
 
-    public static async browse(placeHolder: string, quickPickItems: string[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri> {
+    public static async browse(placeHolder: string, quickPickItems: string[] | {label: string, description: string}[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
-            const result: string = await vscode.window.showQuickPick(quickPickItems, { placeHolder });
+
+            const result: string = await vscode.window.showQuickPick(quickPickItems as any[], { placeHolder });
             if (!result) {
                 return;
             } else { // result === this.BROWSE_LABEL

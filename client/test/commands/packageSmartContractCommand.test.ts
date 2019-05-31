@@ -38,6 +38,7 @@ describe('packageSmartContract', () => {
     const testWorkspace: string = path.join(rootPath, '..', '..', 'test', 'data', 'testWorkspace');
     const javascriptPath: string = path.join(testWorkspace, 'javascriptProject');
     const typescriptPath: string = path.join(testWorkspace, 'typescriptProject');
+    const invalidPath: string = path.join(testWorkspace, '  invalid package name! ');
     const golangPath: string = path.join(testWorkspace, 'src', 'goProject');
     const wrongGolangPath: string = path.join(testWorkspace, 'goProject');
     const javaPath: string = path.join(testWorkspace, 'javaProject');
@@ -153,7 +154,8 @@ describe('packageSmartContract', () => {
             { name: 'javascriptProject', uri: vscode.Uri.file(javascriptPath) },
             { name: 'typescriptProject', uri: vscode.Uri.file(typescriptPath) },
             { name: 'goProject', uri: vscode.Uri.file(golangPath) },
-            { name: 'javaProject', uri: vscode.Uri.file(javaPath) }
+            { name: 'javaProject', uri: vscode.Uri.file(javaPath) },
+            { name: '  invalid package name! ', uri: vscode.Uri.file(invalidPath)}
         ];
 
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -1319,6 +1321,25 @@ describe('packageSmartContract', () => {
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
             executeTaskStub.should.have.not.been.called;
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should throw an error if the package has an invalid name', async () => {
+            await createTestFiles('  invalid package name! ', '0.0.1', 'typescript', true, false);
+
+            const testIndex: number = 4;
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Invalid package.json name. Name can only include alphanumeric, "_" and "-" characters.`);
+
+            executeTaskStub.should.not.have.been.calledOnceWithExactly(buildTasks[testIndex]);
+            sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('packageCommand');
         });
     });
 });
