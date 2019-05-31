@@ -60,7 +60,7 @@ let showLanguagesQuickPickStub: sinon.SinonStub;
 let inputBoxStub: sinon.SinonStub;
 let browseStub: sinon.SinonStub;
 let showFolderOptionsStub: sinon.SinonStub;
-let showPeerQuickPickStub: sinon.SinonStub;
+let showPeersQuickPickStub: sinon.SinonStub;
 let showInstallableStub: sinon.SinonStub;
 let showChannelStub: sinon.SinonStub;
 let showChaincodeAndVersionStub: sinon.SinonStub;
@@ -86,7 +86,7 @@ showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPi
 inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox').callThrough();
 browseStub = mySandBox.stub(UserInputUtil, 'browse').callThrough();
 showFolderOptionsStub = mySandBox.stub(UserInputUtil, 'showFolderOptions').callThrough();
-showPeerQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeerQuickPickBox').callThrough();
+showPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox').callThrough();
 showInstallableStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').callThrough();
 showChannelStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').callThrough();
 showChaincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').callThrough();
@@ -604,7 +604,7 @@ module.exports = function(): any {
     }
 
     async function installSmartContract(name: string, version: string): Promise<void> {
-        showPeerQuickPickStub.resolves('peer0.org1.example.com');
+        showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
 
         should.exist(_package);

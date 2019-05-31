@@ -81,7 +81,7 @@ Add your gateway by providing a name and connection profile via the `Add Gateway
 Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts. Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel. 
 
 ### Wallet Management
-The extension creates a `local_fabric_wallet` file system wallet when it is installed, which is used to connect to the `local_fabric` runtime instance and is automatically associated with that gateway. When `local_fabric` is started, an admin identity is added to the the `local_fabric_wallet` and cannot be deleted unless the `local_fabric` runtime is torn down.
+The extension creates a `local_fabric_wallet` file system wallet when it is installed, which is used to connect to the `local_fabric` runtime instance and is automatically associated with that gateway. When `local_fabric` is started, an admin identity is added to the `local_fabric_wallet` and cannot be deleted unless the `local_fabric` runtime is torn down.
 
 The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, or a gateway, enrollment id and secret.
 

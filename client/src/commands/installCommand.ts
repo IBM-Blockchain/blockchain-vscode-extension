@@ -24,32 +24,33 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
-export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | boolean> {
+export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
-    if ((treeItem instanceof PeerTreeItem)) {
-        // Clicked on peer in runtimes view to install
-        peerNames = new Set([treeItem.peerName]);
-    } else {
-        // Called from command, or runtimes installed tree
-        const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
-        if (!isRunning) {
-            // Start local_fabric to connect
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-            if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
-                // Start local_fabric failed so return
+    try {
+
+        if ((treeItem instanceof PeerTreeItem)) {
+            // Clicked on peer in runtimes view to install
+            peerNames = new Set([treeItem.peerName]);
+        } else {
+            // Called from command, or runtimes installed tree
+            const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
+            if (!isRunning) {
+                // Start local_fabric to connect
+                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
+                    // Start local_fabric failed so return
+                    return;
+                }
+            }
+            const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on');
+            if (!chosenPeerNames || chosenPeerNames.length === 0) {
                 return;
             }
+            peerNames = new Set(chosenPeerNames);
         }
-        const chosenPeerName: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer to install the smart contract on');
-        if (!chosenPeerName) {
-            return;
-        }
-        peerNames = new Set([chosenPeerName]);
-    }
 
-    try {
         if (!chosenPackage) {
             const chosenInstallable: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', peerNames) as IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }>;
             if (!chosenInstallable) {
@@ -67,47 +68,39 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             } else {
                 chosenPackage = chosenInstallable.data.packageEntry;
             }
-
         }
 
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
-        const promises: Promise<string | void>[] = [];
-        for (const peer of peerNames) {
-            const install: Promise<string | void> = connection.installChaincode(chosenPackage, peer).catch((error: Error) => {
-                return error.message as string; // We return the error message so we can display it to the user
-            });
-            promises.push(install); // All successful installs will return undefined
-        }
-
         let successfulInstall: boolean = true; // Have all packages been installed successfully
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'IBM Blockchain Platform Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>) => {
+            VSCodeBlockchainDockerOutputAdapter.instance().show();
 
-        const peerSet: IterableIterator<string> = peerNames.values(); // Values in the peerNames set
-
-        VSCodeBlockchainDockerOutputAdapter.instance().show();
-        await Promise.all(promises).then((result: string[]) => {
-            let counter: number = 0; // Used for iterating through installChaincode results
-            for (const peer of peerSet) {
-                if (!result[counter]) {
+            for (const peer of peerNames) {
+                progress.report({ message: `Installing Smart Contract on peer ${peer}` });
+                try {
+                    await connection.installChaincode(chosenPackage, peer);
                     outputAdapter.log(LogType.SUCCESS, `Successfully installed on peer ${peer}`);
-                    counter++;
-                } else {
-                    successfulInstall = false; // Install on peer failed
-                    outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${result[counter]}`);
-                    counter++;
+                } catch (error) {
+                    outputAdapter.log(LogType.ERROR, `Failed to install on peer ${peer} with reason: ${error.message}`, `Failed to install on peer ${peer} with reason: ${error.toString()}`);
+                    successfulInstall = false;
                 }
             }
-        });
 
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+        });
 
         if (successfulInstall) {
             // Package was installed on all peers successfully
-            // if (peerNames.size !== 1) {
-            //     // If the package has only been installed on one peer, we disregard this success message
-            //     outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
-            // }
+            if (peerNames.size > 1) {
+                // If the package has only been installed on one peer, we disregard this success message
+                outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
+            }
             return chosenPackage;
         } else {
             // Failed to install package on all peers

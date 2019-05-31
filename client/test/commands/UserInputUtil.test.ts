@@ -357,13 +357,25 @@ describe('UserInputUtil', () => {
         });
     });
 
-    describe('showPeerQuickPickBox', () => {
+    describe('showPeersQuickPickBox', () => {
         it('should show the peer names', async () => {
-            quickPickStub.resolves('myPeerOne');
-            const result: string = await UserInputUtil.showPeerQuickPickBox('Choose a peer');
-            result.should.equal('myPeerOne');
+            quickPickStub.resolves(['myPeerOne']);
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
+            quickPickStub.should.have.been.calledWith(['myPeerOne', 'myPeerTwo'],  {
+                ignoreFocusOut: false,
+                canPickMany: true,
+                placeHolder: 'Choose a peer'
+            });
+            result.should.deep.equal(['myPeerOne']);
         });
 
+        it('should not show quickPick if only one peer', async () => {
+            fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne']);
+
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
+            result.should.deep.equal(['myPeerOne']);
+            quickPickStub.should.not.have.been.called;
+        });
     });
 
     describe('showSmartContractPackagesQuickPickBox', () => {
@@ -465,6 +477,10 @@ describe('UserInputUtil', () => {
 
     describe('showChannelQuickPickBox', () => {
         it('should show quick pick box with channels', async () => {
+            const map: Map<string, Array<string>> = new Map<string, Array<string>>();
+            map.set('channelOne', ['myPeerOne', 'myPeerTwo']);
+            map.set('channelTwo', ['myPeerOne']);
+            fabricRuntimeConnectionStub.createChannelMap.resolves(map);
             quickPickStub.resolves({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
@@ -475,6 +491,13 @@ describe('UserInputUtil', () => {
                 canPickMany: false,
                 placeHolder: 'Choose a channel'
             });
+        });
+
+        it('should not show quick pick if only one channel', async () => {
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
+            result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
+
+            quickPickStub.should.not.have.been.called;
         });
     });
 
@@ -600,6 +623,35 @@ describe('UserInputUtil', () => {
                     label: `${workspaceTwo.name}`,
                     description: 'Open Project',
                     data: { packageEntry: undefined, workspace: { name: workspaceTwo.name, uri: workspaceTwo.uri } }
+                }
+            ]);
+        });
+
+        it('should not duplicate installed packages', async () => {
+            mySandBox.stub(PackageRegistry.instance(), 'getAll').resolves([]);
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([]);
+
+            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
+            chaincodeMap.set('biscuit-network', ['0.0.1', '0.0.2', '0.0.3']);
+            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerOne').resolves(chaincodeMap);
+
+            const chaincodeMap2: Map<string, Array<string>> = new Map<string, Array<string>>();
+            chaincodeMap2.set('biscuit-network', ['0.0.1', '0.0.3']);
+            fabricRuntimeConnectionStub.getInstalledChaincode.withArgs('myPeerTwo').resolves(chaincodeMap2);
+
+            await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne', 'myPeerTwo'], 'biscuit-network', '0.0.1');
+
+            quickPickStub.getCall(0).args[0].length.should.equal(2);
+            quickPickStub.getCall(0).args[0].should.deep.equal([
+                {
+                    label: 'biscuit-network@0.0.2',
+                    description: 'Installed',
+                    data: { packageEntry: { name: 'biscuit-network', version: '0.0.2', path: undefined }, workspace: undefined }
+                },
+                {
+                    label: `biscuit-network@0.0.3`,
+                    description: 'Installed',
+                    data: { packageEntry: { name: 'biscuit-network', version: '0.0.3', path: undefined }, workspace: undefined }
                 }
             ]);
         });
@@ -1762,7 +1814,7 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'orderer.example.com', data: nodes[2] }
             ], {
-                ignoreFocusOut: false,
+                    ignoreFocusOut: false,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });
@@ -1776,7 +1828,7 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'orderer.example.com', data: nodes[2] }
             ], {
-                ignoreFocusOut: false,
+                    ignoreFocusOut: false,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });
