@@ -157,7 +157,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
@@ -174,7 +174,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
@@ -191,7 +191,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
@@ -208,7 +208,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
@@ -224,7 +224,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
@@ -240,7 +240,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'myLaunch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});
@@ -256,7 +256,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 request: 'launch',
                 program: 'myProgram',
                 cwd: 'myCwd',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
             sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Node'});

@@ -245,6 +245,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('30s');
 
                 if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
@@ -262,6 +263,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('99999s');
 
                 if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
@@ -379,6 +381,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('30s');
 
                 if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
@@ -396,6 +399,7 @@ describe('FabricRuntime', () => {
                 spawnStub.should.have.been.calledOnce;
                 spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('99999s');
 
                 if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;

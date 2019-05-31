@@ -59,7 +59,7 @@ Deploying a smart contract package is a two step process: install the package on
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. To debug your smart contract follow these steps:
 
-1. Ensure you are connected to the `local_fabric` runtime and that the `local_fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. 
+1. Ensure you are connected to the `local_fabric` runtime and that the `local_fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. By toggling development mode, transactions will now have a large timeout value.
 2. Open your smart contract project in your workspace.
 3. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
@@ -67,7 +67,7 @@ Debugging your smart contract allows you to run through the smart contract trans
 6. Select whether to `Create a new debug package and install` or `Resume from a previous debug session`.
 7. From the dropdown box, select the peer to install the package on.
 8. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
-9. If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
+9.  If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
 10. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
 
 To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. You do not need to instantiate the contract again upon restarting the debug session. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract. If you restart the `local_fabric` runtime after stopping a debugging session, you must choose the "new debugging session" option in step 6. You must then upgrade the smart contract to the new `vscode-debug-XXXXXXX` version before submitting and debugging transactions.
