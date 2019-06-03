@@ -150,7 +150,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`},
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -172,7 +172,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`},
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -194,7 +194,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s', myProperty: 'myValue' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, myProperty: 'myValue' },
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -216,7 +216,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `myContract:myVersion`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s'  },
+                env: { CORE_CHAINCODE_ID_NAME: `myContract:myVersion`},
                 args: ['127.0.0.1:54321']
             });
             commandStub.callCount.should.equal(4);
@@ -292,7 +292,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['127.0.0.1:54321']
             });
             commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
@@ -416,7 +416,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}` },
                 args: ['127.0.0.1:54321']
             });
 
@@ -442,7 +442,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
-                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:should-use-this`, CORE_CHAINCODE_EXECUTETIMEOUT: '540s' },
+                env: { CORE_CHAINCODE_ID_NAME: `mySmartContract:should-use-this` },
                 args: ['127.0.0.1:54321']
             });
 

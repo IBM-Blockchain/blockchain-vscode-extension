@@ -419,7 +419,8 @@ export class FabricRuntime extends EventEmitter {
         }
 
         const env: any = Object.assign({}, process.env, {
-            CORE_CHAINCODE_MODE: this.developmentMode ? 'dev' : 'net'
+            CORE_CHAINCODE_MODE: this.developmentMode ? 'dev' : 'net',
+            CORE_CHAINCODE_EXECUTETIMEOUT: this.developmentMode ? '99999s' : '30s' // This is needed as well as 'request-timeout' to change TX timeout
         });
 
         if (process.platform === 'win32') {
