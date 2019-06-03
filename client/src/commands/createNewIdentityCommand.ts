@@ -22,6 +22,7 @@ import { UserInputUtil } from './UserInputUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { FabricNode } from '../fabric/FabricNode';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -56,8 +57,6 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
     }
 
     try {
-        const mspid: string = 'Org1MSP';
-        const affiliation: string = 'org1.department1'; // Currently works for org1.department1, org1.department2
         // check to see if identity of same name exists
         const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const wallet: IFabricWallet = await connection.getWallet(certificateAuthorityName);
@@ -66,6 +65,20 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
             outputAdapter.log(LogType.ERROR, `An identity called ${identityName} already exists in the runtime wallet`, `An identity called ${identityName} already exists in the runtime wallet`);
             return;
         }
+
+        const caNode: FabricNode = connection.getNode(certificateAuthorityName);
+        let mspid: string = caNode.msp_id;
+
+        if (!mspid) {
+            const chosenMspid: string = await UserInputUtil.showInputBox('Enter MSPID');
+            if (!chosenMspid) {
+                return;
+            }
+
+            mspid = chosenMspid;
+        }
+
+        const affiliation: string = ''; // Give it the same affiliation as the identity registrar
 
         // Register the user
         const secret: string = await connection.register(certificateAuthorityName, identityName, affiliation);

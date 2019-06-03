@@ -54,12 +54,16 @@ export async function toggleFabricRuntimeDevMode(): Promise<void> {
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
 
     let status: string;
+    let timeout: string;
     if (newDevelopmentMode) {
         status = 'enabled';
+        timeout = 'infinite';
     } else {
         status = 'disabled';
+        timeout = '30 seconds';
     }
 
     outputAdapter.log(LogType.SUCCESS, `Development mode successfully ${status}`);
+    outputAdapter.log(LogType.INFO, undefined, `Transaction timeout value: ${timeout}`);
 
 }

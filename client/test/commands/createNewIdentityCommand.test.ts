@@ -30,6 +30,7 @@ import * as myExtension from '../../src/extension';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
 import { Reporter } from '../../src/util/Reporter';
+import { FabricNode } from '../../src/fabric/FabricNode';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -71,12 +72,13 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.getAllCertificateAuthorityNames.returns(['ca.name']);
         mockFabricRuntimeConnection.getAllOrdererNames.returns([]);
         mockFabricRuntimeConnection.getAllPeerNames.returns([]);
-        mockFabricRuntimeConnection.register.resolves('its a secret');
+        mockFabricRuntimeConnection.register.resolves('it\'s a secret');
         mockFabricRuntimeConnection.enroll.resolves({
             certificate: 'this is a certificate',
             privateKey: 'this is a private Key'
         });
         mockFabricRuntimeConnection.getWallet.withArgs('ca.name').resolves(testFabricWallet);
+        mockFabricRuntimeConnection.getNode.withArgs('ca.name').returns(FabricNode.newCertificateAuthority('ca.name', 'ca.name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP'));
         mySandBox.stub(runtimeManager, 'getConnection').resolves((mockFabricRuntimeConnection as any));
 
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -104,9 +106,9 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.register.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
-        importIdentityStub.should.have.been.calledOnce;
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'greenConga', '');
+        mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'greenConga', 'it\'s a secret');
+        importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'greenConga', 'Org1MSP');
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -124,9 +126,9 @@ describe('createNewIdentityCommand', () => {
         inputBoxStub.should.have.been.calledOnce;
         caChoseStub.should.not.have.been.called;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.register.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
-        importIdentityStub.should.have.been.calledOnce;
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'blueConga', '');
+        mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'blueConga', 'it\'s a secret');
+        importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'blueConga', 'Org1MSP');
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -176,9 +178,9 @@ describe('createNewIdentityCommand', () => {
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.register.should.have.been.calledOnce;
-        mockFabricRuntimeConnection.enroll.should.have.been.calledOnce;
-        importIdentityStub.should.have.been.calledOnce;
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'yellowConga', '');
+        mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'yellowConga', 'it\'s a secret');
+        importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'yellowConga', 'Org1MSP');
 
         executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.START_FABRIC);
         executeCommandStub.getCall(4).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -187,6 +189,49 @@ describe('createNewIdentityCommand', () => {
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
+    });
+
+    it('should create a new identity from a CA and ask for the mspid', async () => {
+        mockFabricRuntimeConnection.getNode.withArgs('ca.name').returns(FabricNode.newCertificateAuthority('ca.name', 'ca.name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', null));
+        inputBoxStub.withArgs('Enter MSPID').resolves('otherMSP');
+
+        identityName = 'redConga';
+        inputBoxStub.resolves(identityName);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
+
+        caChoseStub.should.have.been.calledOnce;
+        inputBoxStub.should.have.been.calledTwice;
+        walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'redConga', '');
+        mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'redConga', 'it\'s a secret');
+        importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'redConga', 'otherMSP');
+
+        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+        logSpy.should.have.been.calledTwice;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
+    });
+
+    it('should handle cancel from choosing mspid', async () => {
+        mockFabricRuntimeConnection.getNode.withArgs('ca.name').returns(FabricNode.newCertificateAuthority('ca.name', 'ca.name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', null));
+        inputBoxStub.withArgs('Enter MSPID').resolves();
+
+        identityName = 'redConga';
+        inputBoxStub.resolves(identityName);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
+
+        caChoseStub.should.have.been.calledOnce;
+        inputBoxStub.should.have.been.calledTwice;
+        walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
+        mockFabricRuntimeConnection.register.should.not.have.been.called;
+        mockFabricRuntimeConnection.enroll.should.not.have.been.called;
+        importIdentityStub.should.not.have.been.called;
+
+        logSpy.should.have.been.calledOnce;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
+        sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
     it('should handle starting local_fabric failing', async () => {
