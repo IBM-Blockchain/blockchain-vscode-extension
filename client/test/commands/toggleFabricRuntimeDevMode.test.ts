@@ -81,6 +81,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
     });
 
     it('should disable development mode and not restart a stopped Fabric runtime when run from the command', async () => {
@@ -92,6 +93,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.false;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
     });
 
     it('should enable development mode and restart a running Fabric runtime specified by right clicking on a peer', async () => {
@@ -103,6 +105,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
     });
 
     it('should disable development mode and restart a running Fabric runtime specified by right clicking on a peer', async () => {
@@ -114,6 +117,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
     });
 
     it('should enable dev mode', async () => {
@@ -125,6 +129,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.not.been.called;
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
     });
 
     it('should disable dev mode', async () => {
@@ -136,6 +141,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         runtime.isDevelopmentMode().should.be.false;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
     });
 
     it('should disconnect when trying to enable a connected runtime', async () => {
@@ -148,6 +154,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.been.called;
         runtime.isDevelopmentMode().should.be.true;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
     });
 
@@ -161,6 +168,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         restartStub.should.have.been.called;
         runtime.isDevelopmentMode().should.be.false;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
+        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
     });
 

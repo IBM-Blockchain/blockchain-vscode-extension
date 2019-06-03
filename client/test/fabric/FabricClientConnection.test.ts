@@ -26,6 +26,8 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -356,6 +358,32 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
+        });
+
+        it('should set large timeout when in debug mode', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+
+            mockRuntime.isDevelopmentMode.returns(true);
+
+            const setConfigSettingStub: sinon.SinonStub = mySandBox.stub().returns(undefined);
+            fabricGatewayStub.getClient.returns({
+                setConfigSetting: setConfigSettingStub
+            });
+
+            const buffer: Buffer = Buffer.from([]);
+            fabricTransactionStub.evaluate.resolves(buffer);
+
+            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, true);
+            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
+            fabricTransactionStub.setTransient.should.not.have.been.called;
+            fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
+            should.equal(result, undefined);
+
+            getRuntimeStub.should.have.been.calledOnce;
+            mockRuntime.isDevelopmentMode.should.have.been.calledOnce;
+            fabricGatewayStub.getClient.should.have.been.calledOnce;
+            setConfigSettingStub.should.have.been.calledOnceWith('request-timeout', 9999999);
         });
     });
 });
