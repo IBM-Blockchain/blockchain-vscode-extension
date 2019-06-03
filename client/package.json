@@ -1244,7 +1244,7 @@
         }
     },
     "extensionPack": [
-        "legfrey.javascript-test-runner"
+        "oshri6688.javascript-test-runner"
     ],
     "license-check-and-add-config": {
         "folder": ".",
