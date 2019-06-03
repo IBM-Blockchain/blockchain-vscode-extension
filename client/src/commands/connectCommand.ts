@@ -27,6 +27,7 @@ import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -44,6 +45,12 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
     }
 
     if (gatewayRegistryEntry.managedRuntime) {
+        const running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
+        if (!running) {
+            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
+            return;
+        }
+
         runtimeData = 'managed runtime';
     }
 
@@ -104,11 +111,6 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
 
     // Get the identities
     const identityNames: string[] = await wallet.getIdentityNames();
-    const running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
-    if (!running) {
-        outputAdapter.log(LogType.ERROR, 'local_fabric has not been started, please start it before connecting.');
-        return;
-    }
     if (identityNames.length > 1) {
         identityName = await UserInputUtil.showIdentitiesQuickPickBox('Choose an identity to connect with', identityNames);
         if (!identityName) {
