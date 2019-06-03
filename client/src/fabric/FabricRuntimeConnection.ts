@@ -88,7 +88,9 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
                     if (node.pem) {
                         trustedRoots = Buffer.from(node.pem, 'base64');
                     }
-                    const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, node.name, this.client.getCryptoSuite());
+
+                    const caName: string = node.ca_name || node.name;
+                    const certificateAuthority: FabricCAServices = new FabricCAServices(node.api_url, { trustedRoots, verify: false }, caName, this.client.getCryptoSuite());
                     this.certificateAuthorities.set(node.name, certificateAuthority);
                     break;
                 }

@@ -41,7 +41,6 @@ chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('FabricRuntimeConnection', () => {
-
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');
     const TLS_CA_CERTIFICATE: string = fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'yofn', 'admin-msp', 'cacerts', 'ca-org1-example-com-17054.pem')).toString('base64');
 
@@ -92,6 +91,7 @@ describe('FabricRuntimeConnection', () => {
                 'ca.example.com',
                 'ca.example.com',
                 `http://localhost:7054`,
+                'ca_name',
                 FabricWalletUtil.LOCAL_WALLET,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
@@ -100,10 +100,20 @@ describe('FabricRuntimeConnection', () => {
                 'ca2.example.com',
                 'ca2.example.com',
                 `https://localhost:8054`,
+                'ca_name',
                 TLS_CA_CERTIFICATE,
                 FabricWalletUtil.LOCAL_WALLET,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP'
+            ),
+            FabricNode.newCertificateAuthority(
+                'ca3.example.com',
+                'ca3.example.com',
+                `http://localhost:9054`,
+                null,
+                FabricWalletUtil.LOCAL_WALLET,
+                FabricRuntimeUtil.ADMIN_USER,
+                'Org1MSP'
             ),
             FabricNode.newOrderer(
                 'orderer.example.com',
@@ -153,7 +163,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('constructor', () => {
-
         it('should default to the console output adapter', () => {
             connection = new FabricRuntimeConnection((mockRuntime as any) as FabricRuntime);
             connection['outputAdapter'].should.be.an.instanceOf(ConsoleOutputAdapter);
@@ -167,7 +176,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('connect', () => {
-
         it('should create peer clients for each peer node', async () => {
             const peerNames: string[] = Array.from(connection['peers'].keys());
             const peerValues: Client.Peer[] = Array.from(connection['peers'].values());
@@ -266,21 +274,34 @@ describe('FabricRuntimeConnection', () => {
         it('should create certificate authority clients for each certificate authority node', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
-            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com']);
-            certificateAuthorityValues.should.have.lengthOf(2);
+            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            certificateAuthorityValues.should.have.lengthOf(3);
             certificateAuthorityValues[0].should.be.an.instanceOf(FabricCAServices);
             certificateAuthorityValues[0].toString().should.match(/hostname: localhost/);
             certificateAuthorityValues[0].toString().should.match(/port: 7054/);
+            certificateAuthorityValues[0].getCaName().should.equal('ca_name');
         });
 
         it('should create secure certificate authority clients for each secure certificate authority node', async () => {
             const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
             const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
-            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com']);
-            certificateAuthorityValues.should.have.lengthOf(2);
+            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            certificateAuthorityValues.should.have.lengthOf(3);
             certificateAuthorityValues[1].should.be.an.instanceOf(FabricCAServices);
             certificateAuthorityValues[1].toString().should.match(/hostname: localhost/);
             certificateAuthorityValues[1].toString().should.match(/port: 8054/);
+            certificateAuthorityValues[1].getCaName().should.equal('ca_name');
+        });
+
+        it('should create certificate authority clients and use name proptery if ca_name not set', async () => {
+            const certificateAuthorityNames: string[] = Array.from(connection['certificateAuthorities'].keys());
+            const certificateAuthorityValues: FabricCAServices[] = Array.from(connection['certificateAuthorities'].values());
+            certificateAuthorityNames.should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
+            certificateAuthorityValues.should.have.lengthOf(3);
+            certificateAuthorityValues[2].should.be.an.instanceOf(FabricCAServices);
+            certificateAuthorityValues[2].toString().should.match(/hostname: localhost/);
+            certificateAuthorityValues[2].toString().should.match(/port: 9054/);
+            certificateAuthorityValues[2].getCaName().should.equal('ca3.example.com');
         });
 
         it('should ignore any other nodes', async () => {
@@ -292,7 +313,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('disconnect', () => {
-
         it('should clear all nodes, clients, peers, orderers, and certificate authorities', () => {
             connection.disconnect();
             connection['nodes'].size.should.equal(0);
@@ -305,14 +325,12 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllPeerNames', () => {
-
         it('should get all of the peer names', () => {
             connection.getAllPeerNames().should.deep.equal(['peer0.org1.example.com', 'peer0.org2.example.com', 'peer1.org1.example.com', 'peer2.org1.example.com']);
         });
     });
 
     describe('createChannelMap', () => {
-
         let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
         let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
         let queryChannelsStub: sinon.SinonStub;
@@ -365,7 +383,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getInstantiatedChaincode', () => {
-
         let channel: Client.Channel;
         let queryInstantiatedChaincodesStub: sinon.SinonStub;
 
@@ -406,7 +423,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllInstantiatedChaincodes', () => {
-
         let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
         let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
         let queryChannelsStub: sinon.SinonStub;
@@ -502,7 +518,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllOrganizationNames', () => {
-
         it('should get all of the organization names', () => {
             connection.getAllOrganizationNames().should.deep.equal(['OrdererMSP', 'Org1MSP', 'Org2MSP']);
         });
@@ -510,15 +525,12 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllCertificateAuthorityNames', () => {
-
         it('should get all of the certificate authority names', () => {
-            connection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com', 'ca2.example.com']);
+            connection.getAllCertificateAuthorityNames().should.deep.equal(['ca.example.com', 'ca2.example.com', 'ca3.example.com']);
         });
-
     });
 
     describe('getInstalledChaincode', () => {
-
         let mockPeer: sinon.SinonStubbedInstance<Client.Peer>;
         let queryInstalledChaincodesStub: sinon.SinonStub;
 
@@ -572,14 +584,12 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getAllOrdererNames', () => {
-
         it('should get all of the orderer names', () => {
             connection.getAllOrdererNames().should.deep.equal(['orderer.example.com', 'orderer2.example.com']);
         });
     });
 
     describe('installChaincode', () => {
-
         const packageEntry: PackageRegistryEntry = new PackageRegistryEntry({
             name: 'vscode-pkg-1',
             version: '0.0.1',
@@ -683,7 +693,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('instantiateChaincode', () => {
-
         let channel: Client.Channel;
         let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
         let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
@@ -961,7 +970,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('upgradeChaincode', () => {
-
         let channel: Client.Channel;
         let mockPeer1: sinon.SinonStubbedInstance<Client.Peer>;
         let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
@@ -1243,7 +1251,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('enroll', () => {
-
         beforeEach(() => {
             const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
             mockFabricCA.enroll.resolves({ certificate: 'myCert', key: { toBytes: mySandBox.stub().returns('myKey') } });
@@ -1264,7 +1271,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('register', () => {
-
         beforeEach(() => {
             const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
             mockFabricCA.register.resolves('its a secret');
@@ -1286,7 +1292,6 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getNode', () => {
-
         it('should return a certificate authority node', () => {
             const node: FabricNode = connection.getNode('ca.example.com');
             node.short_name.should.equal('ca.example.com');
@@ -1306,12 +1311,9 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('getWallet', () => {
-
         it('should return the wallet for a certificate authority node', async () => {
             const wallet: IFabricWallet = await connection.getWallet('ca.example.com');
             wallet.should.equal(mockLocalWallet);
         });
-
     });
-
 });
