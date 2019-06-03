@@ -32,12 +32,12 @@ export class FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.PEER, api_url, pem, wallet, identity, msp_id });
     }
 
-    public static newCertificateAuthority(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, wallet, identity, msp_id });
+    public static newCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, wallet, identity, msp_id });
     }
 
-    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, pem, wallet, identity, msp_id });
+    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, pem, wallet, identity, msp_id });
     }
 
     public static newOrderer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
@@ -60,6 +60,7 @@ export class FabricNode {
     public name: string;
     public type: FabricNodeType;
     public api_url: string;
+    public ca_name?: string;
     public pem?: string;
     public ssl_target_name_override?: string;
     public wallet?: string;
