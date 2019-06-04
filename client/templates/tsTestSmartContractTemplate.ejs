@@ -96,6 +96,9 @@ describe('<%=chaincodeLabel%>' , () => {
                     <%_ } else if (parameter.schema.type === 'boolean') { _%>
                         <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
         const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = true;
+                    <%_ } else if (parameter.schema.type === 'array') { _%>
+                        <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
+        const <%=parameter.name.replace(`"`,'')%>: any[] = [];
                     <%_ } _%>
                 <%_ } else { _%>
                     <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
