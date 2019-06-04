@@ -12,7 +12,21 @@
  * limitations under the License.
 */
 'use strict';
+import * as vscode from 'vscode';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricWalletUtil {
     static readonly LOCAL_WALLET: string = 'local_fabric_wallet';
+
+    public static async tidyWalletSettings(): Promise<void> {
+        // Get wallets from user settings
+        const wallets: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+        for (const wallet of wallets) {
+            // delete the managedWallet boolean
+            delete wallet.managedWallet;
+        }
+        // Rewrite the updated wallets to the user settings
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, wallets, vscode.ConfigurationTarget.Global);
+
+    }
 }

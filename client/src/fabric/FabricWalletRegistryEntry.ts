@@ -18,7 +18,7 @@ import { FabricRegistryEntry } from './FabricRegistryEntry';
 export class FabricWalletRegistryEntry extends FabricRegistryEntry {
 
     public walletPath: string;
-    public managedWallet?: boolean = false;
+    public managedWallet?: boolean;
 
     constructor(fields?: FabricWalletRegistryEntry) {
         super();

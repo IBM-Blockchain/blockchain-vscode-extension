@@ -92,6 +92,7 @@ import { NodeTreeItem } from './explorer/runtimeOps/NodeTreeItem';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { exportWallet } from './commands/exportWalletCommand';
 import { UserInputUtil } from './commands/UserInputUtil';
+import { FabricWalletUtil } from './fabric/FabricWalletUtil';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -182,6 +183,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             // Open the Home page
             await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
         }
+
+        // Remove managedWallet boolean from wallets in user settings
+        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet settings');
+        await FabricWalletUtil.tidyWalletSettings();
+
     } catch (error) {
         outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
         await UserInputUtil.failedActivationWindow(error.message);

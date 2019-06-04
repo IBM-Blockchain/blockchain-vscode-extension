@@ -72,10 +72,10 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = FabricWalletRegistry.instance().getAll();
         const runtimeWalletRegistryEntries: FabricWalletRegistryEntry[] = await FabricRuntimeManager.instance().getWalletRegistryEntries();
-        const allWalletRegistryEntires: FabricWalletRegistryEntry[] = [].concat(runtimeWalletRegistryEntries, walletRegistryEntries);
+        const allWalletRegistryEntries: FabricWalletRegistryEntry[] = [].concat(runtimeWalletRegistryEntries, walletRegistryEntries);
 
         // Populate the tree with the name of each wallet
-        for (const walletRegistryEntry of allWalletRegistryEntires) {
+        for (const walletRegistryEntry of allWalletRegistryEntries) {
 
             if (walletRegistryEntry.walletPath) {
                 // get identityNames in the wallet
