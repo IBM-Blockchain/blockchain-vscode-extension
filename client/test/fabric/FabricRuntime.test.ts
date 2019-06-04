@@ -294,7 +294,7 @@ describe('FabricRuntime', () => {
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
-                outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.ERROR, undefined, 'stderr');
+                outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
                 if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
@@ -430,7 +430,7 @@ describe('FabricRuntime', () => {
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
                 await runtime[verb](outputAdapter);
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
-                outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.ERROR, undefined, 'stderr');
+                outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
                 if (verb !== 'generate' && verb !== 'start') {
                     stopLogsStub.should.have.been.called;
@@ -565,9 +565,9 @@ describe('FabricRuntime', () => {
             outputAdapter.log.callCount.should.equal(4);
 
             outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
-            outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.ERROR, undefined, 'stderr');
+            outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
-            outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.ERROR, undefined, 'stderr');
+            outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             stopLogsStub.should.have.been.called;
         });
 
@@ -675,9 +675,9 @@ describe('FabricRuntime', () => {
             await runtime.restart(outputAdapter);
             outputAdapter.log.callCount.should.equal(4);
             outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
-            outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.ERROR, undefined, 'stderr');
+            outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             outputAdapter.log.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
-            outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.ERROR, undefined, 'stderr');
+            outputAdapter.log.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
             stopLogsStub.should.have.been.called;
         });
 

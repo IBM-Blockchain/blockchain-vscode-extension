@@ -62,7 +62,8 @@ export class CommandUtil {
         });
         child.stderr.on('data', (data: string | Buffer) => {
             const str: string = stripAnsi(data.toString());
-            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.log(LogType.ERROR, undefined, line));
+            // verbose setting on bash scripts writes input lines to stderr, hence LogType.INFO
+            str.replace(/[\r\n]+$/, '').split(/[\r\n]+/).forEach((line: string) => outputAdapter.log(LogType.INFO, undefined, line));
         });
 
         return new Promise<void>((resolve: any, reject: any): any => {
