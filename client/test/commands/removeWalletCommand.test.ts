@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as sinonChai from 'sinon-chai';
 import * as chai from 'chai';
+import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
@@ -44,6 +45,7 @@ describe('removeWalletCommand', () => {
     let showWalletsQuickPickStub: sinon.SinonStub;
     let purpleWallet: FabricWalletRegistryEntry;
     let blueWallet: FabricWalletRegistryEntry;
+    let createdWallet: FabricWalletRegistryEntry;
     let getAllFabricGatewayRegisty: sinon.SinonStub;
     let updateFabricGatewayRegisty: sinon.SinonStub;
     before(async () => {
@@ -60,7 +62,7 @@ describe('removeWalletCommand', () => {
         mySandBox = sinon.createSandbox();
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
         warningStub = mySandBox.stub(vscode.window, 'showWarningMessage');
-        warningStub.resolves( { title: 'No'} );
+        warningStub.resolves('No');
         fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
         showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
 
@@ -75,7 +77,15 @@ describe('removeWalletCommand', () => {
             name: 'blueWallet',
             walletPath: '/some/bluer/path'
         });
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
+
+        const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const directoryPath: string = UserInputUtil.getDirPath(extensionDirectory);
+
+        createdWallet = new FabricWalletRegistryEntry({
+            name: 'createdWallet',
+            walletPath: path.join(directoryPath, 'createdWallet')
+        });
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWallet, createdWallet], vscode.ConfigurationTarget.Global);
 
         getAllFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
         updateFabricGatewayRegisty = mySandBox.stub(FabricGatewayRegistry.instance(), 'update');
@@ -85,21 +95,24 @@ describe('removeWalletCommand', () => {
         mySandBox.restore();
     });
 
-    it('should remove a wallet from the registry when called from the command palette', async () => {
+    it('should remove a wallet when called from the command palette', async () => {
         showWalletsQuickPickStub.resolves({
             label: purpleWallet.name,
             data: purpleWallet
         });
 
+        warningStub.resolves('Yes');
+
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
         const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-        wallets.length.should.equal(1);
+        wallets.length.should.equal(2);
         wallets[0].name.should.equal(blueWallet.name);
+        wallets[1].name.should.equal(createdWallet.name);
         fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${purpleWallet.name} wallet`);
     });
 
     it('should show an error if no other wallets have been added', async () => {
@@ -118,29 +131,50 @@ describe('removeWalletCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
         const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-        wallets.length.should.equal(2);
+        wallets.length.should.equal(3);
         wallets[0].name.should.equal(purpleWallet.name);
         wallets[1].name.should.equal(blueWallet.name);
+        wallets[2].name.should.equal(createdWallet.name);
         fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `removeWallet`);
     });
 
-    it('should delete the wallet from the file system if the user selects yes', async () => {
+    it('should delete a created wallet from the file system if the user selects yes', async () => {
         showWalletsQuickPickStub.resolves({
-            label: blueWallet.name,
-            data: blueWallet
+            label: createdWallet.name,
+            data: createdWallet
         });
-        warningStub.resolves( {title: 'Yes'} );
+        warningStub.resolves('Yes');
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
         const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-        wallets.length.should.equal(1);
+        wallets.length.should.equal(2);
         wallets[0].name.should.equal(purpleWallet.name);
-        fsRemoveStub.should.have.been.calledOnceWithExactly(blueWallet.walletPath);
+        wallets[1].name.should.equal(blueWallet.name);
+        fsRemoveStub.should.have.been.calledOnceWithExactly(createdWallet.walletPath);
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${blueWallet.walletPath}`, `Successfully deleted ${blueWallet.walletPath}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${createdWallet.name} wallet`);
+    });
+
+    it('should delete an imported wallet from the user settings if the user selects yes', async () => {
+        showWalletsQuickPickStub.resolves({
+            label: blueWallet.name,
+            data: blueWallet
+        });
+        warningStub.resolves('Yes');
+
+        await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
+
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+        wallets.length.should.equal(2);
+        wallets[0].name.should.equal(purpleWallet.name);
+        wallets[1].name.should.equal(createdWallet.name);
+        fsRemoveStub.should.not.have.been.called;
+        logSpy.should.have.been.calledTwice;
+        logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${blueWallet.name} wallet`);
     });
 
     it('should handle the user cancelling the warning box', async () => {
@@ -153,9 +187,27 @@ describe('removeWalletCommand', () => {
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
         const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-        wallets.length.should.equal(2);
+        wallets.length.should.equal(3);
         wallets[0].name.should.equal(purpleWallet.name);
         wallets[1].name.should.equal(blueWallet.name);
+        wallets[2].name.should.equal(createdWallet.name);
+        fsRemoveStub.should.not.have.been.called;
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `removeWallet`);
+    });
+
+    it("should handle the user selecting 'No' for the warning box", async () => {
+        showWalletsQuickPickStub.resolves({
+            label: blueWallet.name,
+            data: blueWallet
+        });
+
+        await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
+
+        const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+        wallets.length.should.equal(3);
+        wallets[0].name.should.equal(purpleWallet.name);
+        wallets[1].name.should.equal(blueWallet.name);
+        wallets[2].name.should.equal(createdWallet.name);
         fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `removeWallet`);
     });
@@ -165,43 +217,46 @@ describe('removeWalletCommand', () => {
             label: blueWallet.name,
             data: blueWallet
         });
-        warningStub.resolves( {title: 'Yes'} );
+        warningStub.resolves('Yes');
         getAllFabricGatewayRegisty.returns([{name: 'gatewayA', associatedWallet: 'blueWallet'}, {name: 'gatewayB', associatedWallet: 'blueWallet'}, {name: 'gatewayC', associatedWallet: 'greenWallet'}]);
         updateFabricGatewayRegisty.resolves();
 
         await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET);
 
         const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-        wallets.length.should.equal(1);
+        wallets.length.should.equal(2);
         wallets[0].name.should.equal(purpleWallet.name);
+        wallets[1].name.should.equal(createdWallet.name);
 
         updateFabricGatewayRegisty.callCount.should.equal(2);
         updateFabricGatewayRegisty.getCall(0).should.have.been.calledWithExactly({name: 'gatewayA', associatedWallet: ''});
         updateFabricGatewayRegisty.getCall(1).should.have.been.calledWithExactly({name: 'gatewayB', associatedWallet: ''});
 
-        fsRemoveStub.should.have.been.calledOnceWithExactly(blueWallet.walletPath);
+        fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${blueWallet.walletPath}`, `Successfully deleted ${blueWallet.walletPath}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${blueWallet.name} wallet`);
     });
 
     describe('called from the tree', () => {
 
-        it('should remove a wallet from the registry when called from the wallet tree', async () => {
+        it('should remove a wallet when called from the wallet tree', async () => {
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
             const walletsTreeItems: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren() as WalletTreeItem[];
             const purpleWalletTreeItem: WalletTreeItem = walletsTreeItems[1];
+            warningStub.resolves('Yes');
 
             await vscode.commands.executeCommand(ExtensionCommands.REMOVE_WALLET, purpleWalletTreeItem);
 
             const wallets: any[] = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
-            wallets.length.should.equal(1);
+            wallets.length.should.equal(2);
             wallets[0].name.should.equal(blueWallet.name);
+            wallets[1].name.should.equal(createdWallet.name);
             fsRemoveStub.should.not.have.been.called;
             showWalletsQuickPickStub.should.not.have.been.called;
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`, `Successfully removed ${purpleWallet.name} from Fabric Wallets view`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully removed ${purpleWallet.name} wallet`);
         });
 
     });

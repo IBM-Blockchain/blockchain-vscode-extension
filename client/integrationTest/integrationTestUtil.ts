@@ -133,7 +133,7 @@ export class IntegrationTestUtil {
         if (this.walletRegistry.exists(name)) {
             await this.walletRegistry.delete(name);
         }
-        this.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET);
+        this.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.IMPORT_WALLET);
 
         const walletPath: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../integrationTest/data/myWallet'));
 

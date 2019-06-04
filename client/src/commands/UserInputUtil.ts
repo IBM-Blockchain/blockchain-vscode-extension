@@ -63,7 +63,7 @@ export class UserInputUtil {
     static readonly BROWSE_LABEL: string = '📁 Browse';
     static readonly VALID_FOLDER_NAME: string = '- Folder can only contain alphanumeric, "-" and "_" characters';
     static readonly GENERATE_NEW_TEST_FILE: string = 'Generate new test file';
-    static readonly WALLET: string = 'Specify an existing file system wallet';
+    static readonly IMPORT_WALLET: string = 'Specify an existing file system wallet';
     static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
     static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to certificate and private key files';
@@ -651,7 +651,7 @@ export class UserInputUtil {
     }
 
     public static async showAddWalletOptionsQuickPick(prompt: string): Promise<string | undefined> {
-        const addIdentityOptions: Array<string> = [this.WALLET, this.WALLET_NEW_ID];
+        const addIdentityOptions: Array<string> = [this.IMPORT_WALLET, this.WALLET_NEW_ID];
         const quickPickOptions: vscode.QuickPickOptions = {
             matchOnDetail: true,
             placeHolder: prompt,

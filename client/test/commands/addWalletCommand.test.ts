@@ -27,6 +27,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -89,7 +90,7 @@ describe('AddWalletCommand', () => {
     describe('via providing a wallet path', async () => {
 
         it('should add a new wallet by providing a wallet path', async () => {
-            choseWalletAddMethod.resolves(UserInputUtil.WALLET);
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves(uri);
             getIdentitiesStub.resolves(['someName', 'anotherName']);
 
@@ -107,7 +108,7 @@ describe('AddWalletCommand', () => {
         });
 
         it('should handle the user cancelling providing a wallet path', async () => {
-            choseWalletAddMethod.resolves(UserInputUtil.WALLET);
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
@@ -116,12 +117,26 @@ describe('AddWalletCommand', () => {
         });
 
         it('should not allow the user to add an empty directory as a wallet', async () => {
-            choseWalletAddMethod.resolves(UserInputUtil.WALLET);
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
             browseStub.resolves(uri);
             getIdentitiesStub.resolves([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: No identities found in wallet: ${uri.fsPath}`, `Failed to add a new wallet: No identities found in wallet: ${uri.fsPath}`);
+        });
+
+        it('should error if an imported wallet with the same name already exists', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.IMPORT_WALLET);
+            browseStub.resolves(uri);
+            mySandBox.stub(FabricWalletRegistry.instance(), 'exists').returns(true);
+            const error: Error = new Error('A wallet with this name already exists.');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+
+            showInputBoxStub.should.not.have.been.called;
+            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            wallets.length.should.equal(0);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
         });
 
     });
@@ -187,6 +202,21 @@ describe('AddWalletCommand', () => {
             const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
             wallets.length.should.equal(0);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Failed to add a new wallet: some issue importing identity', 'Failed to add a new wallet: some issue importing identity');
+        });
+
+        it('should error if a new wallet with the same name already exists', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
+            showInputBoxStub.resolves('someWalletName');
+            mySandBox.stub(FabricWalletRegistry.instance(), 'exists').returns(true);
+            const error: Error = new Error('A wallet with this name already exists.');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+
+            browseStub.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledOnce;
+            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            wallets.length.should.equal(0);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);
         });
     });
 
