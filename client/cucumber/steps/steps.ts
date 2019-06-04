@@ -35,7 +35,6 @@ import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExp
 import { TestUtil } from '../../test/TestUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { CommandUtil } from '../../src/util/CommandUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
@@ -45,6 +44,9 @@ import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 import { IFabricClientConnection } from '../../src/fabric/IFabricClientConnection';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
+import { UserInputUtilHelper } from '../helpers/userInputUtilHelper';
+import { SmartContractHelper } from '../helpers/smartContractHelper';
+import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
 
 // tslint:disable:no-unused-expression
 
@@ -53,98 +55,63 @@ chai.use(chaiAsPromised);
 const should: Chai.Should = chai.should();
 
 const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
-const timeout: any = {timeout: 120000 * 1000}; // Global timeout - 2 minutes
+const timeout: any = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
 
-let logSpy: sinon.SinonSpy;
-let showLanguagesQuickPickStub: sinon.SinonStub;
-let inputBoxStub: sinon.SinonStub;
-let browseStub: sinon.SinonStub;
-let showFolderOptionsStub: sinon.SinonStub;
-let showPeersQuickPickStub: sinon.SinonStub;
-let showInstallableStub: sinon.SinonStub;
-let showChannelStub: sinon.SinonStub;
-let showChaincodeAndVersionStub: sinon.SinonStub;
-let showYesNoQuickPick: sinon.SinonStub;
-let getWorkspaceFoldersStub: sinon.SinonStub;
-let findFilesStub: sinon.SinonStub;
-let showWalletsQuickPickStub: sinon.SinonStub;
-let showIdentitiesQuickPickStub: sinon.SinonStub;
-let showCertificateAuthorityQuickPickStub: sinon.SinonStub;
-let showConfirmationWarningMessageStub: sinon.SinonStub;
-let showGatewayQuickPickStub: sinon.SinonStub;
-let showClientInstantiatedSmartContractsStub: sinon.SinonStub;
-let showRuntimeInstantiatedSmartContractsStub: sinon.SinonStub;
-let showTransactionStub: sinon.SinonStub;
+const userInputUtilHelper: UserInputUtilHelper = new UserInputUtilHelper(mySandBox);
+const smartContractHelper: SmartContractHelper = new SmartContractHelper(mySandBox, userInputUtilHelper);
+const generatedTestsHelper: GeneratedTestsHelper = new GeneratedTestsHelper(mySandBox, userInputUtilHelper, smartContractHelper);
 
 export enum LanguageType {
     CHAINCODE = 'chaincode',
     CONTRACT = 'contract'
 }
 
-logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-showLanguagesQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').callThrough();
-inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox').callThrough();
-browseStub = mySandBox.stub(UserInputUtil, 'browse').callThrough();
-showFolderOptionsStub = mySandBox.stub(UserInputUtil, 'showFolderOptions').callThrough();
-showPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox').callThrough();
-showInstallableStub = mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').callThrough();
-showChannelStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').callThrough();
-showChaincodeAndVersionStub = mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').callThrough();
-showYesNoQuickPick = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').callThrough();
-getWorkspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').callThrough();
-findFilesStub = mySandBox.stub(vscode.workspace, 'findFiles');
-showWalletsQuickPickStub =  mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').callThrough();
-showIdentitiesQuickPickStub =  mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').callThrough();
-showCertificateAuthorityQuickPickStub = mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox').callThrough();
-showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').callThrough();
-showGatewayQuickPickStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').callThrough();
-showClientInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showClientInstantiatedSmartContractsQuickPick').callThrough();
-showRuntimeInstantiatedSmartContractsStub = mySandBox.stub(UserInputUtil, 'showRuntimeInstantiatedSmartContractsQuickPick').callThrough();
-showTransactionStub = mySandBox.stub(UserInputUtil, 'showTransactionQuickPick').callThrough();
-
 let torndownFabric: boolean = false; // Flag used for running teardown only once before any tests
 
-module.exports = function(): any {
+module.exports = function (): any {
 
     this.Before(timeout, async () => {
 
-        if (!torndownFabric) {
-            // If we don't teardown the existing Fabric, we're told that the package is already installed
-            showConfirmationWarningMessageStub.resolves(true);
-            try {
-                await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
-            } catch (error) {
-                // If the Fabric is already torn down, do nothing
+        try {
+
+            if (!torndownFabric) {
+                // If we don't teardown the existing Fabric, we're told that the package is already installed
+                userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+                } catch (error) {
+                    // If the Fabric is already torn down, do nothing
+                }
+                userInputUtilHelper.showConfirmationWarningMessageStub.reset();
+                torndownFabric = true;
+
+                await ExtensionUtil.activateExtension();
+
+                // We need to delete any created packages here !!!
+                await ExtensionUtil.activateExtension();
+                await TestUtil.storeGatewaysConfig();
+                await TestUtil.storeRuntimesConfig();
+                await TestUtil.storeExtensionDirectoryConfig();
+                await TestUtil.storeRepositoriesConfig();
+                await TestUtil.storeWalletsConfig();
+
+                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+
+                const extDir: string = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
+
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
+                const packageDir: string = path.join(extDir, 'packages');
+                const exists: boolean = await fs.pathExists(packageDir);
+
+                if (exists) {
+                    await fs.remove(packageDir);
+                }
+
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
             }
-            showConfirmationWarningMessageStub.reset();
-            torndownFabric = true;
+        } catch (error) {
+            console.log(error);
         }
-
-        await ExtensionUtil.activateExtension();
-
-        // We need to delete any created packages here !!!
-        await ExtensionUtil.activateExtension();
-        await TestUtil.storeGatewaysConfig();
-        await TestUtil.storeRuntimesConfig();
-        await TestUtil.storeExtensionDirectoryConfig();
-        await TestUtil.storeRepositoriesConfig();
-        await TestUtil.storeWalletsConfig();
-
-        VSCodeBlockchainOutputAdapter.instance().setConsole(true);
-
-        vscode.workspace.updateWorkspaceFolders(1, vscode.workspace.workspaceFolders.length - 1);
-
-        const extDir: string = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
-
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
-        const packageDir: string = path.join(extDir, 'packages');
-        const exists: boolean = await fs.pathExists(packageDir);
-
-        if (exists) {
-            await fs.remove(packageDir);
-        }
-
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
     });
 
     // TODO: We want an After hook which clears the call count on all of our stubs after each scenario - then we can getCalls/ check call counts
@@ -169,7 +136,7 @@ module.exports = function(): any {
         isRunning.should.equal(true);
     });
 
-    this.Given("a {string} smart contract for '{string}' assets with the name '{string}' and version '{string}'", timeout, async (language: string, assetType: string, name: string, version: string) => {
+    this.Given('a {string} smart contract for {string} assets with the name {string} and version {string}', timeout, async (language: string, assetType: string, name: string, version: string) => {
         this.contractLanguage = language;
         if (assetType === 'null') {
             assetType = null;
@@ -180,7 +147,7 @@ module.exports = function(): any {
     });
 
     this.Given("the contract hasn't been created already", timeout, async () => {
-        const contractDirectory: string = getContractDirectory(this.contractName, this.contractLanguage);
+        const contractDirectory: string = smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
         const exists: boolean = await fs.pathExists(contractDirectory);
         if (exists) {
             await fs.remove(contractDirectory);
@@ -188,13 +155,13 @@ module.exports = function(): any {
     });
 
     this.Given('the contract has been created', timeout, async () => {
-        const contractDirectory: string = getContractDirectory(this.contractName, this.contractLanguage);
+        const contractDirectory: string = smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
         const exists: boolean = await fs.pathExists(contractDirectory);
-        if (exists) {
-            await fs.remove(contractDirectory);
+        if (!exists) {
+            this.contractDirectory = await smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
+        } else {
+            this.contractDirectory = contractDirectory;
         }
-
-        this.contractDirectory = await createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
     });
 
     this.Given('the contract has been packaged', timeout, async () => {
@@ -278,11 +245,12 @@ module.exports = function(): any {
         const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, identity));
         if (identityExists) {
             // Remove it
-            showWalletsQuickPickStub.resolves({
+            userInputUtilHelper.showWalletsQuickPickStub.resolves({
                 label: walletEntry.name,
                 data: walletEntry
             });
-            showIdentitiesQuickPickStub.resolves(identity);
+
+            userInputUtilHelper.showIdentitiesQuickPickStub.resolves(identity);
 
             // If the identity already exists, remove it from the wallet
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
@@ -294,13 +262,13 @@ module.exports = function(): any {
     });
 
     this.Given("connected to the '{string}' gateway", timeout, async (gateway: string) => {
-            if (gateway === 'Local Fabric') {
-                gateway = FabricRuntimeUtil.LOCAL_FABRIC;
-            }
+        if (gateway === 'Local Fabric') {
+            gateway = FabricRuntimeUtil.LOCAL_FABRIC;
+        }
 
-            this.gateway = gateway;
+        this.gateway = gateway;
 
-            await connectToFabric(this.gateway, this.wallet, this.identity);
+        await connectToFabric(this.gateway, this.wallet, this.identity);
 
     });
 
@@ -333,7 +301,7 @@ module.exports = function(): any {
     this.Given("the contract version has been updated to '{string}'", timeout, async (version: string) => {
         this.contractVersion = version;
         if (this.contractLanguage === 'JavaScript' || this.contractLanguage === 'TypeScript') {
-            const contractDirectory: string = getContractDirectory(this.contractName, this.contractLanguage);
+            const contractDirectory: string = smartContractHelper.getContractDirectory(this.contractName, this.contractLanguage);
 
             // Actually write to the package.json
             const fileContents: Buffer = await fs.readFile(path.join(contractDirectory, 'package.json'));
@@ -346,12 +314,12 @@ module.exports = function(): any {
 
     /**
      *
-     * WHEN
+     * When
      *
      */
 
     this.When('I create the contract', timeout, async () => {
-        this.contractDirectory = await createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
+        this.contractDirectory = await smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
     });
 
     this.When('I package the contract', timeout, async () => {
@@ -396,7 +364,7 @@ module.exports = function(): any {
 
     this.When('I generate a {string} functional test for a {string} contract', timeout, async (testLanguage: string, contractLanguage: string) => {
 
-        await generateSmartContractTests(this.contractName, '0.0.1', testLanguage, FabricRuntimeUtil.LOCAL_FABRIC);
+        await generatedTestsHelper.generateSmartContractTests(this.contractName, '0.0.1', testLanguage, FabricRuntimeUtil.LOCAL_FABRIC);
         this.testLanguage = testLanguage;
         this.contractLanguage = contractLanguage;
     });
@@ -449,7 +417,7 @@ module.exports = function(): any {
 
     });
 
-    this.Then("a new package should be created with the name '{string}' and verison '{string}'", timeout, async (packageName: string, packageVersion: string) => {
+    this.Then('a new package should be created with the name {string} and verison {string}', timeout, async (packageName: string, packageVersion: string) => {
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(packageName, packageVersion);
         _package.should.exist;
 
@@ -505,13 +473,13 @@ module.exports = function(): any {
 
     this.Then('the tests should be runnable', timeout, async () => {
         if (this.contractLanguage === 'TypeScript') {
-            const testRunResult: string = await runSmartContractTests(this.contractName, this.testLanguage, this.contractAssetType);
+            const testRunResult: string = await generatedTestsHelper.runSmartContractTests(this.contractName, this.testLanguage, this.contractAssetType);
             testRunResult.includes('1 passing').should.be.true;
         }
     });
 
     this.Then("the logger should have been called with '{string}', '{string}' and '{string}'", timeout, async (type: string, popupMessage: string, outputMessage: string) => {
-        logSpy.should.have.been.calledWith(type, popupMessage, outputMessage);
+        userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage, outputMessage);
     });
 
     /**
@@ -519,61 +487,6 @@ module.exports = function(): any {
      * HELPER
      *
      */
-
-    function getContractDirectory(name: string, language: string): string {
-        let contractDirectory: string;
-        if (language === 'Go') {
-            process.env.GOPATH = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
-            contractDirectory = path.join(process.env.GOPATH, 'src', name);
-        } else {
-            contractDirectory = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp', name);
-        }
-
-        return contractDirectory;
-    }
-
-    function getWorkspaceFolder(name: string, contractDirectory: string): vscode.WorkspaceFolder {
-        const workspaceFolder: vscode.WorkspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(contractDirectory) };
-        return workspaceFolder;
-    }
-
-    async function createSmartContract(language: string, assetType: string, contractName: string): Promise<string> {
-
-        let type: LanguageType;
-        if (language === 'Go' || language === 'Java') {
-            type = LanguageType.CHAINCODE;
-        } else if (language === 'JavaScript' || language === 'TypeScript') {
-            type = LanguageType.CONTRACT;
-        } else {
-            throw new Error(`You must update this test to support the ${language} language`);
-        }
-
-        showLanguagesQuickPickStub.resolves({ label: language, type });
-
-        inputBoxStub.withArgs('Name the type of asset managed by this smart contract', 'MyAsset').resolves(assetType);
-
-        showFolderOptionsStub.withArgs('Choose how to open your new project').resolves(UserInputUtil.ADD_TO_WORKSPACE);
-
-        const contractDirectory: string = getContractDirectory(contractName, language);
-
-        const uri: vscode.Uri = vscode.Uri.file(contractDirectory);
-
-        browseStub.withArgs('Choose the location to save the smart contract.', [{label: UserInputUtil.BROWSE_LABEL, description: UserInputUtil.VALID_FOLDER_NAME}], {
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            openLabel: 'Save',
-            filters: undefined
-        }, true).resolves(uri);
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-
-        if (language === 'JavaScript' || language === 'TypeScript') {
-            await CommandUtil.sendCommandWithOutput('npm', ['install'], contractDirectory, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
-        }
-
-        return contractDirectory;
-    }
 
     async function packageSmartContract(name: string, version: string, language: string, directory: string): Promise<void> {
         let workspaceFolder: vscode.WorkspaceFolder;
@@ -584,32 +497,32 @@ module.exports = function(): any {
         } else if (language === 'TypeScript') {
             workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
         } else if (language === 'Java') {
-            inputBoxStub.withArgs('Enter a name for your Java package').resolves(name);
-            inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
+            userInputUtilHelper.inputBoxStub.withArgs('Enter a name for your Java package').resolves(name);
+            userInputUtilHelper.inputBoxStub.withArgs('Enter a version for your Java package').resolves(version);
             workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
         } else if (language === 'Go') {
-            inputBoxStub.withArgs('Enter a name for your Go package').resolves(name);
-            inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
+            userInputUtilHelper.inputBoxStub.withArgs('Enter a name for your Go package').resolves(name);
+            userInputUtilHelper.inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
             workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
             workspaceFiles = [vscode.Uri.file('chaincode.go')];
-            findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.go'), null, 1).resolves(workspaceFiles);
+            userInputUtilHelper.findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.go'), null, 1).resolves(workspaceFiles);
         } else {
             throw new Error(`I do not know how to handle language ${language}`);
         }
 
-        getWorkspaceFoldersStub.returns([workspaceFolder]);
+        userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
 
         await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version);
 
     }
 
     async function installSmartContract(name: string, version: string): Promise<void> {
-        showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
+        userInputUtilHelper.showPeersQuickPickStub.resolves(['peer0.org1.example.com']);
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(name, version);
 
         should.exist(_package);
 
-        showInstallableStub.resolves({
+        userInputUtilHelper.showInstallableStub.resolves({
             label: name,
             data: {
                 packageEntry: _package,
@@ -620,7 +533,7 @@ module.exports = function(): any {
     }
 
     async function instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
-        showChannelStub.resolves({
+        userInputUtilHelper.showChannelStub.resolves({
             label: 'mychannel',
             data: ['peer0.org1.example.com']
         });
@@ -631,7 +544,7 @@ module.exports = function(): any {
             return packageEntry.name === name && packageEntry.version === version;
         });
 
-        showChaincodeAndVersionStub.resolves({
+        userInputUtilHelper.showChaincodeAndVersionStub.resolves({
             label: `${name}@${version}`,
             description: 'Installed',
             data: {
@@ -640,20 +553,20 @@ module.exports = function(): any {
             }
         });
 
-        inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
-        inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
+        userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
+        userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
 
-        showYesNoQuickPick.resolves(UserInputUtil.NO);
+        userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
         if (privateData) {
-            showYesNoQuickPick.resolves(UserInputUtil.YES);
+            userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
             const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
-            browseStub.resolves(collectionPath);
+            userInputUtilHelper.browseStub.resolves(collectionPath);
         }
         await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     }
 
     async function upgradeSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
-        showChannelStub.resolves({
+        userInputUtilHelper.showChannelStub.resolves({
             label: 'mychannel',
             data: ['peer0.org1.example.com']
         });
@@ -664,7 +577,7 @@ module.exports = function(): any {
             return packageEntry.name === name && packageEntry.version === version;
         });
 
-        showChaincodeAndVersionStub.resolves({
+        userInputUtilHelper.showChaincodeAndVersionStub.resolves({
             label: `${name}@${version}`,
             description: 'Installed',
             data: {
@@ -674,19 +587,19 @@ module.exports = function(): any {
         });
 
         // Upgrade from instantiated contract at version 0.0.1
-        showRuntimeInstantiatedSmartContractsStub.resolves({
+        userInputUtilHelper.showRuntimeInstantiatedSmartContractsStub.resolves({
             label: `${name}@0.0.1`,
             data: { name: name, channel: 'mychannel', version: '0.0.1' }
         });
 
-        inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
-        inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves(args);
+        userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
+        userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves(args);
 
-        showYesNoQuickPick.resolves(UserInputUtil.NO);
+        userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
         if (privateData) {
-            showYesNoQuickPick.resolves(UserInputUtil.YES);
+            userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.YES);
             const collectionPath: string = path.join(__dirname, '../../integrationTest/data/collection.json');
-            browseStub.resolves(collectionPath);
+            userInputUtilHelper.browseStub.resolves(collectionPath);
         }
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
@@ -715,13 +628,13 @@ module.exports = function(): any {
                 walletEntry.managedWallet = true;
             }
 
-            showWalletsQuickPickStub.resolves({
+            userInputUtilHelper.showWalletsQuickPickStub.resolves({
                 name: walletEntry.name,
                 data: walletEntry
             });
         }
 
-        showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(identityName);
+        userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(identityName);
 
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
     }
@@ -734,95 +647,20 @@ module.exports = function(): any {
 
         const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, name));
         if (identityExists) {
-            showWalletsQuickPickStub.resolves({
+            userInputUtilHelper.showWalletsQuickPickStub.resolves({
                 label: walletEntry.name,
                 data: walletEntry
             });
-            showIdentitiesQuickPickStub.resolves(name);
-            showConfirmationWarningMessageStub.resolves(true);
+            userInputUtilHelper.showIdentitiesQuickPickStub.resolves(name);
+            userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);
 
             // If the identity already exists, remove it from the wallet
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
         }
 
-        showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
-        inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
+        userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
+        userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
-    }
-
-    async function generateSmartContractTests(name: string, version: string, language: string, gatewayName: string): Promise<void> {
-        let gatewayEntry: FabricGatewayRegistryEntry;
-
-        try {
-            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
-        } catch (error) {
-            gatewayEntry = new FabricGatewayRegistryEntry();
-            gatewayEntry.name = gatewayName;
-            gatewayEntry.managedRuntime = true;
-            gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-        }
-
-        showGatewayQuickPickStub.resolves({
-            label: gatewayName,
-            data: gatewayEntry
-        });
-
-        showChannelStub.resolves('mychannel');
-        showClientInstantiatedSmartContractsStub.resolves({
-            label: `${name}@${version}`,
-            data: { name: name, channel: 'mychannel', version: version }
-        });
-
-        showLanguagesQuickPickStub.resolves({ label: language, type: LanguageType.CONTRACT });
-
-        const contractDirectory: string = getContractDirectory(name, language);
-        const workspaceFolder: vscode.WorkspaceFolder = getWorkspaceFolder(name, contractDirectory);
-        getWorkspaceFoldersStub.returns([workspaceFolder]);
-
-        const packageJSONPath: string = path.join(contractDirectory, 'package.json');
-        findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
-
-        let getConfigurationStub: sinon.SinonStub;
-        const workspaceConfigurationGetStub: sinon.SinonStub = mySandBox.stub();
-        const workspaceConfigurationUpdateStub: sinon.SinonStub = mySandBox.stub();
-
-        if (language === 'TypeScript') {
-            // Stub out the update of JavaScript Test Runner user settings
-            workspaceConfigurationGetStub.callThrough();
-            workspaceConfigurationUpdateStub.callThrough();
-            workspaceConfigurationGetStub.withArgs('javascript-test-runner.additionalArgs').returns('');
-            workspaceConfigurationUpdateStub.withArgs('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global).resolves();
-            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-        }
-
-        await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
-
-        if (language === 'TypeScript') {
-            getConfigurationStub.restore();
-        }
-    }
-
-    async function runSmartContractTests(name: string, testLanguage: string, contractAssetType: string): Promise<string> {
-        const contractDirectory: string = getContractDirectory(name, testLanguage);
-        let fileExtension: string;
-        if (testLanguage === 'JavaScript') {
-            fileExtension = 'js';
-        } else if (testLanguage === 'TypeScript') {
-            fileExtension = 'ts';
-        } else {
-            // If we get here then we're running a language not supported for test files
-            return;
-        }
-        let testCommand: string = `node_modules/.bin/mocha ${path.join(contractDirectory, 'functionalTests', contractAssetType)}Contract-${name}@0.0.1.test.${fileExtension} --grep="create${contractAssetType}"`;
-        if (testLanguage === 'TypeScript') {
-            testCommand += ` -r ts-node/register`;
-        }
-        const testResult: string = await CommandUtil.sendCommand(testCommand, contractDirectory);
-        return testResult;
     }
 
     async function submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, args: string, gatewayName: string, contractName?: string, transientData?: string): Promise<void> {
@@ -838,41 +676,41 @@ module.exports = function(): any {
             gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         }
 
-        showGatewayQuickPickStub.resolves({
+        userInputUtilHelper.showGatewayQuickPickStub.resolves({
             label: gatewayName,
             data: gatewayEntry
         });
 
         if (contractLanguage === 'Go' || contractLanguage === 'Java') {
-            showClientInstantiatedSmartContractsStub.resolves({
+            userInputUtilHelper.showClientInstantiatedSmartContractsStub.resolves({
                 label: `${name}@${version}`,
                 data: { name: name, channel: 'mychannel', version: version }
             });
 
-            showTransactionStub.resolves({
+            userInputUtilHelper.showTransactionStub.resolves({
                 label: null,
                 data: { name: transaction, contract: null }
             });
 
         } else {
-            showClientInstantiatedSmartContractsStub.resolves({
+            userInputUtilHelper.showClientInstantiatedSmartContractsStub.resolves({
                 label: `${name}@${version}`,
                 data: { name: name, channel: 'mychannel', version: version }
             });
 
-            showTransactionStub.resolves({
+            userInputUtilHelper.showTransactionStub.resolves({
                 label: `${name} - ${transaction}`,
                 data: { name: transaction, contract: contractName }
             });
 
         }
 
-        inputBoxStub.withArgs('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])').resolves(args);
+        userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the transaction, (e.g. ["arg1", "arg2"])').resolves(args);
 
         if (!transientData) {
             transientData = '';
         }
-        inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientData);
+        userInputUtilHelper.inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientData);
 
         await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
     }

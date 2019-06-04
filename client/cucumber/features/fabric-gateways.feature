@@ -1,5 +1,5 @@
 Feature: Fabric Gateways
-    Description about feature here
+    Test all the features of a fabric gateway
 
     Scenario: Connect with admin identity
         Given the Local Fabric is running
@@ -24,25 +24,22 @@ Feature: Fabric Gateways
         And the tree item should have a tooltip equal to 'Using ID: new_identity'
 
 
-    Scenario Outline: Generating <testLanguage> tests for a <contractLanguage> contract
+     Scenario Outline: Generating <testLanguage> tests for a <contractLanguage> contract
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity
         And connected to the 'Local Fabric' gateway
-        And a <contractLanguage> smart contract for 'Generated' assets with the name '<contractName>' and version '0.0.1'
+        And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
         And the contract has been instantiated with the transaction '' and args '', not using private data
         When I generate a <testLanguage> functional test for a <contractLanguage> contract
-        Then a functional test file with the filename 'GeneratedContract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
+        Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
         And the tests should be runnable
         Examples:
-            | contractName | contractLanguage | testLanguage | fileExtension |
-            | contract1    | JavaScript       | JavaScript   | js            |
-            | contract2    | JavaScript       | TypeScript   | ts            |
-            | contract3    | TypeScript       | JavaScript   | js            |
-            | contract4    | TypeScript       | TypeScript   | ts            |
-
-
-
+        | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
+        | JavaScriptContract  | Conga     | JavaScript       | JavaScript   | js            | 0.0.1   |
+        | JavaScriptContract2 | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+        | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
+        | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |

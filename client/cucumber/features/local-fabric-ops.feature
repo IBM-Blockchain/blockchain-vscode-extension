@@ -1,29 +1,14 @@
 Feature: Local Fabric Ops
-    Description about feature here
+    Tests all the features of the fabric ops panel
 
-    Scenario: Install smart contract button
+    Scenario Outline: There should be a tree item
         Given the Local Fabric is running
-        Then there should be a installed smart contract tree item with a label '+ Install' in the 'Local Fabric Ops' panel
-        And the tree item should have a tooltip equal to '+ Install'
-
-    Scenario: Instantiate smart contract button
-        Given the Local Fabric is running
-        Then there should be a instantiated smart contract tree item with a label '+ Instantiate' in the 'Local Fabric Ops' panel
-        And the tree item should have a tooltip equal to '+ Instantiate'
-
-    Scenario: Peer Node
-        Given the Local Fabric is running
-        Then there should be a Node tree item with a label 'peer0.org1.example.com' in the 'Local Fabric Ops' panel
-        And the tree item should have a tooltip equal to 'peer0.org1.example.com'
-
-    Scenario: CA Node
-        Given the Local Fabric is running
-        Then there should be a Node tree item with a label 'ca.org1.example.com' in the 'Local Fabric Ops' panel
-        And the tree item should have a tooltip equal to 'ca.org1.example.com'
-
-
-    Scenario: Orderer Node
-        Given the Local Fabric is running
-        Then there should be a Node tree item with a label 'orderer.example.com' in the 'Local Fabric Ops' panel
-        And the tree item should have a tooltip equal to 'orderer.example.com'
-
+        Then there should be a <treeItem> tree item with a label '<label>' in the 'Local Fabric Ops' panel
+        And the tree item should have a tooltip equal to '<tooltip>'
+        Examples:
+        | treeItem                    | label                  | tooltip                |
+        | installed smart contract    | + Install              | + Install              |
+        | instantiated smart contract | + Instantiate          | + Instantiate          |
+        | Node                        | peer0.org1.example.com | peer0.org1.example.com |
+        | Node                        | ca.org1.example.com    | ca.org1.example.com    |
+        | Node                        | orderer.example.com    | orderer.example.com    |
