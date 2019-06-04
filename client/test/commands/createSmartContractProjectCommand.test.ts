@@ -82,13 +82,15 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     const testLanguageItems: LanguageQuickPickItem[] = [
+        { label: 'javascript', type: LanguageType.CONTRACT },
         { label: 'typescript', type: LanguageType.CONTRACT },
-        { label: 'go', type: LanguageType.CHAINCODE }
+        { label: 'go', type: LanguageType.CHAINCODE },
+        { label: 'java', type: LanguageType.CHAINCODE },
     ];
 
     for (const testLanguageItem of testLanguageItems) {
 
-        async function checkTypeScriptSmartContract(): Promise<void> {
+        async function checkNodeSmartContract(fileExtension: string): Promise<void> {
             const pathToCheck: string = path.join(uri.fsPath, 'package.json');
             const smartContractExists: boolean = await fs_extra.pathExists(pathToCheck);
             const fileContents: string = await fs_extra.readFile(pathToCheck, 'utf8');
@@ -99,7 +101,15 @@ describe('CreateSmartContractProjectCommand', () => {
             packageJSON.description.should.equal('My Smart Contract');
             packageJSON.author.should.equal('John Doe');
             packageJSON.license.should.equal('Apache-2.0');
-            const contractPath: string = path.join(uri.fsPath, 'src', 'conga-contract.ts');
+            let contractPath: string;
+            if (fileExtension === 'js') {
+                contractPath = path.join(uri.fsPath, 'lib', `conga-contract.${fileExtension}`);
+            } else if (fileExtension === 'ts') {
+                contractPath = path.join(uri.fsPath, 'src', `conga-contract.${fileExtension}`);
+
+            } else {
+                throw new Error('Invalid file extension');
+            }
             const contractExists: boolean = await fs_extra.pathExists(contractPath);
             contractExists.should.be.true;
         }
@@ -110,11 +120,25 @@ describe('CreateSmartContractProjectCommand', () => {
             smartContractExists.should.be.true;
         }
 
+        async function checkJavaSmartContract(): Promise<void> {
+            const gradlePath: string = path.join(uri.fsPath, 'build.gradle');
+            const gradleExists: boolean = await fs_extra.pathExists(gradlePath);
+            gradleExists.should.be.true;
+            const contractPath: string = path.join(uri.fsPath, 'src', 'main', 'java', 'org', 'example', 'Chaincode.java');
+            const contractExists: boolean = await fs_extra.pathExists(contractPath);
+            contractExists.should.be.true;
+        }
+
         async function checkSmartContract(): Promise<void> {
+            if (testLanguageItem.label === 'javascript') {
+                return checkNodeSmartContract('js');
+            }
             if (testLanguageItem.label === 'typescript') {
-                return checkTypeScriptSmartContract();
+                return checkNodeSmartContract('ts');
             } else if (testLanguageItem.label === 'go') {
                 return checkGoSmartContract();
+            } else if (testLanguageItem.label === 'java') {
+                return checkJavaSmartContract();
             } else {
                 throw new Error(`You must update this test to support the ${testLanguageItem.label} language`);
             }
