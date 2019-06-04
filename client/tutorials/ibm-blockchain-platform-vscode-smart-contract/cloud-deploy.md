@@ -36,7 +36,7 @@ The same smart contract package you deployed to the local runtime in Tutorial 1 
 3. Head to the cloud service's operational tooling console (it's a good idea to keep the ops console open in a browser alongside this VS Code extension - if you're lucky enough to have dual monitors, this is a good time to use them!). First, we will install your smart contract...
    * Click the `Smart contracts` tab.
 
-   * Click `Install smart contract` and upload the `demoContract@0.0.1.cds`file you exported earlier. If you had more than one peer in your network, you'd have to select which peer(s) to install on (but if you're following these tutorials, you should only have 1, so it's an easy choice!).
+   * Click `Install smart contract` and upload the `demoContract@0.0.1.cds` file you exported earlier. If you had more than one peer in your network, you'd have to select which peer(s) to install on (but if you're following these tutorials, you should only have 1, so it's an easy choice!).
    * Click the `Install smart contract` button to finalise the flow.
 
 4. Just like with the local runtime, after installing a contract on a peer, we must now instantiate it on a channel. To do this via the operational tooling console...
@@ -158,7 +158,9 @@ Everything is set! Let's submit a transaction from VS Code and make sure it gets
 
 2. Open up `Channels` > `channel1` > `demoContract@0.0.1` to view the list of available transactions. Remember this is a different instance of the contract to the one we were using locally in an earlier tutorial... So the asset with key `001` _shouldn't_ exist yet...
 
-3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `["001"]` as the key, then check the output. You should see:
+3. Right-click `myAssetExists` and choose `Evaluate Transaction`. Enter `["001"]` as the key, and hit Enter again confirm the optional transient data. (Don't worry about "transient data", this will be explained in a later tutorial.)
+ 
+Check the Output. You should see:
 
    ```
    [5/1/2019 6:35:36 PM] [SUCCESS] Returned value from myAssetExists: false
