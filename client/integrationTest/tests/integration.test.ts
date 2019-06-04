@@ -119,7 +119,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
             }
             localFabricItem.should.not.be.null;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
 
         afterEach(async () => {
@@ -180,7 +180,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             orgsChildren.length.should.equal(2);
             orgsChildren[0].label.should.equal('OrdererMSP');
             orgsChildren[1].label.should.equal('Org1MSP');
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should allow you to start, connect to, open a terminal on and stop the local Fabric in non-development mode', async () => {
@@ -214,7 +214,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should allow you to start, connect to, and stop the local Fabric in development mode', async () => {
@@ -246,7 +246,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should allow you to restart the local Fabric in non-development mode', async () => {
@@ -289,7 +289,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should persist local Fabric data across restarts until the local Fabric is torn down', async () => {
@@ -368,7 +368,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             instantiatedChaincodesItems = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(smartContractsChildren[1]) as Array<InstantiatedContractTreeItem>;
             // should just be the one to click to instantiate
             instantiatedChaincodesItems.length.should.equal(1);
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
         }).timeout(0);
 
         it('should create, and connect with, a new identity from the local_fabric CA', async () => {
@@ -408,7 +408,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
             identitities[1].label.should.equal(anotherIdentityName);
             identitities[2].label.should.equal(otherUserName);
 
-            logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+            logSpy.should.not.have.been.calledWith(LogType.ERROR);
 
         }).timeout(0);
 
@@ -489,7 +489,7 @@ describe('Integration Tests for Fabric and Go/Java Smart Contracts', () => {
 
                 installedSmartContract.should.not.be.null;
 
-                logSpy.should.not.have.been.calledWith(LogType.ERROR, sinon.match.string);
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
 
                 // Try to add new identity to gateway using enrollment id and secret
                 await integrationTestUtil.createFabricConnection();
