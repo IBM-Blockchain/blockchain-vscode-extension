@@ -22,13 +22,11 @@
 
 const assert = require('assert');
 const fabricNetwork = require('fabric-network');
-const fs = require('fs-extra');
-const yaml = require('js-yaml');
+const SmartContractUtil = require('./js-smart-contract-util');
 <%_ if (connectionProfileHome || walletHome) {-%>
 const os = require('os');
 const path = require('path');
 <%_ }-%>
-const URL = require('url');
 
 <%_ if (contractName !== '') { _%>
 describe('<%=contractName%>-<%=chaincodeLabel%>' , () => {
@@ -50,22 +48,12 @@ describe('<%=chaincodeLabel%>' , () => {
     let connectionProfile;
 
     before(async () => {
-        <%_ if (connectionProfileHome) { _%>
-        const connectionProfilePath = <%-connectionProfilePath%>;
-        <%_ } else { _%>
-        const connectionProfilePath = '<%-connectionProfilePath%>';
-        <%_ } _%>
-        const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
-        if (connectionProfilePath.endsWith('.json')) {
-            connectionProfile = JSON.parse(connectionProfileContents);
-        } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
-            connectionProfile = yaml.safeLoad(connectionProfileContents);
-        };
+        connectionProfile = await SmartContractUtil.getConnectionProfile();
     });
 
     beforeEach(async () => {
 
-        const discoveryAsLocalhost = hasLocalhostURLs(connectionProfile);
+        const discoveryAsLocalhost = SmartContractUtil.hasLocalhostURLs(connectionProfile);
         const discoveryEnabled = true;
 
         const options = {
@@ -114,49 +102,9 @@ describe('<%=chaincodeLabel%>' , () => {
         const args = [];
         <%_ } _%>
 
-        const response = await submitTransaction('<%=transaction.name%>', args); // Returns buffer of transaction return value
+        const response = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway); // Returns buffer of transaction return value
         // TODO: Update with return value of transaction
         // assert.equal(JSON.parse(response.toString()), undefined);
     }).timeout(10000);
 <% }) %>
-    async function submitTransaction(functionName, args) {
-        // Submit transaction
-        const network = await gateway.getNetwork('<%=channelName%>');
-<%_ if (contractName !== '') { _%>
-        const contract = await network.getContract('<%=chaincodeName%>', '<%=contractName%>');
-<%_ } else { _%>
-        const contract = await network.getContract('<%=chaincodeName%>');
-<%_ } _%>
-        const responseBuffer = await contract.submitTransaction(functionName, ...args);
-        return responseBuffer;
-    }
-
-    // Checks if URL is localhost
-    function isLocalhostURL(url) {
-        const parsedURL = URL.parse(url);
-        const localhosts = [
-            'localhost',
-            '127.0.0.1'
-        ];
-        return localhosts.indexOf(parsedURL.hostname) !== -1;
-    }
-
-    // Used for determining whether to use discovery
-    function hasLocalhostURLs(connectionProfile) {
-        const urls = [];
-        for (const nodeType of ['orderers', 'peers', 'certificateAuthorities']) {
-            if (!connectionProfile[nodeType]) {
-                continue;
-            }
-            const nodes = connectionProfile[nodeType];
-            for (const nodeName in nodes) {
-                if (!nodes[nodeName].url) {
-                    continue;
-                }
-                urls.push(nodes[nodeName].url);
-            }
-        }
-        return urls.some((url) => isLocalhostURL(url));
-    }
-
 });

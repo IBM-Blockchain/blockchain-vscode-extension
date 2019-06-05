@@ -200,14 +200,27 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             channelName: channelName,
             identityName: connectionIdentityName
         };
+
+        const utilTemplateData: any = {
+            connectionProfileHome: connectionProfileHome,
+            connectionProfilePath: connectionProfilePathString,
+            chaincodeName: chaincodeName,
+            channelName: channelName,
+            walletHome: walletHome
+        };
+
         console.log('template data is: ');
         console.log(templateData);
 
         // Create data to write to file from template engine
         const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
+        const utilTemplate: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractUtilTemplate.ejs`);
+
         let dataToWrite: string;
+        let functionDataToWrite: string;
         try {
             dataToWrite = await createDataToWrite(template, templateData);
+            functionDataToWrite = await createDataToWrite(utilTemplate, utilTemplateData);
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error creating template data: ${error.message}`, `Error creating template data: ${error.toString()}`);
 
@@ -249,6 +262,8 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             }
         }
 
+        const testFunctionFile: string = path.join(functionalTestsDirectory, `${testFileSuiffix}-smart-contract-util.${testFileSuiffix}`);
+
         // Create the test file
         try {
             await fs.ensureFile(testFile);
@@ -259,6 +274,33 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             return;
         }
         outputAdapter.log(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFile}`);
+
+        // Check if there's already a test functions file
+        const testFunctionFileExists: boolean = await fs.pathExists(testFunctionFile);
+        if (!testFunctionFileExists || overwriteTestFile) {
+            try {
+                await fs.ensureFile(testFunctionFile);
+            } catch (error) {
+                outputAdapter.log(LogType.ERROR, `Error creating test util file: ${error.message}`, `Error creating test util file: ${error.toString()}`);
+                await removeTestFile(testFunctionFile);
+                return;
+            }
+            // Open, show and write test functions file
+            const functionDocument: vscode.TextDocument = await vscode.workspace.openTextDocument(testFunctionFile);
+            const editor: vscode.TextEditor = await vscode.window.showTextDocument(functionDocument);
+            const functionLineCount: number = functionDocument.lineCount;
+            const editorResult: boolean = await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+                editBuilder.replace(new vscode.Range(0, 0, functionLineCount, 0), functionDataToWrite);
+            });
+
+            if (!editorResult) {
+                outputAdapter.log(LogType.ERROR, `Error editing test util file: ${testFunctionFile}`);
+                await removeTestFile(testFunctionFile);
+                return;
+            }
+
+            await functionDocument.save();
+        }
 
         // Open, show and write to test file
         const document: vscode.TextDocument = await vscode.workspace.openTextDocument(testFile);
@@ -273,11 +315,11 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         const textEditorResult: boolean = await textEditor.edit((editBuilder: vscode.TextEditorEdit) => {
             editBuilder.replace(new vscode.Range(0, 0, lineCount, 0), dataToWrite);
         });
+
         if (!textEditorResult) {
             outputAdapter.log(LogType.ERROR, `Error editing test file: ${testFile}`);
             await removeTestFile(testFile);
             return;
-
         }
         await document.save();
 
