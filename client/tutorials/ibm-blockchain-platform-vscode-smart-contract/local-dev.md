@@ -125,7 +125,7 @@ The panel titled `LOCAL FABRIC OPS` (in the IBM Blockchain Platform view) allows
 Local Fabric runtime is stopped. Click to start.
 ```
 
-Click that message and the extension will start spinning up Docker containers for you. The message "Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sectioned labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
+Click that message and the extension will start spinning up Docker containers for you. The message "Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sections labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
 
 > Command Palette alternative: `Start Fabric Runtime`
 
@@ -233,7 +233,7 @@ You've proven you can submit and evaluate transactions to update and read your l
 
 ---
 
-Completed all the steps? Congratulations, you now know the key steps in the workflow of local smart contract development. You've generated a skeleton contract, deployed it locally, and submitted/evalueted transactions using it.
+Completed all the steps? Congratulations, you now know the key steps in the workflow of local smart contract development. You've generated a skeleton contract, deployed it locally, and submitted/evaluated transactions using it.
 
 If you wish to spend some more time locally developing your own smart contracts, our Samples (accessed from the extension's homepage) can help you explore development concepts. If you're iterating a lot on your code, you should read up on __Debug__ in our ReadMe: it's _very_ useful for developers!
 
