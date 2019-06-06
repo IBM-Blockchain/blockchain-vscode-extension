@@ -1,5 +1,21 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.2: June 6th 2019
+
+* Split out generated test boilerplate code [#827](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/827)
+* Prevent adding duplicate wallets [#989](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/989)
+* Support array types in generated tests [#1002](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1002)
+* Updated deprecated test runner [#1026](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1026)
+* Fixed bug requiring local_fabric to be running before being able to connect to gateway [#1025](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1025)
+* Updated transaction timeout in debug mode to be infinite [#953](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/953)
+* Added check for invalid smart contract project names [#968](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/968)
+* Prevent adding duplicate gateways [#990](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/990)
+* Fixed overwriting for export connection profile command [#1001](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1001)
+* Improved error handling for local_fabric [#936](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/936)
+* Improved error handling for extension activation [#967](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/967)
+
+ ![conga comic](https://congacomic.github.io/assets/img/blockheight-52.png)
+
 ## 1.0.1: May 23rd 2019
 
 We've reached 10,000 installs :tada: - a big thank you to everyone who has contributed so far!
