@@ -193,12 +193,16 @@ describe('gatewayExplorer', () => {
 
                 allChildren.length.should.equal(5);
                 allChildren[1].label.should.equal('myGatewayA ⧉');
+                allChildren[1].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[1].should.be.an.instanceOf(GatewayAssociatedTreeItem);
                 allChildren[2].label.should.equal('myGatewayA ⧉');
+                allChildren[2].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[2].should.be.an.instanceOf(GatewayAssociatedTreeItem);
                 allChildren[3].label.should.equal('myGatewayB');
+                allChildren[3].tooltip.should.equal('No associated wallet');
                 allChildren[3].should.be.an.instanceOf(GatewayDissociatedTreeItem);
                 allChildren[4].label.should.equal('myGatewayC ⧉');
+                allChildren[4].tooltip.should.equal('ⓘ Associated wallet:\n    some_wallet');
                 allChildren[4].should.be.an.instanceOf(GatewayAssociatedTreeItem);
             });
 
