@@ -35,6 +35,7 @@ import { TutorialGalleryView } from '../src/webview/TutorialGalleryView';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { version } from 'punycode';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
+import { FabricWalletUtil } from '../src/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 
@@ -45,6 +46,7 @@ describe('Extension Tests', () => {
     let migrateRuntimeStub: sinon.SinonStub;
     let initializeStub: sinon.SinonStub;
     let migrateSettingConfigurations: sinon.SinonStub;
+    let tidyWalletsStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeShowHomeOnStart();
@@ -71,6 +73,7 @@ describe('Extension Tests', () => {
         migrateRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'migrate');
         initializeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize');
         migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
+        tidyWalletsStub = mySandBox.stub(FabricWalletUtil, 'tidyWalletSettings').resolves();
     });
 
     afterEach(async () => {
@@ -463,6 +466,13 @@ describe('Extension Tests', () => {
         });
         await myExtension.activate(context);
         migrateSettingConfigurations.should.not.have.been.called;
+    });
+
+    it('should call tidy wallets function on extension activation', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        await myExtension.activate(context);
+        tidyWalletsStub.should.have.been.called;
     });
 
 });
