@@ -125,7 +125,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         return;
     }
 
-    const packageJSONSearch: Array<vscode.Uri> = await vscode.workspace.findFiles('package.json', '**/node_modules/**', workspaceFolders.length);
+    const packageJSONSearch: Array<vscode.Uri> =  await vscode.workspace.findFiles('package.json', '**/node_modules/**', workspaceFolders.length);
     let packageJSONFound: vscode.Uri;
     let functionalTestsDirectory: string;
     let localSmartContractDirectory: string;

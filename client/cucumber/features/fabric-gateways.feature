@@ -23,8 +23,26 @@ Feature: Fabric Gateways
         And there should be a tree item with a label 'Using ID: new_identity' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Using ID: new_identity'
 
+    @otherFabric
+    Scenario: Create another gateway
+        Given gateway 'myGateway' is created
+        Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
 
-     Scenario Outline: Generating <testLanguage> tests for a <contractLanguage> contract
+    @otherFabric
+    Scenario: Connect to another gateway
+        Given gateway 'myGateway' is created
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
+        When connecting to the 'myGateway' gateway without association
+        Then there should be a tree item with a label 'Connected via gateway: myGateway' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Connected via gateway: myGateway'
+        And there should be a tree item with a label 'Using ID: conga' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Using ID: conga'
+        And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Channels'
+
+
+     Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity
@@ -43,3 +61,22 @@ Feature: Fabric Gateways
         | JavaScriptContract2 | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
         | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
         | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |
+
+
+    @otherFabric
+    Scenario Outline: Generating tests for a contract (other fabric)
+        Given a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
+        And the contract has been created
+        And the contract has been packaged
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        Given gateway 'myGateway' is created
+        And connected to the 'myGateway' gateway without association  
+        And the other fabric is setup with contract name <contractName> and version <version>
+        When I generate a <testLanguage> functional test for a <contractLanguage> contract
+        Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
+        And the tests should be runnable
+        Examples:
+        | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
+        | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
+        | JavaScriptContract  | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+

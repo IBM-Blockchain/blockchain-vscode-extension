@@ -26,3 +26,6 @@ coverage
 /integrationTest/data/fabric-samples
 /cucumber/cucumber-report.html
 /cucumber/cucumber-report.json
+/cucumber/hfc-key-store/
+/cucumber/tmp/
+

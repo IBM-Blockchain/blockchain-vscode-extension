@@ -1155,6 +1155,7 @@
         "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
         "productionFlag": "node ../.travis/rewritePackageJson.js publish",
         "integrationTests": "./integrationTest/scripts/start-integration-tests.sh && npm run compile",
+        "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
         "localize": "vscl out/src/**/*.js"
     },
     "devDependencies": {
@@ -1262,6 +1263,9 @@
             "config/.DS_Store",
             "test/.DS_Store",
             "i18n/README.md",
+            "cucumber/data",
+            "cucumber/tmp",
+            "cucumber/hlfv1",
             "integrationTest/data",
             "integrationTest/tmp",
             "integrationTest/nodeTests/data",
