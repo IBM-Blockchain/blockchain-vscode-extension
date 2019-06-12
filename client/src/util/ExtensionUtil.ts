@@ -16,6 +16,8 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as os from 'os';
+
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class ExtensionUtil {
@@ -118,6 +120,23 @@ export class ExtensionUtil {
 
     public static skipNpmInstall(): boolean {
         return false; // We should never skip npm install, except for unit tests
+    }
+
+    public static checkIfIBMer(): boolean {
+        let isIBMer: boolean = false;
+        const networkInterfaces: { [index: string]: os.NetworkInterfaceInfo[] } = os.networkInterfaces();
+        const keys: string[] = Object.keys(networkInterfaces);
+        keys.forEach((key: string) => {
+            const interfaces: os.NetworkInterfaceInfo[] = networkInterfaces[key];
+            const foundInterfaces: os.NetworkInterfaceInfo[] = interfaces.filter((_interface: os.NetworkInterfaceInfo) => {
+                return _interface.family === 'IPv4' && _interface.address.startsWith('9.');
+            });
+
+            if (foundInterfaces.length > 0) {
+                isIBMer = true;
+            }
+        });
+        return isIBMer;
     }
 
     private static extensionContext: vscode.ExtensionContext;

@@ -144,7 +144,7 @@ describe('TutorialGalleryView', () => {
         const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
         await tutorialGalleryView.openPanelInner(panel);
 
-        reporterStub.should.have.been.calledWith('openedView', {name: 'Tutorial Gallery'});
+        reporterStub.should.have.been.calledWith('openedView', {openedView: 'Tutorial Gallery'});
 
     });
 

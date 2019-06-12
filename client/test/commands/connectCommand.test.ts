@@ -190,7 +190,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should test that a fabric gateway with multiple identities can be connected to from the quick pick', async () => {
@@ -211,7 +211,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.calledOnce;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should do nothing if the user cancels choosing a gateway', async () => {
@@ -281,7 +281,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should test that a fabric gateway with multiple identities can be connected to from the tree', async () => {
@@ -297,7 +297,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), FabricRuntimeUtil.ADMIN_USER);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should handle no identities found in wallet', async () => {
@@ -371,7 +371,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
             it('should connect to a managed runtime with multiple identities, using a quick pick', async () => {
@@ -385,7 +385,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
             it('should connect to a managed runtime from the tree', async () => {
@@ -398,7 +398,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
@@ -449,7 +449,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should connect to a non-local fabric with multiple identities, using a quick pick', async () => {
@@ -463,7 +463,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should connect to a non-local runtime from the tree', async () => {
@@ -477,7 +477,7 @@ describe('ConnectCommand', () => {
                 connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
-                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime' });
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
@@ -498,7 +498,7 @@ describe('ConnectCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-            sendTelemetryEventStub.should.have.been.calledWith('connectCommand', { runtimeData: 'IBP instance' });
+            sendTelemetryEventStub.should.have.been.calledWith('connectCommand', { runtimeData: 'IBP instance', connectIBM: sinon.match.string });
         });
     });
 });

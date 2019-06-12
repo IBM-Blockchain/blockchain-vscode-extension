@@ -62,6 +62,7 @@ describe('SampleView', () => {
             reveal: (): void => {
                 return;
             },
+            title: 'FabCar',
             onDidDispose: mySandBox.stub(),
             onDidChangeViewState: mySandBox.stub()
 
@@ -81,6 +82,8 @@ describe('SampleView', () => {
         const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
         await sampleView.openView(false);
         createWebviewPanelStub.should.have.been.called;
+
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {openedView: 'FabCar'});
     });
 
     it('should do nothing if command not recognised', async () => {
@@ -364,7 +367,7 @@ describe('SampleView', () => {
             outputAdapterSpy.should.have.been.calledTwice;
             repositoryRegistryStub.should.have.been.calledOnceWithExactly({name: repositoryName, path: '/some/path'});
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Cloned', {sample: 'FabCar'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Cloned', {sample: 'FabCar'});
         });
 
         it('should stop if user cancels dialog', async () => {
@@ -424,7 +427,7 @@ describe('SampleView', () => {
                 path: '/some/path'
             });
             outputAdapterSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, 'Successfully cloned repository!');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Cloned', {sample: 'FabCar'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Cloned', {sample: 'FabCar'});
         });
     });
 
@@ -500,7 +503,7 @@ describe('SampleView', () => {
             openNewProjectStub.should.have.been.calledOnce;
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
         });
 
         it(`should show error if the repository isn't in the user settings`, async () => {
@@ -584,7 +587,7 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
         });
 
         it('should handle other errors', async () => {
@@ -662,7 +665,7 @@ describe('SampleView', () => {
 
             const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
             sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, outputAdapter);
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('Sample Opened', {sample: 'FabCar', name: 'JavaScript Application', type: 'applications', language: 'JavaScript'});
+            sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'JavaScript Application', type: 'applications', language: 'JavaScript'});
         });
 
         it('should throw an error if fileType not recognised', async () => {

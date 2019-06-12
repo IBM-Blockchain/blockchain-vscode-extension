@@ -350,7 +350,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should generate a typescript test file for a selected instantiated smart contract', async () => {
@@ -405,7 +405,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
         });
 
         it('should provide a path.join if the wallet path contains the home directory', async () => {
@@ -449,7 +449,7 @@ describe('testSmartContractCommand', () => {
             showTextDocumentStub.should.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should handle connecting being cancelled', async () => {
@@ -554,7 +554,7 @@ describe('testSmartContractCommand', () => {
             workspaceConfigurationUpdateStub.should.have.been.calledOnce;
             writeJsonStub.should.have.been.calledWith(path.join(testFileDir, 'tsconfig.json'), tsConfigContents, tsConfigFormat);
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
         });
 
         it('should show an error message if the user has no workspaces open', async () => {
@@ -618,7 +618,7 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
 
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should generate a test file for just the contract tree item passed in', async () => {
@@ -651,7 +651,7 @@ describe('testSmartContractCommand', () => {
             firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
 
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should generate a test file for just the selected contract', async () => {
@@ -685,7 +685,7 @@ describe('testSmartContractCommand', () => {
             firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
 
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should generate a test file for all contracts', async () => {
@@ -724,7 +724,7 @@ describe('testSmartContractCommand', () => {
             secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
 
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should only create the test util file once if generating multiple test files', async () => {
@@ -834,7 +834,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should overwrite the test util if the user chooses to overwrite the test file', async () => {
@@ -881,7 +881,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should generate a copy of the test file if the user tells it to', async () => {
@@ -904,7 +904,7 @@ describe('testSmartContractCommand', () => {
             templateData.includes(transactionTwo.name).should.be.true;
             templateData.includes(transactionThree.name).should.be.true;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should generate a copy of the test file and name it correctly if the smart contract namespace isnt defined', async () => {
@@ -952,7 +952,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
         });
 
         it('should show an error if it fails to create test file', async () => {
@@ -1097,7 +1097,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
         });
 
         it('should correctly detect no test runner user settings for typescript tests', async () => {
@@ -1121,7 +1121,7 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript`);
             logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
             logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'TypeScript'});
         });
 
         it('should error if tsconfig.json file cannot be created', async () => {

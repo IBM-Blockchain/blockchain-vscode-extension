@@ -47,6 +47,7 @@ describe('Extension Tests', () => {
     let initializeStub: sinon.SinonStub;
     let migrateSettingConfigurations: sinon.SinonStub;
     let tidyWalletsStub: sinon.SinonStub;
+    let sendTelemetryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeShowHomeOnStart();
@@ -74,6 +75,8 @@ describe('Extension Tests', () => {
         initializeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize');
         migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
         tidyWalletsStub = mySandBox.stub(FabricWalletUtil, 'tidyWalletSettings').resolves();
+
+        sendTelemetryStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
     });
 
     afterEach(async () => {
@@ -301,7 +304,7 @@ describe('Extension Tests', () => {
     it('should dispose of the reporter instance production flag is false on extension activiation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: false });
         const reporterDisposeStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'dispose');
 
         const dependencyManager: DependencyManager = DependencyManager.instance();
@@ -319,8 +322,8 @@ describe('Extension Tests', () => {
     it('should push the reporter instance to the context if production flag is true on extension activiation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
-        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter, 'instance');
 
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
@@ -331,7 +334,7 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        reporterStub.should.have.been.called;
+        reporterSpy.should.have.been.called;
     });
 
     it('should not open home page if disabled in settings', async () => {
@@ -466,6 +469,39 @@ describe('Extension Tests', () => {
         });
         await myExtension.activate(context);
         migrateSettingConfigurations.should.not.have.been.called;
+    });
+
+    it('should report if new install', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: '0.0.7',
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
+    });
+
+    it('should not report if not changed version', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        sendTelemetryStub.should.not.have.been.called;
+    });
+
+    it('should report if updated install', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: null,
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        sendTelemetryStub.should.have.been.calledWith('newInstall', {IBM: sinon.match.string});
     });
 
     it('should call tidy wallets function on extension activation', async () => {

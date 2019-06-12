@@ -43,6 +43,8 @@ export class SampleView extends View {
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
 
+        Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
+
         const extensionPath: string = ExtensionUtil.getExtensionPath();
         const whitePanelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'github_black.svg'));
         const blackPanelIcon: vscode.Uri = vscode.Uri.file(path.join(extensionPath, 'resources', 'github_white.svg'));
