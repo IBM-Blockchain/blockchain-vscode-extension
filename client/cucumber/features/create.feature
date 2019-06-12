@@ -1,26 +1,14 @@
 Feature: Created Smart Contracts
-    Description about feature here
+    Create a smart contract for each of the languages supported
 
-    Scenario: Create a JavaScript smart contract
-        Given a JavaScript smart contract for 'Conga' assets with the name 'CreatedContractJavaScript' and version '0.0.1'
+    Scenario Outline: Create a smart contract
+        Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract hasn't been created already
         When I create the contract
         Then a new contract directory should exist
-
-    Scenario: Create a TypeScript smart contract
-        Given a TypeScript smart contract for 'Conga' assets with the name 'CreatedContractTypescriptScript' and version '0.0.1'
-        And the contract hasn't been created already
-        When I create the contract
-        Then a new contract directory should exist
-
-    Scenario: Create a Java smart contract
-        Given a Java smart contract for 'null' assets with the name 'CreatedContractJava' and version '0.0.1'
-        And the contract hasn't been created already
-        When I create the contract
-        Then a new contract directory should exist
-
-    Scenario: Create a Go smart contract
-        Given a Go smart contract for 'null' assets with the name 'CreatedContractGo' and version '0.0.1'
-        And the contract hasn't been created already
-        When I create the contract
-        Then a new contract directory should exist
+        Examples:
+        | language   | assetType | name               | version |
+        | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
+        | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
+        | Java       | null      | JavaContract       | 0.0.1   |
+        | Go         | null      | GoContract         | 0.0.1   |

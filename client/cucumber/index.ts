@@ -40,18 +40,35 @@ async function runCucumberTest(): Promise<any> {
     });
 
     const features: any[] = [];
+    const otherFeatures: any = [];
 
     for (const file of featureFiles) {
         const featureSource: any = fs.readFileSync(path.join(featurePath, file), 'utf8');
 
         const feature: any = Cucumber.FeatureParser.parse({
-            scenarioFilter : new Cucumber.ScenarioFilter({}),
-            source : featureSource, // For some reason, we need to read the source of the feature (as well as provide the path
-            uri : path.join(featurePath, file)
+            scenarioFilter: new Cucumber.ScenarioFilter({}),
+            source: featureSource, // For some reason, we need to read the source of the feature (as well as provide the path
+            uri: path.join(featurePath, file)
         });
 
-        features.push(feature);
+        if (file === 'create.feature') {
+            features.splice(0, 0, feature);
+        } else if (file === 'package.feature') {
+            features.splice(1, 0, feature);
+        } else if (file === 'install.feature') {
+            features.splice(2, 0, feature);
+        } else if (file === 'instantiate.feature') {
+            features.splice(3, 0, feature);
+        } else if (file === 'upgrade.feature') {
+            features.splice(4, 0, feature);
+        } else if (file === 'transaction.feature') {
+            features.splice(5, 0, feature);
+        } else {
+            otherFeatures.push(feature);
+        }
     }
+
+    features.push(...otherFeatures);
 
     // Load the support functions.
     Cucumber.clearSupportCodeFns();
@@ -60,39 +77,39 @@ async function runCucumberTest(): Promise<any> {
         stepdefs.call(context);
     });
     const supportCodeLibrary: any = Cucumber.SupportCodeLibraryBuilder.build({
-        cwd : '/',
-        fns : Cucumber.getSupportCodeFns()
+        cwd: '/',
+        fns: Cucumber.getSupportCodeFns()
     });
 
     const jsonOptions: any = {
-        colorsEnabled : true,
-        cwd : '/',
-        log : (data: any): any => {
+        colorsEnabled: true,
+        cwd: '/',
+        log: (data: any): any => {
             if (data) {
                 jsonResult = data;
             }
         },
-        supportCodeLibrary : supportCodeLibrary
+        supportCodeLibrary: supportCodeLibrary
     };
 
     const jsonFormatter: any = Cucumber.FormatterBuilder.build('json', jsonOptions);
 
     const prettyOptions: any = {
-        colorsEnabled : true,
-        cwd : '/',
-        log : (data: any): any => {
+        colorsEnabled: true,
+        cwd: '/',
+        log: (data: any): any => {
             console.log(data);
 
         },
-        supportCodeLibrary : supportCodeLibrary
+        supportCodeLibrary: supportCodeLibrary
     };
 
     const prettyFormatter: any = Cucumber.FormatterBuilder.build('pretty', prettyOptions);
 
     const runtime: any = new Cucumber.Runtime({
-        features : features,
-        listeners : [jsonFormatter, prettyFormatter],
-        supportCodeLibrary : supportCodeLibrary
+        features: features,
+        listeners: [jsonFormatter, prettyFormatter],
+        supportCodeLibrary: supportCodeLibrary
     });
     return runtime.start();
 }
@@ -101,7 +118,7 @@ async function run(testsRoot: string, clb: (error: any, failures?: number) => vo
     console.log(testsRoot);
     try {
 
-        await runCucumberTest();
+        const result: any = await runCucumberTest();
 
         await fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'));
         await fs.writeFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'), jsonResult);
@@ -115,7 +132,11 @@ async function run(testsRoot: string, clb: (error: any, failures?: number) => vo
             launchReport: false
         });
 
-        clb(null, 0);
+        if (result) {
+            clb(null, 0);
+        } else {
+            clb(null, 1);
+        }
 
     } catch (error) {
         console.log('Error:', error);

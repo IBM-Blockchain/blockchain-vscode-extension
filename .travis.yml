@@ -32,6 +32,9 @@ jobs:
     - script: ./.travis/script.sh
       os: linux
       env: TASK=systest
+    - script: ./.travis/script.sh
+      os: linux
+      env: TASK=cucumber
     - stage: deploy
       skip_cleanup: true
       provider: script

@@ -1148,6 +1148,7 @@
         "test": "node ./node_modules/vscode/bin/test --verbose",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
         "systest": "node ./node_modules/vscode/bin/test --verbose",
+        "cucumber": "node ./node_modules/vscode/bin/test --verbose",
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.json",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/tests/integration.test.ts' 'integrationTest/nodeTests/integrationNode.test.ts'",
