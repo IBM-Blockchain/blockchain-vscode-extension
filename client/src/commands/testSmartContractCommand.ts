@@ -379,7 +379,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     outputAdapter.log(LogType.SUCCESS, 'Successfully generated tests');
 
-    Reporter.instance().sendTelemetryEvent('testSmartContractCommand');
+    Reporter.instance().sendTelemetryEvent('testSmartContractCommand', {testSmartContractLanguage: testLanguage});
 
 }
 

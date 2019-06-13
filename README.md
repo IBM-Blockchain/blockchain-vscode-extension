@@ -66,15 +66,12 @@ Debugging your smart contract allows you to run through the smart contract trans
 1. Ensure you are connected to the `local_fabric` runtime and that the `local_fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. By toggling development mode, transactions will now have a large timeout value.
 2. Open your smart contract project in your workspace.
 3. Open the debug view in Visual Studio Code using the left-hand navigation bar.
-4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left.
-5. Package and install the smart contract by clicking the **play** button.
-6. Select whether to `Create a new debug package and install` or `Resume from a previous debug session`.
-7. From the dropdown box, select the peer to install the package on.
-8. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
-9. If `Create a new debug package and install` was selected, click **Instantiate** in the `Local Fabric Ops` panel.
-10. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
+4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left and click the **play** button on the debug toolbar.
+5. Select `Instantiate Smart Contract` from the blockchain icon on the debug toolbar. This action will package, install and instantiate a debug version of the selected smart contract. If there is a version of the selected smart contract already instantiated, select `Upgrade Smart Contract`. 
+6. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
+7. To submit or evaluate a transaction, click the blockchain icon on the debug toolbar. Alternatively, in the `Fabric Gateways` panel, you can right click on transactions to submit or evaluate them. Execution will be paused on any breakpoints you've defined.
 
-To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. You do not need to instantiate the contract again upon restarting the debug session. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract. If you restart the `local_fabric` runtime after stopping a debugging session, you must choose the "new debugging session" option in step 6. You must then upgrade the smart contract to the new `vscode-debug-XXXXXXX` version before submitting and debugging transactions.
+To make iterative changes to your smart contract while debugging, after making your changes click the **restart** button. You can also stop the debugging session, make futher changes and start debugging again, without needing to upgrade your smart contract. Please note, as this stores the smart contract in local memory, for many changes to large smart contracts, you may need to reinstantiate the smart contract. If you restart the `local_fabric` runtime after stopping a debugging session, you must select `Upgrade Smart Contract` by clicking the blockchain icon on the debug toolbar. This will install a new `vscode-debug-XXXXXXX` version of your smart contract, which then allows you to continue submitting and debugging transactions.
 
 ### Add a gateway for connecting to your own Hyperledger Fabric instance
 To connect to our own Hyperledger Fabric instance, it must be running [Hyperledger Fabric v1.4.1](https://hyperledger-fabric.readthedocs.io/en/release-1.4/install.html) or later.
@@ -89,7 +86,7 @@ The extension creates a `local_fabric_wallet` file system wallet when it is inst
 
 The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, or a gateway, enrollment id and secret.
 
-For wallets associated with other remote Fabric gateways, the `Add Wallet`, `Edit Wallet`,`Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
+For wallets associated with other remote Fabric gateways, the `Add Wallet`,`Edit Wallet` ,`Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 
 ## Useful Commands
 The IBM Blockchain Platform extension provides an explorer and commands accessible from the Command Palette, for developing smart contracts quickly:

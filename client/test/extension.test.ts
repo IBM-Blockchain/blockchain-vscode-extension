@@ -33,9 +33,10 @@ import { TutorialView } from '../src/webview/TutorialView';
 import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { TutorialGalleryView } from '../src/webview/TutorialGalleryView';
 import { SettingConfigurations } from '../SettingConfigurations';
-import { version } from 'punycode';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { FabricWalletUtil } from '../src/fabric/FabricWalletUtil';
+import { dependencies } from '../package.json';
+import { FabricRuntime } from '../src/fabric/FabricRuntime';
 
 chai.use(sinonChai);
 
@@ -47,6 +48,7 @@ describe('Extension Tests', () => {
     let initializeStub: sinon.SinonStub;
     let migrateSettingConfigurations: sinon.SinonStub;
     let tidyWalletsStub: sinon.SinonStub;
+    let sendTelemetryStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeShowHomeOnStart();
@@ -74,6 +76,8 @@ describe('Extension Tests', () => {
         initializeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'initialize');
         migrateSettingConfigurations = mySandBox.stub(ExtensionUtil, 'migrateSettingConfigurations').resolves();
         tidyWalletsStub = mySandBox.stub(FabricWalletUtil, 'tidyWalletSettings').resolves();
+
+        sendTelemetryStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
     });
 
     afterEach(async () => {
@@ -301,7 +305,7 @@ describe('Extension Tests', () => {
     it('should dispose of the reporter instance production flag is false on extension activiation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: false});
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: false });
         const reporterDisposeStub: sinon.SinonStub = mySandBox.stub(Reporter.instance(), 'dispose');
 
         const dependencyManager: DependencyManager = DependencyManager.instance();
@@ -319,8 +323,8 @@ describe('Extension Tests', () => {
     it('should push the reporter instance to the context if production flag is true on extension activiation', async () => {
         mySandBox.stub(vscode.commands, 'executeCommand').resolves();
 
-        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({production: true});
-        const reporterStub: sinon.SinonStub = mySandBox.stub(Reporter, 'instance');
+        mySandBox.stub(ExtensionUtil, 'getPackageJSON').returns({ production: true });
+        const reporterSpy: sinon.SinonSpy = mySandBox.spy(Reporter, 'instance');
 
         const dependencyManager: DependencyManager = DependencyManager.instance();
         mySandBox.stub(vscode.commands, 'registerCommand');
@@ -331,7 +335,7 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
 
-        reporterStub.should.have.been.called;
+        reporterSpy.should.have.been.called;
     });
 
     it('should not open home page if disabled in settings', async () => {
@@ -439,7 +443,8 @@ describe('Extension Tests', () => {
         await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: '0.0.7',
-            migrationCheck: 1
+            migrationCheck: 1,
+            generatorVersion: dependencies['generator-fabric']
         });
         await myExtension.activate(context);
         migrateRuntimeStub.should.have.been.calledOnceWithExactly('0.0.7');
@@ -451,7 +456,8 @@ describe('Extension Tests', () => {
         await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
-            migrationCheck: 0
+            migrationCheck: 0,
+            generatorVersion: dependencies['generator-fabric']
         });
         await myExtension.activate(context);
         migrateSettingConfigurations.should.have.been.calledOnce;
@@ -461,11 +467,45 @@ describe('Extension Tests', () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
             activationCount: 0,
-            version: version,
-            migrationCheck: 1
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: dependencies['generator-fabric']
         });
         await myExtension.activate(context);
         migrateSettingConfigurations.should.not.have.been.called;
+    });
+
+    it('should report if new install', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: '0.0.7',
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
+    });
+
+    it('should not report if not changed version', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        sendTelemetryStub.should.not.have.been.called;
+    });
+
+    it('should report if updated install', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: null,
+            migrationCheck: 1
+        });
+        await myExtension.activate(context);
+        sendTelemetryStub.should.have.been.calledWith('newInstall', {IBM: sinon.match.string});
     });
 
     it('should call tidy wallets function on extension activation', async () => {
@@ -473,6 +513,193 @@ describe('Extension Tests', () => {
 
         await myExtension.activate(context);
         tidyWalletsStub.should.have.been.called;
+    });
+
+    it('should do nothing if generator version is the latest', async () => {
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        const generatorVersion: string = dependencies['generator-fabric'];
+        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: generatorVersion
+        });
+
+        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(context.globalState, 'update');
+        await myExtension.activate(context);
+        updateGlobalStateSpy.should.not.have.been.calledTwice;
+    });
+
+    it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} not already generated`, async () => {
+        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const generatorVersion: string = dependencies['generator-fabric'];
+        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: 'not_the_latest_version'
+        });
+
+        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
+
+        await myExtension.activate(newContext);
+
+        updateGlobalStateSpy.should.have.been.calledTwice;
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 1,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: generatorVersion
+        });
+    });
+
+    it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} has not been generated`, async () => {
+        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const generatorVersion: string = dependencies['generator-fabric'];
+        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: 'not_the_latest_version'
+        });
+
+        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
+
+        await myExtension.activate(newContext);
+
+        updateGlobalStateSpy.should.have.been.calledTwice;
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 1,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: generatorVersion
+        });
+    });
+
+    // This test updates the generator to the lastest when the user is prompted by the showConfirmationWarningMessage.
+    // It also doesn't start the newly generated Fabric, as it was stopped when the user selected 'Yes' at the prompt
+    it(`should update generator version to latest when the user selects 'Yes' (and stopped)`, async () => {
+        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const generatorVersion: string = dependencies['generator-fabric'];
+        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: 'not_the_latest_version'
+        });
+
+        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
+
+        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.isRunning.resolves(false);
+        mockRuntime.isGenerated.resolves(true);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+        const showConfirmationWarniningMessageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+        showConfirmationWarniningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
+
+        await myExtension.activate(newContext);
+
+        updateGlobalStateSpy.should.have.been.calledTwice;
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 1,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: generatorVersion
+        });
+
+        showConfirmationWarniningMessageStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
+
+    });
+
+    // This test updates the generator to the lastest when the user is prompted by the showConfirmationWarningMessage.
+    // It should also start the newly generated Fabric, as it was stopped when the user selected 'Yes' at the prompt
+    it(`should update generator version to latest when the user selects 'Yes' (and started)`, async () => {
+        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const generatorVersion: string = dependencies['generator-fabric'];
+        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: 'not_the_latest_version'
+        });
+
+        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
+
+        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.isRunning.resolves(true);
+        mockRuntime.isGenerated.resolves(true);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+        const showConfirmationWarniningMessageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+        showConfirmationWarniningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
+
+        await myExtension.activate(newContext);
+
+        updateGlobalStateSpy.should.have.been.calledTwice;
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 1,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: generatorVersion
+        });
+
+        showConfirmationWarniningMessageStub.should.have.been.calledOnce;
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
+
+    });
+
+    it(`shouldn't update the generator version to latest when the user selects 'No'`, async () => {
+        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const generatorVersion: string = dependencies['generator-fabric'];
+        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 0,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: 'not_the_latest_version'
+        });
+
+        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+
+        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
+
+        const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+        mockRuntime.isGenerated.resolves(true);
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+        const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+        const showConfirmationWarniningMessageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+        showConfirmationWarniningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
+
+        await myExtension.activate(newContext);
+
+        updateGlobalStateSpy.should.have.been.calledOnce;
+        updateGlobalStateSpy.should.not.have.been.calledWith(myExtension.EXTENSION_DATA_KEY, {
+            activationCount: 1,
+            version: currentExtensionVersion,
+            migrationCheck: 1,
+            generatorVersion: generatorVersion
+        });
+
+        showConfirmationWarniningMessageStub.should.have.been.calledOnce;
+        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
+
     });
 
 });

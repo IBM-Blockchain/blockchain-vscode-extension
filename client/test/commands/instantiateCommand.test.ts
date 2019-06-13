@@ -35,7 +35,6 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlo
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { Reporter } from '../../src/util/Reporter';
 
-const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('InstantiateCommand', () => {
@@ -426,8 +425,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT) as PackageRegistryEntry;
-            should.not.exist(packageEntry);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricRuntimeMock.instantiateChaincode.should.not.been.calledWith('somepackage', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -470,8 +468,7 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT) as PackageRegistryEntry;
-            should.not.exist(packageEntry);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricRuntimeMock.instantiateChaincode.should.not.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;
@@ -490,10 +487,64 @@ describe('InstantiateCommand', () => {
                 }
             });
 
-            const packageEntry: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT) as PackageRegistryEntry;
-            should.not.exist(packageEntry);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
 
             fabricRuntimeMock.instantiateChaincode.should.not.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
+        });
+
+        it('should instantiate a debug package when called from the debug command list', async () => {
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
+
+            const workspaceFolder: any = {
+                name: 'beer',
+                uri: vscode.Uri.file('myPath')
+            };
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    env: {
+                        CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
+                    }
+                }
+            };
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('beer', 'vscode-debug-123456', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should hand the package command failing when called the command is called during a debug session', async () => {
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves();
+
+            const workspaceFolder: any = {
+                name: 'beer',
+                uri: vscode.Uri.file('myPath'),
+            };
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    env: {
+                        CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
+                    }
+                },
+                workspaceFolder: workspaceFolder
+            };
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+
+            fabricRuntimeMock.instantiateChaincode.should.not.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'instantiateSmartContract');
         });
     });

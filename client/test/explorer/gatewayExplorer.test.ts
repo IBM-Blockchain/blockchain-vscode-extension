@@ -278,7 +278,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
 
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                getConnectionStub.returns(fabricConnection);
                 getConnectionStub.onCall(1).throws({ message: 'cannot connect' });
 
                 const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').returns(undefined);
@@ -292,7 +292,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
             it('should error if createChannelMap fails', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricConnection);
+                getConnectionStub.returns(fabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.createChannelMap.callThrough();
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'some error' });
@@ -318,7 +318,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
             it('should error if gRPC cant connect to Fabric', async () => {
 
                 const fabricConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
-                getConnectionStub.returns((fabricConnection as any) as FabricClientConnection);
+                getConnectionStub.returns(fabricConnection);
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.createChannelMap.callThrough();
                 fabricConnection.getAllChannelsForPeer.throws({ message: 'Received http2 header with status: 503' });

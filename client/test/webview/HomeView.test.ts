@@ -198,7 +198,7 @@ describe('HomeView', () => {
 
         await Promise.all(onDidReceiveMessagePromises);
 
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {name: 'IBM Blockchain Platform Home'});
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {openedView: 'IBM Blockchain Platform Home'});
     });
 
     it('should send telemetry event on openPanelInner', async () => {
@@ -212,7 +212,7 @@ describe('HomeView', () => {
         const homeView: HomeView = new HomeView(context);
         await homeView.openPanelInner(panel);
 
-        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {name: 'IBM Blockchain Platform Home'});
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('openedView', {openedView: 'IBM Blockchain Platform Home'});
 
     });
 

@@ -12,15 +12,15 @@
  * limitations under the License.
 */
 import * as vscode from 'vscode';
-
+import * as os from 'os';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as fs from 'fs-extra';
-
 import * as chaiAsPromised from 'chai-as-promised';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import * as dateFormat from 'dateformat';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -29,6 +29,7 @@ chai.use(chaiAsPromised);
 describe('ExtensionUtil Tests', () => {
 
     let mySandBox: sinon.SinonSandbox;
+    let clock: sinon.SinonFakeTimers;
     const workspaceFolder: any = {
         name: 'myFolder',
         uri: vscode.Uri.file('myPath')
@@ -82,7 +83,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            mySandBox.stub(fs, 'readFile').throws({message: 'Cannot read file'});
+            mySandBox.stub(fs, 'readFile').throws({ message: 'Cannot read file' });
 
             await ExtensionUtil.loadJSON(workspaceFolder, 'package.json').should.be.rejectedWith('error reading package.json from project Cannot read file');
 
@@ -92,7 +93,7 @@ describe('ExtensionUtil Tests', () => {
     describe('getContractNameAndVersion', () => {
         it('should get contract name and version', async () => {
 
-            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({name: 'projectName', version: '0.0.3'});
+            mySandBox.stub(ExtensionUtil, 'loadJSON').resolves({ name: 'projectName', version: '0.0.3' });
 
             const result: any = await ExtensionUtil.getContractNameAndVersion(workspaceFolder);
             result.should.deep.equal({
@@ -103,7 +104,7 @@ describe('ExtensionUtil Tests', () => {
 
         it('should handle errors', async () => {
 
-            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({message: 'error reading package.json from project Cannot read file'});
+            mySandBox.stub(ExtensionUtil, 'loadJSON').throws({ message: 'error reading package.json from project Cannot read file' });
             should.equal(await ExtensionUtil.getContractNameAndVersion(workspaceFolder), undefined);
         });
     });
@@ -259,6 +260,94 @@ describe('ExtensionUtil Tests', () => {
 
             const result: boolean = await ExtensionUtil.skipNpmInstall();
             result.should.equal(false);
+
+        });
+    });
+
+    describe('checkIfIBMer', () => {
+        it('should return true if ibmer', () => {
+            const _interface: any = {
+                lo: [
+                    {
+                        address: '9.125.0.1',
+                        family: 'IPv4',
+                    }
+                ]
+            };
+
+            mySandBox.stub(os, 'networkInterfaces').returns(_interface);
+            const result: boolean = ExtensionUtil.checkIfIBMer();
+            result.should.equal(true);
+        });
+
+        it('should return true if ibmer (multiple)', () => {
+            const _interface: any = {
+                lo: [
+                    {
+                        address: '9.125.0.1',
+                        family: 'IPv4',
+                    }
+                ],
+                eth0: [
+                    {
+                        address: '192.168.1.108',
+                        netmask: '255.255.255.0',
+                        family: 'IPv4'
+                    },
+                    {
+                        address: '9.168.1.108',
+                        netmask: '255.255.255.0',
+                        family: 'IPv6'
+                    },
+                ]
+            };
+
+            mySandBox.stub(os, 'networkInterfaces').returns(_interface);
+            const result: boolean = ExtensionUtil.checkIfIBMer();
+            result.should.equal(true);
+        });
+
+        it('should return false if not ibmer', () => {
+            const _interface: any = {
+                lo: [
+                    {
+                        address: '10.125.0.1',
+                        family: 'IPv6',
+                    }
+                ],
+                eth0: [
+                    {
+                        address: '192.168.1.108',
+                        netmask: '255.255.255.0',
+                        family: 'IPv4'
+                    },
+                    {
+                        address: '10.168.1.108',
+                        netmask: '255.255.255.0',
+                        family: 'IPv6'
+                    },
+                ]
+            };
+            mySandBox.stub(os, 'networkInterfaces').returns(_interface);
+            const result: boolean = ExtensionUtil.checkIfIBMer();
+            result.should.equal(false);
+        });
+    });
+
+    describe('getNewDebugVersion', () => {
+
+        afterEach(() => {
+            clock.restore();
+        });
+
+        it('return a new debug version', async () => {
+
+            clock = sinon.useFakeTimers({ toFake: ['Date'] });
+            const date: Date = new Date();
+            const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
+
+            const result: string = await ExtensionUtil.getNewDebugVersion();
+            result.should.equal(`vscode-debug-${formattedDate}`);
 
         });
     });

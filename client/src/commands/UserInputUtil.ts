@@ -264,9 +264,10 @@ export class UserInputUtil {
                     }
                 } else {
                     // Show all smart contracts which haven't had a previous version instantiated
-                    if (allSmartContracts.findIndex((contract: any) => {
+                    const searchResult: number = allSmartContracts.findIndex( (contract: any) => {
                         return itemName === contract.name;
-                    }) === -1) {
+                    });
+                    if ( searchResult === -1) { // if index of itemName in allSmartContracts is not found
                         const data: { packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder } = { packageEntry: tempItem.data.packageEntry, workspace: workspace };
                         quickPickItems.push({ label: `${itemName}@${itemVersion}`, description: tempItem.description, data: data });
                     }
@@ -818,29 +819,6 @@ export class UserInputUtil {
             ignoreFocusOut: false,
             canPickMany: false,
             placeHolder: prompt
-        };
-
-        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
-    }
-
-    public static async packageAndInstallQuestion(): Promise<IBlockchainQuickPickItem<boolean>> {
-        const quickPickItems: IBlockchainQuickPickItem<boolean>[] = [
-            {
-                label: 'Yes',
-                data: true,
-                description: `Create a new debug package and install`
-            },
-            {
-                label: 'No',
-                data: false,
-                description: `Resume from a previous debug session`
-            }
-        ];
-
-        const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
-            canPickMany: false,
-            placeHolder: 'Start new debug session?'
         };
 
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);

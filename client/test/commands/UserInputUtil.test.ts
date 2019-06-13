@@ -1753,52 +1753,6 @@ describe('UserInputUtil', () => {
         });
     });
 
-    describe('packageAndInstallQuestion', () => {
-        const packageAndInstallQuestionItems: IBlockchainQuickPickItem<boolean>[] = [
-            {
-                label: 'Yes',
-                data: true,
-                description: `Create a new debug package and install`
-            },
-            {
-                label: 'No',
-                data: false,
-                description: `Resume from a previous debug session`
-            }
-        ];
-
-        const packageAndInstallQuestionOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
-            canPickMany: false,
-            placeHolder: 'Start new debug session?'
-        };
-
-        it('should let the user decide to package and install', async () => {
-            quickPickStub.resolves(packageAndInstallQuestionItems[0]);
-
-            const result: IBlockchainQuickPickItem<boolean> = await UserInputUtil.packageAndInstallQuestion();
-            quickPickStub.should.have.been.calledOnceWithExactly(packageAndInstallQuestionItems, packageAndInstallQuestionOptions);
-            result.should.deep.equal(packageAndInstallQuestionItems[0]);
-
-        });
-
-        it('should let the user decide not to package and install', async () => {
-            quickPickStub.resolves(packageAndInstallQuestionItems[1]);
-
-            const result: IBlockchainQuickPickItem<boolean> = await UserInputUtil.packageAndInstallQuestion();
-            quickPickStub.should.have.been.calledOnceWithExactly(packageAndInstallQuestionItems, packageAndInstallQuestionOptions);
-            result.should.deep.equal(packageAndInstallQuestionItems[1]);
-        });
-
-        it('should let the user cancel packaging and installing', async () => {
-            quickPickStub.resolves();
-
-            const result: IBlockchainQuickPickItem<boolean> = await UserInputUtil.packageAndInstallQuestion();
-            quickPickStub.should.have.been.calledOnceWithExactly(packageAndInstallQuestionItems, packageAndInstallQuestionOptions);
-            should.not.exist(result);
-        });
-    });
-
     describe('showRuntimeNodeQuickPick', () => {
 
         const nodes: FabricNode[] = [

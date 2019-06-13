@@ -16,9 +16,14 @@ import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import * as os from 'os';
+
 import { SettingConfigurations } from '../../SettingConfigurations';
+import * as dateFormat from 'dateformat';
 
 export class ExtensionUtil {
+
+    static readonly DEBUG_PACKAGE_PREFIX: string = 'vscode-debug';
 
     public static getPackageJSON(): any {
         return this.getExtension().packageJSON;
@@ -118,6 +123,29 @@ export class ExtensionUtil {
 
     public static skipNpmInstall(): boolean {
         return false; // We should never skip npm install, except for unit tests
+    }
+
+    public static checkIfIBMer(): boolean {
+        let isIBMer: boolean = false;
+        const networkInterfaces: { [index: string]: os.NetworkInterfaceInfo[] } = os.networkInterfaces();
+        const keys: string[] = Object.keys(networkInterfaces);
+        keys.forEach((key: string) => {
+            const interfaces: os.NetworkInterfaceInfo[] = networkInterfaces[key];
+            const foundInterfaces: os.NetworkInterfaceInfo[] = interfaces.filter((_interface: os.NetworkInterfaceInfo) => {
+                return _interface.family === 'IPv4' && _interface.address.startsWith('9.');
+            });
+
+            if (foundInterfaces.length > 0) {
+                isIBMer = true;
+            }
+        });
+        return isIBMer;
+    }
+
+    public static async getNewDebugVersion(): Promise<string> {
+        const date: Date = new Date();
+        const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
+        return `${this.DEBUG_PACKAGE_PREFIX}-${formattedDate}`;
     }
 
     private static extensionContext: vscode.ExtensionContext;

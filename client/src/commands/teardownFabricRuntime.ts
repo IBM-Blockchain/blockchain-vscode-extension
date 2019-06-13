@@ -22,14 +22,16 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 
-export async function teardownFabricRuntime(): Promise<void> {
+export async function teardownFabricRuntime(force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
     const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
-    const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
-    if (!reallyDoIt) {
-        return;
+    if (!force) {
+        const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`All world state and ledger data for the Fabric runtime ${runtime.getName()} will be destroyed. Do you want to continue?`);
+        if (!reallyDoIt) {
+            return;
+        }
     }
 
     await vscode.window.withProgress({
