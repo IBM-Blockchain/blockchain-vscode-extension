@@ -411,11 +411,11 @@ describe('ConnectCommand', () => {
                 mockConnection.connect.should.not.have.been.called;
             });
 
-            it('should show error if local_fabric is not started', async () => {
+            it(`should show error if ${FabricRuntimeUtil.LOCAL_FABRIC} is not started`, async () => {
                 mockRuntime.isRunning.resolves(false);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                logSpy.should.have.been.calledWith(LogType.ERROR, 'local_fabric has not been started, please start it before connecting.');
+                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
             });
 
         });
