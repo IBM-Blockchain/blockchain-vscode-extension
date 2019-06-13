@@ -93,6 +93,9 @@ import { SettingConfigurations } from '../SettingConfigurations';
 import { exportWallet } from './commands/exportWalletCommand';
 import { UserInputUtil } from './commands/UserInputUtil';
 import { FabricWalletUtil } from './fabric/FabricWalletUtil';
+import { FabricRuntime } from './fabric/FabricRuntime';
+import { dependencies } from '../package.json';
+import { FabricRuntimeUtil } from './fabric/FabricRuntimeUtil';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -103,13 +106,15 @@ class ExtensionData {
     public activationCount: number;
     public version: string;
     public migrationCheck: number;
+    public generatorVersion: string;
 }
 
 export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
 export const DEFAULT_EXTENSION_DATA: ExtensionData = {
     activationCount: 0,
     version: null,
-    migrationCheck: 0
+    migrationCheck: 0,
+    generatorVersion: null // Used to check if the generator needs updating
 };
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -118,7 +123,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const newExtensionData: ExtensionData = {
         activationCount: originalExtensionData.activationCount + 1,
         version: currentExtensionVersion,
-        migrationCheck: 1 // Every time we change the setting configurations we need to change this to any other value
+        migrationCheck: 1, // Every time we change the setting configurations we need to change this to any other value
+        generatorVersion: originalExtensionData.generatorVersion
     };
 
     const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
@@ -196,6 +202,41 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet settings');
         await FabricWalletUtil.tidyWalletSettings();
 
+        // Check if there is a newer version of the generator available
+        // This needs to be done as a seperate call to make sure the dependencies have been installed
+        const generatorVersion: string = dependencies['generator-fabric'];
+
+        if (generatorVersion !== newExtensionData.generatorVersion) {
+            // If the latest generator version is not equal to the previous used version
+
+            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+            const generated: boolean = await runtime.isGenerated();
+            if (generated) {
+                // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
+                const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`);
+                if (!response) {
+                    // Assume they will teardown later
+                    return;
+                } else {
+                    const isRunning: boolean = await runtime.isRunning();
+
+                    // Teardown and remove generated Fabric
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, true);
+
+                    if (isRunning) {
+                        // Start the Fabric again
+                        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                    }
+                }
+            }
+            // If they don't have a Fabric generated, we can update the version immediately
+
+            // Update the generator version
+            newExtensionData.generatorVersion = generatorVersion;
+            await context.globalState.update(EXTENSION_DATA_KEY, newExtensionData);
+
+        }
+
     } catch (error) {
         outputAdapter.log(LogType.ERROR, undefined, `Failed to activate extension: ${error.toString()}`);
         await UserInputUtil.failedActivationWindow(error.message);
@@ -243,7 +284,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, () => startFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, () => stopFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, () => teardownFabricRuntime()));
+    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (force: boolean = false) => teardownFabricRuntime(force)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, () => toggleFabricRuntimeDevMode()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, () => exportConnectionProfile()));
