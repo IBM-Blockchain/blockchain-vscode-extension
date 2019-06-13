@@ -28,6 +28,7 @@ import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { ExtensionUtil } from '../util/ExtensionUtil';
 
 export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -140,7 +141,9 @@ export async function connect(gatewayRegistryEntry: FabricGatewayRegistryEntry, 
             const isIBP: boolean = connection.isIBPConnection();
             runtimeData = (isIBP ? 'IBP instance' : 'user runtime');
         }
-        Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData });
+
+        const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
+        Reporter.instance().sendTelemetryEvent('connectCommand', { runtimeData: runtimeData, connectIBM: isIBMer + ''});
     } catch (error) {
         outputAdapter.log(LogType.ERROR, error.message, error.toString());
         return;

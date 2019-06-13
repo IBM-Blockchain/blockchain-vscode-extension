@@ -23,6 +23,7 @@ import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { Reporter } from '../util/Reporter';
 
 export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -101,6 +102,8 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
                 // If the package has only been installed on one peer, we disregard this success message
                 outputAdapter.log(LogType.SUCCESS, 'Successfully installed smart contract on all peers');
             }
+
+            Reporter.instance().sendTelemetryEvent('installCommand');
             return chosenPackage;
         } else {
             // Failed to install package on all peers

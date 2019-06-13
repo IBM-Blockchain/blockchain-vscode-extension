@@ -66,7 +66,7 @@ export class TutorialGalleryView extends View {
     }
 
     async openPanelInner(panel: vscode.WebviewPanel): Promise<void> {
-        Reporter.instance().sendTelemetryEvent('openedView', {name: panel.title}); // Report that a user has opened a new panel
+        Reporter.instance().sendTelemetryEvent('openedView', {openedView: panel.title}); // Report that a user has opened a new panel
         return;
     }
 }

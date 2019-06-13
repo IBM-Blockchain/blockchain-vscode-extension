@@ -121,6 +121,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         migrationCheck: 1 // Every time we change the setting configurations we need to change this to any other value
     };
 
+    const isIBMer: boolean = ExtensionUtil.checkIfIBMer();
+
     if (originalExtensionData.migrationCheck !== newExtensionData.migrationCheck) {
         // Migrate old user setting configurations to use newer values
         await ExtensionUtil.migrateSettingConfigurations();
@@ -139,6 +141,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Show the output adapter if the extension has been updated.
     if (extensionUpdated) {
         outputAdapter.show();
+
+        if (!originalExtensionData.version) {
+            Reporter.instance().sendTelemetryEvent('newInstall', { IBM: isIBMer + '' });
+        } else {
+            Reporter.instance().sendTelemetryEvent('updatedInstall', { IBM: isIBMer + '' });
+        }
     }
 
     // At the moment, the 'Open Log File' doesn't display extension log files to open. https://github.com/Microsoft/vscode/issues/43064
@@ -283,7 +291,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
 
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
 
-        if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_WALLETS) ) {
+        if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_WALLETS)) {
             try {
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
                 await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
