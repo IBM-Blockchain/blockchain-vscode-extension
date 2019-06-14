@@ -17,6 +17,7 @@ import * as Cucumber from 'cucumber';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as chai from 'chai';
+import { TestUtil } from '../test/TestUtil';
 
 // tslint:disable-next-line:typedef
 const reporter = require('cucumber-html-reporter');
@@ -129,6 +130,14 @@ async function run(testsRoot: string, clb: (error: any, failures?: number) => vo
     try {
 
         const result: any = await runCucumberTest();
+
+        // clean up after test run
+        await TestUtil.restoreGatewaysConfig();
+        await TestUtil.restoreRuntimesConfig();
+        await TestUtil.restoreExtensionDirectoryConfig();
+        await TestUtil.restoreRepositoriesConfig();
+        await TestUtil.restoreWalletsConfig();
+        await fs.remove(path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts'));
 
         await fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'));
         await fs.writeFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'), jsonResult);

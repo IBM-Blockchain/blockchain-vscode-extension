@@ -66,9 +66,10 @@ export class UserInputUtil {
     static readonly IMPORT_WALLET: string = 'Specify an existing file system wallet';
     static readonly WALLET_NEW_ID: string = 'Create a new wallet and add an identity';
     static readonly ADD_IDENTITY_METHOD: string = 'Choose a method for adding an identity';
-    static readonly ADD_CERT_KEY_OPTION: string = 'Enter paths to certificate and private key files';
+    static readonly ADD_CERT_KEY_OPTION: string = 'Provide certificate and private key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
+    static readonly ADD_JSON_ID_OPTION: string = 'Provide a JSON identity file';
 
     public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -748,7 +749,7 @@ export class UserInputUtil {
     }
 
     public static async addIdentityMethod(isLocalWallet: boolean): Promise<any> {
-        const options: Array<string> = [UserInputUtil.ADD_CERT_KEY_OPTION];
+        const options: Array<string> = [UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_JSON_ID_OPTION];
 
         if (isLocalWallet) {
             options.push(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
