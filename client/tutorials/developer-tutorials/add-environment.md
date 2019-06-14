@@ -1,7 +1,7 @@
 <!-- Adding an Environment to connect to IBM Cloud -->
 
 ## **Adding an Environment to connect to IBM Cloud**
-`15-20 mins`
+`20-30 mins`
 
 > **Important:** You will need a **smart contract package** and a suitable **cloud environment** to follow this tutorial. Follow parts 1 and 2 of the introduction series first for instructions.
 
@@ -15,7 +15,7 @@ You may have already completed the Introduction series and deployed your smart c
 ---
 
 <details>
-<summary><b>1. Using the operation tooling console, obtain the JSON node files</b></summary>
+<summary><b>1. Using the operational tooling console, obtain the JSON node files</b></summary>
 To add an environment to VS Code you will need some JSON files that describe how to connect to a node. These can be exported from the operational tooling console.
 
 1. Navigate to the `Nodes` panel, then open your peer. Click the export button to download the JSON file to your machine.
@@ -28,7 +28,7 @@ To add an environment to VS Code you will need some JSON files that describe how
 ---
 
 <details>
-<summary><b>2. Using the operation tooling console, obtain the JSON identity files</b></summary>
+<summary><b>2. Using the operational tooling console, obtain the JSON identity files</b></summary>
 To enable VS Code to connect to a node an admin identity needs be provided. These are stored in the wallet in the operational console.
 
 1. Navigate to the `Wallet` panel, then click on an identity for the `Org1`, and click export. If you followed the tutorial the there should be an identity called `Org1 Admin`.
@@ -46,7 +46,7 @@ The identities that were exported need to be imported into VS Code. First we wil
 
 2. You will then be asked to enter a name for the wallet use `ibp-wallet`.
 
-3. You will the be asked to provide a name for the identity use `Org1 Admin`.
+3. You will then be asked to provide a name for the identity use `Org1 Admin`.
 
 4. You will then be asked to provide the MSPID use `org1msp` if you followed the tutorial.
 
@@ -60,7 +60,7 @@ You will now have a new wallet called `ibp-wallet` containing the `Org1 Admin` i
 
 2. You will the be asked to provide a name for the identity use `Orderer Admin`.
 
-3. You will the be asked to provide an MSPID use `osmsp`.
+3. You will then be asked to provide an MSPID use `osmsp`.
 
 4. You will then be asked for the method for adding an identity chose `Provide JSON identity file`.
 
@@ -129,7 +129,7 @@ Now all the nodes will have been successfully associated with an identity. VS Co
 <details>
 <summary><b>6. Using VS Code, deploy a smart contract</b></summary>
 
-We can now deploy a smart contract to the environment. These steps assume that you have deployed a smart contract before so provide only mimimal instructions. For more details see the Local smart contract development tutorial. 
+We can now deploy a smart contract to the environment. These steps assume that you have deployed a smart contract before so provide only minimal instructions. For more details see the Local smart contract development tutorial. 
 
 1. Create a smart contract
 
@@ -144,4 +144,4 @@ You have now deployed a smart contract to your IBM Cloud instance. You can see t
 
 --- 
 
-Congratulations you have now successfully added an environment, and deployed to IBM Cloud.
+Congratulations - you have now successfully added an environment, and deployed to IBM Cloud.

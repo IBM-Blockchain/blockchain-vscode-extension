@@ -312,10 +312,17 @@ describe('View', () => {
                 tutorials: [
                     {
                         title: 'Adding an Environment to connect to IBM Cloud',
-                        length: '15-20 mins',
+                        length: '20-30 mins',
                         difficulty: 'simple',
                         shortDescription: 'Add an environment to connect to a a cloud instance and deploy a smart contract',
                         file: 'developer-tutorials/add-environment.md'
+                    },
+                    {
+                        title: 'Debug a smart contract',
+                        length: '30-40 mins',
+                        difficulty: 'moderate',
+                        description: 'Learn how to make iterative changes to your smart contract using the VS Code debugger',
+                        file: 'developer-tutorials/debug.md'
                     }
                 ]
             });
