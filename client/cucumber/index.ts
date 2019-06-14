@@ -42,11 +42,21 @@ async function runCucumberTest(): Promise<any> {
     const features: any[] = [];
     const otherFeatures: any = [];
 
+    let tags: string = '';
+
+    if (process.env.OTHER_FABRIC) {
+        tags = '@otherFabric';
+    } else {
+        tags = 'not @otherFabric';
+    }
+
     for (const file of featureFiles) {
         const featureSource: any = fs.readFileSync(path.join(featurePath, file), 'utf8');
 
         const feature: any = Cucumber.FeatureParser.parse({
-            scenarioFilter: new Cucumber.ScenarioFilter({}),
+            scenarioFilter: new Cucumber.ScenarioFilter({
+                tagExpression: tags
+            }),
             source: featureSource, // For some reason, we need to read the source of the feature (as well as provide the path
             uri: path.join(featurePath, file)
         });

@@ -47,6 +47,9 @@ import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { UserInputUtilHelper } from '../helpers/userInputUtilHelper';
 import { SmartContractHelper } from '../helpers/smartContractHelper';
 import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
+import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
+import { IFabricWallet } from '../../src/fabric/IFabricWallet';
+import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 
 // tslint:disable:no-unused-expression
 
@@ -67,8 +70,9 @@ export enum LanguageType {
 }
 
 let torndownFabric: boolean = false; // Flag used for running teardown only once before any tests
+const otherFabricInstantiatedContracts: string[] = [];
 
-module.exports = function (): any {
+module.exports = function(): any {
 
     this.Before(timeout, async () => {
 
@@ -97,17 +101,26 @@ module.exports = function (): any {
 
                 VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
-                const extDir: string = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
+                const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
                 const packageDir: string = path.join(extDir, 'packages');
-                const exists: boolean = await fs.pathExists(packageDir);
+                let exists: boolean = await fs.pathExists(packageDir);
 
                 if (exists) {
                     await fs.remove(packageDir);
                 }
 
+                const contractDir: string = path.join(extDir, 'contracts');
+                exists = await fs.pathExists(contractDir);
+
+                if (exists) {
+                    await fs.remove(contractDir);
+                }
+
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
             }
         } catch (error) {
             console.log(error);
@@ -115,6 +128,10 @@ module.exports = function (): any {
     });
 
     // TODO: We want an After hook which clears the call count on all of our stubs after each scenario - then we can getCalls/ check call counts
+
+    this.After(timeout, async () => {
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+    });
 
     /**
      *
@@ -261,15 +278,72 @@ module.exports = function (): any {
         this.identity = identity;
     });
 
-    this.Given("connected to the '{string}' gateway", timeout, async (gateway: string) => {
+    this.Given(/the wallet '(.*?)' with identity '(.*?)' and mspid '(.*?)' exists/, timeout, async (wallet: string, identity: string, mspid: string) => {
+        const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+        let treeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren();
+        const walletIndex: number = treeItems.findIndex((item: any) => {
+            return item.label === wallet;
+        });
+        if (walletIndex < 0) {
+            await createWallet(wallet, identity, mspid, true);
+        } else {
+            treeItems = await blockchainWalletExplorerProvider.getChildren(treeItems[walletIndex]);
+
+            const identityExists: BlockchainTreeItem = treeItems.find((item: any) => {
+                return item.label === identity;
+            });
+
+            if (!identityExists) {
+                await createIdentity(wallet, identity, mspid, true);
+            }
+        }
+
+        this.wallet = wallet;
+        this.identity = identity;
+    });
+
+    this.Given('the other fabric is setup with contract name {string} and version {string}', timeout, async (contractName: string, version: string) => {
+        const FabricHelper: any = require('../helpers/remoteFabricHelper');
+        const remoteFabricHelper: any = new FabricHelper.RemoteFabricHelper();
+        const item: string = otherFabricInstantiatedContracts.find((contract: string) => {
+            return contract === `${contractName}@${version}`;
+        });
+        if (!item) {
+            await remoteFabricHelper.connect();
+            await remoteFabricHelper.installChaincode(contractName, version);
+            await remoteFabricHelper.instantiateChaincode(contractName, version);
+            otherFabricInstantiatedContracts.push(`${contractName}@${version}`);
+        }
+    });
+
+    this.Given("gateway '{string}' is created", timeout, async (gateway: string) => {
+        this.gateway = gateway;
+
+        const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+        const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
+
+        const treeItem: any = treeItems.find((item: any) => {
+            return item.label === gateway;
+        });
+
+        if (!treeItem) {
+            await createGateway(gateway);
+        }
+    });
+
+    this.Given(/connected to the '(.*?)' gateway( without association)?/, timeout, async (gateway: string, withoutAssociation: string) => {
         if (gateway === 'Local Fabric') {
             gateway = FabricRuntimeUtil.LOCAL_FABRIC;
         }
 
         this.gateway = gateway;
 
-        await connectToFabric(this.gateway, this.wallet, this.identity);
+        let hasAssociation: boolean = true;
+        if (withoutAssociation) {
+            hasAssociation = false;
+        }
 
+        await connectToFabric(this.gateway, this.wallet, this.identity, hasAssociation);
     });
 
     this.Given(/the contract has been instantiated with the transaction '(.*?)' and args '(.*?)', (not )?using private data/, timeout, async (transaction: string, args: string, usingPrivateData: string) => {
@@ -338,7 +412,6 @@ module.exports = function (): any {
             privateData = true;
         }
         await instantiateSmartContract(this.contractName, this.contractVersion, transaction, args, privateData);
-
     });
 
     this.When(/I upgrade the installed package with the transaction '(.*?)' and args '(.*?)', (not )?using private data/, timeout, async (transaction: string, args: string, usingPrivateData: string) => {
@@ -349,22 +422,31 @@ module.exports = function (): any {
             privateData = true;
         }
         await upgradeSmartContract(this.contractName, this.contractVersion, transaction, args, privateData);
-
     });
 
-    this.When("connecting to the '{string}' gateway", timeout, async (gateway: string) => {
+    this.When(/^I create a wallet '(.*?)' using (certs|enrollId) with identity name '(.*?)' and mspid '(.*?)'$/, timeout, async (wallet: string, method: string, identityName: string, mspid: string) => {
+        const useCerts: boolean = method.includes('certs') ? true : false;
+        await createWallet(wallet, identityName, mspid, useCerts);
+    });
+
+    this.When("connecting to the '{string}' gateway {without association}", timeout, async (gateway: string, withoutAssociation: string) => {
         if (gateway === 'Local Fabric') {
             gateway = FabricRuntimeUtil.LOCAL_FABRIC;
         }
 
         this.gateway = gateway;
 
-        await connectToFabric(gateway, this.wallet, this.identity);
+        let hasAssociation: boolean = true;
+        if (withoutAssociation) {
+            hasAssociation = false;
+        }
+
+        await connectToFabric(gateway, this.wallet, this.identity, hasAssociation);
     });
 
     this.When('I generate a {string} functional test for a {string} contract', timeout, async (testLanguage: string, contractLanguage: string) => {
 
-        await generatedTestsHelper.generateSmartContractTests(this.contractName, '0.0.1', testLanguage, FabricRuntimeUtil.LOCAL_FABRIC);
+        await generatedTestsHelper.generateSmartContractTests(this.contractName, '0.0.1', testLanguage, this.gateway);
         this.testLanguage = testLanguage;
         this.contractLanguage = contractLanguage;
     });
@@ -425,7 +507,7 @@ module.exports = function (): any {
         // showPeerQuickPickStub.should.have.been.calledOnce;
     });
 
-    this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Node )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Local Fabric Ops|Fabric Gateways|Fabric Wallets)' panel$/, timeout, async (child: string, label: string, panel: string) => {
+    this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Node |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Local Fabric Ops|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
 
         let treeItems: any[];
         if (panel === 'Smart Contract Packages') {
@@ -453,6 +535,15 @@ module.exports = function (): any {
         } else if (panel === 'Fabric Wallets') {
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
             treeItems = await blockchainWalletExplorerProvider.getChildren();
+            if (child && child.includes('identity') && thing && thing2) {
+                const walletIndex: number = treeItems.findIndex((item: any) => {
+                    return item.label === thing.trim();
+                });
+                if (walletIndex < 0) {
+                    throw new Error('Name of thing doesn\'t exist');
+                }
+                treeItems = await blockchainWalletExplorerProvider.getChildren(treeItems[walletIndex]);
+            }
         } else {
             throw new Error('Name of panel doesn\'t exist');
         }
@@ -604,7 +695,47 @@ module.exports = function (): any {
         await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
     }
 
-    async function connectToFabric(name: string, walletName: string, identityName: string = 'greenConga', expectAssociated: boolean = false): Promise<void> {
+    async function createWallet(name: string, identityName: string, mspid: string, useCerts: boolean): Promise<void> {
+        userInputUtilHelper.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
+        userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
+
+        setIdentityStubs(useCerts, identityName, mspid);
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
+    }
+
+    async function createIdentity(walletName: string, identityName: string, mspid: string, useCerts: boolean): Promise<void> {
+        setIdentityStubs(useCerts, identityName, mspid);
+        const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(walletName);
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
+    }
+
+    function setIdentityStubs(useCerts: boolean, identityName: string, mspid: string): void {
+        userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
+        userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspid);
+
+        if (useCerts) {
+            userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            const certPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
+            const keyPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key1.pem`);
+            userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: certPath, privateKeyPath: keyPath });
+        } else {
+            userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            gatewayRegistryEntry.name = 'myGateway';
+            gatewayRegistryEntry.connectionProfilePath = path.join(__dirname, '../../../cucumber/hlfv1/connection.json');
+            userInputUtilHelper.showGatewayQuickPickStub.resolves({ data: gatewayRegistryEntry });
+            userInputUtilHelper.getEnrollIdSecretStub.resolves({ enrollmentID: 'admin', enrollmentSecret: 'adminpw' });
+        }
+    }
+
+    async function createGateway(name: string): Promise<void> {
+        userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the gateway').resolves(name);
+        userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(__dirname, '../../../cucumber/hlfv1/connection.json'));
+
+        await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+    }
+
+    async function connectToFabric(name: string, walletName: string, identityName: string = 'greenConga', expectAssociated: boolean = true): Promise<void> {
         // TODO: Fix up stubs and `this` references
 
         let gatewayEntry: FabricGatewayRegistryEntry;

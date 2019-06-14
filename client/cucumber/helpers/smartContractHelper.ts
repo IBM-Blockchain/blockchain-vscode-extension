@@ -79,10 +79,10 @@ export class SmartContractHelper {
     public getContractDirectory(name: string, language: string): string {
         let contractDirectory: string;
         if (language === 'Go') {
-            process.env.GOPATH = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp');
+            process.env.GOPATH = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts');
             contractDirectory = path.join(process.env.GOPATH, 'src', name);
         } else {
-            contractDirectory = path.join(__dirname, '..', '..', '..', 'integrationTest', 'tmp', name);
+            contractDirectory = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts', name);
         }
 
         return contractDirectory;
