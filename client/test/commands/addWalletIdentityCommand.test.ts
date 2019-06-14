@@ -73,10 +73,11 @@ describe('AddWalletIdentityCommand', () => {
         let fabricWallet: IFabricWallet;
         let getEnrollIdSecretStub: sinon.SinonStub;
         let enrollStub: sinon.SinonStub;
-        let executeCommandSpy: sinon.SinonSpy;
+        let executeCommandStub: sinon.SinonStub;
         let getNewWalletStub: sinon.SinonStub;
         let showWalletsQuickPickStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
+        let browseStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
@@ -118,14 +119,17 @@ describe('AddWalletIdentityCommand', () => {
             showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
             getEnrollIdSecretStub = mySandBox.stub(UserInputUtil, 'getEnrollIdSecret');
             enrollStub = mySandBox.stub(FabricCertificateAuthorityFactory.createCertificateAuthority(), 'enroll');
-            executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+            executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
 
             fabricWallet = new FabricWallet(walletPath);
             getNewWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet');
             getNewWalletStub.returns(fabricWallet);
             importIdentityStub = mySandBox.stub(fabricWallet, 'importIdentity');
+            importIdentityStub.resolves();
             showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+            browseStub = mySandBox.stub(UserInputUtil, 'browse');
 
         });
 
@@ -148,7 +152,6 @@ describe('AddWalletIdentityCommand', () => {
             });
             getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
             enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
-            importIdentityStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             inputBoxStub.should.have.been.calledTwice;
@@ -157,7 +160,7 @@ describe('AddWalletIdentityCommand', () => {
             getEnrollIdSecretStub.should.have.been.calledOnce;
             enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
@@ -270,7 +273,6 @@ describe('AddWalletIdentityCommand', () => {
             getCertKeyStub.resolves({certificatePath: path.join(rootPath, '../../test/data/connectionTwo/credentials/certificate'), privateKeyPath: path.join(rootPath, '../../test/data/connectionTwo/credentials/privateKey')});
             fsReadFile.onFirstCall().resolves('---CERT---');
             fsReadFile.onSecondCall().resolves('---KEY---');
-            importIdentityStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             inputBoxStub.should.have.been.calledTwice;
@@ -374,6 +376,73 @@ describe('AddWalletIdentityCommand', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
         });
 
+        it('should test an identity can be added via a json identity file', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'blueWallet',
+                data: FabricWalletRegistry.instance().get('blueWallet')
+            });
+
+            inputBoxStub.onFirstCall().resolves('purpleConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            browseStub.resolves('myTestPath');
+            fsReadFile.resolves('{"name": "purpleConga","cert": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "private_key": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+            browseStub.should.have.been.calledOnce;
+            fsReadFile.should.have.been.calledOnce;
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
+            importIdentityStub.should.have.been.calledWith('-----BEGIN CERTIFICATE----', '-----BEGIN PRIVATE KEY----', 'purpleConga', 'myMSPID');
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'json'});
+        });
+
+        it('should handle the user cancelling selecting a json file to create an identity', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'blueWallet',
+                data: FabricWalletRegistry.instance().get('blueWallet')
+            });
+
+            inputBoxStub.onFirstCall().resolves('purpleConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            browseStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+            browseStub.should.have.been.calledOnce;
+            fsReadFile.should.not.have.been.called;
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should display an error if the json file does not contain the correct properties', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'blueWallet',
+                data: FabricWalletRegistry.instance().get('blueWallet')
+            });
+
+            inputBoxStub.onFirstCall().resolves('purpleConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            browseStub.resolves('myTestPath');
+            fsReadFile.resolves('{"name": "purpleConga","certificate": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0", "privateKEy": "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0"}');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+            browseStub.should.have.been.calledOnce;
+            fsReadFile.should.have.been.calledOnce;
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
+            importIdentityStub.should.not.have.been.called;
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to add identity to wallet: JSON file missing properties "cert" or "private_key"`, `Unable to add identity to wallet: Error: JSON file missing properties "cert" or "private_key"`);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         describe('called from WalletTreeItem', () => {
 
             it('should test an identity can be added from a WalletTreeItem', async () => {
@@ -400,7 +469,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-                executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
@@ -418,8 +487,10 @@ describe('AddWalletIdentityCommand', () => {
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
-                const runtime: FabricRuntime = new FabricRuntime();
-                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtime);
+                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+                mockRuntime.isRunning.resolves(true);
+                mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
                 enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
                 importIdentityStub.resolves();
@@ -436,11 +507,84 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-                executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
+            });
+
+            it(`should start ${FabricRuntimeUtil.LOCAL_FABRIC} before attempting to enroll an identity`, async () => {
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
+                    name: FabricRuntimeUtil.LOCAL_FABRIC,
+                    connectionProfilePath: '/some/path',
+                    managedRuntime: true,
+                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
+                } as FabricGatewayRegistryEntry]);
+                inputBoxStub.onFirstCall().resolves('greenConga');
+                inputBoxStub.onSecondCall().resolves('myMSPID');
+                addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
+
+                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+                mockRuntime.importWalletsAndIdentities.resolves();
+                mockRuntime.isRunning.onCall(0).resolves(false);
+                mockRuntime.isRunning.onCall(1).resolves(true);
+                mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+                executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+                getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
+                enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
+                importIdentityStub.resolves();
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+
+                const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
+                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+
+                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
+
+                showWalletsQuickPickStub.should.not.have.been.called;
+                inputBoxStub.should.have.been.calledTwice;
+                fsReadFile.should.not.have.been.called;
+                getEnrollIdSecretStub.should.have.been.calledOnce;
+                enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
+                importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+                logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
+            });
+
+            it(`should handle ${FabricRuntimeUtil.LOCAL_FABRIC} failing to start`, async () => {
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
+                    name: FabricRuntimeUtil.LOCAL_FABRIC,
+                    connectionProfilePath: '/some/path',
+                    managedRuntime: true,
+                    associatedWallet: FabricWalletUtil.LOCAL_WALLET
+                } as FabricGatewayRegistryEntry]);
+                inputBoxStub.onFirstCall().resolves('greenConga');
+                inputBoxStub.onSecondCall().resolves('myMSPID');
+                addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
+
+                const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+                mockRuntime.importWalletsAndIdentities.resolves();
+                mockRuntime.isRunning.resolves(false);
+                mockRuntime.getWalletNames.resolves([FabricWalletUtil.LOCAL_WALLET]);
+                mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+                executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+                const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
+                const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
+
+                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
+
+                showWalletsQuickPickStub.should.not.have.been.called;
+                inputBoxStub.should.have.been.calledTwice;
+                fsReadFile.should.not.have.been.called;
+                logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
+                sendTelemetryEventStub.should.not.have.been.called;
             });
         });
 
@@ -469,7 +613,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
                 otherImportIdentityStub.should.have.been.calledOnceWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-                executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+                executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
                 logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
