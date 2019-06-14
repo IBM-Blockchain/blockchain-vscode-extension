@@ -247,7 +247,7 @@ export class FabricRuntime extends EventEmitter {
         }
         let nodePaths: string[] = await fs.readdir(nodesPath);
         nodePaths = nodePaths
-        .sort()
+            .sort()
             .filter((nodePath: string) => !nodePath.startsWith('.'))
             .map((nodePath: string) => path.resolve(this.path, 'nodes', nodePath));
         const nodes: FabricNode[] = [];
@@ -306,11 +306,11 @@ export class FabricRuntime extends EventEmitter {
         }
     }
 
-    public isRunning(): Promise<boolean> {
+    public isRunning(args?: string[]): Promise<boolean> {
         if (this.isRunningPromise) {
             return this.isRunningPromise;
         }
-        this.isRunningPromise = this.isRunningInner().then((result: boolean) => {
+        this.isRunningPromise = this.isRunningInner(args).then((result: boolean) => {
             this.isRunningPromise = undefined;
             return result;
         });
@@ -377,13 +377,14 @@ export class FabricRuntime extends EventEmitter {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeObject, vscode.ConfigurationTarget.Global);
     }
 
-    private async isRunningInner(): Promise<boolean> {
+    private async isRunningInner(args?: string[]): Promise<boolean> {
         try {
             const created: boolean = await this.isCreated();
             if (!created) {
                 return false;
             }
-            await this.execute('is_running');
+
+            await this.execute('is_running', args);
             return true;
         } catch (error) {
             return false;
@@ -396,24 +397,24 @@ export class FabricRuntime extends EventEmitter {
     }
 
     private async generateInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('generate', outputAdapter);
+        await this.execute('generate', [], outputAdapter);
     }
 
     private async startInner(outputAdapter?: OutputAdapter): Promise<void> {
-        await this.execute('start', outputAdapter);
+        await this.execute('start', [], outputAdapter);
     }
 
     private async stopInner(outputAdapter?: OutputAdapter): Promise<void> {
         this.stopLogs();
-        await this.execute('stop', outputAdapter);
+        await this.execute('stop', [], outputAdapter);
     }
 
     private async teardownInner(outputAdapter?: OutputAdapter): Promise<void> {
         this.stopLogs();
-        await this.execute('teardown', outputAdapter);
+        await this.execute('teardown', [], outputAdapter);
     }
 
-    private async execute(script: string, outputAdapter?: OutputAdapter): Promise<void> {
+    private async execute(script: string, args: string[] = [], outputAdapter?: OutputAdapter): Promise<void> {
         if (!outputAdapter) {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
@@ -424,9 +425,9 @@ export class FabricRuntime extends EventEmitter {
         });
 
         if (process.platform === 'win32') {
-            await CommandUtil.sendCommandWithOutput('cmd', ['/c', `${script}.cmd`], this.path, env, outputAdapter);
+            await CommandUtil.sendCommandWithOutput('cmd', ['/c', `${script}.cmd`, ...args], this.path, env, outputAdapter);
         } else {
-            await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`], this.path, env, outputAdapter);
+            await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`, ...args], this.path, env, outputAdapter);
         }
     }
 }
