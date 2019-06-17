@@ -156,9 +156,7 @@ To do this...
 
 1. In the `LOCAL FABRIC OPS` panel, look for `+ Install` (it's under Smart Contracts > Installed) and click it.
 
-2. You'll be asked to choose a peer. Pick the only option: `peer0.org1.example.com`.
-
-3. You'll be asked to choose a package to install. Pick `demoContract@0.0.1`.
+2. You'll be asked to choose a package to install. Pick `demoContract@0.0.1`.
 
 You should see `demoContract@0.0.1` appear under the Smart Contracts > Installed list.
 
@@ -179,13 +177,11 @@ For now though, we've got our contract installed on all (one) of the peers that 
 
 1. In the `LOCAL FABRIC OPS` panel, look for `+ Instantiate` (it's under Smart Contracts > Instantiated) and click it.
 
-2. You'll be asked to choose a channel. Pick the only option: `mychannel`.
+2. You'll be asked to choose a smart contract to instantiate. Pick `demoContract@0.0.1`.
 
-3. You'll be asked to choose a smart contract to instantiate. Pick `demoContract@0.0.1`.
+3. You'll be asked what function to call. If you wanted to use a specific function as part of your instantiate, you could enter something here.  We'll see that happen in future tutorials, but for now just hit `Enter` to skip this step.
 
-4. You'll be asked what function to call. If you wanted to use a specific function as part of your instantiate, you could enter something here.  We'll see that happen in future tutorials, but for now just hit `Enter` to skip this step.
-
-5. You'll be asked if you want to provide a private data configuration file. For this tutorial just click `No`, in future tutorials we will explain more about this.
+4. You'll be asked if you want to provide a private data configuration file. For this tutorial just click `No`, in future tutorials we will explain more about this.
 
 Instantiation can take a while longer than install - watch out for the success message and `demoContract@0.0.1` appearing in the Smart Contracts > Instantiated list to confirm it's worked!
 
