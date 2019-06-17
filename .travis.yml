@@ -31,9 +31,6 @@ jobs:
       env: TASK=systestsNode
     - script: ./.travis/script.sh
       os: linux
-      env: TASK=systest
-    - script: ./.travis/script.sh
-      os: linux
       env: TASK=cucumber
     - script: ./.travis/script.sh
       os: linux

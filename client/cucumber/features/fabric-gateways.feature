@@ -25,12 +25,12 @@ Feature: Fabric Gateways
 
     @otherFabric
     Scenario: Create another gateway
-        Given gateway 'myGateway' is created
+        When I create a gateway 'myGateway'
         Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
 
     @otherFabric
     Scenario: Connect to another gateway
-        Given gateway 'myGateway' is created
+        Given the gateway 'myGateway' is created
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
         When connecting to the 'myGateway' gateway without association
@@ -46,7 +46,7 @@ Feature: Fabric Gateways
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity
-        And connected to the 'Local Fabric' gateway
+        And I'm connected to the 'Local Fabric' gateway
         And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
         And the contract has been created
         And the contract has been packaged
@@ -69,8 +69,8 @@ Feature: Fabric Gateways
         And the contract has been created
         And the contract has been packaged
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-        Given gateway 'myGateway' is created
-        And connected to the 'myGateway' gateway without association  
+        Given the gateway 'myGateway' is created
+        And I'm connected to the 'myGateway' gateway without association
         And the other fabric is setup with contract name <contractName> and version <version>
         When I generate a <testLanguage> functional test for a <contractLanguage> contract
         Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
@@ -79,4 +79,3 @@ Feature: Fabric Gateways
         | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
         | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
         | JavaScriptContract  | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
-
