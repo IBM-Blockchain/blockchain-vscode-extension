@@ -82,7 +82,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
-            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
+            runtimeStub.getGateways.resolves([{ name: 'myGateway', path: 'myPath' }]);
 
             registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -122,10 +122,9 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
-            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap.set('myOtherContract', ['vscode-debug-13232112018', '0.0.2']);
-            chaincodeMap.set('cake-network', ['vscode-debug-174758735087']);
-            mockRuntimeConnection.getInstalledChaincode.resolves(chaincodeMap);
+
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
@@ -154,7 +153,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Java' });
         });
 
         it('should add cwd if not set', async () => {
@@ -172,7 +171,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Java' });
         });
 
         it('should add args if not defined', async () => {
@@ -189,7 +188,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 },
                 args: ['--peer.address', '127.0.0.1:54321']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Java' });
         });
 
         it('should add more args if some args exist', async () => {
@@ -206,7 +205,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 },
                 args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Java' });
         });
 
         it('should add in request if not defined', async () => {
@@ -223,7 +222,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Java'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Java' });
         });
     });
 });

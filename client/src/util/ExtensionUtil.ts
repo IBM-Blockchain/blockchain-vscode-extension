@@ -142,7 +142,7 @@ export class ExtensionUtil {
         return isIBMer;
     }
 
-    public static async getNewDebugVersion(): Promise<string> {
+    public static getNewDebugVersion(): string {
         const date: Date = new Date();
         const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
         return `${this.DEBUG_PACKAGE_PREFIX}-${formattedDate}`;

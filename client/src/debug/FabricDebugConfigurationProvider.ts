@@ -77,33 +77,26 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                     // User probably cancelled the prompt for the name.
                     return;
                 }
-                // Determine what smart contracts are installed already
+                // Determine what smart contracts are instantiated already
                 const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
-                const peerNames: string[] = connection.getAllPeerNames();
                 // Assume local_fabric has one peer
-                const allInstalledContracts: Map<string, string[]> = await connection.getInstalledChaincode(peerNames[0]);
-                const smartContractVersionNames: string[] = allInstalledContracts.get(chaincodeName);
-                let debugSmartContractNames: string[];
-                let latestSmartContractVersion: number;
-                if (smartContractVersionNames) {
-                    debugSmartContractNames = smartContractVersionNames.filter((contractName: string) => {
-                        // Get debug packages only
-                        return contractName.startsWith(ExtensionUtil.DEBUG_PACKAGE_PREFIX);
-                    });
-                    if (debugSmartContractNames.length > 0) {
-                        // debug package of chaincodeName is already installed - so get the latest
-                        const smartContractVersions: number[] = [];
-                        for (let version of debugSmartContractNames) {
-                            version = version.replace(/[^0-9]/g, ''); // strip non-numerical characters
-                            smartContractVersions.push(parseFloat(version)); // parse to float and push to number[]
-                        }
-                        latestSmartContractVersion = Math.max(...smartContractVersions); // get the latest installed version
-                        chaincodeVersion = `${ExtensionUtil.DEBUG_PACKAGE_PREFIX}-${latestSmartContractVersion}`;
-                    }
-                }
-                if (!chaincodeVersion) {
+                const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
+                const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
+                    return contract.name === chaincodeName;
+                });
+
+                if (!smartContractVersionName) {
                     // Not found an existing debug package to use, so get a new version
                     chaincodeVersion = await ExtensionUtil.getNewDebugVersion();
+                } else {
+                    const isContainerRunning: boolean = await this.runtime.isRunning([smartContractVersionName.name, smartContractVersionName.version]);
+                    if (isContainerRunning) {
+                        // need a new version otherwise it won't use the debug version of the smart contract
+                        chaincodeVersion = ExtensionUtil.getNewDebugVersion();
+                        config.env.OLD_CHAINCODE_VERSION = chaincodeVersion;
+                    } else {
+                        chaincodeVersion = smartContractVersionName.version;
+                    }
                 }
                 config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
             }
@@ -138,5 +131,4 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     }
 
     protected abstract async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration>;
-
 }

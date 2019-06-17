@@ -95,13 +95,17 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
         } else {
             // Upgrade command called from debug session - get the chaincode ID name
             smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
-            // Create a new version to upgrade with
-            smartContractVersion = await ExtensionUtil.getNewDebugVersion();
-            // Reset the env chaincode ID name variable back after a new version is created
-            vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME = `${smartContractName}:${smartContractVersion}`;
+            smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+            const oldVersion: string = vscode.debug.activeDebugSession.configuration.env.OLD_CHAINCODE_VERSION;
+            // old version is set when there is a running container, if there is then we will have already set the CORE_CHAINCODE_ID_NAME to a updated version
+            // so don't get a new version
+            if (!oldVersion) {
+                // Create a new version to upgrade with
+                smartContractVersion = ExtensionUtil.getNewDebugVersion();
+            }
         }
 
-        if ( (chosenChaincode && chosenChaincode.description === 'Open Project')) {
+        if ((chosenChaincode && chosenChaincode.description === 'Open Project')) {
             // Project needs packaging and installing
 
             // Package smart contract project using the given 'open workspace'
@@ -117,7 +121,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
             }
 
         }
-        if ((chosenChaincode && chosenChaincode.description === 'Open Project') || (chosenChaincode && chosenChaincode.description === 'Packaged') || vscode.debug.activeDebugSession ) {
+        if ((chosenChaincode && chosenChaincode.description === 'Open Project') || (chosenChaincode && chosenChaincode.description === 'Packaged') || vscode.debug.activeDebugSession) {
             // Install smart contract package
             packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, packageToInstall) as PackageRegistryEntry;
             if (!packageEntry) {

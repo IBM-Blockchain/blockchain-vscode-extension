@@ -44,7 +44,7 @@ class TestFabricDebugConfigurationProvider extends FabricDebugConfigurationProvi
             type: 'fake',
             name: 'Fake Debug' + folder.name,
             request: 'launch',
-            args: [ chaincodeAddress ]
+            args: [chaincodeAddress]
         });
     }
 
@@ -76,7 +76,7 @@ describe('FabricDebugConfigurationProvider', () => {
             date = new Date();
             formattedDate = dateFormat(date, 'yyyymmddHHMMss');
             newDebugVersionStub = mySandbox.stub(ExtensionUtil, 'getNewDebugVersion');
-            newDebugVersionStub.resolves(`vscode-debug-${formattedDate}`);
+            newDebugVersionStub.returns(`vscode-debug-${formattedDate}`);
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -101,10 +101,8 @@ describe('FabricDebugConfigurationProvider', () => {
 
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
-            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap.set('myOtherContract', ['vscode-debug-13232112018', '0.0.2']);
-            chaincodeMap.set('cake-network', ['vscode-debug-174758735087']);
-            mockRuntimeConnection.getInstalledChaincode.resolves(chaincodeMap);
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection');
             getConnectionStub.returns(mockRuntimeConnection);
@@ -261,11 +259,12 @@ describe('FabricDebugConfigurationProvider', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to toggle development mode`, `Failed to toggle development mode`);
         });
 
-        it('should restore from a previous debug session and use the last installed debug package of the same name', async () => {
-            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap.set('mySmartContract', ['vscode-debug-13232112018', '0.0.2']);
-            chaincodeMap.set('cake-network', ['vscode-debug-174758735087']);
-            mockRuntimeConnection.getInstalledChaincode.resolves(chaincodeMap);
+        it('should restore from a previous debug session and use the last instantiated debug package of the same name', async () => {
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: '0.0.2' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
+
+            runtimeStub.isRunning.onFirstCall().resolves(true);
+            runtimeStub.isRunning.onSecondCall().resolves(false);
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
@@ -273,6 +272,28 @@ describe('FabricDebugConfigurationProvider', () => {
                 request: 'launch',
                 env: {
                     CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-13232112018`
+                },
+                args: ['127.0.0.1:54321']
+            });
+
+            runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', 'vscode-debug-13232112018']);
+            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should create a new version if there is a container running with the smart contract already', async () => {
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: '0.0.2' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
+
+            runtimeStub.isRunning.resolves(true);
+            newDebugVersionStub.returns('debug-version-123456');
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'mySmartContract:debug-version-123456',
+                    OLD_CHAINCODE_VERSION: 'debug-version-123456'
                 },
                 args: ['127.0.0.1:54321']
             });
