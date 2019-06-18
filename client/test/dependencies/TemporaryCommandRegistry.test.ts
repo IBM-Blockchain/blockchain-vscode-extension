@@ -28,15 +28,13 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('TemporaryCommandRegistry Tests', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
-
         if (ExtensionUtil.isActive()) {
             await myExtension.deactivate();
         }

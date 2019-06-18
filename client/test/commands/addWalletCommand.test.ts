@@ -34,7 +34,7 @@ chai.should();
 chai.use(sinonChai);
 
 describe('AddWalletCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;
     let browseStub: sinon.SinonStub;
@@ -48,7 +48,7 @@ describe('AddWalletCommand', () => {
     let fsRemoveStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeWalletsConfig();
     });
 
@@ -57,7 +57,6 @@ describe('AddWalletCommand', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);

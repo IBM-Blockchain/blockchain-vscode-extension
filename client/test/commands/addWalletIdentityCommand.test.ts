@@ -47,9 +47,10 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 chai.use(sinonChai);
 
 describe('AddWalletIdentityCommand', () => {
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeWalletsConfig();
     });
@@ -60,7 +61,6 @@ describe('AddWalletIdentityCommand', () => {
     });
 
     describe('addWalletIdentity', () => {
-        let mySandBox: sinon.SinonSandbox;
         let inputBoxStub: sinon.SinonStub;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
@@ -79,7 +79,6 @@ describe('AddWalletIdentityCommand', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
 
             // reset the stored gateways and wallets
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);

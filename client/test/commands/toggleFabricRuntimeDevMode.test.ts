@@ -34,16 +34,16 @@ chai.should();
 // tslint:disable no-unused-expression
 describe('toggleFabricRuntimeDevMode', () => {
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-    let runtime: FabricRuntime;
+    let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
     let logSpy: sinon.SinonSpy;
     let nodes: NodesTreeItem;
     let peerTreeItem: PeerTreeItem;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -54,11 +54,11 @@ describe('toggleFabricRuntimeDevMode', () => {
     });
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         await runtimeManager.initialize();
-        runtime = runtimeManager.getRuntime();
+        runtimeStub = sinon.createStubInstance(FabricRuntime);
+        sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
         nodes = allChildren[2] as NodesTreeItem;
@@ -74,72 +74,68 @@ describe('toggleFabricRuntimeDevMode', () => {
 
     it('should enable development mode and not restart a stopped Fabric runtime when run from the command', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(false);
-        sandbox.stub(runtime, 'isRunning').resolves(false);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(false);
+        runtimeStub.isRunning.resolves(false);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-        restartStub.should.have.not.been.called;
-        runtime.isDevelopmentMode().should.be.true;
-        logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
-        logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
+        runtimeStub.restart.should.have.not.been.called;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
+        logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
     });
 
     it('should disable development mode and not restart a stopped Fabric runtime when run from the command', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(false);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(true);
+        runtimeStub.isRunning.resolves(false);
+        runtimeStub.restart.resolves();
+
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-        restartStub.should.have.not.been.called;
-        runtime.isDevelopmentMode().should.be.false;
+        runtimeStub.restart.should.have.not.been.called;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
     });
 
     it('should enable development mode and restart a running Fabric runtime specified by right clicking on a peer', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(false);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(false);
+        runtimeStub.isRunning.resolves(true);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        runtime.isDevelopmentMode().should.be.true;
+        runtimeStub.restart.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
     });
 
     it('should disable development mode and restart a running Fabric runtime specified by right clicking on a peer', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(true);
+        runtimeStub.isRunning.resolves(true);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        runtime.isDevelopmentMode().should.be.false;
+        runtimeStub.restart.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
     });
 
     it('should enable dev mode', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(false);
-        sandbox.stub(runtime, 'isRunning').resolves(false);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(false);
+        runtimeStub.isRunning.resolves(false);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-        restartStub.should.have.not.been.called;
-        runtime.isDevelopmentMode().should.be.true;
+        runtimeStub.restart.should.have.not.been.called;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
     });
 
     it('should disable dev mode', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(false);
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(true);
+        runtimeStub.isRunning.resolves(true);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        runtime.isDevelopmentMode().should.be.false;
+        runtimeStub.restart.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
     });
@@ -147,12 +143,11 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should disconnect when trying to enable a connected runtime', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(true);
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        await runtime.setDevelopmentMode(false);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(false);
+        runtimeStub.isRunning.resolves(true);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called;
-        runtime.isDevelopmentMode().should.be.true;
+        runtimeStub.restart.should.have.been.called;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
@@ -161,12 +156,11 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should disconnect when trying to disable a connected runtime', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(true);
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        runtimeStub.isDevelopmentMode.returns(true);
+        runtimeStub.isRunning.resolves(true);
+        runtimeStub.restart.resolves();
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called;
-        runtime.isDevelopmentMode().should.be.false;
+        runtimeStub.restart.should.have.been.called;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
@@ -175,13 +169,13 @@ describe('toggleFabricRuntimeDevMode', () => {
     it('should display an error when restarting fabric fails', async () => {
         sandbox.stub(FabricConnectionManager.instance(), 'getConnection').returns(true);
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        await runtime.setDevelopmentMode(true);
-        sandbox.stub(runtime, 'isRunning').resolves(true);
+        runtimeStub.isDevelopmentMode.returns(true);
+        runtimeStub.isRunning.resolves(true);
         const error: Error = new Error('something terrible is about to happen');
-        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').rejects(error);
+        runtimeStub.restart.rejects(error);
 
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
-        restartStub.should.have.been.called;
+        runtimeStub.restart.should.have.been.called;
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);

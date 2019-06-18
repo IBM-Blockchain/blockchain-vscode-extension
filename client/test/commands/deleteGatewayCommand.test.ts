@@ -36,9 +36,10 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
 describe('DeleteGatewayCommand', () => {
-
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
+    let showConfirmationWarningMessage: sinon.SinonStub;
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
     });
 
@@ -48,8 +49,6 @@ describe('DeleteGatewayCommand', () => {
 
     describe('deleteGateway', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-        let warningStub: sinon.SinonStub;
         let quickPickStub: sinon.SinonStub;
         let gateways: Array<any>;
         let myGatewayA: any;
@@ -58,8 +57,8 @@ describe('DeleteGatewayCommand', () => {
         let logSpy: sinon.SinonSpy;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-            warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+            mySandBox.restore();
+            showConfirmationWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`This will remove the gateway. Do you want to continue?`).resolves(true);
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // reset the available gateways
@@ -143,7 +142,7 @@ describe('DeleteGatewayCommand', () => {
         });
 
         it('should handle no from confirmation message', async () => {
-            warningStub.resolves(false);
+            showConfirmationWarningMessage.resolves(false);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 

@@ -23,17 +23,16 @@ chai.use(sinonChai);
 
 describe('Fabric Wallet Util tests', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let getConfigurationStub: sinon.SinonStub;
     let getSettingsStub: sinon.SinonStub;
     let updateSettingsStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         getSettingsStub = mySandBox.stub();
         updateSettingsStub = mySandBox.stub();
         getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');

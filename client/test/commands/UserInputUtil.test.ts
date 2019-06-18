@@ -48,7 +48,7 @@ const should: Chai.Should = chai.should();
 // tslint:disable no-unused-expression
 describe('UserInputUtil', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let quickPickStub: sinon.SinonStub;
     const gatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const walletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
@@ -106,7 +106,7 @@ describe('UserInputUtil', () => {
 
     before(async () => {
 
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeWalletsConfig();
@@ -119,7 +119,6 @@ describe('UserInputUtil', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
 
         const rootPath: string = path.dirname(__dirname);
 

@@ -28,13 +28,13 @@ import { FabricNode } from '../../../src/fabric/FabricNode';
 
 describe('PeerTreeItem', () => {
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     let provider: BlockchainGatewayExplorerProvider;
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let node: FabricNode;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -52,7 +52,6 @@ describe('PeerTreeItem', () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
-        sandbox = sinon.createSandbox();
         sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
     });
 

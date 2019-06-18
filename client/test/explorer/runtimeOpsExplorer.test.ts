@@ -49,11 +49,11 @@ chai.should();
 
 // tslint:disable no-unused-expression
 describe('runtimeOpsExplorer', () => {
-
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     after(async () => {
@@ -64,14 +64,12 @@ describe('runtimeOpsExplorer', () => {
     describe('getChildren', () => {
         describe('unconnected tree', () => {
 
-            let mySandBox: sinon.SinonSandbox;
             let getConnectionStub: sinon.SinonStub;
             let logSpy: sinon.SinonSpy;
             let isRunningStub: sinon.SinonStub;
             let runtime: FabricRuntime;
 
             beforeEach(async () => {
-                mySandBox = sinon.createSandbox();
                 getConnectionStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getConnection');
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
@@ -162,14 +160,12 @@ describe('runtimeOpsExplorer', () => {
 
         describe('connected tree', () => {
 
-            let mySandBox: sinon.SinonSandbox;
             let allChildren: Array<BlockchainTreeItem>;
             let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
             let fabricConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
             let logSpy: sinon.SinonSpy;
 
             beforeEach(async () => {
-                mySandBox = sinon.createSandbox();
 
                 mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isDevelopmentMode').returns(false);
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -486,10 +482,7 @@ describe('runtimeOpsExplorer', () => {
 
     describe('refresh', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
 
             await ExtensionUtil.activateExtension();
         });
@@ -525,11 +518,7 @@ describe('runtimeOpsExplorer', () => {
 
     describe('getTreeItem', () => {
 
-        let mySandBox: sinon.SinonSandbox;
-
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
             await ExtensionUtil.activateExtension();
         });
 

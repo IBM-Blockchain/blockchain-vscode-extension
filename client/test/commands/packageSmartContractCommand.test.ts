@@ -31,7 +31,7 @@ chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('packageSmartContract', () => {
-
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     const rootPath: string = path.dirname(__dirname);
     const extDir: string = path.join(rootPath, '../../test/data');
     const fileDest: string = path.join(extDir, 'packages');
@@ -125,7 +125,7 @@ describe('packageSmartContract', () => {
     }
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeExtensionDirectoryConfig();
         await fs.mkdirp(fileDest);
     });
@@ -134,7 +134,6 @@ describe('packageSmartContract', () => {
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    let mySandBox: sinon.SinonSandbox;
     let logSpy: sinon.SinonSpy;
     let showInputStub: sinon.SinonStub;
     let workspaceFoldersStub: sinon.SinonStub;
@@ -145,7 +144,6 @@ describe('packageSmartContract', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
 
         await TestUtil.deleteTestFiles(fileDest);
         await TestUtil.deleteTestFiles(testWorkspace);

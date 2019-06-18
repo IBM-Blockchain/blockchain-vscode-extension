@@ -38,7 +38,7 @@ chai.use(sinonChai);
 
 describe('removeWalletCommand', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let warningStub: sinon.SinonStub;
     let fsRemoveStub: sinon.SinonStub;
@@ -49,7 +49,7 @@ describe('removeWalletCommand', () => {
     let getAllFabricGatewayRegisty: sinon.SinonStub;
     let updateFabricGatewayRegisty: sinon.SinonStub;
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeWalletsConfig();
     });
 
@@ -59,7 +59,6 @@ describe('removeWalletCommand', () => {
 
     beforeEach(async () => {
         // Set up stubs
-        mySandBox = sinon.createSandbox();
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
         warningStub = mySandBox.stub(vscode.window, 'showWarningMessage');
         warningStub.resolves('No');

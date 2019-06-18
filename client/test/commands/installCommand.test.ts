@@ -42,10 +42,10 @@ describe('InstallCommand', () => {
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     describe('InstallSmartContract', () => {
@@ -66,7 +66,6 @@ describe('InstallCommand', () => {
         let peerTreeItem: PeerTreeItem;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
             executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();

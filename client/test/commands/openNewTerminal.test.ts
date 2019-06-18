@@ -33,7 +33,7 @@ class TestNodeTreeItem extends NodeTreeItem {
 // tslint:disable no-unused-expression
 describe('openNewTerminal', () => {
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     let nodeItem: NodeTreeItem;
     let node: FabricNode;
     let mockTerminal: any;
@@ -41,7 +41,7 @@ describe('openNewTerminal', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -52,7 +52,6 @@ describe('openNewTerminal', () => {
     });
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
         node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');

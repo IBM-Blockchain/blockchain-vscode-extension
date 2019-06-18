@@ -32,16 +32,17 @@ chai.should();
 // tslint:disable no-unused-expression
 describe('teardownFabricRuntime', () => {
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let gatewayRegistyEntry: FabricGatewayRegistryEntry;
     let getRegistryEntryStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
+    let showConfirmationWarningMessageStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -52,7 +53,9 @@ describe('teardownFabricRuntime', () => {
     });
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
+        sandbox.restore();
+        showConfirmationWarningMessageStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         await runtimeManager.initialize();
@@ -78,10 +81,10 @@ describe('teardownFabricRuntime', () => {
 
     it('should teardown a Fabric runtime', async () => {
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        showConfirmationWarningMessageStub.resolves(true);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
-        warningStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
         mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);
@@ -95,10 +98,10 @@ describe('teardownFabricRuntime', () => {
         gatewayRegistyEntry.managedRuntime = true;
         getRegistryEntryStub.returns(gatewayRegistyEntry);
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        showConfirmationWarningMessageStub.resolves(true);
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
-        warningStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
         mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
 
@@ -113,9 +116,9 @@ describe('teardownFabricRuntime', () => {
     it('should handle cancel from confirmation message', async () => {
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
 
-        const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(false);
+        showConfirmationWarningMessageStub.resolves(false);
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
-        warningStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
         mockRuntime.teardown.should.not.have.been.called;
         mockRuntime.deleteWalletsAndIdentities.should.not.have.been.called;
 
@@ -129,9 +132,9 @@ describe('teardownFabricRuntime', () => {
         const error: Error = new Error('something terrible is about to happen');
         mockRuntime.teardown.rejects(error);
 
-        const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        showConfirmationWarningMessageStub.resolves(true);
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
-        warningStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
 
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to teardown local_fabric: ${error.message}`, `Failed to teardown local_fabric: ${error.toString()}`);
@@ -139,11 +142,10 @@ describe('teardownFabricRuntime', () => {
 
     it('should force teardown without neededing to answer the warning message', async () => {
         const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-        const warningSpy: sinon.SinonSpy = sandbox.spy(UserInputUtil, 'showConfirmationWarningMessage');
 
         await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, true);
 
-        warningSpy.should.not.have.been.called;
+        showConfirmationWarningMessageStub.should.not.have.been.called;
         mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);
@@ -156,10 +158,10 @@ describe('teardownFabricRuntime', () => {
 
     it('should be able to not force teardown', async () => {
             const executeCommandSpy: sinon.SinonSpy = sandbox.spy(vscode.commands, 'executeCommand');
-            const warningStub: sinon.SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+            showConfirmationWarningMessageStub.resolves(true);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, false);
-            warningStub.should.have.been.calledOnce;
+            showConfirmationWarningMessageStub.should.have.been.calledOnce;
             mockRuntime.teardown.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
             mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT);

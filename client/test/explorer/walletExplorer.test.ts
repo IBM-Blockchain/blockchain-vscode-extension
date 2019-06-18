@@ -44,7 +44,7 @@ chai.should();
 
 describe('walletExplorer', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
     let runtimeWalletEntry: FabricWalletRegistryEntry;
@@ -54,7 +54,7 @@ describe('walletExplorer', () => {
     let getLocalWalletIdentityNamesStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeWalletsConfig();
     });
 
@@ -63,7 +63,6 @@ describe('walletExplorer', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
         runtimeWalletEntry = new FabricWalletRegistryEntry({

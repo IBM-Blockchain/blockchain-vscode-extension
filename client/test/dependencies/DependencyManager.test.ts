@@ -31,18 +31,13 @@ chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('DependencyManager Tests', () => {
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     describe('hasNativeDependenciesInstalled', () => {
-
-        let mySandBox: sinon.SinonSandbox;
-
-        beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-        });
 
         afterEach(() => {
             mySandBox.restore();
@@ -79,10 +74,8 @@ describe('DependencyManager Tests', () => {
 
     describe('requireNativeDependencies', () => {
 
-        let mySandBox: sinon.SinonSandbox;
         let logSpy: sinon.SinonSpy;
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         });
 
@@ -104,11 +97,8 @@ describe('DependencyManager Tests', () => {
     });
 
     describe('installNativeDependencies', () => {
-        let mySandBox: sinon.SinonSandbox;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
             await ExtensionUtil.activateExtension();
         });
 

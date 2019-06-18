@@ -282,6 +282,10 @@ describe('FabricClientConnection', () => {
 
     describe('submitTransaction', () => {
         it('should handle no response from a submitted transaction', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
+
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.submit.resolves(buffer);
 
@@ -290,9 +294,14 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle setting transient data', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
+
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.submit.resolves(buffer);
 
@@ -301,9 +310,14 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.have.been.calledWith({key: Buffer.from('value')});
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle a returned string response from a submitted transaction', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
+
             const buffer: Buffer = Buffer.from('hello world');
             fabricTransactionStub.submit.resolves(buffer);
 
@@ -312,9 +326,14 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             result.should.equal('hello world');
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle a returned empty string response from a submitted transaction', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
+
             const buffer: Buffer = Buffer.from('');
             fabricTransactionStub.submit.resolves(buffer);
 
@@ -323,9 +342,13 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle a returned array from a submitted transaction', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from(JSON.stringify(['hello', 'world']));
             fabricTransactionStub.submit.resolves(buffer);
@@ -335,9 +358,13 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, '["hello","world"]');
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle returned object from a submitted transaction', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from(JSON.stringify({hello: 'world'}));
             fabricTransactionStub.submit.resolves(buffer);
@@ -347,9 +374,14 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, '{"hello":"world"}');
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should evaluate a transaction if specified', async () => {
+            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
+            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
+            mockRuntime.isDevelopmentMode.returns(false);
+
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.evaluate.resolves(buffer);
 
@@ -358,6 +390,7 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
+            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should set large timeout when in debug mode', async () => {

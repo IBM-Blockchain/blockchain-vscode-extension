@@ -33,14 +33,14 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
 describe('EditWalletCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let openUserSettingsStub: sinon.SinonStub;
     let showWalletsQuickPickStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let walletRegistryStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeWalletsConfig();
     });
 
@@ -49,7 +49,6 @@ describe('EditWalletCommand', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         openUserSettingsStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
         showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');

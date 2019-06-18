@@ -18,10 +18,16 @@ import * as myExtension from '../src/extension';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { SettingConfigurations } from '../SettingConfigurations';
+import { SinonSandbox, SinonStub } from 'sinon';
+import { UserInputUtil } from '../src/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
 
 export class TestUtil {
-    static async setupTests(): Promise<void> {
+    static async setupTests(sandbox: SinonSandbox): Promise<void> {
+
         if (!ExtensionUtil.isActive()) {
+            const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+            showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
             await ExtensionUtil.activateExtension();
         } else {
             const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();

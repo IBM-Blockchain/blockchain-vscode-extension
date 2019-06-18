@@ -40,9 +40,9 @@ chai.use(sinonChai);
 
 describe('deleteIdentityCommand', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
-    let warningStub: sinon.SinonStub;
+    let showConfirmationWarningMessage: sinon.SinonStub;
     let fsRemoveStub: sinon.SinonStub;
     let showWalletsQuickPickStub: sinon.SinonStub;
     let showIdentitiesQuickPickStub: sinon.SinonStub;
@@ -54,7 +54,7 @@ describe('deleteIdentityCommand', () => {
     let identityName: string;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeWalletsConfig();
     });
 
@@ -64,9 +64,10 @@ describe('deleteIdentityCommand', () => {
 
     beforeEach(async () => {
         // Set up stubs
-        mySandBox = sinon.createSandbox();
+        mySandBox.restore();
+
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
-        warningStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
+        showConfirmationWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
         fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
         showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
         showIdentitiesQuickPickStub = mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox');
@@ -111,7 +112,7 @@ describe('deleteIdentityCommand', () => {
         walletIdentitiesStub.should.have.been.calledOnce;
         showIdentitiesQuickPickStub.should.have.been.calledOnce;
         logSpy.should.have.been.calledTwice;
-        warningStub.should.have.been.calledOnce;
+        showConfirmationWarningMessage.should.have.been.calledOnce;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteIdentity`);
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted identity: ${identityName}`, `Successfully deleted identity: ${identityName}`);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
@@ -195,7 +196,7 @@ describe('deleteIdentityCommand', () => {
         });
         walletIdentitiesStub.resolves(['biscuits', 'yellowConga']);
         showIdentitiesQuickPickStub.resolves('biscuits');
-        warningStub.resolves(false);
+        showConfirmationWarningMessage.resolves(false);
 
         await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
 
@@ -203,7 +204,7 @@ describe('deleteIdentityCommand', () => {
         walletIdentitiesStub.should.have.been.calledOnce;
         showIdentitiesQuickPickStub.should.have.been.calledOnce;
         fsRemoveStub.should.not.have.been.called;
-        warningStub.should.have.been.calledOnce;
+        showConfirmationWarningMessage.should.have.been.calledOnce;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteIdentity`);
     });
 
@@ -240,7 +241,7 @@ describe('deleteIdentityCommand', () => {
 
             fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(blueWallet.walletPath, identityName));
             showWalletsQuickPickStub.should.not.have.been.called;
-            warningStub.should.have.been.calledOnce;
+            showConfirmationWarningMessage.should.have.been.calledOnce;
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteIdentity`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted identity: ${identityName}`, `Successfully deleted identity: ${identityName}`);
@@ -260,7 +261,7 @@ describe('deleteIdentityCommand', () => {
 
             fsRemoveStub.should.have.been.calledOnceWithExactly(path.join('some/local/fabric/wallet/path', identityName));
             showWalletsQuickPickStub.should.not.have.been.called;
-            warningStub.should.have.been.calledOnce;
+            showConfirmationWarningMessage.should.have.been.calledOnce;
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteIdentity`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted identity: ${identityName}`, `Successfully deleted identity: ${identityName}`);

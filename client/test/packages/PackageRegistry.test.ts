@@ -38,10 +38,10 @@ describe('PackageRegistry', () => {
     // This directory contains dot files, old style package directories, and corrupt package files.
     const TEST_BAD_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'badPackageDir');
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeExtensionDirectoryConfig();
     });
 
@@ -50,7 +50,6 @@ describe('PackageRegistry', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_GOOD_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
 

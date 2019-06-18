@@ -38,10 +38,10 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 chai.use(sinonChai);
 
 describe('UpgradeCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     describe('UpgradeSmartContract', () => {
@@ -62,7 +62,6 @@ describe('UpgradeCommand', () => {
         let showYesNo: sinon.SinonStub;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 

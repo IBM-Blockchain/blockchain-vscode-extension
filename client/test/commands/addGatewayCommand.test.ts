@@ -33,7 +33,7 @@ chai.use(sinonChai);
 
 describe('AddGatewayCommand', () => {
     const rootPath: string = path.dirname(__dirname);
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let showInputBoxStub: sinon.SinonStub;
     let browseStub: sinon.SinonStub;
@@ -42,7 +42,7 @@ describe('AddGatewayCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
     });
 
@@ -53,7 +53,6 @@ describe('AddGatewayCommand', () => {
     describe('addGateway', () => {
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
             // reset the available gateways
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 

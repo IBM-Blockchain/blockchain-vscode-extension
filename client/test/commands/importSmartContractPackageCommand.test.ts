@@ -32,11 +32,11 @@ chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('importSmartContractPackageCommand', () => {
-
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeExtensionDirectoryConfig();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
@@ -45,7 +45,6 @@ describe('importSmartContractPackageCommand', () => {
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    let sandbox: sinon.SinonSandbox;
     let copyStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let browseStub: sinon.SinonStub;
@@ -55,7 +54,6 @@ describe('importSmartContractPackageCommand', () => {
     const srcPackage: string = path.join('myPath', 'test.cds');
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
 
         browseStub = sandbox.stub(UserInputUtil, 'browse').resolves(srcPackage);
         copyStub = sandbox.stub(fs, 'copyFile').resolves();

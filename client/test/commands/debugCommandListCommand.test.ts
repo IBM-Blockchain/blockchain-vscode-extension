@@ -33,18 +33,17 @@ chai.use(sinonChai);
 
 describe('DebugCommandListCommand', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let showDebugCommandListStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     const runtimeStub: sinon.SinonStubbedInstance<FabricRuntimeConnection> = sinon.createStubInstance(FabricRuntimeConnection);
     let connectionManagerGetConnectionStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
 
         showDebugCommandListStub = mySandBox.stub(UserInputUtil, 'showDebugCommandList').resolves({ label: 'Instantiate smart contract', data: ExtensionCommands.INSTANTIATE_SMART_CONTRACT });
 

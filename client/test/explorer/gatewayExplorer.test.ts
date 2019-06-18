@@ -53,10 +53,10 @@ describe('gatewayExplorer', () => {
 
     const rootPath: string = path.dirname(__dirname);
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -67,7 +67,6 @@ describe('gatewayExplorer', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 
         const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
