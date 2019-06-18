@@ -340,13 +340,12 @@ describe('ExtensionUtil Tests', () => {
             clock.restore();
         });
 
-        it('return a new debug version', async () => {
-
+        it('return a new debug version', () => {
             clock = sinon.useFakeTimers({ toFake: ['Date'] });
             const date: Date = new Date();
             const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
 
-            const result: string = await ExtensionUtil.getNewDebugVersion();
+            const result: string = ExtensionUtil.getNewDebugVersion();
             result.should.equal(`vscode-debug-${formattedDate}`);
 
         });

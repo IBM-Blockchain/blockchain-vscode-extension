@@ -124,10 +124,9 @@ describe('FabricGoDebugConfigurationProvider', () => {
             mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
-            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap.set('myOtherContract', ['vscode-debug-13232112018', '0.0.2']);
-            chaincodeMap.set('cake-network', ['vscode-debug-174758735087']);
-            mockRuntimeConnection.getInstalledChaincode.resolves(chaincodeMap);
+
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 

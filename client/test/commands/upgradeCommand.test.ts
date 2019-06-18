@@ -475,23 +475,51 @@ describe('UpgradeCommand', () => {
                 name: 'beer',
                 uri: vscode.Uri.file('myPath')
             };
-            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
             const activeDebugSessionStub: any = {
                 configuration: {
                     env: {
                         CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-97365870'
-                    }
-                }
+                    },
+                },
+                workspaceFolder: workspaceFolder
             };
 
             mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
-            mySandBox.stub(ExtensionUtil, 'getNewDebugVersion').resolves('vscode-debug-564349380');
+            mySandBox.stub(ExtensionUtil, 'getNewDebugVersion').returns('vscode-debug-564349380');
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('beer', 'vscode-debug-564349380', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'beer',  'vscode-debug-564349380');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
+        });
+
+        it('should upgrade the debug smart contract package but use old version when container running', async () => {
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-12345', path: undefined });
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-12345', path: undefined });
+
+            const workspaceFolder: any = {
+                name: 'beer',
+                uri: vscode.Uri.file('myPath')
+            };
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    env: {
+                        CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-12345',
+                        OLD_CHAINCODE_VERSION: 'vscode-debug-12345'
+                    }
+                },
+                workspaceFolder: workspaceFolder
+            };
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+
+            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('beer', 'vscode-debug-12345', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3']);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'beer',  'vscode-debug-12345');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
         });
 
