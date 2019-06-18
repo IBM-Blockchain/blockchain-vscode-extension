@@ -6,7 +6,7 @@ The IBM Blockchain Platform extension helps developers to create, test and debug
 
 For a step-by-step guide on getting started with the extension's features, access our Beginner Tutorial via our integrated Home page. Alternatively, explore, clone and open the Hyperledger Fabric samples, all without leaving VS Code. For more comprehensive documentation, [follow this link](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-develop-vscode)
 
-![IBP Extension Homepage](client/media/ibp_vscode_homepage.png)
+![IBP Extension Homepage](client/media/VSCodeImage.png)
 
 ## Installation
 
