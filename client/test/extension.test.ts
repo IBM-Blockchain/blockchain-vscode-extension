@@ -18,7 +18,7 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { version as currentExtensionVersion } from '../package.json';
-import { ExtensionUtil } from '../src/util/ExtensionUtil';
+import { ExtensionUtil, EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA } from '../src/util/ExtensionUtil';
 import { DependencyManager } from '../src/dependencies/DependencyManager';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 import { TemporaryCommandRegistry } from '../src/dependencies/TemporaryCommandRegistry';
@@ -68,7 +68,7 @@ describe('Extension Tests', () => {
 
     beforeEach(async () => {
         const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
+        await extensionContext.globalState.update(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
         mySandBox = sinon.createSandbox();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
@@ -82,7 +82,7 @@ describe('Extension Tests', () => {
 
     afterEach(async () => {
         const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await extensionContext.globalState.update(myExtension.EXTENSION_DATA_KEY, myExtension.DEFAULT_EXTENSION_DATA);
+        await extensionContext.globalState.update(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
         mySandBox.restore();
     });
 
@@ -440,7 +440,7 @@ describe('Extension Tests', () => {
 
     it('should always migrate runtime and initialize the runtime manager', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: '0.0.7',
             migrationCheck: 1,
@@ -453,7 +453,7 @@ describe('Extension Tests', () => {
 
     it('should migrate setting configurations, if not done already', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 0,
@@ -465,7 +465,7 @@ describe('Extension Tests', () => {
 
     it('should not migrate user settings, if done already', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -477,7 +477,7 @@ describe('Extension Tests', () => {
 
     it('should report if new install', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: '0.0.7',
             migrationCheck: 1
@@ -488,7 +488,7 @@ describe('Extension Tests', () => {
 
     it('should not report if not changed version', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1
@@ -499,7 +499,7 @@ describe('Extension Tests', () => {
 
     it('should report if updated install', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: null,
             migrationCheck: 1
@@ -518,7 +518,7 @@ describe('Extension Tests', () => {
     it('should do nothing if generator version is the latest', async () => {
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         const generatorVersion: string = dependencies['generator-fabric'];
-        await context.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -534,7 +534,7 @@ describe('Extension Tests', () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -548,7 +548,7 @@ describe('Extension Tests', () => {
         await myExtension.activate(newContext);
 
         updateGlobalStateSpy.should.have.been.calledTwice;
-        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(EXTENSION_DATA_KEY, {
             activationCount: 1,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -560,7 +560,7 @@ describe('Extension Tests', () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -574,7 +574,7 @@ describe('Extension Tests', () => {
         await myExtension.activate(newContext);
 
         updateGlobalStateSpy.should.have.been.calledTwice;
-        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(EXTENSION_DATA_KEY, {
             activationCount: 1,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -588,7 +588,7 @@ describe('Extension Tests', () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -610,7 +610,7 @@ describe('Extension Tests', () => {
         await myExtension.activate(newContext);
 
         updateGlobalStateSpy.should.have.been.calledTwice;
-        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(EXTENSION_DATA_KEY, {
             activationCount: 1,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -629,7 +629,7 @@ describe('Extension Tests', () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -651,7 +651,7 @@ describe('Extension Tests', () => {
         await myExtension.activate(newContext);
 
         updateGlobalStateSpy.should.have.been.calledTwice;
-        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(myExtension.EXTENSION_DATA_KEY, {
+        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(EXTENSION_DATA_KEY, {
             activationCount: 1,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -668,7 +668,7 @@ describe('Extension Tests', () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(myExtension.EXTENSION_DATA_KEY, {
+        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
             migrationCheck: 1,
@@ -689,7 +689,7 @@ describe('Extension Tests', () => {
         await myExtension.activate(newContext);
 
         updateGlobalStateSpy.should.have.been.calledOnce;
-        updateGlobalStateSpy.should.not.have.been.calledWith(myExtension.EXTENSION_DATA_KEY, {
+        updateGlobalStateSpy.should.not.have.been.calledWith(EXTENSION_DATA_KEY, {
             activationCount: 1,
             version: currentExtensionVersion,
             migrationCheck: 1,

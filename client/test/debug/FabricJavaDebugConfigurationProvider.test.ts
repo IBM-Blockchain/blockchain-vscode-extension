@@ -133,6 +133,14 @@ describe('FabricJavaDebugConfigurationProvider', () => {
             mySandbox.stub(UserInputUtil, 'showInputBox').withArgs('Enter a name for your Java package').resolves('mySmartContract');
 
             sendTelemetryEventStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+            mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
+                globalState: {
+                    get: mySandbox.stub().returns({
+                        generatorVersion: '0.0.33'
+                    })
+                }
+            });
         });
 
         afterEach(() => {

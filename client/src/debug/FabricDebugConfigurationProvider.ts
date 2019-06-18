@@ -13,6 +13,7 @@
 */
 
 import * as vscode from 'vscode';
+import * as semver from 'semver';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -21,7 +22,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { URL } from 'url';
-import { ExtensionUtil } from '../util/ExtensionUtil';
+import { ExtensionUtil, ExtensionData, EXTENSION_DATA_KEY } from '../util/ExtensionUtil';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -30,6 +31,16 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
+
+            const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+            const extensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY);
+
+            // Stop debug if not got late enough version
+            if (semver.lt(extensionData.generatorVersion, '0.0.33')) {
+                outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.', 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+                return;
+            }
+
             this.runtime = FabricRuntimeManager.instance().getRuntime();
 
             const isRunning: boolean = await this.runtime.isRunning();
