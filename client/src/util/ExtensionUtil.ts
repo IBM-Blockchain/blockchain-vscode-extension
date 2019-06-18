@@ -21,6 +21,23 @@ import * as os from 'os';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import * as dateFormat from 'dateformat';
 
+export class ExtensionData {
+    public activationCount: number;
+    public version: string;
+    public migrationCheck: number;
+    public generatorVersion: string;
+}
+
+export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
+
+export const DEFAULT_EXTENSION_DATA: ExtensionData = {
+    activationCount: 0,
+    version: null,
+    migrationCheck: 0,
+    generatorVersion: null // Used to check if the generator needs updating
+};
+
+// tslint:disable-next-line: max-classes-per-file
 export class ExtensionUtil {
 
     static readonly DEBUG_PACKAGE_PREFIX: string = 'vscode-debug';

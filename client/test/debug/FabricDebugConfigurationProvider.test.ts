@@ -69,6 +69,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let startDebuggingStub: sinon.SinonStub;
         let newDebugVersionStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
+        let generatorVersionStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -109,6 +110,14 @@ describe('FabricDebugConfigurationProvider', () => {
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
             logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
+            generatorVersionStub = mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
+                globalState: {
+                    get: mySandbox.stub().returns({
+                        generatorVersion: '0.0.33'
+                    })
+                }
+            });
         });
 
         afterEach(() => {
@@ -194,6 +203,22 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321']
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should give an error if generator version is too old', async () => {
+            generatorVersionStub.returns({
+                globalState: {
+                    get: mySandbox.stub().returns({
+                        generatorVersion: '0.0.32'
+                    })
+                }
+            });
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.not.have.been.called;
+            commandStub.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.', 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
         });
 
         it('should not run if the chaincode name is not provided', async () => {

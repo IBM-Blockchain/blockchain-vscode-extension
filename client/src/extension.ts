@@ -33,7 +33,7 @@ import { packageSmartContract } from './commands/packageSmartContractCommand';
 import { VSCodeBlockchainOutputAdapter } from './logging/VSCodeBlockchainOutputAdapter';
 import { DependencyManager } from './dependencies/DependencyManager';
 import { TemporaryCommandRegistry } from './dependencies/TemporaryCommandRegistry';
-import { ExtensionUtil } from './util/ExtensionUtil';
+import { ExtensionUtil, ExtensionData, EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA } from './util/ExtensionUtil';
 import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
 import { startFabricRuntime } from './commands/startFabricRuntime';
 import { stopFabricRuntime } from './commands/stopFabricRuntime';
@@ -101,21 +101,6 @@ let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
 let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
 let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
-
-class ExtensionData {
-    public activationCount: number;
-    public version: string;
-    public migrationCheck: number;
-    public generatorVersion: string;
-}
-
-export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
-export const DEFAULT_EXTENSION_DATA: ExtensionData = {
-    activationCount: 0,
-    version: null,
-    migrationCheck: 0,
-    generatorVersion: null // Used to check if the generator needs updating
-};
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 
