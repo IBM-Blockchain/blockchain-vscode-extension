@@ -35,14 +35,14 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
 describe('EditGatewayCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let openUserSettingsStub: sinon.SinonStub;
     let showGatewayQuickPickStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let gatewayRegistryStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
     });
 
@@ -51,7 +51,6 @@ describe('EditGatewayCommand', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         openUserSettingsStub = mySandBox.stub(UserInputUtil, 'openUserSettings');
         showGatewayQuickPickStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox');
         logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');

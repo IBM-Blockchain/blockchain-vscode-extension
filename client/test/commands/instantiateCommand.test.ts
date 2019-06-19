@@ -38,10 +38,10 @@ import { Reporter } from '../../src/util/Reporter';
 chai.use(sinonChai);
 
 describe('InstantiateCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     describe('InstantiateSmartContract', () => {
@@ -64,7 +64,6 @@ describe('InstantiateCommand', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
             executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();

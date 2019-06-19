@@ -28,14 +28,14 @@ chai.should();
 // tslint:disable no-unused-expression
 describe('restartFabricRuntime', () => {
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let logSpy: sinon.SinonSpy;
     let runtime: FabricRuntime;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -46,7 +46,6 @@ describe('restartFabricRuntime', () => {
     });
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await connectionRegistry.clear();
         await runtimeManager.initialize();

@@ -41,10 +41,10 @@ chai.use(sinonChai);
 chai.should();
 
 describe('SubmitTransactionCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     describe('SubmitTransaction', () => {
@@ -63,7 +63,6 @@ describe('SubmitTransactionCommand', () => {
         let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
             executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
             executeCommandStub.callThrough();

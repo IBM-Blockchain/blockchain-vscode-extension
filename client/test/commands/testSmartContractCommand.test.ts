@@ -43,7 +43,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
 describe('testSmartContractCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    let mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
     let executeCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
@@ -101,7 +101,7 @@ describe('testSmartContractCommand', () => {
     const tsConfigFormat: any = { spaces: '\t' };
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     afterEach(async () => {

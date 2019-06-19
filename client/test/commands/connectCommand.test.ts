@@ -49,9 +49,10 @@ chai.use(require('chai-as-promised'));
 
 // tslint:disable no-unused-expression
 describe('ConnectCommand', () => {
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeWalletsConfig();
@@ -65,7 +66,6 @@ describe('ConnectCommand', () => {
 
     describe('connect', () => {
 
-        let mySandBox: sinon.SinonSandbox;
         let rootPath: string;
         let mockConnection: sinon.SinonStubbedInstance<FabricClientConnection>;
         let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
@@ -84,7 +84,6 @@ describe('ConnectCommand', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
 
             mockConnection = sinon.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();

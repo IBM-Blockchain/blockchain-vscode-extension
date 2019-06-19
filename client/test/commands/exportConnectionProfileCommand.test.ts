@@ -36,7 +36,7 @@ import * as os from 'os';
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     const fakeTargetPath: string = path.join('/', 'a', 'fake', 'path');
     let runtime: FabricRuntime;
@@ -51,7 +51,7 @@ describe('exportConnectionProfileCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -62,7 +62,6 @@ describe('exportConnectionProfileCommand', () => {
     });
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
         await ExtensionUtil.activateExtension();
         await runtimeManager.initialize();
         runtime = runtimeManager.getRuntime();

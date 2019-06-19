@@ -38,12 +38,13 @@ chai.use(sinonChai);
 
 // tslint:disable no-unused-expression
 describe('exportSmartContractPackageCommand', () => {
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
 
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data/packageDir');
     const targetPath: string = path.join('/', 'path', 'to', 'the', 'vscode-pkg-1@0.0.1.cds');
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeExtensionDirectoryConfig();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_PACKAGE_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
@@ -52,14 +53,12 @@ describe('exportSmartContractPackageCommand', () => {
         await TestUtil.restoreExtensionDirectoryConfig();
     });
 
-    let sandbox: sinon.SinonSandbox;
     let showSaveDialogStub: sinon.SinonStub;
     let copyStub: sinon.SinonStub;
     let logSpy: sinon.SinonStub;
     let sendTelemetryEventStub: sinon.SinonStub;
 
     beforeEach(async () => {
-        sandbox = sinon.createSandbox();
         showSaveDialogStub = sandbox.stub(vscode.window, 'showSaveDialog').resolves(vscode.Uri.file(targetPath));
         copyStub = sandbox.stub(fs, 'copy').resolves();
         logSpy = sandbox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');

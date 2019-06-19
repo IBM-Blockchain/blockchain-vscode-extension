@@ -35,11 +35,11 @@ chai.should();
 chai.use(sinonChai);
 
 describe('DeleteSmartContractPackageCommand', () => {
-
+    let showConfirmationWarningMessageStub: sinon.SinonStub;
     const TEST_EXTENSION_DIRECTORY: string = path.join(path.dirname(__dirname), '../../test/data');
-
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeExtensionDirectoryConfig();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, TEST_EXTENSION_DIRECTORY, vscode.ConfigurationTarget.Global);
     });
@@ -50,14 +50,12 @@ describe('DeleteSmartContractPackageCommand', () => {
 
     describe('deleteSmartContractPackage', () => {
 
-        let mySandBox: sinon.SinonSandbox;
         let _package: PackageRegistryEntry;
         let logStub: sinon.SinonStub;
-        let areYouSureStub: sinon.SinonStub;
 
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
-
+            mySandBox.restore();
+            showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').resolves(true);
             const packagesStub: sinon.SinonStub = mySandBox.stub(PackageRegistry.instance(), 'getAll');
             _package = new PackageRegistryEntry();
             _package.name = 'myPackage';
@@ -66,8 +64,6 @@ describe('DeleteSmartContractPackageCommand', () => {
             packagesStub.resolves([_package]);
 
             logStub = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log').resolves();
-            areYouSureStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-            areYouSureStub.resolves(true);
         });
 
         afterEach(async () => {
@@ -154,7 +150,7 @@ describe('DeleteSmartContractPackageCommand', () => {
                 label: 'vscode-pkg-1@0.0.1',
                 data: _package
             }]);
-            areYouSureStub.resolves(false);
+            showConfirmationWarningMessageStub.resolves(false);
 
             // Execute the delete 'smart contract package' command
             const deleteSpy: sinon.SinonSpy = mySandBox.spy(PackageRegistry.instance(), 'delete');

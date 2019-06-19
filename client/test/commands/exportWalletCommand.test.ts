@@ -29,7 +29,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 
 // tslint:disable no-unused-expression
 describe('exportWalletCommand', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let walletTreeItem: WalletTreeItem;
     let getWorkspaceFoldersStub: sinon.SinonStub;
     let workspaceFolder: any;
@@ -41,7 +41,7 @@ describe('exportWalletCommand', () => {
     let showWalletsQuickPickBoxStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeWalletsConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -52,7 +52,6 @@ describe('exportWalletCommand', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
         walletTreeItem = new WalletTreeItem(blockchainWalletExplorerProvider, 'myWallet', [], 0, {name: 'myWallet', walletPath: '/some/path', managedWallet: false});
         workspaceFolder = {

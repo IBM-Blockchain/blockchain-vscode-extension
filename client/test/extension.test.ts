@@ -43,17 +43,18 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('Extension Tests', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let migrateRuntimeStub: sinon.SinonStub;
     let initializeStub: sinon.SinonStub;
     let migrateSettingConfigurations: sinon.SinonStub;
     let tidyWalletsStub: sinon.SinonStub;
     let sendTelemetryStub: sinon.SinonStub;
+    let showConfirmationWarningMessageStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.storeShowHomeOnStart();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
         await TestUtil.storeShowHomeOnStart();
@@ -67,9 +68,12 @@ describe('Extension Tests', () => {
     });
 
     beforeEach(async () => {
+        mySandBox.restore();
+        showConfirmationWarningMessageStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
+
         const extensionContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await extensionContext.globalState.update(EXTENSION_DATA_KEY, DEFAULT_EXTENSION_DATA);
-        mySandBox = sinon.createSandbox();
+
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
         migrateRuntimeStub = mySandBox.stub(FabricRuntimeManager.instance(), 'migrate');
@@ -604,8 +608,7 @@ describe('Extension Tests', () => {
         mockRuntime.isGenerated.resolves(true);
         mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        const showConfirmationWarniningMessageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-        showConfirmationWarniningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
+        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
 
         await myExtension.activate(newContext);
 
@@ -617,7 +620,7 @@ describe('Extension Tests', () => {
             generatorVersion: generatorVersion
         });
 
-        showConfirmationWarniningMessageStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
@@ -645,8 +648,7 @@ describe('Extension Tests', () => {
         mockRuntime.isGenerated.resolves(true);
         mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        const showConfirmationWarniningMessageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-        showConfirmationWarniningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
+        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
 
         await myExtension.activate(newContext);
 
@@ -658,7 +660,7 @@ describe('Extension Tests', () => {
             generatorVersion: generatorVersion
         });
 
-        showConfirmationWarniningMessageStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
@@ -683,8 +685,7 @@ describe('Extension Tests', () => {
         mockRuntime.isGenerated.resolves(true);
         mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        const showConfirmationWarniningMessageStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage');
-        showConfirmationWarniningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
+        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
 
         await myExtension.activate(newContext);
 
@@ -696,7 +697,7 @@ describe('Extension Tests', () => {
             generatorVersion: generatorVersion
         });
 
-        showConfirmationWarniningMessageStub.should.have.been.calledOnce;
+        showConfirmationWarningMessageStub.should.have.been.calledOnce;
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 

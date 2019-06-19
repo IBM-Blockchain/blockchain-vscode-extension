@@ -35,7 +35,7 @@ chai.use(sinonChai);
 // tslint:disable no-unused-expression
 describe('CreateSmartContractProjectCommand', () => {
     // suite variables
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let sendCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
@@ -48,11 +48,10 @@ describe('CreateSmartContractProjectCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
         sendCommandStub.withArgs('xcode-select -p').resolves('path');
         mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');

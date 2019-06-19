@@ -42,12 +42,12 @@ describe('LocalGatewayTreeItem', () => {
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let onBusyCallback: any;
 
-    let sandbox: sinon.SinonSandbox;
+    const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     let clock: sinon.SinonFakeTimers;
     let provider: BlockchainGatewayExplorerProvider;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(sandbox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
     });
@@ -75,7 +75,6 @@ describe('LocalGatewayTreeItem', () => {
             name.should.equal('busy');
             onBusyCallback = callback;
         });
-        sandbox = sinon.createSandbox();
         sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
         clock = sinon.useFakeTimers({toFake: ['setInterval', 'clearInterval']});
     });

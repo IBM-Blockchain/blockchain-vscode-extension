@@ -31,14 +31,14 @@ chai.should();
 
 // tslint:disable no-unused-expression
 describe('packageExplorer', () => {
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
     let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
     const rootPath: string = path.dirname(__dirname);
     const testDir: string = path.join(rootPath, '../../test/data/packageDir');
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeExtensionDirectoryConfig();
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeRuntimesConfig();
@@ -52,7 +52,6 @@ describe('packageExplorer', () => {
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, testDir, true);

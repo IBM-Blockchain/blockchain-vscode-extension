@@ -38,7 +38,7 @@ chai.use(sinonChai);
 
 describe('createNewIdentityCommand', () => {
 
-    let mySandBox: sinon.SinonSandbox;
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let certificateAuthorityTreeItem: CertificateAuthorityTreeItem;
     let isRunningStub: sinon.SinonStub;
     let inputBoxStub: sinon.SinonStub;
@@ -52,11 +52,10 @@ describe('createNewIdentityCommand', () => {
     let sendTelemetryEventStub: sinon.SinonStub;
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
     });
 
     beforeEach(async () => {
-        mySandBox = sinon.createSandbox();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
         isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);

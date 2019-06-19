@@ -40,9 +40,10 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
 describe('DissociateWalletCommand', () => {
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
-        await TestUtil.setupTests();
+        await TestUtil.setupTests(mySandBox);
         await TestUtil.storeGatewaysConfig();
         await TestUtil.storeWalletsConfig();
     });
@@ -53,14 +54,12 @@ describe('DissociateWalletCommand', () => {
     });
 
     describe('dissociateWallet', () => {
-        let mySandBox: sinon.SinonSandbox;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
         let logSpy: sinon.SinonSpy;
         let showGatewayQuickPickBoxStub: sinon.SinonStub;
         let fabricGatewayRegistryUpdateStub: sinon.SinonStub;
         beforeEach(async () => {
-            mySandBox = sinon.createSandbox();
 
             // reset the stored gateways and wallets
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
