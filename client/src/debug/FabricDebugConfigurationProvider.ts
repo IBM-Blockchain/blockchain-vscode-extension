@@ -36,7 +36,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const extensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY);
 
             // Stop debug if not got late enough version
-            if (semver.lt(extensionData.generatorVersion, '0.0.33')) {
+            if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.33')) {
                 outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.', 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
                 return;
             }
