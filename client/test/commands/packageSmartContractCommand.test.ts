@@ -61,12 +61,14 @@ describe('packageSmartContract', () => {
         try {
             await fs.remove(projectDir);
         } catch (error) {
+            // tslint:disable no-console
             console.log(error);
         }
 
         try {
             await fs.mkdirp(projectDir);
         } catch (error) {
+            // tslint:disable no-console
             console.log(error);
         }
 

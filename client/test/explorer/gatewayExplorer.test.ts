@@ -103,7 +103,7 @@ describe('gatewayExplorer', () => {
             const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
             connectionManager.emit('connected', mockConnection);
-            blockchainGatewayExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
+            blockchainGatewayExplorerProvider.connect.should.have.been.calledOnce;
         });
 
         it('should display errors from connected events', async () => {
@@ -115,7 +115,7 @@ describe('gatewayExplorer', () => {
             connectionManager.emit('connected', mockConnection);
             // Need to ensure the event handler gets a chance to run.
             await new Promise((resolve: any): any => setTimeout(resolve, 50));
-            blockchainGatewayExplorerProvider.connect.should.have.been.calledOnceWithExactly(mockConnection);
+            blockchainGatewayExplorerProvider.connect.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'Error handling connected event: wow such error', 'Error handling connected event: Error: wow such error');
         });
 
@@ -884,11 +884,9 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            const myConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
-
             const executeCommandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-            await blockchainGatewayExplorerProvider.connect(myConnection);
+            await blockchainGatewayExplorerProvider.connect();
 
             onDidChangeTreeDataSpy.should.have.been.called;
 
