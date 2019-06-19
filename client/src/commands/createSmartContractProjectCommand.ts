@@ -120,6 +120,7 @@ export async function createSmartContractProject(): Promise<void> {
         Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
         // Open the returned folder in explorer, in a new window
         await UserInputUtil.openNewProject(openMethod, folderUri);
+        await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
         return;
