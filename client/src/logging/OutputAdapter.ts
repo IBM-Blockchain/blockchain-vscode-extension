@@ -21,6 +21,7 @@ export enum LogType {
     WARNING = 'WARNING'
 }
 
+// tslint:disable no-console
 export abstract class OutputAdapter {
     public log(type: LogType, popupMessage: string, outputMessage?: string): void {
         if (type === LogType.ERROR) {

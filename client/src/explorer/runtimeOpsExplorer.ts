@@ -66,12 +66,10 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     }
 
     getTreeItem(element: BlockchainTreeItem): vscode.TreeItem {
-        console.log('getTreeItem', element);
         return element;
     }
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
-        console.log('getChildren', element);
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -121,7 +119,6 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
-        console.log('createdConnectionTree');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tree: BlockchainTreeItem[] = [];
@@ -152,7 +149,6 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
-        console.log('createConnectedTree');
         const tree: Array<BlockchainTreeItem> = [];
 
         tree.push(new SmartContractsTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
