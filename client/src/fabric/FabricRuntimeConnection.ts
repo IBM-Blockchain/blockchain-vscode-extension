@@ -48,8 +48,6 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
     }
 
     public async connect(): Promise<void> {
-        console.log('FabricRuntimeConnection: connect');
-
         const nodes: FabricNode[] = await this.runtime.getNodes();
         this.client = new Client();
         this.client.setCryptoSuite(Client.newCryptoSuite());
@@ -208,7 +206,6 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
     }
 
     public async getInstalledChaincode(peerName: string): Promise<Map<string, Array<string>>> {
-        console.log('getInstalledChaincode', peerName);
         const installedChainCodes: Map<string, Array<string>> = new Map<string, Array<string>>();
         const peer: Client.Peer = this.getPeer(peerName);
         await this.setNodeContext(peerName);

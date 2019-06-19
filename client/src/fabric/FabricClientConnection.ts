@@ -31,7 +31,6 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     }
 
     async connect(wallet: FabricWallet, identityName: string): Promise<void> {
-        console.log('FabricClientConnection: connect');
         const connectionProfile: object = await ExtensionUtil.readConnectionProfile(this.connectionProfilePath);
         if (connectionProfile['description']) {
             this.description = (connectionProfile['description'].includes('Network on IBP') ? true : false);
@@ -63,8 +62,6 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         }
         try {
             const metadataObject: any = JSON.parse(metadataBuffer.toString());
-
-            console.log('Metadata object is:', metadataObject);
             return metadataObject;
         } catch (error) {
             // This is another unusual case; the function name is ignored, or accepted, but non-JSON data is returned.

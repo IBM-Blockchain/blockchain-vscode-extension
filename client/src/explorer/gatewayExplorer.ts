@@ -55,9 +55,9 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     constructor() {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-        FabricConnectionManager.instance().on('connected', async (connection: IFabricClientConnection) => {
+        FabricConnectionManager.instance().on('connected', async () => {
             try {
-                await this.connect(connection);
+                await this.connect();
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Error handling connected event: ${error.message}`, `Error handling connected event: ${error.toString()}`);
             }
@@ -75,27 +75,23 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         this._onDidChangeTreeData.fire(element);
     }
 
-    async connect(connection: IFabricClientConnection): Promise<void> {
-        console.log('connect', connection);
+    async connect(): Promise<void> {
         // This controls which menu buttons appear
         await vscode.commands.executeCommand('setContext', 'blockchain-connected', true);
         await this.refresh();
     }
 
     async disconnect(): Promise<void> {
-        console.log('disconnect');
         // This controls which menu buttons appear
         await vscode.commands.executeCommand('setContext', 'blockchain-connected', false);
         await this.refresh();
     }
 
     getTreeItem(element: BlockchainTreeItem): vscode.TreeItem {
-        console.log('getTreeItem', element);
         return element;
     }
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
-        console.log('getChildren', element);
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -153,7 +149,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
-        console.log('createdConnectionTree');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         const tree: BlockchainTreeItem[] = [];
@@ -224,7 +219,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createInstantiatedChaincodeTree(channelTreeElement: ChannelTreeItem): Promise<Array<InstantiatedTreeItem>> {
-        console.log('createInstantiatedChaincodeTree', channelTreeElement);
         const tree: Array<InstantiatedTreeItem> = [];
 
         for (const instantiatedChaincode of channelTreeElement.chaincodes) {
@@ -252,7 +246,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createContractTree(chainCodeElement: InstantiatedChaincodeTreeItem): Promise<Array<ContractTreeItem>> {
-        console.log('createContractsTree', chainCodeElement);
         const tree: Array<any> = [];
         for (const contract of chainCodeElement.contracts) {
             const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
@@ -271,7 +264,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
     private async createTransactionsChaincodeTree(contractTreeElement: ContractTreeItem): Promise<Array<TransactionTreeItem>> {
         const tree: Array<TransactionTreeItem> = [];
-        console.log('createTransactionsChaincodeTree', contractTreeElement);
         contractTreeElement.transactions.forEach((transaction: string) => {
             tree.push(new TransactionTreeItem(this, transaction, contractTreeElement.instantiatedChaincode.name, contractTreeElement.instantiatedChaincode.channel.label, contractTreeElement.name));
         });
@@ -282,7 +274,6 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
     private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
 
         try {
-            console.log('createConnectedTree');
             const tree: Array<BlockchainTreeItem> = [];
 
             const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();

@@ -25,10 +25,7 @@
         "prefer-for-of": false,
         "member-access": false,
         "no-console": [
-            true,
-            "time",
-            "timeEnd",
-            "trace"
+            true
         ],
         "forin": false,
         "max-line-length": false,

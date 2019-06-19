@@ -186,7 +186,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
@@ -207,7 +207,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnce;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
@@ -277,7 +277,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
@@ -293,7 +293,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), FabricRuntimeUtil.ADMIN_USER);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
@@ -367,7 +367,7 @@ describe('ConnectCommand', () => {
             it('should connect to a managed runtime using a quick pick', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
@@ -381,7 +381,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
@@ -394,7 +394,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
@@ -445,7 +445,7 @@ describe('ConnectCommand', () => {
             it('should connect to a non-local fabric using a quick pick', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
@@ -459,7 +459,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
@@ -473,7 +473,7 @@ describe('ConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricClientConnection));
+                connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });

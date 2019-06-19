@@ -49,6 +49,7 @@ describe('FabricRuntime', () => {
     let sandbox: sinon.SinonSandbox;
 
     // tslint:disable max-classes-per-file
+    // tslint:disable no-console
     class TestFabricOutputAdapter implements OutputAdapter {
 
         public log(value: string): void {

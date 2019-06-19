@@ -93,7 +93,6 @@ export class ExtensionUtil {
         } else if (connectionProfilePath.endsWith('.yaml') || connectionProfilePath.endsWith('.yml')) {
             connectionProfile = yaml.safeLoad(connectionProfileContents);
         } else {
-            console.log('Connection Profile given is not .json/.yaml format:', connectionProfilePath);
             throw new Error('Connection profile must be in JSON or yaml format');
         }
         return connectionProfile;
