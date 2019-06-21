@@ -57,7 +57,12 @@ For `local_fabric` management tasks such as restart and teardown, see the `Local
 Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `local_fabric` runtime. The deployed smart contracts are listed in the `Local Fabric Ops` panel. 
 
 ### Debugging a smart contract
-Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. To debug your smart contract follow these steps:
+Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. 
+
+To debug Go smart contracts, please install the [Go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go).
+To debug Java smart contracts, please install the [Language Support for Java extension](https://marketplace.visualstudio.com/items?itemName=redhat.java) and the [Debugger for Java extension](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug)
+
+To debug your smart contract follow these steps:
 
 1. Ensure you are connected to the `local_fabric` runtime and that the `local_fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. By toggling development mode, transactions will now have a large timeout value.
 2. Open your smart contract project in your workspace.
