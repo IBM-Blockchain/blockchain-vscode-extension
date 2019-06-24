@@ -62,11 +62,6 @@ describe('ConnectedTreeItem', () => {
             should.not.exist(treeItem.iconPath);
         });
 
-        it('should set the iconPath to null if tree item is connected via gateway and using ID', () => {
-            treeItem = new TestConnectedTreeItem('test label Connected via gateway Using ID');
-            should.not.exist(treeItem.iconPath);
-        });
-
         it('should have an iconPath if the tree item is neither connected via gateway or using ID', () => {
             treeItem = new TestConnectedTreeItem('test label');
             treeItem.iconPath.should.deep.equal({
