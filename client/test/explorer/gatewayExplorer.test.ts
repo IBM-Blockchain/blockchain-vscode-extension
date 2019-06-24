@@ -193,12 +193,16 @@ describe('gatewayExplorer', () => {
 
                 allChildren.length.should.equal(5);
                 allChildren[1].label.should.equal('myGatewayA ⧉');
+                allChildren[1].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[1].should.be.an.instanceOf(GatewayAssociatedTreeItem);
                 allChildren[2].label.should.equal('myGatewayA ⧉');
+                allChildren[2].tooltip.should.equal('ⓘ Associated wallet:\n    some_other_wallet');
                 allChildren[2].should.be.an.instanceOf(GatewayAssociatedTreeItem);
                 allChildren[3].label.should.equal('myGatewayB');
+                allChildren[3].tooltip.should.equal('No associated wallet');
                 allChildren[3].should.be.an.instanceOf(GatewayDissociatedTreeItem);
                 allChildren[4].label.should.equal('myGatewayC ⧉');
+                allChildren[4].tooltip.should.equal('ⓘ Associated wallet:\n    some_wallet');
                 allChildren[4].should.be.an.instanceOf(GatewayAssociatedTreeItem);
             });
 
@@ -422,6 +426,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
                 fabricConnection.getAllChannelsForPeer.withArgs('peerTwo').resolves(['channelTwo']);
                 fabricConnection.createChannelMap.resolves(map);
+                fabricConnection.identityName = 'pigeon';
 
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);
 
@@ -445,11 +450,23 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
             it('should create a connected tree if there is a connection', async () => {
                 allChildren.length.should.equal(3);
 
-                const connectedItem: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
-                connectedItem.label.should.equal('Connected via gateway: myGateway');
-                connectedItem.contextValue.should.equal('blockchain-connected-item');
-                connectedItem.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
-                connectedItem.connection.name.should.equal('myGateway');
+                const connectedItem1: ConnectedTreeItem = allChildren[0] as ConnectedTreeItem;
+                connectedItem1.label.should.equal('Connected via gateway: myGateway');
+                connectedItem1.contextValue.should.equal('blockchain-connected-item');
+                connectedItem1.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                connectedItem1.connection.name.should.equal('myGateway');
+
+                const connectedItem2: ConnectedTreeItem = allChildren[1] as ConnectedTreeItem;
+                connectedItem2.label.should.equal('Using ID: pigeon');
+                connectedItem2.contextValue.should.equal('blockchain-connected-item');
+                connectedItem2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                connectedItem2.connection.name.should.equal('myGateway');
+
+                const connectedItem3: ConnectedTreeItem = allChildren[2] as ConnectedTreeItem;
+                connectedItem3.label.should.equal('Channels');
+                connectedItem3.contextValue.should.equal('blockchain-connected-item');
+                connectedItem3.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Expanded);
+                connectedItem3.connection.name.should.equal('myGateway');
 
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
                 const channelOne: ChannelTreeItem = channels[0];
