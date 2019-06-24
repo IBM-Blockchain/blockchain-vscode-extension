@@ -19,7 +19,7 @@ Feature: Fabric Wallets
 
     @otherFabric
     Scenario: create a new wallet using enrollId
-        Given gateway 'myGateway' is created
+        Given the gateway 'myGateway' is created
         When I create a wallet 'myOtherWallet' using enrollId with identity name 'biscuit' and mspid 'Org1MSP'
         Then there should be a tree item with a label 'myOtherWallet' in the 'Fabric Wallets' panel
         And the tree item should have a tooltip equal to 'myOtherWallet'
