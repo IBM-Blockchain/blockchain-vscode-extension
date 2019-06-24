@@ -45,7 +45,6 @@ export abstract class FabricConnection {
     public abstract async connect(wallet: FabricWallet, identityName: string): Promise<void>;
 
     public getAllPeerNames(): Array<string> {
-        console.log('getAllPeerNames');
         const allPeers: Array<Client.Peer> = this.getAllPeers();
 
         const peerNames: Array<string> = [];
@@ -58,13 +57,11 @@ export abstract class FabricConnection {
     }
 
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
-        console.log('getAllChannelsForPeer', peerName);
         // TODO: update this when not just using admin
         const peer: Client.Peer = this.gateway.getClient().getPeer(peerName);
         const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
 
         const channelNames: Array<string> = [];
-        console.log(channelResponse);
         channelResponse.channels.forEach((channel: Client.ChannelInfo) => {
             channelNames.push(channel.channel_id);
         });
@@ -73,7 +70,6 @@ export abstract class FabricConnection {
     }
 
     public async getInstantiatedChaincode(channelName: string): Promise<Array<{ name: string, version: string }>> {
-        console.log('getInstantiatedChaincode');
         const instantiatedChaincodes: Array<any> = [];
         const channel: Client.Channel = await this.getChannel(channelName);
         const chainCodeResponse: Client.ChaincodeQueryResponse = await channel.queryInstantiatedChaincodes(null);
@@ -89,7 +85,6 @@ export abstract class FabricConnection {
     }
 
     public async createChannelMap(): Promise<Map<string, Array<string>>> {
-        console.log('createChannelMap');
         try {
             const allPeerNames: Array<string> = this.getAllPeerNames();
 
@@ -138,7 +133,6 @@ export abstract class FabricConnection {
     }
 
     protected async getChannel(channelName: string): Promise<Client.Channel> {
-        console.log('getChannel', channelName);
         const client: Client = this.gateway.getClient();
         let channel: Client.Channel = client.getChannel(channelName, false);
         if (channel) {
@@ -185,8 +179,6 @@ export abstract class FabricConnection {
     }
 
     private getAllPeers(): Array<Client.Peer> {
-        console.log('getAllPeers');
-
         return this.gateway.getClient().getPeersForOrg();
     }
 }

@@ -27,7 +27,6 @@ import { YeomanUtil } from '../util/YeomanUtil';
 const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 
 export async function createSmartContractProject(): Promise<void> {
-    console.log('create Smart Contract Project');
     // Create and show output channel
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
@@ -120,8 +119,8 @@ export async function createSmartContractProject(): Promise<void> {
 
         Reporter.instance().sendTelemetryEvent('createSmartContractProject', {contractLanguage: smartContractLanguage});
         // Open the returned folder in explorer, in a new window
-        console.log('new smart contract project folder is :' + folderPath);
         await UserInputUtil.openNewProject(openMethod, folderUri);
+        await vscode.commands.executeCommand('workbench.files.action.focusFilesExplorer');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating smart contract project: ${error.message}`, `Issue creating smart contract project: ${error.toString()}`);
         return;

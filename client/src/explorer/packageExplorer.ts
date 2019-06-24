@@ -25,12 +25,10 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
     getTreeItem(element: PackageTreeItem): vscode.TreeItem {
-        console.log('BlockchainPackageExplorer: getTreeItem', element);
         return element;
     }
 
     async getChildren(): Promise<BlockchainTreeItem[]> {
-        console.log('BlockchainPackageExplorer: getChildren');
         // Get the packages from the registry manager and create a package tree
         const packageArray: PackageRegistryEntry[] = await PackageRegistry.instance().getAll();
         this.tree = await this.createPackageTree(packageArray);
@@ -38,12 +36,10 @@ export class BlockchainPackageExplorerProvider implements BlockchainExplorerProv
     }
 
     async refresh(): Promise<void> {
-        console.log('BlockchainPackageExplorer: refresh');
         this._onDidChangeTreeData.fire();
     }
 
     private async createPackageTree(packageRegistryEntries: Array<PackageRegistryEntry>): Promise<BlockchainTreeItem[]> {
-        console.log('BlockchainPackageExplorer: createPackageTree');
         const tree: Array<BlockchainTreeItem> = [];
         // Populate the tree with the name of each package registry entry
         for (const packageRegistryEntry of packageRegistryEntries) {

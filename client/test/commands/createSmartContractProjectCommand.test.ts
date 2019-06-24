@@ -152,7 +152,8 @@ describe('CreateSmartContractProjectCommand', () => {
             browseStub.resolves(uri);
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledThrice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
@@ -168,7 +169,8 @@ describe('CreateSmartContractProjectCommand', () => {
 
             browseStub.resolves(uri);
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledThrice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
@@ -189,7 +191,8 @@ describe('CreateSmartContractProjectCommand', () => {
             await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledThrice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             saveDialogStub.should.have.been.calledWith(true);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
@@ -211,7 +214,8 @@ describe('CreateSmartContractProjectCommand', () => {
             await vscode.workspace.openTextDocument({language: 'text', content: 'my text file'});
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledThrice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             executeCommandStub.should.have.been.calledWith('vscode.openFolder', uri, false);
             saveDialogStub.should.not.have.been.called;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
@@ -230,7 +234,8 @@ describe('CreateSmartContractProjectCommand', () => {
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();
@@ -246,7 +251,8 @@ describe('CreateSmartContractProjectCommand', () => {
 
             browseStub.resolves(uri);
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-            executeCommandStub.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledTwice;
+            executeCommandStub.should.have.been.calledWith('workbench.files.action.focusFilesExplorer');
             updateWorkspaceFoldersStub.should.have.been.calledWith(sinon.match.number, 0, {uri: uri});
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated smart contract project');
             await checkSmartContract();

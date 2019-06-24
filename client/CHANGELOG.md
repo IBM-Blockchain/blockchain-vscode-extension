@@ -1,5 +1,16 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.3: June 19th 2019
+
+* Tidied wallet user settings [#970](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/970)
+* Improved tests [#695](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/695)
+* Updated Telemetry [#1019](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1019)
+* Check generator version compatibility [#1013](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1013)
+* Updated debug logic [#956](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/956)
+* Tutorial fixes and README image update [#1048](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1048)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-53.png)
+
 ## 1.0.2: June 6th 2019
 
 * Split out generated test boilerplate code [#827](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/827)

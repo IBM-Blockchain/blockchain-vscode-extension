@@ -178,7 +178,6 @@ export class SampleView extends View {
         const saveDir: string = savePath.fsPath.substring(index + 1);
 
         const command: string = `git clone ${url} ${saveDir}`;
-        console.log('Attempting to clone to:', savePath.fsPath);
         try {
             const cloneOutput: string = await CommandUtil.sendCommandWithProgress(command, path.dirname(savePath.fsPath), `Cloning ${this.repoName} repository`);
             outputAdapter.log(LogType.INFO, undefined, cloneOutput);

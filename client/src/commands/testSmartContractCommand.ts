@@ -76,7 +76,6 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             chaincodeVersion = chaincode.version;
         }
     }
-    console.log('testSmartContractCommand: chaincode to generate tests for is: ' + chaincodeLabel);
 
     // Get metadata
     const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
@@ -209,9 +208,6 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             walletHome: walletHome
         };
 
-        console.log('template data is: ');
-        console.log(templateData);
-
         // Create data to write to file from template engine
         const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
         const utilTemplate: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractUtilTemplate.ejs`);
@@ -268,7 +264,6 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         try {
             await fs.ensureFile(testFile);
         } catch (error) {
-            console.log('Errored creating test file: ' + testFile);
             outputAdapter.log(LogType.ERROR, `Error creating test file: ${error.message}`, `Error creating test file: ${error.toString()}`);
             await removeTestFile(testFile);
             return;
@@ -384,8 +379,6 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 }
 
 async function createDataToWrite(template: string, templateData: any): Promise<any> {
-    console.log('TestSmartContractCommand: createDataToWrite using template file:', template);
-
     const ejsOptions: ejs.Options = {
         async: true,
     };
@@ -403,8 +396,6 @@ async function createDataToWrite(template: string, templateData: any): Promise<a
 
 async function removeTestFile(fileToRemove: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
-    console.log('Something went wrong, so cleaning up and removing test file:', fileToRemove);
 
     try {
         await fs.remove(fileToRemove);

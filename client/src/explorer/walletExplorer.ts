@@ -46,7 +46,6 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     }
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
-        console.log('BlockchainWalletExplorer: getChildren');
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
             if (element instanceof WalletTreeItem || element instanceof LocalWalletTreeItem) {
@@ -67,7 +66,6 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
     }
 
     private async createWalletTree(): Promise<BlockchainTreeItem[]> {
-        console.log('BlockchainWalletExplorer: createWalletTree');
         const tree: Array<BlockchainTreeItem> = [];
 
         const walletRegistryEntries: FabricWalletRegistryEntry[] = FabricWalletRegistry.instance().getAll();
