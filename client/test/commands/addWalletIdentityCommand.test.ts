@@ -301,6 +301,27 @@ describe('AddWalletIdentityCommand', () => {
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
         });
 
+        it('should show an error if parsing the certificate file fails', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'blueWallet',
+                data: FabricWalletRegistry.instance().get('blueWallet')
+            });
+            inputBoxStub.onFirstCall().resolves('blueConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
+            const error: Error = new Error('certificate invalid');
+            getCertKeyStub.throws(error);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            fsReadFile.should.not.have.been.called;
+            getCertKeyStub.should.have.been.calledOnce;
+            importIdentityStub.should.not.have.been.called;
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
         it('should error if an identity is unable to be imported', async () => {
             showWalletsQuickPickStub.resolves({
                 label: 'blueWallet',
