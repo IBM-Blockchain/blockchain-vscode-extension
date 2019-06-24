@@ -96,68 +96,70 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         return Promise.resolve();
     }
 
-    if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
-        // User wants to add an identity by providing a certificate and private key
-        const certKey: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
-        if (!certKey) {
-            return Promise.resolve();
-        }
-        certificatePath = certKey.certificatePath;
-        privateKeyPath = certKey.privateKeyPath;
-    } else {
-        // User wants to add an identity by providing a enrollment id and secret
+    try {
 
-        // Ask them what gateway they want to use for enrollment.
-        // We can't tell this automatically as a wallet is associated with a gateway (and a wallet can be associated with multiple gateways)
-        let gatewayRegistryEntry: FabricGatewayRegistryEntry;
-
-        // Limit the user to use local_fabric for local_fabric_wallet identities
-        if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
-            // wallet is managed so use local_fabric as the gateway
-            // assume there is only one
-            const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-            gatewayRegistryEntry = runtimeGateways[0];
-
-        } else {
-            // select from other gateways
-            // Check there is at least one
-            let gateways: Array<FabricGatewayRegistryEntry> = [];
-            gateways = FabricGatewayRegistry.instance().getAll();
-            if (gateways.length === 0) {
-                outputAdapter.log(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
-                return;
-            }
-
-            const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', false);
-            if (!chosenEntry) {
+        if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
+            // User wants to add an identity by providing a certificate and private key
+            const certKey: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
+            if (!certKey) {
                 return Promise.resolve();
             }
-            gatewayRegistryEntry = chosenEntry.data;
+            certificatePath = certKey.certificatePath;
+            privateKeyPath = certKey.privateKeyPath;
+        } else {
+            // User wants to add an identity by providing a enrollment id and secret
+
+            // Ask them what gateway they want to use for enrollment.
+            // We can't tell this automatically as a wallet is associated with a gateway (and a wallet can be associated with multiple gateways)
+            let gatewayRegistryEntry: FabricGatewayRegistryEntry;
+
+            // Limit the user to use local_fabric for local_fabric_wallet identities
+            if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
+                // wallet is managed so use local_fabric as the gateway
+                // assume there is only one
+                const runtimeGateways: Array<FabricGatewayRegistryEntry> = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+                gatewayRegistryEntry = runtimeGateways[0];
+
+            } else {
+                // select from other gateways
+                // Check there is at least one
+                let gateways: Array<FabricGatewayRegistryEntry> = [];
+                gateways = FabricGatewayRegistry.instance().getAll();
+                if (gateways.length === 0) {
+                    outputAdapter.log(LogType.ERROR, `Please add a gateway in order to enroll a new identity`);
+                    return;
+                }
+
+                const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to enroll the identity with', false);
+                if (!chosenEntry) {
+                    return Promise.resolve();
+                }
+                gatewayRegistryEntry = chosenEntry.data;
+            }
+
+            const enrollIdSecret: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            if (!enrollIdSecret) {
+                return Promise.resolve();
+            }
+
+            const enrollmentID: string = enrollIdSecret.enrollmentID;
+            const enrollmentSecret: string = enrollIdSecret.enrollmentSecret;
+
+            const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
+
+            const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
+            certificate = enrollment.certificate;
+            privateKey = enrollment.privateKey;
         }
 
-        const enrollIdSecret: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
-        if (!enrollIdSecret) {
-            return Promise.resolve();
+        if (certificatePath && privateKeyPath) {
+            certificate = await fs.readFile(certificatePath, 'utf8');
+            privateKey = await fs.readFile(privateKeyPath, 'utf8');
         }
+        // Else certificate and privateKey have already been read in FabricCertificateAuthority.enroll
 
-        const enrollmentID: string = enrollIdSecret.enrollmentID;
-        const enrollmentSecret: string = enrollIdSecret.enrollmentSecret;
-
-        const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
-
-        const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
-        certificate = enrollment.certificate;
-        privateKey = enrollment.privateKey;
-    }
-
-    if (certificatePath && privateKeyPath) {
-        certificate = await fs.readFile(certificatePath, 'utf8');
-        privateKey = await fs.readFile(privateKeyPath, 'utf8');
-    }
-    // Else certificate and privateKey have already been read in FabricCertificateAuthority.enroll
-
-    try {
         await wallet.importIdentity(certificate, privateKey, identity.identityName, mspID);
+
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
         return;
