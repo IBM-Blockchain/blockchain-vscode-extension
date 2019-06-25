@@ -31,7 +31,7 @@ export async function addGateway(): Promise<{} | void> {
 
         const gatewayName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
         if (!gatewayName) {
-            return Promise.resolve();
+            return;
         }
 
         if (fabricGatewayRegistry.exists(gatewayName) || gatewayName === FabricRuntimeUtil.LOCAL_FABRIC) {
@@ -53,7 +53,7 @@ export async function addGateway(): Promise<{} | void> {
         // Get the connection profile json file path
         const connectionProfilePath: string = await UserInputUtil.browse('Enter a file path to a connection profile file', quickPickItems, openDialogOptions) as string;
         if (!connectionProfilePath) {
-            return Promise.resolve();
+            return;
         }
 
         const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();

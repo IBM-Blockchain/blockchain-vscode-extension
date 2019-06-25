@@ -59,7 +59,7 @@ module.exports = function(): any {
             return item.label === wallet;
         });
         if (walletIndex < 0) {
-            await this.walletAndIdentityHelper.createWallet(wallet, identity, mspid, true);
+            await this.walletAndIdentityHelper.createWallet(wallet, identity, mspid, 'certs');
         } else {
             treeItems = await blockchainWalletExplorerProvider.getChildren(treeItems[walletIndex]);
 
@@ -68,7 +68,7 @@ module.exports = function(): any {
             });
 
             if (!identityExists) {
-                await this.walletAndIdentityHelper.createIdentity(wallet, identity, mspid, true);
+                await this.walletAndIdentityHelper.createIdentity(wallet, identity, mspid, 'certs');
             }
         }
 
@@ -80,8 +80,11 @@ module.exports = function(): any {
      * When
      */
 
-    this.When(/^I create a wallet '(.*?)' using (certs|enrollId) with identity name '(.*?)' and mspid '(.*?)'$/, this.timeout, async (wallet: string, method: string, identityName: string, mspid: string) => {
-        const useCerts: boolean = method.includes('certs') ? true : false;
-        await this.walletAndIdentityHelper.createWallet(wallet, identityName, mspid, useCerts);
+    this.When(/^I create a wallet '(.*?)' using (certs|enrollId|json file) with identity name '(.*?)' and mspid '(.*?)'$/, this.timeout, async (wallet: string, method: string, identityName: string, mspid: string) => {
+        await this.walletAndIdentityHelper.createWallet(wallet, identityName, mspid, method);
+    });
+
+    this.When(/^I create an identity using (certs|enrollId|json file) with identity name '(.*?)' and mspid '(.*?)' in wallet '(.*?)'$/, this.timeout, async (method: string, identityName: string, mspid: string, wallet: string) => {
+        await this.walletAndIdentityHelper.createIdentity(wallet, identityName, mspid, method);
     });
 };

@@ -1562,7 +1562,7 @@ describe('UserInputUtil', () => {
             const result: string = await UserInputUtil.addIdentityMethod(false);
 
             result.should.equal(UserInputUtil.ADD_CERT_KEY_OPTION);
-            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION], {
+            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_JSON_ID_OPTION, UserInputUtil.ADD_ID_SECRET_OPTION], {
                 placeHolder: 'Choose a method for adding an identity',
                 ignoreFocusOut: true,
                 canPickMany: false
@@ -1574,7 +1574,7 @@ describe('UserInputUtil', () => {
             const result: string = await UserInputUtil.addIdentityMethod(true);
 
             result.should.equal(UserInputUtil.ADD_CERT_KEY_OPTION);
-            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION], {
+            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_CERT_KEY_OPTION, UserInputUtil.ADD_JSON_ID_OPTION, UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION], {
                 placeHolder: 'Choose a method for adding an identity',
                 ignoreFocusOut: true,
                 canPickMany: false

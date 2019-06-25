@@ -36,6 +36,7 @@ export class WalletAndIdentityHelper {
 
     public static certPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem`);
     public static keyPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key1.pem`);
+    public static jsonFilePath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/Org1Admin.json`);
     public static connectionProfilePath: string = path.join(__dirname, '../../../cucumber/hlfv1/connection.json');
     public static localWalletPath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', FabricWalletUtil.LOCAL_WALLET);
 
@@ -60,28 +61,32 @@ export class WalletAndIdentityHelper {
         }
     }
 
-    public async createWallet(name: string, identityName: string, mspid: string, useCerts: boolean): Promise<void> {
+    public async createWallet(name: string, identityName: string, mspid: string, method: string): Promise<void> {
         this.userInputUtilHelper.showAddWalletOptionsQuickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the wallet').resolves(name);
 
-        this.setIdentityStubs(useCerts, identityName, mspid);
+        this.setIdentityStubs(method, identityName, mspid);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET);
     }
 
-    public async createIdentity(walletName: string, identityName: string, mspid: string, useCerts: boolean): Promise<void> {
-        this.setIdentityStubs(useCerts, identityName, mspid);
+    public async createIdentity(walletName: string, identityName: string, mspid: string, method: string): Promise<void> {
+        this.setIdentityStubs(method, identityName, mspid);
         const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(walletName);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
     }
 
-    private setIdentityStubs(useCerts: boolean, identityName: string, mspid: string): void {
+    private setIdentityStubs(method: string, identityName: string, mspid: string): void {
         this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves(mspid);
 
-        if (useCerts) {
+        if (method === 'certs') {
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_CERT_KEY_OPTION);
             this.userInputUtilHelper.showGetCertKeyStub.resolves({ certificatePath: WalletAndIdentityHelper.certPath, privateKeyPath: WalletAndIdentityHelper.keyPath });
+        } else if (method === 'json file') {
+            this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_JSON_ID_OPTION);
+            this.userInputUtilHelper.browseStub.resolves(vscode.Uri.file(WalletAndIdentityHelper.jsonFilePath));
         } else {
+            // use enroll id and secret
             this.userInputUtilHelper.showAddIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             gatewayRegistryEntry.name = 'myGateway';
