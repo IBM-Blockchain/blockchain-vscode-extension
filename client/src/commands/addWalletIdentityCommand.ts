@@ -29,6 +29,7 @@ import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAu
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
+import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -72,7 +73,24 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         return;
     }
 
-    const mspID: string = await UserInputUtil.showInputBox('Enter MSPID');
+    let isLocalWallet: boolean;
+    if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
+        isLocalWallet = true;
+    } else {
+        isLocalWallet = false;
+    }
+
+    let mspID: string;
+    if (isLocalWallet) {
+        // using local_fabric_wallet
+        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const orgsArray: Array<string> = connection.getAllOrganizationNames();
+        // only one mspID currently, if multiple we'll need to add a dropdown
+        mspID = orgsArray[0];
+    } else {
+        mspID = await UserInputUtil.showInputBox('Enter MSPID');
+    }
+
     if (!mspID) {
         // User cancelled entering mspid
         return;
@@ -82,13 +100,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     let privateKey: string;
     let certificatePath: string;
     let privateKeyPath: string;
-
-    let isLocalWallet: boolean;
-    if (walletRegistryEntry && walletRegistryEntry.managedWallet) {
-        isLocalWallet = true;
-    } else {
-        isLocalWallet = false;
-    }
 
     // User selects if they want to add an identity using either a cert/key or an id/secret
     const addIdentityMethod: string = await UserInputUtil.addIdentityMethod(isLocalWallet);
