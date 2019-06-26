@@ -37,6 +37,9 @@ export const DEFAULT_EXTENSION_DATA: ExtensionData = {
     generatorVersion: null // Used to check if the generator needs updating
 };
 
+export const FABRIC_CLIENT_VERSION: string = '1.4.3';
+export const FABRIC_NETWORK_VERSION: string = '1.4.2';
+
 // tslint:disable-next-line: max-classes-per-file
 export class ExtensionUtil {
 
