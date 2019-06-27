@@ -1126,12 +1126,25 @@
                         }
                     },
                     {
-                        "label": "Fabric Smart Contract (Node.js): Launch",
+                        "label": "Fabric Smart Contract (JavaScript): Launch",
                         "description": "Launch a Fabric smart contract written in JavaScript or TypeScript",
                         "body": {
                             "type": "fabric:node",
                             "request": "launch",
                             "name": "Launch Smart Contract"
+                        }
+                    },
+                    {
+                        "label": "Fabric Smart Contract (TypeScript): Launch",
+                        "description": "Launch a Fabric smart contract written in JavaScript or TypeScript",
+                        "body": {
+                            "type": "fabric:node",
+                            "request": "launch",
+                            "name": "Launch Smart Contract",
+                            "preLaunchTask": "tsc: build - tsconfig.json",
+                            "outFiles": [
+                                "${workspaceFolder}/dist/**/*.js"
+                            ]
                         }
                     }
                 ]
