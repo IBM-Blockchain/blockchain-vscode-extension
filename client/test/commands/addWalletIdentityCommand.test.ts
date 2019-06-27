@@ -145,11 +145,8 @@ describe('AddWalletIdentityCommand', () => {
             importIdentityStub.resolves();
             showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-<<<<<<< HEAD
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
 
-=======
->>>>>>> whenever using local fabric, you no longer need to input MSPID
         });
 
         afterEach(async () => {
