@@ -42,6 +42,7 @@ import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -61,6 +62,7 @@ describe('AddWalletIdentityCommand', () => {
     });
 
     describe('addWalletIdentity', () => {
+        let fabricRuntimeConnectionMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
         let inputBoxStub: sinon.SinonStub;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
@@ -105,11 +107,25 @@ describe('AddWalletIdentityCommand', () => {
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
+                walletPath: walletPath,
+                managedWallet: true
+            });
+
+            const connectionTwoWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
+                name: 'externalWallet',
                 walletPath: walletPath
             });
 
             await FabricWalletRegistry.instance().clear();
             await FabricWalletRegistry.instance().add(connectionOneWallet);
+            await FabricWalletRegistry.instance().add(connectionTwoWallet);
+
+            fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
+            fabricRuntimeConnectionMock.connect.resolves();
+            fabricRuntimeConnectionMock.getAllOrganizationNames.resolves();
+            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
+            mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionMock);
+            fabricRuntimeConnectionMock.getAllOrganizationNames.returns(['myMSPID']);
 
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
@@ -139,8 +155,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -201,7 +217,7 @@ describe('AddWalletIdentityCommand', () => {
             addIdentityMethodStub.resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             addIdentityMethodStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -209,8 +225,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test adding an identity can be cancelled when asked to give an MSPID', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -224,8 +240,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test adding an identity can be cancelled chosing a gateway to enroll with', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -241,8 +257,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test adding an identity can be cancelled when adding using an identity and secret', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -275,7 +291,7 @@ describe('AddWalletIdentityCommand', () => {
             fsReadFile.onSecondCall().resolves('---KEY---');
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
-            inputBoxStub.should.have.been.calledTwice;
+            inputBoxStub.should.have.been.calledOnce;
             fsReadFile.should.have.been.calledTwice;
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             getCertKeyStub.should.have.been.calledOnce;
@@ -326,8 +342,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should error if an identity is unable to be imported', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
@@ -355,8 +371,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test an error is thrown if trying to add an identity when no gateway doesnt exist', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
             mySandBox.stub(FabricGatewayRegistry.instance(), 'getAll').returns([]);
             inputBoxStub.onFirstCall().resolves('greenConga');
@@ -378,8 +394,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should test an identity can be added via a json identity file', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('purpleConga');
@@ -402,8 +418,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should handle the user cancelling selecting a json file to create an identity', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('purpleConga');
@@ -421,8 +437,8 @@ describe('AddWalletIdentityCommand', () => {
 
         it('should display an error if the json file does not contain the correct properties', async () => {
             showWalletsQuickPickStub.resolves({
-                label: 'blueWallet',
-                data: FabricWalletRegistry.instance().get('blueWallet')
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
             });
 
             inputBoxStub.onFirstCall().resolves('purpleConga');
@@ -459,7 +475,7 @@ describe('AddWalletIdentityCommand', () => {
                 const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
-                const walletItem: WalletTreeItem = walletItems[1] as WalletTreeItem;
+                const walletItem: WalletTreeItem = walletItems[2] as WalletTreeItem;
 
                 await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
 
@@ -484,7 +500,6 @@ describe('AddWalletIdentityCommand', () => {
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 } as FabricGatewayRegistryEntry]);
                 inputBoxStub.onFirstCall().resolves('greenConga');
-                inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_LOCAL_ID_SECRET_OPTION);
 
                 const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
@@ -502,7 +517,7 @@ describe('AddWalletIdentityCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
 
                 showWalletsQuickPickStub.should.not.have.been.called;
-                inputBoxStub.should.have.been.calledTwice;
+                inputBoxStub.should.have.been.calledOnce;
                 fsReadFile.should.not.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
@@ -544,7 +559,7 @@ describe('AddWalletIdentityCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
 
                 showWalletsQuickPickStub.should.not.have.been.called;
-                inputBoxStub.should.have.been.calledTwice;
+                inputBoxStub.should.have.been.calledOnce;
                 fsReadFile.should.not.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
@@ -581,7 +596,7 @@ describe('AddWalletIdentityCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, walletItem);
 
                 showWalletsQuickPickStub.should.not.have.been.called;
-                inputBoxStub.should.have.been.calledTwice;
+                inputBoxStub.should.have.been.calledOnce;
                 fsReadFile.should.not.have.been.called;
                 logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addWalletIdentity');
                 sendTelemetryEventStub.should.not.have.been.called;
@@ -591,6 +606,11 @@ describe('AddWalletIdentityCommand', () => {
         describe('called from IFabricWallet - addWallet command', () => {
 
             it('should test an identity can be enrolled to a new wallet', async () => {
+                showWalletsQuickPickStub.resolves({
+                    label: 'externalWallet',
+                    data: FabricWalletRegistry.instance().get('externalWallet')
+                });
+
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
