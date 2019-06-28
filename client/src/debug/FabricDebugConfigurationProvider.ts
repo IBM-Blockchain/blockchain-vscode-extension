@@ -19,10 +19,12 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { URL } from 'url';
 import { ExtensionUtil, ExtensionData, EXTENSION_DATA_KEY } from '../util/ExtensionUtil';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -71,6 +73,28 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 }
             }
 
+            // check we are connected to the local fabric
+            let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+            if (connection) {
+                let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+                if (!environmentRegistryEntry.managedRuntime) {
+                    await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                    environmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+                    await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+                    connection = await FabricEnvironmentManager.instance().getConnection();
+
+                }
+            } else {
+                const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+                connection = await FabricEnvironmentManager.instance().getConnection();
+            }
+
+            if (!connection) {
+                // something went wrong while connecting so return
+                return;
+            }
+
             if (!config.env) {
                 config.env = {};
             }
@@ -89,7 +113,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                     return;
                 }
                 // Determine what smart contracts are instantiated already
-                const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
                 // Assume local_fabric has one peer
                 const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
                 const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {

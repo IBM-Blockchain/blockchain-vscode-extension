@@ -23,6 +23,8 @@ export class ExtensionCommands {
     static readonly CREATE_SMART_CONTRACT_PROJECT: string = 'aPackagesExplorer.createSmartContractProjectEntry';
 
     // LOCAL OPS VIEW
+    static readonly CONNECT_TO_ENVIRONMENT: string = 'aRuntimeOpsExplorer.connectEntry';
+    static readonly DISCONNECT_ENVIRONMENT: string = 'aRuntimeOpsExplorer.disconnectEntry';
     static readonly INSTALL_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.installSmartContractEntry';
     static readonly INSTANTIATE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.instantiateSmartContractEntry';
     static readonly OPEN_NEW_TERMINAL: string = 'aRuntimeOpsExplorer.openNewTerminal';
@@ -38,9 +40,9 @@ export class ExtensionCommands {
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
-    static readonly CONNECT: string = 'gatewaysExplorer.connectEntry';
+    static readonly CONNECT_TO_GATEWAY: string = 'gatewaysExplorer.connectEntry';
     static readonly DELETE_GATEWAY: string = 'gatewaysExplorer.deleteGatewayEntry';
-    static readonly DISCONNECT: string = 'gatewaysExplorer.disconnectEntry';
+    static readonly DISCONNECT_GATEWAY: string = 'gatewaysExplorer.disconnectEntry';
     static readonly EDIT_GATEWAY: string = 'gatewaysExplorer.editGatewayEntry';
     static readonly REFRESH_GATEWAYS: string = 'gatewaysExplorer.refreshEntry';
     static readonly SUBMIT_TRANSACTION: string = 'gatewaysExplorer.submitTransactionEntry';

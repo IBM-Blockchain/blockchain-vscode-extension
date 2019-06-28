@@ -30,7 +30,7 @@ export async function toggleFabricRuntimeDevMode(): Promise<void> {
 
     if (FabricConnectionManager.instance().getConnection()) {
         // Disconnect if connected
-        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
     }
 
     await runtime.setDevelopmentMode(newDevelopmentMode);

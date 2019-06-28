@@ -45,7 +45,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     if (!chaincode) {
         if (!FabricConnectionManager.instance().getConnection()) {
             // Connect if not already connected
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;

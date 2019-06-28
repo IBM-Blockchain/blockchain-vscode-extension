@@ -34,6 +34,7 @@ import { FabricRuntimeManager } from '../src/fabric/FabricRuntimeManager';
 import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../src/fabric/FabricWalletUtil';
 import { GatewayTreeItem } from '../src/explorer/model/GatewayTreeItem';
+import { FabricEnvironmentRegistryEntry } from '../src/fabric/FabricEnvironmentRegistryEntry';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -178,7 +179,7 @@ export class IntegrationTestUtil {
 
         this.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(identityName);
 
-        await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, gatewayEntry);
 
         const fabricConnection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
         should.exist(fabricConnection);
@@ -249,6 +250,15 @@ export class IntegrationTestUtil {
         this.getWorkspaceFoldersStub.returns([this.workspaceFolder]);
 
         await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, undefined, overrideName);
+    }
+
+    public async connectEnvironment(): Promise<void> {
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        fabricEnvironmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        fabricEnvironmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+        fabricEnvironmentRegistryEntry.managedRuntime = true;
+
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, fabricEnvironmentRegistryEntry);
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {

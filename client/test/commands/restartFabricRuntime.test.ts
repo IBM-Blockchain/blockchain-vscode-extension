@@ -23,6 +23,11 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 chai.should();
 
 // tslint:disable no-unused-expression
@@ -33,6 +38,7 @@ describe('restartFabricRuntime', () => {
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let logSpy: sinon.SinonSpy;
     let runtime: FabricRuntime;
+    let executeCommandSpy: sinon.SinonSpy;
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
@@ -51,6 +57,7 @@ describe('restartFabricRuntime', () => {
         await runtimeManager.initialize();
         runtime = runtimeManager.getRuntime();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        executeCommandSpy = sandbox.spy(vscode.commands, 'executeCommand');
     });
 
     afterEach(async () => {
@@ -63,6 +70,32 @@ describe('restartFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+    });
+
+    it('should disconnect from gateway if connected and then restart a Fabric runtime', async () => {
+        const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+        gatewayRegistryEntry.name = FabricRuntimeUtil.name;
+        gatewayRegistryEntry.managedRuntime = true;
+        sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
+    });
+
+    it('should disconnect from environment if connected and then restart a Fabric runtime', async () => {
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        environmentRegistryEntry.name = FabricRuntimeUtil.name;
+        environmentRegistryEntry.managedRuntime = true;
+        sandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
+        const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+        await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
+        restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
+        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
     });
 
     it('should display an error if restarting Fabric runtime fails', async () => {

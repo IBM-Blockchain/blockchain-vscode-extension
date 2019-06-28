@@ -19,7 +19,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -59,7 +59,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         await runtimeManager.initialize();
         runtimeStub = sinon.createStubInstance(FabricRuntime);
         sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
-        const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
         nodes = allChildren[2] as NodesTreeItem;
         const peers: BlockchainTreeItem[] = await provider.getChildren(nodes);
@@ -150,7 +150,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         runtimeStub.restart.should.have.been.called;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully enabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: infinite`);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
     });
 
     it('should disconnect when trying to disable a connected runtime', async () => {
@@ -163,7 +163,7 @@ describe('toggleFabricRuntimeDevMode', () => {
         runtimeStub.restart.should.have.been.called;
         logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Development mode successfully disabled');
         logSpy.should.have.been.calledWith(LogType.INFO, undefined, `Transaction timeout value: 30 seconds`);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
     });
 
     it('should display an error when restarting fabric fails', async () => {
@@ -176,7 +176,7 @@ describe('toggleFabricRuntimeDevMode', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, peerTreeItem);
         runtimeStub.restart.should.have.been.called;
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'toggleFabricRuntimeDevMode');
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);
     });

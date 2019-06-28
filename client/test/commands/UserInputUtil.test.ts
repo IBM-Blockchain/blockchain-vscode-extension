@@ -34,13 +34,15 @@ import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -60,8 +62,11 @@ describe('UserInputUtil', () => {
     let walletEntryTwo: FabricWalletRegistryEntry;
 
     let getConnectionStub: sinon.SinonStub;
-    let fabricRuntimeConnectionStub: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+    let fabricRuntimeConnectionStub: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
     let fabricClientConnectionStub: sinon.SinonStubbedInstance<FabricClientConnection>;
+
+    let environmentStub: sinon.SinonStub;
+    let logSpy: sinon.SinonSpy;
 
     const env: NodeJS.ProcessEnv = Object.assign({}, process.env);
 
@@ -122,6 +127,8 @@ describe('UserInputUtil', () => {
 
         const rootPath: string = path.dirname(__dirname);
 
+        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
         gatewayEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
@@ -154,7 +161,7 @@ describe('UserInputUtil', () => {
         const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
         const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
 
-        fabricRuntimeConnectionStub = sinon.createStubInstance(FabricRuntimeConnection);
+        fabricRuntimeConnectionStub = sinon.createStubInstance(FabricEnvironmentConnection);
         fabricRuntimeConnectionStub.getAllPeerNames.returns(['myPeerOne', 'myPeerTwo']);
 
         const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
@@ -175,7 +182,7 @@ describe('UserInputUtil', () => {
         fabricClientConnectionStub.createChannelMap.resolves(map);
         fabricClientConnectionStub.getInstantiatedChaincode.withArgs('channelOne').resolves([{ name: 'biscuit-network', channel: 'channelOne', version: '0.0.1' }, { name: 'cake-network', channel: 'channelOne', version: '0.0.3' }]);
         getConnectionStub = mySandBox.stub(fabricConnectionManager, 'getConnection').returns(fabricClientConnectionStub);
-        mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionStub);
+        environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(fabricRuntimeConnectionStub);
         mySandBox.stub(fabricRuntimeManager, 'getGatewayRegistryEntries').resolves([
             new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
@@ -191,6 +198,28 @@ describe('UserInputUtil', () => {
     afterEach(async () => {
         mySandBox.restore();
         process.env = env;
+    });
+
+    describe('showEnvironmentQuickPickBox', () => {
+        it('should show the environments', async () => {
+            const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            environmentRegistry.managedRuntime = true;
+            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+
+            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
+            quickPickStub.resolves({ label: environmentRegistry.name, data: environmentRegistry });
+
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment');
+
+            result.data.name.should.equal(environmentRegistry.name);
+
+            quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'choose an environment'
+            });
+        });
     });
 
     describe('showGatewayQuickPickBox', () => {
@@ -360,7 +389,7 @@ describe('UserInputUtil', () => {
         it('should show the peer names', async () => {
             quickPickStub.resolves(['myPeerOne']);
             const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
-            quickPickStub.should.have.been.calledWith(['myPeerOne', 'myPeerTwo'],  {
+            quickPickStub.should.have.been.calledWith(['myPeerOne', 'myPeerTwo'], {
                 ignoreFocusOut: false,
                 canPickMany: true,
                 placeHolder: 'Choose a peer'
@@ -374,6 +403,15 @@ describe('UserInputUtil', () => {
             const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
             result.should.deep.equal(['myPeerOne']);
             quickPickStub.should.not.have.been.called;
+        });
+
+        it('should give error if no connection', async () => {
+            environmentStub.returns(undefined);
+
+            const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
+            should.not.exist(result);
+            quickPickStub.should.not.have.been.called;
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
         });
     });
 
@@ -497,6 +535,15 @@ describe('UserInputUtil', () => {
             result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             quickPickStub.should.not.have.been.called;
+        });
+
+        it('should give error if no connection', async () => {
+            environmentStub.returns(undefined);
+
+            const result: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel');
+            should.not.exist(result);
+
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
         });
     });
 
@@ -655,6 +702,15 @@ describe('UserInputUtil', () => {
             ]);
         });
 
+        it('should give error if no connection', async () => {
+            environmentStub.returns(undefined);
+
+            const result: IBlockchainQuickPickItem<{ packageEntry: PackageRegistryEntry, workspace: vscode.WorkspaceFolder }> = await UserInputUtil.showChaincodeAndVersionQuickPick('Choose a chaincode and version', ['myPeerOne']);
+
+            should.not.exist(result);
+
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
+        });
     });
 
     describe('showGeneratorOptions', () => {
@@ -832,7 +888,6 @@ describe('UserInputUtil', () => {
         });
 
         it('should handle any errors', async () => {
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             quickPickStub.rejects({ message: 'some error' });
 
             const placeHolder: string = 'Enter a file path to the connection profile json file';
@@ -944,13 +999,19 @@ describe('UserInputUtil', () => {
             result.should.deep.equal('ca.example.cake.com');
             quickPickStub.should.not.have.been.called;
         });
+
+        it('should give error if no connection', async () => {
+            environmentStub.returns(undefined);
+            const result: string = await UserInputUtil.showCertificateAuthorityQuickPickBox('Please choose a CA');
+            should.not.exist(result);
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
+        });
     });
 
     describe('openUserSettings', () => {
         it('should catch any errors when opening settings', async () => {
             mySandBox.stub(process, 'platform').value('freebsd');
             mySandBox.stub(vscode.workspace, 'openTextDocument').rejects({ message: 'error opening file' });
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             await UserInputUtil.openUserSettings('one');
 
@@ -1125,7 +1186,6 @@ describe('UserInputUtil', () => {
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
             await UserInputUtil.showClientInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
@@ -1190,11 +1250,15 @@ describe('UserInputUtil', () => {
         });
 
         it('should handle no instantiated chaincodes in connection', async () => {
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             fabricRuntimeConnectionStub.getInstantiatedChaincode.returns([]);
             await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Local runtime has no instantiated chaincodes');
+        });
 
+        it('should handle no instantiated chaincodes in connection', async () => {
+            environmentStub.returns(undefined);
+            await UserInputUtil.showRuntimeInstantiatedSmartContractsQuickPick('Choose an instantiated smart contract to test', 'channelTwo');
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
         });
     });
 
@@ -1350,7 +1414,6 @@ describe('UserInputUtil', () => {
         });
 
         it('should handle no connection', async () => {
-            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             getConnectionStub.returns(null);
             await UserInputUtil.showTransactionQuickPick('Choose a transaction', 'mySmartContract', 'myChannel');
             logSpy.should.have.been.calledWith(LogType.ERROR, `No connection to a blockchain found`);
@@ -1460,6 +1523,11 @@ describe('UserInputUtil', () => {
             ]);
         });
 
+        it('should give error if no connection', async () => {
+            environmentStub.returns(undefined);
+            await UserInputUtil.showInstallableSmartContractsQuickPick('Choose which package to install on the peer', new Set(['myPeerOne']));
+            logSpy.should.have.been.calledWith(LogType.ERROR, undefined, 'No connection to a blockchain found');
+        });
     });
 
     describe('openNewProject', () => {

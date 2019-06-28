@@ -41,7 +41,7 @@ export enum LanguageType {
     CONTRACT = 'contract'
 }
 
-let firstTime: boolean = false; // Flag used for making sure we do some setup once
+let firstTime: boolean = true; // Flag used for making sure we do some setup once
 
 module.exports = function(): any {
 
@@ -49,7 +49,7 @@ module.exports = function(): any {
 
     this.Before(this.timeout, async () => {
         try {
-            if (!firstTime) {
+            if (firstTime) {
                 this.mySandBox = sinon.createSandbox();
                 this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
                 this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
@@ -65,7 +65,7 @@ module.exports = function(): any {
                     // If the Fabric is already torn down, do nothing
                 }
                 this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
-                firstTime = true;
+                firstTime = false;
 
                 await ExtensionUtil.activateExtension();
 
@@ -108,6 +108,7 @@ module.exports = function(): any {
     // TODO: We want an After hook which clears the call count on all of our stubs after each scenario - then we can getCalls/ check call counts
 
     this.After(this.timeout, async () => {
-        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
     });
 };

@@ -17,7 +17,7 @@ import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricNode } from './FabricNode';
 
-export interface IFabricRuntimeConnection {
+export interface IFabricEnvironmentConnection {
 
     connect(): Promise<void>;
 

@@ -15,6 +15,7 @@ Feature: Fabric Gateways
 
     Scenario: Connect with another identity
         Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         And the identity 'new_identity' exists
         When connecting to the 'Local Fabric' gateway
@@ -44,6 +45,7 @@ Feature: Fabric Gateways
 
      Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity
         And I'm connected to the 'Local Fabric' gateway

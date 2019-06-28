@@ -106,7 +106,7 @@ describe('testSmartContractCommand', () => {
 
     afterEach(async () => {
         mySandBox.restore();
-        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+        await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         await TestUtil.deleteTestFiles(testFileDir);
     });
 
@@ -119,7 +119,7 @@ describe('testSmartContractCommand', () => {
             fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
             // ExecuteCommand stub
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
             fabricClientConnectionMock.connect.resolves();
@@ -456,7 +456,7 @@ describe('testSmartContractCommand', () => {
             getConnectionStub.returns(null);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
             showInstantiatedSmartContractsQuickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             should.not.exist(logSpy.getCall(1));
