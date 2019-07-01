@@ -255,7 +255,7 @@ describe('gatewayExplorer', () => {
                 gateway.connectionProfilePath = 'connection.json';
                 gateway.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
                 const myCommand: vscode.Command = {
-                    command: ExtensionCommands.CONNECT,
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
                     title: '',
                     arguments: [gateway]
                 };
@@ -891,7 +891,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
             onDidChangeTreeDataSpy.should.have.been.called;
 
             executeCommandSpy.should.have.been.calledOnce;
-            executeCommandSpy.getCall(0).should.have.been.calledWith('setContext', 'blockchain-connected', true);
+            executeCommandSpy.getCall(0).should.have.been.calledWith('setContext', 'blockchain-gateway-connected', true);
         });
     });
 
@@ -917,7 +917,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
             onDidChangeTreeDataSpy.should.have.been.called;
 
             executeCommandSpy.should.have.been.calledOnce;
-            executeCommandSpy.getCall(0).should.have.been.calledWith('setContext', 'blockchain-connected', false);
+            executeCommandSpy.getCall(0).should.have.been.calledWith('setContext', 'blockchain-gateway-connected', false);
         });
     });
 

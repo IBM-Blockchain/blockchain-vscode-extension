@@ -39,11 +39,14 @@ import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricNode } from '../fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
-export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProvider {
+export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
     // only for testing so can get the updated tree
     public tree: Array<BlockchainTreeItem> = [];
@@ -55,9 +58,12 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
     constructor() {
-        FabricRuntimeManager.instance().getRuntime().on('busy', () => {
-            // tslint:disable-next-line: no-floating-promises
-            this.refresh();
+        FabricEnvironmentManager.instance().on('connected', async () => {
+            await this.connect();
+        });
+
+        FabricEnvironmentManager.instance().on('disconnected', async () => {
+            await this.disconnect();
         });
     }
 
@@ -65,54 +71,57 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         this._onDidChangeTreeData.fire(element);
     }
 
+    async connect(): Promise<void> {
+        // This controls which menu buttons appear
+        await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
+        await this.refresh();
+    }
+
+    async disconnect(): Promise<void> {
+        // This controls which menu buttons appear
+        await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
+        await this.refresh();
+    }
+
     getTreeItem(element: BlockchainTreeItem): vscode.TreeItem {
         return element;
     }
 
     async getChildren(element?: BlockchainTreeItem): Promise<BlockchainTreeItem[]> {
-        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        if (element) {
+            if (element instanceof SmartContractsTreeItem) {
+                this.tree = await this.createSmartContractsTree();
+            }
+            if (element instanceof ChannelsOpsTreeItem) {
+                this.tree = await this.createChannelsTree();
+            }
+            if (element instanceof NodesTreeItem) {
+                this.tree = await this.createNodesTree();
+            }
+            if (element instanceof OrganizationsTreeItem) {
+                this.tree = await this.createOrganizationsTree();
+            }
+            if (element instanceof InstantiatedTreeItem) {
+                this.tree = await this.createInstantiatedTree();
+            }
+            if (element instanceof InstalledTreeItem) {
+                this.tree = await this.createInstalledTree(element as InstalledTreeItem);
+            }
 
-        try {
+            return this.tree;
+        }
 
-            const isBusy: boolean = FabricRuntimeManager.instance().getRuntime().isBusy();
-            const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
-            if (isRunning) {
-                await vscode.commands.executeCommand('setContext', 'blockchain-started', true);
+        if (FabricEnvironmentManager.instance().getConnection()) {
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
             } else {
-                await vscode.commands.executeCommand('setContext', 'blockchain-started', false);
+                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             }
-
-            if (element) {
-                if (element instanceof SmartContractsTreeItem) {
-                    this.tree = await this.createSmartContractsTree();
-                }
-                if (element instanceof ChannelsOpsTreeItem) {
-                    this.tree = await this.createChannelsTree();
-                }
-                if (element instanceof NodesTreeItem) {
-                    this.tree = await this.createNodesTree();
-                }
-                if (element instanceof OrganizationsTreeItem) {
-                    this.tree = await this.createOrganizationsTree();
-                }
-                if (element instanceof InstantiatedTreeItem) {
-                    this.tree = await this.createInstantiatedTree();
-                }
-                if (element instanceof InstalledTreeItem) {
-                    this.tree = await this.createInstalledTree(element as InstalledTreeItem);
-                }
-
-                return this.tree;
-            }
-
-            if (isRunning && !isBusy) {
-                this.tree = await this.createConnectedTree();
-            } else {
-                this.tree = await this.createConnectionTree();
-            }
-
-        } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating Local Fabric Control Panel: ${error.message}`, `Error populating Local Fabric Control Panel: ${error.message}`);
+            this.tree = await this.createConnectedTree();
+        } else {
+            await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
+            this.tree = await this.createConnectionTree();
         }
 
         return this.tree;
@@ -131,18 +140,20 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
             connection.managedRuntime = true;
             connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
+            const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                 runtime.getName(),
                 connection,
-                vscode.TreeItemCollapsibleState.None,
                 {
-                    command: ExtensionCommands.START_FABRIC,
+                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                     title: '',
-                    arguments: []
-                });
+                    arguments: [fabricEnvironmentRegistryEntry]
+                }
+            );
             tree.push(treeItem);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Error populating Local Fabric Control Panel: ${error.message}`, `Error populating Local Fabric Control Panel: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
         }
 
         return tree;
@@ -175,7 +186,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     private async createChannelsTree(): Promise<Array<BlockchainTreeItem>> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const tree: Array<BlockchainTreeItem> = [];
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
 
         try {
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
@@ -197,7 +208,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         const tree: Array<BlockchainTreeItem> = [];
 
         try {
-            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
             const peerNames: Array<string> = connection.getAllPeerNames();
 
             for (const peerName of peerNames) {
@@ -230,7 +241,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
     }
 
     private async createOrganizationsTree(): Promise<Array<BlockchainTreeItem>> {
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
         return connection.getAllOrganizationNames().map((organizationName: string) => new OrgTreeItem(this, organizationName));
     }
 
@@ -245,7 +256,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         };
 
         try {
-            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
             const channelMap: Map<string, Array<string>> = await connection.createChannelMap();
             for (const [channelName, peerNames] of channelMap) {
                 const chaincodes: any[] = await connection.getInstantiatedChaincode(peerNames, channelName);
@@ -270,7 +281,7 @@ export class BlockchainRuntimeExplorerProvider implements BlockchainExplorerProv
         const tree: Array<BlockchainTreeItem> = [];
         let command: vscode.Command;
         try {
-            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
             const allPeerNames: Array<string> = connection.getAllPeerNames();
             for (const peer of allPeerNames) {
                 const chaincodes: Map<string, Array<string>> = await connection.getInstalledChaincode(peer);

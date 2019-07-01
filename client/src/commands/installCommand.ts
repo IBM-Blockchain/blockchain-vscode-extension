@@ -19,32 +19,31 @@ import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { Reporter } from '../util/Reporter';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
 export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'installSmartContract');
 
     try {
+        let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        if (!connection) {
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+            connection = await FabricEnvironmentManager.instance().getConnection();
+            if (!connection) {
+                // something went wrong with connecting so return
+                return;
+            }
+        }
 
         if ((treeItem instanceof PeerTreeItem)) {
             // Clicked on peer in runtimes view to install
             peerNames = new Set([treeItem.peerName]);
         } else {
-            // Called from command, or runtimes installed tree
-            const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
-            if (!isRunning) {
-                // Start local_fabric to connect
-                await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-                if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
-                    // Start local_fabric failed so return
-                    return;
-                }
-            }
             const chosenPeerNames: string[] = await UserInputUtil.showPeersQuickPickBox('Choose which peers to install the smart contract on');
             if (!chosenPeerNames || chosenPeerNames.length === 0) {
                 return;
@@ -70,8 +69,6 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
                 chosenPackage = chosenInstallable.data.packageEntry;
             }
         }
-
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
 
         let successfulInstall: boolean = true; // Have all packages been installed successfully
         await vscode.window.withProgress({

@@ -21,7 +21,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
@@ -66,7 +66,7 @@ describe('exportConnectionProfileCommand', () => {
         await runtimeManager.initialize();
         runtime = runtimeManager.getRuntime();
         sandbox.stub(runtime, 'isRunning').resolves(true);
-        const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
         nodes = allChildren[2] as NodesTreeItem;
         const peers: BlockchainTreeItem[] = await provider.getChildren(nodes);

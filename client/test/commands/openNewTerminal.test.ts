@@ -22,7 +22,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 chai.should();
 
@@ -53,7 +53,7 @@ describe('openNewTerminal', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
         node.container_name = 'fabricvscodelocalfabric_peer0.org1.example.com';
         nodeItem = new TestNodeTreeItem(provider, node.name, vscode.TreeItemCollapsibleState.None, node);

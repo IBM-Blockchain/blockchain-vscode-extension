@@ -64,7 +64,7 @@ describe('SubmitTransactionCommand', () => {
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
             executeCommandStub.callThrough();
 
             fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
@@ -137,7 +137,7 @@ describe('SubmitTransactionCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             mySandBox.restore();
         });
 
@@ -173,7 +173,7 @@ describe('SubmitTransactionCommand', () => {
             getConnectionStub.onCall(2).returns(null);
             getConnectionStub.onCall(3).returns(null);
             await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
             fabricClientConnectionMock.submitTransaction.should.not.have.been.called;
             reporterStub.should.not.have.been.called;
             dockerLogsOutputSpy.should.not.have.been.called;

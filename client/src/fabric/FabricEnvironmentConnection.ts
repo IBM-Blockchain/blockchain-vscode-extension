@@ -16,7 +16,7 @@
 
 import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter, LogType } from '../logging/OutputAdapter';
-import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -28,7 +28,7 @@ import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { URL } from 'url';
 
-export class FabricRuntimeConnection implements IFabricRuntimeConnection {
+export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
 
     private outputAdapter: OutputAdapter;
     private runtime: FabricRuntime;

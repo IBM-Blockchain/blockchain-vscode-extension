@@ -19,28 +19,27 @@ import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/Certificate
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricNode } from '../fabric/FabricNode';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'createNewIdentity');
 
     let certificateAuthorityName: string;
-    if (!certificateAuthorityTreeItem) {
-        // Command called from the command palette or elsewhere
-        // Check runtime is running
-        const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
-        if (!isRunning) {
-            // Start local_fabric to connect
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-            if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
-                // Start local_fabric failed so return
-                return;
-            }
+    let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+    if (!connection) {
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+        connection = await FabricEnvironmentManager.instance().getConnection();
+        if (!connection) {
+            // something went wrong with connecting so return
+            return;
         }
+    }
+
+    if (!certificateAuthorityTreeItem) {
         // Ask which certificate authority to use
         certificateAuthorityName = await UserInputUtil.showCertificateAuthorityQuickPickBox('Choose certificate authority to create a new identity with');
         if (!certificateAuthorityName) {
@@ -58,7 +57,6 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
 
     try {
         // check to see if identity of same name exists
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
         const wallet: IFabricWallet = await connection.getWallet(certificateAuthorityName);
         const identityExists: boolean = await wallet.exists(identityName);
         if (identityExists) {

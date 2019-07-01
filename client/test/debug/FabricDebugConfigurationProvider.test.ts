@@ -19,13 +19,16 @@ import * as sinonChai from 'sinon-chai';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as dateFormat from 'dateformat';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -62,7 +65,7 @@ describe('FabricDebugConfigurationProvider', () => {
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
         let commandStub: sinon.SinonStub;
-        let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+        let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let getConnectionStub: sinon.SinonStub;
         let date: Date;
         let formattedDate: string;
@@ -70,6 +73,8 @@ describe('FabricDebugConfigurationProvider', () => {
         let newDebugVersionStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
         let generatorVersionStub: sinon.SinonStub;
+        let getEnvironmentRegistryStub: sinon.SinonStub;
+        let environmentRegistry: FabricEnvironmentRegistryEntry;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
@@ -81,7 +86,7 @@ describe('FabricDebugConfigurationProvider', () => {
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
-            runtimeStub.getName.returns('localfabric');
+            runtimeStub.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
@@ -100,13 +105,20 @@ describe('FabricDebugConfigurationProvider', () => {
 
             commandStub = mySandbox.stub(vscode.commands, 'executeCommand');
 
-            mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
+            mockRuntimeConnection = sinon.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.getAllPeerNames.resolves(['peerOne']);
             const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
-            getConnectionStub = mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection');
+            getConnectionStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection');
             getConnectionStub.returns(mockRuntimeConnection);
+
+            environmentRegistry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            environmentRegistry.managedRuntime = true;
+            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+
+            getEnvironmentRegistryStub = mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
             logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
@@ -137,6 +149,46 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321']
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should disconnect and connect to local fabric', async () => {
+            const otherEnvironentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            otherEnvironentRegistry.name = 'myFabric';
+            otherEnvironentRegistry.managedRuntime = false;
+
+            getEnvironmentRegistryStub.resetHistory();
+            getEnvironmentRegistryStub.onFirstCall().returns(otherEnvironentRegistry);
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                },
+                args: ['127.0.0.1:54321']
+            });
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
+        });
+
+        it('should connect if no connection', async () => {
+            getConnectionStub.resetHistory();
+            getConnectionStub.onFirstCall().returns(undefined);
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                },
+                args: ['127.0.0.1:54321']
+            });
+            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
         });
 
         it('should add in env properties if not defined', async () => {
@@ -203,6 +255,13 @@ describe('FabricDebugConfigurationProvider', () => {
                 args: ['127.0.0.1:54321']
             });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should return if cannot connect', async () => {
+            getConnectionStub.returns(undefined);
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.not.exist(config);
+            commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistry);
         });
 
         it('should give an error if generator version is too old', async () => {
