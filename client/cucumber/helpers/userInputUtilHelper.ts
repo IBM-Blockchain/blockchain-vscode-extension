@@ -26,6 +26,7 @@ export class UserInputUtilHelper {
     showLanguagesQuickPickStub: sinon.SinonStub;
     inputBoxStub: sinon.SinonStub;
     browseStub: sinon.SinonStub;
+    addMoreNodesStub: sinon.SinonStub;
     showFolderOptionsStub: sinon.SinonStub;
     showPeersQuickPickStub: sinon.SinonStub;
     showInstallableStub: sinon.SinonStub;
@@ -56,6 +57,7 @@ export class UserInputUtilHelper {
         this.showLanguagesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').callThrough();
         this.inputBoxStub = this.mySandBox.stub(UserInputUtil, 'showInputBox').callThrough();
         this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse').callThrough();
+        this.addMoreNodesStub = this.mySandBox.stub(UserInputUtil, 'addMoreNodes').callThrough();
         this.showFolderOptionsStub = this.mySandBox.stub(UserInputUtil, 'showFolderOptions').callThrough();
         this.showPeersQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox').callThrough();
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').callThrough();

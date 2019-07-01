@@ -23,12 +23,13 @@ export class ExtensionCommands {
     static readonly CREATE_SMART_CONTRACT_PROJECT: string = 'aPackagesExplorer.createSmartContractProjectEntry';
 
     // LOCAL OPS VIEW
+    static readonly ADD_ENVIRONMENT: string = 'aRuntimeOpsExplorer.addEnvironmentEntry';
     static readonly CONNECT_TO_ENVIRONMENT: string = 'aRuntimeOpsExplorer.connectEntry';
     static readonly DISCONNECT_ENVIRONMENT: string = 'aRuntimeOpsExplorer.disconnectEntry';
     static readonly INSTALL_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.installSmartContractEntry';
     static readonly INSTANTIATE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.instantiateSmartContractEntry';
     static readonly OPEN_NEW_TERMINAL: string = 'aRuntimeOpsExplorer.openNewTerminal';
-    static readonly REFRESH_LOCAL_OPS: string = 'aRuntimeOpsExplorer.refreshEntry';
+    static readonly REFRESH_ENVIRONMENTS: string = 'aRuntimeOpsExplorer.refreshEntry';
     static readonly RESTART_FABRIC: string = 'aRuntimeOpsExplorer.restartFabricRuntime';
     static readonly START_FABRIC: string = 'aRuntimeOpsExplorer.startFabricRuntime';
     static readonly STOP_FABRIC: string = 'aRuntimeOpsExplorer.stopFabricRuntime';

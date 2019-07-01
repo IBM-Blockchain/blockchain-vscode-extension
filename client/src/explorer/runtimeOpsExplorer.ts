@@ -45,6 +45,8 @@ import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentTreeItem } from './runtimeOps/FabricEnvironmentTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -152,6 +154,20 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 }
             );
             tree.push(treeItem);
+
+            const environmentEntries: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+            for (const environmentEntry of environmentEntries) {
+                const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
+                    environmentEntry.name,
+                    {
+                        command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                        title: '',
+                        arguments: [environmentEntry]
+                    }
+                );
+
+                tree.push(environmentTreeItem);
+            }
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
         }

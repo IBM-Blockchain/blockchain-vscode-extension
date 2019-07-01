@@ -33,30 +33,14 @@ export enum LanguageType {
     CONTRACT = 'contract'
 }
 
-const otherFabricInstantiatedContracts: string[] = [];
-
 module.exports = function(): any {
 
-    this.Given('the other fabric is setup with contract name {string} and version {string}', this.timeout, async (contractName: string, version: string) => {
-        const FabricHelper: any = require('../helpers/remoteFabricHelper');
-        const remoteFabricHelper: any = new FabricHelper.RemoteFabricHelper();
-        const item: string = otherFabricInstantiatedContracts.find((contract: string) => {
-            return contract === `${contractName}@${version}`;
-        });
-        if (!item) {
-            await remoteFabricHelper.connect();
-            await remoteFabricHelper.installChaincode(contractName, version);
-            await remoteFabricHelper.instantiateChaincode(contractName, version);
-            otherFabricInstantiatedContracts.push(`${contractName}@${version}`);
-        }
-    });
-
-    this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Local Fabric Ops|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
+    this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[];
         if (panel === 'Smart Contract Packages') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
-        } else if (panel === 'Local Fabric Ops') {
+        } else if (panel === 'Fabric Environments') {
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             if (!child) {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();

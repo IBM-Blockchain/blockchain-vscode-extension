@@ -17,8 +17,7 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricIdentity } from './FabricIdentity';
-import { FabricNode} from './FabricNode';
+import { FabricNode } from './FabricNode';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricEnvironment extends EventEmitter {
@@ -55,40 +54,13 @@ export class FabricEnvironment extends EventEmitter {
             .map((nodePath: string) => path.resolve(this.path, 'nodes', nodePath));
         const nodes: FabricNode[] = [];
         for (const nodePath of nodePaths) {
-            const node: FabricNode = await fs.readJson(nodePath);
-            nodes.push(node);
+            const node: FabricNode | Array<FabricNode> = await fs.readJson(nodePath);
+            if (Array.isArray(node)) {
+                nodes.push(...node);
+            } else {
+                nodes.push(node);
+            }
         }
         return nodes;
-    }
-
-    public async getWalletNames(): Promise<string[]> {
-        const walletsPath: string = path.resolve(this.path, 'wallets');
-        const walletsExist: boolean = await fs.pathExists(walletsPath);
-        if (!walletsExist) {
-            return [];
-        }
-        const walletPaths: string[] = await fs.readdir(walletsPath);
-        return walletPaths
-            .sort()
-            .filter((walletPath: string) => !walletPath.startsWith('.'));
-    }
-
-    public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
-        const walletPath: string = path.resolve(this.path, 'wallets', walletName);
-        const walletExists: boolean = await fs.pathExists(walletPath);
-        if (!walletExists) {
-            return [];
-        }
-        let identityPaths: string[] = await fs.readdir(walletPath);
-        identityPaths = identityPaths
-            .sort()
-            .filter((identityPath: string) => !identityPath.startsWith('.'))
-            .map((identityPath: string) => path.resolve(this.path, 'wallets', walletName, identityPath));
-        const identities: FabricIdentity[] = [];
-        for (const identityPath of identityPaths) {
-            const identity: FabricIdentity = await fs.readJson(identityPath);
-            identities.push(identity);
-        }
-        return identities;
     }
 }

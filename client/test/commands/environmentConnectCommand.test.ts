@@ -135,8 +135,12 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.not.have.been.called;
             });
 
-            // TODO: put this back in when can have other fabrics in the tree
-            xit('should test that a fabric environment can be connected to from the tree', async () => {
+            it('should test that a fabric environment can be connected to from the tree', async () => {
+                const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntry.name = 'myFabric';
+                registryEntry.managedRuntime = false;
+
+                mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 

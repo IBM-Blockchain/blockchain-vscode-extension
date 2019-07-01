@@ -42,7 +42,7 @@ export async function startFabricRuntime(): Promise<void> {
             outputAdapter.log(LogType.ERROR, `Failed to start local_fabric: ${error.message}`, `Failed to start local_fabric: ${error.toString()}`);
         }
 
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
     });

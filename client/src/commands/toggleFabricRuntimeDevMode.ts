@@ -51,7 +51,7 @@ export async function toggleFabricRuntimeDevMode(): Promise<void> {
         });
     }
 
-    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
     let status: string;
     let timeout: string;

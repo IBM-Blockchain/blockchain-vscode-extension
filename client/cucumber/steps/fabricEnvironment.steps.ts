@@ -23,10 +23,6 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
-import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
 
 // tslint:disable:no-unused-expression
 
@@ -53,22 +49,24 @@ module.exports = function(): any {
     });
 
     this.Given("the '{string}' environment is connected", this.timeout, async (environment: string) => {
-        let registryEntry: FabricEnvironmentRegistryEntry;
-        if (environment === 'Local Fabric') {
-            registryEntry = new FabricEnvironmentRegistryEntry();
-            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            registryEntry.managedRuntime = true;
-            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-        } else {
-            registryEntry = FabricEnvironmentRegistry.instance().get(environment);
-        }
+        await this.fabricEnvironmentHelper.connectToEnvironment(environment);
+    });
 
-        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntry);
+    this.Given("an environment '{string}' exists", this.timeout, async (envrionmentName: string) => {
+        await this.fabricEnvironmentHelper.createEnvironment(envrionmentName);
     });
 
     /**
      * When
      */
+
+    this.When("I create an environment '{string}'", this.timeout, async (envrionmentName: string) => {
+        await this.fabricEnvironmentHelper.createEnvironment(envrionmentName);
+    });
+
+    this.When("I connect to the environment '{string}'", this.timeout, async (environment: string) => {
+        await this.fabricEnvironmentHelper.connectToEnvironment(environment);
+    });
 
     this.When('I stop the Local Fabric', this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
@@ -88,7 +86,7 @@ module.exports = function(): any {
         isRunning.should.equal(true);
     });
 
-    this.When('I tear down the Local Fabric', this.timeout, async () => {
+    this.When('I teardown the Local Fabric', this.timeout, async () => {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.getRuntime();
 
