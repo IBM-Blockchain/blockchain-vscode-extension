@@ -42,7 +42,8 @@ import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -62,7 +63,7 @@ describe('AddWalletIdentityCommand', () => {
     });
 
     describe('addWalletIdentity', () => {
-        let fabricRuntimeConnectionMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+        let fabricEnvironmentConnectionMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let inputBoxStub: sinon.SinonStub;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
@@ -120,12 +121,12 @@ describe('AddWalletIdentityCommand', () => {
             await FabricWalletRegistry.instance().add(connectionOneWallet);
             await FabricWalletRegistry.instance().add(connectionTwoWallet);
 
-            fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
-            fabricRuntimeConnectionMock.connect.resolves();
-            fabricRuntimeConnectionMock.getAllOrganizationNames.resolves();
-            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionMock);
-            fabricRuntimeConnectionMock.getAllOrganizationNames.returns(['myMSPID']);
+            fabricEnvironmentConnectionMock = sinon.createStubInstance(FabricEnvironmentConnection);
+            fabricEnvironmentConnectionMock.connect.resolves();
+            fabricEnvironmentConnectionMock.getAllOrganizationNames.resolves();
+            const fabricEnvironmentManager: FabricEnvironmentManager = FabricEnvironmentManager.instance();
+            mySandBox.stub(fabricEnvironmentManager, 'getConnection').returns(fabricEnvironmentConnectionMock);
+            fabricEnvironmentConnectionMock.getAllOrganizationNames.returns(['myMSPID']);
 
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');

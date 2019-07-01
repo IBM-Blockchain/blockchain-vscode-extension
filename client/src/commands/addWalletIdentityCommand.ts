@@ -29,7 +29,8 @@ import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAu
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -83,7 +84,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     let mspID: string;
     if (isLocalWallet) {
         // using local_fabric_wallet
-        const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+        const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
         const orgsArray: Array<string> = connection.getAllOrganizationNames();
         // only one mspID currently, if multiple we'll need to add a dropdown
         mspID = orgsArray[0];
