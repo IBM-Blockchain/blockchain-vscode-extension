@@ -56,7 +56,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
 
     const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
     const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-    const gatewayPath: string = path.join(homeExtDir, gatewayRegistryEntry.name);
+    const gatewayPath: string = path.join(homeExtDir, 'gateways', gatewayRegistryEntry.name);
     await fs.remove(gatewayPath);
 
     await FabricGatewayRegistry.instance().delete(gatewayRegistryEntry.name);

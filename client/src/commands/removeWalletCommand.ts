@@ -59,7 +59,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
     } else if (deleteFsWallet === 'Yes') {
         const extensionDirectory: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const directoryPath: string = UserInputUtil.getDirPath(extensionDirectory);
-        const expectedDirectory: string = path.join(directoryPath, walletRegistryEntry.name);
+        const expectedDirectory: string = path.join(directoryPath, 'wallets', walletRegistryEntry.name);
 
         // Check if the wallet is in the extension directory.
         if (walletRegistryEntry.walletPath === expectedDirectory) {

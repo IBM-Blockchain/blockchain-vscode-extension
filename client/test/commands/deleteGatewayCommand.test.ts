@@ -177,7 +177,7 @@ describe('DeleteGatewayCommand', () => {
             gateways[1].should.deep.equal(myGatewayB);
 
             getDirPathStub.should.have.been.calledOnce;
-            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'myGatewayC'));
+            fsRemoveStub.should.have.been.calledOnceWith(path.join('fabric-vscode', 'gateways', 'myGatewayC'));
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayC.name} gateway`);
