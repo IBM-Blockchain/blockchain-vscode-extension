@@ -82,7 +82,7 @@ describe('removeWalletCommand', () => {
 
         createdWallet = new FabricWalletRegistryEntry({
             name: 'createdWallet',
-            walletPath: path.join(directoryPath, 'createdWallet')
+            walletPath: path.join(directoryPath, 'wallets', 'createdWallet')
         });
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWallet, createdWallet], vscode.ConfigurationTarget.Global);
 

@@ -926,7 +926,7 @@ describe('packageSmartContract', () => {
 
         it('should throw an error if project not child of src dir', async () => {
             await createTestFiles('goProject', '0.0.1', 'golang', false, false, true);
-            const error: Error = new Error('The enviroment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+            const error: Error = new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
 
             const testIndex: number = 2;
             workspaceFoldersStub.returns(folders);
