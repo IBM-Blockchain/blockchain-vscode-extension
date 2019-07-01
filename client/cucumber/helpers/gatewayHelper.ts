@@ -91,7 +91,7 @@ export class GatewayHelper {
 
         this.userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose an identity to connect with').resolves(identityName);
 
-        await vscode.commands.executeCommand(ExtensionCommands.CONNECT, gatewayEntry);
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, gatewayEntry);
     }
 
     public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, args: string, gatewayName: string, contractName?: string, transientData?: string, evaluate?: boolean): Promise<void> {

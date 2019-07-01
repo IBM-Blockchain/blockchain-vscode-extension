@@ -49,7 +49,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     } else {
         if (!treeItem && !channelName && !smartContract) {
             if (!FabricConnectionManager.instance().getConnection()) {
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
                 if (!FabricConnectionManager.instance().getConnection()) {
                     // either the user cancelled or ther was an error so don't carry on
                     return;

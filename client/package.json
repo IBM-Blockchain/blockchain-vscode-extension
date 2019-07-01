@@ -64,6 +64,8 @@
             "aPackagesExplorer.exportSmartContractPackageEntry",
             "aPackagesExplorer.importSmartContractPackageEntry",
             "aPackagesExplorer.refreshEntry",
+            "aRuntimeOpsExplorer.connectEntry",
+            "aRuntimeOpsExplorer.disconnectEntry",
             "aRuntimeOpsExplorer.installSmartContractEntry",
             "aRuntimeOpsExplorer.instantiateSmartContractEntry",
             "aRuntimeOpsExplorer.refreshEntry",
@@ -105,7 +107,7 @@
                 },
                 {
                     "id": "aRuntimeOpsExplorer",
-                    "name": "Local Fabric Ops"
+                    "name": "Fabric Environments"
                 },
                 {
                     "id": "gatewaysExplorer",
@@ -125,6 +127,11 @@
                     "type": "array",
                     "default": [],
                     "description": "Gateways for connecting to a Blockchain network"
+                },
+                "ibm-blockchain-platform.fabric.environments": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Environments for connecting to a Blockchain network"
                 },
                 "ibm-blockchain-platform.fabric.wallets": {
                     "type": "array",
@@ -243,6 +250,20 @@
             {
                 "command": "aPackagesExplorer.createSmartContractProjectEntry",
                 "title": "%blockchain.createSmartContractProjectEntry.title%",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "aRuntimeOpsExplorer.connectEntry",
+                "title": "Connect to a Fabric Environment",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "aRuntimeOpsExplorer.disconnectEntry",
+                "title": "Disconnect from a Fabric Environment",
+                "icon": {
+                    "light": "resources/light/back_light.svg",
+                    "dark": "resources/dark/back.svg"
+                },
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -459,12 +480,12 @@
             "view/title": [
                 {
                     "command": "gatewaysExplorer.addGatewayEntry",
-                    "when": "view == gatewaysExplorer && !blockchain-connected",
+                    "when": "view == gatewaysExplorer && !blockchain-gateway-connected",
                     "group": "navigation"
                 },
                 {
                     "command": "gatewaysExplorer.disconnectEntry",
-                    "when": "view == gatewaysExplorer && blockchain-connected",
+                    "when": "view == gatewaysExplorer && blockchain-gateway-connected",
                     "group": "navigation"
                 },
                 {
@@ -475,6 +496,11 @@
                 {
                     "command": "aRuntimeOpsExplorer.refreshEntry",
                     "when": "view == aRuntimeOpsExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.disconnectEntry",
+                    "when": "view == aRuntimeOpsExplorer && blockchain-runtime-connected",
                     "group": "navigation"
                 },
                 {
@@ -498,23 +524,18 @@
                     "group": "blockchain"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.startFabricRuntime",
-                    "when": "view == aRuntimeOpsExplorer && !blockchain-started",
-                    "group": "blockchain"
-                },
-                {
                     "command": "aRuntimeOpsExplorer.stopFabricRuntime",
-                    "when": "view == aRuntimeOpsExplorer && blockchain-started",
+                    "when": "view == aRuntimeOpsExplorer && blockchain-runtime-connected",
                     "group": "blockchain"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.restartFabricRuntime",
-                    "when": "view == aRuntimeOpsExplorer && blockchain-started",
+                    "when": "view == aRuntimeOpsExplorer && blockchain-runtime-connected",
                     "group": "blockchain"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.teardownFabricRuntime",
-                    "when": "view == aRuntimeOpsExplorer",
+                    "when": "view == aRuntimeOpsExplorer && blockchain-runtime-connected",
                     "group": "blockchain"
                 },
                 {
@@ -552,6 +573,18 @@
                 {
                     "command": "aPackagesExplorer.exportSmartContractPackageEntry",
                     "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.stopFabricRuntime",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.restartFabricRuntime",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-item"
+                },
+                {
+                    "command": "aRuntimeOpsExplorer.teardownFabricRuntime",
+                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-item"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.installSmartContractEntry",

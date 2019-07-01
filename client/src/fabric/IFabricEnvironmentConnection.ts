@@ -18,7 +18,7 @@ import { IFabricWallet } from './IFabricWallet';
 import { FabricNode } from './FabricNode';
 import { Attribute } from './FabricCertificate';
 
-export interface IFabricRuntimeConnection {
+export interface IFabricEnvironmentConnection {
 
     connect(): Promise<void>;
 

@@ -19,7 +19,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as myExtension from '../../src/extension';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 
 // tslint:disable:no-unused-expression
@@ -57,7 +57,7 @@ module.exports = function(): any {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
         } else if (panel === 'Local Fabric Ops') {
-            const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             if (!child) {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             } else if (child.includes('installed smart contract')) {

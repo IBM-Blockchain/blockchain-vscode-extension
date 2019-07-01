@@ -22,25 +22,24 @@ import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEn
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
 
-export class RuntimeTreeItem extends BlockchainTreeItem {
+export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, collapsableState: vscode.TreeItemCollapsibleState, command?: vscode.Command): Promise<RuntimeTreeItem> {
-        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, gateway, collapsableState, command);
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, command?: vscode.Command): Promise<RuntimeTreeItem> {
+        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, gateway, command);
         await treeItem.updateProperties();
         return treeItem;
     }
 
     contextValue: string = 'blockchain-runtime-item';
-
     private name: string;
     private runtime: FabricRuntime;
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: any, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
-        super(provider, label, collapsableState);
+    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: any, public readonly command?: vscode.Command) {
+        super(provider, label);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         this.name = label;
         this.runtime = runtimeManager.getRuntime();
@@ -69,13 +68,16 @@ export class RuntimeTreeItem extends BlockchainTreeItem {
             newLabel = `Local Fabric runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
             newCommand = null;
+            this.tooltip = `The local development runtime is ${this.runtime.getState()}...`;
         } else if (running) {
             // Running!
             this.disableBusyTicker();
+            newLabel = 'Local Fabric  ●';
+            this.tooltip = 'The local development runtime is running';
         } else {
             // Not running!
             this.disableBusyTicker();
-            newLabel = 'Local Fabric runtime is stopped. Click to start.';
+            newLabel = 'Local Fabric  ○ (click to start)';
             this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
             newCommand = {
                 command: ExtensionCommands.START_FABRIC,

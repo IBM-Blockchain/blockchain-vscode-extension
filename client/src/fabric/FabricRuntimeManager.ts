@@ -13,14 +13,11 @@
 */
 
 import * as vscode from 'vscode';
-import { FabricRuntime, FabricRuntimeState } from './FabricRuntime';
+import { FabricRuntime } from './FabricRuntime';
 import { FabricRuntimePorts } from './FabricRuntimePorts';
-import { FabricConnectionFactory } from './FabricConnectionFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
-import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
-import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
 import { FabricGatewayRegistryEntry } from './FabricGatewayRegistryEntry';
 import { FabricWalletUtil } from './FabricWalletUtil';
 import { FabricGateway } from './FabricGateway';
@@ -32,6 +29,9 @@ import * as path from 'path';
 import { LogType } from '../logging/OutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricRuntimeUtil } from './FabricRuntimeUtil';
+import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager } from './FabricEnvironmentManager';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 
 export class FabricRuntimeManager {
 
@@ -45,28 +45,7 @@ export class FabricRuntimeManager {
 
     private runtime: FabricRuntime;
 
-    private connection: IFabricRuntimeConnection;
-
-    private connectingPromise: Promise<IFabricRuntimeConnection>;
-
     private constructor() {
-    }
-
-    public getConnection(): Promise<IFabricRuntimeConnection> {
-        if (this.connectingPromise) {
-            return this.connectingPromise;
-        }
-
-        if (this.connection) {
-            return Promise.resolve(this.connection);
-        }
-
-        this.connectingPromise = this.getConnectionInner().then((connection: IFabricRuntimeConnection) => {
-            this.connectingPromise = undefined;
-            return connection;
-        });
-
-        return this.connectingPromise;
     }
 
     public getRuntime(): FabricRuntime {
@@ -102,6 +81,17 @@ export class FabricRuntimeManager {
         // Import all of the wallets and identities as well.
         await this.runtime.importWalletsAndIdentities();
 
+        FabricEnvironmentManager.instance().on('connected', async () => {
+            const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
+                await this.runtime.startLogs(outputAdapter);
+            }
+        });
+
+        FabricEnvironmentManager.instance().on('disconnected', async () => {
+            await this.runtime.stopLogs();
+        });
     }
 
     public async getGatewayRegistryEntries(): Promise<FabricGatewayRegistryEntry[]> {
@@ -113,6 +103,15 @@ export class FabricRuntimeManager {
             connectionProfilePath: gateway.path,
             associatedWallet: FabricWalletUtil.LOCAL_WALLET
         }));
+    }
+
+    public getEnvironmentRegistryEntry(): FabricEnvironmentRegistryEntry {
+        const runtime: FabricRuntime = this.getRuntime();
+        return new FabricEnvironmentRegistryEntry({
+            name: runtime.getName(),
+            managedRuntime: true,
+            associatedWallet: FabricWalletUtil.LOCAL_WALLET
+        });
     }
 
     public async getWalletRegistryEntries(): Promise<FabricWalletRegistryEntry[]> {
@@ -181,18 +180,18 @@ export class FabricRuntimeManager {
                     if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                         runtimeToCopy.ports = oldRuntime.ports;
 
-                        // Generate a logs port
-                        const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
-                        runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
+                    // Generate a logs port
+                    const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
+                    runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
 
-                    }
                 }
-
-                return runtimeToCopy;
-
-            } else {
-                return runtimeObj;
             }
+
+            return runtimeToCopy;
+
+        } else {
+            return runtimeObj;
+        }
 
     }
 
@@ -210,12 +209,12 @@ export class FabricRuntimeManager {
 
                 // If previous settings didn't have 'logs' property
                 if (!runtimeToCopy.ports.logs) {
-                        // Generate a logs port
+                    // Generate a logs port
                     const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
                     runtimeToCopy.ports.logs = await this.generateLogsPort(highestPort);
                 }
 
-                    // Update new property with old settings values
+                // Update new property with old settings values
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeToCopy, vscode.ConfigurationTarget.Global);
 
             }
@@ -289,28 +288,5 @@ export class FabricRuntimeManager {
         ports.couchDB = couchDB;
         ports.logs = logs;
         return ports;
-    }
-
-    private async getConnectionInner(): Promise<IFabricRuntimeConnection> {
-        const runtime: FabricRuntime = this.getRuntime();
-        // register for events to disconnect
-        runtime.on('busy', () => {
-            if (runtime.getState() === FabricRuntimeState.STOPPED) {
-                if (this.connection) {
-                    this.connection.disconnect();
-                }
-
-                this.connection = undefined;
-            }
-        });
-
-        const connection: IFabricRuntimeConnection = FabricConnectionFactory.createFabricRuntimeConnection(runtime);
-        await connection.connect();
-
-        const outputAdapter: VSCodeBlockchainDockerOutputAdapter = VSCodeBlockchainDockerOutputAdapter.instance();
-        await runtime.startLogs(outputAdapter);
-
-        this.connection = connection;
-        return this.connection;
     }
 }

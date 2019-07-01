@@ -49,7 +49,7 @@ chai.use(sinonChai);
 chai.use(require('chai-as-promised'));
 
 // tslint:disable no-unused-expression
-describe('ConnectCommand', () => {
+describe('GatewayConnectCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
 
     before(async () => {
@@ -196,7 +196,7 @@ describe('ConnectCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             mySandBox.restore();
         });
 
@@ -204,7 +204,7 @@ describe('ConnectCommand', () => {
             it('should test a fabric gateway can be connected to from the command', async () => {
                 const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
@@ -225,7 +225,7 @@ describe('ConnectCommand', () => {
 
                 const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnce;
@@ -238,10 +238,10 @@ describe('ConnectCommand', () => {
 
                 choseGatewayQuickPick.resolves();
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 refreshSpy.callCount.should.equal(1);
-                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT);
+                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
                 choseWalletQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
             });
@@ -251,9 +251,9 @@ describe('ConnectCommand', () => {
 
                 getAllWalletsStub.returns([]);
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
-                refreshSpy.should.have.been.calledWith(ExtensionCommands.CONNECT);
+                refreshSpy.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
                 choseWalletQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `You must first add a wallet with identities to connect to this gateway`);
@@ -264,10 +264,10 @@ describe('ConnectCommand', () => {
 
                 choseWalletQuickPick.resolves();
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 refreshSpy.callCount.should.equal(1);
-                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT);
+                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT_TO_GATEWAY);
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
             });
@@ -283,7 +283,7 @@ describe('ConnectCommand', () => {
                 });
                 choseIdentityQuickPick.resolves();
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
                 mockConnection.connect.should.not.have.been.called;
             });
 
@@ -329,7 +329,7 @@ describe('ConnectCommand', () => {
                     data: FabricWalletRegistry.instance().get('myGatewayAWallet')
                 });
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 mockConnection.connect.should.not.have.been.called;
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + connectionSingleWallet.name);
@@ -340,7 +340,7 @@ describe('ConnectCommand', () => {
 
                 mockConnection.connect.rejects(error);
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 mockRuntime.isRunning.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
@@ -385,7 +385,7 @@ describe('ConnectCommand', () => {
             });
 
             it('should connect to a managed runtime using a quick pick', async () => {
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
@@ -399,7 +399,7 @@ describe('ConnectCommand', () => {
 
                 choseIdentityQuickPick.resolves(testIdentityName);
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.called;
@@ -424,7 +424,7 @@ describe('ConnectCommand', () => {
                 getIdentitiesStub.resolves([identity.label, 'otherOne', 'anotherOne']);
                 choseIdentityQuickPick.resolves();
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
@@ -432,7 +432,7 @@ describe('ConnectCommand', () => {
 
             it(`should show error if ${FabricRuntimeUtil.LOCAL_FABRIC} is not started`, async () => {
                 mockRuntime.isRunning.resolves(false);
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
             });
@@ -463,7 +463,7 @@ describe('ConnectCommand', () => {
             });
 
             it('should connect to a non-local fabric using a quick pick', async () => {
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
@@ -477,7 +477,7 @@ describe('ConnectCommand', () => {
 
                 choseIdentityQuickPick.resolves(testIdentityName);
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.called;
@@ -503,7 +503,7 @@ describe('ConnectCommand', () => {
                 getIdentitiesStub.resolves([identity.label, 'otherOne', 'anotherOne']);
                 choseIdentityQuickPick.resolves();
 
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 choseIdentityQuickPick.should.have.been.called;
                 mockConnection.connect.should.not.have.been.called;
@@ -515,7 +515,7 @@ describe('ConnectCommand', () => {
             mockConnection.isIBPConnection.returns(true);
             mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
 
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
             sendTelemetryEventStub.should.have.been.calledWith('connectCommand', { runtimeData: 'IBP instance', connectIBM: sinon.match.string });
         });

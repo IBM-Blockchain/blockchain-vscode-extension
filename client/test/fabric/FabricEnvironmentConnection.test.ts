@@ -13,7 +13,7 @@
 */
 
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import * as Client from 'fabric-client';
 import * as FabricCAServices from 'fabric-ca-client';
@@ -35,14 +35,14 @@ import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
-import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from '../../src/fabric/IFabricEnvironmentConnection';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
-describe('FabricRuntimeConnection', () => {
+describe('FabricEnvironmentConnection', () => {
     const TEST_PACKAGE_DIRECTORY: string = path.join(path.dirname(__dirname), '..', '..', 'test', 'data', 'packageDir', 'packages');
     const TLS_CA_CERTIFICATE: string = fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'yofn', 'admin-msp', 'cacerts', 'ca-org1-example-com-17054.pem')).toString('base64');
 
@@ -50,7 +50,7 @@ describe('FabricRuntimeConnection', () => {
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let mockLocalWallet: sinon.SinonStubbedInstance<IFabricWallet>;
     let mockLocalWalletOps: sinon.SinonStubbedInstance<IFabricWallet>;
-    let connection: IFabricRuntimeConnection;
+    let connection: IFabricEnvironmentConnection;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -156,7 +156,7 @@ describe('FabricRuntimeConnection', () => {
         mockFabricWalletGenerator.createLocalWallet.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(mockLocalWallet);
         mockFabricWalletGenerator.createLocalWallet.withArgs(`${FabricWalletUtil.LOCAL_WALLET}-ops`).resolves(mockLocalWalletOps);
 
-        connection = FabricConnectionFactory.createFabricRuntimeConnection((mockRuntime as any) as FabricRuntime);
+        connection = FabricConnectionFactory.createFabricEnvironmentConnection((mockRuntime as any) as FabricRuntime);
         await connection.connect();
     });
 
@@ -166,12 +166,12 @@ describe('FabricRuntimeConnection', () => {
 
     describe('constructor', () => {
         it('should default to the console output adapter', () => {
-            connection = new FabricRuntimeConnection((mockRuntime as any) as FabricRuntime);
+            connection = new FabricEnvironmentConnection((mockRuntime as any) as FabricRuntime);
             connection['outputAdapter'].should.be.an.instanceOf(ConsoleOutputAdapter);
         });
 
         it('should accept another output adapter', () => {
-            connection = new FabricRuntimeConnection((mockRuntime as any) as FabricRuntime, VSCodeBlockchainOutputAdapter.instance());
+            connection = new FabricEnvironmentConnection((mockRuntime as any) as FabricRuntime, VSCodeBlockchainOutputAdapter.instance());
             connection['outputAdapter'].should.be.an.instanceOf(VSCodeBlockchainOutputAdapter);
         });
 

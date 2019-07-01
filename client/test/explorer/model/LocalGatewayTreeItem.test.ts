@@ -100,7 +100,7 @@ describe('LocalGatewayTreeItem', () => {
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [gateway]
             });
@@ -156,7 +156,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [gateway]
             });
@@ -175,7 +175,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [gateway]
             });
@@ -241,7 +241,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [gateway]
             });

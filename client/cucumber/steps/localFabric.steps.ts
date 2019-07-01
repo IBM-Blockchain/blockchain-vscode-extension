@@ -22,7 +22,11 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
 
 // tslint:disable:no-unused-expression
 
@@ -46,6 +50,20 @@ module.exports = function(): any {
         }
 
         isRunning.should.equal(true);
+    });
+
+    this.Given("the '{string}' environment is connected", this.timeout, async (environment: string) => {
+        let registryEntry: FabricEnvironmentRegistryEntry;
+        if (environment === 'Local Fabric') {
+            registryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            registryEntry.managedRuntime = true;
+            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+        } else {
+            registryEntry = FabricEnvironmentRegistry.instance().get(environment);
+        }
+
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, registryEntry);
     });
 
     /**
@@ -80,7 +98,7 @@ module.exports = function(): any {
     });
 
     this.When("I open the terminal for node '{string}'", this.timeout, async (nodeType: string) => {
-        const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const nodeItems: NodeTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[2]) as Array<NodeTreeItem>;
 

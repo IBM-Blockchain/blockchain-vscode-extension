@@ -26,7 +26,7 @@ import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 
 import * as myExtension from '../../src/extension';
 
@@ -132,7 +132,7 @@ export class SmartContractHelper {
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {
-        const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
         const installedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Installed smart contracts
@@ -159,7 +159,7 @@ export class SmartContractHelper {
 
     public async instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
         // Check if instantiated contract exists
-        const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
         const instantiatedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Installed smart contracts

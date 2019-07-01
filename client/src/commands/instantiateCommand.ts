@@ -20,9 +20,10 @@ import { Reporter } from '../util/Reporter';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { PackageRegistry } from '../packages/PackageRegistry';
 
@@ -35,7 +36,15 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'instantiateSmartContract');
 
-    const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
+    let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+    if (!connection) {
+        await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+        connection = await FabricEnvironmentManager.instance().getConnection();
+        if (!connection) {
+            // something went wrong with connecting so return
+            return;
+        }
+    }
 
     if (treeItem instanceof ChannelTreeItem) {
         // If clicked on runtime channel
@@ -43,16 +52,6 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
         channelName = channelTreeItem.label;
         peerNames = channelTreeItem.peers;
     } else if (!channelName && !peerNames) {
-        // Called from command palette or Instantiated runtime tree item
-        const isRunning: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
-        if (!isRunning) {
-            // Start local_fabric to connect
-            await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
-            if (!(await FabricRuntimeManager.instance().getRuntime().isRunning())) {
-                // Start local_fabric failed so return
-                return;
-            }
-        }
 
         const chosenChannel: IBlockchainQuickPickItem<Array<string>> = await UserInputUtil.showChannelQuickPickBox('Choose a channel to instantiate the smart contract on');
         if (!chosenChannel) {

@@ -20,6 +20,8 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function stopFabricRuntime(): Promise<void> {
@@ -36,7 +38,12 @@ export async function stopFabricRuntime(): Promise<void> {
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
+        }
+
+        const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.managedRuntime) {
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         }
 
         try {

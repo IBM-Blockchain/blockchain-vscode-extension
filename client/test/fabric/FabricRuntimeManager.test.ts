@@ -14,28 +14,28 @@
 
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import * as vscode from 'vscode';
-import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnection';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricGateway } from '../../src/fabric/FabricGateway';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
-import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 
 chai.should();
 
@@ -45,7 +45,7 @@ describe('FabricRuntimeManager', () => {
     const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
-    let mockConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+    let mockConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
     let sandbox: sinon.SinonSandbox;
     let findFreePortStub: sinon.SinonStub;
@@ -67,8 +67,8 @@ describe('FabricRuntimeManager', () => {
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         runtimeManager['connection'] = runtimeManager['connectingPromise'] = undefined;
         runtimeManager['runtime'] = ((mockRuntime as any) as FabricRuntime);
-        mockConnection = sinon.createStubInstance(FabricRuntimeConnection);
-        sandbox.stub(FabricConnectionFactory, 'createFabricRuntimeConnection').returns(mockConnection);
+        mockConnection = sinon.createStubInstance(FabricEnvironmentConnection);
+        sandbox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
         findFreePortStub = sinon.stub().resolves([17050, 17051, 17052, 17053, 17054, 17055, 17056]);
         sandbox.stub(FabricRuntimeManager, 'findFreePort').value(findFreePortStub);
     });
@@ -80,72 +80,7 @@ describe('FabricRuntimeManager', () => {
         await connectionRegistry.clear();
     });
 
-    describe('#getConnection', () => {
-
-        it('should connect and start logs', async () => {
-            await runtimeManager.getConnection();
-            mockConnection.connect.should.have.been.calledOnce;
-            mockRuntime.startLogs.should.have.been.calledOnceWithExactly(VSCodeBlockchainDockerOutputAdapter.instance());
-        });
-
-        it('should not start another connection attempt if already connecting', async () => {
-            const promise1: any = runtimeManager.getConnection();
-            const promise2: any = runtimeManager.getConnection();
-            (promise1 === promise2).should.be.true;
-            await promise1;
-            mockConnection.connect.should.have.been.calledOnce;
-            mockRuntime.startLogs.should.have.been.calledOnceWithExactly(VSCodeBlockchainDockerOutputAdapter.instance());
-        });
-
-        it('should not connect if already connected', async () => {
-            const connection1: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            mockConnection.connect.should.have.been.calledOnce;
-            mockRuntime.startLogs.should.have.been.calledOnceWithExactly(VSCodeBlockchainDockerOutputAdapter.instance());
-            const connection2: IFabricRuntimeConnection = await runtimeManager.getConnection();
-            (connection1 === connection2).should.be.true;
-        });
-
-        it('should disconnect when the runtime stops', async () => {
-            let onBusyCallback: any;
-            mockRuntime.on.callsFake((name: string, callback: any) => {
-                name.should.equal('busy');
-                onBusyCallback = callback;
-            });
-            await runtimeManager.getConnection();
-            mockRuntime.getState.returns(FabricRuntimeState.STOPPED);
-            onBusyCallback();
-            mockConnection.disconnect.should.have.been.calledOnce;
-        });
-
-        it('should not disconnect when the runtime is stopping', async () => {
-            let onBusyCallback: any;
-            mockRuntime.on.callsFake((name: string, callback: any) => {
-                name.should.equal('busy');
-                onBusyCallback = callback;
-            });
-            await runtimeManager.getConnection();
-            mockRuntime.getState.returns(FabricRuntimeState.STOPPING);
-            onBusyCallback();
-            mockConnection.disconnect.should.not.have.been.called;
-        });
-
-        it('should not disconnect if the connection has already been removed', async () => {
-            let onBusyCallback: any;
-            mockRuntime.on.callsFake((name: string, callback: any) => {
-                name.should.equal('busy');
-                onBusyCallback = callback;
-            });
-            await runtimeManager.getConnection();
-            mockRuntime.getState.returns(FabricRuntimeState.STOPPED);
-            runtimeManager['connection'] = undefined;
-            onBusyCallback();
-            mockConnection.disconnect.should.not.have.been.called;
-        });
-
-    });
-
     describe('#getRuntime', () => {
-
         it('should return the runtime', () => {
             runtimeManager.getRuntime().should.equal(mockRuntime);
         });
@@ -153,7 +88,6 @@ describe('FabricRuntimeManager', () => {
     });
 
     describe('#initialize', () => {
-
         beforeEach(() => {
             mockRuntime.isCreated.resolves(true);
             Object.defineProperty(runtimeManager, 'runtime', {
@@ -207,8 +141,18 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('create the runtime if it is not already created', async () => {
-            mockRuntime.isCreated.resolves(false);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
+                ports: {
+                    certificateAuthority: 17054,
+                    couchDB: 17055,
+                    logs: 17056,
+                    orderer: 17050,
+                    peerChaincode: 17052,
+                    peerEventHub: 17053,
+                    peerRequest: 17051
+                },
+                developmentMode: false
+            }, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
                 certificateAuthority: 17054,
@@ -219,15 +163,50 @@ describe('FabricRuntimeManager', () => {
                 peerEventHub: 17053,
                 peerRequest: 17051
             });
-            mockRuntime.updateUserSettings.should.have.been.calledOnce;
+            mockRuntime.updateUserSettings.should.not.have.been.called;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
-            mockRuntime.create.should.have.been.calledOnce;
         });
 
+        it('should start the logs when runtime connected', async () => {
+            mockRuntime.isCreated.resolves(false);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            registryEntry.managedRuntime = true;
+            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry);
+
+            mockRuntime.startLogs.should.have.been.called;
+        });
+
+        it('should not start the logs when other fabric connected', async () => {
+            mockRuntime.isCreated.resolves(false);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.managedRuntime = true;
+            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry);
+
+            mockRuntime.startLogs.should.not.have.been.called;
+        });
+
+        it('should stop the logs when disconnected', async () => {
+            mockRuntime.isCreated.resolves(false);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
+            await runtimeManager.initialize();
+
+            FabricEnvironmentManager.instance().disconnect();
+
+            mockRuntime.stopLogs.should.have.been.called;
+        });
     });
 
     describe('#getGatewayRegistryEntries', () => {
-
         it('should return an array of gateway registry entries', async () => {
             const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
             mockRuntime.getGateways.resolves([
@@ -241,7 +220,19 @@ describe('FabricRuntimeManager', () => {
             registryEntries[0].associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
             registryEntries[0].connectionProfilePath.should.equal('SOME_PATH');
         });
+    });
 
+    describe('#getEnvironmentRegistryEntry', () => {
+        it('should return environment registry entry', async () => {
+            const instance: FabricRuntimeManager = FabricRuntimeManager.instance();
+            mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
+
+            const registryEntry: FabricEnvironmentRegistryEntry = await instance.getEnvironmentRegistryEntry();
+
+            registryEntry.name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
+            registryEntry.managedRuntime.should.equal(true);
+            registryEntry.associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        });
     });
 
     describe('#getWalletRegistryEntries', () => {
@@ -285,7 +276,7 @@ describe('FabricRuntimeManager', () => {
             });
             getStub.withArgs('fabric.runtime').returns({});
             updateStub = sinon.stub().resolves();
-            sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub});
+            sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub });
             sendCommandWithOutputStub = sandbox.stub(CommandUtil, 'sendCommandWithOutput');
         });
 

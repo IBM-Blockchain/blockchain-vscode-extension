@@ -21,17 +21,22 @@ import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
 import * as myExtension from '../../src/extension';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { Reporter } from '../../src/util/Reporter';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
 import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
 import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
@@ -45,7 +50,7 @@ describe('UpgradeCommand', () => {
     });
 
     describe('UpgradeSmartContract', () => {
-        let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+        let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
         let executeCommandStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
@@ -54,30 +59,28 @@ describe('UpgradeCommand', () => {
         let showInputBoxStub: sinon.SinonStub;
         let allChildren: Array<BlockchainTreeItem>;
         let reporterStub: sinon.SinonStub;
-        let isRunningStub: sinon.SinonStub;
-        let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
+        let blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider;
         let instantiatedSmartContractsList: BlockchainTreeItem[];
         let smartContractsChildren: BlockchainTreeItem[];
         let channelsChildren: BlockchainTreeItem[];
         let showYesNo: sinon.SinonStub;
+        let environmentStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
-            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             executeCommandStub.callThrough();
 
-            fabricRuntimeMock = sinon.createStubInstance(FabricRuntimeConnection);
+            fabricRuntimeMock = sinon.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map());
             fabricRuntimeMock.upgradeChaincode.resolves();
 
-            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves(fabricRuntimeMock);
-            isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);
+            environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(fabricRuntimeMock);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
                 label: 'channelOne',
@@ -118,7 +121,14 @@ describe('UpgradeCommand', () => {
 
             showYesNo = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
-            blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+            const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            environmentRegistry.managedRuntime = true;
+            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+
+            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
+
+            blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
             const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
@@ -129,7 +139,7 @@ describe('UpgradeCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             mySandBox.restore();
         });
 
@@ -142,26 +152,15 @@ describe('UpgradeCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         });
 
-        it('should upgrade the smart contract through the command when not connected', async () => {
-            isRunningStub.onCall(4).resolves(false);
+        it('should upgrade the smart contract through the command and connect if not connected', async () => {
+            environmentStub.resetHistory();
+            environmentStub.onFirstCall().returns(undefined);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
-
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
-        });
-
-        it('should upgrade the smart contract through the command when not connected', async () => {
-            isRunningStub.resolves(false);
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
-
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
-            logSpy.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         });
 
         it('should upgrade the smart contract through the command with collection', async () => {
@@ -201,6 +200,14 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], path.join('myPath'));
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        });
+
+        it('should return if cannot connect', async () => {
+            environmentStub.returns(undefined);
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
+            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
         });
 
         it('should handle cancel when choosing if want collection', async () => {

@@ -42,6 +42,8 @@ import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 
 // tslint:disable no-unused-expression
@@ -62,7 +64,7 @@ describe('AddWalletIdentityCommand', () => {
     });
 
     describe('addWalletIdentity', () => {
-        let fabricRuntimeConnectionMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+        let fabricEnvironmentConnectionMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let inputBoxStub: sinon.SinonStub;
         const rootPath: string = path.dirname(__dirname);
         const walletPath: string = path.join(rootPath, '../../test/data/walletDir/wallet');
@@ -128,12 +130,12 @@ describe('AddWalletIdentityCommand', () => {
             await FabricWalletRegistry.instance().add(connectionOneWallet);
             await FabricWalletRegistry.instance().add(connectionTwoWallet);
 
-            fabricRuntimeConnectionMock = sinon.createStubInstance(FabricRuntimeConnection);
-            fabricRuntimeConnectionMock.connect.resolves();
-            fabricRuntimeConnectionMock.getAllOrganizationNames.resolves();
-            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mySandBox.stub(fabricRuntimeManager, 'getConnection').returns(fabricRuntimeConnectionMock);
-            fabricRuntimeConnectionMock.getAllOrganizationNames.returns(['myMSPID']);
+            fabricEnvironmentConnectionMock = sinon.createStubInstance(FabricEnvironmentConnection);
+            fabricEnvironmentConnectionMock.connect.resolves();
+            fabricEnvironmentConnectionMock.getAllOrganizationNames.resolves();
+            const fabricEnvironmentManager: FabricEnvironmentManager = FabricEnvironmentManager.instance();
+            mySandBox.stub(fabricEnvironmentManager, 'getConnection').returns(fabricEnvironmentConnectionMock);
+            fabricEnvironmentConnectionMock.getAllOrganizationNames.returns(['myMSPID']);
 
             inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
             fsReadFile = mySandBox.stub(fs, 'readFile');
@@ -181,42 +183,6 @@ describe('AddWalletIdentityCommand', () => {
             showGatewayQuickPickBoxStub.resolves({
                 label: 'myGatewayA',
                 data: FabricGatewayRegistry.instance().get('myGatewayA')
-            });
-            getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
-            enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
-
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
-            inputBoxStub.should.have.been.calledTwice;
-
-            fsReadFile.should.have.been.calledOnce;
-            getEnrollIdSecretStub.should.have.been.calledOnce;
-            enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
-            importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-
-            logSpy.should.have.been.calledTwice;
-            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
-            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
-            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
-        });
-
-        it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file', async () => {
-            showWalletsQuickPickStub.resolves({
-                label: 'externalWallet',
-                data: FabricWalletRegistry.instance().get('externalWallet')
-            });
-
-            fsReadFile.resolves(`---
-            certificateAuthorities:
-              ca0:
-                url: http://ca0url`);
-
-            inputBoxStub.onFirstCall().resolves('greenConga');
-            inputBoxStub.onSecondCall().resolves('myMSPID');
-            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
-            showGatewayQuickPickBoxStub.resolves({
-                label: 'myGatewayC',
-                data: FabricGatewayRegistry.instance().get('myGatewayC')
             });
             getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
             enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
@@ -482,15 +448,6 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should error if an identity is unable to be imported', async () => {
-
-            fsReadFile.resolves(`{
-                "certificateAuthorities": {
-                    "ca0": {
-                        "url": "http://ca0url"
-                    }
-                }
-            }`);
-
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')
@@ -652,18 +609,9 @@ describe('AddWalletIdentityCommand', () => {
             });
 
             it(`should test an identity can be enrolled to ${FabricWalletUtil.LOCAL_WALLET} using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
-
-                fsReadFile.resolves(`{
-                    "certificateAuthorities": {
-                        "ca0": {
-                            "url": "http://ca0url"
-                        }
-                    }
-                }`);
-
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path/connection.json',
+                    connectionProfilePath: '/some/path',
                     managedRuntime: true,
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 } as FabricGatewayRegistryEntry]);
@@ -686,9 +634,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
-                fsReadFile.should.have.been.called;
+                fsReadFile.should.not.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
-                enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
+                enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
@@ -699,15 +647,6 @@ describe('AddWalletIdentityCommand', () => {
             });
 
             it(`should start ${FabricRuntimeUtil.LOCAL_FABRIC} before attempting to enroll an identity`, async () => {
-
-                fsReadFile.resolves(`{
-                    "certificateAuthorities": {
-                        "ca0": {
-                            "url": "http://ca0url"
-                        }
-                    }
-                }`);
-
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
                     connectionProfilePath: '/some/path/connection.json',
@@ -737,7 +676,7 @@ describe('AddWalletIdentityCommand', () => {
 
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
-                fsReadFile.should.have.been.called;
+                fsReadFile.should.not.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
                 enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
@@ -751,7 +690,7 @@ describe('AddWalletIdentityCommand', () => {
             it(`should handle ${FabricRuntimeUtil.LOCAL_FABRIC} failing to start`, async () => {
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path/connection.json',
+                    connectionProfilePath: '/some/path',
                     managedRuntime: true,
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 } as FabricGatewayRegistryEntry]);
@@ -783,15 +722,6 @@ describe('AddWalletIdentityCommand', () => {
         describe('called from IFabricWallet - addWallet command', () => {
 
             it('should test an identity can be enrolled to a new wallet', async () => {
-
-                fsReadFile.resolves(`{
-                    "certificateAuthorities": {
-                        "ca0": {
-                            "url": "http://ca0url"
-                        }
-                    }
-                }`);
-
                 showWalletsQuickPickStub.resolves({
                     label: 'externalWallet',
                     data: FabricWalletRegistry.instance().get('externalWallet')

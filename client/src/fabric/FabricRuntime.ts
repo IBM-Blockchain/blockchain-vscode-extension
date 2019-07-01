@@ -19,8 +19,6 @@ import { FabricRuntimePorts } from './FabricRuntimePorts';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
-import { EventEmitter } from 'events';
-import { UserInputUtil } from '../commands/UserInputUtil';
 import * as request from 'request';
 import { FabricIdentity } from './FabricIdentity';
 import { FabricNode, FabricNodeType } from './FabricNode';
@@ -31,6 +29,7 @@ import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricEnvironment } from './FabricEnvironment';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -40,13 +39,11 @@ export enum FabricRuntimeState {
     RESTARTING = 'restarting',
 }
 
-export class FabricRuntime extends EventEmitter {
+export class FabricRuntime extends FabricEnvironment {
 
     public ports?: FabricRuntimePorts;
 
-    private name: string;
     private dockerName: string;
-    private path: string;
     private busy: boolean = false;
     private state: FabricRuntimeState;
     private isRunningPromise: Promise<boolean>;
@@ -54,24 +51,12 @@ export class FabricRuntime extends EventEmitter {
     private logsRequest: request.Request;
 
     constructor() {
-        super();
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const resolvedExtDir: string = UserInputUtil.getDirPath(extDir);
-        this.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        super(FabricRuntimeUtil.LOCAL_FABRIC);
         this.dockerName = `fabricvscodelocalfabric`;
-        this.path = path.join(resolvedExtDir, 'runtime');
-    }
-
-    public getName(): string {
-        return this.name;
     }
 
     public getDockerName(): string {
         return this.dockerName;
-    }
-
-    public getPath(): string {
-        return this.path;
     }
 
     public isBusy(): boolean {
@@ -120,7 +105,6 @@ export class FabricRuntime extends EventEmitter {
                 );
             }
         }
-
     }
 
     public async deleteWalletsAndIdentities(): Promise<void> {
@@ -131,7 +115,6 @@ export class FabricRuntime extends EventEmitter {
         for (const walletName of walletNames) {
             await fabricWalletGenerator.deleteLocalWallet(walletName);
         }
-
     }
 
     public async generate(outputAdapter?: OutputAdapter): Promise<void> {
@@ -236,56 +219,6 @@ export class FabricRuntime extends EventEmitter {
             gateways.push(gateway);
         }
         return gateways;
-    }
-
-    public async getNodes(): Promise<FabricNode[]> {
-        const nodesPath: string = path.resolve(this.path, 'nodes');
-        const nodesExist: boolean = await fs.pathExists(nodesPath);
-        if (!nodesExist) {
-            return [];
-        }
-        let nodePaths: string[] = await fs.readdir(nodesPath);
-        nodePaths = nodePaths
-            .sort()
-            .filter((nodePath: string) => !nodePath.startsWith('.'))
-            .map((nodePath: string) => path.resolve(this.path, 'nodes', nodePath));
-        const nodes: FabricNode[] = [];
-        for (const nodePath of nodePaths) {
-            const node: FabricNode = await fs.readJson(nodePath);
-            nodes.push(node);
-        }
-        return nodes;
-    }
-
-    public async getWalletNames(): Promise<string[]> {
-        const walletsPath: string = path.resolve(this.path, 'wallets');
-        const walletsExist: boolean = await fs.pathExists(walletsPath);
-        if (!walletsExist) {
-            return [];
-        }
-        const walletPaths: string[] = await fs.readdir(walletsPath);
-        return walletPaths
-            .sort()
-            .filter((walletPath: string) => !walletPath.startsWith('.'));
-    }
-
-    public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
-        const walletPath: string = path.resolve(this.path, 'wallets', walletName);
-        const walletExists: boolean = await fs.pathExists(walletPath);
-        if (!walletExists) {
-            return [];
-        }
-        let identityPaths: string[] = await fs.readdir(walletPath);
-        identityPaths = identityPaths
-            .sort()
-            .filter((identityPath: string) => !identityPath.startsWith('.'))
-            .map((identityPath: string) => path.resolve(this.path, 'wallets', walletName, identityPath));
-        const identities: FabricIdentity[] = [];
-        for (const identityPath of identityPaths) {
-            const identity: FabricIdentity = await fs.readJson(identityPath);
-            identities.push(identity);
-        }
-        return identities;
     }
 
     public async isCreated(): Promise<boolean> {
