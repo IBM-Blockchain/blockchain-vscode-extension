@@ -30,6 +30,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
+import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';
 
 export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedContractTreeItem | ContractTreeItem): Promise<void> {
 
@@ -412,11 +413,11 @@ async function installNodeModules(dir: string, language: string): Promise<void> 
     let npmInstallOut: string;
 
     if (language === 'TypeScript') {
-        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1, @types/mocha, ts-node, typescript');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.1 fabric-client@1.4.1 @types/mocha ts-node typescript', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}, @types/mocha, ts-node, typescript`);
+        npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_VERSION} fabric-client@${FABRIC_CLIENT_VERSION} @types/mocha ts-node typescript`, dir, 'Installing npm and package dependencies in smart contract project');
     } else {
-        outputAdapter.log(LogType.INFO, 'Installing package dependencies including: fabric-network@1.4.1, fabric-client@1.4.1');
-        npmInstallOut = await CommandUtil.sendCommandWithProgress('npm install && npm install --save-dev fabric-network@1.4.1 fabric-client@1.4.1', dir, 'Installing npm and package dependencies in smart contract project');
+        outputAdapter.log(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+        npmInstallOut = await CommandUtil.sendCommandWithProgress(`npm install && npm install --save-dev fabric-network@${FABRIC_NETWORK_VERSION} fabric-client@${FABRIC_CLIENT_VERSION}`, dir, 'Installing npm and package dependencies in smart contract project');
     }
     outputAdapter.log(LogType.INFO, undefined, npmInstallOut);
 }

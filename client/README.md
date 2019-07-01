@@ -62,6 +62,18 @@ Debugging your smart contract allows you to run through the smart contract trans
 To debug Go smart contracts, please install the [Go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go).
 To debug Java smart contracts, please install the [Language Support for Java extension](https://marketplace.visualstudio.com/items?itemName=redhat.java) and the [Debugger for Java extension](https://marketplace.visualstudio.com/items?itemName=vscjava.vscode-java-debug)
 
+To debug Node (JavaScript or TypeScript) chaincode written using the low-level programming model, you must add the `program` attribute to your launch configuration in launch.json. It should contain the path to the file calling `Shim.start`. For example:
+```
+{
+    "type": "fabric:node",
+    "request": "launch",
+    "name": "Debug Smart Contract",
+    "program": "${workspaceFolder}/dist/start.js"
+} 
+
+```
+where `start.js` contains the line `Shim.start(new Chaincode());`.
+
 To debug your smart contract follow these steps:
 
 1. Ensure you are connected to the `local_fabric` runtime and that the `local_fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. By toggling development mode, transactions will now have a large timeout value.
@@ -85,7 +97,7 @@ Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the 
 ### Wallet Management
 The extension creates a `local_fabric_wallet` file system wallet when it is installed, which is used to connect to the `local_fabric` runtime instance and is automatically associated with that gateway. When `local_fabric` is started, an admin identity is added to the `local_fabric_wallet` and cannot be deleted unless the `local_fabric` runtime is torn down.
 
-The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, or a gateway, enrollment id and secret.
+The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, a JSON identity file, or a gateway, enrollment id and secret.
 
 For wallets associated with other remote Fabric gateways, the `Add Wallet`,`Edit Wallet` ,`Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 

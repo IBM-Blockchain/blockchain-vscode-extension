@@ -43,7 +43,7 @@ export async function addWallet(): Promise<void> {
         const walletMethod: string = await UserInputUtil.showAddWalletOptionsQuickPick('Choose a method to add a wallet:');
         if (!walletMethod) {
             // User cancelled dialog box
-            return Promise.resolve();
+            return;
         }
         if (walletMethod === UserInputUtil.IMPORT_WALLET) {
             // User has a wallet - get the path
@@ -57,7 +57,7 @@ export async function addWallet(): Promise<void> {
             walletUri = await UserInputUtil.browse('Enter a file path to a wallet directory', quickPickItems, openDialogOptions, true) as vscode.Uri;
             if (!walletUri) {
                 // User cancelled dialog box
-                return Promise.resolve();
+                return;
             }
             walletPath = walletUri.fsPath;
             walletName = path.basename(walletPath);
@@ -80,7 +80,7 @@ export async function addWallet(): Promise<void> {
             walletName = await UserInputUtil.showInputBox('Enter a name for the wallet');
             if (!walletName) {
                 // User cancelled dialog box
-                return Promise.resolve();
+                return;
             }
 
             // Check if a wallet with the same name already exists
