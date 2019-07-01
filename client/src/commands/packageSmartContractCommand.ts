@@ -122,7 +122,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
                     if (!exists) {
                         // Project path is not under GOPATH.
-                        throw new Error('The enviroment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
+                        throw new Error('The environment variable GOPATH has not been set, and the extension was not able to automatically detect the correct value. You cannot package a Go smart contract without setting the environment variable GOPATH.');
                     } else {
                         process.env.GOPATH = path.join(srcPath, '..');
                     }

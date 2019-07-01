@@ -33,7 +33,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const walletPath: string = path.join(homeExtDir, walletName);
+        const walletPath: string = path.join(homeExtDir, 'wallets', walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
 
         if (!walletExists) {
@@ -47,7 +47,7 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const walletPath: string = path.join(homeExtDir, walletName);
+        const walletPath: string = path.join(homeExtDir, 'wallets', walletName);
         const walletExists: boolean = await fs.pathExists(walletPath);
 
         if (walletExists) {
