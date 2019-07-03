@@ -50,7 +50,7 @@ describe('FabricWalletGenerator', () => {
             pathExistsStub.resolves(false);
 
             const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaWallet');
-            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaWallet'));
+            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/wallets/CongaWallet'));
             ensureDirStub.should.have.been.calledOnce;
 
         });
@@ -59,7 +59,7 @@ describe('FabricWalletGenerator', () => {
             pathExistsStub.resolves(true);
 
             const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaWallet');
-            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/CongaWallet'));
+            wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/wallets/CongaWallet'));
             ensureDirStub.should.not.have.been.called;
 
         });
@@ -70,7 +70,7 @@ describe('FabricWalletGenerator', () => {
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
 
-            mySandBox.stub(UserInputUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/walletDir'));
+            mySandBox.stub(UserInputUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/wallets/walletDir'));
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
             removeStub = mySandBox.stub(fs, 'remove').resolves();
         });

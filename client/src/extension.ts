@@ -99,6 +99,7 @@ import { FabricRuntimeUtil } from './fabric/FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry } from './fabric/FabricEnvironmentRegistryEntry';
 import { fabricEnvironmentConnect } from './commands/environmentConnectCommand';
 import { FabricEnvironmentManager } from './fabric/FabricEnvironmentManager';
+import { FabricGatewayHelper } from './fabric/FabricGatewayHelper';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -187,8 +188,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }
 
         // Remove managedWallet boolean from wallets in user settings
-        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet settings');
+        // Ensure wallets are stored correctly
+        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
         await FabricWalletUtil.tidyWalletSettings();
+        // Ensure gateways are stored correctly
+        await FabricGatewayHelper.migrateGateways();
 
         // Check if there is a newer version of the generator available
         // This needs to be done as a seperate call to make sure the dependencies have been installed

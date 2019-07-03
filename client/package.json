@@ -21,7 +21,7 @@
     },
     "production": false,
     "engines": {
-        "vscode": "^1.32.0"
+        "vscode": "^1.36.0"
     },
     "repository": {
         "type": "git",
@@ -1238,7 +1238,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.0",
-        "generator-fabric": "0.0.33",
+        "generator-fabric": "0.0.34",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.1.1",
@@ -1258,24 +1258,24 @@
     "nativeDependencies": {
         "grpc": {
             "linux-ia32": {
-                "original": "./node_modules/grpc/src/node/extension_binary/node-v64-linux-ia32-glibc",
-                "new": "./node_modules/grpc/src/node/extension_binary/electron-v3.0-linux-ia32-glibc"
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v69-linux-ia32-glibc",
+                "new": "./node_modules/grpc/src/node/extension_binary/electron-v4.2-linux-ia32-glibc"
             },
             "linux-x64": {
-                "original": "./node_modules/grpc/src/node/extension_binary/node-v64-linux-x64-glibc",
-                "new": "./node_modules/grpc/src/node/extension_binary/electron-v3.0-linux-x64-glibc"
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v69-linux-x64-glibc",
+                "new": "./node_modules/grpc/src/node/extension_binary/electron-v4.2-linux-x64-glibc"
             },
             "darwin-x64": {
-                "original": "./node_modules/grpc/src/node/extension_binary/node-v64-darwin-x64-unknown",
-                "new": "./node_modules/grpc/src/node/extension_binary/electron-v3.0-darwin-x64-unknown"
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v69-darwin-x64-unknown",
+                "new": "./node_modules/grpc/src/node/extension_binary/electron-v4.2-darwin-x64-unknown"
             },
             "win32-ia32": {
-                "original": "./node_modules/grpc/src/node/extension_binary/node-v64-win32-ia32-unknown",
-                "new": "./node_modules/grpc/src/node/extension_binary/electron-v3.0-win32-ia32-unknown"
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v69-win32-ia32-unknown",
+                "new": "./node_modules/grpc/src/node/extension_binary/electron-v4.2-win32-ia32-unknown"
             },
             "win32-x64": {
-                "original": "./node_modules/grpc/src/node/extension_binary/node-v64-win32-x64-unknown",
-                "new": "./node_modules/grpc/src/node/extension_binary/electron-v3.0-win32-x64-unknown"
+                "original": "./node_modules/grpc/src/node/extension_binary/node-v69-win32-x64-unknown",
+                "new": "./node_modules/grpc/src/node/extension_binary/electron-v4.2-win32-x64-unknown"
             }
         }
     },

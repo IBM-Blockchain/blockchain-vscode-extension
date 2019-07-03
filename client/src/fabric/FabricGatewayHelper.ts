@@ -28,7 +28,7 @@ export class FabricGatewayHelper {
 
             const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
             const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-            const profileDirPath: string = path.join(homeExtDir, gatewayName);
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
             const profileExists: boolean = await fs.pathExists(profileDirPath);
 
             if (!profileExists) {
@@ -90,6 +90,30 @@ export class FabricGatewayHelper {
         } catch (error) {
             throw error;
         }
+    }
+
+    public static async migrateGateways(): Promise<void> {
+        // Get gateways from user settings
+        const gateways: any = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+        for (const gateway of gateways) {
+            // Ensure all the gateways are stored under the gateways subdirectory
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const gatewaysExtDir: string = path.join(extDir, 'gateways');
+            if (gateway.connectionProfilePath.includes(extDir) && !gateway.connectionProfilePath.includes(gatewaysExtDir)) {
+                const newGatewayDir: string = path.join(gatewaysExtDir, gateway.name);
+                try {
+                    await fs.copy(gateway.connectionProfilePath, newGatewayDir);
+                } catch (error) {
+                    throw new Error(`Issue copying ${gateway.connectionProfilePath} to ${newGatewayDir}: ${error.message}`);
+                }
+                // Only remove the gateway dir if the copy worked
+                await fs.remove( path.join(extDir, gateway.name) );
+                gateway.connectionProfilePath = path.join(newGatewayDir, path.basename(gateway.connectionProfilePath) );
+
+            }
+        }
+        // Rewrite the updated gateways to the user settings
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
     }
 
 }
