@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -1208,7 +1208,7 @@
         "generator-fabric": "0.0.34",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
-        "semver": "^6.1.1",
+        "semver": "^6.2.0",
         "shelljs": "^0.8.3",
         "showdown": "^1.9.0",
         "strip-ansi": "^4.0.0",
