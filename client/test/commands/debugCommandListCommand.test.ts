@@ -45,7 +45,7 @@ describe('DebugCommandListCommand', () => {
 
     beforeEach(async () => {
 
-        showDebugCommandListStub = mySandBox.stub(UserInputUtil, 'showDebugCommandList').resolves({ label: 'Instantiate smart contract', data: ExtensionCommands.INSTANTIATE_SMART_CONTRACT });
+        showDebugCommandListStub = mySandBox.stub(UserInputUtil, 'showDebugCommandList').resolves({ label: 'Instantiate smart contract', data: ExtensionCommands.SUBMIT_TRANSACTION });
 
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
         executeCommandStub.callThrough();
@@ -78,10 +78,10 @@ describe('DebugCommandListCommand', () => {
         mySandBox.restore();
     });
 
-    it('should show the submit, evaluate and instantiate commands and run the chosen one', async () => {
+    it('should show the submit and evaluate', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
 
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'mychannel', ['peerOne']);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.SUBMIT_TRANSACTION, undefined, 'mychannel', 'mySmartContract');
     });
 
     it('should handle cancel', async () => {
@@ -137,8 +137,7 @@ describe('DebugCommandListCommand', () => {
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.EVALUATE_TRANSACTION);
     });
 
-    it('should show the upgrade command when a smart contract of the same name is instantiated', async () => {
-        showDebugCommandListStub.resolves({ label: 'Upgrade Smart Contract', data: ExtensionCommands.UPGRADE_SMART_CONTRACT});
+    it('should run the command passed in', async () => {
         runtimeStub.getInstantiatedChaincode.resolves([
             {
                 name: 'mySmartContract',
@@ -150,7 +149,9 @@ describe('DebugCommandListCommand', () => {
             }
         ]);
 
-        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST);
+        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
+
+        showDebugCommandListStub.should.not.have.been.called;
 
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'mychannel', ['peerOne']);
     });

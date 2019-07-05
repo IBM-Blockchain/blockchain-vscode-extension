@@ -22,7 +22,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import * as dateFormat from 'dateformat';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -33,9 +32,12 @@ chai.use(sinonChai);
 class TestFabricDebugConfigurationProvider extends FabricDebugConfigurationProvider {
 
     public chaincodeName: string = 'mySmartContract';
+    public chaincodeVersion: string = '0.0.1';
 
-    protected async getChaincodeName(): Promise<string> {
-        return this.chaincodeName;
+    protected async getChaincodeNameAndVersion(): Promise<{name: string, version: string}> {
+        const version: string = this.chaincodeVersion;
+        const name: string = this.chaincodeName;
+        return {name, version};
     }
 
     protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {
@@ -56,7 +58,6 @@ describe('FabricDebugConfigurationProvider', () => {
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;
-        let clock: sinon.SinonFakeTimers;
         let fabricDebugConfig: TestFabricDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -64,26 +65,20 @@ describe('FabricDebugConfigurationProvider', () => {
         let commandStub: sinon.SinonStub;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
         let getConnectionStub: sinon.SinonStub;
-        let date: Date;
-        let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
-        let newDebugVersionStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
         let generatorVersionStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
-            clock = sinon.useFakeTimers({ toFake: ['Date'] });
-            date = new Date();
-            formattedDate = dateFormat(date, 'yyyymmddHHMMss');
-            newDebugVersionStub = mySandbox.stub(ExtensionUtil, 'getNewDebugVersion');
-            newDebugVersionStub.returns(`vscode-debug-${formattedDate}`);
+
             fabricDebugConfig = new TestFabricDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
             runtimeStub.getName.returns('localfabric');
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
+            runtimeStub.killChaincode.resolves();
             runtimeStub.isDevelopmentMode.returns(true);
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
@@ -114,14 +109,13 @@ describe('FabricDebugConfigurationProvider', () => {
             generatorVersionStub = mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
                 globalState: {
                     get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.33'
+                        generatorVersion: '0.0.35'
                     })
                 }
             });
         });
 
         afterEach(() => {
-            clock.restore();
             mySandbox.restore();
         });
 
@@ -132,7 +126,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['127.0.0.1:54321']
             });
@@ -148,7 +143,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['127.0.0.1:54321']
             });
@@ -164,7 +160,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`,
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
                     myProperty: 'myValue'
                 },
                 args: ['127.0.0.1:54321']
@@ -181,7 +178,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:myVersion`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:myVersion`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
                 },
                 args: ['127.0.0.1:54321']
             });
@@ -198,7 +196,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 request: 'launch',
                 env: {
                     CORE_CHAINCODE_EXECUTETIMEOUT: '10s',
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
                 },
                 args: ['127.0.0.1:54321']
             });
@@ -209,7 +208,7 @@ describe('FabricDebugConfigurationProvider', () => {
             generatorVersionStub.returns({
                 globalState: {
                     get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.32'
+                        generatorVersion: '0.0.34'
                     })
                 }
             });
@@ -218,7 +217,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.', 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
         });
 
         it('should give an error if generator version is unknown', async () => {
@@ -234,7 +233,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.', 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
         });
 
         it('should not run if the chaincode name is not provided', async () => {
@@ -267,7 +266,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
                 },
                 args: ['127.0.0.1:54321']
             });
@@ -300,8 +300,8 @@ describe('FabricDebugConfigurationProvider', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to toggle development mode`, `Failed to toggle development mode`);
         });
 
-        it('should restore from a previous debug session and use the last instantiated debug package of the same name', async () => {
-            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: '0.0.2' }];
+        it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             runtimeStub.isRunning.onFirstCall().resolves(true);
@@ -312,53 +312,77 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-13232112018`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['127.0.0.1:54321']
             });
 
-            runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', 'vscode-debug-13232112018']);
+            runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', '0.0.1']);
+            runtimeStub.killChaincode.should.not.have.been.called;
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
 
-        it('should create a new version if there is a container running with the smart contract already', async () => {
-            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: '0.0.2' }];
+        it('should upgrade if package.json not the same as instantiated', async () => {
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: '0.0.2' }, { name: 'cake-network', version: '0.0.2' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+                },
+                args: ['127.0.0.1:54321']
+            });
+
+            runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', '0.0.2']);
+            runtimeStub.killChaincode.should.have.been.called;
+            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should upgrade if CORE_CHAINCODE_ID version not the same as instantiated', async () => {
+            debugConfig.env = { CORE_CHAINCODE_ID_NAME: 'mySmartContract:myVersion' };
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: '0.0.2' }, { name: 'cake-network', version: '0.0.2' }];
+            mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:myVersion`,
+                    EXTENSION_COMMAND: ExtensionCommands.UPGRADE_SMART_CONTRACT,
+                },
+                args: ['127.0.0.1:54321']
+            });
+
+            runtimeStub.isRunning.should.have.been.calledWith(['mySmartContract', '0.0.2']);
+            runtimeStub.killChaincode.should.have.been.called;
+            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
+        it('should kill the container if there is a container running with the smart contract already', async () => {
+            const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'mySmartContract', version: '0.0.1' }, { name: 'cake-network', version: '0.0.2' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
             runtimeStub.isRunning.resolves(true);
-            newDebugVersionStub.returns('debug-version-123456');
             const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
             should.equal(config, undefined);
             startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: 'mySmartContract:debug-version-123456',
-                    OLD_CHAINCODE_VERSION: 'debug-version-123456'
+                    CORE_CHAINCODE_ID_NAME: 'mySmartContract:0.0.1',
                 },
                 args: ['127.0.0.1:54321']
             });
 
-            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
-        });
+            runtimeStub.killChaincode.should.have.been.called;
 
-        it('should create a new debug session if a debug package of the smart contract isn\'t installed already', async () => {
-            const chaincodeMap: Map<string, Array<string>> = new Map<string, Array<string>>();
-            chaincodeMap.set('mySmartContract', ['0.0.1', '0.0.2']);
-            chaincodeMap.set('cake-network', ['vscode-debug-174758735087']);
-            chaincodeMap.set('mySmartContract', ['001']);
-            mockRuntimeConnection.getInstalledChaincode.resolves(chaincodeMap);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'fake',
-                request: 'launch',
-                env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
-                },
-                args: ['127.0.0.1:54321']
-            });
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
 

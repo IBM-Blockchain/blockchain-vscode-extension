@@ -29,9 +29,13 @@ export class FabricGoDebugConfigurationProvider extends FabricDebugConfiguration
         ];
     }
 
-    protected async getChaincodeName(): Promise<string> {
+    protected async getChaincodeNameAndVersion(): Promise<{name: string, version: string}> {
         const name: string = await UserInputUtil.showInputBox('Enter a name for your Go package'); // Getting the specified name and package from the user
-        return name;
+        if (!name) {
+            return;
+        }
+        const version: string = await UserInputUtil.showInputBox('Enter a version for your Go package');
+        return {name, version};
     }
 
     protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {

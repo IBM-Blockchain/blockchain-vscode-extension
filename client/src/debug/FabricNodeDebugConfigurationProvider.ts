@@ -30,9 +30,8 @@ export class FabricNodeDebugConfigurationProvider extends FabricDebugConfigurati
         ];
     }
 
-    protected async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string> {
-        const { name } = await ExtensionUtil.getContractNameAndVersion(folder);
-        return name;
+    protected async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{name: string, version: string}> {
+        return ExtensionUtil.getContractNameAndVersion(folder);
     }
 
     protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {

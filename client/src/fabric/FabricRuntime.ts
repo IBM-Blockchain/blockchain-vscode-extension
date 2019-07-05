@@ -317,6 +317,10 @@ export class FabricRuntime extends EventEmitter {
         return this.isRunningPromise;
     }
 
+    public async killChaincode(args?: string[], outputAdapter?: OutputAdapter): Promise<void> {
+        await this.killChaincodeInner(args, outputAdapter);
+    }
+
     public isDevelopmentMode(): boolean {
         return this.developmentMode;
     }
@@ -389,6 +393,10 @@ export class FabricRuntime extends EventEmitter {
         } catch (error) {
             return false;
         }
+    }
+
+    private async killChaincodeInner(args: string[], outputAdapter?: OutputAdapter): Promise<void> {
+        await this.execute('kill_chaincode', args, outputAdapter);
     }
 
     private setBusy(busy: boolean): void {

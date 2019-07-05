@@ -292,7 +292,7 @@ export class IntegrationTestUtil {
             }
         });
 
-        this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
+        this.inputBoxStub.withArgs('optional: What function do you want to call on instantiate?').resolves(transaction);
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves(args);
 
         this.showYesNoQuickPick.resolves(UserInputUtil.NO);
@@ -331,7 +331,7 @@ export class IntegrationTestUtil {
             data: { name: name, channel: 'mychannel', version: '0.0.1' }
         });
 
-        this.inputBoxStub.withArgs('optional: What function do you want to call?').resolves('');
+        this.inputBoxStub.withArgs('optional: What function do you want to call on upgrade?').resolves('');
         this.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves('');
 
         this.showYesNoQuickPick.resolves(UserInputUtil.NO);
