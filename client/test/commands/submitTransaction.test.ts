@@ -36,6 +36,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
+import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
 
 chai.use(sinonChai);
 chai.should();
@@ -223,10 +224,15 @@ describe('SubmitTransactionCommand', () => {
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
 
-            const instantiatedChainCodes: Array<InstantiatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
-            instantiatedChainCodes.length.should.equal(1);
+            const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
+            instantiatedUnknownChainCodes.length.should.equal(1);
 
-            const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChainCodes[0]) as Array<TransactionTreeItem>;
+            await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+
+            const instantiatedContractTreeItems: Array<InstantiatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
+            instantiatedContractTreeItems.length.should.equal(1);
+
+            const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedContractTreeItems[0]) as Array<TransactionTreeItem>;
             transactions.length.should.equal(3);
 
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION, transactions[0]);
@@ -244,6 +250,11 @@ describe('SubmitTransactionCommand', () => {
             const myChannel: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
 
             const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(myChannel) as Array<BlockchainTreeItem>;
+
+            const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
+            instantiatedUnknownChainCodes.length.should.equal(1);
+
+            await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 
             const instantiatedChainCodes: Array<InstantiatedChaincodeTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedChaincodeTreeItem>;
             instantiatedChainCodes.length.should.equal(1);
