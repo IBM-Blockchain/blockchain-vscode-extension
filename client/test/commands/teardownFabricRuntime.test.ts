@@ -91,7 +91,7 @@ describe('teardownFabricRuntime', () => {
         mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
     });
@@ -110,7 +110,7 @@ describe('teardownFabricRuntime', () => {
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
 
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
     });
@@ -132,7 +132,7 @@ describe('teardownFabricRuntime', () => {
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
      });
@@ -147,7 +147,7 @@ describe('teardownFabricRuntime', () => {
         mockRuntime.deleteWalletsAndIdentities.should.not.have.been.called;
 
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
     });
@@ -174,7 +174,7 @@ describe('teardownFabricRuntime', () => {
         mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
@@ -190,7 +190,7 @@ describe('teardownFabricRuntime', () => {
             mockRuntime.deleteWalletsAndIdentities.should.have.been.calledOnce;
             executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'teardownFabricRuntime');
     });

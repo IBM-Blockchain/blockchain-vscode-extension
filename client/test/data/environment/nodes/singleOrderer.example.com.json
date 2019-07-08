@@ -1,0 +1,10 @@
+{
+    "short_name": "singleOrderer.example.com",
+    "name": "singleOrderer.example.com",
+    "api_url": "grpc://localhost:17050",
+    "type": "fabric-orderer",
+    "wallet": "local_fabric_wallet",
+    "identity": "admin",
+    "msp_id": "OrdererMSP",
+    "container_name": "yofn_single_orderer.example.com"
+}

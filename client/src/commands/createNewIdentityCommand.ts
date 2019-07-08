@@ -60,7 +60,7 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         const wallet: IFabricWallet = await connection.getWallet(certificateAuthorityName);
         const identityExists: boolean = await wallet.exists(identityName);
         if (identityExists) {
-            outputAdapter.log(LogType.ERROR, `An identity called ${identityName} already exists in the runtime wallet`, `An identity called ${identityName} already exists in the runtime wallet`);
+            outputAdapter.log(LogType.ERROR, `An identity called ${identityName} already exists`);
             return;
         }
 

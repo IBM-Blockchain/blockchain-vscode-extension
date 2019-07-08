@@ -46,6 +46,7 @@ import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentMana
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
 
 chai.use(sinonChai);
 chai.should();
@@ -83,12 +84,26 @@ describe('runtimeOpsExplorer', () => {
                 mySandBox.restore();
             });
 
-            it('should display a stopped runtime tree item', async () => {
+            it('should display all environments', async () => {
+                const registryEntryOne: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntryOne.name = 'myFabric';
+                registryEntryOne.managedRuntime = false;
+
+                const registryEntryTwo: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntryTwo.name = 'myFabric2';
+                registryEntryTwo.managedRuntime = false;
+
+                mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntryOne, registryEntryTwo]);
                 const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
-                allChildren.length.should.equal(1);
+                allChildren.length.should.equal(3);
                 allChildren[0].label.should.equal('Local Fabric  ○ (click to start)');
+                allChildren[0].tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
+                allChildren[1].label.should.equal('myFabric');
+                allChildren[1].tooltip.should.equal('myFabric');
+                allChildren[2].label.should.equal('myFabric2');
+                allChildren[2].tooltip.should.equal('myFabric2');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
             });
@@ -519,6 +534,12 @@ describe('runtimeOpsExplorer', () => {
         beforeEach(async () => {
 
             await ExtensionUtil.activateExtension();
+
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            registryEntry.managedRuntime = true;
+            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(registryEntry);
         });
 
         afterEach(() => {
@@ -531,7 +552,7 @@ describe('runtimeOpsExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
 
             onDidChangeTreeDataSpy.should.have.been.called;
         });
@@ -544,7 +565,7 @@ describe('runtimeOpsExplorer', () => {
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS, mockTreeItem);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, mockTreeItem);
 
             onDidChangeTreeDataSpy.should.have.been.calledOnceWithExactly(mockTreeItem);
         });

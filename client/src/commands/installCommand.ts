@@ -24,6 +24,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchain
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { Reporter } from '../util/Reporter';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 
 export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNames?: Set<string>, chosenPackage?: PackageRegistryEntry): Promise<PackageRegistryEntry | undefined> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -76,7 +77,11 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             title: 'IBM Blockchain Platform Extension',
             cancellable: false
         }, async (progress: vscode.Progress<{ message: string }>) => {
-            VSCodeBlockchainDockerOutputAdapter.instance().show();
+
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (environmentRegistryEntry.managedRuntime) {
+                VSCodeBlockchainDockerOutputAdapter.instance().show();
+            }
 
             for (const peer of peerNames) {
                 progress.report({ message: `Installing Smart Contract on peer ${peer}` });
@@ -90,7 +95,7 @@ export async function installSmartContract(treeItem?: BlockchainTreeItem, peerNa
             }
 
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         });
 
         if (successfulInstall) {

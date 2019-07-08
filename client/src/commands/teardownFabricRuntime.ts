@@ -61,7 +61,7 @@ export async function teardownFabricRuntime(force: boolean = false): Promise<voi
         }
     });
 
-    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
 }

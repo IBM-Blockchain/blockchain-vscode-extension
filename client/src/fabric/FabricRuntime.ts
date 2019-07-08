@@ -222,6 +222,37 @@ export class FabricRuntime extends FabricEnvironment {
         return gateways;
     }
 
+    public async getWalletNames(): Promise<string[]> {
+        const walletsPath: string = path.resolve(this.path, 'wallets');
+        const walletsExist: boolean = await fs.pathExists(walletsPath);
+        if (!walletsExist) {
+            return [];
+        }
+        const walletPaths: string[] = await fs.readdir(walletsPath);
+        return walletPaths
+            .sort()
+            .filter((walletPath: string) => !walletPath.startsWith('.'));
+    }
+
+    public async getIdentities(walletName: string): Promise<FabricIdentity[]> {
+        const walletPath: string = path.resolve(this.path, 'wallets', walletName);
+        const walletExists: boolean = await fs.pathExists(walletPath);
+        if (!walletExists) {
+            return [];
+        }
+        let identityPaths: string[] = await fs.readdir(walletPath);
+        identityPaths = identityPaths
+            .sort()
+            .filter((identityPath: string) => !identityPath.startsWith('.'))
+            .map((identityPath: string) => path.resolve(this.path, 'wallets', walletName, identityPath));
+        const identities: FabricIdentity[] = [];
+        for (const identityPath of identityPaths) {
+            const identity: FabricIdentity = await fs.readJson(identityPath);
+            identities.push(identity);
+        }
+        return identities;
+    }
+
     public async isCreated(): Promise<boolean> {
         return await fs.pathExists(this.path);
     }

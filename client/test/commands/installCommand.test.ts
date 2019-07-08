@@ -66,6 +66,7 @@ describe('InstallCommand', () => {
         let installCommandTreeItem: InstallCommandTreeItem;
         let smartContractsChildren: BlockchainTreeItem[];
         let peerTreeItem: PeerTreeItem;
+        let environmentRegistryStub: sinon.SinonStub;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -87,7 +88,7 @@ describe('InstallCommand', () => {
             environmentRegistryEntry.managedRuntime = true;
             environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
-            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
+            environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 
             showPeersQuickPickStub = mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox').resolves(['peerOne']);
 
@@ -200,6 +201,20 @@ describe('InstallCommand', () => {
             fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
 
             dockerLogsOutputSpy.should.have.been.called;
+            logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
+        });
+
+        it('should not show docker logs if not managed runtime', async () => {
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.managedRuntime = false;
+            environmentRegistryStub.returns(registryEntry);
+            const result: PackageRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT) as PackageRegistryEntry;
+            result.name.should.equal('vscode-pkg-1@0.0.1');
+            fabricRuntimeMock.installChaincode.should.have.been.calledWith(packageRegistryEntry, 'peerOne');
+
+            dockerLogsOutputSpy.should.not.have.been.called;
+            logOutputSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'installSmartContract');
             logOutputSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully installed on peer peerOne');
         });
 

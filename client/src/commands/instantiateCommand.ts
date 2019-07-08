@@ -24,6 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 
 export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
 
@@ -172,7 +173,10 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
 
             progress.report({ message: 'Instantiating Smart Contract' });
 
-            VSCodeBlockchainDockerOutputAdapter.instance().show();
+            const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (fabricEnvironmentRegistryEntry.managedRuntime) {
+                VSCodeBlockchainDockerOutputAdapter.instance().show();
+            }
 
             await connection.instantiateChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath);
 
@@ -180,7 +184,7 @@ export async function instantiateSmartContract(treeItem?: BlockchainTreeItem, ch
 
             outputAdapter.log(LogType.SUCCESS, 'Successfully instantiated smart contract');
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error instantiating smart contract: ${error.message}`, `Error instantiating smart contract: ${error.toString()}`);

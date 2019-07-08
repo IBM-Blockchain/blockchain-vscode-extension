@@ -14,7 +14,6 @@
 
 'use strict';
 
-import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter, LogType } from '../logging/OutputAdapter';
 import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
 import * as Client from 'fabric-client';
@@ -27,28 +26,29 @@ import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { URL } from 'url';
+import { FabricEnvironment } from './FabricEnvironment';
 
 export class FabricEnvironmentConnection implements IFabricEnvironmentConnection {
 
     private outputAdapter: OutputAdapter;
-    private runtime: FabricRuntime;
+    private environment: FabricEnvironment;
     private nodes: Map<string, FabricNode> = new Map<string, FabricNode>();
     private client: Client;
     private peers: Map<string, Client.Peer> = new Map<string, Client.Peer>();
     private orderers: Map<string, Client.Orderer> = new Map<string, Client.Orderer>();
     private certificateAuthorities: Map<string, FabricCAServices> = new Map<string, FabricCAServices>();
 
-    constructor(runtime: FabricRuntime, outputAdapter?: OutputAdapter) {
+    constructor(environment: FabricEnvironment, outputAdapter?: OutputAdapter) {
         if (!outputAdapter) {
             this.outputAdapter = ConsoleOutputAdapter.instance();
         } else {
             this.outputAdapter = outputAdapter;
         }
-        this.runtime = runtime;
+        this.environment = environment;
     }
 
     public async connect(): Promise<void> {
-        const nodes: FabricNode[] = await this.runtime.getNodes();
+        const nodes: FabricNode[] = await this.environment.getNodes();
         this.client = new Client();
         this.client.setCryptoSuite(Client.newCryptoSuite());
         for (const node of nodes) {

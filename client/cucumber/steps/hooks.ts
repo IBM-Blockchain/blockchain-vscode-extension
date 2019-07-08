@@ -30,6 +30,7 @@ import { SmartContractHelper } from '../helpers/smartContractHelper';
 import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
 import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
 import { GatewayHelper } from '../helpers/gatewayHelper';
+import { EnvironmentHelper } from '../helpers/environmentHelper';
 
 // tslint:disable:no-unused-expression
 
@@ -56,6 +57,7 @@ module.exports = function(): any {
                 this.generatedTestsHelper = new GeneratedTestsHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
                 this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
+                this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
 
                 // If we don't teardown the existing Fabric, we're told that the package is already installed
                 this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);

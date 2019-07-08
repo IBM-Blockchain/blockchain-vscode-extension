@@ -18,9 +18,10 @@ import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import * as vscode from 'vscode';
 
-export abstract class FabricEnvironmentTreeItem extends BlockchainTreeItem {
+export class FabricEnvironmentTreeItem extends BlockchainTreeItem {
 
-    constructor(provider: BlockchainExplorerProvider, label: string) {
+    constructor(provider: BlockchainExplorerProvider, label: string, command: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
+        this.command = command;
     }
 }

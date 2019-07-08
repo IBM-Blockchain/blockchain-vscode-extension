@@ -1,0 +1,11 @@
+{
+    "short_name": "ca.example.com",
+    "name": "ca.example.com",
+    "api_url": "http://localhost:7054",
+    "type": "fabric-ca",
+    "ca_name": "ca.example.com",
+    "wallet": "myWallet",
+    "identity": "conga",
+    "msp_id": "Org1MSP",
+    "container_name": "ca.example.com"
+}
