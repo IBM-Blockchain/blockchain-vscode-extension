@@ -80,7 +80,7 @@ describe('stopFabricRuntime', () => {
     it('should stop a Fabric runtime and refresh the view', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
@@ -92,7 +92,7 @@ describe('stopFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 
@@ -105,7 +105,7 @@ describe('stopFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'stopFabricRuntime');
     });
 

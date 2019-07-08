@@ -67,9 +67,9 @@ async function runCucumberTest(): Promise<any> {
         if (file === 'create.feature') {
             features[0] = feature;
         } else if (file === 'package.feature') {
-            features[1] = feature;
+         features[1] = feature;
         } else if (file === 'install.feature') {
-            features[2] = feature;
+          features[2] = feature;
         } else if (file === 'instantiate.feature') {
             features[3] = feature;
         } else if (file === 'upgrade.feature') {
@@ -78,6 +78,10 @@ async function runCucumberTest(): Promise<any> {
             features[5] = feature;
         } else if (file === 'evaluate.feature') {
             features[6] = feature;
+        } else if (file === 'wallet.feature') {
+            features[6] = feature;
+        } else if (file === 'fabric-environments.feature') {
+            features[7] = feature;
         } else {
             otherFeatures.push(feature);
         }

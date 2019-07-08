@@ -222,6 +222,22 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('addMoreNodes', () => {
+        it('should show add more nodes quick pick', async () => {
+            quickPickStub.resolves(UserInputUtil.ADD_MORE_NODES);
+
+            const result: string = await UserInputUtil.addMoreNodes('do you want to add more nodes?');
+
+            result.should.equal(UserInputUtil.ADD_MORE_NODES);
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_MORE_NODES, UserInputUtil.DONE_ADDING_NODES], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'do you want to add more nodes?'
+            });
+        });
+    });
+
     describe('showGatewayQuickPickBox', () => {
         it('should show connections in the quickpick box', async () => {
             quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
@@ -1004,6 +1020,32 @@ describe('UserInputUtil', () => {
             });
 
             result.should.deep.equal({ fsPath: '/some/path' });
+        });
+
+        it('should return a uri and all selected if select many is set', async () => {
+            quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }, { fsPath: '/some/otherPath'}]);
+            const placeHolder: string = 'Select all files to import';
+            const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
+            const openDialogOptions: vscode.OpenDialogOptions = {
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: true,
+                openLabel: 'Select',
+                filters: undefined
+            };
+            const result: string = await UserInputUtil.browse(placeHolder, quickPickItems, openDialogOptions, true) as string;
+
+            quickPickStub.should.have.been.calledWith([UserInputUtil.BROWSE_LABEL], { placeHolder });
+            showOpenDialogStub.should.have.been.calledWith({
+                canSelectFiles: true,
+                canSelectFolders: false,
+                canSelectMany: true,
+                openLabel: 'Select',
+                filters: undefined
+            });
+
+            result.should.deep.equal([{ fsPath: '/some/path' }, { fsPath: '/some/otherPath' }]);
         });
     });
 

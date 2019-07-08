@@ -39,7 +39,7 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     private busyTicks: number = 0;
 
     private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: any, public readonly command?: vscode.Command) {
-        super(provider, label);
+        super(provider, label, command);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         this.name = label;
         this.runtime = runtimeManager.getRuntime();

@@ -25,6 +25,8 @@ import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { PackageRegistry } from '../packages/PackageRegistry';
 
@@ -210,13 +212,18 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
 
             progress.report({ message: 'Upgrading Smart Contract' });
 
+            const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (fabricEnvironmentRegistryEntry.managedRuntime) {
+                VSCodeBlockchainDockerOutputAdapter.instance().show();
+            }
+
             await connection.upgradeChaincode(smartContractName, smartContractVersion, peerNames, channelName, fcn, args, collectionPath);
 
             Reporter.instance().sendTelemetryEvent('upgradeCommand');
 
             outputAdapter.log(LogType.SUCCESS, `Successfully upgraded smart contract`);
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
         });
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error upgrading smart contract: ${error.message}`);

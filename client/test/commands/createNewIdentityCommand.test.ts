@@ -301,7 +301,7 @@ describe('createNewIdentityCommand', () => {
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists in the runtime wallet`, `An identity called ${identityName} already exists in the runtime wallet`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `An identity called ${identityName} already exists`);
         sendTelemetryEventStub.should.not.have.been.called;
     });
 

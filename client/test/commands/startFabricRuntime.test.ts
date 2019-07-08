@@ -82,7 +82,7 @@ describe('startFabricRuntime', () => {
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
         mockRuntime.generate.should.not.have.been.called;
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
@@ -94,7 +94,7 @@ describe('startFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockRuntime.generate.should.not.have.been.called;
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
@@ -106,7 +106,7 @@ describe('startFabricRuntime', () => {
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
         mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
@@ -118,7 +118,7 @@ describe('startFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
@@ -132,7 +132,7 @@ describe('startFabricRuntime', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_LOCAL_OPS);
+        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;

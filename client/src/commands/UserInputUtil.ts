@@ -73,6 +73,9 @@ export class UserInputUtil {
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
     static readonly ADD_JSON_ID_OPTION: string = 'Provide a JSON identity file';
 
+    static readonly ADD_MORE_NODES: string = 'Add more (json) node definitions';
+    static readonly DONE_ADDING_NODES: string = 'Done adding nodes';
+
     public static async showFabricEnvironmentQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
@@ -140,6 +143,17 @@ export class UserInputUtil {
         };
 
         return vscode.window.showInputBox(inputBoxOptions);
+    }
+
+    public static async addMoreNodes(prompt: string): Promise<string> {
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        const quickPickItems: string[] = [UserInputUtil.ADD_MORE_NODES, UserInputUtil.DONE_ADDING_NODES];
+        return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
     public static async showWorkspaceQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<vscode.WorkspaceFolder> | undefined> {
@@ -723,7 +737,7 @@ export class UserInputUtil {
 
     }
 
-    public static async browse(placeHolder: string, quickPickItems: string[] | { label: string, description: string }[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri> {
+    public static async browse(placeHolder: string, quickPickItems: string[] | { label: string, description: string }[], openDialogOptions: vscode.OpenDialogOptions, returnUri?: boolean): Promise<string | vscode.Uri | vscode.Uri[]> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         try {
@@ -743,7 +757,11 @@ export class UserInputUtil {
                 }
 
                 if (returnUri) {
-                    return fileBrowser[0];
+                    if (openDialogOptions.canSelectMany) {
+                        return fileBrowser;
+                    } else {
+                        return fileBrowser[0];
+                    }
                 } else {
                     return fileBrowser[0].fsPath;
                 }

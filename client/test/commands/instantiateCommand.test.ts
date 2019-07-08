@@ -66,6 +66,7 @@ describe('InstantiateCommand', () => {
         let showYesNo: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let environmentConnectionStub: sinon.SinonStub;
+        let environmentRegistryStub: sinon.SinonStub;
 
         beforeEach(async () => {
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
@@ -85,7 +86,7 @@ describe('InstantiateCommand', () => {
             environmentRegistryEntry.managedRuntime = true;
             environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
-            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
+            environmentRegistryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
                 label: 'myChannel',
@@ -205,6 +206,21 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], 'myPath');
 
             dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should not show docker logs if not managed runtime', async () => {
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.managedRuntime = false;
+            environmentRegistryStub.returns(registryEntry);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('myContract', '0.0.1', ['peerOne'], 'myChannel', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+
+            dockerLogsOutputSpy.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
