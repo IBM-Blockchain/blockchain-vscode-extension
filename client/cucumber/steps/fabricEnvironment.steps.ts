@@ -22,7 +22,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 
 // tslint:disable:no-unused-expression
 
