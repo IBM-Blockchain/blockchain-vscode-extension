@@ -55,7 +55,12 @@ describe('packageSmartContract', () => {
             }
             projectDir = path.join(testWorkspace, 'src', packageName);
         } else {
-            projectDir = path.join(testWorkspace, packageName);
+            const replaceRegex: RegExp = /@.*?\//;
+            if (replaceRegex.test(packageName)) {
+                projectDir = path.join(testWorkspace, packageName.replace(replaceRegex, ''));
+            } else {
+                projectDir = path.join(testWorkspace, packageName);
+            }
         }
 
         try {
@@ -252,6 +257,37 @@ describe('packageSmartContract', () => {
 
         it('should package the JavaScript project', async () => {
             await createTestFiles('javascriptProject', '0.0.1', 'javascript', true, false);
+            const testIndex: number = 0;
+
+            workspaceFoldersStub.returns(folders);
+            showWorkspaceQuickPickStub.onFirstCall().resolves({
+                label: folders[testIndex].name,
+                data: folders[testIndex]
+            });
+
+            await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+
+            const pkgFile: string = path.join(fileDest, folders[testIndex].name + '@0.0.1.cds');
+            const pkgBuffer: Buffer = await fs.readFile(pkgFile);
+            const pkg: Package = await Package.fromBuffer(pkgBuffer);
+            pkg.getName().should.equal('javascriptProject');
+            pkg.getVersion().should.equal('0.0.1');
+            pkg.getType().should.equal('node');
+            pkg.getFileNames().should.deep.equal([
+                'src/chaincode.js',
+                'src/package.json'
+            ]);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Smart Contract packaged: ${pkgFile}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, `2 file(s) packaged:`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, `- src/chaincode.js`);
+            logSpy.getCall(4).should.have.been.calledWith(LogType.INFO, undefined, `- src/package.json`);
+            executeTaskStub.should.have.not.been.called;
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('packageCommand');
+        });
+
+        it('should package the project with an npm package name', async () => {
+            await createTestFiles('@removeThis/javascriptProject', '0.0.1', 'javascript', true, false);
             const testIndex: number = 0;
 
             workspaceFoldersStub.returns(folders);

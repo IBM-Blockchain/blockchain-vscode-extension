@@ -78,6 +78,8 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         }
 
         const regex: RegExp = /^[a-zA-Z0-9-_]+$/;
+        const replaceRegex: RegExp = /@.*?\//;
+        properties.workspacePackageName = properties.workspacePackageName.replace(replaceRegex, '');
         const validPackageName: boolean = regex.test(properties.workspacePackageName); // Check contract meets Fabric naming requirement
         if (!validPackageName) {
             outputAdapter.log(LogType.ERROR, `Invalid ${packageError}. Name can only include alphanumeric, "_" and "-" characters.`);
