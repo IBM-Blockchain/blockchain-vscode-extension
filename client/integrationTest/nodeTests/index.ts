@@ -13,11 +13,33 @@
 */
 
 // tslint:disable no-var-requires
-const nodeTestRunner: any = require('vscode/lib/testrunner');
+// tslint:disable typedef
+import * as path from 'path';
+import * as Mocha from 'mocha';
+import * as glob from 'glob';
 
-nodeTestRunner.configure({
-    ui: 'bdd',
-    useColors: true
-});
+export async function run(testsRoot: string, clb: (error: any, failures?: number) => void): Promise<void> {
+    // Create the mocha test
+    const mocha = new Mocha({
+        ui: 'bdd'
+    });
+    mocha.useColors(true);
 
-module.exports = nodeTestRunner;
+    glob('**/**.test.js', {cwd: testsRoot}, (err, files) => {
+        if (err) {
+            return clb(err);
+        }
+
+        // Add files to the test suite
+        files.forEach((f) => mocha.addFile(path.resolve(testsRoot, f)));
+
+        try {
+            // Run the mocha test
+            mocha.run((failures) => {
+                clb(null, failures);
+            });
+        } catch (err) {
+            clb(err);
+        }
+    });
+}
