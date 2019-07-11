@@ -1,5 +1,24 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.5: July 11th 2019
+
+* gRPC fix [#1124](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1124)
+* Removed scope from package name [#1117](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1117)
+
+
+## 1.0.4: July 4th 2019
+
+* Updated Go and Java debugging instructions [#1028](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1028)
+* Updated invalid certificate error handling [#1015](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1015)
+* Add identities to wallet by providing JSON file from IBM Blockchain Platform console  [#926](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/926)
+* Updated Fabric dependencies  [#1081](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1081)
+* Removed providing a MSPID for Local Fabric Wallet  [#965](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/965)
+* Updated to store wallets and gateways in different directories  [#1016](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1016)
+* Updated to use latest version of VS Code  [#1120](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/1120)
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-54.png)
+
 ## 1.0.3: June 19th 2019
 
 * Tidied wallet user settings [#970](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/970)
