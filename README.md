@@ -16,7 +16,7 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
-- [VS Code version 1.32 or greater](https://code.visualstudio.com)
+- [VS Code version 1.36.0 or greater](https://code.visualstudio.com)
 - [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
