@@ -30,7 +30,7 @@ import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -107,6 +107,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         // Populate the tree with the identity names
+        const walletName: string = walletTreeItem.name;
 
         const walletPath: string = walletTreeItem.registryEntry.walletPath;
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();

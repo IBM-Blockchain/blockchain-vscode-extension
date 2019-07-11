@@ -23,7 +23,7 @@ import * as vscode from 'vscode';
 import { Reporter } from './util/Reporter';
 import { BlockchainGatewayExplorerProvider } from './explorer/gatewayExplorer';
 import { BlockchainPackageExplorerProvider } from './explorer/packageExplorer';
-import { BlockchainEnvironmentExplorerProvider } from './explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from './explorer/environmentExplorer';
 import { addGateway } from './commands/addGatewayCommand';
 import { deleteGateway } from './commands/deleteGatewayCommand';
 import { addWalletIdentity } from './commands/addWalletIdentityCommand';
@@ -260,7 +260,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('gatewaysExplorer', blockchainGatewayExplorerProvider));
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('aRuntimeOpsExplorer', blockchainEnvironmentExplorerProvider));
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('environmentExplorer', blockchainEnvironmentExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
     context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_GATEWAYS, (element: BlockchainTreeItem) => blockchainGatewayExplorerProvider.refresh(element)));

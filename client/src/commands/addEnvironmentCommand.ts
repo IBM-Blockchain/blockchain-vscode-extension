@@ -84,7 +84,7 @@ export async function addEnvironment(): Promise<{} | void> {
         for (const nodeUri of nodeUris) {
             try {
                 const destPath: string = path.join(environmentPath, path.basename(nodeUri.fsPath));
-                await fs.copyFile(nodeUri.fsPath, destPath);
+                await fs.copy(nodeUri.fsPath, destPath);
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
             }

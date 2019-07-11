@@ -22,7 +22,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 chai.should();
 

@@ -20,7 +20,7 @@ import * as sinonChai from 'sinon-chai';
 
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -52,7 +52,7 @@ chai.use(sinonChai);
 chai.should();
 
 // tslint:disable no-unused-expression
-describe('runtimeOpsExplorer', () => {
+describe('environmentExplorer', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     before(async () => {
         await TestUtil.storeGatewaysConfig();

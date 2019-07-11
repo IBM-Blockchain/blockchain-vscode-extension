@@ -61,7 +61,7 @@ describe('AddEnvironmentCommand', () => {
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             addMoreStub = mySandBox.stub(UserInputUtil, 'addMoreNodes').resolves(UserInputUtil.DONE_ADDING_NODES);
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
-            copyFileStub = mySandBox.stub(fs, 'copyFile').resolves();
+            copyFileStub = mySandBox.stub(fs, 'copy').resolves();
 
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');

@@ -26,6 +26,7 @@ import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { URL } from 'url';
+import { Attribute } from './FabricCertificate';
 import { FabricEnvironment } from './FabricEnvironment';
 import { Attribute } from './FabricCertificate';
 

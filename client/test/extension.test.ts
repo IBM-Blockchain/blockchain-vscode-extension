@@ -96,12 +96,12 @@ describe('Extension Tests', () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
         const commands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer');
+            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('environmentExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer');
         });
 
         commands.should.deep.equal([
             'aPackagesExplorer.focus',
-            'aRuntimeOpsExplorer.focus',
+            'environmentExplorer.focus',
             'gatewaysExplorer.focus',
             'walletExplorer.focus',
             ExtensionCommands.REFRESH_GATEWAYS,
@@ -153,7 +153,7 @@ describe('Extension Tests', () => {
 
         activationEvents.should.deep.equal([
             `onView:gatewayExplorer`,
-            `onView:aRuntimeOpsExplorer`,
+            `onView:environmentExplorer`,
             `onView:aPackagesExplorer`,
             `onView:walletExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,

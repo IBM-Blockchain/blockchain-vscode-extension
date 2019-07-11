@@ -23,7 +23,7 @@ import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentC
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import * as myExtension from '../../src/extension';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
@@ -146,7 +146,7 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Successfully created identity '${identityName}'`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
@@ -170,7 +170,7 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, message);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Successfully created identity '${identityName}'`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
@@ -336,7 +336,7 @@ describe('createNewIdentityCommand', () => {
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'blueConga', 'it\'s a secret');
         importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'blueConga', 'Org1MSP');
 
-        executeCommandStub.getCall(3).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        executeCommandStub.getCall(2).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
