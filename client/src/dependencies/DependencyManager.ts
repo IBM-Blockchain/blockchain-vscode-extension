@@ -131,7 +131,7 @@ export class DependencyManager {
 
                 try {
                     const architecture: string = process.arch; // Returns the architecture Code is running on
-                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=4.2.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`], extensionPath, null, outputAdapter, shell);
+                    await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency.moduleName, '--target=4.1.5', '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {
                     outputAdapter.log(LogType.ERROR, `Could not rebuild native dependencies ${error.message}. Please ensure that you have node and npm installed`);
