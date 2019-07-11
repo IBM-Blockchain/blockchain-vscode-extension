@@ -23,7 +23,7 @@ import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentC
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import * as myExtension from '../../src/extension';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';

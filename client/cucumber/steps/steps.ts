@@ -19,7 +19,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as myExtension from '../../src/extension';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 
 // tslint:disable:no-unused-expression

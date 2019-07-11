@@ -23,21 +23,21 @@ export class ExtensionCommands {
     static readonly CREATE_SMART_CONTRACT_PROJECT: string = 'aPackagesExplorer.createSmartContractProjectEntry';
 
     // LOCAL OPS VIEW
-    static readonly ADD_ENVIRONMENT: string = 'aRuntimeOpsExplorer.addEnvironmentEntry';
-    static readonly CONNECT_TO_ENVIRONMENT: string = 'aRuntimeOpsExplorer.connectEntry';
-    static readonly DISCONNECT_ENVIRONMENT: string = 'aRuntimeOpsExplorer.disconnectEntry';
-    static readonly INSTALL_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.installSmartContractEntry';
-    static readonly INSTANTIATE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.instantiateSmartContractEntry';
-    static readonly OPEN_NEW_TERMINAL: string = 'aRuntimeOpsExplorer.openNewTerminal';
-    static readonly REFRESH_ENVIRONMENTS: string = 'aRuntimeOpsExplorer.refreshEntry';
-    static readonly RESTART_FABRIC: string = 'aRuntimeOpsExplorer.restartFabricRuntime';
-    static readonly START_FABRIC: string = 'aRuntimeOpsExplorer.startFabricRuntime';
-    static readonly STOP_FABRIC: string = 'aRuntimeOpsExplorer.stopFabricRuntime';
-    static readonly TEARDOWN_FABRIC: string = 'aRuntimeOpsExplorer.teardownFabricRuntime';
-    static readonly TOGGLE_FABRIC_DEV_MODE: string = 'aRuntimeOpsExplorer.toggleFabricRuntimeDevMode';
-    static readonly UPGRADE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.upgradeSmartContractEntry';
-    static readonly CREATE_NEW_IDENTITY: string = 'aRuntimeOpsExplorer.createNewIdentityEntry';
-    static readonly EXPORT_CONNECTION_PROFILE: string = 'aRuntimeOpsExplorer.exportConnectionProfileEntry';
+    static readonly ADD_ENVIRONMENT: string = 'environmentExplorer.addEnvironmentEntry';
+    static readonly CONNECT_TO_ENVIRONMENT: string = 'environmentExplorer.connectEntry';
+    static readonly DISCONNECT_ENVIRONMENT: string = 'environmentExplorer.disconnectEntry';
+    static readonly INSTALL_SMART_CONTRACT: string = 'environmentExplorer.installSmartContractEntry';
+    static readonly INSTANTIATE_SMART_CONTRACT: string = 'environmentExplorer.instantiateSmartContractEntry';
+    static readonly OPEN_NEW_TERMINAL: string = 'environmentExplorer.openNewTerminal';
+    static readonly REFRESH_ENVIRONMENTS: string = 'environmentExplorer.refreshEntry';
+    static readonly RESTART_FABRIC: string = 'environmentExplorer.restartFabricRuntime';
+    static readonly START_FABRIC: string = 'environmentExplorer.startFabricRuntime';
+    static readonly STOP_FABRIC: string = 'environmentExplorer.stopFabricRuntime';
+    static readonly TEARDOWN_FABRIC: string = 'environmentExplorer.teardownFabricRuntime';
+    static readonly TOGGLE_FABRIC_DEV_MODE: string = 'environmentExplorer.toggleFabricRuntimeDevMode';
+    static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
+    static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
+    static readonly EXPORT_CONNECTION_PROFILE: string = 'environmentExplorer.exportConnectionProfileEntry';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
