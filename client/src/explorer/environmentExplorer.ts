@@ -15,36 +15,38 @@
 // tslint:disable max-classes-per-file
 'use strict';
 import * as vscode from 'vscode';
-import { PeerTreeItem } from './runtimeOps/PeerTreeItem';
+import { PeerTreeItem } from './runtimeOps/connectedTree/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
-import { RuntimeTreeItem } from './runtimeOps/RuntimeTreeItem';
+import { RuntimeTreeItem } from './runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
-import { SmartContractsTreeItem } from './runtimeOps/SmartContractsTreeItem';
-import { ChannelsOpsTreeItem } from './runtimeOps/ChannelsOpsTreeItem';
-import { NodesTreeItem } from './runtimeOps/NodesTreeItem';
-import { OrganizationsTreeItem } from './runtimeOps/OrganizationsTreeItem';
-import { InstalledTreeItem } from './runtimeOps/InstalledTreeItem';
-import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
-import { InstalledChainCodeOpsTreeItem } from './runtimeOps/InstalledChainCodeOpsTreeItem';
-import { InstantiateCommandTreeItem } from './runtimeOps/InstantiateCommandTreeItem';
-import { InstallCommandTreeItem } from './runtimeOps/InstallCommandTreeItem';
-import { OrgTreeItem } from './runtimeOps/OrgTreeItem';
+import { SmartContractsTreeItem } from './runtimeOps/connectedTree/SmartContractsTreeItem';
+import { ChannelsOpsTreeItem } from './runtimeOps/connectedTree/ChannelsOpsTreeItem';
+import { NodesTreeItem } from './runtimeOps/connectedTree/NodesTreeItem';
+import { OrganizationsTreeItem } from './runtimeOps/connectedTree/OrganizationsTreeItem';
+import { InstalledTreeItem } from './runtimeOps/connectedTree/InstalledTreeItem';
+import { InstantiatedTreeItem } from './runtimeOps/connectedTree/InstantiatedTreeItem';
+import { InstalledChainCodeOpsTreeItem } from './runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
+import { InstantiateCommandTreeItem } from './runtimeOps/connectedTree/InstantiateCommandTreeItem';
+import { InstallCommandTreeItem } from './runtimeOps/connectedTree/InstallCommandTreeItem';
+import { OrgTreeItem } from './runtimeOps/connectedTree/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
-import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
+import { CertificateAuthorityTreeItem } from './runtimeOps/connectedTree/CertificateAuthorityTreeItem';
+import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricNode } from '../fabric/FabricNode';
+import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
-import { FabricEnvironmentTreeItem } from './runtimeOps/FabricEnvironmentTreeItem';
+import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
+import { FabricEnvironment } from '../fabric/FabricEnvironment';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -53,6 +55,8 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
     // tslint:disable-next-line member-ordering
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
+
+    private fabricEnvironmentToSetUp: FabricEnvironmentTreeItem;
 
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
@@ -68,6 +72,11 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     }
 
     async refresh(element?: BlockchainTreeItem): Promise<void> {
+        if (element && element instanceof FabricEnvironmentTreeItem && !(element instanceof RuntimeTreeItem)) {
+            this.fabricEnvironmentToSetUp = element;
+            // need to do this or won't call get children
+            element = undefined;
+        }
         this._onDidChangeTreeData.fire(element);
     }
 
@@ -109,22 +118,72 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             }
 
             return this.tree;
-        }
-
-        if (FabricEnvironmentManager.instance().getConnection()) {
+        } else if (this.fabricEnvironmentToSetUp) {
+            // need to do identity setup
+            // set back to empty so next time won't go in here
+            const tempTreeItem: FabricEnvironmentTreeItem = this.fabricEnvironmentToSetUp;
+            this.fabricEnvironmentToSetUp = undefined;
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', true);
+            this.tree = await this.setupIdentities(tempTreeItem as FabricEnvironmentTreeItem);
+            return this.tree;
+        } else if (FabricEnvironmentManager.instance().getConnection()) {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
             } else {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             }
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             this.tree = await this.createConnectedTree();
         } else {
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             this.tree = await this.createConnectionTree();
         }
 
         return this.tree;
+    }
+
+    private async setupIdentities(environmentTreeItem: FabricEnvironmentTreeItem): Promise<BlockchainTreeItem[]> {
+        const tree: BlockchainTreeItem[] = [];
+
+        const environment: FabricEnvironment = new FabricEnvironment(environmentTreeItem.label);
+
+        const nodes: FabricNode[] = await environment.getNodes(true);
+
+        if (nodes.length === 0) {
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
+            await vscode.commands.executeCommand(environmentTreeItem.command.command, ...environmentTreeItem.command.arguments);
+            return tree;
+        }
+
+        tree.push(new SetupTreeItem(this, `Setting up: ${environmentTreeItem.label}`));
+        tree.push(new SetupTreeItem(this, ('(Click each node to perform setup)')));
+
+        for (const node of nodes) {
+            const command: vscode.Command = {
+                command: ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
+                title: '',
+                arguments: [environmentTreeItem.environmentRegistryEntry, node]
+            };
+
+            if (node.type === FabricNodeType.PEER) {
+                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, node.name, node, command);
+                tree.push(peerTreeItem);
+            }
+
+            if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
+                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, node.name, node, command);
+                tree.push(certificateAuthorityTreeItem);
+            }
+
+            if (node.type === FabricNodeType.ORDERER) {
+                const ordererTreeItem: OrdererTreeItem = new OrdererTreeItem(this, node.name, node, command);
+                tree.push(ordererTreeItem);
+            }
+        }
+
+        return tree;
     }
 
     private async createConnectionTree(): Promise<BlockchainTreeItem[]> {
@@ -223,8 +282,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
 
             for (const peerName of peerNames) {
                 const node: FabricNode = connection.getNode(peerName);
-                const chaincodes: Map<string, Array<string>> = null;
-                const peerTreeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(this, peerName, chaincodes, vscode.TreeItemCollapsibleState.None, node, true);
+                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, peerName, node);
                 tree.push(peerTreeItem);
             }
 

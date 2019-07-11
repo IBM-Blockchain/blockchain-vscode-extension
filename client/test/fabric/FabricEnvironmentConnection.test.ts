@@ -96,7 +96,9 @@ describe('FabricEnvironmentConnection', () => {
                 'ca_name',
                 FabricWalletUtil.LOCAL_WALLET,
                 FabricRuntimeUtil.ADMIN_USER,
-                'Org1MSP'
+                'Org1MSP',
+                'admin',
+                'adminpw'
             ),
             FabricNode.newSecureCertificateAuthority(
                 'ca2.example.com',
@@ -106,7 +108,9 @@ describe('FabricEnvironmentConnection', () => {
                 TLS_CA_CERTIFICATE,
                 FabricWalletUtil.LOCAL_WALLET,
                 FabricRuntimeUtil.ADMIN_USER,
-                'Org2MSP'
+                'Org2MSP',
+                'admin',
+                'adminpw'
             ),
             FabricNode.newCertificateAuthority(
                 'ca3.example.com',
@@ -115,7 +119,9 @@ describe('FabricEnvironmentConnection', () => {
                 null,
                 FabricWalletUtil.LOCAL_WALLET,
                 FabricRuntimeUtil.ADMIN_USER,
-                'Org1MSP'
+                'Org1MSP',
+                'admin',
+                'adminpw'
             ),
             FabricNode.newOrderer(
                 'orderer.example.com',

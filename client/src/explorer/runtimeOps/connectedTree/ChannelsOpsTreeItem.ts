@@ -12,21 +12,21 @@
  * limitations under the License.
 */
 'use strict';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import * as path from 'path';
 
-export class SmartContractsTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-runtime-smart-contracts-item';
+export class ChannelsOpsTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-channels-item';
 
     iconPath: {light: string, dark: string} = {
-        light: path.join(__filename, '..', '..', '..', '..', '..', 'resources', 'light', `smart-contract.svg`),
-        dark: path.join(__filename, '..', '..', '..',  '..', '..', 'resources', 'dark', `smart-contract.svg`)
+        light: path.join(__filename, '..', '..', '..', '..', '..', '..', 'resources', 'light', `channel.svg`),
+        dark: path.join(__filename, '..', '..', '..', '..',  '..', '..', 'resources', 'dark', `channel.svg`)
     };
 
     constructor(provider: BlockchainExplorerProvider, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
-        super(provider, 'Smart Contracts', collapsibleState);
+        super(provider, 'Channels', collapsibleState);
 
     }
 }

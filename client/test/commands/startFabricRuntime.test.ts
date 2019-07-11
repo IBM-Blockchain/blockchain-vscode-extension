@@ -21,7 +21,7 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
 import * as sinon from 'sinon';

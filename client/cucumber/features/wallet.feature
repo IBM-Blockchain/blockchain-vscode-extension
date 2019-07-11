@@ -14,7 +14,7 @@ Feature: Fabric Wallets
         And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
-        Then there should be a identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item local_fabric_wallet
+        Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item local_fabric_wallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'
 
     @otherFabric
@@ -63,3 +63,13 @@ Feature: Fabric Wallets
         When I create an identity using enrollId with identity name 'otherJason' and mspid 'Org1MSP' in wallet 'myWalletyWallet'
         Then there should be a identity tree item with a label 'otherJason' in the 'Fabric Wallets' panel for item myWalletyWallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
+
+    @otherFabric
+    Scenario: create an identity with attributes
+        Given an environment 'myFabric' exists
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the environment is setup
+        And the 'myFabric' environment is connected
+        When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
+        Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item myWallet
+        And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'       

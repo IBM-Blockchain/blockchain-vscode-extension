@@ -12,15 +12,21 @@
  * limitations under the License.
 */
 'use strict';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
+import * as path from 'path';
 
-export class InstalledTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-runtime-installed-item';
+export class NodesTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-nodes-item';
+
+    iconPath: {light: string, dark: string} = {
+        light: path.join(__filename, '..', '..', '..', '..', '..', '..', 'resources', 'light', `nodes.svg`),
+        dark: path.join(__filename, '..', '..', '..', '..',  '..', '..', 'resources', 'dark', `nodes.svg`)
+    };
 
     constructor(provider: BlockchainExplorerProvider, public readonly collapsibleState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
-        super(provider, 'Installed', collapsibleState);
+        super(provider, 'Nodes', collapsibleState);
 
     }
 }

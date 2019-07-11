@@ -25,9 +25,9 @@ import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/enviro
 import * as myExtension from '../../src/extension';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { Reporter } from '../../src/util/Reporter';
-import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
-import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
+import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/ChannelsOpsTreeItem';
+import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';

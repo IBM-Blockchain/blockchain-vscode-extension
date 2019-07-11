@@ -33,10 +33,11 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { FabricRuntime } from '../fabric/FabricRuntime';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -73,8 +74,19 @@ export class UserInputUtil {
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
     static readonly ADD_JSON_ID_OPTION: string = 'Provide a JSON identity file';
 
-    static readonly ADD_MORE_NODES: string = 'Add more (json) node definitions';
+    static readonly ADD_MORE_NODES: string = 'Add more (JSON) node definitions';
     static readonly DONE_ADDING_NODES: string = 'Done adding nodes';
+    static readonly ADD_IDENTITY: string = '+ Add identity';
+
+    public static async showQuickPick(prompt: string, items: string[]): Promise<string> {
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(items, quickPickOptions);
+    }
 
     public static async showFabricEnvironmentQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -88,7 +100,8 @@ export class UserInputUtil {
         const runtimeEnvironment: FabricEnvironmentRegistryEntry = await FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
         allEnvironments.push(runtimeEnvironment);
 
-        // TODO: add other envs here
+        const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
+        allEnvironments.push(...environments);
 
         const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = allEnvironments.map((environment: FabricEnvironmentRegistryEntry) => {
             return { label: environment.name, data: environment };
@@ -192,13 +205,17 @@ export class UserInputUtil {
         return dir;
     }
 
-    public static showIdentitiesQuickPickBox(prompt: string, identities: string[]): Thenable<string> {
+    public static showIdentitiesQuickPickBox(prompt: string, identities: string[], showCreate: boolean = false): Thenable<string> {
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
+
+        if (showCreate) {
+            identities.push(UserInputUtil.ADD_IDENTITY);
+        }
 
         return vscode.window.showQuickPick(identities, quickPickOptions);
     }
@@ -228,7 +245,7 @@ export class UserInputUtil {
     }
 
     public static showQuickPickCA(listOfCAs: string[]): Thenable<string | undefined> {
-        const prompt: string = 'Choose your desired CA from the list' ;
+        const prompt: string = 'Choose your desired CA from the list';
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
@@ -793,7 +810,7 @@ export class UserInputUtil {
         }
     }
 
-    public static async showWalletsQuickPickBox(prompt: string, showLocalWallet?: boolean): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
+    public static async showWalletsQuickPickBox(prompt: string, showLocalWallet?: boolean, showCreateWallet?: boolean): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
         const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
 
         if (showLocalWallet) {
@@ -816,6 +833,13 @@ export class UserInputUtil {
             walletQuickPickItems.push({
                 label: walletRegistryEntry.name,
                 data: walletRegistryEntry
+            });
+        }
+
+        if (showCreateWallet) {
+            walletQuickPickItems.push({
+                label: '+ Create new wallet',
+                data: undefined
             });
         }
 
@@ -909,9 +933,9 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showRuntimeNodeQuickPick(prompt: string, filter: FabricNodeType[]): Promise<FabricNode> {
-        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-        const nodes: FabricNode[] = await runtime.getNodes();
+    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, filter: FabricNodeType[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
+        const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+        const nodes: FabricNode[] = await environment.getNodes();
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = nodes
             .filter((node: FabricNode) => filter.indexOf(node.type) !== -1)
             .map((node: FabricNode) => {
@@ -920,17 +944,14 @@ export class UserInputUtil {
                     data: node
                 };
             });
+
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
             placeHolder: prompt
         };
-        const result: IBlockchainQuickPickItem<FabricNode> = await vscode.window.showQuickPick<IBlockchainQuickPickItem<FabricNode>>(quickPickItems, quickPickOptions);
-        if (result) {
-            return result.data;
-        } else {
-            return undefined;
-        }
+
+        return vscode.window.showQuickPick<IBlockchainQuickPickItem<FabricNode>>(quickPickItems, quickPickOptions);
     }
 
     public static async failedActivationWindow(error: string): Promise<void> {

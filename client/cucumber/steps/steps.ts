@@ -156,7 +156,7 @@ module.exports = function(): any {
         this.treeItem.tooltip.should.equal(tooltipValue);
     });
 
-    this.Then("the logger should have been called with '{string}', '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {
+    this.Then("the logger should have been called with '(.*?)',? '?(.*?)?'?(?: and )?'(.*?)'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {
         this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage, outputMessage);
     });
 };

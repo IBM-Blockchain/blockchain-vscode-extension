@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { InstalledChainCodeOpsTreeItem } from '../../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
+import { InstalledChainCodeOpsTreeItem } from '../../../src/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 
 import * as chai from 'chai';

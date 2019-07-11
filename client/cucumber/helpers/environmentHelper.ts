@@ -16,6 +16,7 @@
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -29,6 +30,9 @@ import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironme
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -45,6 +49,8 @@ export class EnvironmentHelper {
 
     public async createEnvironment(name: string): Promise<void> {
         const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        // need to make sure its not showing the setup tree
+        blockchainEnvironmentExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
         const treeItems: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
         const treeItem: any = treeItems.find((item: any) => {
@@ -66,7 +72,35 @@ export class EnvironmentHelper {
         }
     }
 
-    public async connectToEnvironment(environment: string) {
+    public async deleteEnvironment(environmentName: string): Promise<void> {
+        this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves('yes');
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+        this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
+        await vscode.commands.executeCommand(ExtensionCommands.DELETE_ENVIRONMENT);
+    }
+
+    public async associateNodeWithIdentitiy(environmentName: string, nodeName: string, identityName: string, walletName: string): Promise<void> {
+        const walletReigstryEntry: FabricWalletRegistryEntry = FabricWalletRegistry.instance().get(walletName);
+        this.userInputUtilHelper.showWalletsQuickPickStub.resolves({ label: walletName, data: walletReigstryEntry });
+        this.userInputUtilHelper.showIdentitiesQuickPickStub.resolves(identityName);
+        this.userInputUtilHelper.showQuickPickStub.resolves('Use ID and secret to enroll a new identity');
+        this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
+        this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves('Org1MSP');
+
+        const nodePath: string = path.join(__dirname, `../../../cucumber/tmp/environments/${environmentName}/nodes/${nodeName}.json`);
+        const node: FabricNode = await fs.readJson(nodePath);
+
+        if (node.identity && node.wallet) {
+            // already setup
+            return;
+        }
+
+        const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+
+        await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, environmentRegistryEntry, node);
+    }
+
+    public async connectToEnvironment(environment: string): Promise<void> {
         let registryEntry: FabricEnvironmentRegistryEntry;
         if (environment === 'Local Fabric') {
             registryEntry = new FabricEnvironmentRegistryEntry();

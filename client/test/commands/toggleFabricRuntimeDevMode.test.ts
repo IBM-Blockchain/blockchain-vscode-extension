@@ -23,8 +23,8 @@ import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/enviro
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
-import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { NodesTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodesTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/connectedTree/PeerTreeItem';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';

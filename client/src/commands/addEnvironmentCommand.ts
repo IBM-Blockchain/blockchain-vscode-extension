@@ -23,6 +23,8 @@ import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegis
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricNode } from '../fabric/FabricNode';
+import { FabricEnvironment } from '../fabric/FabricEnvironment';
 
 export async function addEnvironment(): Promise<{} | void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -65,7 +67,7 @@ export async function addEnvironment(): Promise<{} | void> {
                 return;
             }
 
-            const addMoreString: string = await UserInputUtil.addMoreNodes(`${nodeUris.length} json file(s) added successfully`);
+            const addMoreString: string = await UserInputUtil.addMoreNodes(`${nodeUris.length} JSON file(s) added successfully`);
             if (addMoreString === UserInputUtil.ADD_MORE_NODES) {
                 addMore = true;
             } else if (addMoreString === UserInputUtil.DONE_ADDING_NODES) {
@@ -83,8 +85,15 @@ export async function addEnvironment(): Promise<{} | void> {
         await fs.ensureDir(environmentPath);
         for (const nodeUri of nodeUris) {
             try {
-                const destPath: string = path.join(environmentPath, path.basename(nodeUri.fsPath));
-                await fs.copy(nodeUri.fsPath, destPath);
+                let nodes: FabricNode | Array<FabricNode> = await fs.readJson(nodeUri.fsPath);
+                if (!Array.isArray(nodes)) {
+                    nodes = [nodes];
+                }
+
+                const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+                for (const node of nodes) {
+                    await environment.updateNode(node);
+                }
             } catch (error) {
                 outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
             }
