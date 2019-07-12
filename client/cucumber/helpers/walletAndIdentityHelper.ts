@@ -48,7 +48,7 @@ export class WalletAndIdentityHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createCAIdentity(name: string): Promise<void> {
+    public async createCAIdentity(name: string, attributes: string = '[]'): Promise<void> {
         const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
         walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
         walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
@@ -57,6 +57,16 @@ export class WalletAndIdentityHelper {
         if (!identityExists) {
             this.userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
             this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
+
+            if (attributes !== '[]') {
+                // The user has given us attributes
+                this.userInputUtilHelper.showYesNoQuickPick.withArgs('Do you want to add attributes to the identity?').resolves(UserInputUtil.YES);
+                this.userInputUtilHelper.inputBoxStub.withArgs(`What are the attributes for the identity? e.g. [{ "name":"hello", "value":"world", "ecert":true }]`, '[]').resolves(attributes);
+
+            } else {
+                this.userInputUtilHelper.showYesNoQuickPick.withArgs('Do you want to add attributes to the identity?').resolves(UserInputUtil.NO);
+            }
+
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
         }
     }

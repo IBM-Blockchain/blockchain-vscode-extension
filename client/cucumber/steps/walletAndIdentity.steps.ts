@@ -47,8 +47,8 @@ module.exports = function(): any {
         this.identity = identity;
     });
 
-    this.Given("the identity '{string}' exists", this.timeout, async (identity: string) => {
-        await this.walletAndIdentityHelper.createCAIdentity(identity);
+    this.Given(/the identity '(\S*?)'(?: with attributes )?'?(\S*?)?'? exists$/, this.timeout, async (identity: string, attributes: string) => {
+        await this.walletAndIdentityHelper.createCAIdentity(identity, attributes);
         this.identity = identity;
     });
 
@@ -86,5 +86,9 @@ module.exports = function(): any {
 
     this.When(/^I create an identity using (certs|enrollId|JSON file) with identity name '(.*?)' and mspid '(.*?)' in wallet '(.*?)'$/, this.timeout, async (method: string, identityName: string, mspid: string, wallet: string) => {
         await this.walletAndIdentityHelper.createIdentity(wallet, identityName, mspid, method);
+    });
+
+    this.When(/I register a new identity '(.*?)' (?:with the attributes)? '(.*?)'?$/, this.timeout, async (identity: string, attributes: string) => {
+        await this.walletAndIdentityHelper.createCAIdentity(identity, attributes);
     });
 };

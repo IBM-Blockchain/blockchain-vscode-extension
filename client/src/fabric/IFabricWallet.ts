@@ -13,6 +13,8 @@
 */
 'use strict';
 
+import { FabricIdentity } from './FabricIdentity';
+
 export interface IFabricWallet {
 
     importIdentity(certificate: string, privateKey: string, identityName: string, mspid: string): Promise<void>;
@@ -22,6 +24,8 @@ export interface IFabricWallet {
     exists(identityName: string): Promise<boolean>;
 
     getIdentityNames(): Promise<string[]>;
+
+    getIdentities(): Promise<FabricIdentity[]>;
 
     getWalletPath(): string;
 }

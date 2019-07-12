@@ -101,6 +101,20 @@ The `Add Identity to Wallet` command will ask for a name, MSPID and a method to 
 
 For wallets associated with other remote Fabric gateways, the `Add Wallet`,`Edit Wallet` ,`Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 
+### Creating an identity with attributes
+Identities can be registered and enrolled with attributes from the `local_fabric` certificate authority.
+
+The `Create Identity (register and enroll)` command will ask for an identity name and whether the identity should have any attributes added.
+Selecting `Yes` will ask for the identity's attributes that should be provided in the following format:
+
+```
+[{"name": "attr1", "value": "attr1value", "ecert": true}, {"name": "attr2", "value": "attr2value", "ecert": true}]
+```
+
+The key `ecert` must be set to true in order for a smart contract to be able to read the value of the attribute using ['getAttributeValue'](https://fabric-shim.github.io/release-1.4/fabric-shim.ClientIdentity.html#getAttributeValue).
+
+Hovering over an identity in the `Fabric Wallets` panel will show any attributes associated with the identity.
+
 ## Useful Commands
 The IBM Blockchain Platform extension provides an explorer and commands accessible from the Command Palette, for developing smart contracts quickly:
 <!---Table of commands with columns: 'command' and 'description'

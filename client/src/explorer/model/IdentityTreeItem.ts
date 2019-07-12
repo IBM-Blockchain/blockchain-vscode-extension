@@ -19,7 +19,15 @@ import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 export class IdentityTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-identity-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string) {
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string, public readonly attributes: any = {}) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
+        this.tooltip = `Attributes:\n`;
+        if (Object.keys(attributes).length > 0) {
+            for (const attr of Object.keys(attributes)) {
+                this.tooltip += `\n${attr}:${attributes[attr]}`;
+            }
+        } else {
+            this.tooltip += `\nNone`;
+        }
     }
 }
