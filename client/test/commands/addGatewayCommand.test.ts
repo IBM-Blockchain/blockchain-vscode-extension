@@ -31,7 +31,7 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 chai.should();
 chai.use(sinonChai);
 
-describe('AddGatewayCommand', () => {
+describe.only('AddGatewayCommand', () => {
     const rootPath: string = path.dirname(__dirname);
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let logSpy: sinon.SinonSpy;
