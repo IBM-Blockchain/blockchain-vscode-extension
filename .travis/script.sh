@@ -21,6 +21,8 @@ cd ./client
 
 env
 
+unset npm_config_prefix
+
 docker_logs() {
    DOCKER_NETWORK=hlfv1_default
 

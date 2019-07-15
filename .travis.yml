@@ -1,4 +1,6 @@
 sudo: false
+language: node_js
+node_js: 8
 
 before_install:
      - if [ $TRAVIS_OS_NAME == "linux" ]; then
@@ -12,7 +14,7 @@ before_install:
 
          npm install npm@latest -g;
         fi
-     - nvm install --lts
+     #- nvm install --lts
 install: |
          ./.travis/install.sh
 

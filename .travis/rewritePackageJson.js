@@ -46,9 +46,9 @@ if (process.argv.includes('publish')) {
     packageJson.activationEvents.push(event);
   });
 
-  packageJson.engines = {
-    vscode: '1.35.1'
-  };
+  // packageJson.engines = {
+  //   vscode: '1.35.1'
+  // };
 }
 
 

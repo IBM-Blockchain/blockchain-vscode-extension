@@ -36,12 +36,12 @@ async function main(): Promise<void> {
         const extensionTestsPath: string = path.resolve(__dirname);
 
         console.log('downloading vscode');
-        await downloadAndUnzipVSCode('1.35.1');
+        await downloadAndUnzipVSCode('stable');
 
         // Download VS Code, unzip it and run the integration test
         console.log('setting up tests');
 
-        await runTests({extensionDevelopmentPath, extensionTestsPath, version: '1.35.1'});
+        await runTests({extensionDevelopmentPath, extensionTestsPath, version: 'stable'});
     } catch (err) {
         console.error('Failed to run tests', err);
         process.exit(1);
