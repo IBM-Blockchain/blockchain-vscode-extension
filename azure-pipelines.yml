@@ -1,0 +1,61 @@
+trigger:
+- master
+
+strategy:
+  matrix:
+    linux:
+      imageName: 'ubuntu-16.04'
+    mac:
+      imageName: 'macos-10.13'
+   # windows:
+   #  imageName: 'vs2017-win2016'
+
+pool:
+  vmImage: $(imageName)
+
+steps:
+
+- task: NodeTool@0
+  inputs:
+    versionSpec: '8.x'
+  displayName: 'Install Node.js'
+
+- bash: |
+    /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+    echo ">>> Started xvfb"
+  displayName: Start xvfb
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
+- bash: |
+    echo ">>> Compile vscode-test"
+    cd ./client
+    npm install --no-optional
+    npm install --ignore-scripts
+    npm run compile
+    echo ">>> Compiled vscode-test"
+  displayName: install stuff  
+  env:
+    DISPLAY: ':99.0'
+
+- bash: |    
+    npm rebuild grpc --target=4.1.5 --runtime=electron --dist-url=https://atom.io/download/electron
+    rm -rf ./node_modules/grpc/src/node/extension_binary/node-v69-linux-x64-glibc
+    mv ./node_modules/grpc/src/node/extension_binary/electron-v4.1-linux-x64-glibc ./node_modules/grpc/src/node/extension_binary/node-v69-linux-x64-glibc
+  displayName: rebuild linux
+  env:
+    DISPLAY: ':99.0'
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux')) 
+
+- bash: |    
+    npm rebuild grpc --target=4.1.5 --runtime=electron --dist-url=https://atom.io/download/electron
+    rm -rf ./node_modules/grpc/src/node/extension_binary/node-v69-darwin-x64-unknown
+    mv ./node_modules/grpc/src/node/extension_binary/electron-v4.1-darwin-x64-unknown ./node_modules/grpc/src/node/extension_binary/node-v69-darwin-x64-unknown
+  displayName: rebuild mac
+  env:
+    DISPLAY: ':99.0'
+  condition: and(succeeded(), eq(variables['Agent.OS'], 'mac'))  
+
+- bash: |
+    npm test
+    npm run package  
+  displayName: run tests   
