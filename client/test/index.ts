@@ -16,6 +16,7 @@ import * as path from 'path';
 import * as fs from 'fs-extra';
 import * as Mocha from 'mocha';
 import * as glob from 'glob';
+import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 
 // tslint:disable no-var-requires
 const istanbul: any = require('istanbul');
@@ -32,6 +33,8 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
             return [80, 75];
         };
     }
+
+    VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
     const mocha: Mocha = new Mocha({
         ui: 'bdd',
