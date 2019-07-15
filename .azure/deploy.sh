@@ -51,7 +51,7 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   npm install -g @alrra/travis-scripts
   set-up-ssh --key "$encrypted_ecae65fefad0_key" \
                              --iv "$encrypted_ecae65fefad0_iv" \
-                             --path-encrypted-key "../.travis/github_deploy_key.enc"
+                             --path-encrypted-key "../.azure/github_deploy_key.enc"
 
   git config user.name "${GH_USER_NAME}"
   git config user.email "${GH_USER_EMAIL}"
@@ -67,7 +67,7 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   export NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
 
   # Change from HTTPS to SSH.
-  ../.travis/fix_github_https_repo.sh
+  ../.azure/fix_github_https_repo.sh
 
   # Add the version number changes and push them to Git.
   git add .
