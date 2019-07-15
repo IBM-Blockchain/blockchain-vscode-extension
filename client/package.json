@@ -1145,6 +1145,7 @@
         "watch": "rimraf out && tsc -watch -p ./",
         "pretest": "npm run compile && npm run lint && npm run licchk && npm run updatePackageJSON",
         "test": "node ./out/test/runTests.js",
+        "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
         "systest": "npm run compile && node ./out/integrationTest/nodeTests/runIntegrationTests.js",
         "cucumber": "npm run compile && node ./out/cucumber/runCucumberTests.js",
         "licchk": "license-check-and-add",
