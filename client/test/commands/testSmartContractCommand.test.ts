@@ -43,7 +43,7 @@ const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
 
-describe('testSmartContractCommand', () => {
+xdescribe('testSmartContractCommand', () => {
     let mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let fabricClientConnectionMock: sinon.SinonStubbedInstance<FabricClientConnection>;
     let executeCommandStub: sinon.SinonStub;
