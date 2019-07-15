@@ -25,7 +25,7 @@
         "prefer-for-of": false,
         "member-access": false,
         "no-console": [
-            true
+            false
         ],
         "forin": false,
         "max-line-length": false,

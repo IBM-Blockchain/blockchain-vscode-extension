@@ -44,9 +44,9 @@ export enum LanguageType {
 
 let firstTime: boolean = true; // Flag used for making sure we do some setup once
 
-module.exports = function(): any {
+module.exports = function (): any {
 
-    this.timeout = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
+    this.timeout = {timeout: 120000 * 1000}; // Global timeout - 2 minutes
 
     this.Before(this.timeout, async () => {
         try {
@@ -58,6 +58,9 @@ module.exports = function(): any {
                 this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
                 this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
+
+                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+                await ExtensionUtil.activateExtension();
 
                 try {
                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
@@ -97,8 +100,6 @@ module.exports = function(): any {
                     await fs.remove(walletsDir);
                 }
 
-                await ExtensionUtil.activateExtension();
-
                 await TestUtil.storeGatewaysConfig();
                 await TestUtil.storeRuntimesConfig();
                 await TestUtil.storeExtensionDirectoryConfig();
@@ -106,7 +107,6 @@ module.exports = function(): any {
                 await TestUtil.storeWalletsConfig();
                 await TestUtil.storeEnvironmentsConfig();
 
-                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
 
