@@ -37,7 +37,7 @@ async function main(): Promise<void> {
         // Passed to --extensionTestsPath
         const extensionTestsPath: string = path.resolve(__dirname);
 
-        console.log('downloadin vscode');
+        console.log('downloading vscode');
         await downloadAndUnzipVSCode('stable');
 
         // Download VS Code, unzip it and run the integration test
@@ -49,26 +49,26 @@ async function main(): Promise<void> {
         const files: string[] = glob.sync('**/**.test.js', { cwd: testsRoot });
         console.log('found lots of files', files);
 
-        function chunkArray(myArray: any[], chunkSize: number): any[] {
-            let index: number = 0;
-            const arrayLength: number = myArray.length;
-            const tempArray: any[] = [];
-
-            for (index = 0; index < arrayLength; index += chunkSize) {
-                const myChunk: any[] = myArray.slice(index, index + chunkSize);
-                tempArray.push(myChunk);
-            }
-
-            return tempArray;
-        }
-
-        const results: any[] = chunkArray(files, 10);
-
-        for (const result in results) {
-            console.log('running batch ' + result);
-            process.env.BATCH_NUMBER = result;
-            await runTests({ extensionDevelopmentPath, extensionTestsPath});
-        }
+        // function chunkArray(myArray: any[], chunkSize: number): any[] {
+        //     let index: number = 0;
+        //     const arrayLength: number = myArray.length;
+        //     const tempArray: any[] = [];
+        //
+        //     for (index = 0; index < arrayLength; index += chunkSize) {
+        //         const myChunk: any[] = myArray.slice(index, index + chunkSize);
+        //         tempArray.push(myChunk);
+        //     }
+        //
+        //     return tempArray;
+        // }
+        //
+        // const results: any[] = chunkArray(files, 10);
+        //
+        // for (const result in results) {
+        //     console.log('running batch ' + result);
+        //     process.env.BATCH_NUMBER = result;
+        await runTests({ extensionDevelopmentPath, extensionTestsPath});
+        // }
     } catch (err) {
         console.error('Failed to run tests', err);
         process.exit(1);

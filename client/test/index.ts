@@ -21,8 +21,19 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
 
     try {
         console.log('finding files', testsRoot);
-        const files: string[] = glob.sync('**/**.test.js', {cwd: testsRoot});
+        let files: string[] = glob.sync('**/**.test.js', {cwd: testsRoot});
         console.log('found lots of files');
+
+        files = files.sort((fileA: string, fileB: string) => {
+            if (fileA < fileB) {
+                return 1;
+            }
+            if (fileA > fileB) {
+                return -1;
+            }
+
+            return 0;
+        });
 
         let failedTests: number = 0;
 
