@@ -12,6 +12,8 @@
  * limitations under the License.
 */
 
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -20,6 +22,8 @@ import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as vscode from 'vscode';
 import { SettingConfigurations } from '../../SettingConfigurations';
+
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('FabricGatewayHelper', () => {

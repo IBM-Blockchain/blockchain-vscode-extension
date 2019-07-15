@@ -50,7 +50,7 @@ export async function importSmartContractPackageCommand(): Promise<void> {
         const packageName: string = path.basename(packagePath);
 
         resolvedPkgDir = path.join(resolvedPkgDir, packageName);
-        await fs.copyFile(packagePath, resolvedPkgDir);
+        await fs.copy(packagePath, resolvedPkgDir);
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
 
         VSCodeBlockchainOutputAdapter.instance().log(LogType.SUCCESS, 'Successfully imported smart contract package', `Successfully imported smart contract package ${packageName}`);

@@ -13,6 +13,8 @@
 */
 
 // tslint:disable no-var-requires
+// tslint:disable typedef
+// tslint:disable no-console
 import * as Cucumber from 'cucumber';
 import * as path from 'path';
 import * as fs from 'fs-extra';
@@ -129,7 +131,7 @@ async function runCucumberTest(): Promise<any> {
     return runtime.start();
 }
 
-async function run(testsRoot: string, clb: (error: any, failures?: number) => void): Promise<void> {
+export async function run(testsRoot: string, clb: (error: any, failures?: number) => void): Promise<void> {
     console.log(testsRoot);
     try {
 
@@ -166,5 +168,3 @@ async function run(testsRoot: string, clb: (error: any, failures?: number) => vo
         clb(error);
     }
 }
-
-exports.run = run;

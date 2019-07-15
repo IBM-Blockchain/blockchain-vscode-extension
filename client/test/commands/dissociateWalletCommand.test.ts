@@ -14,6 +14,7 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -38,6 +39,7 @@ import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 describe('DissociateWalletCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
@@ -159,7 +161,7 @@ describe('DissociateWalletCommand', () => {
                 data: FabricGatewayRegistry.instance().get('myGateway')
             });
 
-            await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET).should.have.rejectedWith(`Unable to dissociate wallet: ${error.message}`);
+            await vscode.commands.executeCommand(ExtensionCommands.DISSOCIATE_WALLET).should.have.been.rejectedWith(`Unable to dissociate wallet: ${error.message}`);
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',

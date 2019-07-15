@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import * as path from 'path';
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { version as currentExtensionVersion } from '../package.json';
@@ -39,6 +40,7 @@ import { dependencies } from '../package.json';
 import { FabricRuntime } from '../src/fabric/FabricRuntime';
 
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('Extension Tests', () => {
