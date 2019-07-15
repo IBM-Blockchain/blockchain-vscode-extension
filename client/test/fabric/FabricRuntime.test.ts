@@ -16,6 +16,7 @@ import * as child_process from 'child_process';
 import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import { OutputAdapter } from '../../src/logging/OutputAdapter';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -36,6 +37,7 @@ import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.should();
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('FabricRuntime', () => {

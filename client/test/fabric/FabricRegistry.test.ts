@@ -17,11 +17,13 @@ import { FabricRegistry } from '../../src/fabric/FabricRegistry';
 import { FabricRegistryEntry } from '../../src/fabric/FabricRegistryEntry';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('FabricRegistry', () => {

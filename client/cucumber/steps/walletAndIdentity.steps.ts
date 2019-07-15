@@ -80,11 +80,11 @@ module.exports = function(): any {
      * When
      */
 
-    this.When(/^I create a wallet '(.*?)' using (certs|enrollId|json file) with identity name '(.*?)' and mspid '(.*?)'$/, this.timeout, async (wallet: string, method: string, identityName: string, mspid: string) => {
+    this.When(/^I create a wallet '(.*?)' using (certs|enrollId|JSON file) with identity name '(.*?)' and mspid '(.*?)'$/, this.timeout, async (wallet: string, method: string, identityName: string, mspid: string) => {
         await this.walletAndIdentityHelper.createWallet(wallet, identityName, mspid, method);
     });
 
-    this.When(/^I create an identity using (certs|enrollId|json file) with identity name '(.*?)' and mspid '(.*?)' in wallet '(.*?)'$/, this.timeout, async (method: string, identityName: string, mspid: string, wallet: string) => {
+    this.When(/^I create an identity using (certs|enrollId|JSON file) with identity name '(.*?)' and mspid '(.*?)' in wallet '(.*?)'$/, this.timeout, async (method: string, identityName: string, mspid: string, wallet: string) => {
         await this.walletAndIdentityHelper.createIdentity(wallet, identityName, mspid, method);
     });
 };

@@ -12,6 +12,7 @@ before_install:
 
          npm install npm@latest -g;
         fi
+     - nvm install --lts
 install: |
          ./.travis/install.sh
 
@@ -20,15 +21,9 @@ jobs:
     - script: ./.travis/script.sh
       os: osx
       env: TASK=unit
-      language: node_js
-      node_js:
-      - "lts/*"
     - script: ./.travis/script.sh
       os: linux
       env: TASK=unit
-    - script: ./.travis/script.sh
-      os: linux
-      env: TASK=systestsNode
     - script: ./.travis/script.sh
       os: linux
       env: TASK=cucumber
