@@ -1273,8 +1273,9 @@ describe('FabricRuntimeConnection', () => {
     });
 
     describe('register', () => {
+        let mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices>;
         beforeEach(() => {
-            const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
+            mockFabricCA = mySandBox.createStubInstance(FabricCAServices);
             mockFabricCA.register.resolves('its a secret');
             connection['certificateAuthorities'].has('ca.example.com').should.be.true;
             connection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
@@ -1284,11 +1285,31 @@ describe('FabricRuntimeConnection', () => {
             const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE');
             secret.should.deep.equal('its a secret');
             mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
+            mockFabricCA.register.should.have.been.calledOnceWith({
+                enrollmentID: 'enrollThis',
+                affiliation: 'departmentE',
+                role: 'client',
+                attrs: []
+            },
+            sinon.match.any);
         });
 
         it('should throw trying to register a new user using a certificate authority that does not exist ', async () => {
             await connection.register('nosuch.ca.example.com', 'enrollThis', 'departmentE')
                 .should.be.rejectedWith(/does not exist/);
+        });
+
+        it('should be able to register a new user with attribtues', async () => {
+            const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE', [{name: 'hello', value: 'world', ecert: true}]);
+            secret.should.deep.equal('its a secret');
+            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
+            mockFabricCA.register.should.have.been.calledOnceWith({
+                enrollmentID: 'enrollThis',
+                affiliation: 'departmentE',
+                role: 'client',
+                attrs: [{name: 'hello', value: 'world', ecert: true}]
+            },
+            sinon.match.any);
         });
 
     });

@@ -16,6 +16,7 @@
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
 import { IFabricWallet } from './IFabricWallet';
 import { FabricNode } from './FabricNode';
+import { Attribute } from './FabricCertificate';
 
 export interface IFabricRuntimeConnection {
 
@@ -47,7 +48,7 @@ export interface IFabricRuntimeConnection {
 
     enroll(certificateAuthorityName: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
 
-    register(certificateAuthorityName: string, enrollmentID: string, affiliation: string): Promise<string>;
+    register(certificateAuthorityName: string, enrollmentID: string, affiliation: string, attributes?: Attribute[]): Promise<string>;
 
     getNode(nodeName: string): FabricNode;
 

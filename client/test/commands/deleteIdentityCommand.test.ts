@@ -235,7 +235,7 @@ describe('deleteIdentityCommand', () => {
         it('should delete an identity when called from the wallet tree', async () => {
             identityName = 'blueConga';
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
-            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, blueWallet.name);
+            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, blueWallet.name, []);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
 
@@ -255,7 +255,7 @@ describe('deleteIdentityCommand', () => {
             mySandBox.stub(walletGenerator, 'createLocalWallet').returns(testFabricWallet);
 
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
-            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, FabricWalletUtil.LOCAL_WALLET);
+            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, FabricWalletUtil.LOCAL_WALLET, []);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
 

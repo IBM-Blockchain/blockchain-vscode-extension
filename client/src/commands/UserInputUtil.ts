@@ -24,7 +24,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
-import { ParsedCertificate } from '../fabric/ParsedCertificate';
+import { FabricCertificate } from '../fabric/FabricCertificate';
 import { FabricWalletRegistryEntry } from '../fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../fabric/FabricWalletRegistry';
 import { IFabricWallet } from '../fabric/IFabricWallet';
@@ -780,14 +780,18 @@ export class UserInputUtil {
         if (!certificatePath) {
             return;
         }
-        ParsedCertificate.validPEM(certificatePath, 'certificate');
+
+        const certificate: string = FabricCertificate.loadFileFromDisk(certificatePath);
+        FabricCertificate.validateCertificate(certificate);
 
         // Get the private key file path
         const privateKeyPath: string = await UserInputUtil.browse('Browse for a private key file', quickPickItems, openDialogOptions) as string;
         if (!privateKeyPath) {
             return;
         }
-        ParsedCertificate.validPEM(privateKeyPath, 'private key');
+
+        const privateKey: string = FabricCertificate.loadFileFromDisk(privateKeyPath);
+        FabricCertificate.validatePrivateKey(privateKey);
 
         return { certificatePath, privateKeyPath };
     }

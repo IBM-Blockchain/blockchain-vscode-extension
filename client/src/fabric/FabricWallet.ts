@@ -12,8 +12,11 @@
  * limitations under the License.
 */
 'use strict';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { FileSystemWallet, X509WalletMixin, IdentityInfo} from 'fabric-network';
 import { IFabricWallet} from './IFabricWallet';
+import { FabricIdentity } from './FabricIdentity';
 
 export class FabricWallet extends FileSystemWallet implements IFabricWallet {
     public walletPath: string;
@@ -34,6 +37,24 @@ export class FabricWallet extends FileSystemWallet implements IFabricWallet {
             identityNames.push(identity.label);
         }
         return identityNames;
+    }
+
+    public async getIdentities(): Promise<FabricIdentity[]> {
+        const walletPath: string = this.getWalletPath();
+        let identityPaths: string[] = await fs.readdir(walletPath);
+        identityPaths = identityPaths
+            .sort()
+            .filter((identityPath: string) => !identityPath.startsWith('.'))
+            .map((identityPath: string) => {
+                const identityName: string = path.basename(identityPath);
+                return path.resolve(walletPath, identityPath, identityName);
+            });
+        const identities: FabricIdentity[] = [];
+        for (const identityPath of identityPaths) {
+            const identity: FabricIdentity = await fs.readJson(identityPath);
+            identities.push(identity);
+        }
+        return identities;
     }
 
     public getWalletPath(): string {

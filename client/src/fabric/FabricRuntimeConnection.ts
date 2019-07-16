@@ -27,6 +27,7 @@ import { IFabricWallet } from './IFabricWallet';
 import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
 import { URL } from 'url';
+import { Attribute } from './FabricCertificate';
 
 export class FabricRuntimeConnection implements IFabricRuntimeConnection {
 
@@ -267,12 +268,13 @@ export class FabricRuntimeConnection implements IFabricRuntimeConnection {
         return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes() };
     }
 
-    public async register(certificateAuthorityName: string, enrollmentID: string, affiliation: string): Promise<string> {
+    public async register(certificateAuthorityName: string, enrollmentID: string, affiliation: string, attributes: Attribute[] = []): Promise<string> {
         const certificateAuthority: FabricCAServices = this.getCertificateAuthority(certificateAuthorityName);
         const request: FabricCAServices.IRegisterRequest = {
             enrollmentID: enrollmentID,
             affiliation: affiliation,
-            role: 'client'
+            role: 'client',
+            attrs: attributes
         };
         await this.setNodeContext(certificateAuthorityName);
         const registrar: Client.User = await this.client.getUserContext('', false);
