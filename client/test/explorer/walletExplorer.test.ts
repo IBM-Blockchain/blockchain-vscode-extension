@@ -12,6 +12,8 @@
  * limitations under the License.
 */
 'use strict';
+// tslint:disable no-var-requires
+const {Certificate} = require('@fidm/x509');
 import * as vscode from 'vscode';
 import * as myExtension from '../../src/extension';
 import * as chai from 'chai';
@@ -36,6 +38,8 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricCertificate } from '../../src/fabric/FabricCertificate';
+import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 
 chai.use(sinonChai);
 chai.should();
@@ -51,7 +55,7 @@ describe('walletExplorer', () => {
     let blueWalletEntry: FabricWalletRegistryEntry;
     let greenWalletEntry: FabricWalletRegistryEntry;
     let getIdentityNamesStub: sinon.SinonStub;
-    let getLocalWalletIdentityNamesStub: sinon.SinonStub;
+    let getIdentitiesStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -82,14 +86,14 @@ describe('walletExplorer', () => {
             name: 'greenWallet',
             walletPath: '/some/other/path'
         });
-        const testFabricWallet: FabricWallet = new FabricWallet('some/path');
+        const testFabricWallet: IFabricWallet = new FabricWallet('some/path');
         getIdentityNamesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames');
+        getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentities');
         const getNewWalletStub: sinon.SinonStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet');
         getNewWalletStub.withArgs('/some/path').returns(testFabricWallet);
         getNewWalletStub.withArgs('/some/other/path').returns(testFabricWallet);
-        const localWallet: FabricWallet = new FabricWallet('/some/local/path');
-        getLocalWalletIdentityNamesStub = mySandBox.stub(localWallet, 'getIdentityNames').resolves([FabricRuntimeUtil.ADMIN_USER, 'yellowConga', 'orangeConga']);
-        getNewWalletStub.withArgs('/some/local/path').returns(localWallet);
+        getNewWalletStub.withArgs('/some/local/path').returns(testFabricWallet);
+
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
     });
 
@@ -98,8 +102,52 @@ describe('walletExplorer', () => {
     });
 
     it('should show wallets and identities in the BlockchainWalletExplorer view', async () => {
-        getIdentityNamesStub.resolves(['violetConga', 'purpleConga']);
-        getIdentityNamesStub.onCall(1).resolves([]);
+        getIdentityNamesStub.onCall(0).resolves([FabricRuntimeUtil.ADMIN_USER, 'yellowConga', 'orangeConga']);
+        getIdentityNamesStub.onCall(1).resolves(['violetConga', 'purpleConga']);
+        getIdentityNamesStub.onCall(2).resolves([]);
+
+        const certObjOne: any = {extensions: []};
+        const certObjTwo: any = {extensions: [
+            {
+                id: '1.8.7.6.5.4.3.2.1'
+            },
+            {
+                id: '1.2.3.4.5.6.7.8.1'
+            }
+        ]};
+
+        const certOne: string = `-----BEGIN CERTIFICATE-----
+        certOne
+        -----END CERTIFICATE-----
+        `;
+
+        const certTwo: string = `-----BEGIN CERTIFICATE-----
+        certTwo
+        -----END CERTIFICATE-----
+        `;
+
+        const fromPEMStub: sinon.SinonStub = mySandBox.stub(Certificate, 'fromPEM');
+        fromPEMStub.withArgs(certOne).returns(certObjOne);
+        fromPEMStub.withArgs(certTwo).returns(certObjTwo);
+
+        getIdentitiesStub.onCall(1).resolves([
+            {name: FabricRuntimeUtil.ADMIN_USER, enrollment: {identity: {certificate: certOne}}},
+            {name: 'yellowConga', enrollment: {identity: {certificate: certOne}}},
+            {name: 'orangeConga', enrollment: {identity: {certificate: certOne}}}
+        ]);
+
+        const getAttributesStub: sinon.SinonStub = mySandBox.stub(FabricCertificate.prototype, 'getAttributes');
+        getAttributesStub.callThrough();
+        getAttributesStub.onCall(0).returns({attr1: 'hello', attr2: 'world'});
+        getAttributesStub.onCall(1).returns({attr3: 'good', attr4: 'day!'});
+
+        getIdentitiesStub.onCall(0).resolves([
+            {name: 'violetConga', enrollment: {identity: {certificate: certTwo}}},
+            {name: 'purpleConga', enrollment: {identity: {certificate: certTwo}}}
+        ]);
+
+        getIdentitiesStub.onCall(2).resolves([]);
+
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [blueWalletEntry, greenWalletEntry], vscode.ConfigurationTarget.Global);
 
         const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
@@ -112,8 +160,10 @@ describe('walletExplorer', () => {
         blueWalletIdentities.length.should.equal(2);
         blueWalletIdentities[0].label.should.equal('violetConga');
         blueWalletIdentities[0].walletName.should.equal(blueWalletEntry.name);
+        blueWalletIdentities[0].tooltip.should.deep.equal(`Attributes:\n\nattr1:hello\nattr2:world`);
         blueWalletIdentities[1].label.should.equal('purpleConga');
         blueWalletIdentities[1].walletName.should.equal(blueWalletEntry.name);
+        blueWalletIdentities[1].tooltip.should.deep.equal(`Attributes:\n\nattr3:good\nattr4:day!`);
 
         const localWalletIdentities: Array<IdentityTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[0]) as Array<IdentityTreeItem>;
         localWalletIdentities.length.should.equal(3);
@@ -134,7 +184,7 @@ describe('walletExplorer', () => {
     });
 
     it('should handle no identities in the local wallet', async () => {
-        getLocalWalletIdentityNamesStub.resolves([]);
+        getIdentityNamesStub.onCall(0).resolves([]);
         const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
 
         wallets.length.should.equal(1);
@@ -162,7 +212,7 @@ describe('walletExplorer', () => {
     });
 
     it('should handle errors when populating the BlockchainWalletExplorer view', async () => {
-        getLocalWalletIdentityNamesStub.rejects( { message: 'something bad has happened' } );
+        getIdentityNamesStub.rejects( { message: 'something bad has happened' } );
 
         await blockchainWalletExplorerProvider.getChildren() as Array<WalletTreeItem>;
         logSpy.should.have.been.calledOnceWith(LogType.ERROR, 'Error displaying Fabric Wallets: something bad has happened', 'Error displaying Fabric Wallets: something bad has happened');

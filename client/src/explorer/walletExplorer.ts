@@ -28,7 +28,8 @@ import { IdentityTreeItem } from './model/IdentityTreeItem';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
-import { FabricIdentity } from '../fabric/FabricIdentity';
+import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -99,17 +100,31 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
         // Populate the tree with the identity names
         const walletName: string = walletTreeItem.name;
-        for (const identityName of walletTreeItem.identities) {
+
+        const walletPath: string = walletTreeItem.registryEntry.walletPath;
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletPath);
+        const identities: any[] = await wallet.getIdentities();
+
+        for (const identity of identities) {
             let isAdminIdentity: boolean = false;
             if (walletTreeItem instanceof LocalWalletTreeItem) {
-                const adminIdentities: FabricIdentity[] = await FabricRuntimeManager.instance().getRuntime().getIdentities(walletName);
-                isAdminIdentity = adminIdentities.some((adminIdentity: FabricIdentity): boolean => adminIdentity.name === identityName);
+                // Check 'admin' in local_fabric
+                if (identity.name === FabricRuntimeUtil.ADMIN_USER) {
+                    isAdminIdentity = true;
+                }
             }
+
+            // Get attributes fcn
+            const certificate: FabricCertificate = new FabricCertificate(identity.enrollment.identity.certificate);
+            const attributes: Attribute[] = certificate.getAttributes();
+
             if (isAdminIdentity) {
                 // User can't delete this!
-                tree.push(new AdminIdentityTreeItem(this, identityName, walletName));
+                tree.push(new AdminIdentityTreeItem(this, identity.name, walletName, attributes));
             } else {
-                tree.push(new IdentityTreeItem(this, identityName, walletName));
+
+                tree.push(new IdentityTreeItem(this, identity.name, walletName, attributes));
             }
         }
         return tree;

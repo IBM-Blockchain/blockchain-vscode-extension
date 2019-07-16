@@ -12,15 +12,14 @@
  * limitations under the License.
 */
 'use strict';
-import { BlockchainTreeItem } from './BlockchainTreeItem';
-import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { IdentityTreeItem } from './IdentityTreeItem';
 
-export class AdminIdentityTreeItem extends BlockchainTreeItem {
+export class AdminIdentityTreeItem extends IdentityTreeItem {
     contextValue: string = 'blockchain-admin-identity-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string) {
-        super(provider, label, vscode.TreeItemCollapsibleState.None);
+    constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly walletName: string, public readonly attributes: any = {}) {
+        super(provider, label, walletName, attributes);
         this.label += ' ⭑';
     }
 }

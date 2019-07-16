@@ -19,10 +19,12 @@ import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/Certificate
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { Attribute } from '../fabric/FabricCertificate';
 
 export async function createNewIdentity(certificateAuthorityTreeItem?: CertificateAuthorityTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -78,8 +80,23 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
 
         const affiliation: string = ''; // Give it the same affiliation as the identity registrar
 
+        const addAttributes: any = await UserInputUtil.showQuickPickYesNo('Do you want to add attributes to the identity?');
+
+        let attributes: Attribute[];
+        let attributesString: string;
+        if (!addAttributes) {
+            return;
+        } else if (addAttributes === UserInputUtil.YES) {
+            attributesString = await UserInputUtil.showInputBox(`What are the attributes for the identity? e.g. [{ "name":"hello", "value":"world", "ecert":true }]`, '[]');
+            if (attributesString === undefined) {
+                return;
+            } else {
+                attributes = JSON.parse(attributesString);
+            }
+        }
+
         // Register the user
-        const secret: string = await connection.register(certificateAuthorityName, identityName, affiliation);
+        const secret: string = await connection.register(certificateAuthorityName, identityName, affiliation, attributes);
 
         // Enroll the user
         const details: { certificate: string, privateKey: string } = await connection.enroll(certificateAuthorityName, identityName, secret);
@@ -88,7 +105,14 @@ export async function createNewIdentity(certificateAuthorityTreeItem?: Certifica
         await wallet.importIdentity(details.certificate, details.privateKey, identityName, mspid);
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
-        outputAdapter.log(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+
+        let message: string;
+        if (attributes) {
+            message = `Successfully created identity '${identityName}' with the attributes: ${attributesString}`;
+        } else {
+            message = `Successfully created identity '${identityName}'`;
+        }
+        outputAdapter.log(LogType.SUCCESS, message);
         Reporter.instance().sendTelemetryEvent('createNewIdentityCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue creating new identity: ${error.message}`, `Issue creating new identity: ${error.toString()}`);

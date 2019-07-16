@@ -542,32 +542,6 @@ describe('Extension Tests', () => {
         updateGlobalStateSpy.should.not.have.been.calledTwice;
     });
 
-    it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} not already generated`, async () => {
-        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-
-        const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
-            activationCount: 0,
-            version: currentExtensionVersion,
-            migrationCheck: 1,
-            generatorVersion: 'not_the_latest_version'
-        });
-
-        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-
-        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
-
-        await myExtension.activate(newContext);
-
-        updateGlobalStateSpy.should.have.been.calledTwice;
-        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(EXTENSION_DATA_KEY, {
-            activationCount: 1,
-            version: currentExtensionVersion,
-            migrationCheck: 1,
-            generatorVersion: generatorVersion
-        });
-    });
-
     it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} has not been generated`, async () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 

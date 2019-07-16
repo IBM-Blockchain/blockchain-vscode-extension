@@ -28,7 +28,7 @@ import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { ParsedCertificate } from '../../src/fabric/ParsedCertificate';
+import { FabricCertificate } from '../../src/fabric/FabricCertificate';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
@@ -1724,13 +1724,15 @@ describe('UserInputUtil', () => {
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
             browseStub.onCall(0).resolves('/some/path');
 
-            const error: Error = new Error('Could not validate certificate: invalid PEM');
-            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().throws(error);
+            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk').returns('someCert');
+            const error: Error = new Error('Invalid certificate: invalid body');
+            const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').throws(error);
 
             await UserInputUtil.getCertKey().should.be.rejectedWith(error);
 
             browseStub.should.have.been.calledOnceWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
-            validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
+            loadFileFromDiskStub.should.have.been.calledOnceWithExactly('/some/path');
+            validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
         });
 
         it('should cancel adding private key path', async () => {
@@ -1745,14 +1747,17 @@ describe('UserInputUtil', () => {
             const browseStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'browse');
             browseStub.onCall(0).resolves('/some/path');
             browseStub.onCall(1).resolves();
-            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').onFirstCall().returns(undefined);
+
+            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk').returns('someCert');
+            const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').returns(undefined);
 
             const result: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
 
             should.equal(result, undefined);
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
-            validPem.should.have.been.calledOnceWithExactly('/some/path', 'certificate');
+            loadFileFromDiskStub.should.have.been.calledOnceWithExactly('/some/path');
+            validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
         });
 
         it('should stop if private key is invalid', async () => {
@@ -1768,17 +1773,21 @@ describe('UserInputUtil', () => {
             browseStub.onCall(0).resolves('/some/cert');
             browseStub.onCall(1).resolves('/some/key');
 
-            const error: Error = new Error('Could not validate private key: invalid PEM');
-            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM');
-            validPem.onFirstCall().returns(undefined);
-            validPem.onSecondCall().throws(error);
+            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk');
+            loadFileFromDiskStub.onCall(0).returns('someCert');
+            loadFileFromDiskStub.onCall(1).returns('someKey');
+            const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').returns(undefined);
+            const error: Error = new Error('Invalid private key');
+            const validatePrivateKeyStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validatePrivateKey').throws(error);
 
-            await UserInputUtil.getCertKey().should.be.rejectedWith(error);
+            await UserInputUtil.getCertKey().should.be.rejectedWith('Invalid private key');
 
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
-            validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
-            validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
+            loadFileFromDiskStub.should.have.been.calledTwice;
+            validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
+            validatePrivateKeyStub.should.have.been.calledOnceWithExactly('someKey');
+
         });
 
         it('should return certificate and private key paths', async () => {
@@ -1794,7 +1803,11 @@ describe('UserInputUtil', () => {
             browseStub.onCall(0).resolves('/some/cert');
             browseStub.onCall(1).resolves('/some/key');
 
-            const validPem: sinon.SinonStub = mySandBox.stub(ParsedCertificate, 'validPEM').returns(undefined);
+            const loadFileFromDiskStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'loadFileFromDisk');
+            loadFileFromDiskStub.onCall(0).returns('someCert');
+            loadFileFromDiskStub.onCall(1).returns('someKey');
+            const validateCertificateStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validateCertificate').returns(undefined);
+            const validatePrivateKeyStub: sinon.SinonStub = mySandBox.stub(FabricCertificate, 'validatePrivateKey').returns(undefined);
 
             const { certificatePath, privateKeyPath } = await UserInputUtil.getCertKey();
             certificatePath.should.equal('/some/cert');
@@ -1802,8 +1815,9 @@ describe('UserInputUtil', () => {
 
             browseStub.getCall(0).should.have.been.calledWithExactly('Browse for a certificate file', quickPickItems, openDialogOptions);
             browseStub.getCall(1).should.have.been.calledWithExactly('Browse for a private key file', quickPickItems, openDialogOptions);
-            validPem.getCall(0).should.have.been.calledWithExactly('/some/cert', 'certificate');
-            validPem.getCall(1).should.have.been.calledWithExactly('/some/key', 'private key');
+            loadFileFromDiskStub.should.have.been.calledTwice;
+            validateCertificateStub.should.have.been.calledOnceWithExactly('someCert');
+            validatePrivateKeyStub.should.have.been.calledOnceWithExactly('someKey');
         });
     });
 
