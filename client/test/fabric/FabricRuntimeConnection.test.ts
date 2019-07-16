@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
@@ -38,6 +39,7 @@ import { IFabricRuntimeConnection } from '../../src/fabric/IFabricRuntimeConnect
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('FabricRuntimeConnection', () => {
