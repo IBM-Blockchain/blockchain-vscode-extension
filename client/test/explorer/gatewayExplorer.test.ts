@@ -44,6 +44,7 @@ import { GatewayAssociatedTreeItem } from '../../src/explorer/model/GatewayAssoc
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -517,6 +518,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 allChildren.length.should.equal(3);
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
+                let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(1);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[0]);
                 channelChildrenOne.length.should.equal(1);
 
@@ -527,6 +532,11 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 instantiatedTreeItemOne.label.should.equal('biscuit-network@0.7');
                 instantiatedTreeItemOne.contextValue.should.equal('blockchain-instantiated-multi-contract-item');
                 instantiatedTreeItemOne.channel.label.should.equal('channelOne');
+
+                instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channels[1]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(2);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[1]);
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]);
                 channelChildrenTwo.length.should.equal(2);
@@ -599,6 +609,12 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 channelTwo.contextValue.should.equal('blockchain-channel-item');
                 channelTwo.label.should.equal('channelTwo');
                 channelTwo.peers.should.deep.equal(['peerOne', 'peerTwo']);
+
+                const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(2);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[1]);
+
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
 
@@ -628,6 +644,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
+                let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(1);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
@@ -643,6 +663,11 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 instantiatedChaincodeItemOne.contracts.should.deep.equal(['my-contract', 'someOtherContract']);
 
                 const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
+
+                instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channels[1]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(2);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[1]);
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
@@ -676,6 +701,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
 
+                let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(1);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
 
@@ -693,6 +722,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 contractsOne[1].collapsibleState.should.equal(vscode.TreeItemCollapsibleState.Collapsed);
 
                 const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
+
+                instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channelTwo) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(2);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);
@@ -730,6 +763,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+
+                const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(1);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
@@ -770,12 +807,16 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                         }
                     }
                 );
-                const channels: ChannelTreeItem = allChildren[2] as ChannelTreeItem;
+                const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
-                const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels);
-                const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[1]);
+                const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(2);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[1]);
 
-                const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildrenTwo[0] as InstantiatedContractTreeItem;
+                const channelChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channels[1]);
+
+                const instantiatedChaincodeItemOne: InstantiatedContractTreeItem = channelChildren[0] as InstantiatedContractTreeItem;
 
                 const transactions: Array<TransactionTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedChaincodeItemOne) as Array<TransactionTreeItem>;
                 transactions.length.should.equal(2);
@@ -801,6 +842,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 const channels: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
 
                 const channelOne: ChannelTreeItem = channels[0] as ChannelTreeItem;
+
+                let instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(1);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 
                 const channelChildrenOne: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelOne);
                 channelChildrenOne.length.should.equal(1);
@@ -837,6 +882,10 @@ ${FabricWalletUtil.LOCAL_WALLET}`);
                 transactionsOneSomeOtherContract[1].contractName.should.equal('someOtherContract');
 
                 const channelTwo: ChannelTreeItem = channels[1] as ChannelTreeItem;
+
+                instantiatedUnknownChainCodes = await blockchainGatewayExplorerProvider.getChildren(channelTwo) as Array<InstantiatedUnknownTreeItem>;
+                instantiatedUnknownChainCodes.length.should.equal(2);
+                await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
 
                 const channelChildrenTwo: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelTwo);
                 channelChildrenTwo.length.should.equal(2);

@@ -329,7 +329,7 @@
             },
             {
                 "command": "gatewaysExplorer.testSmartContractEntry",
-                "title": "Generate Tests for Smart Contract",
+                "title": "Generate Tests for Smart Contract(s)",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -612,7 +612,7 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
-                    "command": "gatewaysExplorer.testAllSmartContractEntry",
+                    "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item"
                 },
                 {
@@ -622,6 +622,10 @@
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-contract-item"
+                },
+                {
+                    "command": "gatewaysExplorer.testSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-unknown-item"
                 },
                 {
                     "command": "gatewaysExplorer.submitTransactionEntry",
