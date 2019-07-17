@@ -201,7 +201,7 @@ describe('FabricRuntime', () => {
 
     });
 
-    ['generate', 'start', 'stop', 'teardown'].forEach((verb: string) => {
+    ['generate', 'start', 'stop', 'teardown', 'kill_chaincode'].forEach((verb: string) => {
 
         describe(`#${verb}`, () => {
 
@@ -222,17 +222,36 @@ describe('FabricRuntime', () => {
             it(`should execute the ${verb}.sh script and handle success for non-development mode (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
-                await runtime[verb]();
+
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                }
+
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb]();
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1']);
+                }
+
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
+
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('30s');
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
+                }
+
+                if (verb === 'kill_chaincode') {
+                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any);
+                } else {
+                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 }
             });
 
@@ -240,31 +259,66 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('linux');
                 runtime.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
-                await runtime[verb]();
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                }
+
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb]();
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1']);
+                }
+
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('99999s');
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
+                }
+
+                if (verb === 'kill_chaincode') {
+                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any);
+                } else {
+                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
                 }
             });
 
             it(`should execute the ${verb}.sh script and handle an error (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                    return mockFailureCommand();
-                });
-                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
-                spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
+                        return mockFailureCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockFailureCommand();
+                    });
+                }
+
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1']).should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh, mySmartContract, 0.0.1" return code 1`);
+                }
+
+                spawnStub.should.have.been.calledOnce;
+
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
+                } else {
+                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any);
+                }
+
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -272,102 +326,137 @@ describe('FabricRuntime', () => {
             it(`should execute the ${verb}.sh script using a custom output adapter (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                }
+
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
-                await runtime[verb](outputAdapter);
+
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb](outputAdapter);
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1'], outputAdapter);
+                }
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
                 }
             });
 
-            it(`should publish busy events and set state before and after handling success (Linux/MacOS)`, async () => {
-                sandbox.stub(process, 'platform').value('linux');
-                const eventStub: sinon.SinonStub = sinon.stub();
-                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
-                runtime.on('busy', eventStub);
+            if (verb !== 'kill_chaincode') {
 
-                if (verb === 'generate' || verb === 'start') {
-                    isRunningStub.resolves(true);
-                } else {
-                    isRunningStub.resolves(false);
-                }
+                it(`should publish busy events and set state before and after handling success (Linux/MacOS)`, async () => {
 
-                await runtime[verb]();
-                eventStub.should.have.been.calledTwice;
-                eventStub.should.have.been.calledWithExactly(true);
-                eventStub.should.have.been.calledWithExactly(false);
+                    sandbox.stub(process, 'platform').value('linux');
+                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                    runtime.on('busy', eventStub);
 
-                if (verb === 'generate' || verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+                    if (verb === 'generate' || verb === 'start') {
+                        isRunningStub.resolves(true);
+                    } else {
+                        isRunningStub.resolves(false);
+                    }
 
-                } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
-                    stopLogsStub.should.have.been.called;
-                }
-            });
+                    await runtime[verb]();
+                    eventStub.should.have.been.calledTwice;
+                    eventStub.should.have.been.calledWithExactly(true);
+                    eventStub.should.have.been.calledWithExactly(false);
 
-            it(`should publish busy events and set state before and after handling an error (Linux/MacOS)`, async () => {
-                sandbox.stub(process, 'platform').value('linux');
-                const eventStub: sinon.SinonStub = sinon.stub();
-                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                    return mockFailureCommand();
+                    if (verb === 'generate' || verb === 'start') {
+                        runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+
+                    } else if (verb === 'stop' || verb === 'teardown') {
+                        runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+                        stopLogsStub.should.have.been.called;
+                    }
                 });
 
-                if (verb === 'generate' || verb === 'start') {
-                    isRunningStub.resolves(false);
-                } else {
-                    isRunningStub.resolves(true);
-                }
-                runtime.on('busy', eventStub);
+                it(`should publish busy events and set state before and after handling an error (Linux/MacOS)`, async () => {
 
-                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
-                eventStub.should.have.been.calledTwice;
-                eventStub.should.have.been.calledWithExactly(true);
-                eventStub.should.have.been.calledWithExactly(false);
+                    sandbox.stub(process, 'platform').value('linux');
+                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
+                        return mockFailureCommand();
+                    });
 
-                if (verb === 'generate' || verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+                    if (verb === 'generate' || verb === 'start') {
+                        isRunningStub.resolves(false);
+                    } else {
+                        isRunningStub.resolves(true);
+                    }
+                    runtime.on('busy', eventStub);
 
-                } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
-                    stopLogsStub.should.have.been.called;
-                }
-            });
+                    await runtime[verb]().should.be.rejectedWith(`Failed to execute command "/bin/sh" with  arguments "${verb}.sh" return code 1`);
+                    eventStub.should.have.been.calledTwice;
+                    eventStub.should.have.been.calledWithExactly(true);
+                    eventStub.should.have.been.calledWithExactly(false);
+
+                    if (verb === 'generate' || verb === 'start') {
+                        runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+
+                    } else if (verb === 'stop' || verb === 'teardown') {
+                        runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+                        stopLogsStub.should.have.been.called;
+                    }
+                });
+            }
 
             it(`should execute the ${verb}.cmd script and handle success for non-development mode (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
-                await runtime[verb]();
+
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                }
+
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb]();
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1']);
+                }
+
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+                } else {
+                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any);
+                }
+
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('30s');
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -376,16 +465,32 @@ describe('FabricRuntime', () => {
                 sandbox.stub(process, 'platform').value('win32');
                 runtime.developmentMode = true;
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
-                await runtime[verb]();
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                }
+
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb]();
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1']);
+                }
+
                 spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+                } else {
+                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any);
+                }
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('99999s');
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -393,14 +498,31 @@ describe('FabricRuntime', () => {
             it(`should execute the ${verb}.cmd script and handle an error (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                    return mockFailureCommand();
-                });
-                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
-                spawnStub.should.have.been.calledOnce;
-                spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
+                        return mockFailureCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockFailureCommand();
+                    });
+                }
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1']).should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd, mySmartContract, 0.0.1" return code 1`);
+                }
+
+                spawnStub.should.have.been.calledOnce;
+
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
+                } else {
+                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any);
+                }
+
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
                 }
             });
@@ -408,88 +530,107 @@ describe('FabricRuntime', () => {
             it(`should execute the ${verb}.cmd script using a custom output adapter (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
-                });
+                if (verb !== 'kill_chaincode') {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                } else {
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+                }
+
                 const outputAdapter: sinon.SinonStubbedInstance<TestFabricOutputAdapter> = sinon.createStubInstance(TestFabricOutputAdapter);
-                await runtime[verb](outputAdapter);
+                if (verb !== 'kill_chaincode') {
+                    await runtime[verb](outputAdapter);
+                } else {
+                    await runtime['killChaincode'](['mySmartContract', '0.0.1'], outputAdapter);
+                }
                 outputAdapter.log.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'stdout');
                 outputAdapter.log.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'stderr');
 
-                if (verb !== 'generate' && verb !== 'start') {
+                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
                 }
             });
 
-            it(`should publish busy events and set state before and after handling success (Windows)`, async () => {
-                sandbox.stub(process, 'platform').value('win32');
-                const eventStub: sinon.SinonStub = sinon.stub();
-                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                    return mockSuccessCommand();
+            if (verb !== 'kill_chaincode') {
+
+                it(`should publish busy events and set state before and after handling success (Windows)`, async () => {
+                    if (verb === 'kill_chaincode') {
+                        // don't need to do test for kill chaincode
+                        return;
+                    }
+
+                    sandbox.stub(process, 'platform').value('win32');
+                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
+                        return mockSuccessCommand();
+                    });
+
+                    if (verb === 'generate' || verb === 'start') {
+                        isRunningStub.resolves(true);
+                    } else {
+                        isRunningStub.resolves(false);
+                    }
+
+                    runtime.on('busy', eventStub);
+                    await runtime[verb]();
+                    eventStub.should.have.been.calledTwice;
+                    eventStub.should.have.been.calledWithExactly(true);
+                    eventStub.should.have.been.calledWithExactly(false);
+
+                    if (verb === 'generate' || verb === 'start') {
+                        runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+
+                    } else if (verb === 'stop' || verb === 'teardown') {
+                        runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
+                        stopLogsStub.should.have.been.called;
+                    }
                 });
 
-                if (verb === 'generate' || verb === 'start') {
-                    isRunningStub.resolves(true);
-                } else {
-                    isRunningStub.resolves(false);
-                }
+                it(`should publish busy events and set state before and after handling an error (Windows)`, async () => {
+                    sandbox.stub(process, 'platform').value('win32');
+                    const eventStub: sinon.SinonStub = sinon.stub();
+                    const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
+                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
+                        return mockFailureCommand();
+                    });
+                    runtime.on('busy', eventStub);
 
-                runtime.on('busy', eventStub);
-                await runtime[verb]();
-                eventStub.should.have.been.calledTwice;
-                eventStub.should.have.been.calledWithExactly(true);
-                eventStub.should.have.been.calledWithExactly(false);
+                    if (verb === 'generate' || verb === 'start') {
+                        isRunningStub.resolves(false);
+                    } else {
+                        isRunningStub.resolves(true);
+                    }
 
-                if (verb === 'generate' || verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+                    await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
+                    eventStub.should.have.been.calledTwice;
+                    eventStub.should.have.been.calledWithExactly(true);
+                    eventStub.should.have.been.calledWithExactly(false);
 
-                } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
-                    stopLogsStub.should.have.been.called;
-                }
-            });
+                    if (verb === 'generate' || verb === 'start') {
+                        runtime.getState().should.equal(FabricRuntimeState.STOPPED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
 
-            it(`should publish busy events and set state before and after handling an error (Windows)`, async () => {
-                sandbox.stub(process, 'platform').value('win32');
-                const eventStub: sinon.SinonStub = sinon.stub();
-                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                    return mockFailureCommand();
+                    } else if (verb === 'stop' || verb === 'teardown') {
+                        runtime.getState().should.equal(FabricRuntimeState.STARTED);
+                        setStateSpy.should.have.been.calledTwice;
+                        setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
+                        setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
+                        stopLogsStub.should.have.been.called;
+                    }
                 });
-                runtime.on('busy', eventStub);
-
-                if (verb === 'generate' || verb === 'start') {
-                    isRunningStub.resolves(false);
-                } else {
-                    isRunningStub.resolves(true);
-                }
-
-                await runtime[verb]().should.be.rejectedWith(`Failed to execute command "cmd" with  arguments "/c, ${verb}.cmd" return code 1`);
-                eventStub.should.have.been.calledTwice;
-                eventStub.should.have.been.calledWithExactly(true);
-                eventStub.should.have.been.calledWithExactly(false);
-
-                if (verb === 'generate' || verb === 'start') {
-                    runtime.getState().should.equal(FabricRuntimeState.STOPPED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STARTING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STOPPED);
-
-                } else if (verb === 'stop' || verb === 'teardown') {
-                    runtime.getState().should.equal(FabricRuntimeState.STARTED);
-                    setStateSpy.should.have.been.calledTwice;
-                    setStateSpy.firstCall.should.have.been.calledWith(FabricRuntimeState.STOPPING);
-                    setStateSpy.secondCall.should.have.been.calledWith(FabricRuntimeState.STARTED);
-                    stopLogsStub.should.have.been.called;
-                }
-            });
+            }
 
             if (verb === 'teardown') {
 

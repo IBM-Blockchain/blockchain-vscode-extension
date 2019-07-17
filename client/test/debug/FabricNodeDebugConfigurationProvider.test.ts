@@ -25,7 +25,6 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import * as dateFormat from 'dateformat';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../src/util/Reporter';
 
@@ -33,6 +32,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -57,7 +57,6 @@ describe('FabricNodeDebugConfigurationProvider', () => {
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;
-        let clock: sinon.SinonFakeTimers;
         let fabricDebugConfig: FabricNodeDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -65,19 +64,12 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let registryEntry: FabricGatewayRegistryEntry;
-        let date: Date;
-        let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
-        let newDebugVersionStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
-            clock = sinon.useFakeTimers({ toFake: ['Date'] });
-            date = new Date();
-            formattedDate = dateFormat(date, 'yyyymmddHHMMss');
-            newDebugVersionStub = mySandbox.stub(ExtensionUtil, 'getNewDebugVersion');
-            newDebugVersionStub.resolves(`vscode-debug-${formattedDate}`);
+
             fabricDebugConfig = new FabricNodeDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -146,14 +138,13 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
                 globalState: {
                     get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.33'
+                        generatorVersion: '0.0.35'
                     })
                 }
             });
         });
 
         afterEach(() => {
-            clock.restore();
             mySandbox.restore();
         });
 
@@ -167,7 +158,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
@@ -186,7 +178,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
@@ -205,7 +198,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
@@ -224,7 +218,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
@@ -242,7 +237,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
@@ -260,7 +256,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
@@ -278,7 +275,8 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });

@@ -130,10 +130,16 @@ export async function createSmartContractProject(): Promise<void> {
 
 function getChaincodeLanguageOptions(): string[] {
     return GeneratorFabricPackageJSON.chaincodeLanguages;
+
 }
 
 function getSmartContractLanguageOptions(): string[] {
-    return GeneratorFabricPackageJSON.contractLanguages;
+     // change this back once support java
+     const languages: string[] = GeneratorFabricPackageJSON.contractLanguages;
+     return languages.filter((language: string) => {
+         return language !== 'Java';
+     });
+
 }
 
 async function isXcodeInstalled(): Promise<any> {

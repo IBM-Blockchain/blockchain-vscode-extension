@@ -37,6 +37,7 @@ import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentMana
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
 chai.use(sinonChai);
 
@@ -76,6 +77,7 @@ describe('InstantiateCommand', () => {
             fabricRuntimeMock = sinon.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.instantiateChaincode.resolves();
+            fabricRuntimeMock.getInstalledChaincode.resolves(new Map());
 
             environmentConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricRuntimeMock));
 
@@ -543,6 +545,81 @@ describe('InstantiateCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should not package or install if already packackaged or installed', async () => {
+            const workspaceFolder: any = {
+                name: 'beer',
+                uri: vscode.Uri.file('myPath')
+            };
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    env: {
+                        CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
+                    }
+                }
+            };
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+
+            const packageRegistryEntry: PackageRegistryEntry = new PackageRegistryEntry();
+            packageRegistryEntry.name = 'beer';
+            packageRegistryEntry.version = 'vscode-debug-123456';
+            mySandBox.stub(PackageRegistry.instance(), 'get').resolves(packageRegistryEntry);
+
+            const installedChaincodeMap: Map<string, string[]> = new Map<string, string[]>();
+            installedChaincodeMap.set('beer', ['vscode-debug-123456']);
+
+            fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('beer', 'vscode-debug-123456', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('instantiateCommand');
+        });
+
+        it('should install if not correct version installed', async () => {
+            executeCommandStub.withArgs(ExtensionCommands.PACKAGE_SMART_CONTRACT).resolves({ name: 'beer', version: 'vscode-debug-123456', path: undefined });
+
+            const workspaceFolder: any = {
+                name: 'beer',
+                uri: vscode.Uri.file('myPath')
+            };
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([workspaceFolder]);
+            const activeDebugSessionStub: any = {
+                configuration: {
+                    env: {
+                        CORE_CHAINCODE_ID_NAME: 'beer:vscode-debug-123456'
+                    }
+                }
+            };
+
+            mySandBox.stub(vscode.debug, 'activeDebugSession').value(activeDebugSessionStub);
+
+            const installedChaincodeMap: Map<string, string[]> = new Map<string, string[]>();
+            installedChaincodeMap.set('beer', ['vscode-debug-wrong']);
+
+            fabricRuntimeMock.getInstalledChaincode.resolves(installedChaincodeMap);
+            await vscode.commands.executeCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
+
+            fabricRuntimeMock.instantiateChaincode.should.have.been.calledWith('beer', 'vscode-debug-123456', ['peerHi', 'peerHa'], 'someChannelName', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+
+            dockerLogsOutputSpy.should.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'instantiateSmartContract');
+            logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully instantiated smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT);
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
+            sendTelemetryEventStub.should.have.been.calledTwice;
+            sendTelemetryEventStub.should.have.been.calledWithExactly('installCommand');
+            sendTelemetryEventStub.should.have.been.calledWithExactly('instantiateCommand');
         });
 
         it('should hand the package command failing when called the command is called during a debug session', async () => {

@@ -429,7 +429,10 @@ describe('Extension Tests', () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
         const session: any = {
-            some: 'thing'
+            some: 'thing',
+            configuration: {
+                env: {}
+            }
         };
         mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
@@ -437,6 +440,26 @@ describe('Extension Tests', () => {
         await myExtension.activate(context);
         executeCommand.should.have.been.calledOnce;
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+    });
+
+    it('should call command if one set', async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+
+        const session: any = {
+            some: 'thing',
+            configuration: {
+                env: {
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                }
+            }
+        };
+        mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+        const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommand.should.have.been.calledWith(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     });
 
     it('should set blockchain-debug false when no debug session', async () => {
