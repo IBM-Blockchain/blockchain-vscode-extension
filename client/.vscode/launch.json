@@ -31,7 +31,25 @@
         "${workspaceFolder}/out/test/**/*.js"
       ],
       "preLaunchTask": "npm: watch"
-    }, {
+    },
+    {
+      "name": "Debug Unit Tests (no coverage)",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/test"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/test/**/*.js"
+      ],
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "WITHOUTCOVERAGE": "true"
+      }
+    },
+    {
       "name": "Node Integration Tests",
       "type": "extensionHost",
       "request": "launch",

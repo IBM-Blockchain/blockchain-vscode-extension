@@ -29,9 +29,13 @@ export class FabricJavaDebugConfigurationProvider extends FabricDebugConfigurati
         ];
     }
 
-    protected async getChaincodeName(): Promise<string> {
+    protected async getChaincodeNameAndVersion(): Promise<{name: string, version: string}> {
         const name: string = await UserInputUtil.showInputBox('Enter a name for your Java package'); // Getting the specified name and package from the user
-        return name;
+        if (!name) {
+            return;
+        }
+        const version: string = await UserInputUtil.showInputBox('Enter a version for your Java package');
+        return {name, version};
     }
 
     protected async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration): Promise<vscode.DebugConfiguration> {

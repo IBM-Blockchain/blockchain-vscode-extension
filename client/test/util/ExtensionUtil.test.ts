@@ -20,7 +20,6 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import * as fs from 'fs-extra';
 import * as chaiAsPromised from 'chai-as-promised';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import * as dateFormat from 'dateformat';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -29,7 +28,6 @@ chai.use(chaiAsPromised);
 describe('ExtensionUtil Tests', () => {
 
     let mySandBox: sinon.SinonSandbox;
-    let clock: sinon.SinonFakeTimers;
     const workspaceFolder: any = {
         name: 'myFolder',
         uri: vscode.Uri.file('myPath')
@@ -331,23 +329,6 @@ describe('ExtensionUtil Tests', () => {
             mySandBox.stub(os, 'networkInterfaces').returns(_interface);
             const result: boolean = ExtensionUtil.checkIfIBMer();
             result.should.equal(false);
-        });
-    });
-
-    describe('getNewDebugVersion', () => {
-
-        afterEach(() => {
-            clock.restore();
-        });
-
-        it('return a new debug version', () => {
-            clock = sinon.useFakeTimers({ toFake: ['Date'] });
-            const date: Date = new Date();
-            const formattedDate: string = dateFormat(date, 'yyyymmddHHMMss');
-
-            const result: string = ExtensionUtil.getNewDebugVersion();
-            result.should.equal(`vscode-debug-${formattedDate}`);
-
         });
     });
 });

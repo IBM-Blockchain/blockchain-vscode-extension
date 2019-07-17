@@ -50,12 +50,14 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
     }
 
     try {
-        console.log('setting up coverage');
-        const coverOptions: ITestRunnerOptions = _readCoverOptions();
-        if (coverOptions && coverOptions.enabled) {
-            // Setup coverage pre-test, including post-test hook to report
-            const coverageRunner: CoverageRunner = new CoverageRunner(coverOptions, testsRoot);
-            coverageRunner.setupCoverage();
+        if (!process.env.WITHOUTCOVERAGE) {
+            console.log('setting up coverage');
+            const coverOptions: ITestRunnerOptions = _readCoverOptions();
+            if (coverOptions && coverOptions.enabled) {
+                // Setup coverage pre-test, including post-test hook to report
+                const coverageRunner: CoverageRunner = new CoverageRunner(coverOptions, testsRoot);
+                coverageRunner.setupCoverage();
+            }
         }
 
         console.log('finding files', testsRoot);
