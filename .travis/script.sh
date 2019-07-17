@@ -89,6 +89,7 @@ else
     if [ $TRAVIS_OS_NAME == "windows" ]; then
         export CODE_DOWNLOAD_URL="https://vscode-update.azurewebsites.net/1.32.0/win32-x64-archive/stable"
     fi
-    npm test
+
     npm run package
+    npm test
 fi

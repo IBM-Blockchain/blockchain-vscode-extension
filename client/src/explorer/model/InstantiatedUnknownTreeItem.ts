@@ -12,12 +12,10 @@
  * limitations under the License.
 */
 
-// tslint:disable no-var-requires
-const integrationTestRunner: any = require('vscode/lib/testrunner');
+'use strict';
 
-integrationTestRunner.configure({
-    ui: 'bdd',
-    useColors: true
-});
+import { InstantiatedTreeItem } from './InstantiatedTreeItem';
 
-module.exports = integrationTestRunner;
+export class InstantiatedUnknownTreeItem extends InstantiatedTreeItem {
+    contextValue: string = 'blockchain-instantiated-unknown-item';
+}

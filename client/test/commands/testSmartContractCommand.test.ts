@@ -38,6 +38,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../../src/util/ExtensionUtil';
+import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -82,7 +83,7 @@ describe('testSmartContractCommand', () => {
     let workspaceConfigurationGetStub: sinon.SinonStub;
     let writeJsonStub: sinon.SinonStub;
     let fakeMetadata: any;
-    let moreFakeMetatdata: any;
+    let moreFakeMetadata: any;
     let transactionOne: any;
     let transactionTwo: any;
     let transactionThree: any;
@@ -176,7 +177,7 @@ describe('testSmartContractCommand', () => {
                 }
             };
 
-            moreFakeMetatdata = {
+            moreFakeMetadata = {
                 contracts: {
                     'my-contract': {
                         name: 'my-contract',
@@ -313,7 +314,7 @@ describe('testSmartContractCommand', () => {
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
             const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             openTextDocumentStub.should.have.been.calledWith(testFunctionUri.fsPath);
             openTextDocumentStub.should.have.been.calledTwice;
@@ -423,7 +424,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(os, 'homedir').returns('homedir');
             gatewayRegistryEntry.connectionProfilePath = 'homedir/myPath';
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             const templateData: string = mockEditBuilderReplaceSpy.args[0][1];
 
             templateData.includes(`path.join(homedir, 'myPath')`).should.be.true;
@@ -569,7 +570,7 @@ describe('testSmartContractCommand', () => {
         it('should do nothing if user cancels selecting a test language', async () => {
             showLanguageQuickPickStub.resolves(undefined);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             logSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, `testSmartContractCommand`);
             workspaceFoldersStub.should.not.have.been.called;
         });
@@ -593,7 +594,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetatdata);
+            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, instantiatedSmartContract);
             openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
@@ -605,18 +606,18 @@ describe('testSmartContractCommand', () => {
             const firstTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
             firstTemplateData.includes('my-contract').should.be.true;
             firstTemplateData.includes(smartContractLabel).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[1].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
 
             const secondTemplateData: string = mockEditBuilderReplaceSpy.args[3][1];
             secondTemplateData.includes('my-other-contract').should.be.true;
             secondTemplateData.includes(smartContractLabel).should.be.true;
-            secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[0].name).should.be.true;
-            secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[1].name).should.be.true;
-            secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
+            secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[0].name).should.be.true;
+            secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
+            secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
 
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -628,10 +629,13 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetatdata);
+            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
             const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
+            const instantiatedUnknownChainCodes: Array<InstantiatedUnknownTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedUnknownTreeItem>;
+            await blockchainGatewayExplorerProvider.getChildren(instantiatedUnknownChainCodes[0]);
+
             const instantiatedTreeItems: Array<InstantiatedContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(channelChildren[0]) as Array<InstantiatedContractTreeItem>;
             const contractTreeItems: Array<ContractTreeItem> = await blockchainGatewayExplorerProvider.getChildren(instantiatedTreeItems[0]) as Array<ContractTreeItem>;
 
@@ -646,10 +650,10 @@ describe('testSmartContractCommand', () => {
             const firstTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
             firstTemplateData.includes('my-contract').should.be.true;
             firstTemplateData.includes(smartContractLabel).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[1].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
 
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -663,7 +667,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetatdata);
+            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
             mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves('my-contract');
 
@@ -680,10 +684,10 @@ describe('testSmartContractCommand', () => {
             const firstTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
             firstTemplateData.includes('my-contract').should.be.true;
             firstTemplateData.includes(smartContractLabel).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[1].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
 
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -697,9 +701,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetatdata);
-
-            mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves('my-contract');
+            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT);
             openTextDocumentStub.should.have.been.calledWith(firstTestUri.fsPath);
@@ -711,18 +713,18 @@ describe('testSmartContractCommand', () => {
             const firstTemplateData: string = mockEditBuilderReplaceSpy.args[1][1];
             firstTemplateData.includes('my-contract').should.be.true;
             firstTemplateData.includes(smartContractLabel).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[1].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
-            firstTemplateData.includes(moreFakeMetatdata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[1].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[0].name).should.be.true;
+            firstTemplateData.includes(moreFakeMetadata.contracts['my-contract'].transactions[0].parameters[1].name).should.be.true;
             firstTemplateData.includes(`const args = [];`).should.be.true;
 
             const secondTemplateData: string = mockEditBuilderReplaceSpy.args[3][1];
             secondTemplateData.includes('my-other-contract').should.be.true;
             secondTemplateData.includes(smartContractLabel).should.be.true;
-            secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[0].name).should.be.true;
-            secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[1].name).should.be.true;
-            secondTemplateData.includes(moreFakeMetatdata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
+            secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[0].name).should.be.true;
+            secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[1].name).should.be.true;
+            secondTemplateData.includes(moreFakeMetadata.contracts['my-other-contract'].transactions[0].parameters[0].name).should.be.true;
             secondTemplateData.includes(`const args = [];`).should.be.true;
 
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('testSmartContractCommand', {testSmartContractLanguage: 'JavaScript'});
@@ -740,9 +742,7 @@ describe('testSmartContractCommand', () => {
             pathExistsStub.resolves(false);
             pathExistsStub.onCall(3).resolves(true);
 
-            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetatdata);
-
-            mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves('my-contract');
+            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT);
             openTextDocumentStub.getCall(0).should.have.been.calledWith(testUtilUri.fsPath);
@@ -756,7 +756,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
-            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetatdata);
+            fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
             mySandBox.stub(UserInputUtil, 'showContractQuickPick').resolves();
 
@@ -810,7 +810,7 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(fs, 'pathExists').resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.YES);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.called;
             showTextDocumentStub.should.have.been.called;
@@ -894,7 +894,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}-copy1.test.js`);
             const testUri: vscode.Uri = vscode.Uri.file(testFilePath);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
             openTextDocumentStub.should.have.been.calledWith(testUri.fsPath);
             showTextDocumentStub.should.have.been.called;
@@ -982,7 +982,7 @@ describe('testSmartContractCommand', () => {
 
             mockTextEditor.edit.resolves(false);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             openTextDocumentStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
@@ -1051,7 +1051,7 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', `js-smart-contract-util.js`);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);

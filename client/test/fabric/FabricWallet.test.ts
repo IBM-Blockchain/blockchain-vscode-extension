@@ -12,9 +12,17 @@
  * limitations under the License.
 */
 
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import * as sinon from 'sinon';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { FileSystemWallet, X509WalletMixin } from 'fabric-network';
+import { FabricIdentity } from '../../src/fabric/FabricIdentity';
+import { IFabricWallet } from '../../src/fabric/IFabricWallet';
+
+chai.use(chaiAsPromised);
 
 describe('FabricWallet', () => {
     let mySandBox: sinon.SinonSandbox;
@@ -56,7 +64,7 @@ describe('FabricWallet', () => {
 
         it('should import identity', async () => {
             const wallet: FabricWallet = new FabricWallet('path');
-            mySandBox.stub(wallet, 'list').resolves([
+            mySandBox.stub(FileSystemWallet.prototype, 'list').resolves([
                 {
                     some: 'thing',
                     label: 'label1'
@@ -73,6 +81,68 @@ describe('FabricWallet', () => {
 
             const identityNames: string[] = await wallet.getIdentityNames();
             identityNames.should.deep.equal(['label1', 'label2', 'label3']);
+        });
+    });
+
+    describe('#getIdentities', () => {
+
+        it('should return any identities', async () => {
+            const wallet: IFabricWallet = new FabricWallet('/some/path');
+            mySandBox.stub(FabricWallet.prototype, 'getWalletPath').returns('/some/path');
+            const readdirStub: sinon.SinonStub = mySandBox.stub(fs, 'readdir').resolves(['/dir/identity_a', '/dir/identity_b', '/dir/identity_c']);
+            const basenameSpy: sinon.SinonSpy = mySandBox.spy(path, 'basename');
+            const resolveSpy: sinon.SinonSpy = mySandBox.spy(path, 'resolve');
+            const readJsonStub: sinon.SinonStub = mySandBox.stub(fs, 'readJson');
+
+            const identityOne: FabricIdentity = {
+                affiliation: '',
+                enrollment: {},
+                enrollmentSecret: '',
+                mspid: 'Org1MSP',
+                name: 'identity_a',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            const identityTwo: FabricIdentity = {
+                affiliation: '',
+                enrollment: {},
+                enrollmentSecret: '',
+                mspid: 'Org1MSP',
+                name: 'identity_b',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            const identityThree: FabricIdentity = {
+                affiliation: '',
+                enrollment: {},
+                enrollmentSecret: '',
+                mspid: 'Org1MSP',
+                name: 'identity_c',
+                roles: null
+            } as unknown as FabricIdentity;
+
+            readJsonStub.onCall(0).resolves(identityOne);
+            readJsonStub.onCall(1).resolves(identityTwo);
+            readJsonStub.onCall(2).resolves(identityThree);
+
+            const identities: FabricIdentity[] = await wallet.getIdentities();
+
+            basenameSpy.getCall(0).returnValue.should.equal('identity_a');
+            basenameSpy.getCall(1).returnValue.should.equal('identity_b');
+            basenameSpy.getCall(2).returnValue.should.equal('identity_c');
+
+            resolveSpy.getCall(0).should.have.been.calledWithExactly('/some/path', '/dir/identity_a', 'identity_a');
+            resolveSpy.getCall(1).should.have.been.calledWithExactly('/some/path', '/dir/identity_b', 'identity_b');
+            resolveSpy.getCall(2).should.have.been.calledWithExactly('/some/path', '/dir/identity_c', 'identity_c');
+
+            readJsonStub.getCall(0).should.have.been.calledWithExactly('/dir/identity_a/identity_a');
+            readJsonStub.getCall(1).should.have.been.calledWithExactly('/dir/identity_b/identity_b');
+            readJsonStub.getCall(2).should.have.been.calledWithExactly('/dir/identity_c/identity_c');
+
+            readdirStub.should.have.been.calledOnceWithExactly('/some/path');
+
+            identities.should.deep.equal([identityOne, identityTwo, identityThree]);
+
         });
     });
 });

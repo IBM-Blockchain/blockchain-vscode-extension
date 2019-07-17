@@ -22,7 +22,7 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../util/Reporter';
 import { CommandUtil } from '../util/CommandUtil';
-import { InstantiatedContractTreeItem } from '../explorer/model/InstantiatedContractTreeItem';
+import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { MetadataUtil } from '../util/MetadataUtil';
 import { LogType } from '../logging/OutputAdapter';
@@ -32,7 +32,7 @@ import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
 import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../util/ExtensionUtil';
 
-export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedContractTreeItem | ContractTreeItem): Promise<void> {
+export async function testSmartContract(allContracts: boolean, chaincode?: InstantiatedTreeItem | ContractTreeItem): Promise<void> {
 
     let chaincodeLabel: string;
     let chosenChaincode: IBlockchainQuickPickItem<{ name: string, channel: string, version: string }>;
@@ -82,7 +82,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
 
     let transactions: Map<string, any[]> = await MetadataUtil.getTransactions(connection, chaincodeName, channelName, true);
-    if (transactions.size === 0) {
+    if (!transactions || transactions.size === 0) {
         outputAdapter.log(LogType.ERROR, `Populated metadata required for generating smart contract tests, see previous error`);
 
         return;

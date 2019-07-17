@@ -23,10 +23,10 @@ import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { PackageRegistry } from '../packages/PackageRegistry';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -99,13 +99,6 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
             // Upgrade command called from debug session - get the chaincode ID name
             smartContractName = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
             smartContractVersion = vscode.debug.activeDebugSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
-            const oldVersion: string = vscode.debug.activeDebugSession.configuration.env.OLD_CHAINCODE_VERSION;
-            // old version is set when there is a running container, if there is then we will have already set the CORE_CHAINCODE_ID_NAME to a updated version
-            // so don't get a new version
-            if (!oldVersion) {
-                // Create a new version to upgrade with
-                smartContractVersion = ExtensionUtil.getNewDebugVersion();
-            }
         }
 
         if ((chosenChaincode && chosenChaincode.description === 'Open Project')) {
@@ -118,20 +111,40 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
             }
         } else if (vscode.debug.activeDebugSession) {
             // Called from debug session so override package command parameters with smart contract name and version
-            packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, vscode.debug.activeDebugSession.workspaceFolder, smartContractName, smartContractVersion) as PackageRegistryEntry;
-            if (!packageToInstall) {
-                return;
+            const packageRegistryEntry: PackageRegistryEntry = await PackageRegistry.instance().get(smartContractName, smartContractVersion);
+            if (!packageRegistryEntry) {
+                packageToInstall = await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, vscode.debug.activeDebugSession.workspaceFolder, smartContractName, smartContractVersion) as PackageRegistryEntry;
+                if (!packageToInstall) {
+                    return;
+                }
+            } else {
+                packageToInstall = packageRegistryEntry;
             }
 
         }
         if ((chosenChaincode && chosenChaincode.description === 'Open Project') || (chosenChaincode && chosenChaincode.description === 'Packaged') || vscode.debug.activeDebugSession) {
-            // Install smart contract package
-            packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, packageToInstall) as PackageRegistryEntry;
-            if (!packageEntry) {
-                return;
+            let doInstall: boolean = true;
+            if (vscode.debug.activeDebugSession) {
+                // on local fabric so assume one peer
+                const installedChaincode: Map<string, string[]> = await connection.getInstalledChaincode(peerNames[0]);
+                if (installedChaincode.has(smartContractName)) {
+                    const version: string = installedChaincode.get(smartContractName).find((_version: string) => _version === smartContractVersion);
+                    if (version) {
+                        doInstall = false;
+                    }
+                }
             }
-            smartContractName = packageEntry.name;
-            smartContractVersion = packageEntry.version;
+
+            if (doInstall) {
+                // Install smart contract package
+                packageEntry = await vscode.commands.executeCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, peerNames, packageToInstall) as PackageRegistryEntry;
+                if (!packageEntry) {
+                    return;
+                }
+
+                smartContractName = packageEntry.name;
+                smartContractVersion = packageEntry.version;
+            }
         } else {
             // If the package was already installed
             smartContractName = data.packageEntry.name;
@@ -140,7 +153,7 @@ export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channe
 
         // Project should be packaged and installed. Now the package can be upgraded.
 
-        const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call?');
+        const fcn: string = await UserInputUtil.showInputBox('optional: What function do you want to call on upgrade?');
 
         let args: Array<string>;
         if (fcn) {

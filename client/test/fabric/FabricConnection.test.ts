@@ -14,6 +14,7 @@
 
 import { FabricConnection } from '../../src/fabric/FabricConnection';
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import * as fabricClient from 'fabric-client';
@@ -25,6 +26,7 @@ import { OutputAdapter } from '../../src/logging/OutputAdapter';
 
 chai.should();
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 // tslint:disable no-use-before-declare

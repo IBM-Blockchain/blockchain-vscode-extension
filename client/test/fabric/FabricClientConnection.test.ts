@@ -18,6 +18,7 @@ import * as fabricClient from 'fabric-client';
 import * as path from 'path';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { Gateway } from 'fabric-network';
@@ -31,6 +32,7 @@ import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('FabricClientConnection', () => {

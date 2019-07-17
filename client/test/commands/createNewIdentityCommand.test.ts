@@ -34,6 +34,7 @@ import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentMana
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -44,6 +45,7 @@ describe('createNewIdentityCommand', () => {
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     let certificateAuthorityTreeItem: CertificateAuthorityTreeItem;
     let inputBoxStub: sinon.SinonStub;
+    let showQuickPickYesNoStub: sinon.SinonStub;
     let identityName: string;
     let caChoseStub: sinon.SinonStub;
     let walletExistsStub: sinon.SinonStub;
@@ -61,8 +63,9 @@ describe('createNewIdentityCommand', () => {
     beforeEach(async () => {
         inputBoxStub = mySandBox.stub(UserInputUtil, 'showInputBox');
         caChoseStub = mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox').resolves('ca.name');
+        showQuickPickYesNoStub = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
-        const testFabricWallet: FabricWallet = new FabricWallet('/some/path');
+        const testFabricWallet: IFabricWallet = new FabricWallet('/some/path');
         walletExistsStub = mySandBox.stub(testFabricWallet, 'exists').resolves(false);
         importIdentityStub = mySandBox.stub(testFabricWallet, 'importIdentity').resolves();
 
@@ -107,12 +110,13 @@ describe('createNewIdentityCommand', () => {
     it('should create a new identity from a CA when called from the command palette', async () => {
         identityName = 'greenConga';
         inputBoxStub.resolves(identityName);
+        const message: string = `Successfully created identity '${identityName}'`;
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
 
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledOnce;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'greenConga', '');
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'greenConga', '', undefined);
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'greenConga', 'it\'s a secret');
         importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'greenConga', 'Org1MSP');
 
@@ -120,19 +124,20 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, message);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
     it('should create a new identity when selected from a CA in the tree', async () => {
         identityName = 'blueConga';
         inputBoxStub.resolves(identityName);
+
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
 
         inputBoxStub.should.have.been.calledOnce;
         caChoseStub.should.not.have.been.called;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'blueConga', '');
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'blueConga', '', undefined);
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'blueConga', 'it\'s a secret');
         importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'blueConga', 'Org1MSP');
 
@@ -140,7 +145,7 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Successfully created identity '${identityName}'`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
@@ -164,7 +169,7 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, `Successfully created identity '${identityName}'`);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
@@ -186,10 +191,16 @@ describe('createNewIdentityCommand', () => {
     it('should allow the user to create multiple identities from the CA', async () => {
         identityName = 'violetConga';
         inputBoxStub.resolves(identityName);
+
+        const messageOne: string = `Successfully created identity '${identityName}'`;
+
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
 
         const secondIdentityName: string = 'blueConga';
         inputBoxStub.resolves(secondIdentityName);
+
+        const messageTwo: string = `Successfully created identity '${secondIdentityName}'`;
+
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
 
         caChoseStub.should.have.been.calledOnce;
@@ -205,9 +216,9 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.callCount.should.equal(4);
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, messageOne);
         logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${secondIdentityName} to runtime gateway`);
+        logSpy.getCall(3).should.have.been.calledWith(LogType.SUCCESS, messageTwo);
         sendTelemetryEventStub.should.have.been.calledTwice;
         sendTelemetryEventStub.should.have.been.calledWithExactly('createNewIdentityCommand');
 
@@ -219,12 +230,14 @@ describe('createNewIdentityCommand', () => {
 
         identityName = 'redConga';
         inputBoxStub.resolves(identityName);
+        const message: string = `Successfully created identity '${identityName}'`;
+
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
 
         caChoseStub.should.have.been.calledOnce;
         inputBoxStub.should.have.been.calledTwice;
         walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
-        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'redConga', '');
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'redConga', '', undefined);
         mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'redConga', 'it\'s a secret');
         importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'redConga', 'otherMSP');
 
@@ -232,7 +245,7 @@ describe('createNewIdentityCommand', () => {
 
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
-        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added ${identityName} to runtime gateway`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, message);
         sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
     });
 
@@ -305,4 +318,67 @@ describe('createNewIdentityCommand', () => {
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
         logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Issue creating new identity: something bad has occurred`);
     });
+
+    it('should be able to add attributes to a new identity', async () => {
+        identityName = 'blueConga';
+        inputBoxStub.onCall(0).resolves(identityName);
+        const attributesString: string = '[{"name":"hello","value":"world","ecert":true}]';
+        inputBoxStub.onCall(1).resolves(attributesString);
+        showQuickPickYesNoStub.resolves(UserInputUtil.YES);
+        const message: string = `Successfully created identity '${identityName}' with the attributes: ${attributesString}`;
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
+
+        inputBoxStub.should.have.been.calledTwice;
+        caChoseStub.should.not.have.been.called;
+        walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
+        mockFabricRuntimeConnection.register.should.have.been.calledOnceWith('ca.name', 'blueConga', '', [{name: 'hello', value: 'world', ecert: true}]);
+        mockFabricRuntimeConnection.enroll.should.have.been.calledOnceWith('ca.name', 'blueConga', 'it\'s a secret');
+        importIdentityStub.should.have.been.calledOnceWith(sinon.match.string, sinon.match.string, 'blueConga', 'Org1MSP');
+
+        executeCommandStub.getCall(2).should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+        logSpy.should.have.been.calledTwice;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
+        logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, message);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('createNewIdentityCommand');
+
+    });
+
+    it('should be able to cancel adding attributes', async () => {
+        identityName = 'blueConga';
+        inputBoxStub.onCall(0).resolves(identityName);
+        showQuickPickYesNoStub.resolves();
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
+
+        inputBoxStub.should.have.been.calledOnce;
+        caChoseStub.should.not.have.been.called;
+        walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
+        mockFabricRuntimeConnection.register.should.not.have.been.called;
+        mockFabricRuntimeConnection.enroll.should.not.have.been.called;
+        importIdentityStub.should.not.have.been.called;
+
+        logSpy.should.have.been.calledOnce;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
+        sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('createNewIdentityCommand');
+    });
+
+    it('should stop if attributes is undefined', async () => {
+        identityName = 'blueConga';
+        inputBoxStub.onCall(0).resolves(identityName);
+        inputBoxStub.onCall(1).resolves(undefined);
+        showQuickPickYesNoStub.resolves(UserInputUtil.YES);
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
+
+        inputBoxStub.should.have.been.calledTwice;
+        caChoseStub.should.not.have.been.called;
+        walletExistsStub.should.have.been.calledOnceWithExactly(identityName);
+        mockFabricRuntimeConnection.register.should.not.have.been.called;
+        mockFabricRuntimeConnection.enroll.should.not.have.been.called;
+        importIdentityStub.should.not.have.been.called;
+
+        logSpy.should.have.been.calledOnce;
+        logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'createNewIdentity');
+        sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('createNewIdentityCommand');
+    });
+
 });

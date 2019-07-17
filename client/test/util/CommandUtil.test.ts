@@ -17,6 +17,7 @@ import * as child_process from 'child_process';
 import * as request from 'request';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { CommandUtil } from '../../src/util/CommandUtil';
@@ -27,6 +28,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlo
 
 chai.should();
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('CommandUtil Tests', () => {

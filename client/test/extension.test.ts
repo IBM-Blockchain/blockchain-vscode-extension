@@ -15,6 +15,7 @@ import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import * as path from 'path';
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { version as currentExtensionVersion } from '../package.json';
@@ -39,6 +40,7 @@ import { dependencies } from '../package.json';
 import { FabricRuntime } from '../src/fabric/FabricRuntime';
 
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('Extension Tests', () => {
@@ -427,7 +429,10 @@ describe('Extension Tests', () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
         const session: any = {
-            some: 'thing'
+            some: 'thing',
+            configuration: {
+                env: {}
+            }
         };
         mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
@@ -435,6 +440,26 @@ describe('Extension Tests', () => {
         await myExtension.activate(context);
         executeCommand.should.have.been.calledOnce;
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+    });
+
+    it('should call command if one set', async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+
+        const session: any = {
+            some: 'thing',
+            configuration: {
+                env: {
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                }
+            }
+        };
+        mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+        const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommand.should.have.been.calledWith(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     });
 
     it('should set blockchain-debug false when no debug session', async () => {
@@ -538,32 +563,6 @@ describe('Extension Tests', () => {
         const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(context.globalState, 'update');
         await myExtension.activate(context);
         updateGlobalStateSpy.should.not.have.been.calledTwice;
-    });
-
-    it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} not already generated`, async () => {
-        const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-
-        const generatorVersion: string = dependencies['generator-fabric'];
-        await oldContext.globalState.update(EXTENSION_DATA_KEY, {
-            activationCount: 0,
-            version: currentExtensionVersion,
-            migrationCheck: 1,
-            generatorVersion: 'not_the_latest_version'
-        });
-
-        const newContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-
-        const updateGlobalStateSpy: sinon.SinonSpy = mySandBox.spy(newContext.globalState, 'update');
-
-        await myExtension.activate(newContext);
-
-        updateGlobalStateSpy.should.have.been.calledTwice;
-        updateGlobalStateSpy.getCall(1).should.have.been.calledWithExactly(EXTENSION_DATA_KEY, {
-            activationCount: 1,
-            version: currentExtensionVersion,
-            migrationCheck: 1,
-            generatorVersion: generatorVersion
-        });
     });
 
     it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} has not been generated`, async () => {

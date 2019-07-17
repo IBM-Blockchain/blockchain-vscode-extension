@@ -19,11 +19,12 @@ import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
+import { TestUtil } from '../../TestUtil';
 
 chai.should();
 
 describe('BlockchainTreeItem', () => {
-
+    const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
     class TestBlockchainTreeItem extends BlockchainTreeItem {
 
         constructor(label: string) {
@@ -31,15 +32,14 @@ describe('BlockchainTreeItem', () => {
         }
     }
 
-    let sandbox: sinon.SinonSandbox;
     let treeItem: TestBlockchainTreeItem;
 
-    beforeEach(() => {
-        sandbox = sinon.createSandbox();
+    before(async () => {
+        await TestUtil.setupTests(mySandBox);
     });
 
     afterEach(() => {
-        sandbox.restore();
+        mySandBox.restore();
     });
 
     describe('#tooltip', () => {
@@ -53,8 +53,9 @@ describe('BlockchainTreeItem', () => {
     describe('#refresh', () => {
 
         it('should refresh the tree data provider', () => {
+            treeItem = new TestBlockchainTreeItem('test label');
             const treeDataProvider: BlockchainGatewayExplorerProvider = getBlockchainGatewayExplorerProvider();
-            const refreshStub: sinon.SinonStub = sandbox.stub(treeDataProvider, 'refresh');
+            const refreshStub: sinon.SinonStub = mySandBox.stub(treeDataProvider, 'refresh');
             treeItem.refresh();
             refreshStub.should.have.been.calledOnceWithExactly(treeItem);
         });

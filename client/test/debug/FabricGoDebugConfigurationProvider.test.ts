@@ -24,7 +24,6 @@ import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
-import * as dateFormat from 'dateformat';
 import { FabricGoDebugConfigurationProvider } from '../../src/debug/FabricGoDebugConfigurationProvider';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
@@ -33,6 +32,7 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -57,7 +57,6 @@ describe('FabricGoDebugConfigurationProvider', () => {
     describe('resolveDebugConfiguration', () => {
 
         let mySandbox: sinon.SinonSandbox;
-        let clock: sinon.SinonFakeTimers;
         let fabricDebugConfig: FabricGoDebugConfigurationProvider;
         let workspaceFolder: any;
         let debugConfig: any;
@@ -65,19 +64,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
         let packageEntry: PackageRegistryEntry;
         let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let registryEntry: FabricGatewayRegistryEntry;
-        let date: Date;
-        let formattedDate: string;
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
-        let newDebugVersionStub: sinon.SinonStub;
+        let showInputBoxStub: sinon.SinonStub;
 
         beforeEach(() => {
             mySandbox = sinon.createSandbox();
-            clock = sinon.useFakeTimers({ toFake: ['Date'] });
-            date = new Date();
-            formattedDate = dateFormat(date, 'yyyymmddHHMMss');
-            newDebugVersionStub = mySandbox.stub(ExtensionUtil, 'getNewDebugVersion');
-            newDebugVersionStub.resolves(`vscode-debug-${formattedDate}`);
             fabricDebugConfig = new FabricGoDebugConfigurationProvider();
 
             runtimeStub = sinon.createStubInstance(FabricRuntime);
@@ -85,7 +77,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.isDevelopmentMode.returns(true);
-            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
+            runtimeStub.getGateways.resolves([{ name: 'myGateway', path: 'myPath' }]);
 
             registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -142,14 +134,15 @@ describe('FabricGoDebugConfigurationProvider', () => {
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
 
-            mySandbox.stub(UserInputUtil, 'showInputBox').withArgs('Enter a name for your Go package').resolves('mySmartContract');
+            showInputBoxStub = mySandbox.stub(UserInputUtil, 'showInputBox').withArgs('Enter a name for your Go package').resolves('mySmartContract');
+            showInputBoxStub.withArgs('Enter a version for your Go package').resolves('0.0.1');
 
             sendTelemetryEventStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
                 globalState: {
                     get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.33'
+                        generatorVersion: '0.0.35'
                     })
                 }
             });
@@ -157,7 +150,6 @@ describe('FabricGoDebugConfigurationProvider', () => {
         });
 
         afterEach(() => {
-            clock.restore();
             mySandbox.restore();
         });
 
@@ -172,11 +164,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
         });
 
         it('should set mode if not set', async () => {
@@ -192,11 +185,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
         });
 
         it('should set program if not set', async () => {
@@ -212,11 +206,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: path.join(path.sep, 'myPath'),
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
         });
 
         it('should add cwd if not set', async () => {
@@ -232,7 +227,8 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
@@ -250,11 +246,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', '127.0.0.1:54321']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
         });
 
         it('should add more args if some args exist', async () => {
@@ -269,11 +266,12 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--myArgs', 'myValue', '--peer.address', '127.0.0.1:54321']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
         });
 
         it('should add in request if not defined', async () => {
@@ -288,11 +286,21 @@ describe('FabricGoDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['--peer.address', 'localhost:12345']
             });
-            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', {language: 'Go'});
+            sendTelemetryEventStub.should.have.been.calledWith('Smart Contract Debugged', { language: 'Go' });
+        });
+
+        it('should return if no name provided', async () => {
+
+            showInputBoxStub.withArgs('Enter a name for your Go package').resolves();
+
+            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.not.exist(config);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
     });
 });

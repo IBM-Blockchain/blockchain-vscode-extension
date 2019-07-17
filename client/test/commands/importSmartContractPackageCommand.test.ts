@@ -56,7 +56,7 @@ describe('importSmartContractPackageCommand', () => {
     beforeEach(async () => {
 
         browseStub = sandbox.stub(UserInputUtil, 'browse').resolves(srcPackage);
-        copyStub = sandbox.stub(fs, 'copyFile').resolves();
+        copyStub = sandbox.stub(fs, 'copy').resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
         sendTelemetryEventStub = sandbox.stub(Reporter.instance(), 'sendTelemetryEvent');

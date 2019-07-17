@@ -38,8 +38,8 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const extensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY);
 
             // Stop debug if not got late enough version
-            if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.33')) {
-                outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.', 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+            if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.35')) {
+                outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
                 return;
             }
 
@@ -107,33 +107,43 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 chaincodeName = config.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
                 chaincodeVersion = config.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
             } else {
-                chaincodeName = await this.getChaincodeName(folder);
-                if (!chaincodeName) {
+                const nameAndVersion: { name: string, version: string } = await this.getChaincodeNameAndVersion(folder);
+
+                if (!nameAndVersion || !nameAndVersion.name || !nameAndVersion.version) {
                     // User probably cancelled the prompt for the name.
                     return;
                 }
-                // Determine what smart contracts are instantiated already
-                // Assume local_fabric has one peer
-                const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
-                const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
-                    return contract.name === chaincodeName;
-                });
 
-                if (!smartContractVersionName) {
-                    // Not found an existing debug package to use, so get a new version
-                    chaincodeVersion = await ExtensionUtil.getNewDebugVersion();
-                } else {
-                    const isContainerRunning: boolean = await this.runtime.isRunning([smartContractVersionName.name, smartContractVersionName.version]);
-                    if (isContainerRunning) {
-                        // need a new version otherwise it won't use the debug version of the smart contract
-                        chaincodeVersion = ExtensionUtil.getNewDebugVersion();
-                        config.env.OLD_CHAINCODE_VERSION = chaincodeVersion;
-                    } else {
-                        chaincodeVersion = smartContractVersionName.version;
-                    }
-                }
-                config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
+                chaincodeName = nameAndVersion.name;
+                chaincodeVersion = nameAndVersion.version;
             }
+            // Determine what smart contracts are instantiated already
+            // Assume local_fabric has one peer
+            const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
+            const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
+                return contract.name === chaincodeName;
+            });
+
+            if (!smartContractVersionName) {
+                config.env.EXTENSION_COMMAND = ExtensionCommands.INSTANTIATE_SMART_CONTRACT;
+            } else {
+                const isContainerRunning: boolean = await this.runtime.isRunning([smartContractVersionName.name, smartContractVersionName.version]);
+                if (isContainerRunning) {
+                    await vscode.window.withProgress({
+                        location: vscode.ProgressLocation.Notification,
+                        title: 'IBM Blockchain Platform Extension',
+                        cancellable: false
+                    }, async (progress: vscode.Progress<{ message: string }>) => {
+                        progress.report({ message: 'Removing chaincode container'});
+                        await this.runtime.killChaincode([smartContractVersionName.name, smartContractVersionName.version]);
+                    });
+                }
+
+                if (chaincodeVersion !== smartContractVersionName.version) {
+                    config.env.EXTENSION_COMMAND = ExtensionCommands.UPGRADE_SMART_CONTRACT;
+                }
+            }
+            config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
 
             // Allow the language specific class to resolve the configuration.
             const resolvedConfig: vscode.DebugConfiguration = await this.resolveDebugConfigurationInner(folder, config, token);
@@ -155,7 +165,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         }
     }
 
-    protected abstract async getChaincodeName(folder: vscode.WorkspaceFolder | undefined): Promise<string>;
+    protected abstract async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{ name: string, version: string }>;
 
     protected async getChaincodeAddress(): Promise<string> {
         // Need to strip off the protocol (grpc:// or grpcs://).

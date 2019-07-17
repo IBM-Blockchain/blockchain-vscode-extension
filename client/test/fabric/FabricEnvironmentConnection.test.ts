@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
@@ -38,6 +39,7 @@ import { IFabricEnvironmentConnection } from '../../src/fabric/IFabricEnvironmen
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('FabricEnvironmentConnection', () => {
@@ -1271,8 +1273,9 @@ describe('FabricEnvironmentConnection', () => {
     });
 
     describe('register', () => {
+        let mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices>;
         beforeEach(() => {
-            const mockFabricCA: sinon.SinonStubbedInstance<FabricCAServices> = mySandBox.createStubInstance(FabricCAServices);
+            mockFabricCA = mySandBox.createStubInstance(FabricCAServices);
             mockFabricCA.register.resolves('its a secret');
             connection['certificateAuthorities'].has('ca.example.com').should.be.true;
             connection['certificateAuthorities'].set('ca.example.com', mockFabricCA);
@@ -1282,11 +1285,31 @@ describe('FabricEnvironmentConnection', () => {
             const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE');
             secret.should.deep.equal('its a secret');
             mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
+            mockFabricCA.register.should.have.been.calledOnceWith({
+                enrollmentID: 'enrollThis',
+                affiliation: 'departmentE',
+                role: 'client',
+                attrs: []
+            },
+            sinon.match.any);
         });
 
         it('should throw trying to register a new user using a certificate authority that does not exist ', async () => {
             await connection.register('nosuch.ca.example.com', 'enrollThis', 'departmentE')
                 .should.be.rejectedWith(/does not exist/);
+        });
+
+        it('should be able to register a new user with attribtues', async () => {
+            const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE', [{name: 'hello', value: 'world', ecert: true}]);
+            secret.should.deep.equal('its a secret');
+            mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
+            mockFabricCA.register.should.have.been.calledOnceWith({
+                enrollmentID: 'enrollThis',
+                affiliation: 'departmentE',
+                role: 'client',
+                attrs: [{name: 'hello', value: 'world', ecert: true}]
+            },
+            sinon.match.any);
         });
 
     });

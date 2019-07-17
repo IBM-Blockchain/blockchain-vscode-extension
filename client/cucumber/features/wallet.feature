@@ -7,7 +7,15 @@ Feature: Fabric Wallets
         Then there should be a tree item with a label 'local_fabric_wallet' in the 'Fabric Wallets' panel
         And the tree item should have a tooltip equal to 'local_fabric_wallet'
         And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item local_fabric_wallet
-        And the tree item should have a tooltip equal to 'admin'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
+
+    Scenario: create an identity with attributes
+        Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
+        And the 'Local Fabric' wallet
+        When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
+        Then there should be a identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item local_fabric_wallet
+        And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'
 
     @otherFabric
     Scenario: create a new wallet using certs
@@ -15,7 +23,7 @@ Feature: Fabric Wallets
         Then there should be a tree item with a label 'myWallet' in the 'Fabric Wallets' panel
         And the tree item should have a tooltip equal to 'myWallet'
         And there should be a identity tree item with a label 'conga' in the 'Fabric Wallets' panel for item myWallet
-        And the tree item should have a tooltip equal to 'conga'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     @otherFabric
     Scenario: create a new wallet using an enrollId and secret
@@ -24,14 +32,14 @@ Feature: Fabric Wallets
         Then there should be a tree item with a label 'myOtherWallet' in the 'Fabric Wallets' panel
         And the tree item should have a tooltip equal to 'myOtherWallet'
         And there should be a identity tree item with a label 'biscuit' in the 'Fabric Wallets' panel for item myOtherWallet
-        And the tree item should have a tooltip equal to 'biscuit'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     @otherFabric
     Scenario: add a new identity using a JSON file
         Given the wallet 'myOtherWallet' with identity 'biscuit' and mspid 'Org1MSP' exists
         When I create an identity using JSON file with identity name 'secondBiscuit' and mspid 'Org1MSP' in wallet 'myOtherWallet'
         Then there should be a identity tree item with a label 'secondBiscuit' in the 'Fabric Wallets' panel for item myOtherWallet
-        And the tree item should have a tooltip equal to 'secondBiscuit'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     @otherFabric
     Scenario: create a new wallet using a JSON file
@@ -39,14 +47,14 @@ Feature: Fabric Wallets
         Then there should be a tree item with a label 'myWalletyWallet' in the 'Fabric Wallets' panel
         And the tree item should have a tooltip equal to 'myWalletyWallet'
         And there should be a identity tree item with a label 'jason' in the 'Fabric Wallets' panel for item myWalletyWallet
-        And the tree item should have a tooltip equal to 'jason'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     @otherFabric
     Scenario: add a new identity using certs
         Given the wallet 'myWalletyWallet' with identity 'jason' and mspid 'Org1MSP' exists
         When I create an identity using certs with identity name 'jasonTwo' and mspid 'Org1MSP' in wallet 'myWalletyWallet'
         Then there should be a identity tree item with a label 'jasonTwo' in the 'Fabric Wallets' panel for item myWalletyWallet
-        And the tree item should have a tooltip equal to 'jasonTwo'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     @otherFabric
     Scenario: add a new identity using an enrollId and secret
@@ -54,4 +62,4 @@ Feature: Fabric Wallets
         Given the wallet 'myWalletyWallet' with identity 'jason' and mspid 'Org1MSP' exists
         When I create an identity using enrollId with identity name 'otherJason' and mspid 'Org1MSP' in wallet 'myWalletyWallet'
         Then there should be a identity tree item with a label 'otherJason' in the 'Fabric Wallets' panel for item myWalletyWallet
-        And the tree item should have a tooltip equal to 'otherJason'
+        And the tree item should have a tooltip equal to 'Attributes:\n\nNone'

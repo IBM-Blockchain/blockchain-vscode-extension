@@ -13,11 +13,15 @@
 */
 
 import * as vscode from 'vscode';
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
 import { RepositoryRegistry } from '../../src/repositories/RepositoryRegistry';
 
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+
+chai.use(chaiAsPromised);
 
 // tslint:disable no-unused-expression
 describe('RepositoryRegistry', () => {

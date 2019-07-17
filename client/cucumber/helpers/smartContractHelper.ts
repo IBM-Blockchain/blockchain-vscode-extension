@@ -188,7 +188,7 @@ export class SmartContractHelper {
                 }
             });
 
-            this.userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
+            this.userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call on instantiate?').resolves(transaction);
             this.userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the function, (comma seperated)').resolves(args);
 
             this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);
@@ -228,7 +228,7 @@ export class SmartContractHelper {
             data: { name: name, channel: 'mychannel', version: '0.0.1' }
         });
 
-        this.userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call?').resolves(transaction);
+        this.userInputUtilHelper.inputBoxStub.withArgs('optional: What function do you want to call on upgrade?').resolves(transaction);
         this.userInputUtilHelper.inputBoxStub.withArgs('optional: What are the arguments to the function, (e.g. ["arg1", "arg2"])', '[]').resolves(args);
 
         this.userInputUtilHelper.showYesNoQuickPick.resolves(UserInputUtil.NO);

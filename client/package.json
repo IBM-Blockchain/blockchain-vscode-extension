@@ -360,7 +360,7 @@
             },
             {
                 "command": "gatewaysExplorer.testSmartContractEntry",
-                "title": "Generate Tests for Smart Contract",
+                "title": "Generate Tests for Smart Contract(s)",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -660,7 +660,7 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
-                    "command": "gatewaysExplorer.testAllSmartContractEntry",
+                    "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-multi-contract-item"
                 },
                 {
@@ -670,6 +670,10 @@
                 {
                     "command": "gatewaysExplorer.testSmartContractEntry",
                     "when": "view == gatewaysExplorer && viewItem == blockchain-contract-item"
+                },
+                {
+                    "command": "gatewaysExplorer.testSmartContractEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-instantiated-unknown-item"
                 },
                 {
                     "command": "gatewaysExplorer.submitTransactionEntry",
@@ -1191,15 +1195,14 @@
         "package": "node ./node_modules/vsce/out/vsce package",
         "compile": "rimraf out && tsc -p ./",
         "watch": "rimraf out && tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
         "pretest": "npm run compile && npm run lint && npm run licchk && npm run updatePackageJSON",
-        "test": "node ./node_modules/vscode/bin/test --verbose",
+        "test": "node ./out/test/runTests.js",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
-        "systest": "node ./node_modules/vscode/bin/test --verbose",
-        "cucumber": "node ./node_modules/vscode/bin/test --verbose",
+        "systest": "npm run compile && node ./out/integrationTest/nodeTests/runIntegrationTests.js",
+        "cucumber": "npm run compile && node ./out/cucumber/runCucumberTests.js",
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.json",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/tests/integration.test.ts' 'integrationTest/nodeTests/integrationNode.test.ts'",
+        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/nodeTests/integrationNode.test.ts'",
         "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
         "productionFlag": "node ../.travis/rewritePackageJson.js publish",
         "integrationTests": "./integrationTest/scripts/start-integration-tests.sh && npm run compile",
@@ -1209,8 +1212,8 @@
     "devDependencies": {
         "@types/chai": "4.1.4",
         "@types/chai-as-promised": "7.1.0",
-        "@types/dateformat": "^1.0.1",
-        "@types/fs-extra": "^5.0.4",
+        "@types/dateformat": "1.0.1",
+        "@types/fs-extra": "5.0.4",
         "@types/glob": "5.0.35",
         "@types/mocha": "5.2.5",
         "@types/node": "10.5.4",
@@ -1220,17 +1223,18 @@
         "@types/sinon-chai": "3.2.0",
         "@types/strip-ansi": "^3.0.0",
         "@types/tmp": "0.0.33",
+        "@types/vscode": "1.36.0",
         "angular-tslint-rules": "1.5.0",
         "chai": "4.1.2",
         "chai-as-promised": "7.1.1",
         "cucumber": "2.2.0",
-        "cucumber-html-reporter": "^5.0.0",
+        "cucumber-html-reporter": "5.0.0",
         "decache": "4.4.0",
         "glob": "7.1.2",
         "istanbul": "0.4.5",
-        "js-yaml": "^3.13.1",
+        "js-yaml": "3.13.1",
         "license-check-and-add": "2.3.6",
-        "mocha": "5.2.0",
+        "mocha": "^6.1.4",
         "remap-istanbul": "0.11.1",
         "rimraf": "^2.6.2",
         "sinon": "6.1.4",
@@ -1240,9 +1244,9 @@
         "tslint": "5.11.0",
         "tslint-loader": "3.6.0",
         "typescript": "3.0.1",
-        "vsce": "^1.46.0",
-        "vscode": "1.1.33",
-        "vscode-nls-dev": "^3.2.5"
+        "vsce": "1.65.0",
+        "vscode-nls-dev": "3.2.5",
+        "vscode-test": "1.0.0"
     },
     "dependencies": {
         "@fidm/x509": "1.1.3",
@@ -1252,8 +1256,8 @@
         "dockerode": "^2.5.8",
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
-        "fs-extra": "^7.0.0",
-        "generator-fabric": "0.0.34",
+        "fs-extra": "^7.0.1",
+        "generator-fabric": "0.0.35",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.2.0",
