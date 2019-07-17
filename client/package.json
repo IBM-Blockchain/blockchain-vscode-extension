@@ -65,6 +65,7 @@
             "aPackagesExplorer.importSmartContractPackageEntry",
             "aPackagesExplorer.refreshEntry",
             "environmentExplorer.addEnvironmentEntry",
+            "environmentExplorer.deleteEnvironmentEntry",
             "environmentExplorer.connectEntry",
             "environmentExplorer.disconnectEntry",
             "environmentExplorer.installSmartContractEntry",
@@ -250,6 +251,11 @@
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.deleteEnvironmentEntry",
+                "title": "Delete Environment",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -586,6 +592,10 @@
                 {
                     "command": "aPackagesExplorer.exportSmartContractPackageEntry",
                     "when": "view == aPackagesExplorer && viewItem == blockchain-package-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteEnvironmentEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-environment-item"
                 },
                 {
                     "command": "environmentExplorer.stopFabricRuntime",

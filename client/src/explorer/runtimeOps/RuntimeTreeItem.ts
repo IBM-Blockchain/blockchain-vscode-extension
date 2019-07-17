@@ -18,16 +18,16 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../fabric/FabricRuntime';
-import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../logging/OutputAdapter';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
+import { FabricEnvironmentRegistryEntry } from '../../fabric/FabricEnvironmentRegistryEntry';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, gateway: FabricGatewayRegistryEntry, command?: vscode.Command): Promise<RuntimeTreeItem> {
-        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, gateway, command);
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, command?: vscode.Command): Promise<RuntimeTreeItem> {
+        const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, environmentRegistryEntry, command);
         await treeItem.updateProperties();
         return treeItem;
     }
@@ -38,10 +38,10 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly gateway: any, public readonly command?: vscode.Command) {
-        super(provider, label, command);
+    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command?: vscode.Command) {
+        super(provider, label, environmentRegistryEntry, command);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        this.name = gateway.name;
+        this.name = label;
         this.runtime = runtimeManager.getRuntime();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
