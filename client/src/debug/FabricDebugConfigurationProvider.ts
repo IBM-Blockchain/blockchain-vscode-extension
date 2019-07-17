@@ -113,79 +113,66 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                     // User probably cancelled the prompt for the name.
                     return;
                 }
-                // Determine what smart contracts are instantiated already
-                // Assume local_fabric has one peer
-                const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
-                const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
-                    return contract.name === chaincodeName;
-                });
 
-                if (!smartContractVersionName) {
-                    config.env.EXTENSION_COMMAND = ExtensionCommands.INSTANTIATE_SMART_CONTRACT;
-                } else {
-                    const isContainerRunning: boolean = await this.runtime.isRunning([smartContractVersionName.name, smartContractVersionName.version]);
-                    if (isContainerRunning) {
-                        await vscode.window.withProgress({
-                            location: vscode.ProgressLocation.Notification,
-                            title: 'IBM Blockchain Platform Extension',
-                            cancellable: false
-                        }, async (progress: vscode.Progress<{ message: string }>) => {
-                            progress.report({message: 'Removing chaincode container'});
-                            await this.runtime.killChaincode([smartContractVersionName.name, smartContractVersionName.version]);
-                        });
-                    }
-
-                    if (chaincodeVersion !== smartContractVersionName.version) {
-                        config.env.EXTENSION_COMMAND = ExtensionCommands.UPGRADE_SMART_CONTRACT;
-                    }
-                }
-                config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
-
-                // Allow the language specific class to resolve the configuration.
-                const resolvedConfig: vscode.DebugConfiguration = await this.resolveDebugConfigurationInner(folder, config, token);
-
-                // Launch a *new* debug session with the resolved configuration.
-                // If we leave the name in there, it uses the *old* launch.json configuration with the *new* debug
-                // configuration provider, for example a fabric:go configuration with the go debug configuration
-                // provider. This results in errors and we need to just force it to use our configuration as-is.
-                delete resolvedConfig.name;
-                await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
-                vscode.debug.startDebugging(folder, resolvedConfig);
-
-                // Cancel the current debug session - the user will never know!
-                return undefined;
-
-            } catch (error) {
-                outputAdapter.log(LogType.ERROR, `Failed to launch debug: ${error.message}`);
-                return;
+                chaincodeName = nameAndVersion.name;
+                chaincodeVersion = nameAndVersion.version;
             }
+            // Determine what smart contracts are instantiated already
+            // Assume local_fabric has one peer
+            const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
+            const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
+                return contract.name === chaincodeName;
+            });
+
+            if (!smartContractVersionName) {
+                config.env.EXTENSION_COMMAND = ExtensionCommands.INSTANTIATE_SMART_CONTRACT;
+            } else {
+                const isContainerRunning: boolean = await this.runtime.isRunning([smartContractVersionName.name, smartContractVersionName.version]);
+                if (isContainerRunning) {
+                    await vscode.window.withProgress({
+                        location: vscode.ProgressLocation.Notification,
+                        title: 'IBM Blockchain Platform Extension',
+                        cancellable: false
+                    }, async (progress: vscode.Progress<{ message: string }>) => {
+                        progress.report({ message: 'Removing chaincode container'});
+                        await this.runtime.killChaincode([smartContractVersionName.name, smartContractVersionName.version]);
+                    });
+                }
+
+                if (chaincodeVersion !== smartContractVersionName.version) {
+                    config.env.EXTENSION_COMMAND = ExtensionCommands.UPGRADE_SMART_CONTRACT;
+                }
+            }
+            config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;
+
+            // Allow the language specific class to resolve the configuration.
+            const resolvedConfig: vscode.DebugConfiguration = await this.resolveDebugConfigurationInner(folder, config, token);
+
+            // Launch a *new* debug session with the resolved configuration.
+            // If we leave the name in there, it uses the *old* launch.json configuration with the *new* debug
+            // configuration provider, for example a fabric:go configuration with the go debug configuration
+            // provider. This results in errors and we need to just force it to use our configuration as-is.
+            delete resolvedConfig.name;
+            await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
+            vscode.debug.startDebugging(folder, resolvedConfig);
+
+            // Cancel the current debug session - the user will never know!
+            return undefined;
+
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Failed to launch debug: ${error.message}`);
+            return;
         }
+    }
 
-    protected abstract async
-        getChaincodeNameAndVersion(folder
-    :
-        vscode.WorkspaceFolder | undefined
-    ):
-        Promise < {name: string, version: string} >;
+    protected abstract async getChaincodeNameAndVersion(folder: vscode.WorkspaceFolder | undefined): Promise<{ name: string, version: string }>;
 
-    protected async
-        getChaincodeAddress()
-    :
-        Promise < string > {
-            // Need to strip off the protocol (grpc:// or grpcs://).
-            const url
-    :
-        string = await this.runtime.getPeerChaincodeURL();
+    protected async getChaincodeAddress(): Promise<string> {
+        // Need to strip off the protocol (grpc:// or grpcs://).
+        const url: string = await this.runtime.getPeerChaincodeURL();
         const parsedURL: URL = new URL(url);
         return parsedURL.host;
     }
 
-    protected abstract async
-        resolveDebugConfigurationInner(folder
-    :
-        vscode.WorkspaceFolder | undefined, config
-    :
-        vscode.DebugConfiguration, token ? : vscode.CancellationToken
-    ):
-        Promise < vscode.DebugConfiguration >;
-    }
+    protected abstract async resolveDebugConfigurationInner(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration>;
+}

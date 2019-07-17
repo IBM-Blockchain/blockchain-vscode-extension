@@ -261,8 +261,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 channels.length.should.equal(1);
                 channels[0].label.should.equal('mychannel');
 
-                const instantiatedUnknownTreeItems: Array<InstantiatedUnknownTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
-                await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(instantiatedUnknownTreeItems[0]);
+                const instantiatedUnknownTreeItems: Array<InstantiatedUnknownTreeItem> = await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
+                await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren(instantiatedUnknownTreeItems[0]);
 
                 instantiatedChaincodesItems = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
@@ -433,8 +433,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
 
-                const instantiatedUnknownTreeItems: Array<InstantiatedUnknownTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
-                await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(instantiatedUnknownTreeItems[0]);
+                const instantiatedUnknownTreeItems: Array<InstantiatedUnknownTreeItem> = await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
+                await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren(instantiatedUnknownTreeItems[0]);
 
                 const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 
@@ -477,8 +477,8 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 channels[0].label.should.equal('mychannel');
                 channels[1].label.should.equal('myotherchannel');
 
-                const instantiatedUnknownTreeItems: Array<InstantiatedUnknownTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
-                await myExtension.getBlockchainRuntimeExplorerProvider().getChildren(instantiatedUnknownTreeItems[0]);
+                const instantiatedUnknownTreeItems: Array<InstantiatedUnknownTreeItem> = await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren(channels[0]) as Array<InstantiatedUnknownTreeItem>;
+                await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren(instantiatedUnknownTreeItems[0]);
 
                 const instantiatedChaincodesItems: Array<InstantiatedContractTreeItem> = await myExtension.getBlockchainGatewayExplorerProvider().getChildren(channels[0]) as Array<InstantiatedContractTreeItem>;
 

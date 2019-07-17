@@ -11,6 +11,7 @@ Feature: Fabric Wallets
 
     Scenario: create an identity with attributes
         Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
         Then there should be a identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item local_fabric_wallet

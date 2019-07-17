@@ -27,12 +27,6 @@ export interface Attribute {
 
 export class FabricCertificate {
 
-    private certificate: any;
-
-    constructor(cert: string) {
-        this.certificate = Certificate.fromPEM(cert);
-    }
-
     public static validateCertificate(cert: string): void {
         try {
             Certificate.fromPEM(cert); // This will throw an error if invalid
@@ -51,6 +45,12 @@ export class FabricCertificate {
 
     public static loadFileFromDisk(path: string): string {
         return fs.readFileSync(path, ENCODING) as string;
+    }
+
+    private certificate: any;
+
+    constructor(cert: string) {
+        this.certificate = Certificate.fromPEM(cert);
     }
 
     public getCommonName(): string {

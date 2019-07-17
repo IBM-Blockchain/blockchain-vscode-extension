@@ -32,13 +32,11 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
 chai.use(sinonChai);

@@ -23,11 +23,9 @@ import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { ExtensionUtil } from '../util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { PackageRegistry } from '../packages/PackageRegistry';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {

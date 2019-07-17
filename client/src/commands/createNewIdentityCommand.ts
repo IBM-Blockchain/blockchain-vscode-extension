@@ -19,7 +19,6 @@ import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/Certificate
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricNode } from '../fabric/FabricNode';

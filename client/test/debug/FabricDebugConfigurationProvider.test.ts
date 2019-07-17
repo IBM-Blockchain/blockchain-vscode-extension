@@ -160,7 +160,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['127.0.0.1:54321']
             });
@@ -178,7 +179,8 @@ describe('FabricDebugConfigurationProvider', () => {
                 type: 'fake',
                 request: 'launch',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:vscode-debug-${formattedDate}`
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
                 },
                 args: ['127.0.0.1:54321']
             });
