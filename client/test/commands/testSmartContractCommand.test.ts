@@ -388,9 +388,9 @@ describe('testSmartContractCommand', () => {
             templateData.includes(`const args: string[] = [];`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[0].name.replace(`"`, '')}: ${transactionOne.parameters[0].schema.type.replace(`"`, '')} = 'EXAMPLE';`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[1].name.replace(`"`, '')}: ${transactionOne.parameters[1].schema.type.replace(`""`, '')} = 0;`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[2].name.replace(`"`, '')}: any = {};`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[3].name.replace(`"`, '')}: ${transactionOne.parameters[3].schema.type.replace(`"`, '')} = true;`).should.be.true;
-            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')} = {};`).should.be.true;
+            templateData.includes(`const ${transactionOne.parameters[4].name.replace(`"`, '')}: any = {};`).should.be.true;
             templateData.includes(`const ${transactionOne.parameters[5].name.replace(`"`, '')}: any[] = [];`).should.be.true;
             templateData.includes(`const args: string[] = [ ${transactionOne.parameters[0].name.replace(`"`, '')}, ${transactionOne.parameters[1].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[2].name.replace(`"`, '')}), ${transactionOne.parameters[3].name.replace(`"`, '')}.toString(), JSON.stringify(${transactionOne.parameters[4].name.replace(`"`, '')}), JSON.stringify(${transactionOne.parameters[5].name.replace(`"`, '')})`).should.be.true;
             templateData.includes('Admin').should.be.true;

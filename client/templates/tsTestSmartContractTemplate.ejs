@@ -70,41 +70,43 @@ describe('<%=chaincodeLabel%>' , () => {
         gateway.disconnect();
     });
 <% transactions.forEach((transaction) => { %>
-    it('<%=transaction.name%>', async () => {
-        <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
-        // TODO: populate transaction parameters
-            <%_ let params = []; _%>
-            <%_ transaction.parameters.forEach((parameter) => { _%>
-                <%_ if (parameter.schema && parameter.schema.type) { _%>
-                    <%_ if (parameter.schema.type === 'string') { _%>
-                        <%_  params.push(` ${parameter.name.replace(`"`,'')}`) _%>
-        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = 'EXAMPLE';
-                    <%_ } else if (parameter.schema.type === 'number') { _%>
-                        <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
-        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = 0;
-                    <%_ } else if (parameter.schema.type === 'boolean') { _%>
-                        <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
-        const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = true;
-                    <%_ } else if (parameter.schema.type === 'array') { _%>
+    describe('<%=transaction.name%>', () => {
+        it('should submit <%=transaction.name%> transaction', async () => {
+            <%_ if (transaction.parameters && transaction.parameters.length > 0) { _%>
+            // TODO: populate transaction parameters
+                <%_ let params = []; _%>
+                <%_ transaction.parameters.forEach((parameter) => { _%>
+                    <%_ if (parameter.schema && parameter.schema.type) { _%>
+                        <%_ if (parameter.schema.type === 'string') { _%>
+                            <%_  params.push(` ${parameter.name.replace(`"`,'')}`) _%>
+            const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = 'EXAMPLE';
+                        <%_ } else if (parameter.schema.type === 'number') { _%>
+                            <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
+            const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = 0;
+                        <%_ } else if (parameter.schema.type === 'boolean') { _%>
+                            <%_  params.push(` ${parameter.name.replace(`"`,'')}.toString()`) _%>
+            const <%=parameter.name.replace(`"`,'')%>: <%=parameter.schema.type.replace(`"`,'')%> = true;
+                        <%_ } else if (parameter.schema.type === 'array') { _%>
+                            <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
+            const <%=parameter.name.replace(`"`,'')%>: any[] = [];
+                        <%_ } _%>
+                    <%_ } else { _%>
                         <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
-        const <%=parameter.name.replace(`"`,'')%>: any[] = [];
+            const <%=parameter.name.replace(`"`,'')%>: any = {};
                     <%_ } _%>
-                <%_ } else { _%>
-                    <%_  params.push(` JSON.stringify(${parameter.name.replace(`"`,'')})`) _%>
-        const <%=parameter.name.replace(`"`,'')%> = {};
-                <%_ } _%>
-            <%_ }) _%>
-        const args: string[] = [<%=params%>];
-        <%_ } else { _%>
-        // TODO: Update with parameters of transaction
-        const args: string[] = [];
-        <%_ } _%>
+                <%_ }) _%>
+            const args: string[] = [<%=params%>];
+            <%_ } else { _%>
+            // TODO: Update with parameters of transaction
+            const args: string[] = [];
+            <%_ } _%>
 
-        const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway);
-        // submitTransaction returns buffer of transcation return value
-        // TODO: Update with return value of transaction
-        assert.equal(true, true);
-        // assert.equal(JSON.parse(response.toString()), undefined);
-    }).timeout(10000);
+            const response: Buffer = await SmartContractUtil.submitTransaction('<%=contractName%>', '<%=transaction.name%>', args, gateway);
+            // submitTransaction returns buffer of transcation return value
+            // TODO: Update with return value of transaction
+            assert.equal(true, true);
+            // assert.equal(JSON.parse(response.toString()), undefined);
+        }).timeout(10000);
+    });
 <% }) %>
 });
