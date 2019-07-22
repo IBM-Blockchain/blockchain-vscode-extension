@@ -17,7 +17,6 @@ import * as FabricCAServices from 'fabric-ca-client';
 import * as sinon from 'sinon';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricCertificateAuthorityFactory } from '../../src/fabric/FabricCertificateAuthorityFactory';
@@ -28,11 +27,9 @@ chai.use(chaiAsPromised);
 
 describe('FabricCertificateAuthority', () => {
     let mySandBox: sinon.SinonSandbox;
-    let readFileStub: sinon.SinonStub;
     let fabricCertificateAuthority: IFabricCertificateAuthority;
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
-        readFileStub = mySandBox.stub(fs, 'readFile');
         fabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
     });
 
@@ -42,47 +39,14 @@ describe('FabricCertificateAuthority', () => {
 
     describe('enroll', () => {
 
-        it('should return certificate and key from enrollment using JSON connection profile', async () => {
-            readFileStub.resolves(`{
-                "certificateAuthorities": {
-                    "ca0": {
-                        "url": "http://ca0url"
-                    },
-                    "ca1": {
-                        "url": "http://ca1url"
-                    }
-                }
-            }`);
-
+        it('should return certificate and key from enrollment', async () => {
             const enroll: sinon.SinonStub = mySandBox.stub(FabricCAServices.prototype, 'enroll').resolves({
                 certificate: '---CERT---',
                 key: {
                     toBytes: (): string => '---KEY---'
                 }
             });
-            const {certificate, privateKey} = await fabricCertificateAuthority.enroll('connection.json', 'some_id', 'some_secret');
-
-            enroll.should.have.been.calledWith({enrollmentID: 'some_id', enrollmentSecret: 'some_secret'});
-            certificate.should.equal('---CERT---');
-            privateKey.should.equal('---KEY---');
-        });
-
-        it('should return certificate and key from enrollment using YAML connection profile', async () => {
-            readFileStub.resolves(`---
-            certificateAuthorities:
-                ca0:
-                    url: http://ca0url
-                ca1:
-                    url: http://ca1url`);
-
-            const enroll: sinon.SinonStub = mySandBox.stub(FabricCAServices.prototype, 'enroll').resolves({
-                certificate: '---CERT---',
-                key: {
-                    toBytes: (): string => '---KEY---'
-                }
-            });
-            const {certificate, privateKey} = await fabricCertificateAuthority.enroll('connection.yaml', 'some_id', 'some_secret');
-
+            const {certificate, privateKey} = await fabricCertificateAuthority.enroll('http://ca1url', 'some_id', 'some_secret');
             enroll.should.have.been.calledWith({enrollmentID: 'some_id', enrollmentSecret: 'some_secret'});
             certificate.should.equal('---CERT---');
             privateKey.should.equal('---KEY---');
@@ -91,13 +55,12 @@ describe('FabricCertificateAuthority', () => {
         it('should throw an error if unable to enroll', async () => {
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            const error: Error = new Error('Cannot read file');
-            readFileStub.rejects(error);
+            const error: Error = new Error('Some Error');
 
-            const enroll: sinon.SinonSpy = mySandBox.spy(FabricCAServices.prototype, 'enroll');
-            await fabricCertificateAuthority.enroll('connection.yaml', 'some_id', 'some_secret').should.be.rejectedWith(error);
+            const enroll: sinon.SinonStub = mySandBox.stub(FabricCAServices.prototype, 'enroll').throws(error);
+            await fabricCertificateAuthority.enroll('http://ca1url', 'some_id', 'some_secret').should.be.rejectedWith(error);
 
-            enroll.should.not.have.been.called;
+            enroll.should.have.been.calledOnce;
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Unable to enroll with certificate authority: ${error.message}`, `Unable to enroll with certificate authority: ${error.toString()}`);
         });
     });
