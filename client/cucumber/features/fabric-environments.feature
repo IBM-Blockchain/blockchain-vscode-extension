@@ -70,7 +70,7 @@ Feature: Fabric Environments
 
 
     @otherFabric
-    Scenario: It should create an envrionment
+    Scenario: It should create an environment
         When I create an environment 'myFabric'
         Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to 'myFabric'
@@ -128,3 +128,9 @@ Feature: Fabric Environments
         Examples:
         | language   | assetType | name               | upgradedName              | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2  | 0.0.1   |
+
+    @otherFabric
+    Scenario: It should delete an environment
+        Given an environment 'myFabric' exists
+        When I delete an environment 'myFabric'
+        Then there should not be a tree item with a label 'myFabric' in the 'Fabric Environments' panel

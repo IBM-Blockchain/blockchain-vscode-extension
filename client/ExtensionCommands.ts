@@ -22,8 +22,9 @@ export class ExtensionCommands {
     static readonly IMPORT_SMART_CONTRACT: string = 'aPackagesExplorer.importSmartContractPackageEntry';
     static readonly CREATE_SMART_CONTRACT_PROJECT: string = 'aPackagesExplorer.createSmartContractProjectEntry';
 
-    // LOCAL OPS VIEW
+    // ENVIRONMENT VIEW
     static readonly ADD_ENVIRONMENT: string = 'environmentExplorer.addEnvironmentEntry';
+    static readonly DELETE_ENVIRONMENT: string = 'environmentExplorer.deleteEnvironmentEntry';
     static readonly CONNECT_TO_ENVIRONMENT: string = 'environmentExplorer.connectEntry';
     static readonly DISCONNECT_ENVIRONMENT: string = 'environmentExplorer.disconnectEntry';
     static readonly INSTALL_SMART_CONTRACT: string = 'environmentExplorer.installSmartContractEntry';

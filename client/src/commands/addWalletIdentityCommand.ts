@@ -66,8 +66,8 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     }
 
     // Ask for an identity name
-    identity.identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
-    if (!identity.identityName) {
+    const identityName: string = await UserInputUtil.showInputBox('Provide a name for the identity');
+    if (!identityName) {
         return;
     }
 

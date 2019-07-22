@@ -52,16 +52,16 @@ module.exports = function(): any {
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
     });
 
-    this.Given("an environment '{string}' exists", this.timeout, async (envrionmentName: string) => {
-        await this.fabricEnvironmentHelper.createEnvironment(envrionmentName);
+    this.Given("an environment '{string}' exists", this.timeout, async (environmentName: string) => {
+        await this.fabricEnvironmentHelper.createEnvironment(environmentName);
     });
 
     /**
      * When
      */
 
-    this.When("I create an environment '{string}'", this.timeout, async (envrionmentName: string) => {
-        await this.fabricEnvironmentHelper.createEnvironment(envrionmentName);
+    this.When("I create an environment '{string}'", this.timeout, async (environmentName: string) => {
+        await this.fabricEnvironmentHelper.createEnvironment(environmentName);
     });
 
     this.When("I connect to the environment '{string}'", this.timeout, async (environment: string) => {

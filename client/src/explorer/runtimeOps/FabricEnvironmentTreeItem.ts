@@ -17,10 +17,13 @@
 import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import * as vscode from 'vscode';
+import { FabricEnvironmentRegistryEntry } from '../../fabric/FabricEnvironmentRegistryEntry';
 
 export class FabricEnvironmentTreeItem extends BlockchainTreeItem {
 
-    constructor(provider: BlockchainExplorerProvider, label: string, command: vscode.Command) {
+    contextValue: string = 'blockchain-environment-item';
+
+    constructor(provider: BlockchainExplorerProvider, label: string, public readonly environmentRegistryEntry: FabricEnvironmentRegistryEntry, command: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
         this.command = command;
     }
