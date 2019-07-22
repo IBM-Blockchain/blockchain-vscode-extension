@@ -227,6 +227,18 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(options, quickPickOptions);
     }
 
+    public static showQuickPickCA(listOfCAs: string[]): Thenable<string | undefined> {
+        const prompt: string = 'Choose your desired CA from the list' ;
+
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: true,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        return vscode.window.showQuickPick(listOfCAs, quickPickOptions);
+    }
+
     public static async showPeersQuickPickBox(prompt: string): Promise<string[] | undefined> {
         const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
         if (!connection) {

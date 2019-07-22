@@ -363,6 +363,34 @@ describe('UserInputUtil', () => {
 
     });
 
+    describe('showQuickPickCA', () => {
+        it('should show list of CAs', async () => {
+            const caList: string[] = ['ca1', 'ca2', 'ca3'];
+            quickPickStub.resolves('ca1');
+            const result: string = await UserInputUtil.showQuickPickCA(caList);
+            result.should.equal('ca1');
+
+            quickPickStub.should.have.been.calledWith(caList, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose your desired CA from the list'
+            });
+        });
+
+        it('should cancel CA selection', async () => {
+            const caList: string[] = ['ca1', 'ca2', 'ca3'];
+            quickPickStub.resolves();
+            const result: string = await UserInputUtil.showQuickPickCA(caList);
+            should.equal(result, undefined);
+
+            quickPickStub.should.have.been.calledWith(caList, {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'Choose your desired CA from the list'
+            });
+        });
+    });
+
     describe('showFolderOptions', () => {
         it('should show add to workspace in quickpick box', async () => {
             quickPickStub.resolves(UserInputUtil.ADD_TO_WORKSPACE);
