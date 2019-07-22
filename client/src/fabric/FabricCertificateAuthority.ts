@@ -12,13 +12,10 @@
  * limitations under the License.
 */
 'use strict';
-import * as fs from 'fs-extra';
 import * as FabricCAServices from 'fabric-ca-client';
-import * as yaml from 'js-yaml';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricCertificateAuthority } from './IFabricCertificateAuthority';
-
 export class FabricCertificateAuthority implements IFabricCertificateAuthority {
 
     public static instance(): FabricCertificateAuthority {
@@ -27,27 +24,9 @@ export class FabricCertificateAuthority implements IFabricCertificateAuthority {
 
     private static _instance: FabricCertificateAuthority = new FabricCertificateAuthority();
 
-    public async enroll(connectionProfilePath: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+    public async enroll(caUrl: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-
-            // Read connection profile
-            const connectionProfileFile: string = await fs.readFile(connectionProfilePath, 'utf8');
-            let connectionProfile: any;
-
-            if (connectionProfilePath.endsWith('.json')) {
-                connectionProfile = JSON.parse(connectionProfileFile);
-            } else {
-                // Assume its a yml/yaml file type
-                connectionProfile = yaml.safeLoad(connectionProfileFile);
-            }
-
-            // Get a list of CAs
-            const caKeys: any[] = Object.keys(connectionProfile.certificateAuthorities);
-
-            // Assume this will always give us a working CA
-            const caUrl: string = connectionProfile.certificateAuthorities[caKeys[0]].url;
-
             const certificateAuthority: FabricCAServices = new FabricCAServices(caUrl);
 
             const enrollment: any = await certificateAuthority.enroll({enrollmentID, enrollmentSecret});

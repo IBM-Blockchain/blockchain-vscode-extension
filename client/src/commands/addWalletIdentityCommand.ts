@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+import * as yaml from 'js-yaml';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { Reporter } from '../util/Reporter';
@@ -62,14 +63,9 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         walletRegistryEntry = chosenWallet.data;
     }
 
-    const identity: {identityName: string, mspid: string} = {
-        identityName: '',
-        mspid: ''
-    };
-
     // Ask for an identity name
-    identity.identityName = await UserInputUtil.showInputBox('Provide a name for the identity');
-    if (!identity.identityName) {
+    const identityName: string = await UserInputUtil.showInputBox('Provide a name for the identity');
+    if (!identityName) {
         return;
     }
 
@@ -197,7 +193,33 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
 
             const certificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
 
-            const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(gatewayRegistryEntry.connectionProfilePath, enrollmentID, enrollmentSecret);
+            // Read connection profile
+            const connectionProfileFile: string = await fs.readFile(gatewayRegistryEntry.connectionProfilePath, 'utf8');
+            let connectionProfile: any;
+
+            if (gatewayRegistryEntry.connectionProfilePath.endsWith('.json')) {
+                connectionProfile = JSON.parse(connectionProfileFile);
+            } else {
+                // Assume its a yml/yaml file type
+                connectionProfile = yaml.safeLoad(connectionProfileFile);
+            }
+
+            // Get a list of CAs
+            const caKeys: string[] = Object.keys(connectionProfile.certificateAuthorities);
+            let caUrl: string;
+
+            if (caKeys.length > 1) {
+                const showMoreCAs: string = await UserInputUtil.showQuickPickCA(caKeys);
+                if (!showMoreCAs) {
+                    return;
+                } else {
+                    caUrl = connectionProfile.certificateAuthorities[showMoreCAs].url;
+                }
+            } else {
+                caUrl = connectionProfile.certificateAuthorities[caKeys[0]].url;
+            }
+
+            const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(caUrl, enrollmentID, enrollmentSecret);
             certificate = enrollment.certificate;
             privateKey = enrollment.privateKey;
         }
@@ -209,7 +231,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         // Else certificate and privateKey have already been read in FabricCertificateAuthority.enroll
         // Or certificate and privateKey has been read from json file
 
-        await wallet.importIdentity(certificate, privateKey, identity.identityName, mspID);
+        await wallet.importIdentity(certificate, privateKey, identityName, mspID);
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
