@@ -21,7 +21,6 @@ import { BlockchainTreeItem } from './model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { RuntimeTreeItem } from './runtimeOps/RuntimeTreeItem';
-import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { InstantiatedChaincodeTreeItem } from './model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
@@ -40,7 +39,6 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { CertificateAuthorityTreeItem } from './runtimeOps/CertificateAuthorityTreeItem';
 import { OrdererTreeItem } from './runtimeOps/OrdererTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricNode } from '../fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
@@ -137,16 +135,11 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
 
         try {
-            const connection: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-            connection.name = runtime.getName();
-            connection.managedRuntime = true;
-            connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-
             const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(this,
                 runtime.getName(),
-                connection,
+                fabricEnvironmentRegistryEntry,
                 {
                     command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                     title: '',
@@ -159,6 +152,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             for (const environmentEntry of environmentEntries) {
                 const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(this,
                     environmentEntry.name,
+                    environmentEntry,
                     {
                         command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
                         title: '',
