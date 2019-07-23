@@ -74,9 +74,9 @@ async function runCucumberTest(): Promise<any> {
             features[3] = feature;
         } else if (file === 'upgrade.feature') {
             features[4] = feature;
-        } else if (file === 'transaction.feature') {
+        } else if (file === 'submit.feature') {
             features[5] = feature;
-        } else if (file === 'transaction.feature') {
+        } else if (file === 'evaluate.feature') {
             features[6] = feature;
         } else {
             otherFeatures.push(feature);
