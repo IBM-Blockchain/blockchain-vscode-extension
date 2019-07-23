@@ -94,7 +94,7 @@ export class GatewayHelper {
         await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY, gatewayEntry);
     }
 
-    public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, args: string, gatewayName: string, contractName?: string, transientData?: string): Promise<void> {
+    public async submitTransaction(name: string, version: string, contractLanguage: string, transaction: string, args: string, gatewayName: string, contractName?: string, transientData?: string, evaluate?: boolean): Promise<void> {
 
         let gatewayEntry: FabricGatewayRegistryEntry;
 
@@ -143,6 +143,10 @@ export class GatewayHelper {
         }
         this.userInputUtilHelper.inputBoxStub.withArgs('optional: What is the transient data for the transaction, e.g. {"key": "value"}', '{}').resolves(transientData);
 
-        await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+        if (evaluate) {
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+        } else {
+            await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
+        }
     }
 }

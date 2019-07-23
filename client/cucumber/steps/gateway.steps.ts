@@ -55,6 +55,11 @@ module.exports = function(): any {
         await this.gatewayHelper.connectToFabric(this.gateway, this.wallet, this.identity, hasAssociation);
     });
 
+    this.Given(/^the transaction '(.*?)' has been submitted with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (transaction: string, args: string, transientData: string) => {
+            // submit tx
+            await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
+    });
+
     /**
      * When
      */
@@ -87,8 +92,14 @@ module.exports = function(): any {
         this.contractLanguage = contractLanguage;
     });
 
-    this.When(/^I submit the transaction '(.*?)' with args '(.*?)' ?(and with the transient data '.*?')?$/, this.timeout, async (transaction: string, args: string, transientData: string) => {
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData);
+    this.When(/^I (submit|evaluate) the transaction '(.*?)' with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (submitEvaluate: string, transaction: string, args: string, transientData: string) => {
+        let evaluateBoolean: boolean;
+        if (submitEvaluate === 'submit') {
+            evaluateBoolean = false;
+        } else if (submitEvaluate === 'evaluate') {
+            evaluateBoolean = true;
+        }
+        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, evaluateBoolean);
     });
 
     /**
