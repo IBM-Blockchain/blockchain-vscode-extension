@@ -1,10 +1,12 @@
 # IBM Blockchain Platform Extension Change Log
 
-## 1.0.5: July 11th 2019
+## 1.0.5: July 17th 2019
 
 * gRPC fix [#1124](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1124)
 * Removed scope from package name [#1117](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1117)
-
+* Add attributes to an identity created with local fabric CA [#1113](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1113)
+* Changed home page GitHub issues link [#1067](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1067)
+* Fixed debug bug and improved behaviour [#1118](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1118)
 
 ## 1.0.4: July 4th 2019
 
