@@ -102,9 +102,17 @@ describe('AddWalletIdentityCommand', () => {
                 associatedWallet: ''
             });
 
+            const connectionThree: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
+                name: 'myGatewayC',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.yml'),
+                managedRuntime: false,
+                associatedWallet: ''
+            });
+
             await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(connectionOne);
             await FabricGatewayRegistry.instance().add(connectionTwo);
+            await FabricGatewayRegistry.instance().add(connectionThree);
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
@@ -154,11 +162,19 @@ describe('AddWalletIdentityCommand', () => {
             mySandBox.restore();
         });
 
-        it('should test an identity can be added with an enroll id and secret, when called from the command palette', async () => {
+        it('should test an identity can be added with an enroll id and secret, when called from the command palette using a JSON file', async () => {
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')
             });
+
+            fsReadFile.resolves(`{
+                "certificateAuthorities": {
+                    "ca0": {
+                        "url": "http://ca0url"
+                    }
+                }
+            }`);
 
             inputBoxStub.onFirstCall().resolves('greenConga');
             inputBoxStub.onSecondCall().resolves('myMSPID');
@@ -173,9 +189,134 @@ describe('AddWalletIdentityCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             inputBoxStub.should.have.been.calledTwice;
 
-            fsReadFile.should.not.have.been.called;
+            fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
-            enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
+            enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
+            importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
+        });
+
+        it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
+            });
+
+            fsReadFile.resolves(`---
+            certificateAuthorities:
+              ca0:
+                url: http://ca0url`);
+
+            inputBoxStub.onFirstCall().resolves('greenConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayC',
+                data: FabricGatewayRegistry.instance().get('myGatewayC')
+            });
+            getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
+            enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+
+            fsReadFile.should.have.been.calledOnce;
+            getEnrollIdSecretStub.should.have.been.calledOnce;
+            enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
+            importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
+        });
+
+        it('should return when user cancels when selecting a CA to enroll with', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
+            });
+
+            fsReadFile.resolves(`{
+                "certificateAuthorities": {
+                    "ca0": {
+                        "url": "http://ca0url"
+                    },
+                    "ca1": {
+                        "url": "http://ca1url"
+                    }
+                }
+            }`);
+
+            const showQuickPickCAStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickCA').resolves();
+
+            inputBoxStub.onFirstCall().resolves('greenConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayA',
+                data: FabricGatewayRegistry.instance().get('myGatewayA')
+            });
+            getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
+            enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+
+            showQuickPickCAStub.should.have.been.calledOnce;
+            fsReadFile.should.have.been.calledOnce;
+            getEnrollIdSecretStub.should.have.been.calledOnce;
+            enrollStub.should.not.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
+            importIdentityStub.should.not.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+            logSpy.should.have.been.calledOnce;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
+        });
+
+        it('should return when user cancels when selecting a CA to enroll with', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
+            });
+
+            fsReadFile.resolves(`{
+                "certificateAuthorities": {
+                    "ca0": {
+                        "url": "http://ca0url"
+                    },
+                    "ca1": {
+                        "url": "http://ca1url"
+                    }
+                }
+            }`);
+
+            const showQuickPickCAStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showQuickPickCA').resolves('ca1');
+
+            inputBoxStub.onFirstCall().resolves('greenConga');
+            inputBoxStub.onSecondCall().resolves('myMSPID');
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayA',
+                data: FabricGatewayRegistry.instance().get('myGatewayA')
+            });
+            getEnrollIdSecretStub.resolves({enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret'});
+            enrollStub.resolves({certificate: '---CERT---', privateKey: '---KEY---'});
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
+            inputBoxStub.should.have.been.calledTwice;
+
+            showQuickPickCAStub.should.have.been.calledOnce;
+            fsReadFile.should.have.been.calledOnce;
+            getEnrollIdSecretStub.should.have.been.calledOnce;
+            enrollStub.should.have.been.calledOnceWith('http://ca1url', 'enrollID', 'enrollSecret');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -342,6 +483,15 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should error if an identity is unable to be imported', async () => {
+
+            fsReadFile.resolves(`{
+                "certificateAuthorities": {
+                    "ca0": {
+                        "url": "http://ca0url"
+                    }
+                }
+            }`);
+
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')
@@ -360,9 +510,9 @@ describe('AddWalletIdentityCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY);
             inputBoxStub.should.have.been.calledTwice;
-            fsReadFile.should.not.have.been.called;
+            fsReadFile.should.have.been.calledOnce;
             getEnrollIdSecretStub.should.have.been.calledOnce;
-            enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionTwo/connection.json'), 'enrollID', 'enrollSecret');
+            enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
             importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
             logSpy.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
@@ -463,6 +613,15 @@ describe('AddWalletIdentityCommand', () => {
         describe('called from WalletTreeItem', () => {
 
             it('should test an identity can be added from a WalletTreeItem', async () => {
+
+                fsReadFile.resolves(`{
+                    "certificateAuthorities": {
+                        "ca0": {
+                            "url": "http://ca0url"
+                        }
+                    }
+                }`);
+
                 inputBoxStub.onFirstCall().resolves('greenConga');
                 inputBoxStub.onSecondCall().resolves('myMSPID');
                 addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
@@ -482,9 +641,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledTwice;
-                fsReadFile.should.not.have.been.called;
+                fsReadFile.should.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
-                enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
+                enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -494,9 +653,18 @@ describe('AddWalletIdentityCommand', () => {
             });
 
             it(`should test an identity can be enrolled to ${FabricWalletUtil.LOCAL_WALLET} using ${FabricRuntimeUtil.LOCAL_FABRIC}`, async () => {
+
+                fsReadFile.resolves(`{
+                    "certificateAuthorities": {
+                        "ca0": {
+                            "url": "http://ca0url"
+                        }
+                    }
+                }`);
+
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path',
+                    connectionProfilePath: '/some/path/connection.json',
                     managedRuntime: true,
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 } as FabricGatewayRegistryEntry]);
@@ -519,9 +687,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
-                fsReadFile.should.not.have.been.called;
+                fsReadFile.should.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
-                enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
+                enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
                 executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
@@ -532,9 +700,18 @@ describe('AddWalletIdentityCommand', () => {
             });
 
             it(`should start ${FabricRuntimeUtil.LOCAL_FABRIC} before attempting to enroll an identity`, async () => {
+
+                fsReadFile.resolves(`{
+                    "certificateAuthorities": {
+                        "ca0": {
+                            "url": "http://ca0url"
+                        }
+                    }
+                }`);
+
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path',
+                    connectionProfilePath: '/some/path/connection.json',
                     managedRuntime: true,
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 } as FabricGatewayRegistryEntry]);
@@ -561,9 +738,9 @@ describe('AddWalletIdentityCommand', () => {
 
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledOnce;
-                fsReadFile.should.not.have.been.called;
+                fsReadFile.should.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
-                enrollStub.should.have.been.calledOnceWith('/some/path', 'enrollID', 'enrollSecret');
+                enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
                 importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
@@ -575,7 +752,7 @@ describe('AddWalletIdentityCommand', () => {
             it(`should handle ${FabricRuntimeUtil.LOCAL_FABRIC} failing to start`, async () => {
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([{
                     name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    connectionProfilePath: '/some/path',
+                    connectionProfilePath: '/some/path/connection.json',
                     managedRuntime: true,
                     associatedWallet: FabricWalletUtil.LOCAL_WALLET
                 } as FabricGatewayRegistryEntry]);
@@ -607,6 +784,15 @@ describe('AddWalletIdentityCommand', () => {
         describe('called from IFabricWallet - addWallet command', () => {
 
             it('should test an identity can be enrolled to a new wallet', async () => {
+
+                fsReadFile.resolves(`{
+                    "certificateAuthorities": {
+                        "ca0": {
+                            "url": "http://ca0url"
+                        }
+                    }
+                }`);
+
                 showWalletsQuickPickStub.resolves({
                     label: 'externalWallet',
                     data: FabricWalletRegistry.instance().get('externalWallet')
@@ -630,9 +816,9 @@ describe('AddWalletIdentityCommand', () => {
                 getNewWalletStub.should.not.have.been.called;
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledTwice;
-                fsReadFile.should.not.have.been.called;
+                fsReadFile.should.have.been.called;
                 getEnrollIdSecretStub.should.have.been.calledOnce;
-                enrollStub.should.have.been.calledOnceWith(path.join(rootPath, '../../test/data/connectionOne/connection.json'), 'enrollID', 'enrollSecret');
+                enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
                 otherImportIdentityStub.should.have.been.calledOnceWith('---CERT---', '---KEY---', 'greenConga', 'myMSPID');
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
