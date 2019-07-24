@@ -39,6 +39,7 @@ import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -179,7 +180,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
                 const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                     this,
-                    runtimeGateway.name,
+                    FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME,
                     runtimeGateway,
                     vscode.TreeItemCollapsibleState.None,
                     command
@@ -303,7 +304,11 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
             const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
-            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayRegistryEntry.name}`, gatewayRegistryEntry, 0));
+            let gatewayName: string = gatewayRegistryEntry.name;
+            if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+            }
+            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayName}`, gatewayRegistryEntry, 0));
             tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gatewayRegistryEntry, 0));
             tree.push(new ConnectedTreeItem(this, `Channels`, gatewayRegistryEntry, vscode.TreeItemCollapsibleState.Expanded));
 

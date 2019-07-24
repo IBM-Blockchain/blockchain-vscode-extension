@@ -6,8 +6,8 @@ Feature: Fabric Gateways
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity
         When connecting to the 'Local Fabric' gateway
-        Then there should be a tree item with a label 'Connected via gateway: local_fabric' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Connected via gateway: local_fabric'
+        Then there should be a tree item with a label 'Connected via gateway: Local Fabric' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Connected via gateway: Local Fabric'
         And there should be a tree item with a label 'Using ID: admin' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Using ID: admin'
         And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
@@ -18,8 +18,8 @@ Feature: Fabric Gateways
         And the 'Local Fabric' wallet
         And the identity 'new_identity' exists
         When connecting to the 'Local Fabric' gateway
-        Then there should be a tree item with a label 'Connected via gateway: local_fabric' in the 'Fabric Gateways' panel
-        And the tree item should have a tooltip equal to 'Connected via gateway: local_fabric'
+        Then there should be a tree item with a label 'Connected via gateway: Local Fabric' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Connected via gateway: Local Fabric'
         And there should be a tree item with a label 'Using ID: new_identity' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Using ID: new_identity'
 

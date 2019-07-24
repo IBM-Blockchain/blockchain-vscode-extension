@@ -87,7 +87,7 @@ describe('RuntimeTreeItem', () => {
         it('should have the right properties for a runtime that is not running', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, new FabricGatewayRegistryEntry({
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',
@@ -109,7 +109,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -122,7 +122,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.STOPPING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -135,7 +135,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.RESTARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -148,7 +148,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -165,18 +165,18 @@ describe('RuntimeTreeItem', () => {
         it('should have the right properties for a runtime that is running', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  `);
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  `);
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -200,7 +200,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -225,7 +225,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
             mockRuntime.isRunning.resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -248,7 +248,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isBusy.returns(true);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
             mockRuntime.isRunning.resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, new FabricGatewayRegistryEntry({
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
                 managedRuntime: true,
                 connectionProfilePath: 'myPath',

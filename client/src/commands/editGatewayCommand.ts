@@ -34,7 +34,7 @@ export async function editGatewayCommand(treeItem: GatewayTreeItem): Promise<voi
         let gateways: Array<FabricGatewayRegistryEntry> = [];
         gateways = FabricGatewayRegistry.instance().getAll();
         if (gateways.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`);
+            outputAdapter.log(LogType.ERROR, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be edited.`, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be edited.`);
             return;
         }
 

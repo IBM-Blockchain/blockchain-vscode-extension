@@ -202,7 +202,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             const generated: boolean = await runtime.isGenerated();
             if (generated) {
                 // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
-                const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`);
+                const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`);
                 if (!response) {
                     // Assume they will teardown later
                     return;

@@ -91,4 +91,8 @@ module.exports = function(): any {
     this.When(/I register a new identity '(.*?)' (?:with the attributes)? '(.*?)'?$/, this.timeout, async (identity: string, attributes: string) => {
         await this.walletAndIdentityHelper.createCAIdentity(identity, attributes);
     });
+
+    this.When(/I delete the identity '(.*?)'$/, this.timeout, async (identity: string) => {
+        await this.walletAndIdentityHelper.deleteCAIdentity(identity);
+    });
 };

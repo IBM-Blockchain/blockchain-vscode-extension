@@ -414,7 +414,7 @@ describe('ConnectCommand', () => {
                 mockRuntime.isRunning.resolves(false);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
 
-                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
             });
 
         });

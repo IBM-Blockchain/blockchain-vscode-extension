@@ -38,7 +38,7 @@ export async function removeWallet(treeItem: WalletTreeItem): Promise<void> {
         let wallets: Array<FabricWalletRegistryEntry> = [];
         wallets = FabricWalletRegistry.instance().getAll();
         if (wallets.length === 0) {
-            outputAdapter.log(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`);
+            outputAdapter.log(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`);
             return;
         }
 
