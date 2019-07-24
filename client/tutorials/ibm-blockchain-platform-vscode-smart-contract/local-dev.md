@@ -25,9 +25,9 @@ For the purposes of this tutorial, we'll use TypeScript as the main example lang
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon (it looks like a square, and will probably be at the bottom of the set of icons if this was the latest extension you installed!)
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACTS` panel, click the `...` menu, and select `Create New Project` from the dropdown.
 
-> Command Palette alternative: `Create Smart Contract Project`
+> Command Palette alternative: `Create New Project`
 
 3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`; (unless you want to use Java, then please remember to expand the Java sections)
 
@@ -147,9 +147,9 @@ Now that you have created your smart contract and understand the transactions th
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon.
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Package a Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACTS` panel, click the `...` menu, and select `Package Open Project` from the dropdown.
 
-> Command Palette alternative: `Package a smart contract project`
+> Command Palette alternative: `Package Open Project`
 
 If you're using Java, please enter a name and a version for this project. `demoContract` and `0.0.1` would be perfect.
 
