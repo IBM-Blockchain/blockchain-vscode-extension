@@ -43,17 +43,17 @@ The expected smart contract development lifecycle follows several broad points, 
 4. Submitting transactions and generating functional-level smart contract tests
 
 ### Create and Develop a Fabric smart contract project
-A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create Smart Contract Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
+A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create New Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
 
 ### Package a smart contract project
-To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages are listed in the `Smart Contract Packages` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import Package` command to import a pre-existing .cds package to be used within VS Code. 
+To package a project you have open in your workspace, run the `Package Open Project` command. Packages are listed in the `Smart Contracts` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import a Package` command to import a pre-existing .cds package to be used within VS Code. 
 
 ### Operate the local_fabric runtime
 The extension contains a pre-configured local instance of Hyperledger Fabric named `local_fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Local Fabric Ops` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `local_fabric_wallet` wallet. 
 
 For `local_fabric` management tasks such as restart and teardown, see the `Local Fabric Ops` panel burger menu.
 
-### Install and Instantiate smart contract packages
+### Install and Instantiate smart contracts
 Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `local_fabric` runtime. The deployed smart contracts are listed in the `Local Fabric Ops` panel. 
 
 ### Debugging a smart contract
@@ -134,7 +134,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Wallet | Add a wallet containing identities to be used when connecting to a gateway |
 | Associate A Wallet | Associate a wallet with a gateway to be used when connecting |
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
-| Create Smart Contract Project | Create a new smart contract project |
+| Create New Project | Create a new smart contract project |
 | Create Identity (register and enroll) | Create, register and enroll a new identity from the local_fabric runtime certificate authority |
 | Debug | Debug a Smart Contract |
 | Delete Identity | Delete an identity from a wallet |
@@ -149,11 +149,11 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Export Package | Export a smart contract package to use outside VS Code |
 | Export Wallet | Export a wallet to use outside VS Code |
 | Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
-| Import Package | Import a smart contract package |
+| Import a Package | Import a smart contract package |
 | Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
 | Open New Terminal | Open a new terminal on a specified Fabric node (peer, orderer, and fabric-ca-client CLIs) |
-| Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer |
+| Package Open Project | Create a new smart contract package from a project in the Explorer |
 | Remove Wallet | Remove a wallet from the Fabric Wallets view |
 | Restart Fabric Runtime | Restart the local_fabric instance |
 | Start Fabric Runtime | Start the local_fabric instance |

@@ -102,7 +102,7 @@
             "blockchain-explorer": [
                 {
                     "id": "aPackagesExplorer",
-                    "name": "Smart Contract Packages"
+                    "name": "Smart Contracts"
                 },
                 {
                     "id": "aRuntimeOpsExplorer",
@@ -256,7 +256,7 @@
             },
             {
                 "command": "aPackagesExplorer.refreshEntry",
-                "title": "Refresh Smart Contract Packages",
+                "title": "Refresh Smart Contracts",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -265,7 +265,7 @@
             },
             {
                 "command": "aPackagesExplorer.packageSmartContractProjectEntry",
-                "title": "Package a Smart Contract Project",
+                "title": "Package Open Project",
                 "icon": {
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
@@ -314,7 +314,7 @@
             },
             {
                 "command": "aPackagesExplorer.importSmartContractPackageEntry",
-                "title": "Import Package",
+                "title": "Import a Package",
                 "category": "IBM Blockchain Platform"
             },
             {
