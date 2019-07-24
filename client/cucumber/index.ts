@@ -65,17 +65,19 @@ async function runCucumberTest(): Promise<any> {
         });
 
         if (file === 'create.feature') {
-            features.splice(0, 0, feature);
+            features[0] = feature;
         } else if (file === 'package.feature') {
-            features.splice(1, 0, feature);
+            features[1] = feature;
         } else if (file === 'install.feature') {
-            features.splice(2, 0, feature);
+            features[2] = feature;
         } else if (file === 'instantiate.feature') {
-            features.splice(3, 0, feature);
+            features[3] = feature;
         } else if (file === 'upgrade.feature') {
-            features.splice(4, 0, feature);
-        } else if (file === 'transaction.feature') {
-            features.splice(5, 0, feature);
+            features[4] = feature;
+        } else if (file === 'submit.feature') {
+            features[5] = feature;
+        } else if (file === 'evaluate.feature') {
+            features[6] = feature;
         } else {
             otherFeatures.push(feature);
         }
@@ -111,6 +113,7 @@ async function runCucumberTest(): Promise<any> {
         colorsEnabled: true,
         cwd: '/',
         log: (data: any): any => {
+            // tslint:disable-next-line:no-console
             console.log(data);
 
         },
@@ -160,6 +163,7 @@ export async function run(testsRoot: string, clb: (error: any, failures?: number
         }
 
     } catch (error) {
+        // tslint:disable-next-line:no-console
         console.log('Error:', error);
         clb(error);
     }
