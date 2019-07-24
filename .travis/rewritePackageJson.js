@@ -13,6 +13,8 @@
 */
 'use strict';
 
+// NOTE: this file is also used by the engagement team so be careful when changing it
+
 const fs = require('fs');
 const process = require('process');
 
@@ -47,7 +49,7 @@ if (process.argv.includes('publish')) {
   });
 
   packageJson.engines = {
-    vscode: '1.35.1'
+    vscode: '^1.35.1'
   };
 }
 
