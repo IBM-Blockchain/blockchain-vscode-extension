@@ -309,7 +309,7 @@ describe('AddEnvironmentCommand', () => {
             logSpy.should.have.been.calledThrice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node file ${uriOne.fsPath}: ${error.message}`, `Error importing node file ${uriOne.fsPath}: ${error.toString()}`);
-            logSpy.getCall(2).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
 
@@ -342,6 +342,52 @@ describe('AddEnvironmentCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
             sendTelemetryEventStub.should.have.been.calledOnce;
+        });
+
+        it('should add environment but warn if nodes are not valid', async () => {
+            showInputBoxStub.onFirstCall().resolves('myEnvironment');
+
+            readJsonStub.resolves([{
+                short_name: 'peer0.org1.example.com',
+                name: 'peer0.org1.example.com',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'fabric-peer',
+                wallet: 'local_fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            },
+            {
+                short_name: 'invalid',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'fabric-peer',
+                wallet: 'local_fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            }]);
+
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+
+            environments.length.should.equal(1);
+            environments[0].should.deep.equal({
+                name: 'myEnvironment'
+            });
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.have.been.calledOnce;
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.should.have.been.calledWith(LogType.ERROR,  `Error importing node file ${uri.fsPath}: A node should have a name property`, `Error importing node file ${uri.fsPath}: Error: A node should have a name property`);
+            logSpy.should.have.been.calledWith(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
         });
     });
 });
