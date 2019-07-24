@@ -39,6 +39,7 @@ import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProvider {
 
@@ -177,9 +178,12 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
                     arguments: [runtimeGateway]
                 };
 
+                let gatewayName: string;
+                gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+
                 const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(
                     this,
-                    runtimeGateway.name,
+                    gatewayName,
                     runtimeGateway,
                     vscode.TreeItemCollapsibleState.None,
                     command

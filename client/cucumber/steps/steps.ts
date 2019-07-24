@@ -51,7 +51,7 @@ module.exports = function(): any {
         }
     });
 
-    this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Local Fabric Ops|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
+    this.Then(/^there (should|shouldn't) be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Local Fabric Ops|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[];
         if (panel === 'Smart Contract Packages') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
@@ -99,37 +99,16 @@ module.exports = function(): any {
             throw new Error('Name of panel doesn\'t exist');
         }
 
-        // Find tree item using label
         const treeItem: any = treeItems.find((item: any) => {
             return item.label === label;
         });
 
-        should.exist(treeItem);
-
-        this.treeItem = treeItem;
-    });
-
-    this.Then(/^there shouldn't be an? (instantiated smart contract )?tree item with a label '(.*?)' in the '(Local Fabric Ops)' panel$/, this.timeout, async (child: string, label: string, panel: string) => {
-        let treeItems: any[];
-        if (panel === 'Local Fabric Ops') {
-            const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
-            if (child.includes('instantiated smart contract')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Instantiated smart contracts
-            } else {
-                throw new Error('unrecognised child ' + child);
-            }
+        if (shouldOrshouldnt === 'should') {
+            should.exist(treeItem);
+            this.treeItem = treeItem;
         } else {
-            throw new Error('Name of panel doesn\'t exist');
+            should.not.exist(treeItem);
         }
-
-        // Find tree item using label
-        const treeItem: any = treeItems.find((item: any) => {
-            return item.label === label;
-        });
-
-        should.not.exist(treeItem);
     });
 
     this.Then("the tree item should have a tooltip equal to '{string}'", this.timeout, async (tooltipValue: string) => {

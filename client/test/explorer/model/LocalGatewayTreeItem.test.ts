@@ -91,11 +91,11 @@ describe('LocalGatewayTreeItem', () => {
         it('should have the right properties for a runtime that is not running', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
-            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricWalletUtil.LOCAL_WALLET, gateway, vscode.TreeItemCollapsibleState.None);
+            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, gateway, vscode.TreeItemCollapsibleState.None);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC}  ○`);
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○`);
             treeItem.tooltip.should.equal(`Local Fabric is not running
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET}`);
