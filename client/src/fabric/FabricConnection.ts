@@ -31,6 +31,7 @@ export abstract class FabricConnection {
 
     private discoveryAsLocalhost: boolean;
     private discoveryEnabled: boolean;
+    private knownChannels: any;
 
     constructor(connectionProfilePath: string, outputAdapter?: OutputAdapter) {
         this.gateway = new Gateway();
@@ -59,14 +60,29 @@ export abstract class FabricConnection {
     public async getAllChannelsForPeer(peerName: string): Promise<Array<string>> {
         // TODO: update this when not just using admin
         const peer: Client.Peer = this.gateway.getClient().getPeer(peerName);
-        const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
-
-        const channelNames: Array<string> = [];
-        channelResponse.channels.forEach((channel: Client.ChannelInfo) => {
-            channelNames.push(channel.channel_id);
-        });
-
-        return channelNames.sort();
+        try {
+            const channelResponse: Client.ChannelQueryResponse = await this.gateway.getClient().queryChannels(peer);
+            const channelNames: Array<string> = channelResponse.channels.map((channel: Client.ChannelInfo) => channel.channel_id);
+            return channelNames.sort();
+        } catch (error) {
+            if (error.message && error.message.match(/access denied/)) {
+                // Not allowed to do this as we're probably not an administrator.
+                const channelNames: Array<string> = [];
+                for (const channelName in this.knownChannels) {
+                    const channel: any = this.knownChannels[channelName];
+                    const peers: any = channel.peers || {};
+                    const peerNames: string[] = Object.keys(peers);
+                    if (peerNames.indexOf(peerName) > -1) {
+                        channelNames.push(channelName);
+                    }
+                }
+                // If we found any channels, great - if not, then we should rethrow the error.
+                if (channelNames.length > 0) {
+                    return channelNames;
+                }
+            }
+            throw error;
+        }
     }
 
     public async getInstantiatedChaincode(channelName: string): Promise<Array<{ name: string, version: string }>> {
@@ -119,7 +135,7 @@ export abstract class FabricConnection {
 
         this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
         this.discoveryEnabled = true;
-
+        this.knownChannels = connectionProfile['channels'] || {};
         const options: GatewayOptions = {
             wallet: wallet,
             identity: identityName,

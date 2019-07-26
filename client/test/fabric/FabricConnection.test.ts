@@ -71,6 +71,18 @@ describe('FabricConnection', () => {
                     url: 'grpc://localhost:7050'
                 }
             },
+            channels: {
+                'channel-from-the-ccp-no-peers': {
+
+                },
+                'channel-from-the-ccp': {
+                    peers: {
+                        'peer0.org1.example.com': {
+
+                        }
+                    }
+                }
+            },
             certificateAuthorities: {
                 'ca.org1.example.com': {
                     url: 'https://localhost:7054'
@@ -296,7 +308,7 @@ describe('FabricConnection', () => {
 
     describe('getAllChannelsForPeer', () => {
         it('should get all the channels a peer has joined', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne]);
 
@@ -306,9 +318,49 @@ describe('FabricConnection', () => {
 
             await fabricConnection.connect(mockWallet, mockIdentityName);
 
-            const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peerTwo');
+            const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com');
 
             channelNames.should.deep.equal(['channel-one', 'channel-two']);
+        });
+
+        it('should use the connection profile for the list of channels if the peer says access is denied', async () => {
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
+
+            fabricClientStub.getPeersForOrg.returns([peerOne]);
+
+            fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
+
+            await fabricConnection.connect(mockWallet, mockIdentityName);
+
+            const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com');
+
+            channelNames.should.deep.equal(['channel-from-the-ccp']);
+        });
+
+        it('should rethrow the error if the peer says access is denied and there are no matching channels in the connection profile', async () => {
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org2.example.com' });
+
+            fabricClientStub.getPeersForOrg.returns([peerOne]);
+
+            fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
+
+            await fabricConnection.connect(mockWallet, mockIdentityName);
+
+            await fabricConnection.getAllChannelsForPeer('peer0.org2.example.com')
+                .should.be.rejectedWith(/blah access denied blah/);
+        });
+
+        it('should rethrow any other error', async () => {
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
+
+            fabricClientStub.getPeersForOrg.returns([peerOne]);
+
+            fabricClientStub.queryChannels.rejects(new Error('such error'));
+
+            await fabricConnection.connect(mockWallet, mockIdentityName);
+
+            await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com')
+                .should.be.rejectedWith(/such error/);
         });
     });
 
