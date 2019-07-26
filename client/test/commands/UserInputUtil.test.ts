@@ -38,11 +38,11 @@ import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentC
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -203,9 +203,13 @@ describe('UserInputUtil', () => {
     describe('showEnvironmentQuickPickBox', () => {
         it('should show the environments', async () => {
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            environmentRegistry.managedRuntime = true;
-            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+            environmentRegistry.name = 'myFabric';
+            environmentRegistry.managedRuntime = false;
+
+            const localFabricEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            localFabricEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            localFabricEntry.managedRuntime = true;
+            localFabricEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
             quickPickStub.resolves({ label: environmentRegistry.name, data: environmentRegistry });
@@ -214,7 +218,7 @@ describe('UserInputUtil', () => {
 
             result.data.name.should.equal(environmentRegistry.name);
 
-            quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }], {
+            quickPickStub.should.have.been.calledWith([{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry}, { label: environmentRegistry.name, data: environmentRegistry }], {
                 ignoreFocusOut: false,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
@@ -300,7 +304,19 @@ describe('UserInputUtil', () => {
             const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities);
 
             result.should.equal(FabricRuntimeUtil.ADMIN_USER);
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith([FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com'], {
+                ignoreFocusOut: true,
+                canPickMany: false,
+                placeHolder: 'choose an identity to connect with'
+            });
+        });
+
+        it('should show identity names and add identity in the quickpick box', async () => {
+            quickPickStub.resolves(FabricRuntimeUtil.ADMIN_USER);
+            const result: string = await UserInputUtil.showIdentitiesQuickPickBox('choose an identity to connect with', identities, true);
+
+            result.should.equal(FabricRuntimeUtil.ADMIN_USER);
+            quickPickStub.should.have.been.calledWith([FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com', UserInputUtil.ADD_IDENTITY], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an identity to connect with'
@@ -1653,11 +1669,7 @@ describe('UserInputUtil', () => {
     });
 
     describe('showWalletsQuickPickBox', () => {
-
         it('should show wallets to select', async () => {
-            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
-            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
-
             quickPickStub.resolves({
                 label: walletEntryOne.name,
                 data: walletEntryOne
@@ -1691,6 +1703,26 @@ describe('UserInputUtil', () => {
                 { label: walletEntryTwo.name, data: walletEntryTwo }]);
         });
 
+        it('should show wallets to select and show create wallet', async () => {
+            const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
+            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+
+            quickPickStub.resolves({
+                label: walletEntryOne.name,
+                data: walletEntryOne
+            });
+            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, true);
+
+            result.label.should.equal(walletEntryOne.name);
+            result.data.should.deep.equal(walletEntryOne);
+
+            const items: any = [{label: walletEntryOne.name, data: walletEntryOne}, {label: walletEntryTwo.name, data: walletEntryTwo}, {label: '+ Create new wallet', data: undefined}];
+            quickPickStub.should.have.been.calledWith(items, {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'Choose a wallet'
+            });
+        });
     });
 
     describe('addIdentityMethod', () => {
@@ -1904,25 +1936,23 @@ describe('UserInputUtil', () => {
         });
     });
 
-    describe('showRuntimeNodeQuickPick', () => {
+    describe('showFabricNodeQuickPick', () => {
 
         const nodes: FabricNode[] = [
             FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP'),
-            FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP'),
+            FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw'),
             FabricNode.newOrderer('orderer.example.com', 'orderer.example.com', 'grpc://localhost:7050', 'local_fabric_wallet', 'admin', 'OrdererMSP'),
             FabricNode.newCouchDB('couchdb', 'couchdb', 'http://localhost:5984')
         ];
 
         beforeEach(() => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.getNodes.resolves(nodes);
+            mySandBox.stub(FabricEnvironment.prototype, 'getNodes').returns(nodes);
         });
 
         it('should allow the user to select a node', async () => {
             quickPickStub.resolves({ data: nodes[0] });
-            const node: FabricNode = await UserInputUtil.showRuntimeNodeQuickPick('Gimme a node', [FabricNodeType.PEER, FabricNodeType.ORDERER]);
-            node.should.equal(nodes[0]);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'orderer.example.com', data: nodes[2] }
@@ -1935,7 +1965,7 @@ describe('UserInputUtil', () => {
 
         it('should return undefined if the user cancels selecting a node', async () => {
             quickPickStub.resolves(undefined);
-            const node: FabricNode = await UserInputUtil.showRuntimeNodeQuickPick('Gimme a node', [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]);
             should.equal(node, undefined);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -1946,7 +1976,6 @@ describe('UserInputUtil', () => {
                     placeHolder: 'Gimme a node'
                 });
         });
-
     });
 
     describe('failedActivationWindow', () => {
@@ -1963,6 +1992,18 @@ describe('UserInputUtil', () => {
             await UserInputUtil.failedActivationWindow('some error');
             showErrorMessageStub.should.have.been.calledOnceWithExactly('Failed to activate extension: some error', 'Retry activation');
             executeCommandStub.should.have.been.calledOnceWithExactly('workbench.action.reloadWindow');
+        });
+    });
+
+    describe('showQuickPick', () => {
+        it('should show the items passed in', async () => {
+           const items: string[] = ['itemOne', 'itemTwo'];
+           quickPickStub.resolves('itemOne');
+
+           const result: string = await UserInputUtil.showQuickPick('choose an item', items);
+           result.should.equal('itemOne');
+
+           quickPickStub.should.have.been.calledWith(items, sinon.match.any);
         });
     });
 

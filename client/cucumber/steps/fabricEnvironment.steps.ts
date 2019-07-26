@@ -21,7 +21,7 @@ import * as myExtension from '../../src/extension';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
+import { NodeTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 
 // tslint:disable:no-unused-expression
@@ -54,6 +54,22 @@ module.exports = function(): any {
 
     this.Given("an environment '{string}' exists", this.timeout, async (environmentName: string) => {
         await this.fabricEnvironmentHelper.createEnvironment(environmentName);
+        this.environmentName = environmentName;
+    });
+
+    this.Given('the environment is setup', this.timeout, async () => {
+        const nodes: string[] = ['ca.example.com', 'orderer.example.com', 'peer0.org1.example.com'];
+        const wallet: string = 'myWallet';
+        let identity: string;
+        for (const node of nodes) {
+            if (node === 'ca.example.com') {
+                identity = 'conga2';
+            } else {
+                identity = 'conga';
+            }
+            await this.fabricEnvironmentHelper.associateNodeWithIdentitiy(this.environmentName, node, identity, wallet);
+
+        }
     });
 
     /**
@@ -64,8 +80,16 @@ module.exports = function(): any {
         await this.fabricEnvironmentHelper.createEnvironment(environmentName);
     });
 
+    this.When("I associate identity '{string}' in wallet '{string}' with node '{string}'", this.timeout, async (identity: string, wallet: string, node: string) => {
+        await this.fabricEnvironmentHelper.associateNodeWithIdentitiy(this.environmentName, node, identity, wallet);
+    });
+
     this.When("I connect to the environment '{string}'", this.timeout, async (environment: string) => {
         await this.fabricEnvironmentHelper.connectToEnvironment(environment);
+    });
+
+    this.When("I delete an environment '{string}'", this.timeout, async (environmentName: string) => {
+        await this.fabricEnvironmentHelper.deleteEnvironment(environmentName);
     });
 
     this.When('I stop the Local Fabric', this.timeout, async () => {
@@ -90,7 +114,7 @@ module.exports = function(): any {
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         const runtime: FabricRuntime = runtimeManager.getRuntime();
 
-        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, true);
+        await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         const isRunning: boolean = await runtime.isRunning();
         isRunning.should.equal(false);
     });

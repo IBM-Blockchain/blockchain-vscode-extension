@@ -29,10 +29,10 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { IntegrationTestUtil } from '../integrationTestUtil';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
-import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
-import { InstalledTreeItem } from '../../src/explorer/runtimeOps/InstalledTreeItem';
+import { InstalledTreeItem } from '../../src/explorer/runtimeOps/connectedTree/InstalledTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { SampleView } from '../../src/webview/SampleView';
@@ -42,7 +42,7 @@ import { IFabricClientConnection } from '../../src/fabric/IFabricClientConnectio
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/connectedTree/PeerTreeItem';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
 

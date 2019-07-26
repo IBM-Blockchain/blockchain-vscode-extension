@@ -15,5 +15,5 @@
 
 export interface IFabricCertificateAuthority {
 
-    enroll(connectionProfilePath: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
+    enroll(url: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}>;
 }

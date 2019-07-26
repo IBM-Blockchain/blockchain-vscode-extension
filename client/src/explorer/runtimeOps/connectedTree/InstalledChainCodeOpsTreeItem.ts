@@ -13,15 +13,15 @@
 */
 'use strict';
 import * as vscode from 'vscode';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricNode } from '../../fabric/FabricNode';
-import { NodeTreeItem } from './NodeTreeItem';
+import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
+import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 
-export class CertificateAuthorityTreeItem extends NodeTreeItem {
-    contextValue: string = 'blockchain-runtime-certificate-authority-item';
+export class InstalledChainCodeOpsTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-installed-chaincode-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly node: FabricNode) {
-        super(provider, name, vscode.TreeItemCollapsibleState.None, node);
+    constructor(provider: BlockchainExplorerProvider, name: string, public readonly version: string, peerName: string) {
+        super(provider, `${name}@${version}`, vscode.TreeItemCollapsibleState.None);
 
+        this.tooltip = `Installed on: ${peerName}`;
     }
 }

@@ -59,31 +59,16 @@ module.exports = function(): any {
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
                 this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
 
-                // If we don't teardown the existing Fabric, we're told that the package is already installed
-                this.userInputUtilHelper.showConfirmationWarningMessageStub.resolves(true);
                 try {
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC);
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 } catch (error) {
                     // If the Fabric is already torn down, do nothing
                 }
                 this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
                 firstTime = false;
 
-                await ExtensionUtil.activateExtension();
-
-                // We need to delete any created packages here !!!
-                await ExtensionUtil.activateExtension();
-                await TestUtil.storeGatewaysConfig();
-                await TestUtil.storeRuntimesConfig();
-                await TestUtil.storeExtensionDirectoryConfig();
-                await TestUtil.storeRepositoriesConfig();
-                await TestUtil.storeWalletsConfig();
-
-                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
-
                 const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
 
-                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
                 const packageDir: string = path.join(extDir, 'packages');
                 let exists: boolean = await fs.pathExists(packageDir);
 
@@ -98,17 +83,45 @@ module.exports = function(): any {
                     await fs.remove(contractDir);
                 }
 
+                const environmentsDir: string = path.join(extDir, 'environments');
+                exists = await fs.pathExists(environmentsDir);
+
+                if (exists) {
+                    await fs.remove(environmentsDir);
+                }
+
+                const walletsDir: string = path.join(extDir, 'wallets');
+                exists = await fs.pathExists(walletsDir);
+
+                if (exists) {
+                    await fs.remove(walletsDir);
+                }
+
+                await ExtensionUtil.activateExtension();
+
+                await TestUtil.storeGatewaysConfig();
+                await TestUtil.storeRuntimesConfig();
+                await TestUtil.storeExtensionDirectoryConfig();
+                await TestUtil.storeRepositoriesConfig();
+                await TestUtil.storeWalletsConfig();
+                await TestUtil.storeEnvironmentsConfig();
+
+                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
+
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
             }
         } catch (error) {
+            // tslint:disable-next-line: no-console
             console.log(error);
-       }
+        }
     });
 
     // TODO: We want an After hook which clears the call count on all of our stubs after each scenario - then we can getCalls/ check call counts
-
     this.After(this.timeout, async () => {
         await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);

@@ -41,7 +41,7 @@ export class FabricEnvironment extends EventEmitter {
         return this.path;
     }
 
-    public async getNodes(): Promise<FabricNode[]> {
+    public async getNodes(withoutIdentitiies: boolean = false): Promise<FabricNode[]> {
         const nodesPath: string = path.resolve(this.path, 'nodes');
         const nodesExist: boolean = await fs.pathExists(nodesPath);
         if (!nodesExist) {
@@ -54,13 +54,27 @@ export class FabricEnvironment extends EventEmitter {
             .map((nodePath: string) => path.resolve(this.path, 'nodes', nodePath));
         const nodes: FabricNode[] = [];
         for (const nodePath of nodePaths) {
-            const node: FabricNode | Array<FabricNode> = await fs.readJson(nodePath);
-            if (Array.isArray(node)) {
-                nodes.push(...node);
-            } else {
-                nodes.push(node);
-            }
+            const node: FabricNode = await fs.readJson(nodePath);
+            nodes.push(node);
         }
-        return nodes;
+
+        if (withoutIdentitiies) {
+            return nodes.filter((node: FabricNode) => (!node.wallet || !node.identity));
+        } else {
+            return nodes;
+        }
+    }
+
+    public async updateNode(node: FabricNode): Promise<void> {
+        const nodesPath: string = path.resolve(this.path, 'nodes');
+        const nodePath: string = path.resolve(nodesPath, `${node.name}.json`);
+
+        await fs.writeJson(nodePath, node);
+    }
+
+    public async requireSetup(): Promise<boolean> {
+        const filteredNodes: FabricNode[] = await this.getNodes(true);
+
+        return filteredNodes.length > 0;
     }
 }

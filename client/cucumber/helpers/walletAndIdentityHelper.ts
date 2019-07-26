@@ -28,6 +28,7 @@ import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGener
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -48,15 +49,19 @@ export class WalletAndIdentityHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createCAIdentity(name: string, attributes: string = '[]'): Promise<void> {
-        const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
-        walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
+    public async createCAIdentity(walletName: string, identitiyName: string, attributes: string = '[]'): Promise<void> {
+        let walletEntry: FabricWalletRegistryEntry;
+        if (walletName === FabricWalletUtil.LOCAL_WALLET) {
+            walletEntry = new FabricWalletRegistryEntry();
+            walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
+        } else {
+            walletEntry = FabricWalletRegistry.instance().get(walletName);
+        }
 
-        const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, name));
+        const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, identitiyName));
         if (!identityExists) {
-            this.userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
-            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identitiyName);
 
             if (attributes !== '[]') {
                 // The user has given us attributes

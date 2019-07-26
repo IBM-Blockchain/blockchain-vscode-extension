@@ -15,14 +15,14 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
-import { FabricRuntimeManager } from '../../fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../fabric/FabricRuntime';
-import { VSCodeBlockchainOutputAdapter } from '../../logging/VSCodeBlockchainOutputAdapter';
-import { LogType } from '../../logging/OutputAdapter';
-import { ExtensionCommands } from '../../../ExtensionCommands';
+import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
+import { FabricRuntimeManager } from '../../../fabric/FabricRuntimeManager';
+import { FabricRuntime } from '../../../fabric/FabricRuntime';
+import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
+import { LogType } from '../../../logging/OutputAdapter';
+import { ExtensionCommands } from '../../../../ExtensionCommands';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
-import { FabricEnvironmentRegistryEntry } from '../../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 

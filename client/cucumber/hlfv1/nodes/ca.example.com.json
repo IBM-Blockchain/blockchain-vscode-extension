@@ -4,8 +4,7 @@
     "api_url": "http://localhost:7054",
     "type": "fabric-ca",
     "ca_name": "ca.example.com",
-    "wallet": "myWallet",
-    "identity": "conga",
-    "msp_id": "Org1MSP",
-    "container_name": "ca.example.com"
+    "container_name": "ca.example.com",
+    "enroll_id": "admin",
+    "enroll_secret": "adminpw"
 }

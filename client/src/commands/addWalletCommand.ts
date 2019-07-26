@@ -27,7 +27,7 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
-export async function addWallet(): Promise<void> {
+export async function addWallet(): Promise<FabricWalletRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWallet');
 
@@ -111,6 +111,7 @@ export async function addWallet(): Promise<void> {
         await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new wallet');
+        return fabricWalletRegistryEntry;
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to add a new wallet: ${error.message}`, `Failed to add a new wallet: ${error.message}`);

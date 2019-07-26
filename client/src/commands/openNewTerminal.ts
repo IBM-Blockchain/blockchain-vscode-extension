@@ -15,8 +15,9 @@
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
-import { NodeTreeItem } from '../explorer/runtimeOps/NodeTreeItem';
-import { UserInputUtil } from './UserInputUtil';
+import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
 
@@ -25,15 +26,17 @@ export async function openNewTerminal(nodeItem: NodeTreeItem): Promise<void> {
     if (nodeItem) {
         node = nodeItem.node;
     } else {
-        node = await UserInputUtil.showRuntimeNodeQuickPick(
-            'Select a Fabric runtime node to open a new terminal for',
-            [ FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER ]
+        const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(
+            'Select a Fabric runtime node to open a new terminal for', FabricRuntimeUtil.LOCAL_FABRIC,
+            [FabricNodeType.PEER, FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER]
         );
-    }
 
-    // If no node at this point, most likely the user cancelled the quick pick.
-    if (!node) {
-        return;
+        // If no node at this point, most likely the user cancelled the quick pick.
+        if (!chosenNode) {
+            return;
+        }
+
+        node = chosenNode.data;
     }
 
     // Create and show a new terminal for the node.

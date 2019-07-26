@@ -23,8 +23,9 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 
-export async function teardownFabricRuntime(force: boolean = false): Promise<void> {
+export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
     const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();

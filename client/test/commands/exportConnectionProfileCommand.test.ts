@@ -25,9 +25,9 @@ import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/enviro
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { TestUtil } from '../TestUtil';
-import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
+import { NodesTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodesTreeItem';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/connectedTree/PeerTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import * as fs from 'fs-extra';
 import { Reporter } from '../../src/util/Reporter';

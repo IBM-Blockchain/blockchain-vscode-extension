@@ -1,4 +1,4 @@
-[{
+{
     "short_name": "orderer.example.com",
     "name": "orderer.example.com",
     "api_url": "grpc://localhost:17050",
@@ -7,14 +7,4 @@
     "identity": "admin",
     "msp_id": "OrdererMSP",
     "container_name": "yofn_orderer.example.com"
-},
-{
-    "short_name": "anotherOrderer.example.com",
-    "name": "anotherOrderer.example.com",
-    "api_url": "grpc://localhost:17050",
-    "type": "fabric-orderer",
-    "wallet": "local_fabric_wallet",
-    "identity": "admin",
-    "msp_id": "OrdererMSP",
-    "container_name": "yofn_another_orderer.example.com"
-}]
+}

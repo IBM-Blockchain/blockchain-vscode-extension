@@ -20,6 +20,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
+import { FabricNode } from '../../src/fabric/FabricNode';
 
 chai.should();
 
@@ -107,16 +108,6 @@ describe('FabricEnvironment', () => {
                     container_name: 'yofn_orderer.example.com'
                 },
                 {
-                    short_name: 'anotherOrderer.example.com',
-                    name: 'anotherOrderer.example.com',
-                    api_url: 'grpc://localhost:17050',
-                    type: 'fabric-orderer',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
-                    identity: 'admin',
-                    msp_id: 'OrdererMSP',
-                    container_name: 'yofn_another_orderer.example.com'
-                },
-                {
                     short_name: 'peer0.org1.example.com',
                     name: 'peer0.org1.example.com',
                     api_url: 'grpc://localhost:17051',
@@ -128,16 +119,70 @@ describe('FabricEnvironment', () => {
                     container_name: 'yofn_peer0.org1.example.com'
                 },
                 {
-                    short_name: 'singleOrderer.example.com',
-                    name: 'singleOrderer.example.com',
-                    api_url: 'grpc://localhost:17050',
-                    type: 'fabric-orderer',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
-                    identity: 'admin',
-                    msp_id: 'OrdererMSP',
-                    container_name: 'yofn_single_orderer.example.com'
-                },
+                    short_name: 'peer1.org1.example.com',
+                    name: 'peer1.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_peer1.org1.example.com'
+                }
             ]);
+        });
+
+        it('should filter nodes', async () => {
+            await environment.getNodes(true).should.eventually.deep.equal([
+                {
+                    short_name: 'couchdb',
+                    name: 'couchdb',
+                    api_url: 'http://localhost:17055',
+                    type: 'couchdb',
+                    container_name: 'yofn_couchdb'
+                },
+                {
+                    short_name: 'logspout',
+                    name: 'logspout',
+                    api_url: 'http://localhost:17056',
+                    type: 'logspout',
+                    container_name: 'yofn_logspout'
+                },
+                {
+                    short_name: 'peer1.org1.example.com',
+                    name: 'peer1.org1.example.com',
+                    api_url: 'grpc://localhost:17051',
+                    chaincode_url: 'grpc://localhost:17052',
+                    type: 'fabric-peer',
+                    msp_id: 'Org1MSP',
+                    container_name: 'yofn_peer1.org1.example.com'
+                }
+            ]);
+        });
+    });
+
+    describe('#updateNode', () => {
+        it('should update the node', async () => {
+            const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', FabricWalletUtil.LOCAL_WALLET, 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');
+            const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(node);
+
+            writeStub.should.have.been.calledWith(nodePath, node);
+        });
+    });
+
+    describe('#requireSetup', () => {
+        it('should return true if set up required', async () => {
+            const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', FabricWalletUtil.LOCAL_WALLET, 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');
+            sandbox.stub(environment, 'getNodes').resolves([node]);
+            const result: boolean = await environment.requireSetup();
+            result.should.equal(true);
+        });
+
+        it('should return false if set up not required', async () => {
+            sandbox.stub(environment, 'getNodes').resolves([]);
+            const result: boolean = await environment.requireSetup();
+            result.should.equal(false);
         });
     });
 });

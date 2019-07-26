@@ -25,6 +25,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -59,9 +60,28 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             fabricEnvironment = new FabricEnvironment(fabricEnvironmentRegistryEntry.name);
         }
 
+        // need to check if the environment is setup
+        const requireSetup: boolean = await fabricEnvironment.requireSetup();
+
+        if (requireSetup && !fabricEnvironmentRegistryEntry.managedRuntime) {
+            const treeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(undefined, fabricEnvironmentRegistryEntry.name, fabricEnvironmentRegistryEntry, undefined);
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, treeItem);
+            VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
+
+            return;
+        }
+
         const connection: IFabricEnvironmentConnection = FabricConnectionFactory.createFabricEnvironmentConnection(fabricEnvironment);
 
         await connection.connect();
+
+        try {
+            await connection.createChannelMap();
+        } catch (error) {
+            outputAdapter.log(LogType.ERROR, `Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: ${error.message}`, `Error connecting to environment ${fabricEnvironmentRegistryEntry.name}: ${error.toString()}`);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            return;
+        }
 
         FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry);
 

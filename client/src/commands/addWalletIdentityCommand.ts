@@ -33,7 +33,7 @@ import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
-export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<{} | void> {
+export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
@@ -250,4 +250,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     } else {
         Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'enrollmentID'});
     }
+
+    return identityName;
 }

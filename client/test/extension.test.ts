@@ -126,6 +126,7 @@ describe('Extension Tests', () => {
             ExtensionCommands.IMPORT_SMART_CONTRACT,
             ExtensionCommands.ADD_ENVIRONMENT,
             ExtensionCommands.DELETE_ENVIRONMENT,
+            ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
             ExtensionCommands.CONNECT_TO_ENVIRONMENT,
             ExtensionCommands.DISCONNECT_ENVIRONMENT,
             ExtensionCommands.INSTALL_SMART_CONTRACT,
@@ -178,6 +179,7 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.REFRESH_PACKAGES}`,
             `onCommand:${ExtensionCommands.ADD_ENVIRONMENT}`,
             `onCommand:${ExtensionCommands.DELETE_ENVIRONMENT}`,
+            `onCommand:${ExtensionCommands.ASSOCIATE_IDENTITY_NODE}`,
             `onCommand:${ExtensionCommands.CONNECT_TO_ENVIRONMENT}`,
             `onCommand:${ExtensionCommands.DISCONNECT_ENVIRONMENT}`,
             `onCommand:${ExtensionCommands.INSTALL_SMART_CONTRACT}`,
@@ -628,7 +630,7 @@ describe('Extension Tests', () => {
         });
 
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
     });
@@ -668,7 +670,7 @@ describe('Extension Tests', () => {
         });
 
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
     });
@@ -705,7 +707,7 @@ describe('Extension Tests', () => {
         });
 
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
-        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
     });
