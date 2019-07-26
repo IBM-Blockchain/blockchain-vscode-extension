@@ -33,8 +33,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { FabricEnvironmentTreeItem } from '../../src/explorer/runtimeOps/FabricEnvironmentTreeItem';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
+import { FabricEnvironmentTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -67,11 +68,13 @@ describe('EnvironmentConnectCommand', () => {
 
         let chooseEnvironmentQuickPick: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
+        let requireSetupStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
             mockConnection = sinon.createStubInstance(FabricEnvironmentConnection);
             mockConnection.connect.resolves();
+            mockConnection.createChannelMap.resolves();
 
             mySandBox.stub(FabricConnectionFactory, 'createFabricEnvironmentConnection').returns(mockConnection);
 
@@ -95,6 +98,8 @@ describe('EnvironmentConnectCommand', () => {
             mockRuntime.start.resolves();
             mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
             mySandBox.stub(FabricRuntimeManager.instance(), 'getEnvironmentRegistryEntry').returns(localFabricRegistryEntry);
+
+            requireSetupStub = mySandBox.stub(FabricEnvironment.prototype, 'requireSetup').resolves(false);
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
@@ -135,6 +140,21 @@ describe('EnvironmentConnectCommand', () => {
                 mockConnection.connect.should.not.have.been.called;
             });
 
+            it('should do nothing if environment requires setup', async () => {
+                const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+                requireSetupStub.resolves(true);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                refreshSpy.callCount.should.equal(2);
+                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+                refreshSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS, sinon.match.instanceOf(FabricEnvironmentTreeItem));
+                logSpy.should.have.been.calledWith(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
+
+                mockConnection.connect.should.not.have.been.called;
+            });
+
             it('should test that a fabric environment can be connected to from the tree', async () => {
                 const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 registryEntry.name = 'myFabric';
@@ -142,6 +162,7 @@ describe('EnvironmentConnectCommand', () => {
 
                 mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                blockchainEnvironmentExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
                 const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;
@@ -166,6 +187,23 @@ describe('EnvironmentConnectCommand', () => {
                 logSpy.should.have.been.calledTwice;
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
+                sendTelemetryEventStub.should.not.have.been.called;
+            });
+
+            it('should handle error from getting channel map', async () => {
+                const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+
+                const error: Error = new Error('some error');
+
+                mockConnection.createChannelMap.rejects(error);
+
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
+
+                mockRuntime.isRunning.should.not.have.been.called;
+                logSpy.should.have.been.calledTwice;
+                logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
+                logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error connecting to environment myFabric: ${error.message}`, `Error connecting to environment myFabric: ${error.toString()}`);
+                commandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_ENVIRONMENT);
                 sendTelemetryEventStub.should.not.have.been.called;
             });
         });
@@ -194,6 +232,26 @@ describe('EnvironmentConnectCommand', () => {
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
                 const myConnectionItem: RuntimeTreeItem = allChildren[0] as RuntimeTreeItem;
+
+                await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
+
+                connectStub.should.have.been.calledOnce;
+                mockConnection.connect.should.have.been.called;
+                sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
+            });
+
+            it('should carry on connecting even if setup required', async () => {
+                const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                registryEntry.name = 'myFabric';
+                registryEntry.managedRuntime = true;
+
+                mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
+                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
+
+                const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;
+
+                requireSetupStub.resolves(true);
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 

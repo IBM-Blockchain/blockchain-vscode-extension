@@ -12,15 +12,15 @@
  * limitations under the License.
 */
 'use strict';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
+import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 
-export class InstantiateCommandTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-runtime-instantiate-command-item';
+export class InstallCommandTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-installed-command-item';
 
     constructor(provider: BlockchainExplorerProvider, public readonly command?: vscode.Command) {
-        super(provider, '+ Instantiate', vscode.TreeItemCollapsibleState.None);
+        super(provider, '+ Install', vscode.TreeItemCollapsibleState.None);
 
     }
 }

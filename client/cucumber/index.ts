@@ -74,13 +74,13 @@ async function runCucumberTest(): Promise<any> {
             features[3] = feature;
         } else if (file === 'upgrade.feature') {
             features[4] = feature;
-        } else if (file === 'submit.feature') {
-            features[5] = feature;
-        } else if (file === 'evaluate.feature') {
-            features[6] = feature;
-        } else if (file === 'wallet.feature') {
-            features[7] = feature;
         } else if (file === 'fabric-environments.feature') {
+            features[5] = feature;
+        } else if (file === 'submit.feature') {
+            features[6] = feature;
+        } else if (file === 'evaluate.feature') {
+            features[7] = feature;
+        } else if (file === 'wallet.feature') {
             features[8] = feature;
         } else {
             otherFeatures.push(feature);

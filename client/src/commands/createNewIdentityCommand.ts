@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/CertificateAuthorityTreeItem';
+import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { UserInputUtil } from './UserInputUtil';

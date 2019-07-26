@@ -32,14 +32,6 @@ export class FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.PEER, api_url, pem, wallet, identity, msp_id });
     }
 
-    public static newCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, wallet, identity, msp_id });
-    }
-
-    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, pem, wallet, identity, msp_id });
-    }
-
     public static newOrderer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, wallet, identity, msp_id });
     }
@@ -55,6 +47,17 @@ export class FabricNode {
     public static newLogspout(short_name: string, name: string, api_url: string): FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.LOGSPOUT, api_url });
     }
+
+    public static newCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, wallet: string, identity: string, msp_id: string, enroll_id: string, enroll_secret: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, wallet, identity, msp_id, enroll_id, enroll_secret });
+    }
+
+    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, pem: string, wallet: string, identity: string, msp_id: string, enroll_id: string, enroll_secret: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, pem, wallet, identity, msp_id, enroll_id, enroll_secret });
+    }
+
+    public enroll_id?: string;
+    public enroll_secret?: string;
 
     public short_name: string;
     public name: string;
@@ -72,5 +75,4 @@ export class FabricNode {
     private constructor(fields: FabricNode) {
         Object.assign(this, fields);
     }
-
 }

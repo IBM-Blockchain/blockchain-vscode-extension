@@ -12,16 +12,15 @@
  * limitations under the License.
 */
 'use strict';
+import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import * as vscode from 'vscode';
-import { BlockchainTreeItem } from '../model/BlockchainTreeItem';
-import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
+import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 
-export class InstalledChainCodeOpsTreeItem extends BlockchainTreeItem {
-    contextValue: string = 'blockchain-runtime-installed-chaincode-item';
+export class OrgTreeItem extends BlockchainTreeItem {
+    contextValue: string = 'blockchain-runtime-org-item';
 
-    constructor(provider: BlockchainExplorerProvider, name: string, public readonly version: string, peerName: string) {
-        super(provider, `${name}@${version}`, vscode.TreeItemCollapsibleState.None);
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string) {
+        super(provider, name, vscode.TreeItemCollapsibleState.None);
 
-        this.tooltip = `Installed on: ${peerName}`;
     }
 }

@@ -66,6 +66,7 @@
             "aPackagesExplorer.refreshEntry",
             "environmentExplorer.addEnvironmentEntry",
             "environmentExplorer.deleteEnvironmentEntry",
+            "environmentExplorer.associateIdentityNodeEntry",
             "environmentExplorer.connectEntry",
             "environmentExplorer.disconnectEntry",
             "environmentExplorer.installSmartContractEntry",
@@ -266,6 +267,11 @@
             {
                 "command": "environmentExplorer.deleteEnvironmentEntry",
                 "title": "Delete Environment",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.associateIdentityNodeEntry",
+                "title": "Associate identitiy with a node",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -511,7 +517,7 @@
                 },
                 {
                     "command": "environmentExplorer.addEnvironmentEntry",
-                    "when": "view == environmentExplorer && !blockchain-environment-connected",
+                    "when": "view == environmentExplorer && !blockchain-environment-connected  && !blockchain-environment-setup",
                     "group": "navigation"
                 },
                 {
@@ -522,6 +528,11 @@
                 {
                     "command": "environmentExplorer.disconnectEntry",
                     "when": "view == environmentExplorer && blockchain-environment-connected",
+                    "group": "navigation"
+                },
+                {
+                    "command": "environmentExplorer.disconnectEntry",
+                    "when": "view == environmentExplorer && blockchain-environment-setup",
                     "group": "navigation"
                 },
                 {

@@ -34,7 +34,7 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
-export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<{} | void> {
+export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
@@ -251,4 +251,6 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
     } else {
         Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'enrollmentID'});
     }
+
+    return identityName;
 }

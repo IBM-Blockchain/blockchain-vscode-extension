@@ -22,24 +22,24 @@ import { FabricConnection } from '../../src/fabric/FabricConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
-import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/connectedTree/PeerTreeItem';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
-import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
-import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
-import { OrganizationsTreeItem } from '../../src/explorer/runtimeOps/OrganizationsTreeItem';
-import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/InstantiateCommandTreeItem';
-import { OrgTreeItem } from '../../src/explorer/runtimeOps/OrgTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
+import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/ChannelsOpsTreeItem';
+import { NodesTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodesTreeItem';
+import { OrganizationsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/OrganizationsTreeItem';
+import { InstantiateCommandTreeItem } from '../../src/explorer/runtimeOps/connectedTree/InstantiateCommandTreeItem';
+import { OrgTreeItem } from '../../src/explorer/runtimeOps/connectedTree/OrgTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { MetadataUtil } from '../../src/util/MetadataUtil';
-import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/CertificateAuthorityTreeItem';
-import { OrdererTreeItem } from '../../src/explorer/runtimeOps/OrdererTreeItem';
+import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
+import { OrdererTreeItem } from '../../src/explorer/runtimeOps/connectedTree/OrdererTreeItem';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricNode } from '../../src/fabric/FabricNode';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
@@ -47,9 +47,11 @@ import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironme
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 
 chai.use(sinonChai);
-chai.should();
+const should: Chai.Should = chai.should();
 
 // tslint:disable no-unused-expression
 describe('environmentExplorer', () => {
@@ -126,6 +128,7 @@ describe('environmentExplorer', () => {
             let environmentRegistryStub: sinon.SinonStub;
             let fabricConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
             let logSpy: sinon.SinonSpy;
+            let commandStub: sinon.SinonStub;
 
             beforeEach(async () => {
                 getConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection');
@@ -142,11 +145,82 @@ describe('environmentExplorer', () => {
 
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
+                commandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+
                 await ExtensionUtil.activateExtension();
             });
 
             afterEach(() => {
                 mySandBox.restore();
+            });
+
+            it('should display setup tree if not setup', async () => {
+
+                const peerNode: FabricNode = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
+                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', undefined, undefined, undefined);
+                const caNode: FabricNode = FabricNode.newCertificateAuthority('ca1', 'ca1.org1.example.com', 'http://ca.sample.org', undefined, undefined, undefined, undefined, undefined, undefined);
+
+                mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, ordererNode, caNode]);
+
+                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistry.name = 'myEnvironment';
+                environmentRegistry.managedRuntime = false;
+
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                };
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
+
+                blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
+
+                const children: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                commandStub.should.have.been.calledWith('setContext', 'blockchain-environment-setup', true);
+                should.not.exist(blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp']);
+
+                children.length.should.equal(5);
+                children[0].label.should.equal(`Setting up: ${environmentRegistry.name}`);
+                children[1].label.should.equal(`(Click each node to perform setup)`);
+                children[2].label.should.equal('peer1.org1.example.com   ⚠');
+                children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
+                children[3].label.should.equal('orderer.example.com   ⚠');
+                children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[4].label.should.equal('ca1.org1.example.com   ⚠');
+                children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[4].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+            });
+
+            it('should connect if all setup', async () => {
+                mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([]);
+
+                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistry.name = 'myEnvironment';
+                environmentRegistry.managedRuntime = false;
+
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                };
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
+
+                blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
+
+                const children: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                commandStub.should.have.been.calledWith('setContext', 'blockchain-environment-setup', false);
+                should.not.exist(blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp']);
+
+                children.length.should.equal(0);
+                commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {
@@ -318,7 +392,7 @@ describe('environmentExplorer', () => {
                 fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
                 fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
                 fabricConnection.getNode.withArgs('peerTwo').returns(FabricNode.newPeer('peerTwo', 'peerTwo', 'grpc://localhost:8051', 'wallet', 'identity', 'Org1MSP'));
-                fabricConnection.getNode.withArgs('ca-name').returns(FabricNode.newCertificateAuthority('ca-name', 'ca-name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('ca-name').returns(FabricNode.newCertificateAuthority('ca-name', 'ca-name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP', 'admin', 'adminpw'));
                 fabricConnection.getNode.withArgs('orderer1').returns(FabricNode.newOrderer('orderer1', 'orderer1', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP'));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
@@ -530,11 +604,13 @@ describe('environmentExplorer', () => {
 
     describe('refresh', () => {
 
+        let registryEntry: FabricEnvironmentRegistryEntry;
+
         beforeEach(async () => {
 
             await ExtensionUtil.activateExtension();
 
-            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry = new FabricEnvironmentRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             registryEntry.managedRuntime = true;
             registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
@@ -567,6 +643,37 @@ describe('environmentExplorer', () => {
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, mockTreeItem);
 
             onDidChangeTreeDataSpy.should.have.been.calledOnceWithExactly(mockTreeItem);
+        });
+
+        it('should set fabricEnvironmentToSetup if a FabricEnvironmentTreeItem is passed in', async () => {
+            const mockTreeItem: sinon.SinonStubbedInstance<FabricEnvironmentTreeItem> = sinon.createStubInstance(FabricEnvironmentTreeItem);
+
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
+
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, mockTreeItem);
+
+            onDidChangeTreeDataSpy.should.have.been.calledOnce;
+            // should not be called with the tree item otherwise get children won't be called as the collapsible state will be none
+            onDidChangeTreeDataSpy.should.not.have.been.calledWith(mockTreeItem);
+
+            blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'].should.equal(mockTreeItem);
+        });
+
+        it('should not set fabricEnvironmentToSetup if a FabriRuntimeTreeItem is passed in', async () => {
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
+
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainRuntimeExplorerProvider, FabricRuntimeUtil.LOCAL_FABRIC, registryEntry);
+
+            const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
+
+            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, treeItem);
+
+            onDidChangeTreeDataSpy.should.have.been.calledOnceWithExactly(treeItem);
+
+            should.not.exist(blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp']);
         });
 
         it('should refresh on connect event', async () => {

@@ -47,6 +47,8 @@ export class UserInputUtilHelper {
     showGetCertKeyStub: sinon.SinonStub;
     showAddWalletOptionsQuickPickStub: sinon.SinonStub;
     getEnrollIdSecretStub: sinon.SinonStub;
+    showQuickPickStub: sinon.SinonStub;
+    showEnvironmentQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -78,6 +80,8 @@ export class UserInputUtilHelper {
         this.showGetCertKeyStub = this.mySandBox.stub(UserInputUtil, 'getCertKey').callThrough();
         this.showAddWalletOptionsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick').callThrough();
         this.getEnrollIdSecretStub = this.mySandBox.stub(UserInputUtil, 'getEnrollIdSecret').callThrough();
+        this.showQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showQuickPick').callThrough();
+        this.showEnvironmentQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').callThrough();
     }
 
 }

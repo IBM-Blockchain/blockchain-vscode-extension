@@ -35,7 +35,7 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
-import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
+import { InstantiatedTreeItem } from './runtimeOps/connectedTree/InstantiatedTreeItem';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';

@@ -15,7 +15,7 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { getBlockchainEnvironmentExplorerProvider } from '../../../src/extension';
-import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/RuntimeTreeItem';
+import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../../src/fabric/FabricRuntime';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';

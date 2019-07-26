@@ -25,10 +25,10 @@ import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/enviro
 import * as myExtension from '../../src/extension';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/InstallCommandTreeItem';
-import { NodesTreeItem } from '../../src/explorer/runtimeOps/NodesTreeItem';
-import { PeerTreeItem } from '../../src/explorer/runtimeOps/PeerTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
+import { InstallCommandTreeItem } from '../../src/explorer/runtimeOps/connectedTree/InstallCommandTreeItem';
+import { NodesTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodesTreeItem';
+import { PeerTreeItem } from '../../src/explorer/runtimeOps/connectedTree/PeerTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
@@ -80,6 +80,7 @@ describe('InstallCommand', () => {
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map<string, Array<string>>());
             fabricRuntimeMock.getAllOrdererNames.returns(['orderer1']);
             fabricRuntimeMock.getAllCertificateAuthorityNames.returns(['ca1']);
+            fabricRuntimeMock.getNode.withArgs('peerOne').resolves({ wallet: 'myWallet' });
 
             getRuntimeConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricRuntimeMock as any));
 
@@ -125,10 +126,11 @@ describe('InstallCommand', () => {
             const peers: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(nodesTreeItem);
             peerTreeItem = peers[0] as PeerTreeItem;
 
+            logOutputSpy.resetHistory();
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
 
             mySandBox.restore();
         });
