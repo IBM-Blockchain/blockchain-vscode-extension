@@ -83,6 +83,7 @@ export async function addEnvironment(): Promise<{} | void> {
         const environmentPath: string = path.join(homeExtDir, 'environments', environmentName, 'nodes');
 
         await fs.ensureDir(environmentPath);
+        let addedAllNodes: boolean = true;
         for (const nodeUri of nodeUris) {
             try {
                 let nodes: FabricNode | Array<FabricNode> = await fs.readJson(nodeUri.fsPath);
@@ -92,9 +93,11 @@ export async function addEnvironment(): Promise<{} | void> {
 
                 const environment: FabricEnvironment = new FabricEnvironment(environmentName);
                 for (const node of nodes) {
+                    await FabricNode.validateNode(node);
                     await environment.updateNode(node);
                 }
             } catch (error) {
+                addedAllNodes = false;
                 outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
             }
         }
@@ -103,7 +106,11 @@ export async function addEnvironment(): Promise<{} | void> {
         fabricEnvironmentEntry.name = environmentName;
         await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
-        outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
+        if (addedAllNodes) {
+            outputAdapter.log(LogType.SUCCESS, 'Successfully added a new environment');
+        } else {
+            outputAdapter.log(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
+        }
         Reporter.instance().sendTelemetryEvent('addEnvironmentCommand');
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
