@@ -49,7 +49,7 @@ if (process.argv.includes('publish')) {
   });
 
   packageJson.engines = {
-    vscode: '1.35.1'
+    vscode: '^1.35.1'
   };
 }
 

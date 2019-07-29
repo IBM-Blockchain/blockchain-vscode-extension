@@ -114,7 +114,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                         title: 'IBM Blockchain Platform Extension',
                         cancellable: false
                     }, async (progress: vscode.Progress<{ message: string }>) => {
-                        progress.report({ message: 'Removing chaincode container'});
+                        progress.report({message: 'Removing chaincode container'});
                         await this.runtime.killChaincode([smartContractVersionName.name, smartContractVersionName.version]);
                     });
                 }

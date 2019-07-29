@@ -49,7 +49,7 @@ export class WalletAndIdentityHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createCAIdentity(walletName: string, identitiyName: string, attributes: string = '[]'): Promise<void> {
+    public async createCAIdentity(walletName: string, identityName: string, attributes: string = '[]'): Promise<void> {
         let walletEntry: FabricWalletRegistryEntry;
         if (walletName === FabricWalletUtil.LOCAL_WALLET) {
             walletEntry = new FabricWalletRegistryEntry();
@@ -61,10 +61,10 @@ export class WalletAndIdentityHelper {
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletEntry.walletPath);
-        const identityExists: boolean = await wallet.exists(name);
+        const identityExists: boolean = await wallet.exists(identityName);
 
         if (!identityExists) {
-            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identitiyName);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
 
             if (attributes !== '[]') {
                 // The user has given us attributes

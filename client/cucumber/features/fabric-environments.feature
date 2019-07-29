@@ -34,7 +34,7 @@ Feature: Fabric Environments
         | nodeType       |
         | fabric-peer    |
         | fabric-ca      |
-        | fabric-orderer | 
+        | fabric-orderer |
 
     Scenario Outline: It should persist data after being stopped
         Given the Local Fabric is running
@@ -73,14 +73,14 @@ Feature: Fabric Environments
     Scenario: It should create an environment
         When I create an environment 'myFabric'
         Then there should be a tree item with a label 'myFabric' in the 'Fabric Environments' panel
-        And the tree item should have a tooltip equal to 'myFabric'  
+        And the tree item should have a tooltip equal to 'myFabric'
 
     @otherFabric
     Scenario Outline: It should setup environment
         Given an environment 'myFabric' exists
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-        When I connect to the environment 'myFabric'  
-        Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel  
+        When I connect to the environment 'myFabric'
+        Then there should be a tree item with a label '<label>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to '<tooltip>'
         Examples:
         | label                              | tooltip                            |
@@ -88,15 +88,15 @@ Feature: Fabric Environments
         | (Click each node to perform setup) | (Click each node to perform setup) |
         | ca.example.com   ⚠                 | ca.example.com                     |
         | orderer.example.com   ⚠            | orderer.example.com                |
-        | peer0.org1.example.com   ⚠         | peer0.org1.example.com             | 
+        | peer0.org1.example.com   ⚠         | peer0.org1.example.com             |
 
     @otherFabric
     Scenario Outline: It should associate nodes with identities
         Given an environment 'myFabric' exists
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And the 'myFabric' environment is connected
-        When I associate identity '<identity>' in wallet '<wallet>' with node '<name>' 
-        Then the logger should have been called with 'SUCCESS' and 'Succesfully associated node <name> with wallet <wallet> and identity <identity>'
+        When I associate identity '<identity>' in wallet '<wallet>' with node '<name>'
+        Then the log should have been called with 'SUCCESS' and 'Succesfully associated node <name> with wallet <wallet> and identity <identity>'
         Examples:
         | name                    | wallet   | identity |
         | peer0.org1.example.com  | myWallet | conga    |
@@ -165,4 +165,4 @@ Feature: Fabric Environments
     Scenario: It should delete an environment
         Given an environment 'myFabric2' exists
         When I delete an environment 'myFabric2'
-        Then there should not be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
+        Then there shouldn't be a tree item with a label 'myFabric2' in the 'Fabric Environments' panel
