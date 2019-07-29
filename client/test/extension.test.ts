@@ -559,7 +559,7 @@ describe('Extension Tests', () => {
         updateGlobalStateSpy.should.not.have.been.calledTwice;
     });
 
-    it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC} has not been generated`, async () => {
+    it(`should update generator version to latest when the ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been generated`, async () => {
         const oldContext: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
 
         const generatorVersion: string = dependencies['generator-fabric'];
@@ -607,7 +607,7 @@ describe('Extension Tests', () => {
         mockRuntime.isGenerated.resolves(true);
         mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
+        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(true);
 
         await myExtension.activate(newContext);
 
@@ -647,7 +647,7 @@ describe('Extension Tests', () => {
         mockRuntime.isGenerated.resolves(true);
         mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(true);
+        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(true);
 
         await myExtension.activate(newContext);
 
@@ -684,7 +684,7 @@ describe('Extension Tests', () => {
         mockRuntime.isGenerated.resolves(true);
         mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         const executeCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
-        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC} now?`).resolves(false);
+        showConfirmationWarningMessageStub.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
 
         await myExtension.activate(newContext);
 

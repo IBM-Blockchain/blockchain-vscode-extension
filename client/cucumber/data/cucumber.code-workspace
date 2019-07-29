@@ -3,6 +3,30 @@
 		{
 			"path": "emptyProject",
 			"name": "emptyProject"
+		},
+		{
+			"name": "JavaScriptContract",
+			"path": "/Users/akshatshah/Documents/blockchain-vscode-extension/client/cucumber/tmp/contracts/JavaScriptContract"
+		},
+		{
+			"name": "TypeScriptContract",
+			"path": "/Users/akshatshah/Documents/blockchain-vscode-extension/client/cucumber/tmp/contracts/TypeScriptContract"
+		},
+		{
+			"name": "JavaContract",
+			"path": "/Users/akshatshah/Documents/blockchain-vscode-extension/client/cucumber/tmp/contracts/JavaContract"
+		},
+		{
+			"name": "JavaScriptContract2",
+			"path": "/Users/akshatshah/Documents/blockchain-vscode-extension/client/cucumber/tmp/contracts/JavaScriptContract2"
+		},
+		{
+			"name": "TypeScriptContract2",
+			"path": "/Users/akshatshah/Documents/blockchain-vscode-extension/client/cucumber/tmp/contracts/TypeScriptContract2"
+		},
+		{
+			"name": "GoContract",
+			"path": "/Users/akshatshah/Documents/blockchain-vscode-extension/client/cucumber/tmp/contracts/src/GoContract"
 		}
 	]
 }

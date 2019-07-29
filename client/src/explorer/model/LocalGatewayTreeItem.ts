@@ -71,7 +71,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             newLabel += currentBusyState;
             newTooltip = `Local Fabric  ${currentBusyState}
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = null;
         } else if (running) {
             // Running!
@@ -79,7 +79,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
             newLabel += '●';
             newTooltip = `Local Fabric is running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
                 command: ExtensionCommands.CONNECT,
                 title: '',
@@ -91,7 +91,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
             newLabel += '○';
             newTooltip = `Local Fabric is not running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
                 command: ExtensionCommands.CONNECT,
                 title: '',

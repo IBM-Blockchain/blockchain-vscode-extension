@@ -71,6 +71,6 @@ describe('restartFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to restart Local Fabric: ${error.message}`, `Failed to restart Local Fabric: ${error.toString()}`);
     });
 });

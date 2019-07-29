@@ -18,6 +18,7 @@ import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function startFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -30,7 +31,11 @@ export async function startFabricRuntime(): Promise<void> {
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Starting Fabric runtime ${runtime.getName()}` });
+        let fabricRuntimeName: string = runtime.getName();
+        if (fabricRuntimeName === FabricRuntimeUtil.LOCAL_FABRIC) {
+            fabricRuntimeName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+        }
+        progress.report({ message: `Starting Fabric runtime ${fabricRuntimeName}` });
         try {
             const generated: boolean = await runtime.isGenerated();
             if (!generated) {
@@ -39,7 +44,7 @@ export async function startFabricRuntime(): Promise<void> {
             await runtime.start(outputAdapter);
             await runtime.importWalletsAndIdentities();
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to start local_fabric: ${error.message}`, `Failed to start local_fabric: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to start Local Fabric: ${error.message}`, `Failed to start Local Fabric: ${error.toString()}`);
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);

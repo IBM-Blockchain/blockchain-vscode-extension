@@ -2,7 +2,7 @@
 ## **Local Smart Contract Development**
 `20-30 mins`
 
-Follow the typical workflow from generating a new smart contract project, deploying code to the _local_fabric_ runtime, and testing your transactions via an application gateway.
+Follow the typical workflow from generating a new smart contract project, deploying code to the _Local Fabric_ runtime, and testing your transactions via an application gateway.
 
 
 ## Learning Objectives
@@ -10,7 +10,7 @@ Follow the typical workflow from generating a new smart contract project, deploy
 * Create a new smart contract project
 * Package a smart contract
 * Start and use the local, pre-configured Hyperledger Fabric runtime
-* Deploy the smart contract on _local_fabric_
+* Deploy the smart contract on _Local Fabric_
 * Transact on your locally-deployed smart contract
 
 ---
@@ -25,9 +25,9 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon (it looks like a square, and will probably be at the bottom of the set of icons if this was the latest extension you installed!)
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACTS` panel, click the `...` menu, and select `Create New Project` from the dropdown.
 
-> Command Palette alternative: `Create Smart Contract Project`
+> Command Palette alternative: `Create New Project`
 
 3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
 
@@ -104,9 +104,9 @@ Now that you have created your smart contract and understand the transactions th
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon.
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Package a Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACTS` panel, click the `...` menu, and select `Package Open Project` from the dropdown.
 
-> Command Palette alternative: `Package a smart contract project`
+> Command Palette alternative: `Package Open Project`
 
 3. You should see a new package on the list, `demoContract@0.0.1` (or the name you gave to the packaged contract), if everything went well.
 
@@ -129,7 +129,7 @@ Click that message and the extension will start spinning up Docker containers fo
 
 > Command Palette alternative: `Start Fabric Runtime`
 
-That's all you need to do in this step, so if you're in a rush, but whilst you're waiting for local_fabric to start up, let's learn a little more about what it comprises. 
+That's all you need to do in this step, so if you're in a rush, but whilst you're waiting for Local Fabric to start up, let's learn a little more about what it comprises. 
 
 We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know:
 
@@ -194,13 +194,13 @@ Instantiation can take a while longer than install - watch out for the success m
 <details>
 <summary><b>7. Submit and evaluate transactions</b></summary>
 
-Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `local_fabric`.
+Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `Local Fabric`.
 
-To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `local_fabric_wallet  `, which contains an ID called `admin`. If you hover your mouse over `local_fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: local_fabric_wallet".
+To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `Local Fabric Wallet  `, which contains an ID called `admin`. If you hover your mouse over `Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: Local Fabric Wallet".
 
 So, you've got a Gateway, and an associated wallet with a single identity in it - this means the Gateway is ready to be used!
 
-1. Click on `local_fabric` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: local_fabric, Using ID: admin` and a collapsed section labelled  `Channels`.
+1. Click on `Local Fabric` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: Local Fabric, Using ID: admin` and a collapsed section labelled  `Channels`.
 
 2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.1`. You will see a list of all the transactions that were defined in your smart contract.
 

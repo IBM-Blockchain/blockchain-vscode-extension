@@ -217,7 +217,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the Local Fabric runtime. Teardown and start the Local Fabric runtime, and try again.');
         });
 
         it('should give an error if generator version is unknown', async () => {
@@ -233,7 +233,7 @@ describe('FabricDebugConfigurationProvider', () => {
             should.equal(config, undefined);
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.not.have.been.called;
-            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'To debug a smart contract, you must update the Local Fabric runtime. Teardown and start the Local Fabric runtime, and try again.');
         });
 
         it('should not run if the chaincode name is not provided', async () => {
@@ -252,7 +252,7 @@ describe('FabricDebugConfigurationProvider', () => {
 
             should.not.exist(config);
 
-            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
+            logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
         });
 
         it('should give an error if runtime isn\'t in development mode and allow the user to chose to run the toggle dev mode comand', async () => {
@@ -296,7 +296,7 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub.should.not.have.been.called;
             commandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
 
-            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC} peer is not in development mode`);
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} peer is not in development mode`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to toggle development mode`, `Failed to toggle development mode`);
         });
 

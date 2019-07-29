@@ -20,6 +20,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function stopFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -31,7 +32,11 @@ export async function stopFabricRuntime(): Promise<void> {
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Stopping Fabric runtime ${runtime.getName()}` });
+        let fabricRuntimeName: string = runtime.getName();
+        if (fabricRuntimeName === FabricRuntimeUtil.LOCAL_FABRIC) {
+            fabricRuntimeName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+        }
+        progress.report({ message: `Stopping Fabric runtime ${fabricRuntimeName}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
@@ -41,7 +46,7 @@ export async function stopFabricRuntime(): Promise<void> {
         try {
             await runtime.stop(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to stop local_fabric: ${error.message}`, `Failed to stop local_fabric: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to stop Local Fabric: ${error.message}`, `Failed to stop Local Fabric: ${error.toString()}`);
         }
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);

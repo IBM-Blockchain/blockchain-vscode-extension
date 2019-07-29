@@ -33,7 +33,50 @@
         "Other"
     ],
     "activationEvents": [
-        "*"
+        "onView:gatewayExplorer",
+        "onView:aRuntimeOpsExplorer",
+        "onView:aPackagesExplorer",
+        "onView:walletExplorer",
+        "onCommand:gatewaysExplorer.addGatewayEntry",
+        "onCommand:gatewaysExplorer.deleteGatewayEntry",
+        "onCommand:gatewaysExplorer.connectEntry",
+        "onCommand:gatewaysExplorer.disconnectEntry",
+        "onCommand:gatewaysExplorer.refreshEntry",
+        "onCommand:gatewaysExplorer.editGatewayEntry",
+        "onCommand:gatewaysExplorer.testSmartContractEntry",
+        "onCommand:gatewaysExplorer.testAllSmartContractEntry",
+        "onCommand:gatewaysExplorer.submitTransactionEntry",
+        "onCommand:gatewaysExplorer.evaluateTransactionEntry",
+        "onCommand:gatewaysExplorer.associateWallet",
+        "onCommand:gatewaysExplorer.dissociateWallet",
+        "onCommand:aPackagesExplorer.createSmartContractProjectEntry",
+        "onCommand:aPackagesExplorer.packageSmartContractProjectEntry",
+        "onCommand:aPackagesExplorer.deleteSmartContractPackageEntry",
+        "onCommand:aPackagesExplorer.exportSmartContractPackageEntry",
+        "onCommand:aPackagesExplorer.importSmartContractPackageEntry",
+        "onCommand:aPackagesExplorer.refreshEntry",
+        "onCommand:aRuntimeOpsExplorer.installSmartContractEntry",
+        "onCommand:aRuntimeOpsExplorer.instantiateSmartContractEntry",
+        "onCommand:aRuntimeOpsExplorer.refreshEntry",
+        "onCommand:aRuntimeOpsExplorer.startFabricRuntime",
+        "onCommand:aRuntimeOpsExplorer.stopFabricRuntime",
+        "onCommand:aRuntimeOpsExplorer.restartFabricRuntime",
+        "onCommand:aRuntimeOpsExplorer.teardownFabricRuntime",
+        "onCommand:aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
+        "onCommand:aRuntimeOpsExplorer.openNewTerminal",
+        "onCommand:aRuntimeOpsExplorer.exportConnectionProfileEntry",
+        "onCommand:aRuntimeOpsExplorer.upgradeSmartContractEntry",
+        "onCommand:aRuntimeOpsExplorer.createNewIdentityEntry",
+        "onCommand:walletExplorer.refreshEntry",
+        "onCommand:walletExplorer.addWalletEntry",
+        "onCommand:walletExplorer.addWalletIdentityEntry",
+        "onCommand:walletExplorer.editWalletEntry",
+        "onCommand:walletExplorer.removeWalletEntry",
+        "onCommand:walletExplorer.deleteIdentityEntry",
+        "onCommand:walletExplorer.exportWalletEntry",
+        "onCommand:extensionHome.open",
+        "onCommand:tutorialGallery.open",
+        "onDebug"
     ],
     "actualActivationEvents": {
         "other": [
@@ -102,7 +145,7 @@
             "blockchain-explorer": [
                 {
                     "id": "aPackagesExplorer",
-                    "name": "Smart Contract Packages"
+                    "name": "Smart Contracts"
                 },
                 {
                     "id": "aRuntimeOpsExplorer",
@@ -256,7 +299,7 @@
             },
             {
                 "command": "aPackagesExplorer.refreshEntry",
-                "title": "Refresh Smart Contract Packages",
+                "title": "Refresh Smart Contracts",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -265,7 +308,7 @@
             },
             {
                 "command": "aPackagesExplorer.packageSmartContractProjectEntry",
-                "title": "Package a Smart Contract Project",
+                "title": "Package Open Project",
                 "icon": {
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
@@ -314,7 +357,7 @@
             },
             {
                 "command": "aPackagesExplorer.importSmartContractPackageEntry",
-                "title": "Import Package",
+                "title": "Import a Package",
                 "category": "IBM Blockchain Platform"
             },
             {

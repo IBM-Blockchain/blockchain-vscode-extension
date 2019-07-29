@@ -135,7 +135,7 @@ We've reached 10,000 installs :tada: - a big thank you to everyone who has contr
 
 ## 0.3.2: March 14th 2019
 
-* Added "Import Package" command [#665](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/665)
+* Added "Import a Package" command [#665](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/665)
 * Added "Create Identity (register and enroll)" command [#688](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/688)
 * Enabled debugging of Java smart contracts [#617](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/617)
 * Fixed bug with connecting with YAML connection profiles [#685](https://github.com/ibm-blockchain/blockchain-vscode-extension/issues/685)

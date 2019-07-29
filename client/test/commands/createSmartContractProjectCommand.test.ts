@@ -70,7 +70,7 @@ describe('CreateSmartContractProjectCommand', () => {
             }
         });
         updateWorkspaceFoldersStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
-        // Create a tmp directory for Smart Contract packages, and create a Uri of it
+        // Create a tmp directory for Smart Contracts, and create a Uri of it
         uri = vscode.Uri.file(tmp.dirSync().name);
         skipNpmInstallStub = mySandBox.stub(ExtensionUtil, 'skipNpmInstall');
         skipNpmInstallStub.resolves(true);  // we don't want npm install running during unit tests

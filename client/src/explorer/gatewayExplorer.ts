@@ -307,7 +307,11 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
             const connection: IFabricClientConnection = FabricConnectionManager.instance().getConnection();
             const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
-            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayRegistryEntry.name}`, gatewayRegistryEntry, 0));
+            let gatewayName: string = gatewayRegistryEntry.name;
+            if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+            }
+            tree.push(new ConnectedTreeItem(this, `Connected via gateway: ${gatewayName}`, gatewayRegistryEntry, 0));
             tree.push(new ConnectedTreeItem(this, `Using ID: ${connection.identityName}`, gatewayRegistryEntry, 0));
             tree.push(new ConnectedTreeItem(this, `Channels`, gatewayRegistryEntry, vscode.TreeItemCollapsibleState.Expanded));
 

@@ -274,7 +274,7 @@ describe('gatewayExplorer', () => {
                 localGatewayTreeItem.command.should.deep.equal(myCommand);
                 localGatewayTreeItem.tooltip.should.deep.equal(`Local Fabric is running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`);
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             });
 
             it('should handle errors thrown when connection fails', async () => {

@@ -127,7 +127,7 @@ describe('AssociateWalletCommand', () => {
             showGatewayQuickPickBoxStub.should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associateWallet');
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC} is associated with ${FabricWalletUtil.LOCAL_WALLET}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC} is associated with ${FabricWalletUtil.LOCAL_WALLET}.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `Add a gateway to associate a wallet. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} is associated with ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
         });
 
         it('should display an error message if no user added wallets exist', async () => {
