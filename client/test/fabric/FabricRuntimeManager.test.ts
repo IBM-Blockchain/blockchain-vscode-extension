@@ -36,6 +36,9 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import * as fs from 'fs-extra';
+import * as path from 'path';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
 
 chai.should();
 
@@ -280,6 +283,7 @@ describe('FabricRuntimeManager', () => {
                 developmentMode: false
             });
             getStub.withArgs('fabric.runtime').returns({});
+            getStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(path.join('myPath'));
             updateStub = sinon.stub().resolves();
             sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub });
             sendCommandWithOutputStub = sandbox.stub(CommandUtil, 'sendCommandWithOutput');
@@ -521,6 +525,38 @@ describe('FabricRuntimeManager', () => {
             sendCommandWithOutputStub.should.have.been.calledOnceWithExactly('cmd', ['/c', 'teardown.cmd'], sinon.match.any, null, VSCodeBlockchainOutputAdapter.instance());
         });
 
-    });
+        it('should move the runtimes foler if exists', async () => {
+            let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            extDir = UserInputUtil.getDirPath(extDir);
 
+            sandbox.stub(fs, 'pathExists').resolves(true);
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
+
+            await runtimeManager.migrate(version);
+            moveStub.should.have.been.calledWith(path.join(extDir, 'runtime'), path.join(extDir, 'environments', FabricRuntimeUtil.LOCAL_FABRIC));
+        });
+
+        it('should not move if does not exist', async () => {
+            let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            extDir = UserInputUtil.getDirPath(extDir);
+
+            sandbox.stub(fs, 'pathExists').resolves(false);
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').resolves();
+
+            await runtimeManager.migrate(version);
+            moveStub.should.not.have.been.called;
+        });
+
+        it('should handle error moving', async () => {
+            const error: Error = new Error('some error');
+            let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            extDir = UserInputUtil.getDirPath(extDir);
+
+            sandbox.stub(fs, 'pathExists').resolves(true);
+            const moveStub: sinon.SinonStub = sandbox.stub(fs, 'move').throws(error);
+
+            await runtimeManager.migrate(version).should.eventually.be.rejectedWith(`Issue migrating runtime folder ${error.message}`);
+            moveStub.should.have.been.calledWith(path.join(extDir, 'runtime'), path.join(extDir, 'environments', FabricRuntimeUtil.LOCAL_FABRIC));
+        });
+    });
 });
