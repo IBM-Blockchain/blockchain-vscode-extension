@@ -24,6 +24,15 @@
                                         }
                                     },
                                     {
+                                        "type":"Java",
+                                        "version": "1.0.0",
+                                        "workspaceLabel": "fabcar-contract-java",
+                                        "remote": {
+                                            "branch": "release-1.4",
+                                            "path": "chaincode/fabcar/java"
+                                        }
+                                    },
+                                    {
                                         "type": "JavaScript",
                                         "version": "1.0.0",
                                         "workspaceLabel": "fabcar-contract-javascript",
@@ -59,6 +68,18 @@
                             }
                         ],
                         "applications":[
+                            {
+                                "name": "Java Application",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "Java",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "fabcar-app-java",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "fabcar/java"
+                                }
+                            },
                             {
                                 "name": "JavaScript Application",
                                 "type": "Web",
@@ -110,6 +131,15 @@
                                 "name": "Digibank Contract",
                                 "languages":[
                                     {
+                                        "type":"Java",
+                                        "version": "0.0.1",
+                                        "workspaceLabel": "cp-digibank-contract-java",
+                                        "remote": {
+                                            "branch": "release-1.4",
+                                            "path": "commercial-paper/organization/digibank/contract-java"
+                                        }
+                                    },
+                                    {
                                         "type":"JavaScript",
                                         "version": "0.0.1",
                                         "workspaceLabel": "cp-digibank-contract-javascript",
@@ -125,15 +155,25 @@
                                             }
                                         ]
                                     }
+                                    
                                 ]
                             },
                             {
                                 "name": "MagnetoCorp Contract",
                                 "languages":[
                                     {
+                                        "type":"Java",
+                                        "version": "0.0.1",
+                                        "workspaceLabel": "cp-magnetocorp-contract-java",
+                                        "remote": {
+                                            "branch": "release-1.4",
+                                            "path": "commercial-paper/organization/magnetocorp/contract-java"
+                                        }
+                                    },
+                                    {
                                         "type":"JavaScript",
                                         "version": "0.0.1",
-                                        "workspaceLabel": "cp-magnetocorp-contract-javascript",
+                                        "workspaceLabel": "cp-magnetocorp-contract-java",
                                         "remote": {
                                             "branch": "release-1.4",
                                             "path": "commercial-paper/organization/magnetocorp/contract"
@@ -154,6 +194,18 @@
                                 "name": "Digibank Application",
                                 "type": "Web",
                                 "version": "1.0.0",
+                                "language": "Java",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "cp-digibank-app-java",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "commercial-paper/organization/digibank/application-java"
+                                }
+                            },
+                            {
+                                "name": "Digibank Application",
+                                "type": "Web",
+                                "version": "1.0.0",
                                 "language": "JavaScript",
                                 "readme": "https://github.com/hyperledger/fabric-samples",
                                 "workspaceLabel": "cp-digibank-app-javascript",
@@ -168,6 +220,18 @@
                                         "arguments": ["install"]
                                     }
                                 ]
+                            },
+                            {
+                                "name": "MagnetoCorp Application",
+                                "type": "Web",
+                                "version": "1.0.0",
+                                "language": "Java",
+                                "readme": "https://github.com/hyperledger/fabric-samples",
+                                "workspaceLabel": "cp-magnetocorp-contract-java",
+                                "remote":{
+                                    "branch": "release-1.4",
+                                    "path": "commercial-paper/organization/magnetocorp/application-java"
+                                }
                             },
                             {
                                 "name": "MagnetoCorp Application",
