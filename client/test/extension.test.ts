@@ -118,7 +118,6 @@ describe('Extension Tests', () => {
             ExtensionCommands.STOP_FABRIC,
             ExtensionCommands.RESTART_FABRIC,
             ExtensionCommands.TEARDOWN_FABRIC,
-            ExtensionCommands.TOGGLE_FABRIC_DEV_MODE,
             ExtensionCommands.OPEN_NEW_TERMINAL,
             ExtensionCommands.EXPORT_CONNECTION_PROFILE,
             ExtensionCommands.DELETE_SMART_CONTRACT,
@@ -179,7 +178,6 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.STOP_FABRIC}`,
             `onCommand:${ExtensionCommands.RESTART_FABRIC}`,
             `onCommand:${ExtensionCommands.TEARDOWN_FABRIC}`,
-            `onCommand:${ExtensionCommands.TOGGLE_FABRIC_DEV_MODE}`,
             `onCommand:${ExtensionCommands.OPEN_NEW_TERMINAL}`,
             `onCommand:${ExtensionCommands.EXPORT_CONNECTION_PROFILE}`,
             `onCommand:${ExtensionCommands.UPGRADE_SMART_CONTRACT}`,
@@ -229,8 +227,7 @@ describe('Extension Tests', () => {
         const treeSpy: sinon.SinonSpy = mySandBox.spy(treeDataProvider['_onDidChangeTreeData'], 'fire');
 
         const myRuntime: any = {
-            name: FabricRuntimeUtil.LOCAL_FABRIC,
-            developmentMode: false
+            name: FabricRuntimeUtil.LOCAL_FABRIC
         };
 
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, myRuntime, vscode.ConfigurationTarget.Global);
@@ -509,7 +506,8 @@ describe('Extension Tests', () => {
         await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: '0.0.7',
-            migrationCheck: 1
+            migrationCheck: 1,
+            generatorVersion: dependencies['generator-fabric']
         });
         await myExtension.activate(context);
         sendTelemetryStub.should.have.been.calledWith('updatedInstall', {IBM: sinon.match.string});
@@ -520,7 +518,8 @@ describe('Extension Tests', () => {
         await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: currentExtensionVersion,
-            migrationCheck: 1
+            migrationCheck: 1,
+            generatorVersion: dependencies['generator-fabric']
         });
         await myExtension.activate(context);
         sendTelemetryStub.should.not.have.been.called;
@@ -531,7 +530,8 @@ describe('Extension Tests', () => {
         await context.globalState.update(EXTENSION_DATA_KEY, {
             activationCount: 0,
             version: null,
-            migrationCheck: 1
+            migrationCheck: 1,
+            generatorVersion: dependencies['generator-fabric']
         });
         await myExtension.activate(context);
         sendTelemetryStub.should.have.been.calledWith('newInstall', {IBM: sinon.match.string});

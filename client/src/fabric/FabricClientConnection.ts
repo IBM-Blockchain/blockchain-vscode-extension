@@ -18,9 +18,6 @@ import { FabricWallet } from './FabricWallet';
 import { ExtensionUtil } from '../util/ExtensionUtil';
 import { IFabricClientConnection } from './IFabricClientConnection';
 import { Network, Contract, Transaction } from 'fabric-network';
-import * as Client from 'fabric-client';
-import { FabricRuntime } from './FabricRuntime';
-import { FabricRuntimeManager } from './FabricRuntimeManager';
 
 export class FabricClientConnection extends FabricConnection implements IFabricClientConnection {
 
@@ -30,14 +27,14 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
         super(connectionData.connectionProfilePath, outputAdapter);
     }
 
-    async connect(wallet: FabricWallet, identityName: string): Promise<void> {
+    async connect(wallet: FabricWallet, identityName: string, timeout: number): Promise<void> {
         const connectionProfile: object = await ExtensionUtil.readConnectionProfile(this.connectionProfilePath);
         if (connectionProfile['description']) {
             this.description = (connectionProfile['description'].includes('Network on IBP') ? true : false);
         } else {
             this.description = false;
         }
-        await this.connectInner(connectionProfile, wallet, identityName);
+        await this.connectInner(connectionProfile, wallet, identityName, timeout);
     }
 
     public isIBPConnection(): boolean {
@@ -70,14 +67,6 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
     }
 
     public async submitTransaction(chaincodeName: string, transactionName: string, channel: string, args: Array<string>, namespace: string, transientData: { [key: string]: Buffer }, evaluate?: boolean): Promise<string | undefined> {
-
-        const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
-        // Check if running in dev mode
-        if (runtime.isDevelopmentMode()) {
-            // Update once https://jira.hyperledger.org/browse/FABN-1259 is completed.
-            const client: Client = this.gateway.getClient();
-            client.setConfigSetting('request-timeout', 9999999); // Changes the timeout
-        }
 
         const network: Network = await this.gateway.getNetwork(channel);
         const smartContract: Contract = network.getContract(chaincodeName, namespace);

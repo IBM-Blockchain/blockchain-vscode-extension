@@ -21,10 +21,10 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -79,7 +79,7 @@ describe('FabricDebugConfigurationProvider', () => {
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
             runtimeStub.killChaincode.resolves();
-            runtimeStub.isDevelopmentMode.returns(true);
+            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
 
@@ -109,7 +109,7 @@ describe('FabricDebugConfigurationProvider', () => {
             generatorVersionStub = mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
                 globalState: {
                     get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.35'
+                        generatorVersion: '0.0.36'
                     })
                 }
             });
@@ -253,51 +253,6 @@ describe('FabricDebugConfigurationProvider', () => {
             should.not.exist(config);
 
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
-        });
-
-        it('should give an error if runtime isn\'t in development mode and allow the user to chose to run the toggle dev mode comand', async () => {
-            runtimeStub.isDevelopmentMode.onCall(0).returns(false);
-            mySandbox.stub(vscode.window, 'showErrorMessage').resolves('Toggle development mode');
-            commandStub.withArgs(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE).resolves();
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
-                type: 'fake',
-                request: 'launch',
-                env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
-                },
-                args: ['127.0.0.1:54321']
-            });
-            commandStub.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
-            commandStub.should.have.been.calledWithExactly(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-        });
-
-        it('should give an error if runtime isn\'t in development mode and handle the user not selected to run the toggle command', async () => {
-            runtimeStub.isDevelopmentMode.onCall(0).returns(false);
-            const errorMessageStub: sinon.SinonStub = mySandbox.stub(vscode.window, 'showErrorMessage').resolves(undefined);
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            errorMessageStub.should.have.been.calledOnce;
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.not.have.been.calledWith(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-        });
-
-        it('should handle toggling dev mode failing', async () => {
-            runtimeStub.isDevelopmentMode.returns(false);
-            mySandbox.stub(vscode.window, 'showErrorMessage').resolves('Toggle development mode');
-            commandStub.withArgs(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE).resolves();
-
-            const config: vscode.DebugConfiguration = await fabricDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
-            should.equal(config, undefined);
-            startDebuggingStub.should.not.have.been.called;
-            commandStub.should.have.been.calledOnceWithExactly(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-
-            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} peer is not in development mode`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to toggle development mode`, `Failed to toggle development mode`);
         });
 
         it('should restore from a previous debug session and use the last instantiated package of the same name', async () => {

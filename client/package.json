@@ -71,7 +71,6 @@
             "aRuntimeOpsExplorer.stopFabricRuntime",
             "aRuntimeOpsExplorer.restartFabricRuntime",
             "aRuntimeOpsExplorer.teardownFabricRuntime",
-            "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
             "aRuntimeOpsExplorer.openNewTerminal",
             "aRuntimeOpsExplorer.exportConnectionProfileEntry",
             "aRuntimeOpsExplorer.upgradeSmartContractEntry",
@@ -151,6 +150,17 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show home page when clicking on extension for the first time"
+                },
+                "ibm-blockchain-platform.fabric.chaincode.timeout": {
+                    "type": "integer",
+                    "default": 120,
+                    "description": "Used to configure the Local Fabric's chaincode timeout value (seconds)"
+                },
+                "ibm-blockchain-platform.fabric.client.timeout": {
+                    "type": "integer",
+                    "default": 120,
+                    "description": "Used to configure the client timeout value (seconds)",
+                    "minimum": 45
                 }
             }
         },
@@ -293,11 +303,6 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
-                "title": "Toggle Development Mode",
-                "category": "IBM Blockchain Platform"
-            },
-            {
                 "command": "aRuntimeOpsExplorer.openNewTerminal",
                 "title": "Open New Terminal",
                 "category": "IBM Blockchain Platform"
@@ -436,9 +441,6 @@
                     "command": "aRuntimeOpsExplorer.teardownFabricRuntime"
                 },
                 {
-                    "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode"
-                },
-                {
                     "command": "aRuntimeOpsExplorer.openNewTerminal"
                 },
                 {
@@ -570,10 +572,6 @@
                 {
                     "command": "aRuntimeOpsExplorer.openNewTerminal",
                     "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-runtime-orderer-item"
-                },
-                {
-                    "command": "aRuntimeOpsExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == aRuntimeOpsExplorer && viewItem == blockchain-peer-item"
                 },
                 {
                     "command": "aRuntimeOpsExplorer.exportConnectionProfileEntry",
@@ -1209,7 +1207,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.0.35",
+        "generator-fabric": "0.0.36",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.2.0",

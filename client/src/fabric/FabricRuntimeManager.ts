@@ -77,10 +77,9 @@ export class FabricRuntimeManager {
 
         // only generate a range of ports if it doesn't already exist
         const runtimeObject: any = this.readRuntimeUserSettings();
-        if (runtimeObject.ports && runtimeObject.developmentMode !== undefined) {
+        if (runtimeObject.ports) {
             this.runtime = new FabricRuntime();
             this.runtime.ports = runtimeObject.ports;
-            this.runtime.developmentMode = runtimeObject.developmentMode;
         } else {
             // Generate a range of ports for this Fabric runtime.
             const ports: FabricRuntimePorts = await this.generatePortConfiguration();
@@ -88,7 +87,6 @@ export class FabricRuntimeManager {
             // Add the Fabric runtime to the internal cache.
             this.runtime = new FabricRuntime();
             this.runtime.ports = ports;
-            this.runtime.developmentMode = false;
             await this.runtime.updateUserSettings();
         }
 
@@ -149,8 +147,7 @@ export class FabricRuntimeManager {
                 certificateAuthority: number,
                 couchDB: number,
                 logs: number
-            },
-            developmentMode: boolean
+            }
         };
         if (runtimeSettings.ports) {
             const runtimeObject: any = {
@@ -162,8 +159,7 @@ export class FabricRuntimeManager {
                     certificateAuthority: runtimeSettings.ports.certificateAuthority,
                     couchDB: runtimeSettings.ports.couchDB,
                     logs: runtimeSettings.ports.logs
-                },
-                developmentMode: runtimeSettings.developmentMode
+                }
             };
             return runtimeObject;
         } else {
@@ -179,13 +175,11 @@ export class FabricRuntimeManager {
             }
             if (oldRuntimeSettings && !runtimeObj.ports) {
                 const runtimeToCopy: any = {
-                    ports: {},
-                    developmentMode: false
+                    ports: {}
                 };
                 for (const oldRuntime of oldRuntimeSettings) {
                     if (oldRuntime.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                         runtimeToCopy.ports = oldRuntime.ports;
-                        runtimeToCopy.developmentMode = oldRuntime.developmentMode;
 
                         // Generate a logs port
                         const highestPort: number = this.getHighestPort(runtimeToCopy.ports);
@@ -206,12 +200,10 @@ export class FabricRuntimeManager {
         const runtimeObj: any = await this.readRuntimeUserSettings();
         if (oldRuntimeSetting && !runtimeObj.ports) {
             const runtimeToCopy: any = {
-                ports: {},
-                developmentMode: false
+                ports: {}
             };
 
             runtimeToCopy.ports = oldRuntimeSetting.ports;
-            runtimeToCopy.developmentMode = oldRuntimeSetting.developmentMode;
 
             // If either fabric.runtimes and fabric.runtime existed and has ports
             if (runtimeToCopy.ports) {

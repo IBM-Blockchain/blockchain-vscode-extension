@@ -61,13 +61,9 @@ export class PeerTreeItem extends NodeTreeItem {
     }
 
     private async updateProperties(): Promise<void> {
-        const developmentMode: boolean = this.runtime.isDevelopmentMode();
         await this.runtime.updateUserSettings();
-        let newLabel: string = this.peerName;
+        const newLabel: string = this.peerName;
 
-        if (developmentMode) {
-            newLabel += '   ∞';
-        }
         this.setLabel(newLabel);
         this.refresh();
     }

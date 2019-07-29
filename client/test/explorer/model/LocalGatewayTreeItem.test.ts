@@ -247,45 +247,6 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             });
         });
 
-        it('should have the right properties for a runtime that is not running in development mode', async () => {
-            mockRuntime.isDevelopmentMode.returns(true);
-            mockRuntime.isBusy.returns(false);
-            mockRuntime.isRunning.resolves(false);
-
-            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, gateway, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ○  ∞`);
-            treeItem.tooltip.should.equal(`Local Fabric is not running
-ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
-            treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
-                title: '',
-                arguments: [gateway]
-            });
-        });
-
-        it('should have the right properties for a runtime that is running in development mode', async () => {
-            mockRuntime.isDevelopmentMode.returns(true);
-            mockRuntime.isBusy.returns(false);
-            mockRuntime.isRunning.resolves(true);
-            const treeItem: LocalGatewayTreeItem = await LocalGatewayTreeItem.newLocalGatewayTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, gateway, vscode.TreeItemCollapsibleState.None);
-            await new Promise((resolve: any): any => {
-                setTimeout(resolve, 0);
-            });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●  ∞`);
-            treeItem.tooltip.should.equal(`Local Fabric is running
-ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
-            treeItem.command.should.deep.equal({
-                command: ExtensionCommands.CONNECT,
-                title: '',
-                arguments: [gateway]
-            });
-        });
-
         it('should report errors animating the label for a runtime that is busy', async () => {
             mockRuntime.isBusy.returns(true);
             mockRuntime.isRunning.resolves(false);

@@ -78,7 +78,7 @@ where `start.js` contains the line `Shim.start(new Chaincode());`.
 
 To debug your smart contract follow these steps:
 
-1. Ensure you are connected to the `Local Fabric` runtime and that the `Local Fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. By toggling development mode, transactions will now have a large timeout value.
+1. Ensure you are connected to the `Local Fabric` runtime.
 2. Open your smart contract project in your workspace.
 3. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left and click the **play** button on the debug toolbar. The extension will automatically instantiate or upgrade the smart contract as appropriate. If you want to test out a function that is called on instantiate or upgrade add the following to the launch configuration, where `name` is the name of the smart contract and `version` is different to the previous version used. Alternatively if you are using JavaScript or TypeScript then you can update the `version` in the package.json file.
@@ -124,6 +124,19 @@ The key `ecert` must be set to true in order for a smart contract to be able to 
 
 Hovering over an identity in the `Fabric Wallets` panel will show any attributes associated with the identity.
 
+### Changing transaction timeout values
+
+In the extension, the default timeout value for transactions is 120 seconds.
+However, when debugging a transaction it might be necessary to change the time taken before a transaction fails.
+
+The following settings can be changed in the user settings to increase or decrease the time taken for a transaction to timeout:
+- `ibm-blockchain-platform.fabric.client.timeout` - timeout value used for communication to the peers and orderers (changes `request-timeout`)
+- `ibm-blockchain-platform.fabric.chaincode.timeout` - timeout value for chaincode that's been started by the Local Fabric (changes `CORE_CHAINCODE_EXECUTETIMEOUT`)
+
+***Note: If the value of `ibm-blockchain-platform.fabric.client.timeout` is changed, you must disconnect from a connected gateway before the new value takes affect***
+
+***Note: If the value of `ibm-blockchain-platform.fabric.chaincode.timeout` is changed, you must restart the Local Fabric before the new value takes affect***
+
 ## Useful Commands
 The IBM Blockchain Platform extension provides an explorer and commands accessible from the Command Palette, for developing smart contracts quickly:
 <!---Table of commands with columns: 'command' and 'description'
@@ -162,7 +175,6 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Stop Fabric Runtime | Stop the Local Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
 | Teardown Fabric Runtime | Teardown the Local Fabric runtime (hard reset) |
-| Toggle Development Mode | Toggle the Local Fabric instance development mode |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 

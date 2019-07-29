@@ -14,7 +14,7 @@
 
 import * as child_process from 'child_process';
 import { FabricRuntime, FabricRuntimeState } from '../../src/fabric/FabricRuntime';
-
+import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
@@ -35,6 +35,7 @@ import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -99,9 +100,9 @@ describe('FabricRuntime', () => {
             couchDB: 12349,
             logs: 12387
         };
-        runtime.developmentMode = false;
         runtime['path'] = runtimePath;
         sandbox = sinon.createSandbox();
+
     });
 
     afterEach(async () => {
@@ -229,6 +230,8 @@ describe('FabricRuntime', () => {
             let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
             let stopLogsStub: sinon.SinonStub;
+            let getConfigurationStub: sinon.SinonStub;
+            let getSettingsStub: sinon.SinonStub;
 
             beforeEach(() => {
                 createStub = sandbox.stub(runtime, 'create');
@@ -236,9 +239,17 @@ describe('FabricRuntime', () => {
                 isRunningStub = sandbox.stub(runtime, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(runtime, 'setState');
                 stopLogsStub = sandbox.stub(runtime, 'stopLogs');
+                getSettingsStub = sandbox.stub();
+                getSettingsStub.withArgs(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT).returns(120);
+
+                getConfigurationStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+                getConfigurationStub.returns({
+                    get: getSettingsStub,
+                    update: sandbox.stub().callThrough()
+                });
             });
 
-            it(`should execute the ${verb}.sh script and handle success for non-development mode (Linux/MacOS)`, async () => {
+            it(`should execute the ${verb}.sh script and handle success (Linux/MacOS)`, async () => {
                 sandbox.stub(process, 'platform').value('linux');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
 
@@ -260,43 +271,8 @@ describe('FabricRuntime', () => {
 
                 spawnStub.should.have.been.calledOnce;
 
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('30s');
-
-                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
-                    stopLogsStub.should.have.been.called;
-                }
-
-                if (verb === 'kill_chaincode') {
-                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any);
-                } else {
-                    spawnStub.should.have.been.calledWith('/bin/sh', [`${verb}.sh`], sinon.match.any);
-                }
-            });
-
-            it(`should execute the ${verb}.sh script and handle success for development mode (Linux/MacOS)`, async () => {
-                sandbox.stub(process, 'platform').value('linux');
-                runtime.developmentMode = true;
-                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                if (verb !== 'kill_chaincode') {
-                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`], sinon.match.any).callsFake(() => {
-                        return mockSuccessCommand();
-                    });
-                } else {
-                    spawnStub.withArgs('/bin/sh', [`${verb}.sh`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
-                        return mockSuccessCommand();
-                    });
-                }
-
-                if (verb !== 'kill_chaincode') {
-                    await runtime[verb]();
-                } else {
-                    await runtime['killChaincode'](['mySmartContract', '0.0.1']);
-                }
-
-                spawnStub.should.have.been.calledOnce;
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('99999s');
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('120s');
 
                 if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
@@ -445,7 +421,7 @@ describe('FabricRuntime', () => {
                 });
             }
 
-            it(`should execute the ${verb}.cmd script and handle success for non-development mode (Windows)`, async () => {
+            it(`should execute the ${verb}.cmd script and handle success (Windows)`, async () => {
                 sandbox.stub(process, 'platform').value('win32');
                 const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
 
@@ -472,42 +448,8 @@ describe('FabricRuntime', () => {
                     spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any);
                 }
 
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('net');
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('30s');
-
-                if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
-                    stopLogsStub.should.have.been.called;
-                }
-            });
-
-            it(`should execute the ${verb}.cmd script and handle success for development mode (Windows)`, async () => {
-                sandbox.stub(process, 'platform').value('win32');
-                runtime.developmentMode = true;
-                const spawnStub: sinon.SinonStub = sandbox.stub(child_process, 'spawn');
-                if (verb !== 'kill_chaincode') {
-                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`], sinon.match.any).callsFake(() => {
-                        return mockSuccessCommand();
-                    });
-                } else {
-                    spawnStub.withArgs('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any).callsFake(() => {
-                        return mockSuccessCommand();
-                    });
-                }
-
-                if (verb !== 'kill_chaincode') {
-                    await runtime[verb]();
-                } else {
-                    await runtime['killChaincode'](['mySmartContract', '0.0.1']);
-                }
-
-                spawnStub.should.have.been.calledOnce;
-                if (verb !== 'kill_chaincode') {
-                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`], sinon.match.any);
-                } else {
-                    spawnStub.should.have.been.calledWith('cmd', ['/c', `${verb}.cmd`, 'mySmartContract', '0.0.1'], sinon.match.any);
-                }
                 spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_MODE.should.equal('dev');
-                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('99999s');
+                spawnStub.getCall(0).args[2].env.CORE_CHAINCODE_EXECUTETIMEOUT.should.equal('120s');
 
                 if (verb !== 'generate' && verb !== 'start' && verb !== 'kill_chaincode') {
                     stopLogsStub.should.have.been.called;
@@ -1060,31 +1002,6 @@ describe('FabricRuntime', () => {
             spawnStub.should.have.been.calledWith('cmd', ['/c', 'is_running.cmd'], sinon.match.any);
         });
 
-    });
-
-    describe('#isDevelopmentMode', () => {
-
-        it('should return false if the runtime is in development mode', () => {
-            runtime.developmentMode = false;
-            runtime.isDevelopmentMode().should.be.false;
-        });
-
-        it('should return true if the runtime is in development mode', () => {
-            runtime.developmentMode = true;
-            runtime.isDevelopmentMode().should.be.true;
-        });
-    });
-
-    describe('#setDevelopmentMode', () => {
-        it('should set the runtime development mode to false', async () => {
-            await runtime.setDevelopmentMode(false);
-            runtime.developmentMode.should.be.false;
-        });
-
-        it('should set the runtime development mode to true', async () => {
-            await runtime.setDevelopmentMode(true);
-            runtime.developmentMode.should.be.true;
-        });
     });
 
     describe('#getPeerChaincodeURL', () => {
