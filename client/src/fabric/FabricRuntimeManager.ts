@@ -26,12 +26,14 @@ import * as semver from 'semver';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import { LogType } from '../logging/OutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricRuntimeUtil } from './FabricRuntimeUtil';
 import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from './FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 export class FabricRuntimeManager {
 
@@ -136,6 +138,7 @@ export class FabricRuntimeManager {
         const runtimeSetting: any = await this.migrateRuntimesConfiguration();
         await this.migrateRuntimeConfiguration(runtimeSetting);
         await this.migrateRuntimeContainers(oldVersion);
+        await this.migrateRuntimeFolder();
     }
 
     private readRuntimeUserSettings(): any {
@@ -199,6 +202,22 @@ export class FabricRuntimeManager {
             return runtimeObj;
         }
 
+    }
+
+    private async migrateRuntimeFolder(): Promise<void> {
+        // Move runtime folder under environments
+        let extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        extDir = UserInputUtil.getDirPath(extDir);
+        const runtimesExtDir: string = path.join(extDir, 'runtime');
+        const exists: boolean = await fs.pathExists(runtimesExtDir);
+        if (exists) {
+            try {
+                const newPath: string = path.join(extDir, 'environments', FabricRuntimeUtil.LOCAL_FABRIC);
+                await fs.move(runtimesExtDir, newPath);
+            } catch (error) {
+                throw new Error(`Issue migrating runtime folder ${error.message}`);
+            }
+        }
     }
 
     private async migrateRuntimeConfiguration(oldRuntimeSetting: any): Promise<void> {
