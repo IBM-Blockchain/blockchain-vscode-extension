@@ -665,7 +665,10 @@ describe('environmentExplorer', () => {
             const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainRuntimeExplorerProvider, FabricRuntimeUtil.LOCAL_FABRIC, registryEntry);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainRuntimeExplorerProvider, FabricRuntimeUtil.LOCAL_FABRIC, registryEntry, {
+                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                title: ''
+            });
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
