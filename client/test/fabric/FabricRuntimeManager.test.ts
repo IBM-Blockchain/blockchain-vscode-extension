@@ -111,8 +111,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: false
+                }
             }, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
@@ -124,7 +123,6 @@ describe('FabricRuntimeManager', () => {
                 peerEventHub: 17053,
                 peerRequest: 17051
             });
-            mockRuntime.developmentMode.should.be.false;
             mockRuntime.updateUserSettings.should.not.have.been.called;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
         });
@@ -141,7 +139,6 @@ describe('FabricRuntimeManager', () => {
                 peerEventHub: 17053,
                 peerRequest: 17051
             });
-            mockRuntime.developmentMode.should.be.false;
             mockRuntime.updateUserSettings.should.have.been.calledOnce;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
         });
@@ -169,8 +166,7 @@ describe('FabricRuntimeManager', () => {
                 peerEventHub: 17053,
                 peerRequest: 17051
             });
-            mockRuntime.developmentMode.should.be.false;
-            mockRuntime.updateUserSettings.should.not.have.been.called;
+            mockRuntime.updateUserSettings.should.have.been.calledOnce;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
         });
 
@@ -279,8 +275,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: false
+                }
             });
             getStub.withArgs('fabric.runtime').returns({});
             getStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(path.join('myPath'));
@@ -306,8 +301,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }]);
 
             getStub.withArgs('fabric.runtime').returns(undefined);
@@ -324,8 +318,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }, vscode.ConfigurationTarget.Global);
 
             findFreePortStub.should.have.been.calledOnce;
@@ -345,8 +338,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             });
             getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
 
@@ -361,8 +353,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }, vscode.ConfigurationTarget.Global);
 
             findFreePortStub.should.have.been.calledOnce;
@@ -380,8 +371,7 @@ describe('FabricRuntimeManager', () => {
                         peerChaincode: 17052,
                         peerEventHub: 17053,
                         peerRequest: 17051
-                    },
-                    developmentMode: true
+                    }
                 }
             ]);
 
@@ -395,8 +385,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             });
             getStub.withArgs(SettingConfigurations.FABRIC_RUNTIME).returns({});
 
@@ -411,8 +400,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }, vscode.ConfigurationTarget.Global);
             findFreePortStub.should.not.have.been.called;
         });
@@ -428,8 +416,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }]);
             await runtimeManager.migrate(version);
             updateStub.should.not.have.been.called;
@@ -458,8 +445,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             });
             await runtimeManager.migrate(version);
             updateStub.should.have.been.calledOnceWithExactly(SettingConfigurations.FABRIC_RUNTIME, {
@@ -471,8 +457,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }, vscode.ConfigurationTarget.Global);
             sendCommandWithOutputStub.should.not.have.been.called;
             findFreePortStub.should.not.have.been.called;
@@ -489,8 +474,7 @@ describe('FabricRuntimeManager', () => {
                     peerChaincode: 17052,
                     peerEventHub: 17053,
                     peerRequest: 17051
-                },
-                developmentMode: true
+                }
             }]);
             await runtimeManager.migrate(version);
             updateStub.should.not.have.been.called;

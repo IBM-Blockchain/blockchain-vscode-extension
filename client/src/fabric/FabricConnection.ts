@@ -43,7 +43,7 @@ export abstract class FabricConnection {
         }
     }
 
-    public abstract async connect(wallet: FabricWallet, identityName: string): Promise<void>;
+    public abstract async connect(wallet: FabricWallet, identityName: string, timeout: number): Promise<void>;
 
     public getAllPeerNames(): Array<string> {
         const allPeers: Array<Client.Peer> = this.getAllPeers();
@@ -131,18 +131,20 @@ export abstract class FabricConnection {
         }
     }
 
-    protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string): Promise<void> {
+    protected async connectInner(connectionProfile: object, wallet: FileSystemWallet, identityName: string, timeout: number): Promise<void> {
 
         this.discoveryAsLocalhost = this.hasLocalhostURLs(connectionProfile);
         this.discoveryEnabled = true;
         this.knownChannels = connectionProfile['channels'] || {};
+
         const options: GatewayOptions = {
             wallet: wallet,
             identity: identityName,
             discovery: {
                 asLocalhost: this.discoveryAsLocalhost,
                 enabled: this.discoveryEnabled
-            }
+            },
+            eventHandlerOptions: { commitTimeout: timeout }
         };
 
         await this.gateway.connect(this.connectionProfilePath, options);

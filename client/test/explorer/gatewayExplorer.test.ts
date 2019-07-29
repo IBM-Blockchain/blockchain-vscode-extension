@@ -232,8 +232,7 @@ describe('gatewayExplorer', () => {
             it('should handle errors populating the tree with localGatewayTreeItems', async () => {
 
                 const runtime: any = {
-                    name: FabricRuntimeUtil.LOCAL_FABRIC,
-                    developmentMode: false
+                    name: FabricRuntimeUtil.LOCAL_FABRIC
                 };
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);

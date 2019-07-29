@@ -38,7 +38,6 @@ import { FabricRuntimeManager } from './fabric/FabricRuntimeManager';
 import { startFabricRuntime } from './commands/startFabricRuntime';
 import { stopFabricRuntime } from './commands/stopFabricRuntime';
 import { restartFabricRuntime } from './commands/restartFabricRuntime';
-import { toggleFabricRuntimeDevMode } from './commands/toggleFabricRuntimeDevMode';
 import { BlockchainTreeItem } from './explorer/model/BlockchainTreeItem';
 import { deleteSmartContractPackage } from './commands/deleteSmartContractPackageCommand';
 import { PeerTreeItem } from './explorer/runtimeOps/connectedTree/PeerTreeItem';
@@ -284,7 +283,6 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, () => stopFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (treeItem: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(treeItem, force)));
-    context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE, () => toggleFabricRuntimeDevMode()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, () => exportConnectionProfile()));
     context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));
@@ -350,7 +348,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
         // Listen for any changes to the debug state.
         if (e) {
-            if (e.configuration.env.EXTENSION_COMMAND) {
+            if (e.configuration.env && e.configuration.env.EXTENSION_COMMAND) {
                 await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, e.configuration.env.EXTENSION_COMMAND);
             }
             // Show any new transactions added to a contract, after 'reload debug' is executed.

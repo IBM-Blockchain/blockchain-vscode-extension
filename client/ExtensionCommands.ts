@@ -36,7 +36,6 @@ export class ExtensionCommands {
     static readonly START_FABRIC: string = 'environmentExplorer.startFabricRuntime';
     static readonly STOP_FABRIC: string = 'environmentExplorer.stopFabricRuntime';
     static readonly TEARDOWN_FABRIC: string = 'environmentExplorer.teardownFabricRuntime';
-    static readonly TOGGLE_FABRIC_DEV_MODE: string = 'environmentExplorer.toggleFabricRuntimeDevMode';
     static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
     static readonly EXPORT_CONNECTION_PROFILE: string = 'environmentExplorer.exportConnectionProfileEntry';

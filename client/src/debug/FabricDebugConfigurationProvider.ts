@@ -38,7 +38,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const extensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY);
 
             // Stop debug if not got late enough version
-            if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.35')) {
+            if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.36')) {
                 outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the Local Fabric runtime. Teardown and start the Local Fabric runtime, and try again.');
                 return;
             }
@@ -50,27 +50,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             if (!isRunning) {
                 outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
                 return;
-            }
-
-            if (!this.runtime.isDevelopmentMode()) {
-
-                // Error but allow the user to select to run the command
-                outputAdapter.log(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} peer is not in development mode`);
-                const prompt: string = 'Toggle development mode';
-                const answer: string = await vscode.window.showErrorMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} peer is not in development mode.`, prompt);
-
-                if (answer === prompt) {
-
-                    await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-                    if (!this.runtime.isDevelopmentMode()) {
-                        // It didn't work so return
-                        outputAdapter.log(LogType.ERROR, `Failed to toggle development mode`, `Failed to toggle development mode`);
-                        return;
-                    }
-
-                } else {
-                    return;
-                }
             }
 
             // check we are connected to the local fabric
@@ -134,7 +113,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                         title: 'IBM Blockchain Platform Extension',
                         cancellable: false
                     }, async (progress: vscode.Progress<{ message: string }>) => {
-                        progress.report({ message: 'Removing chaincode container'});
+                        progress.report({message: 'Removing chaincode container'});
                         await this.runtime.killChaincode([smartContractVersionName.name, smartContractVersionName.version]);
                     });
                 }
