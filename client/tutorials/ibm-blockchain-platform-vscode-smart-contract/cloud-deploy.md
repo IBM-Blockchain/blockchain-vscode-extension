@@ -29,7 +29,7 @@ The same smart contract package you deployed to the local runtime in Tutorial 1 
 
 1. In this extension, go the IBM Blockchain Platform view
 
-2. Under `SMART CONTRACT PACKAGES`, locate your contract (named `demoContract@0.0.1` if you followed tutorial 1) and right-click it. Choose `Export Package` then select a location to save the .cds file.
+2. Under `SMART CONTRACTS`, locate your contract (named `demoContract@0.0.1` if you followed tutorial 1) and right-click it. Choose `Export Package` then select a location to save the .cds file.
 
 > Command Palette alternative: `Export Package`
 
