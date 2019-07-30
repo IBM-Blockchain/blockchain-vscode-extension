@@ -155,6 +155,11 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error ${actioning} transaction: ${error.message}`);
+            if (error.endorsements) {
+                for (const endorsement of error.endorsements) {
+                    outputAdapter.log(LogType.ERROR, `Endorsement failed with: ${endorsement.message}`);
+                }
+            }
         }
     });
 }
