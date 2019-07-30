@@ -201,6 +201,19 @@ describe('SubmitTransactionCommand', () => {
             dockerLogsOutputSpy.should.have.been.called;
         });
 
+        it('should handle error from evaluating transaction and output further errors', async () => {
+            fabricClientConnectionMock.submitTransaction.rejects({ message: 'some error', endorsements: [{message: 'another error'}, {message: 'more error'}]});
+
+            await vscode.commands.executeCommand(ExtensionCommands.EVALUATE_TRANSACTION);
+
+            fabricClientConnectionMock.submitTransaction.should.have.been.calledWith('myContract', 'transaction1', 'myChannel', ['arg1', 'arg2', 'arg3'], 'my-contract', undefined, true);
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Error evaluating transaction: some error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: another error');
+            logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: more error');
+            reporterStub.should.not.have.been.called;
+            dockerLogsOutputSpy.should.have.been.called;
+        });
+
         it('should handle cancel when choosing transaction', async () => {
             showTransactionQuickPickStub.resolves();
 
