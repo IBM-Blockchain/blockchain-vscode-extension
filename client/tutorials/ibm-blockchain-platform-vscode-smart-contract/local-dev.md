@@ -19,7 +19,7 @@ Follow the typical workflow from generating a new smart contract project, deploy
 
 The extension can generate a smart contract skeleton in your chosen Hyperledger Fabric supported programming language. This means you start with a basic but useful smart contract rather than a blank-sheet!
 
-For the purposes of this tutorial, we'll use TypeScript as the example language.
+For the purposes of this tutorial, we'll use TypeScript as the main example language. Java examples are also shown.
 
 > In VS Code, every command can be executed from the Command Palette (press `Ctrl+Shift+P`, or `Cmd+Shift+P` on MacOS). All of this extension's commands start with `IBM Blockchain Platform:`. In the tutorial steps, we'll explain where to click in the UI, but look out for comment-boxes like this one if you want to know the Command Palette alternatives.
 
@@ -29,7 +29,7 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
 
 > Command Palette alternative: `Create Smart Contract Project`
 
-3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
+3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`; (unless you want to use Java, then please remember to expand the Java sections)
 
 4. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to have some fun ;)  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For the sake of this tutorial, we'll be boring and stick with `MyAsset`.
 
@@ -43,7 +43,7 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
 
 7. Finally, select `Add to workspace` from the list of options.
 
-The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold. Great work, you've got yourself a smart contract - let's take a look at its contents...
+The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold. Great work, you've got yourself a smart contract - let's take a look at its contents...  (Java contracts are in `src/main/java` directory, but being a Java developer you might have guessed that)
 
 </details>
 
@@ -58,7 +58,10 @@ Notice the lines that start with `@Transaction` - these are functions that defin
 
 Skipping over the first one (`myAssetExists`), take a look at the `createMyAsset` function:
 
-```
+<details open="true">
+<summary> Typescript </summary>
+
+```typescript
     @Transaction()
     public async createMyAsset(ctx: Context, myAssetId: string, value: string): Promise<void> {
         const exists = await this.myAssetExists(ctx, myAssetId);
@@ -71,12 +74,34 @@ Skipping over the first one (`myAssetExists`), take a look at the `createMyAsset
         await ctx.stub.putState(myAssetId, buffer);
     }
 ```
+</details>
+<details>
+<summary> Java </summary>
+
+```java
+    @Transaction()
+    public void createMyAsset(String myAssetId, String value) {
+        Context ctx = getContext();
+        boolean exists = myAssetExists(myAssetId);
+        if (exists) {
+            throw new RuntimeException("The asset "+myAssetId+" already exists");
+        }
+        MyAsset asset = new MyAsset();
+        asset.setValue(value);
+        ctx.putState(myAssetId, asset.toJSONString().getBytes(UTF_8));
+    }
+```
+</details>
+
 
 The empty brackets in `@Transaction()` tells us that this function is intended to change the contents of the ledger. Transactions like this are typically __submitted__ (as opposed to __evaluated__) - more on that later in this tutorial! The function is called `createMyAsset` and it takes `myAssetId` and a `value`, both of which are strings.  When this transaction is submitted, a new asset will be created, with key `myAssetId` and value `value`. For example if we were to create "001", "A juicy delicious pineapple", then when we later read the value of key `001`, we'll learn the value of that particular state is `A juicy delicious pineapple`.
 
 Now, take a look at the next transaction:
 
-```
+<details open="true">
+<summary> Typescript </summary>
+
+```typescript
     @Transaction(false)
     @Returns('MyAsset')
     public async readMyAsset(ctx: Context, myAssetId: string): Promise<MyAsset> {
@@ -89,6 +114,24 @@ Now, take a look at the next transaction:
         return myAsset;
     }
 ```
+</details>
+<details>
+<summary> Java </summary>
+
+```java
+    @Transaction()
+    public MyAsset readMyAsset(String myAssetId) {
+        Context ctx = getContext();
+        boolean exists = myAssetExists(myAssetId);
+        if (!exists) {
+            throw new RuntimeException("The asset "+myAssetId+" does not exist");
+        }
+
+        MyAsset newAsset = MyAsset.fromJSONString(new String(ctx.getState(myAssetId),UTF_8));
+        return newAsset;
+    }
+```
+</details>
 
 This one starts with `@Transaction(false)` - the "false" means that this function is not typically intended to change the contents of the ledger. Transactions like this are typically __evaluated__. You'll often hear such transactions referred to as "queries".  As you can see, this function only takes `myAssetId`, and will return the value of the whatever state that key points to.
 
@@ -107,6 +150,8 @@ Now that you have created your smart contract and understand the transactions th
 2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Package a Smart Contract Project` from the dropdown.
 
 > Command Palette alternative: `Package a smart contract project`
+
+If you're using Java, please enter a name and a version for this project. `demoContract` and `0.0.1` would be perfect.
 
 3. You should see a new package on the list, `demoContract@0.0.1` (or the name you gave to the packaged contract), if everything went well.
 
