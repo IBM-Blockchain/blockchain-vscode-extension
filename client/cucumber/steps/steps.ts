@@ -37,7 +37,7 @@ module.exports = function(): any {
 
     this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[];
-        if (panel === 'Smart Contract Packages') {
+        if (panel === 'Smart Contracts') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
         } else if (panel === 'Fabric Environments') {
