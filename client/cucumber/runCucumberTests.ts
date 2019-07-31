@@ -17,23 +17,32 @@ import * as path from 'path';
 import { runTests } from 'vscode-test';
 
 async function main(): Promise<void> {
-  try {
-    // The folder containing the Extension Manifest package.json
-    // Passed to `--extensionDevelopmentPath`
-    const extensionDevelopmentPath: string = path.resolve(__dirname, '..', '..');
+    try {
+        let version: string = 'stable';
+        if (process.env.VERSION) {
+            version = process.env.VERSION;
+        }
+        // The folder containing the Extension Manifest package.json
+        // Passed to `--extensionDevelopmentPath`
+        const extensionDevelopmentPath: string = path.resolve(__dirname, '..', '..');
 
-    // The path to the extension test runner script
-    // Passed to --extensionTestsPath
-    const extensionTestsPath: string = path.resolve(__dirname);
+        // The path to the extension test runner script
+        // Passed to --extensionTestsPath
+        const extensionTestsPath: string = path.resolve(__dirname);
 
-    const workspacePath: string = path.resolve(__dirname, '..', '..', 'cucumber', 'data', 'cucumber.code-workspace');
+        const workspacePath: string = path.resolve(__dirname, '..', '..', 'cucumber', 'data', 'cucumber.code-workspace');
 
-    // Download VS Code, unzip it and run the integration test
-    await runTests({ extensionDevelopmentPath, extensionTestsPath, launchArgs: [workspacePath] });
-  } catch (err) {
-    console.error('Failed to run tests');
-    process.exit(1);
-  }
+        // Download VS Code, unzip it and run the integration test
+        await runTests({
+            extensionDevelopmentPath,
+            extensionTestsPath,
+            launchArgs: [workspacePath],
+            version: version
+        });
+    } catch (err) {
+        console.error('Failed to run tests', err);
+        process.exit(1);
+    }
 }
 
 main();

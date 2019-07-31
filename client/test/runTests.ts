@@ -17,15 +17,9 @@ import { runTests, downloadAndUnzipVSCode } from 'vscode-test';
 
 async function main(): Promise<void> {
     try {
-        try {
-            process.stdout['_handle'].setBlocking(true);
-        } catch (error) {
-            console.log(error);
-        }
-        try {
-            process.stderr['_handle'].setBlocking(true);
-        } catch (error) {
-            console.log(error);
+        let version: string = 'stable';
+        if (process.env.VERSION) {
+            version = process.env.VERSION;
         }
         // The folder containing the Extension Manifest package.json
         // Passed to `--extensionDevelopmentPath`
@@ -36,12 +30,13 @@ async function main(): Promise<void> {
         const extensionTestsPath: string = path.resolve(__dirname);
 
         console.log('downloading vscode');
-        await downloadAndUnzipVSCode('1.35.1');
+        await downloadAndUnzipVSCode(version);
 
         // Download VS Code, unzip it and run the integration test
         console.log('setting up tests');
 
-        await runTests({extensionDevelopmentPath, extensionTestsPath, version: '1.35.1'});
+        await runTests({extensionDevelopmentPath, extensionTestsPath, version: version});
+
     } catch (err) {
         console.error('Failed to run tests', err);
         process.exit(1);

@@ -31,7 +31,11 @@ npm audit
 npm run compile
 
 if [ "${TASK}" == "unit" ]; then
-    npm rebuild grpc --target=3.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
+    if [ "${VERSION}" == "insiders" ]; then
+        npm rebuild grpc --target=4.1.5 --runtime=electron --dist-url=https://atom.io/download/electron
+    else
+        npm rebuild grpc --target=3.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
+    fi
 
     if [ $TRAVIS_OS_NAME == "linux" ]; then
         export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
