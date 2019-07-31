@@ -48,7 +48,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     if (gatewayRegistryEntry.managedRuntime) {
         const running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
         if (!running) {
-            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
+            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
             return;
         }
 

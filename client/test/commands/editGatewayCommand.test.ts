@@ -80,7 +80,7 @@ describe('EditGatewayCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY);
                 showGatewayQuickPickStub.should.not.have.been.called;
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `editGateway`);
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be edited.`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be edited.`, `No gateways to be edited found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be edited.`);
             });
 
             it('should open user settings to edit a gateway', async () => {

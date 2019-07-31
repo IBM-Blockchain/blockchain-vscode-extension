@@ -120,7 +120,7 @@ describe('DissociateWalletCommand', () => {
 
             showGatewayQuickPickBoxStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'dissociateWallet');
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET}.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET}.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`, `No gateways to dissociate found. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be dissociated from ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}.`);
         });
 
         it('should test dissociating a wallet can be cancelled when asked to select a gateway', async () => {

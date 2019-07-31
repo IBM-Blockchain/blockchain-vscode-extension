@@ -30,7 +30,7 @@ Follow the steps in the "Getting Started" link, and you will have your own insta
 <details>
 <summary><b>2. Basic network setup</b></summary>
 
-You should recognise some of the terms you're about to see in the cloud service (like "Organization", "Peer", "Channel" etc.) from the local_fabric runtime provided with this VS Code extension. What you're doing in this step is creating a similar set of resources running on IBM Cloud (via the Kubernetes service) and managed by the cloud service's operational tooling console.
+You should recognise some of the terms you're about to see in the cloud service (like "Organization", "Peer", "Channel" etc.) from the Local Fabric runtime provided with this VS Code extension. What you're doing in this step is creating a similar set of resources running on IBM Cloud (via the Kubernetes service) and managed by the cloud service's operational tooling console.
 
 * (Required) Follow this tutorial to set up your cloud runtime: [Build a network tutorial](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-ibp-console-build-network&cm_mmc=OSocial_Googleplus-_-Blockchain+and+Watson+Financial+Services_Blockchain-_-WW_WW-_-VS+code+link+-+Build+a+network+tutorial&cm_mmca1=000026VG&cm_mmca2=10008691#ibp-console-build-network)
 

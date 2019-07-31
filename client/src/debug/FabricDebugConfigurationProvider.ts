@@ -39,7 +39,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
             // Stop debug if not got late enough version
             if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.35')) {
-                outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the local Fabric runtime. Teardown and start the local Fabric runtime, and try again.');
+                outputAdapter.log(LogType.ERROR, 'To debug a smart contract, you must update the Local Fabric runtime. Teardown and start the Local Fabric runtime, and try again.');
                 return;
             }
 
@@ -48,16 +48,16 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const isRunning: boolean = await this.runtime.isRunning();
 
             if (!isRunning) {
-                outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC}" is running before trying to debug a smart contract`);
+                outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
                 return;
             }
 
             if (!this.runtime.isDevelopmentMode()) {
 
                 // Error but allow the user to select to run the command
-                outputAdapter.log(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC} peer is not in development mode`);
+                outputAdapter.log(LogType.INFO, undefined, `The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} peer is not in development mode`);
                 const prompt: string = 'Toggle development mode';
-                const answer: string = await vscode.window.showErrorMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC} peer is not in development mode.`, prompt);
+                const answer: string = await vscode.window.showErrorMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} peer is not in development mode.`, prompt);
 
                 if (answer === prompt) {
 

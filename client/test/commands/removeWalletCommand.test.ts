@@ -121,7 +121,7 @@ describe('removeWalletCommand', () => {
 
         showWalletsQuickPickStub.should.not.have.been.called;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `removeWallet`);
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET} cannot be removed.`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`, `No wallets to remove. ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME} cannot be removed.`);
     });
 
     it('should handle the user cancelling selecting a wallet', async () => {

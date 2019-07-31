@@ -30,6 +30,7 @@ import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {
 
@@ -84,10 +85,17 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
                 const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
 
-                if (walletRegistryEntry.managedWallet) {
-                    tree.push(new LocalWalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
+                let walletName: string;
+                if (walletRegistryEntry.name === FabricWalletUtil.LOCAL_WALLET) {
+                    walletName = FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME;
                 } else {
-                    tree.push(new WalletTreeItem(this, walletRegistryEntry.name, identityNames, treeState, walletRegistryEntry));
+                    walletName = walletRegistryEntry.name;
+                }
+
+                if (walletRegistryEntry.managedWallet) {
+                    tree.push(new LocalWalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
+                } else {
+                    tree.push(new WalletTreeItem(this, walletName, identityNames, treeState, walletRegistryEntry));
                 }
             }
         }
@@ -99,7 +107,6 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         // Populate the tree with the identity names
-        const walletName: string = walletTreeItem.name;
 
         const walletPath: string = walletTreeItem.registryEntry.walletPath;
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
@@ -121,10 +128,10 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
 
             if (isAdminIdentity) {
                 // User can't delete this!
-                tree.push(new AdminIdentityTreeItem(this, identity.name, walletName, attributes));
+                tree.push(new AdminIdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
             } else {
 
-                tree.push(new IdentityTreeItem(this, identity.name, walletName, attributes));
+                tree.push(new IdentityTreeItem(this, identity.name, walletTreeItem.name, attributes));
             }
         }
         return tree;

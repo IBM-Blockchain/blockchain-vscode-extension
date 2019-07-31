@@ -22,6 +22,7 @@ import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function restartFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -33,7 +34,7 @@ export async function restartFabricRuntime(): Promise<void> {
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
+        progress.report({ message: `Restarting Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
 
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
@@ -48,7 +49,7 @@ export async function restartFabricRuntime(): Promise<void> {
         try {
             await runtime.restart(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to restart ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to restart ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
         }
     });
 }

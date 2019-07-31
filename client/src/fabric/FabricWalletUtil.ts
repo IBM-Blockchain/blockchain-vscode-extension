@@ -19,6 +19,7 @@ import * as fs from 'fs-extra';
 
 export class FabricWalletUtil {
     static readonly LOCAL_WALLET: string = 'local_fabric_wallet';
+    static readonly LOCAL_WALLET_DISPLAY_NAME: string = 'Local Fabric Wallet';
 
     public static async tidyWalletSettings(): Promise<void> {
         // Get wallets from user settings
