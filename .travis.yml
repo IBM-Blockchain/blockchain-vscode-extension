@@ -94,7 +94,7 @@ matrix:
       env: TASK=cucumberOther
       if: type !=cron
 
-    - name: "Cucumber Test"
+    - name: "Cucumber Other Test"
       script: ./.travis/script.sh
       os: linux
       env:
@@ -102,7 +102,7 @@ matrix:
         - VERSION=insiders
       if: type = cron
 
-    - name: "Cucumber Test"
+    - name: "Cucumber Other Test"
       script: ./.travis/script.sh
       os: linux
       env:
