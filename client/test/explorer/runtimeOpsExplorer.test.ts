@@ -90,7 +90,7 @@ describe('runtimeOpsExplorer', () => {
                 allChildren[0].label.should.equal('Local Fabric runtime is stopped. Click to start.');
             });
 
-            it('should refresh when local_fabric is busy', async () => {
+            it('should refresh when Local Fabric is busy', async () => {
                 const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
                 mySandBox.stub(blockchainRuntimeExplorerProvider, 'refresh').resolves();
                 runtime.emit('busy', true);

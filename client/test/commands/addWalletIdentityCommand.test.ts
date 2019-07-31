@@ -280,7 +280,7 @@ describe('AddWalletIdentityCommand', () => {
             sendTelemetryEventStub.should.not.have.been.calledOnceWithExactly('addWalletIdentityCommand', {method: 'enrollmentID'});
         });
 
-        it('should return when user cancels when selecting a CA to enroll with', async () => {
+        it('should let user select CA and enroll', async () => {
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')

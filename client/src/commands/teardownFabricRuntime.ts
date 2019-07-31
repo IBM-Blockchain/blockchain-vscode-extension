@@ -21,6 +21,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function teardownFabricRuntime(force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -39,8 +40,7 @@ export async function teardownFabricRuntime(force: boolean = false): Promise<voi
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Tearing down Fabric runtime ${runtime.getName()}` });
-
+        progress.report({ message: `Tearing down Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
             await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
@@ -50,7 +50,7 @@ export async function teardownFabricRuntime(force: boolean = false): Promise<voi
             await runtime.teardown(outputAdapter);
             await runtime.deleteWalletsAndIdentities();
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to teardown local_fabric: ${error.message}`, `Failed to teardown local_fabric: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to teardown ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to teardown ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
         }
     });
 

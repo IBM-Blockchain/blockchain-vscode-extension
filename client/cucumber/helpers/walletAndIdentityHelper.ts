@@ -19,7 +19,6 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as fs from 'fs-extra';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -28,6 +27,7 @@ import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGener
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { IFabricWalletGenerator } from '../../src/fabric/IFabricWalletGenerator';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -38,7 +38,7 @@ export class WalletAndIdentityHelper {
     public static keyPath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/key1.pem`);
     public static jsonFilePath: string = path.join(__dirname, `../../../cucumber/hlfv1/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/Org1Admin.json`);
     public static connectionProfilePath: string = path.join(__dirname, '../../../cucumber/hlfv1/connection.json');
-    public static localWalletPath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', FabricWalletUtil.LOCAL_WALLET);
+    public static localWalletPath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'wallets', FabricWalletUtil.LOCAL_WALLET);
 
     mySandBox: sinon.SinonSandbox;
     userInputUtilHelper: UserInputUtilHelper;
@@ -53,7 +53,10 @@ export class WalletAndIdentityHelper {
         walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
         walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
 
-        const identityExists: boolean = await fs.pathExists(path.join(walletEntry.walletPath, name));
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletEntry.walletPath);
+        const identityExists: boolean = await wallet.exists(name);
+
         if (!identityExists) {
             this.userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
             this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
@@ -68,6 +71,27 @@ export class WalletAndIdentityHelper {
             }
 
             await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY);
+        }
+    }
+
+    public async deleteCAIdentity(name: string): Promise<void> {
+        const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+        walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+        walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
+
+        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
+        const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletEntry.walletPath);
+        const identityExists: boolean = await wallet.exists(name);
+
+        if (identityExists) {
+            this.userInputUtilHelper.showWalletsQuickPickStub.withArgs('Choose the wallet containing the identity that you want to delete').resolves({
+                label: FabricWalletUtil.LOCAL_WALLET,
+                data: walletEntry
+            });
+            this.userInputUtilHelper.showIdentitiesQuickPickStub.withArgs('Choose the identity to delete').resolves(name);
+            this.userInputUtilHelper.showConfirmationWarningMessageStub.withArgs(`This will delete ${name} from your file system. Do you want to continue?`).resolves(UserInputUtil.YES);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY);
         }
     }
 

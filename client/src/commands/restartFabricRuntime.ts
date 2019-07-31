@@ -17,6 +17,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { FabricRuntime } from '../fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { LogType } from '../logging/OutputAdapter';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function restartFabricRuntime(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -28,12 +29,11 @@ export async function restartFabricRuntime(): Promise<void> {
         title: 'IBM Blockchain Platform Extension',
         cancellable: false
     }, async (progress: vscode.Progress<{ message: string }>) => {
-        progress.report({ message: `Restarting Fabric runtime ${runtime.getName()}` });
-
+        progress.report({ message: `Restarting Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
         try {
             await runtime.restart(outputAdapter);
         } catch (error) {
-            outputAdapter.log(LogType.ERROR, `Failed to restart local_fabric: ${error.message}`, `Failed to restart local_fabric: ${error.toString()}`);
+            outputAdapter.log(LogType.ERROR, `Failed to restart ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.message}`, `Failed to restart ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}: ${error.toString()}`);
         }
     });
 }

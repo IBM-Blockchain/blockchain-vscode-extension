@@ -70,7 +70,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
 
     } else {
         // Called from the tree
-        if (treeItem.walletName === FabricWalletUtil.LOCAL_WALLET) {
+        if (treeItem.walletName === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME) {
            const _wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
            walletPath = _wallet.getWalletPath();
 

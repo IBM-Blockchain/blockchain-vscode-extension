@@ -138,7 +138,7 @@ describe('DeleteGatewayCommand', () => {
 
             quickPickStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`);
         });
 
         it('should handle no from confirmation message', async () => {
