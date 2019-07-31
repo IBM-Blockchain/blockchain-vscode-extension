@@ -135,11 +135,7 @@ function getChaincodeLanguageOptions(): string[] {
 
 function getSmartContractLanguageOptions(): string[] {
      // change this back once support java
-     const languages: string[] = GeneratorFabricPackageJSON.contractLanguages;
-     return languages.filter((language: string) => {
-         return language !== 'Java';
-     });
-
+     return GeneratorFabricPackageJSON.contractLanguages;
 }
 
 async function isXcodeInstalled(): Promise<any> {

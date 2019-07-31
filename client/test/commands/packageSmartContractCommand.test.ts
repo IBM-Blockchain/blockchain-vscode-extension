@@ -1292,7 +1292,7 @@ describe('packageSmartContract', () => {
             smartContractExists.should.equal(false);
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'packageSmartContract');
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project has errors please fix them before packaging`);
-            executeTaskStub.should.not.have.been.called;
+            executeTaskStub.should.have.been.called;
         });
 
         it('should only throw error if there are errors', async () => {

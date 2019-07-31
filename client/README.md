@@ -17,6 +17,7 @@ You will need the following installed in order to use the extension:
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 - [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
+- [Java v8 for developing Java contracts](https://openjdk.java.net/install/)
 
 If you are using Windows, you must also ensure the following:
 - Docker for Windows is configured to use Linux containers (this is the default)
@@ -32,9 +33,10 @@ You can check your installed versions by running the following commands from a t
 - `docker --version`
 - `docker-compose --version`
 - `go version`
+- `java -version`
 
 ## Smart Contract Development Lifecycle
-_Please note that all commands contributed by this extension are accesible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
+_Please note that all commands contributed by this extension are accessible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
 
 The expected smart contract development lifecycle follows several broad points, all possible entirely within VS Code using this extension:
 1. Creating and packaging a smart contract
@@ -45,7 +47,7 @@ The expected smart contract development lifecycle follows several broad points, 
 ### Create and Develop a Fabric smart contract project
 A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create New Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
 
-### Package a smart contract project
+### Package Open Project
 To package a project you have open in your workspace, run the `Package Open Project` command. Packages are listed in the `Smart Contracts` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import a Package` command to import a pre-existing .cds package to be used within VS Code. 
 
 ### Operate the local_fabric runtime
@@ -99,7 +101,7 @@ To connect to our own Hyperledger Fabric instance, it must be running [Hyperledg
 Add your gateway by providing a name and connection profile via the `Add Gateway` command; it will be listed in the `Fabric Gateways` panel. Add a file system wallet to connect to your gateway with via the `Add Wallet` command.
 
 ### Connect to a gateway and discover its resources
-Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts. Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel. 
+Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts (Currently you cannot generate Java functional tests). Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel. 
 
 ### Wallet Management
 The extension creates a `local_fabric_wallet` file system wallet when it is installed, which is used to connect to the `local_fabric` runtime instance and is automatically associated with that gateway. When `local_fabric` is started, an admin identity is added to the `local_fabric_wallet` and cannot be deleted unless the `local_fabric` runtime is torn down.
