@@ -10,5 +10,5 @@ Feature: Created Smart Contracts
         | language   | assetType | name               | version |
         | JavaScript | Conga     | JavaScriptContract | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | 0.0.1   |
-        | Java       | null      | JavaContract       | 0.0.1   |
+        | Java       | Conga     | JavaContract       | 0.0.1   |
         | Go         | null      | GoContract         | 0.0.1   |
