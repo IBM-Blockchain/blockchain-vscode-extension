@@ -166,7 +166,7 @@ describe('FabricRuntimeManager', () => {
                 peerEventHub: 17053,
                 peerRequest: 17051
             });
-            mockRuntime.updateUserSettings.should.have.been.calledOnce;
+            mockRuntime.updateUserSettings.should.not.have.been.called;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
         });
 

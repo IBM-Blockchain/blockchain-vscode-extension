@@ -109,13 +109,6 @@ describe('AddWalletIdentityCommand', () => {
                 associatedWallet: ''
             });
 
-            const connectionThree: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
-                name: 'myGatewayC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.yml'),
-                managedRuntime: false,
-                associatedWallet: ''
-            });
-
             await FabricGatewayRegistry.instance().clear();
             await FabricGatewayRegistry.instance().add(connectionOne);
             await FabricGatewayRegistry.instance().add(connectionTwo);

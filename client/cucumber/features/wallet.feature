@@ -19,6 +19,7 @@ Feature: Fabric Wallets
 
     Scenario: delete an identity
         Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         And the identity 'example_identity' exists
         When I delete the identity 'example_identity'

@@ -224,7 +224,7 @@ describe('SubmitTransactionCommand', () => {
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: another error');
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Endorsement failed with: more error');
             reporterStub.should.not.have.been.called;
-            dockerLogsOutputSpy.should.have.been.called;
+            dockerLogsOutputSpy.should.not.have.been.called;
         });
 
         it('should handle cancel when choosing transaction', async () => {

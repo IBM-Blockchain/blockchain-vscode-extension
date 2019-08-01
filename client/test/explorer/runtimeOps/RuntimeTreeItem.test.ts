@@ -168,7 +168,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  `);
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●`);
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
