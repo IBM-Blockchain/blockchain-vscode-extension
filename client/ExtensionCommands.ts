@@ -31,7 +31,6 @@ export class ExtensionCommands {
     static readonly START_FABRIC: string = 'aRuntimeOpsExplorer.startFabricRuntime';
     static readonly STOP_FABRIC: string = 'aRuntimeOpsExplorer.stopFabricRuntime';
     static readonly TEARDOWN_FABRIC: string = 'aRuntimeOpsExplorer.teardownFabricRuntime';
-    static readonly TOGGLE_FABRIC_DEV_MODE: string = 'aRuntimeOpsExplorer.toggleFabricRuntimeDevMode';
     static readonly UPGRADE_SMART_CONTRACT: string = 'aRuntimeOpsExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'aRuntimeOpsExplorer.createNewIdentityEntry';
     static readonly EXPORT_CONNECTION_PROFILE: string = 'aRuntimeOpsExplorer.exportConnectionProfileEntry';

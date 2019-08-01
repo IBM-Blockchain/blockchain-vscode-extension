@@ -59,7 +59,6 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     private async updateProperties(): Promise<void> {
         const busy: boolean = this.runtime.isBusy();
         const running: boolean = await this.runtime.isRunning();
-        const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
         let newTooltip: string;
         let newCommand: vscode.Command = this.command;
@@ -98,9 +97,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
                 arguments: [this.gateway]
             };
         }
-        if (developmentMode) {
-            newLabel += '  ∞';
-        }
+
         this.setLabel(newLabel);
         this.setTooltip(newTooltip);
         this.setCommand(newCommand);

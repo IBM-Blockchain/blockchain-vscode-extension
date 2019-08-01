@@ -73,8 +73,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             runtimeStub.getName.returns('localfabric');
             runtimeStub.getPeerChaincodeURL.resolves('grpc://127.0.0.1:54321');
             runtimeStub.isRunning.resolves(true);
-            runtimeStub.isDevelopmentMode.returns(true);
-            runtimeStub.getGateways.resolves([{ name: 'myGateway', path: 'myPath' }]);
+            runtimeStub.getGateways.resolves([{name: 'myGateway', path: 'myPath'}]);
 
             registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
@@ -132,7 +131,7 @@ describe('FabricGoDebugConfigurationProvider', () => {
             mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
                 globalState: {
                     get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.35'
+                        generatorVersion: '0.0.36'
                     })
                 }
             });

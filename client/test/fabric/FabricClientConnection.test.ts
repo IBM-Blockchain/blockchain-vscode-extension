@@ -27,8 +27,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -53,6 +51,8 @@ describe('FabricClientConnection', () => {
     let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
 
     const rootPath: string = path.dirname(__dirname);
+
+    const timeout: number = 120;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -133,7 +133,7 @@ describe('FabricClientConnection', () => {
         });
 
         it('should connect to a fabric', async () => {
-            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnection['description'].should.equal(false);
@@ -141,7 +141,7 @@ describe('FabricClientConnection', () => {
 
         it('should connect with an already loaded client connection', async () => {
             should.exist(FabricConnectionFactory['clientConnection']);
-            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnection['description'].should.equal(false);
@@ -156,7 +156,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnectionYaml = FabricConnectionFactory.createFabricClientConnection(connectionYamlData) as FabricClientConnection;
             fabricClientConnectionYaml['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnectionYaml.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+            await fabricClientConnectionYaml.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnectionYaml['description'].should.equal(false);
@@ -171,7 +171,7 @@ describe('FabricClientConnection', () => {
             otherFabricClientConnectionYml = FabricConnectionFactory.createFabricClientConnection(otherConnectionYmlData) as FabricClientConnection;
             otherFabricClientConnectionYml['gateway'] = fabricGatewayStub;
 
-            await otherFabricClientConnectionYml.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+            await otherFabricClientConnectionYml.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
             fabricClientConnectionYaml['description'].should.equal(false);
@@ -187,7 +187,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
 
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -208,7 +208,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData) as FabricClientConnection;
             fabricClientConnection['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER);
+            await fabricClientConnection.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout);
 
             fabricGatewayStub.connect.should.have.been.called;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
@@ -224,7 +224,7 @@ describe('FabricClientConnection', () => {
             fabricClientConnectionWrong = FabricConnectionFactory.createFabricClientConnection(connectionWrongData) as FabricClientConnection;
             fabricClientConnectionWrong['gateway'] = fabricGatewayStub;
 
-            await fabricClientConnectionWrong.connect(wallet, FabricRuntimeUtil.ADMIN_USER).should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
+            await fabricClientConnectionWrong.connect(wallet, FabricRuntimeUtil.ADMIN_USER, timeout).should.have.been.rejectedWith('Connection profile must be in JSON or yaml format');
             fabricGatewayStub.connect.should.not.have.been.called;
         });
 
@@ -284,9 +284,6 @@ describe('FabricClientConnection', () => {
 
     describe('submitTransaction', () => {
         it('should handle no response from a submitted transaction', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.submit.resolves(buffer);
@@ -296,13 +293,9 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
-            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle setting transient data', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.submit.resolves(buffer);
@@ -312,13 +305,9 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.have.been.calledWith({key: Buffer.from('value')});
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
-            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle a returned string response from a submitted transaction', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from('hello world');
             fabricTransactionStub.submit.resolves(buffer);
@@ -328,13 +317,9 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             result.should.equal('hello world');
-            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle a returned empty string response from a submitted transaction', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from('');
             fabricTransactionStub.submit.resolves(buffer);
@@ -344,13 +329,9 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
-            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle a returned array from a submitted transaction', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from(JSON.stringify(['hello', 'world']));
             fabricTransactionStub.submit.resolves(buffer);
@@ -360,13 +341,9 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, '["hello","world"]');
-            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should handle returned object from a submitted transaction', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from(JSON.stringify({hello: 'world'}));
             fabricTransactionStub.submit.resolves(buffer);
@@ -376,13 +353,9 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.submit.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, '{"hello":"world"}');
-            getRuntimeStub.should.have.been.calledOnce;
         });
 
         it('should evaluate a transaction if specified', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-            mockRuntime.isDevelopmentMode.returns(false);
 
             const buffer: Buffer = Buffer.from([]);
             fabricTransactionStub.evaluate.resolves(buffer);
@@ -392,33 +365,6 @@ describe('FabricClientConnection', () => {
             fabricTransactionStub.setTransient.should.not.have.been.called;
             fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
             should.equal(result, undefined);
-            getRuntimeStub.should.have.been.calledOnce;
-        });
-
-        it('should set large timeout when in debug mode', async () => {
-            const mockRuntime: sinon.SinonStubbedInstance<FabricRuntime> = sinon.createStubInstance(FabricRuntime);
-            const getRuntimeStub: sinon.SinonStub = mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
-
-            mockRuntime.isDevelopmentMode.returns(true);
-
-            const setConfigSettingStub: sinon.SinonStub = mySandBox.stub().returns(undefined);
-            fabricGatewayStub.getClient.returns({
-                setConfigSetting: setConfigSettingStub
-            });
-
-            const buffer: Buffer = Buffer.from([]);
-            fabricTransactionStub.evaluate.resolves(buffer);
-
-            const result: string | undefined = await fabricClientConnection.submitTransaction('mySmartContract', 'transaction1', 'myChannel', ['arg1', 'arg2'], 'my-contract', undefined, true);
-            fabricContractStub.createTransaction.should.have.been.calledWith('transaction1');
-            fabricTransactionStub.setTransient.should.not.have.been.called;
-            fabricTransactionStub.evaluate.should.have.been.calledWith('arg1', 'arg2');
-            should.equal(result, undefined);
-
-            getRuntimeStub.should.have.been.calledOnce;
-            mockRuntime.isDevelopmentMode.should.have.been.calledOnce;
-            fabricGatewayStub.getClient.should.have.been.calledOnce;
-            setConfigSettingStub.should.have.been.calledOnceWith('request-timeout', 9999999);
         });
     });
 });

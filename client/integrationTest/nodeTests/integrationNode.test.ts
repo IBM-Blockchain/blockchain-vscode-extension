@@ -132,9 +132,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
             isRunning.should.equal(false);
             const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
-            if (runtime.isDevelopmentMode()) {
-                await vscode.commands.executeCommand(ExtensionCommands.TOGGLE_FABRIC_DEV_MODE);
-            }
             localFabricItem.should.not.be.null;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);
         });
@@ -151,7 +148,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
                 // Start the Fabric runtime, and ensure that it is in the right state.
                 await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
                 runtime.isRunning().should.eventually.be.true;
-                runtime.isDevelopmentMode().should.be.false;
 
                 const smartContractName: string = `my${language}SC`;
 
@@ -280,7 +276,6 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
                 runtime.isRunning().should.eventually.be.true;
-                runtime.isDevelopmentMode().should.be.false;
 
                 integrationTestUtil.showFolderOptions.withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 

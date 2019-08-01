@@ -152,6 +152,16 @@ describe('Metadata Util tests', () => {
         should.equal(transactionsMap, null);
     });
 
+    it('should error if no contracts', async () => {
+        fabricClientConnectionMock.getMetadata.resolves({
+            contracts: {}
+        });
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        should.equal(transactionsMap, undefined);
+
+        logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+    });
+
     it('should handle error getting metadata', async () => {
         fabricClientConnectionMock.getMetadata.rejects({message: `some error`});
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel');

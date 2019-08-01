@@ -60,9 +60,7 @@ describe('PeerTreeItem', () => {
     });
 
     describe('#constructor', () => {
-        it('should have the right properties for a runtime that is not running in development mode', async () => {
-            mockRuntime.isDevelopmentMode.returns(false);
-
+        it('should have the right properties for a runtime', async () => {
             const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, node, false);
 
             treeItem.label.should.equal('myPeer.org1.example.com');
@@ -70,19 +68,9 @@ describe('PeerTreeItem', () => {
             treeItem.contextValue.should.equal('blockchain-peer-item');
         });
 
-        it('should have the right properties for a runtime that is running in development mode', async () => {
-            mockRuntime.isDevelopmentMode.returns(true);
-
-            const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, node, false);
-
-            treeItem.label.should.equal('myPeer.org1.example.com   ∞');
-
-            treeItem.contextValue.should.equal('blockchain-peer-item');
-        });
-
         it('should display an error if it fails to update the properties', async () => {
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            mockRuntime.isDevelopmentMode.onCall(0).throws(new Error('some error'));
+            mockRuntime.updateUserSettings.onCall(0).throws(new Error('some error'));
 
             const treeItem: PeerTreeItem = await PeerTreeItem.newPeerTreeItem(provider, 'myPeer.org1.example.com', new Map<string, Array<string>>(), vscode.TreeItemCollapsibleState.None, node, false);
 

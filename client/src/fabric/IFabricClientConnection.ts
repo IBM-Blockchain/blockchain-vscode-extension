@@ -22,7 +22,7 @@ export interface IFabricClientConnection {
 
     wallet: FabricWalletRegistryEntry;
 
-    connect(wallet: IFabricWallet, identityName: string): Promise<void>;
+    connect(wallet: IFabricWallet, identityName: string, timeout: number): Promise<void>;
 
     createChannelMap(): Promise<Map<string, Array<string>>>;
 
