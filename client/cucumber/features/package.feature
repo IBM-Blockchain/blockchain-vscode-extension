@@ -12,6 +12,6 @@ Feature: Packaged Smart Contracts
         | language   | assetType | name               | packagedName             | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 0.0.1   |
-        | Java       | null      | JavaContract       | JavaContract@0.0.1       | 0.0.1   |
+        | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 0.0.1   |
         | Go         | null      | GoContract         | GoContract@0.0.1         | 0.0.1   |
 
