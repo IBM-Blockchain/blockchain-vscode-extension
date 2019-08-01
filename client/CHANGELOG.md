@@ -1,5 +1,28 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.6: August 1st 2019
+
+* Added Java smart contract support [#520](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/520) 
+> It is now possible to generate Java smart contracts!
+> There are also Java versions of the FabCar and Commercial Paper sample contracts and application available to try out.
+> For more information check out the README or updated local development tutorial!
+
+* Removed ability to toggle the Local Fabric to development mode [#877](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/877)
+> The Local Fabric will now always remain in development mode.
+> Also, it is now possible to configure the transaction timeout values in the user settings, making it easier to debug your smart contracts.
+> For more information on changing the transaction timeout values, check out the README.
+
+* Updated Fabric dependency to 1.4.2 [#1167](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1167)
+* Generated functional tests split by function [#1082](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1082)
+* Select CA for enrolling users with via wallet [#1160](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1160)
+* Updated dependencies for generated functional tests [#1157](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1157)
+* Fixed connecting to gateway without admin access to peer bug [#1142](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1142)
+* Updated menu labels and command names [#1179](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1179)
+* Improved transaction error reporting [#1110](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1110)
+* Updated 'local_fabric' and 'local_fabric_wallet' display names [#1105](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1105)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-55.jpg)
+
 ## 1.0.5: July 17th 2019
 
 * gRPC fix [#1124](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1124)
