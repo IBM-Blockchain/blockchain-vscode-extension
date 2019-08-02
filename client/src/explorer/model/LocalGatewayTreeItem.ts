@@ -41,7 +41,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public gateway: FabricGatewayRegistryEntry, public readonly collapsableState: vscode.TreeItemCollapsibleState, public readonly command?: vscode.Command) {
         super(provider, label, collapsableState);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-        this.name = gateway.name;
+        this.name = label;
         this.runtime = runtimeManager.getRuntime();
         this.runtime.on('busy', () => {
             this.safelyUpdateProperties();
@@ -59,7 +59,6 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
     private async updateProperties(): Promise<void> {
         const busy: boolean = this.runtime.isBusy();
         const running: boolean = await this.runtime.isRunning();
-        const developmentMode: boolean = this.runtime.isDevelopmentMode();
         let newLabel: string = this.name + '  ';
         let newTooltip: string;
         let newCommand: vscode.Command = this.command;
@@ -71,7 +70,7 @@ export class LocalGatewayTreeItem extends BlockchainTreeItem {
             newLabel += currentBusyState;
             newTooltip = `Local Fabric  ${currentBusyState}
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = null;
         } else if (running) {
             // Running!
@@ -79,7 +78,7 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
             newLabel += '●';
             newTooltip = `Local Fabric is running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
                 command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
@@ -91,16 +90,14 @@ ${FabricWalletUtil.LOCAL_WALLET}`;
             newLabel += '○';
             newTooltip = `Local Fabric is not running
 ⓘ Associated wallet:
-${FabricWalletUtil.LOCAL_WALLET}`;
+${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
                 command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [this.gateway]
             };
         }
-        if (developmentMode) {
-            newLabel += '  ∞';
-        }
+
         this.setLabel(newLabel);
         this.setTooltip(newTooltip);
         this.setCommand(newCommand);

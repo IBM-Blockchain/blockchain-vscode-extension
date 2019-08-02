@@ -42,6 +42,7 @@ import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { LocalGatewayTreeItem } from '../../src/explorer/model/LocalGatewayTreeItem';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -82,6 +83,12 @@ describe('GatewayConnectCommand', () => {
         let identity: IdentityInfo;
         let walletGenerator: FabricWalletGenerator;
         let sendTelemetryEventStub: sinon.SinonStub;
+        let getSettingsStub: sinon.SinonStub;
+        let getConfigurationStub: sinon.SinonStub;
+        let getAllWalletsStub: sinon.SinonStub;
+        let getWalletStub: sinon.SinonStub;
+
+        const timeout: number = 120;
 
         beforeEach(async () => {
 
@@ -134,10 +141,13 @@ describe('GatewayConnectCommand', () => {
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
-            await FabricWalletRegistry.instance().clear();
-            await FabricWalletRegistry.instance().add(connectionMultipleWallet);
-            await FabricWalletRegistry.instance().add(connectionSingleWallet);
-            await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
+            getAllWalletsStub = mySandBox.stub(FabricWalletRegistry.instance(), 'getAll');
+            getAllWalletsStub.returns([connectionMultipleWallet, connectionSingleWallet, connectionAssociatedWallet]);
+
+            getWalletStub = mySandBox.stub(FabricWalletRegistry.instance(), 'get');
+            getWalletStub.withArgs('myGatewayAWallet').returns(connectionSingleWallet);
+            getWalletStub.withArgs('myGatewayBWallet').returns(connectionMultipleWallet);
+            getWalletStub.withArgs('myGatewayCWallet').returns(connectionAssociatedWallet);
 
             mockRuntime = sinon.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -173,6 +183,16 @@ describe('GatewayConnectCommand', () => {
             });
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
+            getSettingsStub = mySandBox.stub();
+            getSettingsStub.withArgs(SettingConfigurations.FABRIC_GATEWAYS).returns([connectionSingle, connectionMultiple, connectionAssociated]);
+            getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(timeout);
+
+            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: getSettingsStub,
+                update: mySandBox.stub().callThrough()
+            });
+
         });
 
         afterEach(async () => {
@@ -188,7 +208,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
@@ -209,7 +229,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnce;
-                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
@@ -229,7 +249,7 @@ describe('GatewayConnectCommand', () => {
             it('should display an error if there are no wallets to connect with', async () => {
                 const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-                await FabricWalletRegistry.instance().clear();
+                getAllWalletsStub.returns([]);
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
@@ -279,7 +299,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
@@ -295,13 +315,13 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), FabricRuntimeUtil.ADMIN_USER);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), FabricRuntimeUtil.ADMIN_USER, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
             it('should handle no identities found in wallet', async () => {
                 connectionSingleWallet.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
-                await FabricWalletRegistry.instance().update(connectionSingleWallet);
+                getAllWalletsStub.returns([connectionSingleWallet]);
 
                 // Populate the quick pick box with the updated wallet registry entry
                 choseWalletQuickPick.resolves({
@@ -369,7 +389,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
-                mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
@@ -383,7 +403,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.called;
-                mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
@@ -396,7 +416,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
             });
 
@@ -414,7 +434,7 @@ describe('GatewayConnectCommand', () => {
                 mockRuntime.isRunning.resolves(false);
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
-                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
             });
 
         });
@@ -447,7 +467,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
-                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label);
+                mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
@@ -461,7 +481,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.have.been.called;
-                mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, testIdentityName, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 
@@ -475,7 +495,7 @@ describe('GatewayConnectCommand', () => {
 
                 connectStub.should.have.been.calledOnce;
                 choseIdentityQuickPick.should.not.have.been.called;
-                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label);
+                mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
             });
 

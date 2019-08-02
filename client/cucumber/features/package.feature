@@ -6,12 +6,12 @@ Feature: Packaged Smart Contracts
         And the contract has been created
         When I package the contract
         Then a new package should be created with the name <name> and verison <version>
-        And there should be a tree item with a label '<packagedName>' in the 'Smart Contract Packages' panel
+        And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
         And the tree item should have a tooltip equal to '<packagedName>'
         Examples:
         | language   | assetType | name               | packagedName             | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.1 | 0.0.1   |
-        | Java       | null      | JavaContract       | JavaContract@0.0.1       | 0.0.1   |
+        | Java       | Conga     | JavaContract       | JavaContract@0.0.1       | 0.0.1   |
         | Go         | null      | GoContract         | GoContract@0.0.1         | 0.0.1   |
 

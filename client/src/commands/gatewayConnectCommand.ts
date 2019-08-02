@@ -12,6 +12,7 @@
  * limitations under the License.
 */
 'use strict';
+import * as vscode from 'vscode';
 import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { FabricConnectionFactory } from '../fabric/FabricConnectionFactory';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
@@ -29,6 +30,7 @@ import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { SettingConfigurations } from '../../SettingConfigurations';
 
 export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistryEntry, identityName?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -48,7 +50,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     if (gatewayRegistryEntry.managedRuntime) {
         const running: boolean = await FabricRuntimeManager.instance().getRuntime().isRunning();
         if (!running) {
-            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC} has not been started, please start it before connecting.`);
+            outputAdapter.log(LogType.ERROR, `${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} has not been started, please start it before connecting.`);
             return;
         }
 
@@ -131,7 +133,9 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     const connection: IFabricClientConnection = FabricConnectionFactory.createFabricClientConnection(connectionData);
 
     try {
-        await connection.connect(wallet, identityName);
+        const timeout: number = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CLIENT_TIMEOUT) as number;
+
+        await connection.connect(wallet, identityName, timeout);
         connection.wallet = walletData;
         connection.identityName = identityName;
         FabricConnectionManager.instance().connect(connection, gatewayRegistryEntry);

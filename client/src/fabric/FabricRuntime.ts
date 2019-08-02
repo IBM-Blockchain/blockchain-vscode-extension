@@ -41,7 +41,6 @@ export enum FabricRuntimeState {
 
 export class FabricRuntime extends FabricEnvironment {
 
-    public developmentMode: boolean;
     public ports?: FabricRuntimePorts;
 
     private dockerName: string;
@@ -285,15 +284,6 @@ export class FabricRuntime extends FabricEnvironment {
         await this.killChaincodeInner(args, outputAdapter);
     }
 
-    public isDevelopmentMode(): boolean {
-        return this.developmentMode;
-    }
-
-    public async setDevelopmentMode(developmentMode: boolean): Promise<void> {
-        this.developmentMode = developmentMode;
-        await this.updateUserSettings();
-    }
-
     public async getPeerChaincodeURL(): Promise<string> {
         const nodes: FabricNode[] = await this.getNodes();
         const peer: FabricNode = nodes.find((node: FabricNode) => node.type === FabricNodeType.PEER);
@@ -339,8 +329,7 @@ export class FabricRuntime extends FabricEnvironment {
 
     public async updateUserSettings(): Promise<void> {
         const runtimeObject: any = {
-            ports: this.ports,
-            developmentMode: this.isDevelopmentMode(),
+            ports: this.ports
         };
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, runtimeObject, vscode.ConfigurationTarget.Global);
     }
@@ -391,9 +380,11 @@ export class FabricRuntime extends FabricEnvironment {
             outputAdapter = ConsoleOutputAdapter.instance();
         }
 
+        const chaincodeTimeout: number = this.getChaincodeTimeout();
+
         const env: any = Object.assign({}, process.env, {
-            CORE_CHAINCODE_MODE: this.developmentMode ? 'dev' : 'net',
-            CORE_CHAINCODE_EXECUTETIMEOUT: this.developmentMode ? '99999s' : '30s' // This is needed as well as 'request-timeout' to change TX timeout
+            CORE_CHAINCODE_MODE: 'dev',
+            CORE_CHAINCODE_EXECUTETIMEOUT: `${chaincodeTimeout}s` // This is needed as well as 'request-timeout' to change TX timeout
         });
 
         if (process.platform === 'win32') {
@@ -401,5 +392,9 @@ export class FabricRuntime extends FabricEnvironment {
         } else {
             await CommandUtil.sendCommandWithOutput('/bin/sh', [`${script}.sh`, ...args], this.path, env, outputAdapter);
         }
+    }
+
+    private getChaincodeTimeout(): number {
+        return vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_CHAINCODE_TIMEOUT) as number;
     }
 }

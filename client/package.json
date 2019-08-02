@@ -76,7 +76,6 @@
             "environmentExplorer.stopFabricRuntime",
             "environmentExplorer.restartFabricRuntime",
             "environmentExplorer.teardownFabricRuntime",
-            "environmentExplorer.toggleFabricRuntimeDevMode",
             "environmentExplorer.openNewTerminal",
             "environmentExplorer.exportConnectionProfileEntry",
             "environmentExplorer.upgradeSmartContractEntry",
@@ -107,7 +106,7 @@
             "blockchain-explorer": [
                 {
                     "id": "aPackagesExplorer",
-                    "name": "Smart Contract Packages"
+                    "name": "Smart Contracts"
                 },
                 {
                     "id": "environmentExplorer",
@@ -161,6 +160,17 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show home page when clicking on extension for the first time"
+                },
+                "ibm-blockchain-platform.fabric.chaincode.timeout": {
+                    "type": "integer",
+                    "default": 120,
+                    "description": "Used to configure the Local Fabric's chaincode timeout value (seconds)"
+                },
+                "ibm-blockchain-platform.fabric.client.timeout": {
+                    "type": "integer",
+                    "default": 120,
+                    "description": "Used to configure the client timeout value (seconds)",
+                    "minimum": 45
                 }
             }
         },
@@ -299,7 +309,7 @@
             },
             {
                 "command": "aPackagesExplorer.refreshEntry",
-                "title": "Refresh Smart Contract Packages",
+                "title": "Refresh Smart Contracts",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"
@@ -308,7 +318,7 @@
             },
             {
                 "command": "aPackagesExplorer.packageSmartContractProjectEntry",
-                "title": "Package a Smart Contract Project",
+                "title": "Package Open Project",
                 "icon": {
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
@@ -336,11 +346,6 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "environmentExplorer.toggleFabricRuntimeDevMode",
-                "title": "Toggle Development Mode",
-                "category": "IBM Blockchain Platform"
-            },
-            {
                 "command": "environmentExplorer.openNewTerminal",
                 "title": "Open New Terminal",
                 "category": "IBM Blockchain Platform"
@@ -357,7 +362,7 @@
             },
             {
                 "command": "aPackagesExplorer.importSmartContractPackageEntry",
-                "title": "Import Package",
+                "title": "Import a Package",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -477,9 +482,6 @@
                 },
                 {
                     "command": "environmentExplorer.teardownFabricRuntime"
-                },
-                {
-                    "command": "environmentExplorer.toggleFabricRuntimeDevMode"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal"
@@ -639,10 +641,6 @@
                 {
                     "command": "environmentExplorer.openNewTerminal",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected"
-                },
-                {
-                    "command": "environmentExplorer.toggleFabricRuntimeDevMode",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.exportConnectionProfileEntry",
@@ -1278,7 +1276,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.0.35",
+        "generator-fabric": "0.0.36",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.2.0",

@@ -152,7 +152,7 @@ describe('walletExplorer', () => {
 
         const wallets: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<BlockchainTreeItem>;
         wallets.length.should.equal(3);
-        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
         wallets[1].label.should.equal(blueWalletEntry.name);
         wallets[2].label.should.equal(greenWalletEntry.name);
 
@@ -169,13 +169,13 @@ describe('walletExplorer', () => {
         localWalletIdentities.length.should.equal(3);
         localWalletIdentities[0].label.should.equal(`${FabricRuntimeUtil.ADMIN_USER} ⭑`);
         localWalletIdentities[0].should.be.an.instanceOf(AdminIdentityTreeItem);
-        localWalletIdentities[0].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        localWalletIdentities[0].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
         localWalletIdentities[1].label.should.equal('yellowConga');
         localWalletIdentities[1].should.be.an.instanceOf(IdentityTreeItem);
-        localWalletIdentities[1].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        localWalletIdentities[1].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
         localWalletIdentities[2].label.should.equal('orangeConga');
         localWalletIdentities[2].should.be.an.instanceOf(IdentityTreeItem);
-        localWalletIdentities[2].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        localWalletIdentities[2].walletName.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
 
         const emptyWalletIdentites: Array<WalletTreeItem> = await blockchainWalletExplorerProvider.getChildren(wallets[2]) as Array<WalletTreeItem>;
         emptyWalletIdentites.should.deep.equal([]);
@@ -188,7 +188,7 @@ describe('walletExplorer', () => {
         const wallets: Array<LocalWalletTreeItem> = await blockchainWalletExplorerProvider.getChildren() as Array<LocalWalletTreeItem>;
 
         wallets.length.should.equal(1);
-        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET);
+        wallets[0].label.should.equal(FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME);
         wallets[0].identities.should.deep.equal([]);
         logSpy.should.not.have.been.calledWith(LogType.ERROR);
     });

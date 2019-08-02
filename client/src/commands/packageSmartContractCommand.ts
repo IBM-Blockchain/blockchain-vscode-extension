@@ -53,10 +53,10 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             }
         }
 
-        checkForProjectErrors(workspace);
-
         // Build the workspace.
         await buildWorkspace(workspace);
+
+        checkForProjectErrors(workspace);
 
         // Determine the language.
         language = await getLanguage(workspace);

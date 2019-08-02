@@ -137,7 +137,7 @@ describe('startFabricRuntime', () => {
         commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
-        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start local_fabric: ${error.message}`, `Failed to start local_fabric: ${error.toString()}`);
+        logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start Local Fabric: ${error.message}`, `Failed to start Local Fabric: ${error.toString()}`);
     });
 
 });

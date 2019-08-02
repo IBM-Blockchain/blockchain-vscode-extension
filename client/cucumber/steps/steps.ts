@@ -35,9 +35,9 @@ export enum LanguageType {
 
 module.exports = function(): any {
 
-    this.Then(/^there should be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
+    this.Then(/^there (should|shouldn't) be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[];
-        if (panel === 'Smart Contract Packages') {
+        if (panel === 'Smart Contracts') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
         } else if (panel === 'Fabric Environments') {
@@ -83,72 +83,16 @@ module.exports = function(): any {
             throw new Error('Name of panel doesn\'t exist');
         }
 
-        // Find tree item using label
         const treeItem: any = treeItems.find((item: any) => {
             return item.label === label;
         });
 
-        should.exist(treeItem);
-
-        this.treeItem = treeItem;
-    });
-
-    this.Then(/^there should not be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contract Packages|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (child: string, label: string, panel: string, thing2: string, thing: string) => {
-        let treeItems: any[];
-        if (panel === 'Smart Contract Packages') {
-            const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
-            treeItems = await blockchainPackageExplorerProvider.getChildren();
-        } else if (panel === 'Fabric Environments') {
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
-            if (!child) {
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren();
-            } else if (child.includes('installed smart contract')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Installed smart contracts
-            } else if (child.includes('instantiated smart contract')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Instantiated smart contracts
-            } else if (child.includes('Channels')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[1]); // Channels
-            } else if (child.includes('Node')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[2]); // Nodes
-            } else if (child.includes('Organizations')) {
-                const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[3]); // Organizations
-            } else {
-                treeItems = await blockchainRuntimeExplorerProvider.getChildren();
-            }
-        } else if (panel === 'Fabric Gateways') {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
-            treeItems = await blockchainGatewayExplorerProvider.getChildren();
-        } else if (panel === 'Fabric Wallets') {
-            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
-            treeItems = await blockchainWalletExplorerProvider.getChildren();
-            if (child && child.includes('identity') && thing && thing2) {
-                const walletIndex: number = treeItems.findIndex((item: any) => {
-                    return item.label === thing.trim();
-                });
-                if (walletIndex < 0) {
-                    throw new Error('Name of thing doesn\'t exist');
-                }
-                treeItems = await blockchainWalletExplorerProvider.getChildren(treeItems[walletIndex]);
-            }
+        if (shouldOrshouldnt === 'should') {
+            should.exist(treeItem);
+            this.treeItem = treeItem;
         } else {
-            throw new Error('Name of panel doesn\'t exist');
+            should.not.exist(treeItem);
         }
-
-        // Find tree item using label
-        const treeItem: any = treeItems.find((item: any) => {
-            return item.label === label;
-        });
-
-        should.not.exist(treeItem);
-
-        this.treeItem = treeItem;
     });
 
     this.Then("the tree item should have a tooltip equal to '{string}'", this.timeout, async (tooltipValue: string) => {
@@ -156,7 +100,11 @@ module.exports = function(): any {
         this.treeItem.tooltip.should.equal(tooltipValue);
     });
 
-    this.Then("the logger should have been called with '(.*?)',? '?(.*?)?'?(?: and )?'(.*?)'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {
+    this.Then("the logger should have been called with '{string}', '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {
         this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage, outputMessage);
+    });
+
+    this.Then("the log should have been called with '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string) => {
+        this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage);
     });
 };

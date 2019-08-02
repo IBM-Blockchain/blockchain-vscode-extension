@@ -4,9 +4,9 @@ Feature: Fabric Wallets
     Scenario: local fabric wallet is created automatically
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
-        Then there should be a tree item with a label 'local_fabric_wallet' in the 'Fabric Wallets' panel
-        And the tree item should have a tooltip equal to 'local_fabric_wallet'
-        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item local_fabric_wallet
+        Then there should be a tree item with a label 'Local Fabric Wallet' in the 'Fabric Wallets' panel
+        And the tree item should have a tooltip equal to 'Local Fabric Wallet'
+        And there should be a identity tree item with a label 'admin ⭑' in the 'Fabric Wallets' panel for item Local Fabric Wallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'
 
     Scenario: create an identity with attributes
@@ -14,8 +14,16 @@ Feature: Fabric Wallets
         And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
-        Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item local_fabric_wallet
+        Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item Local Fabric Wallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'
+
+    Scenario: delete an identity
+        Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
+        And the 'Local Fabric' wallet
+        And the identity 'example_identity' exists
+        When I delete the identity 'example_identity'
+        Then there shouldn't be a identity tree item with a label 'example_identity' in the 'Fabric Wallets' panel for item Local Fabric Wallet
 
     @otherFabric
     Scenario: create a new wallet using certs
@@ -72,4 +80,4 @@ Feature: Fabric Wallets
         And the 'myFabric' environment is connected
         When I register a new identity 'attributes_user' with the attributes '[{"name": "hello", "value": "world", "ecert": true}]'
         Then there should be an identity tree item with a label 'attributes_user' in the 'Fabric Wallets' panel for item myWallet
-        And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'       
+        And the tree item should have a tooltip equal to 'Attributes:\n\nhello:world\nhf.Affiliation:\nhf.EnrollmentID:attributes_user\nhf.Type:client'

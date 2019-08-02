@@ -17,6 +17,7 @@ You will need the following installed in order to use the extension:
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 - [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
+- [Java v8 for developing Java contracts](https://openjdk.java.net/install/)
 
 If you are using Windows, you must also ensure the following:
 - Docker for Windows is configured to use Linux containers (this is the default)
@@ -32,9 +33,10 @@ You can check your installed versions by running the following commands from a t
 - `docker --version`
 - `docker-compose --version`
 - `go version`
+- `java -version`
 
 ## Smart Contract Development Lifecycle
-_Please note that all commands contributed by this extension are accesible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
+_Please note that all commands contributed by this extension are accessible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
 
 The expected smart contract development lifecycle follows several broad points, all possible entirely within VS Code using this extension:
 1. Creating and packaging a smart contract
@@ -43,18 +45,18 @@ The expected smart contract development lifecycle follows several broad points, 
 4. Submitting transactions and generating functional-level smart contract tests
 
 ### Create and Develop a Fabric smart contract project
-A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create Smart Contract Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
+A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create New Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
 
-### Package a smart contract project
-To package a project you have open in your workspace, run the `Package a Smart Contract Package` command. Packages are listed in the `Smart Contract Packages` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import Package` command to import a pre-existing .cds package to be used within VS Code. 
+### Package Open Project
+To package a project you have open in your workspace, run the `Package Open Project` command. Packages are listed in the `Smart Contracts` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import a Package` command to import a pre-existing .cds package to be used within VS Code. 
 
-### Operate the local_fabric runtime
-The extension contains a pre-configured local instance of Hyperledger Fabric named `local_fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Local Fabric Ops` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `local_fabric_wallet` wallet. 
+### Operate the Local Fabric runtime
+The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Local Fabric Ops` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `Local Fabric Wallet` wallet. 
 
-For `local_fabric` management tasks such as restart and teardown, see the `Local Fabric Ops` panel burger menu.
+For `Local Fabric` management tasks such as restart and teardown, see the `Local Fabric Ops` panel burger menu.
 
-### Install and Instantiate smart contract packages
-Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `local_fabric` runtime. The deployed smart contracts are listed in the `Local Fabric Ops` panel. 
+### Install and Instantiate smart contracts
+Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `Local Fabric` runtime. The deployed smart contracts are listed in the `Local Fabric Ops` panel. 
 
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. 
@@ -76,7 +78,7 @@ where `start.js` contains the line `Shim.start(new Chaincode());`.
 
 To debug your smart contract follow these steps:
 
-1. Ensure you are connected to the `local_fabric` runtime and that the `local_fabric` peer is in development mode. Development mode is indicated by an infinity symbol on a peer, under `Nodes` in the `Local Fabric Ops` panel. To toggle development mode, right-click the peer and select `Toggle Development Mode`. By toggling development mode, transactions will now have a large timeout value.
+1. Ensure you are connected to the `Local Fabric` runtime.
 2. Open your smart contract project in your workspace.
 3. Open the debug view in Visual Studio Code using the left-hand navigation bar.
 4. Select the `Debug Smart Contract` configuration by using the dropdown in the upper-left and click the **play** button on the debug toolbar. The extension will automatically instantiate or upgrade the smart contract as appropriate. If you want to test out a function that is called on instantiate or upgrade add the following to the launch configuration, where `name` is the name of the smart contract and `version` is different to the previous version used. Alternatively if you are using JavaScript or TypeScript then you can update the `version` in the package.json file.
@@ -99,17 +101,17 @@ To connect to our own Hyperledger Fabric instance, it must be running [Hyperledg
 Add your gateway by providing a name and connection profile via the `Add Gateway` command; it will be listed in the `Fabric Gateways` panel. Add a file system wallet to connect to your gateway with via the `Add Wallet` command.
 
 ### Connect to a gateway and discover its resources
-Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts. Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel. 
+Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts (Currently you cannot generate Java functional tests). Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel. 
 
 ### Wallet Management
-The extension creates a `local_fabric_wallet` file system wallet when it is installed, which is used to connect to the `local_fabric` runtime instance and is automatically associated with that gateway. When `local_fabric` is started, an admin identity is added to the `local_fabric_wallet` and cannot be deleted unless the `local_fabric` runtime is torn down.
+The extension creates a `Local Fabric Wallet` file system wallet when it is installed, which is used to connect to the `Local Fabric` runtime instance and is automatically associated with that gateway. When `Local Fabric` is started, an admin identity is added to the `Local Fabric Wallet` and cannot be deleted unless the `Local Fabric` runtime is torn down.
 
 The `Add Identity to Wallet` command will ask for a name, MSPID and a method to add an identity. These methods include providing a certificate and private key, a JSON identity file, or a gateway, enrollment id and secret.
 
 For wallets associated with other remote Fabric gateways, the `Add Wallet`,`Edit Wallet` ,`Export Wallet` and `Remove Wallet` commands are available in the `Fabric Wallets` panel for wallet management.
 
 ### Creating an identity with attributes
-Identities can be registered and enrolled with attributes from the `local_fabric` certificate authority.
+Identities can be registered and enrolled with attributes from the `Local Fabric` certificate authority.
 
 The `Create Identity (register and enroll)` command will ask for an identity name and whether the identity should have any attributes added.
 Selecting `Yes` will ask for the identity's attributes that should be provided in the following format:
@@ -121,6 +123,19 @@ Selecting `Yes` will ask for the identity's attributes that should be provided i
 The key `ecert` must be set to true in order for a smart contract to be able to read the value of the attribute using ['getAttributeValue'](https://fabric-shim.github.io/release-1.4/fabric-shim.ClientIdentity.html#getAttributeValue).
 
 Hovering over an identity in the `Fabric Wallets` panel will show any attributes associated with the identity.
+
+### Changing transaction timeout values
+
+In the extension, the default timeout value for transactions is 120 seconds.
+However, when debugging a transaction it might be necessary to change the time taken before a transaction fails.
+
+The following settings can be changed in the user settings to increase or decrease the time taken for a transaction to timeout:
+- `ibm-blockchain-platform.fabric.client.timeout` - timeout value used for communication to the peers and orderers (changes `request-timeout`)
+- `ibm-blockchain-platform.fabric.chaincode.timeout` - timeout value for chaincode that's been started by the Local Fabric (changes `CORE_CHAINCODE_EXECUTETIMEOUT`)
+
+***Note: If the value of `ibm-blockchain-platform.fabric.client.timeout` is changed, you must disconnect from a connected gateway before the new value takes affect***
+
+***Note: If the value of `ibm-blockchain-platform.fabric.chaincode.timeout` is changed, you must restart the Local Fabric before the new value takes affect***
 
 ## Useful Commands
 The IBM Blockchain Platform extension provides an explorer and commands accessible from the Command Palette, for developing smart contracts quickly:
@@ -134,8 +149,8 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Wallet | Add a wallet containing identities to be used when connecting to a gateway |
 | Associate A Wallet | Associate a wallet with a gateway to be used when connecting |
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
-| Create Smart Contract Project | Create a new smart contract project |
-| Create Identity (register and enroll) | Create, register and enroll a new identity from the local_fabric runtime certificate authority |
+| Create New Project | Create a new smart contract project |
+| Create Identity (register and enroll) | Create, register and enroll a new identity from the Local Fabric runtime certificate authority |
 | Debug | Debug a Smart Contract |
 | Delete Identity | Delete an identity from a wallet |
 | Delete Gateway | Delete a Hyperledger Fabric instance gateway |
@@ -145,22 +160,21 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Edit Gateway | Edit connection profile for connecting to a blockchain gateway |
 | Edit Wallet | Edit wallet containing identities used for connecting to a blockchain gateway |
 | Evaluate Transaction | Evaluate a smart contract transaction |
-| Export Connection Profile | Export connection profile for the local_fabric gateway |
+| Export Connection Profile | Export connection profile for the Local Fabric gateway |
 | Export Package | Export a smart contract package to use outside VS Code |
 | Export Wallet | Export a wallet to use outside VS Code |
 | Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
-| Import Package | Import a smart contract package |
-| Install Smart Contract | Install a smart contract package onto a local_fabric runtime peer |
+| Import a Package | Import a smart contract package |
+| Install Smart Contract | Install a smart contract package onto a Local Fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
 | Open New Terminal | Open a new terminal on a specified Fabric node (peer, orderer, and fabric-ca-client CLIs) |
-| Package a Smart Contract Project | Create a new smart contract package from a project in the Explorer |
+| Package Open Project | Create a new smart contract package from a project in the Explorer |
 | Remove Wallet | Remove a wallet from the Fabric Wallets view |
-| Restart Fabric Runtime | Restart the local_fabric instance |
-| Start Fabric Runtime | Start the local_fabric instance |
-| Stop Fabric Runtime | Stop the local_fabric instance |
+| Restart Fabric Runtime | Restart the Local Fabric instance |
+| Start Fabric Runtime | Start the Local Fabric instance |
+| Stop Fabric Runtime | Stop the Local Fabric instance |
 | Submit Transaction | Submit a transaction to a smart contract |
-| Teardown Fabric Runtime | Teardown the local_fabric runtime (hard reset) |
-| Toggle Development Mode | Toggle the local_fabric instance development mode |
+| Teardown Fabric Runtime | Teardown the Local Fabric runtime (hard reset) |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
 

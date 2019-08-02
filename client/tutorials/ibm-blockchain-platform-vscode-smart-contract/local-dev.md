@@ -2,7 +2,7 @@
 ## **Local Smart Contract Development**
 `20-30 mins`
 
-Follow the typical workflow from generating a new smart contract project, deploying code to the _local_fabric_ runtime, and testing your transactions via an application gateway.
+Follow the typical workflow from generating a new smart contract project, deploying code to the _Local Fabric_ runtime, and testing your transactions via an application gateway.
 
 
 ## Learning Objectives
@@ -10,7 +10,7 @@ Follow the typical workflow from generating a new smart contract project, deploy
 * Create a new smart contract project
 * Package a smart contract
 * Start and use the local, pre-configured Hyperledger Fabric runtime
-* Deploy the smart contract on _local_fabric_
+* Deploy the smart contract on _Local Fabric_
 * Transact on your locally-deployed smart contract
 
 ---
@@ -19,17 +19,17 @@ Follow the typical workflow from generating a new smart contract project, deploy
 
 The extension can generate a smart contract skeleton in your chosen Hyperledger Fabric supported programming language. This means you start with a basic but useful smart contract rather than a blank-sheet!
 
-For the purposes of this tutorial, we'll use TypeScript as the example language.
+For the purposes of this tutorial, we'll use TypeScript as the main example language. Java examples are also shown.
 
 > In VS Code, every command can be executed from the Command Palette (press `Ctrl+Shift+P`, or `Cmd+Shift+P` on MacOS). All of this extension's commands start with `IBM Blockchain Platform:`. In the tutorial steps, we'll explain where to click in the UI, but look out for comment-boxes like this one if you want to know the Command Palette alternatives.
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon (it looks like a square, and will probably be at the bottom of the set of icons if this was the latest extension you installed!)
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Create Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACTS` panel, click the `...` menu, and select `Create New Project` from the dropdown.
 
-> Command Palette alternative: `Create Smart Contract Project`
+> Command Palette alternative: `Create New Project`
 
-3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`.
+3. Choose a smart contract language. JavaScript, TypeScript, Java and Go are all available. For the purpose of this tutorial, please choose `TypeScript`; (unless you want to use Java, then please remember to expand the Java sections)
 
 4. The extension will ask you if you want to name the asset in the generated contract. This will default to `MyAsset`, but you're welcome to have some fun ;)  What do you intend to use your blockchain for? This will determine what type of asset you create, update and read from the ledger: `Radish`? `Pineapple`? `Penguin`? Pick whatever you like! For the sake of this tutorial, we'll be boring and stick with `MyAsset`.
 
@@ -43,7 +43,7 @@ For the purposes of this tutorial, we'll use TypeScript as the example language.
 
 7. Finally, select `Add to workspace` from the list of options.
 
-The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold. Great work, you've got yourself a smart contract - let's take a look at its contents...
+The extension will generate you a skeleton contract based on your selected language and asset name. Once it's done, you can navigate to the __Explorer__ view (most-likely the top icon in the left sidebar, which looks like a "document" icon) and open the `src/my-asset-contract.ts` file to see your smart contract code scaffold. Great work, you've got yourself a smart contract - let's take a look at its contents...  (Java contracts are in `src/main/java` directory, but being a Java developer you might have guessed that)
 
 </details>
 
@@ -58,7 +58,10 @@ Notice the lines that start with `@Transaction` - these are functions that defin
 
 Skipping over the first one (`myAssetExists`), take a look at the `createMyAsset` function:
 
-```
+<details open="true">
+<summary> Typescript </summary>
+
+```typescript
     @Transaction()
     public async createMyAsset(ctx: Context, myAssetId: string, value: string): Promise<void> {
         const exists = await this.myAssetExists(ctx, myAssetId);
@@ -71,12 +74,34 @@ Skipping over the first one (`myAssetExists`), take a look at the `createMyAsset
         await ctx.stub.putState(myAssetId, buffer);
     }
 ```
+</details>
+<details>
+<summary> Java </summary>
+
+```java
+    @Transaction()
+    public void createMyAsset(String myAssetId, String value) {
+        Context ctx = getContext();
+        boolean exists = myAssetExists(myAssetId);
+        if (exists) {
+            throw new RuntimeException("The asset "+myAssetId+" already exists");
+        }
+        MyAsset asset = new MyAsset();
+        asset.setValue(value);
+        ctx.putState(myAssetId, asset.toJSONString().getBytes(UTF_8));
+    }
+```
+</details>
+
 
 The empty brackets in `@Transaction()` tells us that this function is intended to change the contents of the ledger. Transactions like this are typically __submitted__ (as opposed to __evaluated__) - more on that later in this tutorial! The function is called `createMyAsset` and it takes `myAssetId` and a `value`, both of which are strings.  When this transaction is submitted, a new asset will be created, with key `myAssetId` and value `value`. For example if we were to create "001", "A juicy delicious pineapple", then when we later read the value of key `001`, we'll learn the value of that particular state is `A juicy delicious pineapple`.
 
 Now, take a look at the next transaction:
 
-```
+<details open="true">
+<summary> Typescript </summary>
+
+```typescript
     @Transaction(false)
     @Returns('MyAsset')
     public async readMyAsset(ctx: Context, myAssetId: string): Promise<MyAsset> {
@@ -89,6 +114,24 @@ Now, take a look at the next transaction:
         return myAsset;
     }
 ```
+</details>
+<details>
+<summary> Java </summary>
+
+```java
+    @Transaction()
+    public MyAsset readMyAsset(String myAssetId) {
+        Context ctx = getContext();
+        boolean exists = myAssetExists(myAssetId);
+        if (!exists) {
+            throw new RuntimeException("The asset "+myAssetId+" does not exist");
+        }
+
+        MyAsset newAsset = MyAsset.fromJSONString(new String(ctx.getState(myAssetId),UTF_8));
+        return newAsset;
+    }
+```
+</details>
 
 This one starts with `@Transaction(false)` - the "false" means that this function is not typically intended to change the contents of the ledger. Transactions like this are typically __evaluated__. You'll often hear such transactions referred to as "queries".  As you can see, this function only takes `myAssetId`, and will return the value of the whatever state that key points to.
 
@@ -104,9 +147,11 @@ Now that you have created your smart contract and understand the transactions th
 
 1. In the left sidebar, click on the __IBM Blockchain Platform__ icon.
 
-2. Mouse-over the `SMART CONTRACT PACKAGES` panel, click the `...` menu, and select `Package a Smart Contract Project` from the dropdown.
+2. Mouse-over the `SMART CONTRACTS` panel, click the `...` menu, and select `Package Open Project` from the dropdown.
 
-> Command Palette alternative: `Package a smart contract project`
+> Command Palette alternative: `Package Open Project`
+
+If you're using Java, please enter a name and a version for this project. `demoContract` and `0.0.1` would be perfect.
 
 3. You should see a new package on the list, `demoContract@0.0.1` (or the name you gave to the packaged contract), if everything went well.
 
@@ -129,13 +174,13 @@ Click that message and the extension will start spinning up Docker containers fo
 
 > Command Palette alternative: `Start Fabric Runtime`
 
-That's all you need to do in this step, so if you're in a rush, but whilst you're waiting for local_fabric to start up, let's learn a little more about what it comprises. 
+That's all you need to do in this step, so if you're in a rush, but whilst you're waiting for Local Fabric to start up, let's learn a little more about what it comprises. 
 
 We won't go into _too_ much detail in this tutorial, but here are a few handy facts to know:
 
 * The `Smart Contracts` section shows you the `Instantiated` and `Installed` contracts on this network. The next couple of steps in this tutorial will have us __install__ then __instantiate__ the smart contract we've packaged.
 * Under `Channels` there is a single channel called `mychannel`. In order for a smart contract to be used, it must be __instantiated__ on a channel. This happens in the _next_ step of this tutorial, after we first __install__ the contract on a peer.
-* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`. (You *may* see a little infinity-symbol after the peer name indicating that it is currently in "development mode" - this can be toggled on/off via right-click menu, but you don't need to worry about it for now.)
+* The `Nodes` section contains a single "peer" (`peer0.org1.example.com`). The naming follows Hyperledger Fabric conventions, and we can see from the "org1" part that this peer is owned by `Org1`.
 * There is also a single Certificate Authority (CA) `ca.org1.example.com`, and a single orderer node `orderer.example.com`. Again, you'll learn more about these node types when building your own network later - for now, it is enough to know that they're essential parts of the network, and so the extension has created them for you!
 * There is a single organization in this simple blockchain network called `Org1`. Recall that `Org1` owns the peer we saw in the `Nodes` section. A network with just a single organization isn't very realistic for real-world use, as the whole point is to _share_ a ledger between _multiple_ organizations, but it's sufficient for local development purposes! Under `Organizations` you will see `Org1MSP`: this is Org1's `MSP ID`. You don't need to worry too much about this right now: Membership Services Providers (MSPs) will be covered when you start building your own network in later tutorials. 
 * If you're a big Docker fan, you may find it useful to know that the following containers are started on your local machine: Orderer, Certificate Authority, CouchDB, and Peer.
@@ -194,13 +239,13 @@ Instantiation can take a while longer than install - watch out for the success m
 <details>
 <summary><b>7. Submit and evaluate transactions</b></summary>
 
-Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `local_fabric`.
+Fabric gateways are connections to peers participating in Hyperledger Fabric networks, which can be used by client applications to submit transactions. When you started the local runtime in `LOCAL FABRIC OPS`, a gateway was automatically created for you also. You'll find it under `FABRIC GATEWAYS`, and it's called `Local Fabric`.
 
-To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `local_fabric_wallet  `, which contains an ID called `admin`. If you hover your mouse over `local_fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: local_fabric_wallet".
+To _use_ a gateway, you also need an identity valid for transacting on the network in question. Again, for the local Fabric runtime, this has already been set up for you!  Observe that under `FABRIC WALLETS` there is a wallet called `Local Fabric Wallet  `, which contains an ID called `admin`. If you hover your mouse over `Local Fabric` in the `FABRIC GATEWAYS` panel, you will see that it tells you "Associated wallet: Local Fabric Wallet".
 
 So, you've got a Gateway, and an associated wallet with a single identity in it - this means the Gateway is ready to be used!
 
-1. Click on `local_fabric` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: local_fabric, Using ID: admin` and a collapsed section labelled  `Channels`.
+1. Click on `Local Fabric` (under `FABRIC GATEWAYS`) to connect via this gateway. You will now see `Connected via gateway: Local Fabric, Using ID: admin` and a collapsed section labelled  `Channels`.
 
 2. Expand `Channels`, then expand `mychannel` and `demoContract@0.0.1`. You will see a list of all the transactions that were defined in your smart contract.
 

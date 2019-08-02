@@ -70,7 +70,7 @@ describe('CreateSmartContractProjectCommand', () => {
             }
         });
         updateWorkspaceFoldersStub = mySandBox.stub(vscode.workspace, 'updateWorkspaceFolders');
-        // Create a tmp directory for Smart Contract packages, and create a Uri of it
+        // Create a tmp directory for Smart Contracts, and create a Uri of it
         uri = vscode.Uri.file(tmp.dirSync().name);
         skipNpmInstallStub = mySandBox.stub(ExtensionUtil, 'skipNpmInstall');
         skipNpmInstallStub.resolves(true);  // we don't want npm install running during unit tests
@@ -83,8 +83,8 @@ describe('CreateSmartContractProjectCommand', () => {
     const testLanguageItems: LanguageQuickPickItem[] = [
         { label: 'javascript', type: LanguageType.CONTRACT },
         { label: 'typescript', type: LanguageType.CONTRACT },
+        { label: 'java', type: LanguageType.CONTRACT },
         { label: 'go', type: LanguageType.CHAINCODE },
-        { label: 'java', type: LanguageType.CHAINCODE },
     ];
 
     for (const testLanguageItem of testLanguageItems) {
@@ -123,7 +123,7 @@ describe('CreateSmartContractProjectCommand', () => {
             const gradlePath: string = path.join(uri.fsPath, 'build.gradle');
             const gradleExists: boolean = await fs_extra.pathExists(gradlePath);
             gradleExists.should.be.true;
-            const contractPath: string = path.join(uri.fsPath, 'src', 'main', 'java', 'org', 'example', 'Chaincode.java');
+            const contractPath: string = path.join(uri.fsPath, 'src', 'main', 'java', 'org', 'example', 'CongaContract.java');
             const contractExists: boolean = await fs_extra.pathExists(contractPath);
             contractExists.should.be.true;
         }

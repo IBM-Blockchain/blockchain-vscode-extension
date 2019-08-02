@@ -2,7 +2,7 @@ version: '2'
 
 services:
   ca.org1.example.com:
-    image: hyperledger/fabric-ca:1.4.1
+    image: hyperledger/fabric-ca:1.4.2
     environment:
       - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
       - FABRIC_CA_SERVER_CA_NAME=ca.org1.example.com
@@ -16,7 +16,7 @@ services:
 
   orderer.example.com:
     container_name: orderer.example.com
-    image: hyperledger/fabric-orderer:1.4.1
+    image: hyperledger/fabric-orderer:1.4.2
     environment:
       - ORDERER_GENERAL_LOGLEVEL=debug
       - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
@@ -34,7 +34,7 @@ services:
 
   peer0.org1.example.com:
     container_name: peer0.org1.example.com
-    image: hyperledger/fabric-peer:1.4.1
+    image: hyperledger/fabric-peer:1.4.2
     environment:
       - CORE_LOGGING_LEVEL=debug
       - CORE_CHAINCODE_LOGGING_LEVEL=DEBUG
@@ -47,6 +47,7 @@ services:
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB
       - CORE_LEDGER_STATE_COUCHDBCONFIG_COUCHDBADDRESS=couchdb:5984
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
+      - CORE_CHAINCODE_MODE=dev
     working_dir: /opt/gopath/src/github.com/hyperledger/fabric
     command: peer node start
     ports:

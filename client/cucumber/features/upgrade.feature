@@ -19,5 +19,5 @@ Feature: Upgrade Smart Contracts
         | language   | assetType | name               | upgradedName              | version |
         | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2  | 0.0.1   |
         | TypeScript | Conga     | TypeScriptContract | TypeScriptContract@0.0.2  | 0.0.1   |
-        | Java       | null      | JavaContract       | JavaContract@0.0.2        | 0.0.1   |
+        | Java       | Conga     | JavaContract       | JavaContract@0.0.2        | 0.0.1   |
         | Go         | null      | GoContract         | GoContract@0.0.2          | 0.0.1   |

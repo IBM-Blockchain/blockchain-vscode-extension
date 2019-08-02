@@ -267,7 +267,6 @@ describe('environmentExplorer', () => {
 
             beforeEach(async () => {
 
-                mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isDevelopmentMode').returns(false);
                 logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
                 await ExtensionUtil.activateExtension();

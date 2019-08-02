@@ -41,12 +41,13 @@ describe('FabricConnection', () => {
             this.connectionProfile = connectionProfile;
         }
 
-        async connect(wallet: Wallet, identityName: string): Promise<void> {
+        async connect(wallet: Wallet, identityName: string, _timeout: number): Promise<void> {
             this['gateway'] = fabricGatewayStub;
-            await this.connectInner(this.connectionProfile, wallet, identityName);
+            await this.connectInner(this.connectionProfile, wallet, identityName, _timeout);
         }
     }
 
+    let mySandBox: sinon.SinonSandbox;
     let fabricClientStub: sinon.SinonStubbedInstance<fabricClient>;
     let fabricGatewayStub: sinon.SinonStubbedInstance<Gateway>;
     let fabricConnection: TestFabricConnection;
@@ -55,7 +56,7 @@ describe('FabricConnection', () => {
     let mockWallet: sinon.SinonStubbedInstance<Wallet>;
     const mockIdentityName: string = 'admin';
 
-    let mySandBox: sinon.SinonSandbox;
+    const timeout: number = 120;
 
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
@@ -69,6 +70,18 @@ describe('FabricConnection', () => {
             orderers: {
                 'orderer.example.com': {
                     url: 'grpc://localhost:7050'
+                }
+            },
+            channels: {
+                'channel-from-the-ccp-no-peers': {
+
+                },
+                'channel-from-the-ccp': {
+                    peers: {
+                        'peer0.org1.example.com': {
+
+                        }
+                    }
                 }
             },
             certificateAuthorities: {
@@ -114,7 +127,7 @@ describe('FabricConnection', () => {
         fabricConnection['gateway'] = fabricGatewayStub;
         fabricConnection['outputAdapter'] = VSCodeBlockchainOutputAdapter.instance();
 
-        await fabricConnection.connect(mockWallet, mockIdentityName);
+        await fabricConnection.connect(mockWallet, mockIdentityName, 120);
     });
 
     afterEach(() => {
@@ -147,9 +160,19 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: true,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should not use discovery as localhost for remote orderer connections', async () => {
@@ -161,9 +184,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.false;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: false,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should not use discovery as localhost for dodgy orderer connections', async () => {
@@ -175,9 +207,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.false;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: false,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should use discovery as localhost for localhost peer connections', async () => {
@@ -189,9 +230,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: true,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should not use discovery as localhost for remote peer connections', async () => {
@@ -203,9 +253,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.false;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: false,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should not use discovery as localhost for dodgy peer connections', async () => {
@@ -217,9 +276,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.false;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: false,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should use discovery as localhost for localhost certificate authority connections', async () => {
@@ -231,9 +299,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.true;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: true,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should not use discovery as localhost for remote certificate authority connections', async () => {
@@ -245,9 +322,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.false;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: false,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
         it('should not use discovery as localhost for dodgy certificate authority connections', async () => {
@@ -259,9 +345,18 @@ describe('FabricConnection', () => {
                 }
             };
             fabricConnection = new TestFabricConnection('/tmp/somepath.json', connectionProfile, null);
-            await fabricConnection.connect(mockWallet, mockIdentityName);
-            fabricConnection['discoveryAsLocalhost'].should.be.false;
-            fabricConnection['discoveryEnabled'].should.be.true;
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+            fabricGatewayStub.connect.should.have.been.calledWith('/tmp/somepath.json', {
+                wallet: mockWallet,
+                identity: mockIdentityName,
+                discovery: {
+                    asLocalhost: false,
+                    enabled: true
+                },
+                eventHandlerOptions: {
+                    commitTimeout: timeout
+                }
+            });
         });
 
     });
@@ -273,7 +368,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.getPeersForOrg.returns([peerOne, peerTwo]);
 
-            await fabricConnection.connect(mockWallet, mockIdentityName);
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
 
             const peerNames: Array<string> = await fabricConnection.getAllPeerNames();
             peerNames.should.deep.equal(['peerOne', 'peerTwo']);
@@ -296,7 +391,7 @@ describe('FabricConnection', () => {
 
     describe('getAllChannelsForPeer', () => {
         it('should get all the channels a peer has joined', async () => {
-            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peerOne' });
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
 
             fabricClientStub.getPeersForOrg.returns([peerOne]);
 
@@ -304,11 +399,51 @@ describe('FabricConnection', () => {
             const channelTwo: { channel_id: string } = { channel_id: 'channel-two' };
             fabricClientStub.queryChannels.resolves({ channels: [channelOne, channelTwo] });
 
-            await fabricConnection.connect(mockWallet, mockIdentityName);
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
 
-            const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peerTwo');
+            const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com');
 
             channelNames.should.deep.equal(['channel-one', 'channel-two']);
+        });
+
+        it('should use the connection profile for the list of channels if the peer says access is denied', async () => {
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
+
+            fabricClientStub.getPeersForOrg.returns([peerOne]);
+
+            fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
+
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+
+            const channelNames: Array<string> = await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com');
+
+            channelNames.should.deep.equal(['channel-from-the-ccp']);
+        });
+
+        it('should rethrow the error if the peer says access is denied and there are no matching channels in the connection profile', async () => {
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org2.example.com' });
+
+            fabricClientStub.getPeersForOrg.returns([peerOne]);
+
+            fabricClientStub.queryChannels.rejects(new Error('blah access denied blah'));
+
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+
+            await fabricConnection.getAllChannelsForPeer('peer0.org2.example.com')
+                .should.be.rejectedWith(/blah access denied blah/);
+        });
+
+        it('should rethrow any other error', async () => {
+            const peerOne: fabricClient.Peer = new fabricClient.Peer('grpc://localhost:1454', { name: 'peer0.org1.example.com' });
+
+            fabricClientStub.getPeersForOrg.returns([peerOne]);
+
+            fabricClientStub.queryChannels.rejects(new Error('such error'));
+
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
+
+            await fabricConnection.getAllChannelsForPeer('peer0.org1.example.com')
+                .should.be.rejectedWith(/such error/);
         });
     });
 
@@ -322,7 +457,7 @@ describe('FabricConnection', () => {
 
             fabricClientStub.getChannel.returns(channelOne);
 
-            await fabricConnection.connect(mockWallet, mockIdentityName);
+            await fabricConnection.connect(mockWallet, mockIdentityName, timeout);
             const instantiatedChaincodes: Array<any> = await fabricConnection.getInstantiatedChaincode('channel-one');
 
             instantiatedChaincodes.should.deep.equal([{ name: 'biscuit-network', version: '0,7' }, {

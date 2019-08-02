@@ -52,9 +52,9 @@ export class SmartContractHelper {
     public async createSmartContract(language: string, assetType: string, contractName: string): Promise<string> {
 
         let type: LanguageType;
-        if (language === 'Go' || language === 'Java') {
+        if (language === 'Go') {
             type = LanguageType.CHAINCODE;
-        } else if (language === 'JavaScript' || language === 'TypeScript') {
+        } else if (language === 'JavaScript' || language === 'TypeScript'  || language === 'Java') {
             type = LanguageType.CONTRACT;
         } else {
             throw new Error(`You must update this test to support the ${language} language`);

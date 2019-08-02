@@ -168,8 +168,7 @@ describe('RuntimeTreeItem', () => {
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal(`Local Fabric  ●`);
-            treeItem.tooltip.should.equal('The local development runtime is running');
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●`);
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
