@@ -26,7 +26,7 @@ node --version
 npm install --no-optional
 npm install --ignore-scripts
 
-# npm audit
+npm audit
 
 npm run compile
 
