@@ -47,10 +47,12 @@ async function runCucumberTest(): Promise<any> {
 
     let tags: string = '';
 
-    if (process.env.OTHER_FABRIC) {
+    if (process.env.CUCUMBER_TYPE === 'other') {
         tags = '@otherFabric';
+    } else if (process.env.CUCUMBER_TYPE === 'local') {
+        tags = '@localFabric';
     } else {
-        tags = 'not @otherFabric';
+        tags = 'not @localFabric and not @otherFabric';
     }
 
     for (const file of featureFiles) {

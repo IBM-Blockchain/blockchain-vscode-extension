@@ -33,7 +33,8 @@ Feature: Fabric Wallets
 
     @otherFabric
     Scenario: create a new wallet using an enrollId and secret
-        Given the gateway 'myGateway' is created
+        Given the other fabric is setup with contract name <name> and version <version>
+        And the gateway 'myGateway' is created
         When I create a wallet 'myOtherWallet' using enrollId with identity name 'biscuit' and mspid 'Org1MSP'
         Then there should be a tree item with a label 'myOtherWallet' in the 'Fabric Wallets' panel
         And the tree item should have a tooltip equal to 'myOtherWallet'
@@ -64,8 +65,9 @@ Feature: Fabric Wallets
 
     @otherFabric
     Scenario: add a new identity using an enrollId and secret
-        Given the gateway 'myGateway' is created
-        Given the wallet 'myWalletyWallet' with identity 'jason' and mspid 'Org1MSP' exists
+        Given the other fabric is setup with contract name <name> and version <version>
+        And the gateway 'myGateway' is created
+        And the wallet 'myWalletyWallet' with identity 'jason' and mspid 'Org1MSP' exists
         When I create an identity using enrollId with identity name 'otherJason' and mspid 'Org1MSP' in wallet 'myWalletyWallet'
         Then there should be a identity tree item with a label 'otherJason' in the 'Fabric Wallets' panel for item myWalletyWallet
         And the tree item should have a tooltip equal to 'Attributes:\n\nNone'

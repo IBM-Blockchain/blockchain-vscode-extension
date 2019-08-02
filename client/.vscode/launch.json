@@ -95,6 +95,24 @@
       "preLaunchTask": "npm: watch"
     },
     {
+      "name": "Cucumber Local",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/cucumber/data/cucumber.code-workspace",
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--extensionTestsPath=${workspaceFolder}/out/cucumber/"
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/cucumber/**/*.feature"
+      ],
+      "preLaunchTask": "npm: watch",
+      "env": {
+        "CUCUMBER_TYPE": "local"
+      }
+    },
+    {
       "name": "Cucumber other fabric",
       "type": "extensionHost",
       "request": "launch",
@@ -109,7 +127,7 @@
       ],
       "preLaunchTask": "npm: watch",
       "env": {
-        "OTHER_FABRIC": "true"
+        "CUCUMBER_TYPE": "other"
       }
     },
     {
@@ -127,7 +145,7 @@
       ],
       "preLaunchTask": "npm: cucumberTests",
       "env": {
-        "OTHER_FABRIC": "true"
+        "CUCUMBER_TYPE": "other"
       }
     }
   ]

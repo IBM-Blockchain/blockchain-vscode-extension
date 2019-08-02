@@ -1,6 +1,7 @@
 Feature: Fabric Gateways
     Test all the features of a fabric gateway
 
+    @localFabric
     Scenario: Connect with admin identity
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
@@ -13,6 +14,7 @@ Feature: Fabric Gateways
         And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Channels'
 
+    @localFabric
     Scenario: Connect with another identity
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
@@ -30,7 +32,8 @@ Feature: Fabric Gateways
 
     @otherFabric
     Scenario: Connect to another gateway
-        Given the gateway 'myGateway' is created
+        Given the other fabric is setup with contract name <name> and version <version>
+        And the gateway 'myGateway' is created
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
         When connecting to the 'myGateway' gateway without association
@@ -41,8 +44,8 @@ Feature: Fabric Gateways
         And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Channels'
 
-
-     Scenario Outline: Generating tests for a contract (local fabric)
+    @localFabric
+    Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity

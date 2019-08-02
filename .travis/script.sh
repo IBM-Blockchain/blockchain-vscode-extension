@@ -73,18 +73,6 @@ elif [ "${TASK}" == "cucumber" ]; then
     export CODE_TESTS_WORKSPACE="$(pwd)/cucumber/data/cucumber.code-workspace"
     echo $CODE_TESTS_WORKSPACE;
     npm run cucumber 2>&1 | tee
-elif [ "${TASK}" == "cucumberOther" ]; then
-    export OTHER_FABRIC="true";
-    ./cucumber/hlfv1/start.sh
-    # put back in if you want to see the docker logs when running the tests
-    # docker_logs &
-
-    export CODE_TESTS_PATH="$(pwd)/out/cucumber/";
-    echo $CODE_TESTS_PATH;
-    export CODE_TESTS_WORKSPACE="$(pwd)/cucumber/data/cucumber.code-workspace"
-    echo $CODE_TESTS_WORKSPACE;
-    npm run cucumber 2>&1 | tee
-    ./cucumber/hlfv1/teardown.sh;
 else
     if [ $TRAVIS_OS_NAME == "windows" ]; then
         export CODE_DOWNLOAD_URL="https://vscode-update.azurewebsites.net/1.32.0/win32-x64-archive/stable"

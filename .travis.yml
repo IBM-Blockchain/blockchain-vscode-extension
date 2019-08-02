@@ -26,10 +26,18 @@ jobs:
       env: TASK=unit
     - script: ./.travis/script.sh
       os: linux
-      env: TASK=cucumber
+      env:
+        - TASK=cucumber
     - script: ./.travis/script.sh
       os: linux
-      env: TASK=cucumberOther
+      env:
+        - TASK=cucumber
+        - CUCUMBER_TYPE=local
+    - script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=cucumber
+        - CUCUMBER_TYPE=other
     - stage: deploy
       skip_cleanup: true
       provider: script

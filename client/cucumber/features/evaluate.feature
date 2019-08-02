@@ -24,10 +24,10 @@ Feature: Evaluate transaction
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         And the contract has been packaged
+        And the other fabric is setup with contract name <name> and version <version>
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And the gateway 'myGateway' is created
         And I'm connected to the 'myGateway' gateway without association
-        And the other fabric is setup with contract name <name> and version <version>
         And the transaction 'createConga' has been submitted with args '["Conga_001", "Big Conga"]'
         When I evaluate the transaction 'readConga' with args '["Conga_001"]'
         Then the logger should have been called with 'SUCCESS', 'Successfully evaluated transaction' and 'Returned value from readConga: {"value":"Big Conga"}'

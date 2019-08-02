@@ -1,6 +1,7 @@
 Feature: Local Fabric Ops
     Tests all the features of the fabric ops panel
 
+    @localFabric
     Scenario Outline: There should be a tree item (started)
         Given the Local Fabric is running
         Then there should be a <treeItem> tree item with a label '<label>' in the 'Local Fabric Ops' panel
@@ -16,6 +17,7 @@ Feature: Local Fabric Ops
         | Organizations               | OrdererMSP             | OrdererMSP             |
         | Organizations               | Org1MSP                | Org1MSP                |
 
+    @localFabric
     Scenario Outline: It should open the terminal
         Given the Local Fabric is running
         When I open the terminal for node '<nodeType>'
@@ -24,8 +26,9 @@ Feature: Local Fabric Ops
         | nodeType       |
         | fabric-peer    |
         | fabric-ca      |
-        | fabric-orderer |  
+        | fabric-orderer |
 
+    @localFabric
     Scenario Outline: It should persist data after being stopped
         Given the Local Fabric is running
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
@@ -41,8 +44,9 @@ Feature: Local Fabric Ops
         Then there should be a instantiated smart contract tree item with a label '<instantiatedName>' in the 'Local Fabric Ops' panel
         Examples:
         | language   | assetType | name               | instantiatedName         | version | label                                            | tooltip                                                                    |
-        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.2 | 0.0.2   | Local Fabric runtime is stopped. Click to start. | Creates a local development runtime using Hyperledger Fabric Docker images |
+        | JavaScript | Conga     | JavaScriptContract | JavaScriptContract@0.0.1 | 0.0.1   | Local Fabric runtime is stopped. Click to start. | Creates a local development runtime using Hyperledger Fabric Docker images |
 
+    @localFabric
     Scenario Outline: After tear down and start there are no smart contracts
         Given the Local Fabric is running
         And a <language> smart contract for <assetType> assets with the name <name> and version <version>
@@ -55,4 +59,4 @@ Feature: Local Fabric Ops
         Then there shouldn't be a instantiated smart contract tree item with a label '<name>@<version>' in the 'Local Fabric Ops' panel
         Examples:
         | language   | assetType | name               | version |
-        | JavaScript | Conga     | JavaScriptContract | 0.0.2   | 
+        | JavaScript | Conga     | JavaScriptContract | 0.0.2   |
