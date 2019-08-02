@@ -16,20 +16,100 @@ before_install:
 install: |
          ./.travis/install.sh
 
-jobs:
+matrix:
   include:
-    - script: ./.travis/script.sh
+    - name: "Unit Test"
+      script: ./.travis/script.sh
       os: osx
-      env: TASK=unit
-    - script: ./.travis/script.sh
+      env:
+        - TASK=unit
+        - VERSION=1.35.1
+      if: type != cron
+
+    - name: "Unit Test"
+      script: ./.travis/script.sh
+      os: osx
+      env:
+        - TASK=unit
+        - VERSION=insiders
+      if: type = cron
+
+    - name: "Unit Test"
+      script: ./.travis/script.sh
+      os: osx
+      env:
+        - TASK=unit
+        - VERSION=1.32.3
+      if: type = cron
+
+    - name: "Unit Test"
+      script: ./.travis/script.sh
       os: linux
-      env: TASK=unit
-    - script: ./.travis/script.sh
+      env:
+        - TASK=unit
+        - VERSION=1.35.1
+      if: type != cron
+
+    - name: "Unit Test"
+      script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=unit
+        - VERSION=insiders
+      if: type = cron
+
+    - name: "Unit Test"
+      script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=unit
+        - VERSION=1.32.3
+      if: type = cron
+
+    - name: "Cucumber Test"
+      script: ./.travis/script.sh
       os: linux
       env: TASK=cucumber
-    - script: ./.travis/script.sh
+      if: type != cron
+
+    - name: "Cucumber Test"
+      script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=cucumber
+        - VERSION=insiders
+      if: type = cron
+
+    - name: "Cucumber Test"
+      script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=cucumber
+        - VERSION=1.32.3
+      if: type = cron
+
+    - name: "Cucumber Other Test"
+      script: ./.travis/script.sh
       os: linux
       env: TASK=cucumberOther
+      if: type !=cron
+
+    - name: "Cucumber Other Test"
+      script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=cucumberOther
+        - VERSION=insiders
+      if: type = cron
+
+    - name: "Cucumber Other Test"
+      script: ./.travis/script.sh
+      os: linux
+      env:
+        - TASK=cucumberOther
+        - VERSION=1.32.3
+      if: type = cron
+
     - stage: deploy
       skip_cleanup: true
       provider: script
