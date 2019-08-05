@@ -279,7 +279,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
 
                 integrationTestUtil.showFolderOptions.withArgs('Choose how to open the sample files').resolves(UserInputUtil.ADD_TO_WORKSPACE);
 
-                await sampleView['cloneAndOpenRepository'](`chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`);
+                await sampleView['cloneAndOpenRepository'](`chaincode/fabcar/${languageLowerCase}`, 'release-1.4', `fabcar-contract-${languageLowerCase}`, []);
 
                 integrationTestUtil.testContractType = language;
                 integrationTestUtil.testContractDir = path.join(__dirname, '..', '..', '..', 'integrationTest', 'data', `fabric-samples`, 'chaincode', 'fabcar', languageLowerCase);

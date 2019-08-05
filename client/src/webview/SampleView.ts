@@ -258,23 +258,12 @@ export class SampleView extends View {
         // If the file extension is 'git', then we want to clone the repository
         let folderUri: vscode.Uri;
 
-        folderUri = await this.cloneAndOpenRepository(samplePath, branch, workspaceLabel);
+        folderUri = await this.cloneAndOpenRepository(samplePath, branch, workspaceLabel, onOpen);
 
         // Check to see if the user cancelled the command prompt(s).
         if (!folderUri) {
             return;
         }
-
-        // Execute any commands that are meant to run after the sample is opened.
-        if (onOpen) {
-            for (const item of onOpen) {
-                const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-                outputAdapter.log(LogType.INFO, null, `Starting command "${item.command}" with arguments "${item.arguments}" for sample "${this.sampleName}"`);
-                await CommandUtil.sendCommandWithOutputAndProgress(item.command, item.arguments, item.message, folderUri.fsPath, null, outputAdapter);
-                outputAdapter.log(LogType.INFO, null, `Finished command "${item.command}" with arguments "${item.arguments}" for sample "${this.sampleName}"`);
-            }
-        }
-
     }
 
     // Called by the panels view. Updates the version shown in the contract's row based on the chosen language (from the dropdown)
@@ -311,7 +300,7 @@ export class SampleView extends View {
         return application;
     }
 
-    private async cloneAndOpenRepository(samplePath: string, branch: string, workspaceLabel: string): Promise<vscode.Uri> {
+    private async cloneAndOpenRepository(samplePath: string, branch: string, workspaceLabel: string, onOpen: any[]): Promise<vscode.Uri> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
         // Find out where sample repository is
@@ -365,6 +354,21 @@ export class SampleView extends View {
             }
         }
 
+        // samplePath is the relative path from the root Git repo
+        const folderPath: string = path.join(baseDirectory, samplePath);
+
+        // Create the URI to the folder to open
+        const folderUri: vscode.Uri = vscode.Uri.file(folderPath);
+
+        // Execute any commands that are meant to run after the sample is opened.
+        if (onOpen) {
+            for (const item of onOpen) {
+                outputAdapter.log(LogType.INFO, null, `Starting command "${item.command}" with arguments "${item.arguments}" for sample "${this.sampleName}"`);
+                await CommandUtil.sendCommandWithOutputAndProgress(item.command, item.arguments, item.message, folderUri.fsPath, null, outputAdapter);
+                outputAdapter.log(LogType.INFO, null, `Finished command "${item.command}" with arguments "${item.arguments}" for sample "${this.sampleName}"`);
+            }
+        }
+
         // Ask the user if they want to open the project now
         await UserInputUtil.delayWorkaround(500);
         const openMethod: string = await UserInputUtil.showFolderOptions('Choose how to open the sample files');
@@ -372,12 +376,6 @@ export class SampleView extends View {
             // User cancelled dialog
             return;
         }
-
-        // samplePath is the relative path from the root Git repo
-        const folderPath: string = path.join(baseDirectory, samplePath);
-
-        // Create the URI to the folder to open
-        const folderUri: vscode.Uri = vscode.Uri.file(folderPath);
 
         // Open the downloaded project
         await UserInputUtil.openNewProject(openMethod, folderUri, workspaceLabel);
