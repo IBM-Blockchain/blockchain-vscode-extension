@@ -38,7 +38,7 @@ if [ "${TASK}" == "unit" ]; then
         ELECTRON=4.1
     fi
 
-    npm rebuild grpc --target=$TARGET --runtime=electron --dist-url=https://atom.io/download/electron
+    npm rebuild grpc --target=${TARGET} --runtime=electron --dist-url=https://atom.io/download/electron
 
     if [ $TRAVIS_OS_NAME == "linux" ]; then
         export CXX="g++-4.9" CC="gcc-4.9" DISPLAY=:99.0;
