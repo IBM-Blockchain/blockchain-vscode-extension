@@ -501,7 +501,7 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
-
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             sendCommandWithOutputAndProgress.should.not.have.been.called;
             sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'FabCar Contract', type: 'contracts', language: 'Go'});
         });
@@ -519,7 +519,7 @@ describe('SampleView', () => {
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
-
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.');
         });
@@ -534,7 +534,7 @@ describe('SampleView', () => {
             await sampleView.openView(false);
 
             await Promise.all(onDidReceiveMessagePromises);
-
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             repositoryRegistryDeleteStub.should.have.been.calledOnceWithExactly(repositoryName);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
@@ -555,6 +555,7 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises);
 
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
@@ -582,6 +583,7 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises);
 
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
@@ -608,6 +610,7 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith('Could not retrieve file(s) from repository: some other error');
 
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
@@ -635,6 +638,7 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/Couldn't automatically checkout 'release-1.4' branch. Please checkout branch manually. Error: couldnt checkout for some reason/);
 
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
@@ -642,7 +646,9 @@ describe('SampleView', () => {
             openNewProjectStub.should.not.have.been.called;
         });
 
-        it('should open application', async () => {
+        it('should open application and run script', async () => {
+            const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
             await setupTest('applications', 'JavaScript Application', 'JavaScript');
             const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists').resolves(true);
             const shellCdStub: sinon.SinonStub = mySandBox.stub(shell, 'cd').returns(undefined);
@@ -662,9 +668,9 @@ describe('SampleView', () => {
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
             openNewProjectStub.should.have.been.calledOnce;
-
-            const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-            sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, outputAdapter);
+            logSpy.should.have.been.calledWith(LogType.INFO, null, `Starting command "npm" with arguments "install" for sample "FabCar"`);
+            logSpy.should.have.been.calledWith(LogType.INFO, null, `Finished command "npm" with arguments "install" for sample "FabCar"`);
+            sendCommandWithOutputAndProgress.should.have.been.calledOnceWithExactly('npm', ['install'], 'Installing Node.js dependencies ...', path.join('/', 'some', 'path', 'fabcar', 'javascript'), null, sinon.match.any);
             sendTelemetryEventStub.should.have.been.calledWithExactly('Sample Opened', {sample: 'FabCar', name: 'JavaScript Application', type: 'applications', language: 'JavaScript'});
         });
 
@@ -678,6 +684,7 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/File type not supported/);
 
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             openNewProjectStub.should.not.have.been.called;
         });
 
@@ -691,6 +698,7 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/Language type not supported/);
 
+            sendCommandWithOutputAndProgress.should.not.have.been.called;
             openNewProjectStub.should.not.have.been.called;
         });
     });
