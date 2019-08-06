@@ -96,24 +96,24 @@ describe('Extension Tests', () => {
         const allCommands: Array<string> = await vscode.commands.getCommands();
 
         const commands: Array<string> = allCommands.filter((command: string) => {
-            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('aRuntimeOpsExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer');
+            return command.startsWith('gatewaysExplorer') || command.startsWith('aPackagesExplorer') || command.startsWith('environmentExplorer') || command.startsWith('extensionHome') || command.startsWith('walletExplorer');
         });
 
         commands.should.deep.equal([
             'aPackagesExplorer.focus',
-            'aRuntimeOpsExplorer.focus',
+            'environmentExplorer.focus',
             'gatewaysExplorer.focus',
             'walletExplorer.focus',
             ExtensionCommands.REFRESH_GATEWAYS,
-            ExtensionCommands.CONNECT,
-            ExtensionCommands.DISCONNECT,
+            ExtensionCommands.CONNECT_TO_GATEWAY,
+            ExtensionCommands.DISCONNECT_GATEWAY,
             ExtensionCommands.ADD_GATEWAY,
             ExtensionCommands.DELETE_GATEWAY,
             ExtensionCommands.ADD_WALLET_IDENTITY,
             ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT,
             ExtensionCommands.PACKAGE_SMART_CONTRACT,
             ExtensionCommands.REFRESH_PACKAGES,
-            ExtensionCommands.REFRESH_LOCAL_OPS,
+            ExtensionCommands.REFRESH_ENVIRONMENTS,
             ExtensionCommands.START_FABRIC,
             ExtensionCommands.STOP_FABRIC,
             ExtensionCommands.RESTART_FABRIC,
@@ -123,6 +123,11 @@ describe('Extension Tests', () => {
             ExtensionCommands.DELETE_SMART_CONTRACT,
             ExtensionCommands.EXPORT_SMART_CONTRACT,
             ExtensionCommands.IMPORT_SMART_CONTRACT,
+            ExtensionCommands.ADD_ENVIRONMENT,
+            ExtensionCommands.DELETE_ENVIRONMENT,
+            ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
+            ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+            ExtensionCommands.DISCONNECT_ENVIRONMENT,
             ExtensionCommands.INSTALL_SMART_CONTRACT,
             ExtensionCommands.INSTANTIATE_SMART_CONTRACT,
             ExtensionCommands.EDIT_GATEWAY,
@@ -150,13 +155,13 @@ describe('Extension Tests', () => {
 
         activationEvents.should.deep.equal([
             `onView:gatewayExplorer`,
-            `onView:aRuntimeOpsExplorer`,
+            `onView:environmentExplorer`,
             `onView:aPackagesExplorer`,
             `onView:walletExplorer`,
             `onCommand:${ExtensionCommands.ADD_GATEWAY}`,
             `onCommand:${ExtensionCommands.DELETE_GATEWAY}`,
-            `onCommand:${ExtensionCommands.CONNECT}`,
-            `onCommand:${ExtensionCommands.DISCONNECT}`,
+            `onCommand:${ExtensionCommands.CONNECT_TO_GATEWAY}`,
+            `onCommand:${ExtensionCommands.DISCONNECT_GATEWAY}`,
             `onCommand:${ExtensionCommands.REFRESH_GATEWAYS}`,
             `onCommand:${ExtensionCommands.EDIT_GATEWAY}`,
             `onCommand:${ExtensionCommands.TEST_SMART_CONTRACT}`,
@@ -171,9 +176,14 @@ describe('Extension Tests', () => {
             `onCommand:${ExtensionCommands.EXPORT_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.IMPORT_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.REFRESH_PACKAGES}`,
+            `onCommand:${ExtensionCommands.ADD_ENVIRONMENT}`,
+            `onCommand:${ExtensionCommands.DELETE_ENVIRONMENT}`,
+            `onCommand:${ExtensionCommands.ASSOCIATE_IDENTITY_NODE}`,
+            `onCommand:${ExtensionCommands.CONNECT_TO_ENVIRONMENT}`,
+            `onCommand:${ExtensionCommands.DISCONNECT_ENVIRONMENT}`,
             `onCommand:${ExtensionCommands.INSTALL_SMART_CONTRACT}`,
             `onCommand:${ExtensionCommands.INSTANTIATE_SMART_CONTRACT}`,
-            `onCommand:${ExtensionCommands.REFRESH_LOCAL_OPS}`,
+            `onCommand:${ExtensionCommands.REFRESH_ENVIRONMENTS}`,
             `onCommand:${ExtensionCommands.START_FABRIC}`,
             `onCommand:${ExtensionCommands.STOP_FABRIC}`,
             `onCommand:${ExtensionCommands.RESTART_FABRIC}`,
@@ -620,7 +630,7 @@ describe('Extension Tests', () => {
         });
 
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
     });
@@ -660,7 +670,7 @@ describe('Extension Tests', () => {
         });
 
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
     });
@@ -697,7 +707,7 @@ describe('Extension Tests', () => {
         });
 
         showConfirmationWarningMessageStub.should.have.been.calledOnce;
-        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, true);
+        executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
         executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
     });

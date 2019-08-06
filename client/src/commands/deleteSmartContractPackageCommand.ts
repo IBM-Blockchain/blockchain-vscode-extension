@@ -50,6 +50,6 @@ export async function deleteSmartContractPackage(packageTreeItem: PackageTreeIte
 
         await vscode.commands.executeCommand(ExtensionCommands.REFRESH_PACKAGES);
 
-        outputAdapter.log(LogType.SUCCESS, `Succesfully deleted package(s)`);
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted package(s)`);
     }
 }

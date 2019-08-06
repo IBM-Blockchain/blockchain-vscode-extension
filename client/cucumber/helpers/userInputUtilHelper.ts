@@ -26,6 +26,7 @@ export class UserInputUtilHelper {
     showLanguagesQuickPickStub: sinon.SinonStub;
     inputBoxStub: sinon.SinonStub;
     browseStub: sinon.SinonStub;
+    addMoreNodesStub: sinon.SinonStub;
     showFolderOptionsStub: sinon.SinonStub;
     showPeersQuickPickStub: sinon.SinonStub;
     showInstallableStub: sinon.SinonStub;
@@ -46,6 +47,8 @@ export class UserInputUtilHelper {
     showGetCertKeyStub: sinon.SinonStub;
     showAddWalletOptionsQuickPickStub: sinon.SinonStub;
     getEnrollIdSecretStub: sinon.SinonStub;
+    showQuickPickStub: sinon.SinonStub;
+    showEnvironmentQuickPickStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -56,6 +59,7 @@ export class UserInputUtilHelper {
         this.showLanguagesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').callThrough();
         this.inputBoxStub = this.mySandBox.stub(UserInputUtil, 'showInputBox').callThrough();
         this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse').callThrough();
+        this.addMoreNodesStub = this.mySandBox.stub(UserInputUtil, 'addMoreNodes').callThrough();
         this.showFolderOptionsStub = this.mySandBox.stub(UserInputUtil, 'showFolderOptions').callThrough();
         this.showPeersQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showPeersQuickPickBox').callThrough();
         this.showInstallableStub = this.mySandBox.stub(UserInputUtil, 'showInstallableSmartContractsQuickPick').callThrough();
@@ -76,6 +80,8 @@ export class UserInputUtilHelper {
         this.showGetCertKeyStub = this.mySandBox.stub(UserInputUtil, 'getCertKey').callThrough();
         this.showAddWalletOptionsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showAddWalletOptionsQuickPick').callThrough();
         this.getEnrollIdSecretStub = this.mySandBox.stub(UserInputUtil, 'getEnrollIdSecret').callThrough();
+        this.showQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showQuickPick').callThrough();
+        this.showEnvironmentQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').callThrough();
     }
 
 }

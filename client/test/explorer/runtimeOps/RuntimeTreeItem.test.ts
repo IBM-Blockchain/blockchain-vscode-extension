@@ -12,36 +12,35 @@
  * limitations under the License.
 */
 
-import * as vscode from 'vscode';
-import * as chai from 'chai';
 import * as sinon from 'sinon';
-import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
-import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/RuntimeTreeItem';
-import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
+import * as vscode from 'vscode';
+import { getBlockchainEnvironmentExplorerProvider } from '../../../src/extension';
+import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../../src/fabric/FabricRuntime';
-import { FabricGatewayRegistry } from '../../../src/fabric/FabricGatewayRegistry';
-import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
 import { ExtensionCommands } from '../../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../src/logging/OutputAdapter';
-import { FabricWalletUtil } from '../../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../../src/fabric/FabricRuntimeUtil';
-
-const should: Chai.Should = chai.should();
+import { BlockchainEnvironmentExplorerProvider } from '../../../src/explorer/environmentExplorer';
+import { FabricEnvironmentRegistry } from '../../../src/fabric/FabricEnvironmentRegistry';
+import { FabricEnvironmentRegistryEntry } from '../../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricWalletUtil } from '../../../src/fabric/FabricWalletUtil';
 
 describe('RuntimeTreeItem', () => {
 
-    const connectionRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
-    let connection: FabricGatewayRegistryEntry;
+    const environmentRegistry: FabricEnvironmentRegistry = FabricEnvironmentRegistry.instance();
 
     const sandbox: sinon.SinonSandbox = sinon.createSandbox();
     let clock: sinon.SinonFakeTimers;
-    let provider: BlockchainGatewayExplorerProvider;
+    let provider: BlockchainEnvironmentExplorerProvider;
+    let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let onBusyCallback: any;
+    let command: vscode.Command;
 
     before(async () => {
         await TestUtil.setupTests(sandbox);
@@ -57,14 +56,14 @@ describe('RuntimeTreeItem', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        await connectionRegistry.clear();
+        await environmentRegistry.clear();
 
-        connection = new FabricGatewayRegistryEntry();
-        connection.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        connection.managedRuntime = true;
-        connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+        environmentRegistryEntry = new FabricGatewayRegistryEntry();
+        environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        environmentRegistryEntry.managedRuntime = true;
+        environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
-        provider = getBlockchainGatewayExplorerProvider();
+        provider = getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         mockRuntime.on.callsFake((name: string, callback: any) => {
@@ -73,13 +72,18 @@ describe('RuntimeTreeItem', () => {
         });
         sandbox.stub(runtimeManager, 'getRuntime').returns(mockRuntime);
         clock = sinon.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+
+        command = {
+            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+            title: ''
+        };
     });
 
     afterEach(async () => {
         clock.runToLast();
         clock.restore();
         sandbox.restore();
-        await connectionRegistry.clear();
+        await environmentRegistry.clear();
     });
 
     describe('#constructor', () => {
@@ -87,21 +91,13 @@ describe('RuntimeTreeItem', () => {
         it('should have the right properties for a runtime that is not running', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, new FabricGatewayRegistryEntry({
-                name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                associatedWallet: FabricWalletUtil.LOCAL_WALLET
-            }), vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
-            treeItem.command.should.deep.equal({
-                command: ExtensionCommands.START_FABRIC,
-                title: '',
-                arguments: [treeItem]
-            });
+            treeItem.label.should.equal('Local Fabric  ○ (click to start)');
+            treeItem.command.should.deep.equal(command);
+            treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
         });
 
         it('should have the right properties for a runtime that is busy starting', async () => {
@@ -109,12 +105,13 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
-            should.equal(treeItem.command, null);
+            treeItem.tooltip.should.equal('The local development runtime is starting...');
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should have the right properties for a runtime that is busy stopping', async () => {
@@ -122,12 +119,13 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.STOPPING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('Local Fabric runtime is stopping... ◐');
-            should.equal(treeItem.command, null);
+            treeItem.tooltip.should.equal('The local development runtime is stopping...');
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should have the right properties for a runtime that is busy restarting', async () => {
@@ -135,12 +133,13 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.RESTARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('Local Fabric runtime is restarting... ◐');
-            should.equal(treeItem.command, null);
+            treeItem.tooltip.should.equal('The local development runtime is restarting...');
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should animate the label for a runtime that is busy', async () => {
@@ -148,7 +147,7 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.isRunning.resolves(false);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -160,32 +159,36 @@ describe('RuntimeTreeItem', () => {
                     setTimeout(resolve, 0);
                 });
             }
+
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should have the right properties for a runtime that is running', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(true);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  `);
+            treeItem.label.should.equal(`${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}  ●`);
+            treeItem.tooltip.should.equal('The local development runtime is running');
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should have the right properties for a runtime that becomes busy', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
+            treeItem.label.should.equal('Local Fabric  ○ (click to start)');
             treeItem.command.should.deep.equal({
-                command: ExtensionCommands.START_FABRIC,
-                title: '',
-                arguments: [treeItem]
+                command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                title: ''
             });
+            treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
             mockRuntime.isBusy.returns(true);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
             onBusyCallback(true);
@@ -193,14 +196,15 @@ describe('RuntimeTreeItem', () => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
-            should.equal(treeItem.command, null);
+            treeItem.tooltip.should.equal('The local development runtime is starting...');
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should animate the label for a runtime that becomes busy', async () => {
             mockRuntime.isBusy.returns(false);
             mockRuntime.isRunning.resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
@@ -218,6 +222,8 @@ describe('RuntimeTreeItem', () => {
                     setTimeout(resolve, 0);
                 });
             }
+
+            treeItem.command.should.deep.equal(command);
         });
 
         it('should have the right properties for a runtime that stops being busy', async () => {
@@ -225,35 +231,27 @@ describe('RuntimeTreeItem', () => {
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
             mockRuntime.isRunning.resolves(false);
 
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, connection, vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
             treeItem.label.should.equal('Local Fabric runtime is starting... ◐');
-            should.equal(treeItem.command, null);
+            treeItem.tooltip.should.equal('The local development runtime is starting...');
             mockRuntime.isBusy.returns(false);
             onBusyCallback(false);
             await new Promise((resolve: any): any => {
                 setTimeout(resolve, 0);
             });
-            treeItem.label.should.equal('Local Fabric runtime is stopped. Click to start.');
-            treeItem.command.should.deep.equal({
-                command: ExtensionCommands.START_FABRIC,
-                title: '',
-                arguments: [treeItem]
-            });
+            treeItem.label.should.equal('Local Fabric  ○ (click to start)');
+            treeItem.command.should.deep.equal(command);
+            treeItem.tooltip.should.equal('Creates a local development runtime using Hyperledger Fabric Docker images');
         });
 
         it('should report errors animating the label for a runtime that is busy', async () => {
             mockRuntime.isBusy.returns(true);
             mockRuntime.getState.returns(FabricRuntimeState.STARTING);
             mockRuntime.isRunning.resolves(false);
-            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, new FabricGatewayRegistryEntry({
-                name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'myPath',
-                associatedWallet: FabricWalletUtil.LOCAL_WALLET
-            }), vscode.TreeItemCollapsibleState.None);
+            const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(provider, FabricRuntimeUtil.LOCAL_FABRIC, environmentRegistryEntry, command);
             sandbox.stub(treeItem, 'refresh').throws(new Error('such error'));
             const logSpy: sinon.SinonSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
             await new Promise((resolve: any): any => {

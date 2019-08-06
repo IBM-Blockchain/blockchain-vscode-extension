@@ -19,7 +19,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as myExtension from '../../src/extension';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 
 // tslint:disable:no-unused-expression
@@ -33,31 +33,15 @@ export enum LanguageType {
     CONTRACT = 'contract'
 }
 
-const otherFabricInstantiatedContracts: string[] = [];
-
 module.exports = function(): any {
 
-    this.Given('the other fabric is setup with contract name {string} and version {string}', this.timeout, async (contractName: string, version: string) => {
-        const FabricHelper: any = require('../helpers/remoteFabricHelper');
-        const remoteFabricHelper: any = new FabricHelper.RemoteFabricHelper();
-        const item: string = otherFabricInstantiatedContracts.find((contract: string) => {
-            return contract === `${contractName}@${version}`;
-        });
-        if (!item) {
-            await remoteFabricHelper.connect();
-            await remoteFabricHelper.installChaincode(contractName, version);
-            await remoteFabricHelper.instantiateChaincode(contractName, version);
-            otherFabricInstantiatedContracts.push(`${contractName}@${version}`);
-        }
-    });
-
-    this.Then(/^there (should|shouldn't) be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Local Fabric Ops|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
+    this.Then(/^there (should|shouldn't) be an? (installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[];
         if (panel === 'Smart Contracts') {
             const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
-        } else if (panel === 'Local Fabric Ops') {
-            const blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        } else if (panel === 'Fabric Environments') {
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             if (!child) {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             } else if (child.includes('installed smart contract')) {
@@ -118,5 +102,9 @@ module.exports = function(): any {
 
     this.Then("the logger should have been called with '{string}', '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string, outputMessage: string) => {
         this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage, outputMessage);
+    });
+
+    this.Then("the log should have been called with '{string}' and '{string}'", this.timeout, async (type: string, popupMessage: string) => {
+        this.userInputUtilHelper.logSpy.should.have.been.calledWith(type, popupMessage);
     });
 };

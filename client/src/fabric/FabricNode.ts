@@ -32,14 +32,6 @@ export class FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.PEER, api_url, pem, wallet, identity, msp_id });
     }
 
-    public static newCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, wallet, identity, msp_id });
-    }
-
-    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, pem, wallet, identity, msp_id });
-    }
-
     public static newOrderer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, wallet, identity, msp_id });
     }
@@ -56,6 +48,36 @@ export class FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.LOGSPOUT, api_url });
     }
 
+    public static newCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, wallet: string, identity: string, msp_id: string, enroll_id: string, enroll_secret: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, wallet, identity, msp_id, enroll_id, enroll_secret });
+    }
+
+    public static newSecureCertificateAuthority(short_name: string, name: string, api_url: string, ca_name: string, pem: string, wallet: string, identity: string, msp_id: string, enroll_id: string, enroll_secret: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.CERTIFICATE_AUTHORITY, api_url, ca_name, pem, wallet, identity, msp_id, enroll_id, enroll_secret });
+    }
+
+    public static validateNode(node: FabricNode): void {
+        if (!node.name) {
+            throw new Error('A node should have a name property');
+        } else if (!node.type) {
+            throw new Error('A node should have a type property');
+        } else if (!node.api_url) {
+            throw new Error('A node should have a api_url property');
+        }
+
+        if (node.type === FabricNodeType.PEER || node.type === FabricNodeType.ORDERER) {
+            if (!node.msp_id) {
+                throw new Error(`A ${node.type} node should have a msp_id property`);
+            }
+        }
+
+        if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
+            if (!node.ca_name) {
+                throw new Error(`A ${node.type} node should have a ca_name property`);
+            }
+        }
+    }
+
     public short_name: string;
     public name: string;
     public type: FabricNodeType;
@@ -68,9 +90,10 @@ export class FabricNode {
     public msp_id?: string;
     public container_name?: string;
     public chaincode_url?: string;
+    public enroll_secret?: string;
+    public enroll_id?: string;
 
     private constructor(fields: FabricNode) {
         Object.assign(this, fields);
     }
-
 }

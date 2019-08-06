@@ -26,7 +26,6 @@ import * as path from 'path';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { CommandUtil } from '../../src/util/CommandUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
-import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { YeomanUtil } from '../../src/util/YeomanUtil';
 import { IFabricWalletGenerator } from '../../src/fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
@@ -109,29 +108,13 @@ describe('FabricRuntime', () => {
         sandbox.restore();
     });
 
-    describe('#getName', () => {
-
-        it('should return the name of the runtime', () => {
-            runtime.getName().should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
-        });
-    });
-
     describe('#getDockerName', () => {
-
         it('should return the Docker name of the runtime', () => {
             runtime.getDockerName().should.equal('fabricvscodelocalfabric');
         });
     });
 
-    describe('#getPath', () => {
-
-        it('should return the path of the runtime', () => {
-            runtime.getPath().should.equal(runtimePath);
-        });
-    });
-
     describe('#isBusy', () => {
-
         it('should return false if the runtime is not busy', () => {
             runtime.isBusy().should.be.false;
         });
@@ -603,11 +586,8 @@ describe('FabricRuntime', () => {
                     createStub.should.have.been.calledOnce;
                     importWalletsAndIdentitiesStub.should.have.been.calledOnce;
                 });
-
             }
-
         });
-
     });
 
     describe('#restart', () => {
@@ -1126,67 +1106,6 @@ describe('FabricRuntime', () => {
                 }
             ]);
         });
-
-    });
-
-    describe('#getNodes', () => {
-
-        it('should return an empty array if no nodes directory', async () => {
-            sandbox.stub(fs, 'pathExists').resolves(false);
-            await runtime.getNodes().should.eventually.deep.equal([]);
-        });
-
-        it('should return all of the nodes', async () => {
-            await runtime.getNodes().should.eventually.deep.equal([
-                {
-                    short_name: 'ca.org1.example.com',
-                    name: 'ca.org1.example.com',
-                    api_url: 'http://localhost:17054',
-                    type: 'fabric-ca',
-                    ca_name: 'ca.org1.example.com',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'yofn_ca.org1.example.com'
-                },
-                {
-                    short_name: 'couchdb',
-                    name: 'couchdb',
-                    api_url: 'http://localhost:17055',
-                    type: 'couchdb',
-                    container_name: 'yofn_couchdb'
-                },
-                {
-                    short_name: 'logspout',
-                    name: 'logspout',
-                    api_url: 'http://localhost:17056',
-                    type: 'logspout',
-                    container_name: 'yofn_logspout'
-                },
-                {
-                    short_name: 'orderer.example.com',
-                    name: 'orderer.example.com',
-                    api_url: 'grpc://localhost:17050',
-                    type: 'fabric-orderer',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
-                    identity: 'admin',
-                    msp_id: 'OrdererMSP',
-                    container_name: 'yofn_orderer.example.com'
-                },
-                {
-                    short_name: 'peer0.org1.example.com',
-                    name: 'peer0.org1.example.com',
-                    api_url: 'grpc://localhost:17051',
-                    chaincode_url: 'grpc://localhost:17052',
-                    type: 'fabric-peer',
-                    wallet: FabricWalletUtil.LOCAL_WALLET,
-                    identity: 'admin',
-                    msp_id: 'Org1MSP',
-                    container_name: 'yofn_peer0.org1.example.com'
-                }
-            ]);
-        });
-
     });
 
     describe('#getWalletNames', () => {
@@ -1222,4 +1141,29 @@ describe('FabricRuntime', () => {
 
     });
 
+    describe('#updateUserSettings', () => {
+        it('should update the user settings', async () => {
+            const updateStub: sinon.SinonStub = sandbox.stub();
+            const getConfigurationStub: sinon.SinonStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: sandbox.stub().callThrough,
+                update: updateStub
+            });
+
+            await runtime.updateUserSettings();
+
+            updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME,
+                {
+                    ports: {
+                        certificateAuthority: 12348,
+                        couchDB: 12349,
+                        logs: 12387,
+                        orderer: 12347,
+                        peerChaincode: 54321,
+                        peerEventHub: 12346,
+                        peerRequest: 12345
+                    }
+                });
+        });
+    });
 });

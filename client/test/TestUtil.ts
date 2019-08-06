@@ -46,11 +46,18 @@ export class TestUtil {
         this.USER_GATEWAYS_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
         console.log('Storing user connections config:', this.USER_GATEWAYS_CONFIG);
     }
+    static async storeEnvironmentsConfig(): Promise<void> {
+        this.USER_ENVIRONMENTS_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+        console.log('Storing user environments config:', this.USER_ENVIRONMENTS_CONFIG);
+    }
     static async restoreGatewaysConfig(): Promise<void> {
         console.log('Restoring user connections config to settings:', this.USER_GATEWAYS_CONFIG);
         await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, this.USER_GATEWAYS_CONFIG, vscode.ConfigurationTarget.Global);
     }
-
+    static async restoreEnvironmentsConfig(): Promise<void> {
+        console.log('Restoring user environments config to settings:', this.USER_ENVIRONMENTS_CONFIG);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, this.USER_ENVIRONMENTS_CONFIG, vscode.ConfigurationTarget.Global);
+    }
     static async storeRuntimesConfig(): Promise<void> {
         this.USER_RUNTIMES_CONFIG = await vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_RUNTIME);
         console.log('Storing user runtimes:', this.USER_RUNTIMES_CONFIG);
@@ -99,6 +106,7 @@ export class TestUtil {
 
     private static USER_PACKAGE_DIR_CONFIG: any;
     private static USER_GATEWAYS_CONFIG: any;
+    private static USER_ENVIRONMENTS_CONFIG: any;
     private static USER_RUNTIMES_CONFIG: any;
     private static USER_WALLETS_CONFIG: any;
     private static USER_REPOSITORIES: any;

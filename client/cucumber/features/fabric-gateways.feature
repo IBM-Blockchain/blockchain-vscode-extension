@@ -15,6 +15,7 @@ Feature: Fabric Gateways
 
     Scenario: Connect with another identity
         Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         And the identity 'new_identity' exists
         When connecting to the 'Local Fabric' gateway
@@ -44,6 +45,7 @@ Feature: Fabric Gateways
 
      Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
         And the 'Local Fabric Admin' identity
         And I'm connected to the 'Local Fabric' gateway
@@ -63,19 +65,22 @@ Feature: Fabric Gateways
         | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |
 
 
-    @otherFabric
-    Scenario Outline: Generating tests for a contract (other fabric)
-        Given a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
-        And the contract has been created
-        And the contract has been packaged
-        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-        Given the gateway 'myGateway' is created
-        And I'm connected to the 'myGateway' gateway without association
-        And the other fabric is setup with contract name <contractName> and version <version>
-        When I generate a <testLanguage> functional test for a <contractLanguage> contract
-        Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
-        And the tests should be runnable
-        Examples:
-        | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
-        | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
-        | JavaScriptContract  | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+  @otherFabric
+  Scenario Outline: Generating tests for a contract (other fabric)
+      Given the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+      And an environment 'myFabric' exists
+      And the 'myFabric' environment is connected
+      And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
+      And the contract has been created
+      And the contract has been packaged
+      And the package has been installed
+      And the contract has been instantiated with the transaction '' and args '', not using private data
+      And the gateway 'myGateway' is created
+      And I'm connected to the 'myGateway' gateway without association
+      When I generate a <testLanguage> functional test for a <contractLanguage> contract
+      Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
+      And the tests should be runnable
+      Examples:
+      | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
+      | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
+      | JavaScriptContract | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |

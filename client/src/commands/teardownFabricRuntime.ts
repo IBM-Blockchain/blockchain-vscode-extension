@@ -21,9 +21,12 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
-export async function teardownFabricRuntime(force: boolean = false): Promise<void> {
+export async function teardownFabricRuntime(_treeItem?: RuntimeTreeItem, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'teardownFabricRuntime');
     const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
@@ -43,7 +46,12 @@ export async function teardownFabricRuntime(force: boolean = false): Promise<voi
         progress.report({ message: `Tearing down Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
         const connectedGatewayRegistry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
         if (connectedGatewayRegistry && connectedGatewayRegistry.managedRuntime) {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
+        }
+
+        const connectedEnvironmentRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        if (connectedEnvironmentRegistry && connectedEnvironmentRegistry.managedRuntime) {
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
         }
 
         try {
@@ -54,7 +62,7 @@ export async function teardownFabricRuntime(force: boolean = false): Promise<voi
         }
     });
 
-    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_LOCAL_OPS);
+    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
     await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
 }

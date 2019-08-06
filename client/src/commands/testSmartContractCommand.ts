@@ -46,7 +46,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     if (!chaincode) {
         if (!FabricConnectionManager.instance().getConnection()) {
             // Connect if not already connected
-            await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
             if (!FabricConnectionManager.instance().getConnection()) {
                 // either the user cancelled or there was an error so don't carry on
                 return;
@@ -132,7 +132,11 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     for (packageJSONFound of packageJSONSearch) {
         const packageJSONBuffer: Buffer = await fs.readFile(packageJSONFound.path);
         const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
-        const workspaceProjectName: string = packageJSONObj.name;
+        let workspaceProjectName: string = packageJSONObj.name;
+
+        const replaceRegex: RegExp = /@.*?\//;
+        workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
+
         if (workspaceProjectName === chaincodeName) {
             // Smart contract is open in workspace
             functionalTestsDirectory = path.join(packageJSONFound.fsPath, '..', 'functionalTests');

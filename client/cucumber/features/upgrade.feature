@@ -4,6 +4,7 @@ Feature: Upgrade Smart Contracts
     Scenario Outline: Upgrade a smart contract
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the Local Fabric is running
+        And the 'Local Fabric' environment is connected
         And the contract has been created
         And the contract has been packaged
         And the package has been installed
@@ -12,7 +13,7 @@ Feature: Upgrade Smart Contracts
         And the contract has been packaged
         And the package has been installed
         When I upgrade the installed package with the transaction '' and args '', not using private data
-        Then there should be a instantiated smart contract tree item with a label '<upgradedName>' in the 'Local Fabric Ops' panel
+        Then there should be an instantiated smart contract tree item with a label '<upgradedName>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to 'Instantiated on: mychannel'
         Examples:
         | language   | assetType | name               | upgradedName              | version |

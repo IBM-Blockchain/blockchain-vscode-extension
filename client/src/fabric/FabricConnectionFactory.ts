@@ -12,10 +12,10 @@
  * limitations under the License.
 */
 'use strict';
-import { FabricRuntime } from './FabricRuntime';
 import { OutputAdapter } from '../logging/OutputAdapter';
 import { IFabricClientConnection } from './IFabricClientConnection';
-import { IFabricRuntimeConnection } from './IFabricRuntimeConnection';
+import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
+import { FabricEnvironment } from './FabricEnvironment';
 
 export class FabricConnectionFactory {
 
@@ -27,15 +27,15 @@ export class FabricConnectionFactory {
         return new (this.clientConnection).FabricClientConnection(connection, outputAdapter);
     }
 
-    public static createFabricRuntimeConnection(runtime: FabricRuntime, outputAdapter?: OutputAdapter): IFabricRuntimeConnection {
-        if (!this.runtimeConnection) {
-            this.runtimeConnection = require('./FabricRuntimeConnection');
+    public static createFabricEnvironmentConnection(environment: FabricEnvironment, outputAdapter?: OutputAdapter): IFabricEnvironmentConnection {
+        if (!this.environmentConnection) {
+            this.environmentConnection = require('./FabricEnvironmentConnection');
         }
 
-        return new (this.runtimeConnection).FabricRuntimeConnection(runtime, outputAdapter);
+        return new (this.environmentConnection).FabricEnvironmentConnection(environment, outputAdapter);
     }
 
-    private static clientConnection: any;
-    private static runtimeConnection: any;
+    private static environmentConnection: any;
 
+    private static clientConnection: any;
 }

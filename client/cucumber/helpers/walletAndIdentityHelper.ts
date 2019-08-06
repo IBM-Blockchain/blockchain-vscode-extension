@@ -27,6 +27,7 @@ import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGener
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { IFabricWalletGenerator } from '../../src/fabric/IFabricWalletGenerator';
 
 chai.use(sinonChai);
@@ -48,18 +49,22 @@ export class WalletAndIdentityHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createCAIdentity(name: string, attributes: string = '[]'): Promise<void> {
-        const walletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
-        walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
+    public async createCAIdentity(walletName: string, identityName: string, attributes: string = '[]'): Promise<void> {
+        let walletEntry: FabricWalletRegistryEntry;
+        if (walletName === FabricWalletUtil.LOCAL_WALLET) {
+            walletEntry = new FabricWalletRegistryEntry();
+            walletEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
+        } else {
+            walletEntry = FabricWalletRegistry.instance().get(walletName);
+        }
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletEntry.walletPath);
-        const identityExists: boolean = await wallet.exists(name);
+        const identityExists: boolean = await wallet.exists(identityName);
 
         if (!identityExists) {
-            this.userInputUtilHelper.showCertificateAuthorityQuickPickStub.withArgs('Choose certificate authority to create a new identity with').resolves('ca.org1.example.com');
-            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(name);
+            this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
 
             if (attributes !== '[]') {
                 // The user has given us attributes
