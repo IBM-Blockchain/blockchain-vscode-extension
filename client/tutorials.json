@@ -25,6 +25,20 @@
                     "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md"
                 }
             ]
+        },
+        {
+            "name": "Developer",
+            "length": "2 hours",
+            "difficulty": "simple",
+            "description": "Series of tutorials for specific tasks",
+            "tutorials": [
+                {
+                    "title": "Adding an Environment to connect to IBM Cloud",
+                    "length": "15-20 mins",
+                    "description": "Add an environment to connect to a a cloud instance and deploy a smart contract",
+                    "file": "developer-tutorials/add-environment.md"
+                }
+            ]
         }
     ]
 }

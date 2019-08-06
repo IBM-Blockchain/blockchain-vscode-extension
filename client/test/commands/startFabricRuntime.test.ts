@@ -39,7 +39,7 @@ describe('startFabricRuntime', () => {
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let runtimeTreeItem: RuntimeTreeItem;
     let blockchainLogsOutputSpy: sinon.SinonSpy;
-    let commandSpy: sinon.SinonSpy;
+    let commandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
 
     before(async () => {
@@ -68,7 +68,8 @@ describe('startFabricRuntime', () => {
         const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
-        commandSpy = sandbox.spy(vscode.commands, 'executeCommand');
+        commandStub = sandbox.stub(vscode.commands, 'executeCommand').callThrough();
+        commandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
         logSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
     });
 
@@ -80,13 +81,7 @@ describe('startFabricRuntime', () => {
     it('should start a Fabric runtime specified by clicking the tree', async () => {
         mockRuntime.isGenerated.resolves(true);
         await vscode.commands.executeCommand(runtimeTreeItem.command.command);
-        mockRuntime.generate.should.not.have.been.called;
-        mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-        blockchainLogsOutputSpy.should.have.been.called;
-        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
+        commandStub.should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
     });
 
     it('should start a Fabric runtime', async () => {
@@ -94,21 +89,9 @@ describe('startFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockRuntime.generate.should.not.have.been.called;
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
-        blockchainLogsOutputSpy.should.have.been.called;
-        logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
-    });
-
-    it('should generate and start a Fabric runtime specified by clicking the tree', async () => {
-        mockRuntime.isGenerated.resolves(false);
-        await vscode.commands.executeCommand(runtimeTreeItem.command.command);
-        mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
     });
@@ -118,9 +101,9 @@ describe('startFabricRuntime', () => {
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
     });
@@ -132,9 +115,9 @@ describe('startFabricRuntime', () => {
 
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
-        commandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+        commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
         blockchainLogsOutputSpy.should.have.been.called;
         logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Failed to start Local Fabric: ${error.message}`, `Failed to start Local Fabric: ${error.toString()}`);
