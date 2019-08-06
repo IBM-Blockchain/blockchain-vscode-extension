@@ -22,6 +22,7 @@ import { LogType } from '../logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
 
 export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -49,7 +50,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
     } else {
         if (!treeItem && !channelName && !smartContract) {
             if (!FabricConnectionManager.instance().getConnection()) {
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT);
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
                 if (!FabricConnectionManager.instance().getConnection()) {
                     // either the user cancelled or ther was an error so don't carry on
                     return;
@@ -127,7 +128,12 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
         try {
             progress.report({ message: `${actioning} transaction ${transactionName}` });
             outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args}`);
-            VSCodeBlockchainDockerOutputAdapter.instance().show();
+
+            const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+            if (gatewayRegistyrEntry.managedRuntime) {
+                VSCodeBlockchainDockerOutputAdapter.instance().show();
+            }
+
             let result: string | undefined;
             if (evaluate) {
                 result = await FabricConnectionManager.instance().getConnection().submitTransaction(smartContract, transactionName, channelName, args, namespace, transientData, true);
@@ -145,6 +151,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
                 message = `Returned value from ${transactionName}: ${result}`;
             }
             outputAdapter.log(LogType.SUCCESS, `Successfully ${actioned} transaction`, message);
+
             outputAdapter.show(); // Bring the 'Blockchain' output channel into focus.
         } catch (error) {
             outputAdapter.log(LogType.ERROR, `Error ${actioning} transaction: ${error.message}`);

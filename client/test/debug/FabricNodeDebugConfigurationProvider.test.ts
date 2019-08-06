@@ -22,13 +22,16 @@ import { FabricNodeDebugConfigurationProvider } from '../../src/debug/FabricNode
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../src/util/Reporter';
 
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
@@ -59,7 +62,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
         let debugConfig: any;
         let runtimeStub: sinon.SinonStubbedInstance<FabricRuntime>;
         let packageEntry: PackageRegistryEntry;
-        let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+        let mockRuntimeConnection: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
         let registryEntry: FabricGatewayRegistryEntry;
         let startDebuggingStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
@@ -82,6 +85,13 @@ describe('FabricNodeDebugConfigurationProvider', () => {
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
             mySandbox.stub(FabricGatewayRegistry.instance(), 'get').returns(registryEntry);
+
+            const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            environmentRegistry.managedRuntime = true;
+            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+
+            mySandbox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
             workspaceFolder = {
                 name: 'myFolder',
@@ -111,14 +121,14 @@ describe('FabricNodeDebugConfigurationProvider', () => {
             packageEntry.version = 'vscode-13232112018';
             packageEntry.path = path.join('myPath');
 
-            mockRuntimeConnection = sinon.createStubInstance(FabricRuntimeConnection);
+            mockRuntimeConnection = sinon.createStubInstance(FabricEnvironmentConnection);
             mockRuntimeConnection.connect.resolves();
             mockRuntimeConnection.getAllPeerNames.resolves('peerOne');
 
             const instantiatedChaincodes: { name: string, version: string }[] = [{ name: 'myOtherContract', version: 'vscode-debug-13232112018' }, { name: 'cake-network', version: 'vscode-debug-174758735087' }];
             mockRuntimeConnection.getAllInstantiatedChaincodes.resolves(instantiatedChaincodes);
 
-            mySandbox.stub(FabricRuntimeManager.instance(), 'getConnection').returns(mockRuntimeConnection);
+            mySandbox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(mockRuntimeConnection);
 
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
 

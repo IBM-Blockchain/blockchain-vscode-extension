@@ -80,7 +80,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [this.gateway]
             };
@@ -92,7 +92,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
 ⓘ Associated wallet:
 ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`;
             newCommand = {
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [this.gateway]
             };

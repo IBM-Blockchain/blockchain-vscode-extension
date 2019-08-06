@@ -1,0 +1,9 @@
+{
+    "short_name": "peer0.org1.example.com",
+    "name": "peer0.org1.example.com",
+    "api_url": "grpc://localhost:7051",
+    "chaincode_url": "grpc://localhost:7053",
+    "type": "fabric-peer",
+    "msp_id": "Org1MSP",
+    "container_name": "peer0.org1.example.com"
+}

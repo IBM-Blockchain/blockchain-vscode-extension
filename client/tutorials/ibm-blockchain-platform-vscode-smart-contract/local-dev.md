@@ -162,17 +162,17 @@ The package you just created can be installed onto any Hyperledger Fabric peer (
 ---
 
 <details>
-<summary><b>4. Local Fabric Ops</b></summary>
+<summary><b>4. Fabric Environments</b></summary>
 
-The panel titled `LOCAL FABRIC OPS` (in the IBM Blockchain Platform view) allows you to operate a simple Hyperledger Fabric runtime using Docker on your local machine. Initially, it will be stopped, and you should see:
+The panel titled `Fabric Environments` (in the IBM Blockchain Platform view) allows you to operate a simple Hyperledger Fabric runtime using Docker on your local machine. Initially, it will be stopped, and you should see:
 
 ```
-Local Fabric runtime is stopped. Click to start.
+Local Fabric  ○ (click to start).
 ```
 
 Click that message and the extension will start spinning up Docker containers for you. The message "Local Fabric runtime is starting..." will appear, with a loading spinner, and when the task is complete you will see a set of expandable/collapsible sections labelled `Smart Contracts`, `Channels`, `Nodes` and `Organizations`.
 
-> Command Palette alternative: `Start Fabric Runtime`
+> Command Palette alternative: `Connect to a Fabric Environment`
 
 That's all you need to do in this step, so if you're in a rush, but whilst you're waiting for Local Fabric to start up, let's learn a little more about what it comprises. 
 
@@ -199,7 +199,7 @@ In a real network, each of the organizations that will be endorsing transactions
 So, we only have to install the contract on that single peer, then we will be able to instantiate it in `mychannel`.
 To do this...
 
-1. In the `LOCAL FABRIC OPS` panel, look for `+ Install` (it's under Smart Contracts > Installed) and click it.
+1. In the `Fabric Environments` panel, look for `+ Install` (it's under Smart Contracts > Installed) and click it.
 
 2. You'll be asked to choose a package to install. Pick `demoContract@0.0.1`.
 
@@ -220,7 +220,7 @@ Installed smart contracts aren't ready to be invoked by client applications yet:
 
 For now though, we've got our contract installed on all (one) of the peers that participate in `mychannel` so we can go ahead and instantiate.
 
-1. In the `LOCAL FABRIC OPS` panel, look for `+ Instantiate` (it's under Smart Contracts > Instantiated) and click it.
+1. In the `Fabric Environments` panel, look for `+ Instantiate` (it's under Smart Contracts > Instantiated) and click it.
 
 2. You'll be asked to choose a smart contract to instantiate. Pick `demoContract@0.0.1`.
 

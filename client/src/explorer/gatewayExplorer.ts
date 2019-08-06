@@ -35,7 +35,7 @@ import { LocalGatewayTreeItem } from './model/LocalGatewayTreeItem';
 import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { InstantiatedContractTreeItem } from './model/InstantiatedContractTreeItem';
-import { InstantiatedTreeItem } from './runtimeOps/InstantiatedTreeItem';
+import { InstantiatedTreeItem } from './runtimeOps/connectedTree/InstantiatedTreeItem';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
 import { InstantiatedMultiContractTreeItem } from './model/InstantiatedMultiContractTreeItem';
 import { InstantiatedUnknownTreeItem } from './model/InstantiatedUnknownTreeItem';
@@ -81,13 +81,13 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
 
     async connect(): Promise<void> {
         // This controls which menu buttons appear
-        await vscode.commands.executeCommand('setContext', 'blockchain-connected', true);
+        await vscode.commands.executeCommand('setContext', 'blockchain-gateway-connected', true);
         await this.refresh();
     }
 
     async disconnect(): Promise<void> {
         // This controls which menu buttons appear
-        await vscode.commands.executeCommand('setContext', 'blockchain-connected', false);
+        await vscode.commands.executeCommand('setContext', 'blockchain-gateway-connected', false);
         await this.refresh();
     }
 
@@ -173,7 +173,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
             const runtimeGateways: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
             for (const runtimeGateway of runtimeGateways) {
                 const command: vscode.Command = {
-                    command: ExtensionCommands.CONNECT,
+                    command: ExtensionCommands.CONNECT_TO_GATEWAY,
                     title: '',
                     arguments: [runtimeGateway]
                 };
@@ -196,7 +196,7 @@ export class BlockchainGatewayExplorerProvider implements BlockchainExplorerProv
         for (const gateway of allGateways) {
 
             const command: vscode.Command = {
-                command: ExtensionCommands.CONNECT,
+                command: ExtensionCommands.CONNECT_TO_GATEWAY,
                 title: '',
                 arguments: [gateway]
             };

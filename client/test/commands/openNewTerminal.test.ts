@@ -20,10 +20,12 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
-import { NodeTreeItem } from '../../src/explorer/runtimeOps/NodeTreeItem';
+import { NodeTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 chai.should();
 
 class TestNodeTreeItem extends NodeTreeItem {
@@ -53,10 +55,15 @@ describe('openNewTerminal', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        const provider: BlockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+        const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
         node.container_name = 'fabricvscodelocalfabric_peer0.org1.example.com';
-        nodeItem = new TestNodeTreeItem(provider, node.name, vscode.TreeItemCollapsibleState.None, node);
+
+        const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+        fabricEnvironmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        fabricEnvironmentRegistryEntry.managedRuntime = true;
+
+        nodeItem = new TestNodeTreeItem(provider, node.name, node);
         mockTerminal = {
             show: sinon.stub()
         };
@@ -85,7 +92,7 @@ describe('openNewTerminal', () => {
     });
 
     it('should open a terminal for a Fabric node specified by user selection', async () => {
-        sandbox.stub(UserInputUtil, 'showRuntimeNodeQuickPick').resolves(node);
+        sandbox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({data: node});
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL);
         createTerminalStub.should.have.been.calledOnceWithExactly(
             'Fabric runtime - peer0.org1.example.com',
@@ -102,7 +109,7 @@ describe('openNewTerminal', () => {
     });
 
     it('should not open a terminal if a user cancels specifying a Fabric node', async () => {
-        sandbox.stub(UserInputUtil, 'showRuntimeNodeQuickPick').resolves(undefined);
+        sandbox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves(undefined);
         await vscode.commands.executeCommand(ExtensionCommands.OPEN_NEW_TERMINAL);
         createTerminalStub.should.not.have.been.called;
     });

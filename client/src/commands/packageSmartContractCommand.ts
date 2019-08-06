@@ -25,7 +25,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 /**
- * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs succesfully.
+ * Main function which calls the methods and refreshes the blockchain explorer box each time that it runs successfully.
  * This will be used in other files to call the command to package a smart contract project.
  */
 export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string): Promise<PackageRegistryEntry> {

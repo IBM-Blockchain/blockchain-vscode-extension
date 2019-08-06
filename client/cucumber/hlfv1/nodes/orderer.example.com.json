@@ -1,0 +1,8 @@
+{
+    "short_name": "orderer.example.com",
+    "name": "orderer.example.com",
+    "api_url": "grpc://localhost:7050",
+    "type": "fabric-orderer",
+    "msp_id": "OrdererMSP",
+    "container_name": "orderer.example.com"
+}

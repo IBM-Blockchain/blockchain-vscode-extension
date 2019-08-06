@@ -21,18 +21,22 @@ import * as path from 'path';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import { BlockchainRuntimeExplorerProvider } from '../../src/explorer/runtimeOpsExplorer';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import * as myExtension from '../../src/extension';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { Reporter } from '../../src/util/Reporter';
-import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
-import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/SmartContractsTreeItem';
-import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/ChannelsOpsTreeItem';
-import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/InstalledChainCodeOpsTreeItem';
+import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
+import { ChannelsOpsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/ChannelsOpsTreeItem';
+import { InstalledChainCodeOpsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
+import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
+import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 
 chai.use(sinonChai);
@@ -45,7 +49,7 @@ describe('UpgradeCommand', () => {
     });
 
     describe('UpgradeSmartContract', () => {
-        let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricRuntimeConnection>;
+        let fabricRuntimeMock: sinon.SinonStubbedInstance<FabricEnvironmentConnection>;
 
         let executeCommandStub: sinon.SinonStub;
         let logSpy: sinon.SinonSpy;
@@ -54,30 +58,30 @@ describe('UpgradeCommand', () => {
         let showInputBoxStub: sinon.SinonStub;
         let allChildren: Array<BlockchainTreeItem>;
         let reporterStub: sinon.SinonStub;
-        let isRunningStub: sinon.SinonStub;
-        let blockchainRuntimeExplorerProvider: BlockchainRuntimeExplorerProvider;
+        let blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider;
         let instantiatedSmartContractsList: BlockchainTreeItem[];
         let smartContractsChildren: BlockchainTreeItem[];
         let channelsChildren: BlockchainTreeItem[];
         let showYesNo: sinon.SinonStub;
+        let environmentStub: sinon.SinonStub;
+        let dockerLogSpy: sinon.SinonSpy;
+        let registryStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
             reporterStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
             executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
-            executeCommandStub.withArgs(ExtensionCommands.CONNECT).resolves();
-            executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_GATEWAY).resolves();
+            executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
             executeCommandStub.callThrough();
 
-            fabricRuntimeMock = sinon.createStubInstance(FabricRuntimeConnection);
+            fabricRuntimeMock = sinon.createStubInstance(FabricEnvironmentConnection);
             fabricRuntimeMock.connect.resolves();
             fabricRuntimeMock.getInstalledChaincode.resolves(new Map());
             fabricRuntimeMock.upgradeChaincode.resolves();
 
-            const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
-            mySandBox.stub(fabricRuntimeManager, 'getConnection').resolves(fabricRuntimeMock);
-            isRunningStub = mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(true);
+            environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns(fabricRuntimeMock);
 
             showChannelQuickPickStub = mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').resolves({
                 label: 'channelOne',
@@ -89,6 +93,7 @@ describe('UpgradeCommand', () => {
             showInputBoxStub.onSecondCall().resolves('["arg1" ,"arg2" , "arg3"]');
 
             logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+            dockerLogSpy = mySandBox.spy(VSCodeBlockchainDockerOutputAdapter.instance(), 'show');
 
             fabricRuntimeMock.getAllPeerNames.returns(['peerOne']);
 
@@ -118,7 +123,14 @@ describe('UpgradeCommand', () => {
 
             showYesNo = mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').resolves(UserInputUtil.NO);
 
-            blockchainRuntimeExplorerProvider = myExtension.getBlockchainRuntimeExplorerProvider();
+            const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+            environmentRegistry.managedRuntime = true;
+            environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
+
+            registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
+
+            blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
             const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
@@ -129,7 +141,7 @@ describe('UpgradeCommand', () => {
         });
 
         afterEach(async () => {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT);
+            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
             mySandBox.restore();
         });
 
@@ -140,28 +152,19 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            dockerLogSpy.should.have.been.called;
         });
 
-        it('should upgrade the smart contract through the command when not connected', async () => {
-            isRunningStub.onCall(4).resolves(false);
+        it('should upgrade the smart contract through the command and connect if not connected', async () => {
+            environmentStub.resetHistory();
+            environmentStub.onFirstCall().returns(undefined);
             executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
-
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
-        });
-
-        it('should upgrade the smart contract through the command when not connected', async () => {
-            isRunningStub.resolves(false);
-            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
-
-            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
-
-            executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
-            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
-            logSpy.should.have.been.calledOnce;
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should upgrade the smart contract through the command with collection', async () => {
@@ -174,6 +177,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], path.join('myPath'));
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should upgrade the smart contract through the command with collection and set dialog folder', async () => {
@@ -201,6 +205,31 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], path.join('myPath'));
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            dockerLogSpy.should.have.been.called;
+        });
+
+        it('should not show docker logs if not managed runtime', async () => {
+            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            registryEntry.name = 'myFabric';
+            registryEntry.managedRuntime = false;
+            registryStub.returns(registryEntry);
+
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
+            fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3']);
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            dockerLogSpy.should.not.have.been.called;
+        });
+
+        it('should return if cannot connect', async () => {
+            environmentStub.returns(undefined);
+            executeCommandStub.withArgs(ExtensionCommands.INSTALL_SMART_CONTRACT, undefined, ['peerOne'], { name: 'biscuit-network', version: '0.0.2', path: undefined }).resolves({ name: 'biscuit-network', version: '0.0.2', path: undefined });
+
+            await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
+            fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should handle cancel when choosing if want collection', async () => {
@@ -209,6 +238,7 @@ describe('UpgradeCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should handle cancel when choosing collection path', async () => {
@@ -218,6 +248,7 @@ describe('UpgradeCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should handle choosing channel being cancelled', async () => {
@@ -226,6 +257,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should handle error from upgrading smart contract', async () => {
@@ -236,6 +268,7 @@ describe('UpgradeCommand', () => {
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error upgrading smart contract: some error');
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should handle cancel when choosing chaincode and version', async () => {
@@ -243,6 +276,7 @@ describe('UpgradeCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
             fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should upgrade smart contract through the tree by right-clicking on an instantiated smart contract in the runtime ops view', async () => {
@@ -257,6 +291,7 @@ describe('UpgradeCommand', () => {
 
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             reporterStub.should.have.been.calledWith('upgradeCommand');
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should upgrade smart contract through the tree by right-clicking on a channel in the runtime ops view', async () => {
@@ -271,6 +306,7 @@ describe('UpgradeCommand', () => {
 
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
             reporterStub.should.have.been.calledWith('upgradeCommand');
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should upgrade the smart contract through the command with no function', async () => {
@@ -280,6 +316,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', undefined, undefined, undefined);
             showInputBoxStub.should.have.been.calledOnce;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should upgrade the smart contract through the command with function but no args', async () => {
@@ -290,6 +327,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWithExactly('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', [], undefined);
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should cancel if user escapes during inputting args', async () => {
@@ -300,6 +338,7 @@ describe('UpgradeCommand', () => {
             fabricRuntimeMock.upgradeChaincode.should.not.have.been.called;
             showInputBoxStub.should.have.been.calledTwice;
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should throw error if args not valid json', async () => {
@@ -312,6 +351,7 @@ describe('UpgradeCommand', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with upgrade function arguments: Unexpected end of JSON input');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should throw error if args does not start with [', async () => {
@@ -324,6 +364,7 @@ describe('UpgradeCommand', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with upgrade function arguments: upgrade function arguments should be in the format ["arg1", {"key" : "value"}]');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should throw error if args does not end with ]', async () => {
@@ -336,6 +377,7 @@ describe('UpgradeCommand', () => {
 
             logSpy.should.have.been.calledWith(LogType.ERROR, 'Error with upgrade function arguments: upgrade function arguments should be in the format ["arg1", {"key" : "value"}]');
             logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully upgraded smart contract');
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should install and upgrade package', async () => {
@@ -357,6 +399,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should be able to cancel install and upgrade for package', async () => {
@@ -378,6 +421,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.not.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should handle errors with the package command failing', async () => {
@@ -399,6 +443,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.not.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should package, install and upgrade a project', async () => {
@@ -421,6 +466,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should be able to cancel a project packaging, installing and upgrading', async () => {
@@ -443,6 +489,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT) as PackageRegistryEntry;
 
             fabricRuntimeMock.upgradeChaincode.should.not.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
         it('should upgrade a package if its already installed', async () => {
@@ -464,6 +511,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT);
 
             fabricRuntimeMock.upgradeChaincode.should.have.been.calledWith('biscuit-network', '0.0.2', ['peerOne'], 'channelOne', 'instantiate', ['arg1', 'arg2', 'arg3'], undefined);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should upgrade the debug smart contract package when called from a debug session', async () => {
@@ -491,6 +539,7 @@ describe('UpgradeCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'beer', 'vscode-debug-97365870');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should not package or install if already exist from debug session', async () => {
@@ -556,6 +605,7 @@ describe('UpgradeCommand', () => {
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, 'beer', 'vscode-debug-97365870');
             executeCommandStub.should.have.been.calledWith(ExtensionCommands.INSTALL_SMART_CONTRACT);
+            dockerLogSpy.should.have.been.called;
         });
 
         it('should handle the package command failing when called from a debug session', async () => {
@@ -578,6 +628,7 @@ describe('UpgradeCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, undefined, 'someChannelName', ['peerHi', 'peerHa']);
 
             fabricRuntimeMock.upgradeChaincode.should.not.been.called;
+            dockerLogSpy.should.not.have.been.called;
         });
 
     });

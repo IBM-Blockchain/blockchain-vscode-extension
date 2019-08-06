@@ -134,7 +134,6 @@ function getChaincodeLanguageOptions(): string[] {
 }
 
 function getSmartContractLanguageOptions(): string[] {
-     // change this back once support java
      return GeneratorFabricPackageJSON.contractLanguages;
 }
 
