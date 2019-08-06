@@ -31,6 +31,7 @@ import { GeneratedTestsHelper } from '../helpers/generatedTestsHelper';
 import { WalletAndIdentityHelper } from '../helpers/walletAndIdentityHelper';
 import { GatewayHelper } from '../helpers/gatewayHelper';
 import { EnvironmentHelper } from '../helpers/environmentHelper';
+import { SampleHelper } from '../helpers/sampleHelper';
 
 // tslint:disable:no-unused-expression
 
@@ -58,6 +59,10 @@ module.exports = function(): any {
                 this.walletAndIdentityHelper = new WalletAndIdentityHelper(this.mySandBox, this.userInputUtilHelper);
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
                 this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
+                this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
+
+                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+                await ExtensionUtil.activateExtension();
 
                 VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
@@ -88,6 +93,16 @@ module.exports = function(): any {
                         await fs.remove(dir);
                     }
                 }
+
+                const tmpRepo: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'repositories');
+
+                const tmpRepoExists: boolean = await fs.pathExists(tmpRepo);
+                if (tmpRepoExists) {
+                    await fs.remove(tmpRepo);
+                }
+                await fs.mkdir(tmpRepo);
+
+                await ExtensionUtil.activateExtension();
 
                 await TestUtil.storeGatewaysConfig();
                 await TestUtil.storeRuntimesConfig();
