@@ -97,7 +97,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                 chaincodeVersion = nameAndVersion.version;
             }
             // Determine what smart contracts are instantiated already
-            const connection: IFabricRuntimeConnection = await FabricRuntimeManager.instance().getConnection();
             // Assume Local Fabric has one peer
             const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
             const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {

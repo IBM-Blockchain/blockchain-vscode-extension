@@ -32,7 +32,6 @@ import { FabricGatewayRegistry } from '../fabric/FabricGatewayRegistry';
 import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 
 export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();

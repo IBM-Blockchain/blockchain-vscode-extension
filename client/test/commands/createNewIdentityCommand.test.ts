@@ -131,7 +131,6 @@ describe('createNewIdentityCommand', () => {
     it('should create a new identity when selected from a CA in the tree', async () => {
         identityName = 'blueConga';
         inputBoxStub.resolves(identityName);
-        const message: string = `Successfully created identity '${identityName}'`;
 
         await vscode.commands.executeCommand(ExtensionCommands.CREATE_NEW_IDENTITY, certificateAuthorityTreeItem);
 

@@ -170,7 +170,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                     updateStub.should.have.been.calledWith(node);
 
                     logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                    logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${node.name} with wallet ${node.wallet} and identity ${node.identity}`);
+                    logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${node.name} with wallet ${node.wallet} and identity ${node.identity}`);
                 });
             });
 
@@ -203,7 +203,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, caNodeWithCreds]);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
+                logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
             });
 
             it('should create a new wallet if option selected', async () => {
@@ -218,7 +218,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 updateStub.should.have.been.calledWith(peerNode);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
             });
 
             it(`should add identity if option selected`, async () => {
@@ -232,7 +232,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 updateStub.should.have.been.calledWith(peerNode);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
             });
 
             it(`should handle cancel from create wallet`, async () => {
@@ -243,7 +243,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
+                logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
             });
 
             it(`should handle cancel from add identity`, async () => {
@@ -254,7 +254,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
+                logSpy.should.not.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
             });
 
             it('should throw an error if can\'t update node', async () => {
@@ -277,7 +277,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 updateStub.should.have.been.calledWith(peerNode);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${peerNode.name} with wallet ${peerNode.wallet} and identity ${peerNode.identity}`);
             });
 
             it('should give error if no environments', async () => {
@@ -326,7 +326,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 commandsStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
             });
 
             it('should only ask for mspid if not set', async () => {
@@ -349,7 +349,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 commandsStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
-                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Succesfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
             });
 
             it('should handle cancel from giving identity name', async () => {

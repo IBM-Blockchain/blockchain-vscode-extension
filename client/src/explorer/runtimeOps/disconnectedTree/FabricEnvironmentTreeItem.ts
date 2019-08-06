@@ -23,7 +23,7 @@ export class FabricEnvironmentTreeItem extends BlockchainTreeItem {
 
     contextValue: string = 'blockchain-environment-item';
 
-    constructor(provider: BlockchainExplorerProvider, label: string, public readonly environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command?: vscode.Command) {
+    constructor(provider: BlockchainExplorerProvider, label: string, public readonly environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
     }
 }

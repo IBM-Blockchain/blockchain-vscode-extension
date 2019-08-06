@@ -144,18 +144,8 @@ describe('FabricRuntimeManager', () => {
         });
 
         it('create the runtime if it is not already created', async () => {
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {
-                ports: {
-                    certificateAuthority: 17054,
-                    couchDB: 17055,
-                    logs: 17056,
-                    orderer: 17050,
-                    peerChaincode: 17052,
-                    peerEventHub: 17053,
-                    peerRequest: 17051
-                },
-                developmentMode: false
-            }, vscode.ConfigurationTarget.Global);
+            mockRuntime.isCreated.resolves(false);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
             await runtimeManager.initialize();
             mockRuntime.ports.should.deep.equal({
                 certificateAuthority: 17054,
@@ -166,22 +156,9 @@ describe('FabricRuntimeManager', () => {
                 peerEventHub: 17053,
                 peerRequest: 17051
             });
-            mockRuntime.updateUserSettings.should.not.have.been.called;
+            mockRuntime.updateUserSettings.should.have.been.calledOnce;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
-        });
-
-        it('should start the logs when runtime connected', async () => {
-            mockRuntime.isCreated.resolves(false);
-            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_RUNTIME, {}, vscode.ConfigurationTarget.Global);
-            await runtimeManager.initialize();
-
-            const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-            registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            registryEntry.managedRuntime = true;
-            registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry);
-
-            mockRuntime.startLogs.should.have.been.called;
+            mockRuntime.create.should.have.been.calledOnce;
         });
 
         it('should not start the logs when other fabric connected', async () => {
@@ -280,7 +257,7 @@ describe('FabricRuntimeManager', () => {
             getStub.withArgs('fabric.runtime').returns({});
             getStub.withArgs(SettingConfigurations.EXTENSION_DIRECTORY).returns(path.join('myPath'));
             updateStub = sinon.stub().resolves();
-            sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub });
+            sandbox.stub(vscode.workspace, 'getConfiguration').returns({ get: getStub, update: updateStub});
             sendCommandWithOutputStub = sandbox.stub(CommandUtil, 'sendCommandWithOutput');
         });
 

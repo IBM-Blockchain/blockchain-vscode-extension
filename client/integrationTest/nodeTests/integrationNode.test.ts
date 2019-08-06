@@ -130,7 +130,7 @@ describe('Integration Tests for Node Smart Contracts', () => {
             }
 
             isRunning.should.equal(false);
-            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainRuntimeExplorerProvider().getChildren();
+            const connectionItems: Array<BlockchainTreeItem> = await myExtension.getBlockchainEnvironmentExplorerProvider().getChildren();
             const localFabricItem: RuntimeTreeItem = connectionItems.find((value: BlockchainTreeItem) => value instanceof RuntimeTreeItem && value.label.startsWith('Local Fabric runtime is stopped. Click to start.')) as RuntimeTreeItem;
             localFabricItem.should.not.be.null;
             logSpy.should.not.have.been.calledWith(LogType.ERROR);

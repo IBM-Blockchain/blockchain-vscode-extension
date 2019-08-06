@@ -20,13 +20,12 @@ import { FabricRuntimeManager } from '../../../fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../../fabric/FabricRuntime';
 import { VSCodeBlockchainOutputAdapter } from '../../../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../../logging/OutputAdapter';
-import { ExtensionCommands } from '../../../../ExtensionCommands';
 import { FabricEnvironmentTreeItem } from './FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
 
 export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
 
-    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, command?: vscode.Command): Promise<RuntimeTreeItem> {
+    static async newRuntimeTreeItem(provider: BlockchainExplorerProvider, label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, command: vscode.Command): Promise<RuntimeTreeItem> {
         const treeItem: RuntimeTreeItem = new RuntimeTreeItem(provider, label, environmentRegistryEntry, command);
         await treeItem.updateProperties();
         return treeItem;
@@ -38,7 +37,7 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
     private busyTicker: NodeJS.Timer;
     private busyTicks: number = 0;
 
-    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command?: vscode.Command) {
+    private constructor(provider: BlockchainExplorerProvider, public readonly label: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly command: vscode.Command) {
         super(provider, label, environmentRegistryEntry, command);
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         this.name = label;
@@ -60,14 +59,12 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
         const busy: boolean = this.runtime.isBusy();
         const running: boolean = await this.runtime.isRunning();
         let newLabel: string = this.name + '  ';
-        let newCommand: vscode.Command = this.command;
         if (busy) {
             // Busy!
             this.enableBusyTicker();
             const busyStates: string[] = ['◐', '◓', '◑', '◒'];
             newLabel = `Local Fabric runtime is ${this.runtime.getState()}... `;
             newLabel += busyStates[this.busyTicks % 4];
-            newCommand = null;
             this.tooltip = `The local development runtime is ${this.runtime.getState()}...`;
         } else if (running) {
             // Running!
@@ -79,26 +76,15 @@ export class RuntimeTreeItem extends FabricEnvironmentTreeItem {
             this.disableBusyTicker();
             newLabel = 'Local Fabric  ○ (click to start)';
             this.tooltip = 'Creates a local development runtime using Hyperledger Fabric Docker images';
-            newCommand = {
-                command: ExtensionCommands.START_FABRIC,
-                title: '',
-                arguments: [this]
-            };
         }
 
         this.setLabel(newLabel);
-        this.setCommand(newCommand);
         this.refresh();
     }
 
     private setLabel(label: string): void {
         // label is readonly so make it less readonly
         (this as any).label = label;
-    }
-
-    private setCommand(command: vscode.Command): void {
-        // command is readonly so make it less readonly
-        (this as any).command = command;
     }
 
     private enableBusyTicker(): void {

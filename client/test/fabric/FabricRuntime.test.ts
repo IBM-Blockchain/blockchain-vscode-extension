@@ -126,6 +126,7 @@ describe('FabricRuntime', () => {
     });
 
     describe('#getState', () => {
+
         it('should return starting if the runtime is starting', () => {
             (runtime as any).state = FabricRuntimeState.STARTING;
             runtime.getState().should.equal(FabricRuntimeState.STARTING);
@@ -153,6 +154,7 @@ describe('FabricRuntime', () => {
     });
 
     describe('#create', () => {
+
         it('should create a new network', async () => {
             const removeStub: sinon.SinonStub = sandbox.stub(fs, 'remove');
             const ensureDirStub: sinon.SinonStub = sandbox.stub(fs, 'ensureDir');
@@ -1139,4 +1141,29 @@ describe('FabricRuntime', () => {
 
     });
 
+    describe('#updateUserSettings', () => {
+        it('should update the user settings', async () => {
+            const updateStub: sinon.SinonStub = sandbox.stub();
+            const getConfigurationStub: sinon.SinonStub = sandbox.stub(vscode.workspace, 'getConfiguration');
+            getConfigurationStub.returns({
+                get: sandbox.stub().callThrough,
+                update: updateStub
+            });
+
+            await runtime.updateUserSettings();
+
+            updateStub.should.have.been.calledWith(SettingConfigurations.FABRIC_RUNTIME,
+                {
+                    ports: {
+                        certificateAuthority: 12348,
+                        couchDB: 12349,
+                        logs: 12387,
+                        orderer: 12347,
+                        peerChaincode: 54321,
+                        peerEventHub: 12346,
+                        peerRequest: 12345
+                    }
+                });
+        });
+    });
 });

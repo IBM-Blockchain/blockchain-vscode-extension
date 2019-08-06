@@ -30,7 +30,6 @@ import { AdminIdentityTreeItem } from './model/AdminIdentityTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
-import { FabricCertificate, Attribute } from '../fabric/FabricCertificate';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
 export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvider {

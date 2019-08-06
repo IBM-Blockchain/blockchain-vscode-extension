@@ -37,8 +37,8 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
     try {
         if (!environmentRegistryEntry || !node) {
             // If called from command palette
-            const environemts: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
-            if (environemts.length === 0) {
+            const environments: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
+            if (environments.length === 0) {
                 outputAdapter.log(LogType.ERROR, `Add an environment to associate identities with nodes. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
                 return;
             }
@@ -145,7 +145,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
             arguments: [environmentRegistryEntry]
         });
         vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, environmentTreeItem);
-        outputAdapter.log(LogType.SUCCESS, `Succesfully associated node ${node.name} with wallet ${node.wallet} and identity ${node.identity}`);
+        outputAdapter.log(LogType.SUCCESS, `Successfully associated node ${node.name} with wallet ${node.wallet} and identity ${node.identity}`);
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to associate identity with node ${error.message}`, `Failed to associate identity with node ${error.toString()}`);

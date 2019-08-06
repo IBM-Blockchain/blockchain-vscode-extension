@@ -96,7 +96,7 @@ Feature: Fabric Environments
         And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And the 'myFabric' environment is connected
         When I associate identity '<identity>' in wallet '<wallet>' with node '<name>'
-        Then the log should have been called with 'SUCCESS' and 'Succesfully associated node <name> with wallet <wallet> and identity <identity>'
+        Then the log should have been called with 'SUCCESS' and 'Successfully associated node <name> with wallet <wallet> and identity <identity>'
         Examples:
         | name                    | wallet   | identity |
         | peer0.org1.example.com  | myWallet | conga    |

@@ -44,7 +44,6 @@ import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
-import { FabricRuntimeConnection } from '../../src/fabric/FabricRuntimeConnection';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -99,13 +98,6 @@ describe('AddWalletIdentityCommand', () => {
             const connectionTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                managedRuntime: false,
-                associatedWallet: ''
-            });
-
-            const connectionThree: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
-                name: 'myGatewayC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.yml'),
                 managedRuntime: false,
                 associatedWallet: ''
             });

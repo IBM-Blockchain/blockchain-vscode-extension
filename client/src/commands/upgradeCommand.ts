@@ -26,7 +26,6 @@ import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnec
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
-import { IFabricRuntimeConnection } from '../fabric/IFabricRuntimeConnection';
 import { PackageRegistry } from '../packages/PackageRegistry';
 
 export async function upgradeSmartContract(treeItem?: BlockchainTreeItem, channelName?: string, peerNames?: Array<string>): Promise<void> {
