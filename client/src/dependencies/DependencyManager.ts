@@ -123,7 +123,13 @@ export class DependencyManager {
                 // npm needs to run in a shell on Windows
                 const shell: boolean = (process.platform === 'win32') ? true : false;
 
+                outputAdapter.log(LogType.INFO, `CAZ ${process.env.versions}`);
+
+
                 try {
+                    await CommandUtil.sendCommandWithOutput('env', [], extensionPath, null, outputAdapter, shell);
+                    await CommandUtil.sendCommandWithOutput('npm', [], extensionPath, null, outputAdapter, shell);
+                    await CommandUtil.sendCommandWithOutput('npm', ['--version'], extensionPath, null, outputAdapter, shell);
                     await CommandUtil.sendCommandWithOutput('npm', ['rebuild', dependency, `--target=${info.longVersion}`, '--runtime=electron', '--dist-url=https://atom.io/download/electron', '--update-binary', '--fallback-to-build', `--target_arch=${architecture}`], extensionPath, null, outputAdapter, shell);
 
                 } catch (error) {

@@ -15,13 +15,12 @@
 
 import * as vscode from 'vscode';
 import * as child_process from 'child_process';
-import stripAnsi = require('strip-ansi');
 
 import * as childProcessPromise from 'child-process-promise';
 import { ConsoleOutputAdapter } from '../logging/ConsoleOutputAdapter';
-import { OutputAdapter } from '../logging/OutputAdapter';
-import { LogType } from '../logging/OutputAdapter';
+import { LogType, OutputAdapter } from '../logging/OutputAdapter';
 import * as request from 'request';
+import stripAnsi = require('strip-ansi');
 
 const exec: any = childProcessPromise.exec;
 
@@ -55,6 +54,7 @@ export class CommandUtil {
             shell
         };
 
+        outputAdapter.log(LogType.INFO, command + ' ' + args + ' ' + options );
         const child: child_process.ChildProcess = child_process.spawn(command, args, options);
         child.stdout.on('data', (data: string | Buffer) => {
             const str: string = stripAnsi(data.toString());
@@ -67,7 +67,10 @@ export class CommandUtil {
         });
 
         return new Promise<void>((resolve: any, reject: any): any => {
-            child.on('error', reject);
+            child.on('error', (error: Error) => {
+                outputAdapter.log(LogType.ERROR, error.message, error.toString());
+                return reject(error);
+            });
             child.on('exit', (code: string) => {
                 if (code) {
                     return reject(new Error(`Failed to execute command "${command}" with  arguments "${args.join(', ')}" return code ${code}`));

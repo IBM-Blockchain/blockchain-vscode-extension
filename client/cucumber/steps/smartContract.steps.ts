@@ -76,7 +76,9 @@ module.exports = function(): any {
      */
 
     this.When('I create the contract', this.timeout, async () => {
+        console.log('CAZ creating smart contract');
         this.contractDirectory = await this.smartContractHelper.createSmartContract(this.contractLanguage, this.contractAssetType, this.contractName);
+        console.log('CAZ finished creating smart contract');
     });
 
     /**

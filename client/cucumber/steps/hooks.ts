@@ -44,13 +44,15 @@ export enum LanguageType {
 
 let firstTime: boolean = true; // Flag used for making sure we do some setup once
 
-module.exports = function(): any {
+module.exports = function (): any {
 
-    this.timeout = { timeout: 120000 * 1000 }; // Global timeout - 2 minutes
+    this.timeout = {timeout: 120000 * 1000}; // Global timeout - 2 minutes
 
     this.Before(this.timeout, async () => {
         try {
             if (firstTime) {
+                console.log('CAZ in first time');
+                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
                 this.mySandBox = sinon.createSandbox();
                 this.userInputUtilHelper = new UserInputUtilHelper(this.mySandBox);
                 this.smartContractHelper = new SmartContractHelper(this.mySandBox, this.userInputUtilHelper);
@@ -59,7 +61,12 @@ module.exports = function(): any {
                 this.gatewayHelper = new GatewayHelper(this.mySandBox, this.userInputUtilHelper);
                 this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
 
+                console.log('CAZ activating extension');
+                await ExtensionUtil.activateExtension();
+                console.log('CAZ finished activating');
+
                 try {
+                    console.log('About to tear down');
                     await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
                 } catch (error) {
                     // If the Fabric is already torn down, do nothing
@@ -97,16 +104,12 @@ module.exports = function(): any {
                     await fs.remove(walletsDir);
                 }
 
-                await ExtensionUtil.activateExtension();
-
                 await TestUtil.storeGatewaysConfig();
                 await TestUtil.storeRuntimesConfig();
                 await TestUtil.storeExtensionDirectoryConfig();
                 await TestUtil.storeRepositoriesConfig();
                 await TestUtil.storeWalletsConfig();
                 await TestUtil.storeEnvironmentsConfig();
-
-                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
 

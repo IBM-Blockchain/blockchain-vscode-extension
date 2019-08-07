@@ -32,6 +32,7 @@ async function main(): Promise<void> {
 
         const workspacePath: string = path.resolve(__dirname, '..', '..', 'cucumber', 'data', 'cucumber.code-workspace');
 
+        console.log(process.env.versions);
         // Download VS Code, unzip it and run the integration test
         await runTests({
             extensionDevelopmentPath,
