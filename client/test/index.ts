@@ -36,10 +36,19 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
 
     VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
+    const filePath: string = path.join(__dirname, '..', '..', 'unit-tests.xml');
+
     const mocha: Mocha = new Mocha({
         ui: 'bdd',
         useColors: true,
-        timeout: 60000
+        timeout: 60000,
+        reporter: 'mocha-multi-reporters',
+        reporterOptions: {
+            reporterEnabled: 'mocha-junit-reporter, spec',
+            mochaJunitReporterReporterOptions: {
+                mochaFile: filePath
+            }
+        }
     });
 
     function _readCoverOptions(): ITestRunnerOptions {
