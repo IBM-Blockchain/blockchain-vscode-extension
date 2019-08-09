@@ -1222,8 +1222,8 @@
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.json",
         "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/nodeTests/integrationNode.test.ts'",
-        "updatePackageJSON": "node ../.travis/rewritePackageJson.js",
-        "productionFlag": "node ../.travis/rewritePackageJson.js publish",
+        "updatePackageJSON": "node ../.azure/rewritePackageJson.js",
+        "productionFlag": "node ../.azure/rewritePackageJson.js publish",
         "integrationTests": "./integrationTest/scripts/start-integration-tests.sh && npm run compile",
         "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
         "localize": "vscl out/src/**/*.js"
