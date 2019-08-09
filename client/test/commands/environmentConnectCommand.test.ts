@@ -126,6 +126,7 @@ describe('EnvironmentConnectCommand', () => {
                 connectStub.should.have.been.called;
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
+                logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
             it('should do nothing if the user cancels choosing a environment', async () => {
@@ -226,6 +227,7 @@ describe('EnvironmentConnectCommand', () => {
                 connectStub.should.have.been.calledOnce;
                 mockConnection.connect.should.have.been.calledOnce;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
+                logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
             });
 
             it('should connect to a managed runtime from the tree', async () => {

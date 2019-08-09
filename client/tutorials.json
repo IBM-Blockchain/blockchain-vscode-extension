@@ -1,10 +1,20 @@
 {
+   "tutorials": [
+    {
+        "title": "Adding an Environment to connect to IBM Cloud",
+        "length": "15-20 mins",
+        "difficulty": "simple",
+        "shortDescription": "Add an environment to connect to a a cloud instance and deploy a smart contract",
+        "file": "developer-tutorials/add-environment.md"
+    }
+   ],
     "series":[
         {
             "name": "Introduction",
             "length": "2 hours",
             "difficulty": "simple",
-            "description": "Series of tutorials that will introduce the basic concepts",
+            "shortDescription": "Series of tutorials that will introduce the basic concepts",
+            "longDescription": "Get started with a series of tutorials that show you how to develop a Hyperledger Fabric smart contract locally, then deploy it into an IBM Blockchain Platform cloud environment. You'll also create a gateway to the cloud environment and see how client applications submit and evaluate transactions against a ledger.",
             "tutorials": [
                 {
                     "title": "Local smart contract development",
@@ -23,20 +33,6 @@
                     "length": "20-30 mins",
                     "description": "Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.",
                     "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md"
-                }
-            ]
-        },
-        {
-            "name": "Developer",
-            "length": "2 hours",
-            "difficulty": "simple",
-            "description": "Series of tutorials for specific tasks",
-            "tutorials": [
-                {
-                    "title": "Adding an Environment to connect to IBM Cloud",
-                    "length": "15-20 mins",
-                    "description": "Add an environment to connect to a a cloud instance and deploy a smart contract",
-                    "file": "developer-tutorials/add-environment.md"
                 }
             ]
         }
