@@ -418,6 +418,7 @@ describe('GatewayConnectCommand', () => {
                 choseIdentityQuickPick.should.not.have.been.called;
                 mockConnection.connect.should.have.been.calledWith(testFabricWallet, identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'managed runtime', connectIBM: sinon.match.string });
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, `Connecting to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
             });
 
             it('should handle the user cancelling an identity to choose from when connecting to a fabric runtime', async () => {
@@ -469,6 +470,7 @@ describe('GatewayConnectCommand', () => {
                 choseIdentityQuickPick.should.have.been.calledOnceWithExactly;
                 mockConnection.connect.should.have.been.calledOnceWithExactly(sinon.match.instanceOf(FabricWallet), identity.label, timeout);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('connectCommand', { runtimeData: 'user runtime', connectIBM: sinon.match.string });
+                logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Connecting to myGatewayC');
             });
 
             it('should connect to a non-local fabric with multiple identities, using a quick pick', async () => {

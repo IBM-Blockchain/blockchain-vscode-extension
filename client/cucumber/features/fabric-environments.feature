@@ -15,15 +15,16 @@ Feature: Fabric Environments
         Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to '<tooltip>'
         Examples:
-        | treeItem                    | label                  | tooltip                |
-        | installed smart contract    | + Install              | + Install              |
-        | instantiated smart contract | + Instantiate          | + Instantiate          |
-        | Channels                    | mychannel              | mychannel              |
-        | Node                        | peer0.org1.example.com | peer0.org1.example.com |
-        | Node                        | ca.org1.example.com    | ca.org1.example.com    |
-        | Node                        | orderer.example.com    | orderer.example.com    |
-        | Organizations               | OrdererMSP             | OrdererMSP             |
-        | Organizations               | Org1MSP                | Org1MSP                |
+        | treeItem                    | label                                  | tooltip                                |
+        | environment connected       | Connected to environment: Local Fabric | Connected to environment: Local Fabric |
+        | installed smart contract    | + Install                              | + Install                              |
+        | instantiated smart contract | + Instantiate                          | + Instantiate                          |
+        | Channels                    | mychannel                              | mychannel                              |
+        | Node                        | peer0.org1.example.com                 | peer0.org1.example.com                 |
+        | Node                        | ca.org1.example.com                    | ca.org1.example.com                    |
+        | Node                        | orderer.example.com                    | orderer.example.com                    |
+        | Organizations               | OrdererMSP                             | OrdererMSP                             |
+        | Organizations               | Org1MSP                                | Org1MSP                                |
 
     Scenario Outline: It should open the terminal
         Given the Local Fabric is running
@@ -113,15 +114,16 @@ Feature: Fabric Environments
         Then there should be a <treeItem> tree item with a label '<label>' in the 'Fabric Environments' panel
         And the tree item should have a tooltip equal to '<tooltip>'
         Examples:
-        | treeItem                    | label                  | tooltip                |
-        | installed smart contract    | + Install              | + Install              |
-        | instantiated smart contract | + Instantiate          | + Instantiate          |
-        | Channels                    | mychannel              | mychannel              |
-        | Node                        | peer0.org1.example.com | peer0.org1.example.com |
-        | Node                        | ca.example.com         | ca.example.com         |
-        | Node                        | orderer.example.com    | orderer.example.com    |
-        | Organizations               | OrdererMSP             | OrdererMSP             |
-        | Organizations               | Org1MSP                | Org1MSP                |
+        | treeItem                    | label                              | tooltip                            |
+        | environment connected       | Connected to environment: myFabric | Connected to environment: myFabric |
+        | installed smart contract    | + Install                          | + Install                          |
+        | instantiated smart contract | + Instantiate                      | + Instantiate                      |
+        | Channels                    | mychannel                          | mychannel                          |
+        | Node                        | peer0.org1.example.com             | peer0.org1.example.com             |
+        | Node                        | ca.example.com                     | ca.example.com                     |
+        | Node                        | orderer.example.com                | orderer.example.com                |
+        | Organizations               | OrdererMSP                         | OrdererMSP                         |
+        | Organizations               | Org1MSP                            | Org1MSP                            |
 
     @otherFabric
     Scenario Outline: It should instantiate a smart contract

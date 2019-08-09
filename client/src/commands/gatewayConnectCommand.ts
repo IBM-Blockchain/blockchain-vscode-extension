@@ -140,7 +140,14 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         connection.identityName = identityName;
         FabricConnectionManager.instance().connect(connection, gatewayRegistryEntry);
 
-        outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayRegistryEntry.name}`, `Connecting to ${gatewayRegistryEntry.name}`);
+        let gatewayName: string;
+        if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            gatewayName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+        } else {
+            gatewayName = gatewayRegistryEntry.name;
+        }
+
+        outputAdapter.log(LogType.SUCCESS, `Connecting to ${gatewayName}`);
         if (!runtimeData) {
             const isIBP: boolean = connection.isIBPConnection();
             runtimeData = (isIBP ? 'IBP instance' : 'user runtime');
