@@ -290,7 +290,7 @@
             },
             {
                 "command": "environmentExplorer.refreshEntry",
-                "title": "Refresh Local Fabric Ops",
+                "title": "Refresh Environments",
                 "icon": {
                     "light": "resources/light/refresh_light.svg",
                     "dark": "resources/dark/refresh.svg"

@@ -122,7 +122,7 @@ module.exports = function(): any {
     this.When("I open the terminal for node '{string}'", this.timeout, async (nodeType: string) => {
         const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
-        const nodeItems: NodeTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[2]) as Array<NodeTreeItem>;
+        const nodeItems: NodeTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[3]) as Array<NodeTreeItem>;
 
         const treeItem: NodeTreeItem = nodeItems.find((nodeItem: NodeTreeItem) => nodeItem.node.type === nodeType);
         treeItem.should.not.be.null;
