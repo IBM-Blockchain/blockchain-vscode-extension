@@ -77,6 +77,19 @@ jobs:
     displayName: Run unit tests
     condition: and(succeeded(),  eq(variables['TYPE'], 'unit'))
 
+  - task: PublishTestResults@2
+    condition: and(succeededOrFailed(), eq(variables['TYPE'], 'unit'))
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: '**/unit-tests.xml'
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
+    condition: eq(variables['TYPE'], 'unit')
+
   - bash: |
       set -ev
       cd ./client

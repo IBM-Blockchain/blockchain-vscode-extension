@@ -47,6 +47,7 @@ import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { SetupTreeItem } from './runtimeOps/identitySetupTree/SetupTreeItem';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { EnvironmentConnectedTreeItem } from './runtimeOps/connectedTree/EnvironmentConnectedTreeItem';
 
 export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorerProvider {
 
@@ -134,7 +135,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             }
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
-            this.tree = await this.createConnectedTree();
+            this.tree = await this.createConnectedTree(environmentRegistryEntry);
         } else {
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
@@ -228,8 +229,17 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         return tree;
     }
 
-    private async createConnectedTree(): Promise<Array<BlockchainTreeItem>> {
+    private async createConnectedTree(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<Array<BlockchainTreeItem>> {
         const tree: Array<BlockchainTreeItem> = [];
+
+        let name: string;
+        if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            name = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+        } else {
+            name = environmentRegistryEntry.name;
+        }
+
+        tree.push(new EnvironmentConnectedTreeItem(this, `Connected to environment: ${name}`));
 
         tree.push(new SmartContractsTreeItem(this, vscode.TreeItemCollapsibleState.Expanded));
 

@@ -127,12 +127,12 @@ describe('InstantiateCommand', () => {
             blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
-            const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
+            const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
             const instantiatedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[1]);
             instantiateCommandTreeItem = instantiatedSmartContractsList[0] as InstantiateCommandTreeItem;
 
-            const channels: ChannelsOpsTreeItem = allChildren[1] as ChannelsOpsTreeItem;
+            const channels: ChannelsOpsTreeItem = allChildren[2] as ChannelsOpsTreeItem;
             channelsChildren = await blockchainRuntimeExplorerProvider.getChildren(channels);
         });
 
