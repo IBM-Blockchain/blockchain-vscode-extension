@@ -348,6 +348,7 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
     vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
         // Listen for any changes to the debug state.
         if (e) {
+            await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
             if (e.configuration.env && e.configuration.env.EXTENSION_COMMAND) {
                 await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, e.configuration.env.EXTENSION_COMMAND);
             }

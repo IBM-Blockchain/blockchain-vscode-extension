@@ -439,7 +439,8 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.have.been.calledOnce;
+        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
     });
 
@@ -458,7 +459,8 @@ describe('Extension Tests', () => {
         const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
         const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
         await myExtension.activate(context);
-        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledThrice;
+        executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
         executeCommand.should.have.been.calledWith(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
     });
