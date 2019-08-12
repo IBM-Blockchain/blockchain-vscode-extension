@@ -19,6 +19,8 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import { SampleView } from '../../src/webview/SampleView';
+import { CommandUtil } from '../../src/util/CommandUtil';
+import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 
 // tslint:disable:no-unused-expression
 
@@ -30,24 +32,36 @@ module.exports = function(): any {
      * Given
      */
 
-    this.Given(/I have cloned the repository '(.*?)' and I have opened the '(.*?)' '(.*?)' (contract|application) called '(.*?)'/, this.timeout, async (repositoryName: string, language: string, sampleName: string, _contractApplication: string, contractName: string) => {
+    this.Given(/I have cloned the repository '(.*?)' and I have opened the '(.*?)' '(.*?)' (contract|application) called '(.*?)' with namespace '(.*?)'/, this.timeout, async (repositoryName: string, language: string, sampleName: string, _contractApplication: string, contractName: string, namespace: string) => {
         const tmpRepo: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'repositories');
         const shortRepoName: string = repositoryName.split('/')[1];
         const pathToCheck: string = path.join(tmpRepo, shortRepoName);
         const exists: boolean = await fs.pathExists(pathToCheck);
-        let result: any;
         let webview: SampleView;
         if (!exists) {
-            result = await this.sampleHelper.cloneSample(repositoryName, sampleName);
-            webview = result.sampleView;
+            webview = await this.sampleHelper.cloneSample(repositoryName, namespace);
 
         } else {
-            webview = new SampleView(null, repositoryName, sampleName);
+            webview = new SampleView(null, repositoryName, namespace);
         }
-        await this.sampleHelper.openContract(webview, sampleName.toLowerCase(), language.toLowerCase(), contractName);
+        await this.sampleHelper.openContract(webview, namespace.toLowerCase(), language.toLowerCase(), contractName);
+        if (language === 'JavaScript') {
+            const fileContents: any = await fs.readJson(path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase(), 'package.json'));
+            fileContents.name = sampleName.toLowerCase();
+            await fs.writeJson(path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase(), 'package.json'), fileContents);
+
+        } else if (language === 'TypeScript') {
+            const fileContents: any = await fs.readJson(path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase(), 'package.json'));
+            fileContents.name = sampleName.toLowerCase();
+            await fs.writeJson(path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase(), 'package.json'), fileContents);
+            const sampleDirectory: any = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase());
+            await CommandUtil.sendCommandWithOutput('npm', ['install'], sampleDirectory, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
+
+        }
         this.contractName = sampleName.toLowerCase();
+        this.namespace = namespace;
         this.contractVersion = '1.0.0';
         this.contractLanguage = language;
-        this.contractDirectory = path.join(pathToCheck, 'chaincode', sampleName.toLowerCase(), language.toLowerCase());
+        this.contractDirectory = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase());
     });
 };
