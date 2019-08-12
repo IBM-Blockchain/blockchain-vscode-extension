@@ -1400,6 +1400,9 @@ describe('UserInputUtil', () => {
                 label: 'my-contract - transaction1',
                 data: { name: 'transaction1', contract: 'my-contract' }
             });
+            const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
+            registryEntry.name = 'myFabric';
+            mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
             fabricClientConnectionStub.getMetadata.resolves(
                 {
                     contracts: {

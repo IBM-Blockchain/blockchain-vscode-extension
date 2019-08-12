@@ -491,7 +491,7 @@ describe('testSmartContractCommand', () => {
             showInstantiatedSmartContractsQuickPickStub.should.have.been.called;
             fabricClientConnectionMock.getMetadata.should.have.been.called;
             logSpy.should.have.been.calledThrice;
-            logSpy.should.have.been.calledWith(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript`);
             logSpy.should.have.been.calledWith(LogType.ERROR, `Populated metadata required for generating smart contract tests, see previous error`);
             showLanguageQuickPickStub.should.not.have.been.called;
         });

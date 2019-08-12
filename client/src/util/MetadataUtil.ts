@@ -15,6 +15,12 @@
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../logging/OutputAdapter';
 import { IFabricClientConnection } from '../fabric/IFabricClientConnection';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricRuntime } from '../fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import * as vscode from 'vscode';
 
 // Functions for parsing metadata object
 export class MetadataUtil {
@@ -66,6 +72,7 @@ export class MetadataUtil {
 
         try {
             metadataObj = await connection.getMetadata(instantiatedChaincodeName, channelName);
+            await this.killChaincodeContainer(instantiatedChaincodeName);
             const contractsObject: any = metadataObj.contracts;
             Object.keys(contractsObject).forEach((key: string) => {
                 if (key !== 'org.hyperledger.fabric' && (contractsObject[key].transactions.length > 0)) {
@@ -74,15 +81,38 @@ export class MetadataUtil {
             });
 
             if (checkForEmpty && (contractsMap.size === 0)) {
-                outputAdapter.log(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+                outputAdapter.log(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript`);
                 return;
             }
         } catch (error) {
-            outputAdapter.log(LogType.WARNING, null, `Could not get metadata for smart contract ${instantiatedChaincodeName}. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript. Error: ${error.message}`);
+            outputAdapter.log(LogType.WARNING, null, `Could not get metadata for smart contract ${instantiatedChaincodeName}. The smart contract may not have been developed with the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript. Error: ${error.message}`);
             return null;
         }
 
         return contractsMap;
+    }
+
+    private static async killChaincodeContainer(chaincodeName: string): Promise<void> {
+        const gatewayRegistryEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
+        if (gatewayRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            // make sure there is a debug session and its from a smart contract
+            const activeSession: vscode.DebugSession = vscode.debug.activeDebugSession;
+            if (activeSession && activeSession.configuration.env && activeSession.configuration.env.CORE_CHAINCODE_ID_NAME) {
+                const chaincodeInfo: string[] = activeSession.configuration.env.CORE_CHAINCODE_ID_NAME.split(':');
+                const name: string = chaincodeInfo[0];
+                const version: string = chaincodeInfo[1];
+
+                // make sure we are debugging the one getting we are getting meta data for
+                if (chaincodeName === name) {
+
+                    const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+                    const isContainerRunning: boolean = await runtime.isRunning([name, version]);
+                    if (isContainerRunning) {
+                        await runtime.killChaincode([name, version]);
+                    }
+                }
+            }
+        }
     }
 
 }
