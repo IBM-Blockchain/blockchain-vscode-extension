@@ -648,7 +648,16 @@ export class UserInputUtil {
         }
 
         const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [];
-        const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        let transactionNamesMap: Map<string, string[]>;
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'IBM Blockchain Platform Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>) => {
+            progress.report({ message: 'Getting transaction information' });
+            transactionNamesMap = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        });
+
         if (!transactionNamesMap) {
             const transactionName: string = await UserInputUtil.showInputBox('What function do you want to call?');
             if (!transactionName) {
