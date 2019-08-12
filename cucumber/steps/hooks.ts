@@ -62,24 +62,20 @@ module.exports = function(): any {
                 this.sampleHelper = new SampleHelper(this.mySandBox, this.userInputUtilHelper, this.smartContractHelper);
 
                 VSCodeBlockchainOutputAdapter.instance().setConsole(true);
-                await ExtensionUtil.activateExtension();
-
-                VSCodeBlockchainOutputAdapter.instance().setConsole(true);
 
                 await TestUtil.storeBypassPreReqs();
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
                 await ExtensionUtil.activateExtension();
+                const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
 
-                try {
-                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
-                } catch (error) {
-                    // If the Fabric is already torn down, do nothing
-                }
                 this.userInputUtilHelper.showConfirmationWarningMessageStub.reset();
                 firstTime = false;
 
-                const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
+                const extDirExists: boolean = await fs.pathExists(extDir);
+                if (!extDirExists) {
+                    await fs.mkdir(extDir);
+                }
 
                 const packageDir: string = path.join(extDir, 'packages');
                 const contractDir: string = path.join(extDir, 'contracts');
@@ -94,15 +90,13 @@ module.exports = function(): any {
                     }
                 }
 
-                const tmpRepo: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'repositories');
+                const tmpRepo: string = path.join(extDir, 'repositories');
 
-                const tmpRepoExists: boolean = await fs.pathExists(tmpRepo);
-                if (tmpRepoExists) {
+                const tmpExists: boolean = await fs.pathExists(tmpRepo);
+                if (tmpExists) {
                     await fs.remove(tmpRepo);
                 }
                 await fs.mkdir(tmpRepo);
-
-                await ExtensionUtil.activateExtension();
 
                 await TestUtil.storeGatewaysConfig();
                 await TestUtil.storeRuntimesConfig();
@@ -116,6 +110,14 @@ module.exports = function(): any {
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_ENVIRONMENTS, [], vscode.ConfigurationTarget.Global);
+
+                await ExtensionUtil.activateExtension();
+
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+                } catch (error) {
+                    // If the Fabric is already torn down, do nothing
+                }
             }
         } catch (error) {
             // tslint:disable-next-line: no-console

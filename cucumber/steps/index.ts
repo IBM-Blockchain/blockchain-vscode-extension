@@ -23,7 +23,6 @@ const installInstantiateUpgradeSteps: any = require('./installInstantiateUpgrade
 const wallletAndIdentitySteps: any = require('./walletAndIdentity.steps');
 const gatewaySteps: any = require('./gateway.steps');
 const fabricEnvironmentSteps: any = require('./fabricEnvironment.steps');
-const localFabricSteps: any = require('./localFabric.steps');
 const sampleSteps: any = require('./sample.steps');
 // We can break up step definitions into multiple files
 module.exports = function(): any {
@@ -35,6 +34,5 @@ module.exports = function(): any {
     wallletAndIdentitySteps.call(this);
     gatewaySteps.call(this);
     fabricEnvironmentSteps.call(this);
-    localFabricSteps.call(this);
     sampleSteps.call(this);
 };
