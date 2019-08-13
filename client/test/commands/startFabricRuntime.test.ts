@@ -60,6 +60,8 @@ describe('startFabricRuntime', () => {
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         mockRuntime.isGenerated.resolves(true);
         mockRuntime.generate.resolves();
+        mockRuntime.isCreated.resolves(true);
+        mockRuntime.create.resolves();
         mockRuntime.start.resolves();
         mockRuntime.importWalletsAndIdentities.resolves();
         sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
@@ -96,9 +98,11 @@ describe('startFabricRuntime', () => {
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'startFabricRuntime');
     });
 
-    it('should generate and start a Fabric runtime', async () => {
+    it('should create, generate and start a Fabric runtime', async () => {
+        mockRuntime.isCreated.resolves(false);
         mockRuntime.isGenerated.resolves(false);
         await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+        mockRuntime.create.should.have.been.calledOnce;
         mockRuntime.generate.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         mockRuntime.start.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         commandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);

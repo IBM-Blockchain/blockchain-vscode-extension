@@ -81,13 +81,13 @@ jobs:
     condition: and(succeededOrFailed(), eq(variables['TYPE'], 'unit'))
     inputs:
       testRunner: JUnit
-      testResultsFiles: '**/unit-tests.xml'
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/client/unit-tests.xml'
 
   - task: PublishCodeCoverageResults@1
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/client/coverage/*coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/client/coverage'
     condition: eq(variables['TYPE'], 'unit')
 
   - bash: |
