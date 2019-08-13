@@ -8,6 +8,9 @@ jobs:
       unit_test_mac:
         imageName: 'macos-10.14'
         TYPE: 'unit'
+      unit_test_windows:
+        imageName: 'vs2017-win2016'
+        TYPE: 'unit'
       cucumber:
         imageName: 'ubuntu-16.04'
         TYPE: 'cucumber'
@@ -65,6 +68,17 @@ jobs:
     env:
       DISPLAY: ':99.0'
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Darwin'),  eq(variables['TYPE'], 'unit'))
+
+  - bash: |
+      set -ev
+      cd ./client
+      npm rebuild grpc --target=3.0.0 --runtime=electron --dist-url=https://atom.io/download/electron --target_arch 32
+      rm -rf ./node_modules/grpc/src/node/extension_binary/node-v64-win32-ia32-unknown
+      mv ./node_modules/grpc/src/node/extension_binary/electron-v3.0-win32-ia32-unknown ./node_modules/grpc/src/node/extension_binary/node-v64-win32-ia32-unknown
+    displayName: Rebuild windows
+    env:
+      DISPLAY: ':99.0'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'),  eq(variables['TYPE'], 'unit'))
 
   - bash: |
       set -ev
