@@ -158,7 +158,7 @@ describe('environmentExplorer', () => {
             it('should display setup tree if not setup', async () => {
 
                 const peerNode: FabricNode = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
-                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', undefined, undefined, undefined);
+                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, undefined);
                 const caNode: FabricNode = FabricNode.newCertificateAuthority('ca1', 'ca1.org1.example.com', 'http://ca.sample.org', undefined, undefined, undefined, undefined, undefined, undefined);
 
                 mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, ordererNode, caNode]);
@@ -195,6 +195,99 @@ describe('environmentExplorer', () => {
                 children[4].label.should.equal('ca1.org1.example.com   ⚠');
                 children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[4].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+            });
+
+            it('should display setup tree if not setup with orderer cluster name', async () => {
+
+                const peerNode: FabricNode = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
+                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Ordering Service');
+                const ordererNode1: FabricNode = FabricNode.newOrderer('orderer1', 'orderer1.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Ordering Service');
+
+                const caNode: FabricNode = FabricNode.newCertificateAuthority('ca1', 'ca1.org1.example.com', 'http://ca.sample.org', undefined, undefined, undefined, undefined, undefined, undefined);
+
+                mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, ordererNode, ordererNode1, caNode]);
+
+                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistry.name = 'myEnvironment';
+                environmentRegistry.managedRuntime = false;
+
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                };
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
+
+                blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
+
+                const children: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                commandStub.should.have.been.calledWith('setContext', 'blockchain-environment-setup', true);
+                should.not.exist(blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp']);
+
+                children.length.should.equal(5);
+                children[0].label.should.equal(`Setting up: ${environmentRegistry.name}`);
+                children[1].label.should.equal(`(Click each node to perform setup)`);
+                children[2].label.should.equal('peer1.org1.example.com   ⚠');
+                children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
+                children[3].label.should.equal('Ordering Service   ⚠');
+                children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[4].label.should.equal('ca1.org1.example.com   ⚠');
+                children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[4].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+            });
+
+            it('should display setup tree with multiple ordering services', async () => {
+
+                const peerNode: FabricNode = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
+                const ordererNode: FabricNode = FabricNode.newOrderer('orderer', 'orderer.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Ordering Service');
+                const ordererNode1: FabricNode = FabricNode.newOrderer('orderer1', 'orderer1.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Ordering Service');
+                const ordererNode2: FabricNode = FabricNode.newOrderer('orderer2', 'orderer2.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Another Ordering Service');
+                const ordererNode3: FabricNode = FabricNode.newOrderer('orderer3', 'orderer3.example.com', 'http://orderer.sample.org', undefined, undefined, undefined, 'Another Ordering Service');
+
+                const caNode: FabricNode = FabricNode.newCertificateAuthority('ca1', 'ca1.org1.example.com', 'http://ca.sample.org', undefined, undefined, undefined, undefined, undefined, undefined);
+
+                mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([peerNode, ordererNode, ordererNode1, ordererNode2, ordererNode3, caNode]);
+
+                const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistry.name = 'myEnvironment';
+                environmentRegistry.managedRuntime = false;
+
+                const command: vscode.Command = {
+                    command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
+                    title: '',
+                    arguments: []
+                };
+
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
+
+                blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
+
+                const children: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
+
+                commandStub.should.have.been.calledWith('setContext', 'blockchain-environment-setup', true);
+                should.not.exist(blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp']);
+
+                children.length.should.equal(6);
+                children[0].label.should.equal(`Setting up: ${environmentRegistry.name}`);
+                children[1].label.should.equal(`(Click each node to perform setup)`);
+                children[2].label.should.equal('peer1.org1.example.com   ⚠');
+                children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
+                children[3].label.should.equal('Ordering Service   ⚠');
+                children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[4].label.should.equal('Another Ordering Service   ⚠');
+                children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[4].command.arguments.should.deep.equal([environmentRegistry, ordererNode2]);
+                children[5].label.should.equal('ca1.org1.example.com   ⚠');
+                children[5].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
+                children[5].command.arguments.should.deep.equal([environmentRegistry, caNode]);
             });
 
             it('should connect if all setup', async () => {
@@ -302,7 +395,7 @@ describe('environmentExplorer', () => {
 
                 fabricConnection.getAllOrganizationNames.returns(['Org1', 'Org2']);
 
-                fabricConnection.getAllOrdererNames.returns(['orderer1']);
+                fabricConnection.getAllOrdererNames.returns(['orderer1', 'orderer2']);
 
                 const map: Map<string, Array<string>> = new Map<string, Array<string>>();
                 map.set('channelOne', ['peerOne']);
@@ -400,7 +493,54 @@ describe('environmentExplorer', () => {
                 fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
                 fabricConnection.getNode.withArgs('peerTwo').returns(FabricNode.newPeer('peerTwo', 'peerTwo', 'grpc://localhost:8051', 'wallet', 'identity', 'Org1MSP'));
                 fabricConnection.getNode.withArgs('ca-name').returns(FabricNode.newCertificateAuthority('ca-name', 'ca-name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP', 'admin', 'adminpw'));
-                fabricConnection.getNode.withArgs('orderer1').returns(FabricNode.newOrderer('orderer1', 'orderer1', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('orderer1').returns(FabricNode.newOrderer('orderer1', 'orderer1', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
+                fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', undefined));
+
+                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+                allChildren.length.should.equal(5);
+
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                items.length.should.equal(5);
+                const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
+                peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerOne.contextValue.should.equal('blockchain-peer-item');
+                peerOne.label.should.equal('peerOne');
+                peerOne.node.api_url.should.equal('grpc://localhost:7051');
+
+                const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
+                peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerTwo.contextValue.should.equal('blockchain-peer-item');
+                peerTwo.label.should.equal('peerTwo');
+                peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+
+                const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
+                ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
+                ca.label.should.equal('ca-name');
+                ca.node.api_url.should.equal('http://localhost:7054');
+
+                const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
+                orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer.label.should.equal('orderer1');
+                orderer.node.api_url.should.equal('grpc://localhost:7050');
+
+                const orderer2: OrdererTreeItem = items[4] as OrdererTreeItem;
+                orderer2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer2.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer2.label.should.equal('orderer2');
+                orderer2.node.api_url.should.equal('grpc://localhost:7050');
+
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it('should show peers, certificate authorities, and orderer nodes correctly with cluster name', async () => {
+                fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
+                fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('peerTwo').returns(FabricNode.newPeer('peerTwo', 'peerTwo', 'grpc://localhost:8051', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('ca-name').returns(FabricNode.newCertificateAuthority('ca-name', 'ca-name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP', 'admin', 'adminpw'));
+                fabricConnection.getNode.withArgs('orderer1').returns(FabricNode.newOrderer('orderer1', 'orderer1', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my ordering service'));
+                fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my ordering service'));
 
                 allChildren = await blockchainRuntimeExplorerProvider.getChildren();
                 allChildren.length.should.equal(5);
@@ -428,8 +568,57 @@ describe('environmentExplorer', () => {
                 const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
                 orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
-                orderer.label.should.equal('orderer1');
+                orderer.label.should.equal('my ordering service');
                 orderer.node.api_url.should.equal('grpc://localhost:7050');
+
+                logSpy.should.not.have.been.calledWith(LogType.ERROR);
+            });
+
+            it('should show peers, certificate authorities, and multiple orderer nodes correctly with cluster name', async () => {
+                fabricConnection.getAllCertificateAuthorityNames.returns(['ca-name']);
+                fabricConnection.getAllOrdererNames.returns(['orderer1', 'orderer2', 'orderer3', 'orderer4']);
+                fabricConnection.getNode.withArgs('peerOne').returns(FabricNode.newPeer('peerOne', 'peerOne', 'grpc://localhost:7051', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('peerTwo').returns(FabricNode.newPeer('peerTwo', 'peerTwo', 'grpc://localhost:8051', 'wallet', 'identity', 'Org1MSP'));
+                fabricConnection.getNode.withArgs('ca-name').returns(FabricNode.newCertificateAuthority('ca-name', 'ca-name', 'http://localhost:7054', 'ca_name', 'wallet', 'identity', 'Org1MSP', 'admin', 'adminpw'));
+                fabricConnection.getNode.withArgs('orderer1').returns(FabricNode.newOrderer('orderer1', 'orderer1', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my ordering service'));
+                fabricConnection.getNode.withArgs('orderer2').returns(FabricNode.newOrderer('orderer2', 'orderer2', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my ordering service'));
+                fabricConnection.getNode.withArgs('orderer3').returns(FabricNode.newOrderer('orderer3', 'orderer3', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my other ordering service'));
+                fabricConnection.getNode.withArgs('orderer4').returns(FabricNode.newOrderer('orderer4', 'orderer4', 'grpc://localhost:7050', 'wallet', 'identity', 'Org1MSP', 'my other ordering service'));
+
+                allChildren = await blockchainRuntimeExplorerProvider.getChildren();
+                allChildren.length.should.equal(5);
+
+                const items: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
+                items.length.should.equal(5);
+                const peerOne: PeerTreeItem = items[0] as PeerTreeItem;
+                peerOne.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerOne.contextValue.should.equal('blockchain-peer-item');
+                peerOne.label.should.equal('peerOne');
+                peerOne.node.api_url.should.equal('grpc://localhost:7051');
+
+                const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
+                peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                peerTwo.contextValue.should.equal('blockchain-peer-item');
+                peerTwo.label.should.equal('peerTwo');
+                peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+
+                const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
+                ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
+                ca.label.should.equal('ca-name');
+                ca.node.api_url.should.equal('http://localhost:7054');
+
+                const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
+                orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer.label.should.equal('my ordering service');
+                orderer.node.api_url.should.equal('grpc://localhost:7050');
+
+                const orderer2: OrdererTreeItem = items[4] as OrdererTreeItem;
+                orderer2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
+                orderer2.contextValue.should.equal('blockchain-runtime-orderer-item');
+                orderer2.label.should.equal('my other ordering service');
+                orderer2.node.api_url.should.equal('grpc://localhost:7050');
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });

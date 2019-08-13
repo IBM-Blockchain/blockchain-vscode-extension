@@ -98,7 +98,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
             peerNode = FabricNode.newPeer('peer.org1.example.com', 'peer.org1.example.com', 'http://localhost:17051', undefined, undefined, 'Org1MSP');
             caNodeWithoutCreds = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, undefined, undefined);
             caNodeWithCreds = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, 'admin', 'adminpw');
-            ordererNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp');
+            ordererNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
 
             nodes.peerNode = peerNode;
             nodes.caNodeWithCreds = caNodeWithCreds;

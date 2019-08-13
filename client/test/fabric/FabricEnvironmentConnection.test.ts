@@ -129,7 +129,8 @@ describe('FabricEnvironmentConnection', () => {
                 `grpc://localhost:7050`,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
                 FabricRuntimeUtil.ADMIN_USER,
-                'OrdererMSP'
+                'OrdererMSP',
+                'myCluster'
             ),
             FabricNode.newSecureOrderer(
                 'orderer2.example.com',
@@ -138,7 +139,8 @@ describe('FabricEnvironmentConnection', () => {
                 TLS_CA_CERTIFICATE,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
                 FabricRuntimeUtil.ADMIN_USER,
-                'OrdererMSP'
+                'OrdererMSP',
+                'myCluster'
             ),
             FabricNode.newCouchDB(
                 'couchdb',
@@ -262,7 +264,8 @@ describe('FabricEnvironmentConnection', () => {
                 TLS_CA_CERTIFICATE,
                 `${FabricWalletUtil.LOCAL_WALLET}-ops`,
                 FabricRuntimeUtil.ADMIN_USER,
-                'OrdererMSP'
+                'OrdererMSP',
+                'myCluster'
             );
             node.ssl_target_name_override = 'orderer2.example.com';
             mockRuntime.getNodes.resolves([node]);

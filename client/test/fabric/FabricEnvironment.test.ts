@@ -169,6 +169,41 @@ describe('FabricEnvironment', () => {
 
             writeStub.should.have.been.calledWith(nodePath, node);
         });
+
+        it('should update orderer node with cluster name', async () => {
+            const node: FabricNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'myCluster');
+
+            sandbox.stub(environment, 'getNodes').resolves([]);
+
+            const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            await environment.updateNode(node);
+
+            writeStub.should.have.been.calledWith(nodePath, node);
+        });
+
+        it('should update all orderer nodes in same cluster', async () => {
+            const node: FabricNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+
+            const otherNode: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'myCluster');
+            const differentNode: FabricNode = FabricNode.newOrderer('order2', 'orderer2.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
+            const differnet2Node: FabricNode = FabricNode.newOrderer('order3', 'orderer3.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', 'otherCluster');
+
+            const updatedOtherNode: FabricNode = FabricNode.newOrderer('order1', 'orderer1.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+
+            const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
+            const otherNodePath: string = path.join(environmentPath, 'nodes', `${otherNode.name}.json`);
+            const writeStub: sinon.SinonStub = sandbox.stub(fs, 'writeJson');
+
+            sandbox.stub(environment, 'getNodes').resolves([otherNode, differentNode, differnet2Node]);
+
+            await environment.updateNode(node);
+
+            writeStub.should.have.been.calledTwice;
+            writeStub.firstCall.should.have.been.calledWith(otherNodePath, updatedOtherNode);
+            writeStub.secondCall.should.have.been.calledWith(nodePath, node);
+        });
     });
 
     describe('#requireSetup', () => {

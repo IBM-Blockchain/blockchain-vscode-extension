@@ -179,8 +179,14 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             }
 
             if (node.type === FabricNodeType.ORDERER) {
-                const ordererTreeItem: OrdererTreeItem = new OrdererTreeItem(this, node.name, node, command);
-                tree.push(ordererTreeItem);
+                if (node.cluster_name) {
+                    const foundTreeItem: BlockchainTreeItem = tree.find((treeItem: OrdererTreeItem) => treeItem.node && treeItem.node.type === FabricNodeType.ORDERER && node.cluster_name === treeItem.node.cluster_name);
+                    if (!foundTreeItem) {
+                        tree.push(new OrdererTreeItem(this, node.cluster_name, node, command));
+                    }
+                } else {
+                    tree.push(new OrdererTreeItem(this, node.name, node, command));
+                }
             }
         }
 
@@ -305,9 +311,18 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             }
 
             const ordererNames: Array<string> = connection.getAllOrdererNames();
+
             for (const ordererName of ordererNames) {
                 const node: FabricNode = connection.getNode(ordererName);
-                tree.push(new OrdererTreeItem(this, ordererName, node));
+                if (node.cluster_name) {
+                    const foundTreeItem: BlockchainTreeItem = tree.find((treeItem: OrdererTreeItem) => node.type === FabricNodeType.ORDERER && node.cluster_name === treeItem.node.cluster_name);
+                    if (!foundTreeItem) {
+                        tree.push(new OrdererTreeItem(this, node.cluster_name, node));
+                    }
+                } else {
+                    tree.push(new OrdererTreeItem(this, node.name, node));
+                }
+
             }
 
         } catch (error) {
