@@ -33,6 +33,10 @@ export async function startFabricRuntime(): Promise<void> {
     }, async (progress: vscode.Progress<{ message: string }>) => {
         progress.report({ message: `Starting Fabric runtime ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}` });
         try {
+            const isCreated: boolean = await runtime.isCreated();
+            if (!isCreated) {
+                await runtime.create();
+            }
             const generated: boolean = await runtime.isGenerated();
             if (!generated) {
                 await runtime.generate(outputAdapter);
