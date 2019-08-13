@@ -104,7 +104,7 @@ describe('FabricConnection', () => {
 
         fabricClientStub.getMspid.returns('myMSPId');
         fabricCAStub = mySandBox.createStubInstance(fabricClientCA);
-        fabricCAStub.enroll.returns({certificate : 'myCert', key : { toBytes : mySandBox.stub().returns('myKey')}});
+        fabricCAStub.enroll.returns({ certificate: 'myCert', key: { toBytes: mySandBox.stub().returns('myKey') } });
         fabricCAStub.register.resolves('its a secret');
         fabricClientStub.getCertificateAuthority.returns(fabricCAStub);
         fabricGatewayStub.getClient.returns(fabricClientStub);
@@ -115,7 +115,7 @@ describe('FabricConnection', () => {
         fabricChannelStub.sendInstantiateProposal.resolves([{}, {}]);
         fabricChannelStub.sendUpgradeProposal.resolves([{}, {}]);
         fabricChannelStub.sendTransaction.resolves({ status: 'SUCCESS' });
-        fabricChannelStub.getOrganizations.resolves([{id: 'Org1MSP'}]);
+        fabricChannelStub.getOrganizations.resolves([{ id: 'Org1MSP' }]);
 
         const fabricNetworkStub: any = {
             getChannel: mySandBox.stub().returns(fabricChannelStub)
@@ -137,7 +137,7 @@ describe('FabricConnection', () => {
     describe('constructor', () => {
         it('should set output adapter', async () => {
             const adapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 orderers: {
                     'orderer.example.com': {
                         url: 'grpc://localhost:7050'
@@ -152,7 +152,7 @@ describe('FabricConnection', () => {
     describe('connect', () => {
 
         it('should use discovery as localhost for localhost orderer connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 orderers: {
                     'orderer.example.com': {
                         url: 'grpc://localhost:7050'
@@ -176,7 +176,7 @@ describe('FabricConnection', () => {
         });
 
         it('should not use discovery as localhost for remote orderer connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 orderers: {
                     'orderer.example.com': {
                         url: 'grpc://192.168.1.1:7050'
@@ -199,7 +199,7 @@ describe('FabricConnection', () => {
         });
 
         it('should not use discovery as localhost for dodgy orderer connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 orderers: {
                     'orderer.example.com': {
                         missingUrl: 'grpc://192.168.1.1:7050'
@@ -222,7 +222,7 @@ describe('FabricConnection', () => {
         });
 
         it('should use discovery as localhost for localhost peer connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 peers: {
                     'peer0.org1.example.com': {
                         url: 'grpc://localhost:7051'
@@ -245,7 +245,7 @@ describe('FabricConnection', () => {
         });
 
         it('should not use discovery as localhost for remote peer connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 peers: {
                     'peer0.org1.example.com': {
                         url: 'grpc://192.168.1.1:7051'
@@ -268,7 +268,7 @@ describe('FabricConnection', () => {
         });
 
         it('should not use discovery as localhost for dodgy peer connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 peers: {
                     'peer0.org1.example.com': {
                         missingUrl: 'grpc://192.168.1.1:7051'
@@ -291,7 +291,7 @@ describe('FabricConnection', () => {
         });
 
         it('should use discovery as localhost for localhost certificate authority connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 certificateAuthorities: {
                     'ca.org1.example.com': {
                         url: 'http://localhost:7054'
@@ -314,7 +314,7 @@ describe('FabricConnection', () => {
         });
 
         it('should not use discovery as localhost for remote certificate authority connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 certificateAuthorities: {
                     'ca.org1.example.com': {
                         url: 'http://192.168.1.1:7054'
@@ -337,7 +337,7 @@ describe('FabricConnection', () => {
         });
 
         it('should not use discovery as localhost for dodgy certificate authority connections', async () => {
-            const connectionProfile: any  = {
+            const connectionProfile: any = {
                 certificateAuthorities: {
                     'ca.org1.example.com': {
                         missingUrl: 'http://192.168.1.1:7054'
@@ -591,11 +591,17 @@ describe('FabricConnection', () => {
             await fabricConnection.createChannelMap().should.be.rejectedWith(`Cannot connect to Fabric: ${error.message}`);
         });
 
+        it('should handle no peers', async () => {
+            mySandBox.stub(fabricConnection, 'getAllPeerNames').returns([]);
+
+            await fabricConnection.createChannelMap().should.be.rejectedWith('Error querying channel list: Could not find any peers to query the list of channels from');
+        });
+
         it('should handle any other errors', async () => {
             const error: Error = new Error('some error');
             mySandBox.stub(fabricConnection, 'getAllPeerNames').throws(error);
 
-            await fabricConnection.createChannelMap().should.be.rejectedWith(`Error creating channel map: ${error.message}`);
+            await fabricConnection.createChannelMap().should.be.rejectedWith(`Error querying channel list: ${error.message}`);
         });
     });
 });

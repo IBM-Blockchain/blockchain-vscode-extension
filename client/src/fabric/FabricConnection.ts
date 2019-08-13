@@ -104,6 +104,10 @@ export abstract class FabricConnection {
         try {
             const allPeerNames: Array<string> = this.getAllPeerNames();
 
+            if (allPeerNames.length === 0) {
+                throw new Error('Could not find any peers to query the list of channels from');
+            }
+
             const channelMap: Map<string, Array<string>> = new Map<string, Array<string>>();
 
             for (const peer of allPeerNames) {
@@ -126,7 +130,7 @@ export abstract class FabricConnection {
             if (error.message && error.message.includes('Received http2 header with status: 503')) { // If gRPC can't connect to Fabric
                 throw new Error(`Cannot connect to Fabric: ${error.message}`);
             } else {
-                throw new Error(`Error creating channel map: ${error.message}`);
+                throw new Error(`Error querying channel list: ${error.message}`);
             }
         }
     }
