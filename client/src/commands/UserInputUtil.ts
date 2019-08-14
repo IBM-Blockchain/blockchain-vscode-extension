@@ -88,7 +88,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, showLocalFabric: boolean = false): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
@@ -97,8 +97,10 @@ export class UserInputUtil {
 
         const allEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
 
-        const runtimeEnvironment: FabricEnvironmentRegistryEntry = await FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-        allEnvironments.push(runtimeEnvironment);
+        if (showLocalFabric) {
+            const runtimeEnvironment: FabricEnvironmentRegistryEntry = await FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+            allEnvironments.push(runtimeEnvironment);
+        }
 
         const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
         allEnvironments.push(...environments);

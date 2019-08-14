@@ -43,6 +43,7 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
+import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -201,7 +202,26 @@ describe('UserInputUtil', () => {
     });
 
     describe('showEnvironmentQuickPickBox', () => {
-        it('should show the environments', async () => {
+        it('should show only remote environments', async () => {
+            const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistry.name = 'myFabric';
+            environmentRegistry.managedRuntime = false;
+
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([environmentRegistry]);
+            quickPickStub.resolves({ label: environmentRegistry.name, data: environmentRegistry });
+
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment');
+
+            result.data.name.should.equal(environmentRegistry.name);
+
+            quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }], {
+                ignoreFocusOut: false,
+                canPickMany: false,
+                placeHolder: 'choose an environment'
+            });
+        });
+
+        it('should show all environments', async () => {
             const environmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistry.name = 'myFabric';
             environmentRegistry.managedRuntime = false;
@@ -211,14 +231,14 @@ describe('UserInputUtil', () => {
             localFabricEntry.managedRuntime = true;
             localFabricEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
-            mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
+            mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([environmentRegistry]);
             quickPickStub.resolves({ label: environmentRegistry.name, data: environmentRegistry });
 
-            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment');
+            const result: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('choose an environment', true);
 
             result.data.name.should.equal(environmentRegistry.name);
 
-            quickPickStub.should.have.been.calledWith([{label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry}, { label: environmentRegistry.name, data: environmentRegistry }], {
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry }, { label: environmentRegistry.name, data: environmentRegistry }], {
                 ignoreFocusOut: false,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
@@ -1040,7 +1060,7 @@ describe('UserInputUtil', () => {
 
         it('should return a uri and all selected if select many is set', async () => {
             quickPickStub.resolves(UserInputUtil.BROWSE_LABEL);
-            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }, { fsPath: '/some/otherPath'}]);
+            const showOpenDialogStub: sinon.SinonStub = mySandBox.stub(vscode.window, 'showOpenDialog').resolves([{ fsPath: '/some/path' }, { fsPath: '/some/otherPath' }]);
             const placeHolder: string = 'Select all files to import';
             const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
             const openDialogOptions: vscode.OpenDialogOptions = {
@@ -1719,7 +1739,7 @@ describe('UserInputUtil', () => {
             result.label.should.equal(walletEntryOne.name);
             result.data.should.deep.equal(walletEntryOne);
 
-            const items: any = [{label: walletEntryOne.name, data: walletEntryOne}, {label: walletEntryTwo.name, data: walletEntryTwo}, {label: '+ Create new wallet', data: undefined}];
+            const items: any = [{ label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }, { label: '+ Create new wallet', data: undefined }];
             quickPickStub.should.have.been.calledWith(items, {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -2000,13 +2020,13 @@ describe('UserInputUtil', () => {
 
     describe('showQuickPick', () => {
         it('should show the items passed in', async () => {
-           const items: string[] = ['itemOne', 'itemTwo'];
-           quickPickStub.resolves('itemOne');
+            const items: string[] = ['itemOne', 'itemTwo'];
+            quickPickStub.resolves('itemOne');
 
-           const result: string = await UserInputUtil.showQuickPick('choose an item', items);
-           result.should.equal('itemOne');
+            const result: string = await UserInputUtil.showQuickPick('choose an item', items);
+            result.should.equal('itemOne');
 
-           quickPickStub.should.have.been.calledWith(items, sinon.match.any);
+            quickPickStub.should.have.been.calledWith(items, sinon.match.any);
         });
     });
 
