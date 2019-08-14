@@ -1278,7 +1278,7 @@
         "ejs": "^2.6.1",
         "find-free-port": "^2.0.0",
         "fs-extra": "^7.0.1",
-        "generator-fabric": "0.0.36",
+        "generator-fabric": "0.0.37",
         "handlebars": "^4.1.2",
         "home-dir": "1.0.0",
         "semver": "^6.3.0",
