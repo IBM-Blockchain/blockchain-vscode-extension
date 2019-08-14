@@ -104,7 +104,7 @@ These some basic examples showing the required properties
     "name": "peer0.org1.example.com",
     "api_url": "grpc://localhost:17051",
     "type": "fabric-peer",
-    "msp_id": "Org1MSP",
+    "msp_id": "Org1MSP"
 }
 ```
 
@@ -113,7 +113,7 @@ These some basic examples showing the required properties
     "name": "orderer.example.com",
     "api_url": "grpc://localhost:17050",
     "type": "fabric-orderer",
-    "msp_id": "OrdererMSP",
+    "msp_id": "OrdererMSP"
 }
 ```
 
@@ -125,13 +125,13 @@ Here is how to have multiple nodes in one JSON file
         "name": "peer0.org1.example.com",
         "api_url": "grpc://localhost:17051",
         "type": "fabric-peer",
-        "msp_id": "Org1MSP",
+        "msp_id": "Org1MSP"
     },
     {
         "name": "orderer.example.com",
         "api_url": "grpc://localhost:17050",
         "type": "fabric-orderer",
-        "msp_id": "OrdererMSP",
+        "msp_id": "OrdererMSP"
     }
 ]
 

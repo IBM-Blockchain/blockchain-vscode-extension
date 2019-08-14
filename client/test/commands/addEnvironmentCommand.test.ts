@@ -37,11 +37,13 @@ describe('AddEnvironmentCommand', () => {
     let showInputBoxStub: sinon.SinonStub;
     let browseStub: sinon.SinonStub;
     let ensureDirStub: sinon.SinonStub;
+    let removeDirStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
     let sendTelemetryEventStub: sinon.SinonStub;
     let addMoreStub: sinon.SinonStub;
     let updateNodeStub: sinon.SinonStub;
     let readJsonStub: sinon.SinonStub;
+    let getNodesStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -63,10 +65,22 @@ describe('AddEnvironmentCommand', () => {
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             addMoreStub = mySandBox.stub(UserInputUtil, 'addMoreNodes').resolves(UserInputUtil.DONE_ADDING_NODES);
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
+            removeDirStub = mySandBox.stub(fs, 'remove').resolves();
 
             executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
             updateNodeStub = mySandBox.stub(FabricEnvironment.prototype, 'updateNode').resolves();
+            getNodesStub = mySandBox.stub(FabricEnvironment.prototype, 'getNodes').resolves([{
+                short_name: 'peer0.org1.example.com',
+                name: 'peer0.org1.example.com',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'fabric-peer',
+                wallet: 'local_fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            }]);
 
             readJsonStub = mySandBox.stub(fs, 'readJson').resolves({
                 short_name: 'peer0.org1.example.com',
@@ -102,6 +116,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledOnce;
+            getNodesStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
@@ -149,6 +164,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
@@ -183,6 +199,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
             ensureDirStub.should.have.been.calledTwice;
             updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledTwice;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
@@ -214,6 +231,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledTwice;
+            getNodesStub.should.have.been.calledOnce;
 
             addMoreStub.should.have.been.calledTwice;
 
@@ -336,6 +354,7 @@ describe('AddEnvironmentCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledOnce;
+            getNodesStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
             logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new environment');
@@ -383,11 +402,48 @@ describe('AddEnvironmentCommand', () => {
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
             ensureDirStub.should.have.been.calledOnce;
             updateNodeStub.should.have.been.calledOnce;
+            getNodesStub.should.have.been.calledOnce;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
-            logSpy.should.have.been.calledWith(LogType.ERROR,  `Error importing node file ${uri.fsPath}: A node should have a name property`, `Error importing node file ${uri.fsPath}: Error: A node should have a name property`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error importing node file ${uri.fsPath}: A node should have a name property`, `Error importing node file ${uri.fsPath}: Error: A node should have a name property`);
             logSpy.should.have.been.calledWith(LogType.WARNING, 'Added a new environment, but some nodes could not be added');
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addEnvironmentCommand');
+        });
+
+        it('should not add an environment if cannot add any nodes', async () => {
+            getNodesStub.resolves([]);
+            showInputBoxStub.onFirstCall().resolves('myEnvironment');
+
+            readJsonStub.resolves({
+                short_name: 'invalid',
+                api_url: 'grpc://localhost:17051',
+                chaincode_url: 'grpc://localhost:17052',
+                type: 'fabric-peer',
+                wallet: 'local_fabric_wallet',
+                identity: 'admin',
+                msp_id: 'Org1MSP',
+                container_name: 'fabricvscodelocalfabric_peer0.org1.example.com'
+            });
+
+            const uri: vscode.Uri = vscode.Uri.file(path.join('myPath'));
+            browseStub.onFirstCall().resolves([uri]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_ENVIRONMENT);
+
+            const environments: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_ENVIRONMENTS);
+
+            environments.length.should.equal(0);
+
+            ensureDirStub.should.have.been.calledOnce;
+            updateNodeStub.should.not.have.been.called;
+            removeDirStub.should.have.been.called;
+
+            const error: Error = new Error('no nodes were added');
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Add environment');
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Error importing node file ${uri.fsPath}: A node should have a name property`, `Error importing node file ${uri.fsPath}: Error: A node should have a name property`);
+            logSpy.should.have.been.calledWith(LogType.ERROR, `Failed to add a new environment: ${error.message}`, `Failed to add a new environment: ${error.toString()}`);
+            sendTelemetryEventStub.should.not.have.been.called;
         });
     });
 });
