@@ -171,6 +171,28 @@ describe('AddWalletCommand', () => {
             logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
         });
 
+        it('should add a new wallet but not create an identity', async () => {
+            choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
+            showInputBoxStub.resolves('someWalletName');
+            executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
+            executeCommandStub.callThrough();
+            getIdentitiesStub.resolves(['someName', 'anotherName']);
+
+            const result: FabricWalletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false) as FabricWalletRegistryEntry;
+            result.name.should.equal('someWalletName');
+
+            browseStub.should.not.have.been.called;
+            showInputBoxStub.should.have.been.calledOnce;
+            executeCommandStub.should.not.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY);
+            const wallets: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_WALLETS);
+            wallets.length.should.equal(1);
+            wallets[0].should.deep.equal({
+                name: 'someWalletName',
+                walletPath: uri.fsPath
+            });
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new wallet');
+        });
+
         it('should handle the user cancelling providing a wallet name', async () => {
             choseWalletAddMethod.resolves(UserInputUtil.WALLET_NEW_ID);
             showInputBoxStub.resolves();

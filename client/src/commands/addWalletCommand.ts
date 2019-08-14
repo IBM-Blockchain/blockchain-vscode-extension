@@ -27,7 +27,7 @@ import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFac
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
 
-export async function addWallet(): Promise<FabricWalletRegistryEntry> {
+export async function addWallet(createIdentity: boolean = true): Promise<FabricWalletRegistryEntry> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWallet');
 
@@ -91,15 +91,18 @@ export async function addWallet(): Promise<FabricWalletRegistryEntry> {
             // Create a local file system wallet
             wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(walletName);
             walletPath = wallet.getWalletPath();
-            // Add identity to wallet
-            await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
 
-            // Did it work?
-            identities = await wallet.getIdentityNames();
-            if (identities.length === 0) {
-                // No identity added, so remove the wallet and return
-                await fs.remove(walletPath);
-                return;
+            if (createIdentity) {
+                // Add identity to wallet
+                await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
+
+                // Did it work?
+                identities = await wallet.getIdentityNames();
+                if (identities.length === 0) {
+                    // No identity added, so remove the wallet and return
+                    await fs.remove(walletPath);
+                    return;
+                }
             }
 
         }
