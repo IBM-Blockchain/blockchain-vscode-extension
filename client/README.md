@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension for VS Code
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Build Status](https://travis-ci.org/IBM-Blockchain/blockchain-vscode-extension.svg?branch=master)](https://travis-ci.org/IBM-Blockchain/blockchain-vscode-extension)
+[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Build Status](https://dev.azure.com/IBPComposer/IBM-Blockchain-VSCode-Extension/_apis/build/status/IBM-Blockchain.blockchain-vscode-extension?branchName=master)](https://dev.azure.com/IBPComposer/IBM-Blockchain-VSCode-Extension/_build/latest?definitionId=2&branchName=master)
 
 The IBM Blockchain Platform extension helps developers to create, test and debug smart contracts, connect to Hyperledger Fabric environments, and build applications that transact on your blockchain network.
 
@@ -45,23 +45,35 @@ The expected smart contract development lifecycle follows several broad points, 
 4. Submitting transactions and generating functional-level smart contract tests
 
 ### Create and Develop a Fabric smart contract project
-A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create New Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java. 
+A smart contract project is a directory containing all the relevant contract and metadata files that define a smart contract. Use the `Create New Project` command to create a basic smart contract, available in JavaScript, TypeScript, Go or Java.
 
 ### Package Open Project
-To package a project you have open in your workspace, run the `Package Open Project` command. Packages are listed in the `Smart Contracts` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import a Package` command to import a pre-existing .cds package to be used within VS Code. 
+To package a project you have open in your workspace, run the `Package Open Project` command. Packages are listed in the `Smart Contracts` panel. The `Blockchain` output channel lists what files have been packaged during this action. Alternatively run the `Import a Package` command to import a pre-existing .cds package to be used within VS Code.
+
+If you wish to control which files in the project are packaged, you can create a `.fabricignore` file in the top level directory of your smart contract project. The file and pattern format for a `.fabricignore` file is the same as a [`.gitignore`](https://git-scm.com/docs/gitignore) file, for example:
+
+```
+/.classpath
+/.git/
+/.gradle/
+/.project
+/.settings/
+/bin/
+/build/
+```
 
 ### Connecting to an instance of Hyperledger Fabric
 #### Local Fabric
-The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `Local Fabric Wallet` wallet. 
+The extension contains a pre-configured local instance of Hyperledger Fabric named `Local Fabric`, which the extension will automatically pull and use the correct Docker images for. It is a pre-configured network with one organization, one peer and one channel. It can be enabled and operated under the `Fabric Environments` panel. The first time it is started, Fabric images will be installed and an admin identity created in the `Local Fabric Wallet` wallet.
 
 For `Local Fabric` management tasks such as restart and teardown, right click on `Local Fabric` in the `Fabric Environments` panel.
 
 #### Connecting to another instance of Hyperledger Fabric
 The extension allow you to connect to any Hyperledger Fabric instance and perform some operational tasks. The tasks available are: install, instantiate and registering and enrolling identities.
 
-To connect to a Hyperledger Fabric instance on the `Fabric Environments` panel click the `+` button. This will ask you for JSON node files that describe how to connect to a Hyperledger Fabric Node i.e. peer, orderer, or certificate authority. 
+To connect to a Hyperledger Fabric instance on the `Fabric Environments` panel click the `+` button. This will ask you for JSON node files that describe how to connect to a Hyperledger Fabric Node i.e. peer, orderer, or certificate authority.
 
-If you are connecting to an instance of IBM Blockchain platform the JSON node files can be exported from the operational console, (see the tutorials for more information). For other instances of Hyperledger Fabric you can create the JSON node files yourself. 
+If you are connecting to an instance of IBM Blockchain platform the JSON node files can be exported from the operational console, (see the tutorials for more information). For other instances of Hyperledger Fabric you can create the JSON node files yourself.
 
 ##### JSON Node Files
 All node files must contain a `name`, `type`, and `api_url` property. There are three types: `fabric-peer`, `fabric-ca` and `fabric-orderer`. `Peer` and `Orderer` nodes must also contain an `msp_id` property. While `Certificate Authority` nodes must contain a `ca_name` property. If you have `TLS` enabled then then the `pem` property must also be set.
@@ -88,7 +100,7 @@ These some basic examples showing the required properties
     "name": "peer0.org1.example.com",
     "api_url": "grpc://localhost:17051",
     "type": "fabric-peer",
-    "msp_id": "Org1MSP",
+    "msp_id": "Org1MSP"
 }
 ```
 
@@ -97,7 +109,7 @@ These some basic examples showing the required properties
     "name": "orderer.example.com",
     "api_url": "grpc://localhost:17050",
     "type": "fabric-orderer",
-    "msp_id": "OrdererMSP",
+    "msp_id": "OrdererMSP"
 }
 ```
 
@@ -109,13 +121,13 @@ Here is how to have multiple nodes in one JSON file
         "name": "peer0.org1.example.com",
         "api_url": "grpc://localhost:17051",
         "type": "fabric-peer",
-        "msp_id": "Org1MSP",
+        "msp_id": "Org1MSP"
     },
     {
         "name": "orderer.example.com",
         "api_url": "grpc://localhost:17050",
         "type": "fabric-orderer",
-        "msp_id": "OrdererMSP",
+        "msp_id": "OrdererMSP"
     }
 ]
 
@@ -147,10 +159,10 @@ Here is an example of a peer with `TLS` enabled, please note the `pem` property 
 ```
 
 ##### Associating identities with nodes
-After creating an environment the next step to enable a connection is to associate each node with an identity. To do this click on the name of the environment you just created in the `Fabric Environments` panel. You wil then see each of the nodes that need some setup. Click on each one to associate an identity with that node. The identity must be an admin identity for the node. 
-   
+After creating an environment the next step to enable a connection is to associate each node with an identity. To do this click on the name of the environment you just created in the `Fabric Environments` panel. You wil then see each of the nodes that need some setup. Click on each one to associate an identity with that node. The identity must be an admin identity for the node.
+
 ### Install and Instantiate smart contract packages
-Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `Local Fabric` runtime. The deployed smart contracts are listed in the `Fabric Environments` panel. 
+Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `Local Fabric` runtime. The deployed smart contracts are listed in the `Fabric Environments` panel.
 
 ### Debugging a smart contract
 Debugging your smart contract allows you to run through the smart contract transactions with breakpoints and output, to ensure your transaction works as intended. ***Note: This is only currently available for the Local Fabric, remote debug is not currently available***
@@ -166,7 +178,7 @@ To debug Node (JavaScript or TypeScript) chaincode written using the low-level p
     "request": "launch",
     "name": "Debug Smart Contract",
     "program": "${workspaceFolder}/dist/start.js"
-} 
+}
 
 ```
 where `start.js` contains the line `Shim.start(new Chaincode());`.
@@ -181,7 +193,7 @@ To debug your smart contract follow these steps:
 ```
     "env": {
         "CORE_CHAINCODE_ID_NAME": <name>:<version>
-    }    
+    }
 ```
 
 5. Add breakpoints to the smart contract by clicking on the relevant line numbers in your smart contract files.
@@ -196,7 +208,7 @@ To connect to our own Hyperledger Fabric instance, it must be running [Hyperledg
 Add your gateway by providing a name and connection profile via the `Add Gateway` command; it will be listed in the `Fabric Gateways` panel. Add a file system wallet to connect to your gateway with via the `Add Wallet` command.
 
 ### Connect to a gateway and discover its resources
-Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts (Currently you cannot generate Java functional tests). Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel. 
+Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts (Currently you cannot generate Java functional tests). Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel.
 
 ### Wallet Management
 The extension creates a `Local Fabric Wallet` file system wallet when it is installed, which is used to connect to the `Local Fabric` runtime instance and is automatically associated with that gateway. When `Local Fabric` is started, an admin identity is added to the `Local Fabric Wallet` and cannot be deleted unless the `Local Fabric` runtime is torn down.

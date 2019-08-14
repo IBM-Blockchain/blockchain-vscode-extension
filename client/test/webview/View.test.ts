@@ -270,4 +270,62 @@ describe('View', () => {
             });
         });
     });
+
+    describe('getSeries', () => {
+        it('should get a series', async () => {
+            const testView: TestView = new TestView(context, 'myPanel', 'my panel');
+            const result: any = await testView.getSeries('Introduction');
+            result.should.deep.equal({
+                name: 'Introduction',
+                length: '2 hours',
+                difficulty: 'simple',
+                shortDescription: 'Series of tutorials that will introduce the basic concepts',
+                longDescription: "Get started with a series of tutorials that show you how to develop a Hyperledger Fabric smart contract locally, then deploy it into an IBM Blockchain Platform cloud environment. You'll also create a gateway to the cloud environment and see how client applications submit and evaluate transactions against a ledger.",
+                tutorials: [
+                    {
+                        title: 'Local smart contract development',
+                        length: '20-30 mins',
+                        description: 'Follow the typical workflow from generating a new smart contract project, deploying code to the Local Fabric runtime, and testing your transactions via an application gateway.',
+                        file: 'ibm-blockchain-platform-vscode-smart-contract/local-dev.md'
+                    },
+                    {
+                        title: 'Create a cloud blockchain deployment',
+                        length: '60-90 mins',
+                        description: 'Sign up for the IBM Blockchain Platform service on IBM Cloud, and configure a simple environment ready to deploy your smart contracts to.',
+                        file: 'ibm-blockchain-platform-vscode-smart-contract/cloud-setup.md'
+                    },
+                    {
+                        title: 'Deploying and transacting with IBM Cloud',
+                        length: '20-30 mins',
+                        description: 'Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.',
+                        file: 'ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md'
+                    }
+                ]
+            });
+        });
+
+        it('should get the stand alone tutorials if can\'t match name', async () => {
+            const testView: TestView = new TestView(context, 'myPanel', 'my panel');
+            const result: any = await testView.getSeries('Additional');
+            result.should.deep.equal({
+                name: 'Additional',
+                tutorials: [
+                    {
+                        title: 'Adding an Environment to connect to IBM Cloud',
+                        length: '20-30 mins',
+                        difficulty: 'simple',
+                        shortDescription: 'Add an environment to connect to a a cloud instance and deploy a smart contract',
+                        file: 'developer-tutorials/add-environment.md'
+                    },
+                    {
+                        title: 'Debug a smart contract',
+                        length: '30-40 mins',
+                        difficulty: 'moderate',
+                        description: 'Learn how to make iterative changes to your smart contract using the VS Code debugger',
+                        file: 'developer-tutorials/debug.md'
+                    }
+                ]
+            });
+        });
+    });
 });

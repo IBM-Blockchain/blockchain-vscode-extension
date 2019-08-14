@@ -98,7 +98,7 @@ describe('createNewIdentityCommand', () => {
 
         const runtimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren();
-        const nodesTreeItem: NodesTreeItem = allChildren[2] as NodesTreeItem;
+        const nodesTreeItem: NodesTreeItem = allChildren[3] as NodesTreeItem;
         const nodes: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren(nodesTreeItem);
         certificateAuthorityTreeItem = nodes[0] as CertificateAuthorityTreeItem;
     });

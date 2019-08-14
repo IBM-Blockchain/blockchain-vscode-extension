@@ -315,7 +315,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 await blockchainGatewayExplorerProvider.getChildren(allChildren[2]);
 
                 disconnectSpy.should.have.been.called;
-                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error creating channel map: some error`);
+                logSpy.should.have.been.calledWith(LogType.ERROR, `Could not connect to gateway: Error querying channel list: some error`);
             });
 
             it('should error if gRPC cant connect to Fabric', async () => {

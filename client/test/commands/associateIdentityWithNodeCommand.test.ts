@@ -211,7 +211,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
-                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET);
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, true);
 
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
@@ -324,6 +324,42 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 certAuthorityStub.should.have.been.calledWith(caNodeWithCreds.api_url, caNodeWithCreds.enroll_id, caNodeWithCreds.enroll_secret);
 
                 commandsStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
+            });
+
+            it('should create a new wallet if option selected but not create identity', async () => {
+                showWalletsQuickPickBoxStub.resolves({ label: '+ create new wallet', data: undefined });
+                showQuickPickStub.resolves('Use ID and secret to enroll a new identity');
+
+                await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, environmentRegistryEntry, caNodeWithCreds);
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, false);
+
+                showWalletsQuickPickBoxStub.should.have.been.calledWith(`Which wallet do you want to add the admin identitiy to?`);
+
+                showInputBoxStub.should.have.been.calledWith(`Provide a name for the identity`);
+                showInputBoxStub.should.have.been.calledWith('Enter MSPID');
+
+                caNodeWithCreds.identity = 'identityOne';
+                caNodeWithCreds.wallet = 'blueWallet';
+                updateStub.should.have.been.calledWith(caNodeWithCreds);
+
+                certAuthorityStub.should.have.been.calledWith(caNodeWithCreds.api_url, caNodeWithCreds.enroll_id, caNodeWithCreds.enroll_secret);
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);
+
+                await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, caNodeWithCreds]);
+
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, false);
+
+                caNodeWithCreds.identity = 'identityOne';
+                caNodeWithCreds.wallet = 'blueWallet';
+                updateStub.should.have.been.calledWith(caNodeWithCreds);
 
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
                 logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated node ${caNodeWithCreds.name} with wallet ${caNodeWithCreds.wallet} and identity ${caNodeWithCreds.identity}`);

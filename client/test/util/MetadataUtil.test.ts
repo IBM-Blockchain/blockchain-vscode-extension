@@ -19,6 +19,13 @@ import { FabricClientConnection } from '../../src/fabric/FabricClientConnection'
 import { MetadataUtil } from '../../src/util/MetadataUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+
+import * as vscode from 'vscode';
+import { FabricRuntime } from '../../src/fabric/FabricRuntime';
+import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -38,12 +45,18 @@ describe('Metadata Util tests', () => {
     let logSpy: sinon.SinonSpy;
     const testMap: Map<string, any[]> = new Map();
 
+    let getGatewayRegistryEntryStub: sinon.SinonStub;
+    let localGateway: FabricGatewayRegistryEntry;
+    let otherGateway: FabricGatewayRegistryEntry;
+    let debugSessionStub: sinon.SinonStub;
+    let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
+
     beforeEach(() => {
         mySandBox = sinon.createSandbox();
         fabricClientConnectionMock = sinon.createStubInstance(FabricClientConnection);
         fakeMetadata = {
             contracts: {
-                'cake' : {
+                'cake': {
                     name: 'cake',
                     transactions: [
                         {
@@ -78,7 +91,7 @@ describe('Metadata Util tests', () => {
                         }
                     ]
                 },
-                'pancake' : {
+                'pancake': {
                     name: 'pancake',
                     transactions: [
                         {
@@ -100,7 +113,7 @@ describe('Metadata Util tests', () => {
                         }
                     ]
                 },
-                'org.hyperledger.fabric' : {
+                'org.hyperledger.fabric': {
                     name: 'org.hyperledger.fabric',
                     transactions: [
                         {
@@ -122,6 +135,22 @@ describe('Metadata Util tests', () => {
         testMap.set('cake', [transactionOne, transactionTwo, transactionThree]);
         testMap.set('pancake', [pancakeTransactionOne, pancakeTransactionTwo]);
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
+        localGateway = new FabricGatewayRegistryEntry();
+        localGateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
+
+        otherGateway = new FabricGatewayRegistryEntry();
+        otherGateway.name = 'myFabric';
+
+        getGatewayRegistryEntryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(otherGateway);
+
+        debugSessionStub = mySandBox.stub(vscode.debug, 'activeDebugSession');
+
+        mockRuntime = mySandBox.createStubInstance(FabricRuntime);
+        mockRuntime.isRunning.resolves(true);
+        mockRuntime.killChaincode.resolves();
+
+        mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
     });
 
     afterEach(() => {
@@ -129,9 +158,9 @@ describe('Metadata Util tests', () => {
     });
 
     it('should return the Transaction names', async () => {
-         const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
-         names.should.deep.equal(transactionNames);
-         logSpy.should.not.have.been.called;
+        const names: Map<string, string[]> = await MetadataUtil.getTransactionNames(fabricClientConnectionMock, 'chaincode', 'channel');
+        names.should.deep.equal(transactionNames);
+        logSpy.should.not.have.been.called;
     });
 
     it('should return null if no transaction names', async () => {
@@ -159,14 +188,101 @@ describe('Metadata Util tests', () => {
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
         should.equal(transactionsMap, undefined);
 
-        logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for JavaScript and TypeScript`);
+        logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `No metadata returned. Please ensure this smart contract is developed using the programming model delivered in Hyperledger Fabric v1.4+ for Java, JavaScript and TypeScript`);
     });
 
     it('should handle error getting metadata', async () => {
-        fabricClientConnectionMock.getMetadata.rejects({message: `some error`});
+        fabricClientConnectionMock.getMetadata.rejects({ message: `some error` });
         const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel');
         should.equal(transactionsMap, null);
         logSpy.should.have.been.calledOnceWithExactly(LogType.WARNING, null, sinon.match(/Could not get metadata for smart contract chaincode.*some error/));
+    });
+
+    it('should kill the chaincode if running in debug', async () => {
+        getGatewayRegistryEntryStub.returns(localGateway);
+
+        const activeDebugSessionStub: any = {
+            configuration: {
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'chaincode:0.0.1'
+                }
+            }
+        };
+
+        debugSessionStub.value(activeDebugSessionStub);
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        transactionsMap.should.deep.equal(testMap);
+        logSpy.should.not.have.been.called;
+        mockRuntime.killChaincode.should.have.been.called;
+    });
+
+    it('should not kill if not running', async () => {
+        getGatewayRegistryEntryStub.returns(localGateway);
+
+        mockRuntime.isRunning.resolves(false);
+
+        const activeDebugSessionStub: any = {
+            configuration: {
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'chaincode:0.0.1'
+                }
+            }
+        };
+
+        debugSessionStub.value(activeDebugSessionStub);
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        transactionsMap.should.deep.equal(testMap);
+        logSpy.should.not.have.been.called;
+        mockRuntime.isRunning.should.have.been.called;
+        mockRuntime.killChaincode.should.not.have.been.called;
+    });
+
+    it('should not kill if getting meta data for another contract if running in debug', async () => {
+        getGatewayRegistryEntryStub.returns(localGateway);
+
+        const activeDebugSessionStub: any = {
+            configuration: {
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'different:0.0.1'
+                }
+            }
+        };
+
+        debugSessionStub.value(activeDebugSessionStub);
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        transactionsMap.should.deep.equal(testMap);
+        logSpy.should.not.have.been.called;
+        mockRuntime.isRunning.should.not.have.been.called;
+    });
+
+    it('should not kill if debugging different thing', async () => {
+        getGatewayRegistryEntryStub.returns(localGateway);
+
+        const activeDebugSessionStub: any = {
+            configuration: {
+                env: {}
+            }
+        };
+
+        debugSessionStub.value(activeDebugSessionStub);
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        transactionsMap.should.deep.equal(testMap);
+        logSpy.should.not.have.been.called;
+        mockRuntime.isRunning.should.not.have.been.called;
+    });
+
+    it('should not kill if debugging different thing no env', async () => {
+        getGatewayRegistryEntryStub.returns(localGateway);
+
+        const activeDebugSessionStub: any = {
+            configuration: {}
+        };
+
+        debugSessionStub.value(activeDebugSessionStub);
+        const transactionsMap: Map<string, any[]> = await MetadataUtil.getTransactions(fabricClientConnectionMock, 'chaincode', 'channel', true);
+        transactionsMap.should.deep.equal(testMap);
+        logSpy.should.not.have.been.called;
+        mockRuntime.isRunning.should.not.have.been.called;
     });
 
 });

@@ -134,6 +134,8 @@ describe('TutorialGalleryView', () => {
         html.should.contain('<h3>Deploying and transacting with IBM Cloud</h3>');
         html.should.contain('<div class="tutorial-description">Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.</div>');
 
+        html.should.contain('<h2>Additional Concepts</h2>');
+        html.should.contain('<h3 class="tutorial-name">Adding an Environment to connect to IBM Cloud</h3>');
     });
 
     it('should send telemetry event on openPanelInner', async () => {
@@ -153,6 +155,7 @@ describe('TutorialGalleryView', () => {
         const tutorialsPath: string = path.join(extensionPath, 'tutorials.json');
         const json: any = await fs.readJson(tutorialsPath);
         const allSeries: any = json.series;
+        const additionalSeries: any = { name: 'Additional Concepts', tutorials: json.tutorials };
 
         const tutorialView: TutorialGalleryView = new TutorialGalleryView(context);
 
@@ -174,12 +177,16 @@ describe('TutorialGalleryView', () => {
         result.should.contain('<h3>Deploying and transacting with IBM Cloud</h3>');
         result.should.contain('<div class="tutorial-description">Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.</div>');
 
+        result.should.contain('<h2>Additional Concepts</h2>');
+        result.should.contain('<h3 class="tutorial-name">Adding an Environment to connect to IBM Cloud</h3>');
+
         getTutorialGalleryPage.should.have.been.calledOnceWithExactly({
             commands : {
                 OPEN_TUTORIAL_PAGE: ExtensionCommands.OPEN_TUTORIAL_PAGE,
             },
             images: sinon.match.any,
-            allSeries: allSeries
+            allSeries: allSeries,
+            additionalSeries: additionalSeries
         });
     });
 

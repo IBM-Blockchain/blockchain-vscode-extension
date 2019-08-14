@@ -53,12 +53,20 @@ export class TutorialGalleryView extends View {
 
         const allSeries: any[] = await this.getAllSeries();
 
+        const additionalTutorials: any[] = await this.getAdditionalTutorials();
+
+        const additionalSeries: any = {
+            name: 'Additional Concepts',
+            tutorials: additionalTutorials
+        };
+
         const options: any = {
             commands : {
                 OPEN_TUTORIAL_PAGE: ExtensionCommands.OPEN_TUTORIAL_PAGE,
             },
             images: images,
-            allSeries: allSeries
+            allSeries: allSeries,
+            additionalSeries: additionalSeries
         };
 
         const tutorialGalleryString: string = await this.getTutorialGalleryPage(options);

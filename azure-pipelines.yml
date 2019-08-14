@@ -1,0 +1,120 @@
+jobs:
+- job: tests
+  strategy:
+    matrix:
+      unit_test_linux:
+        imageName: 'ubuntu-16.04'
+        TYPE: 'unit'
+      unit_test_mac:
+        imageName: 'macos-10.14'
+        TYPE: 'unit'
+      cucumber:
+        imageName: 'ubuntu-16.04'
+        TYPE: 'cucumber'
+      cucumber_other:
+        imageName: 'ubuntu-16.04'
+        TYPE: 'cucumber'
+        OTHER_FABRIC: 'true'
+  pool:
+    vmImage: $(imageName)
+
+  steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '8.x'
+    displayName: 'Install Node.js'
+
+  - bash: |
+      set -ev
+      /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      echo ">>> Started xvfb"
+    displayName: Start xvfb
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+
+  - bash: |
+      set -ev
+      echo ">>> Compile vscode-test"
+      cd ./client
+      npm install --no-optional
+      npm install --ignore-scripts
+      npm audit
+      npm run compile
+      echo ">>> Compiled vscode-test"
+    displayName: Install stuff
+    env:
+      DISPLAY: ':99.0'
+
+  - bash: |
+      set -ev
+      cd ./client
+      npm rebuild grpc --target=3.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
+      rm -rf ./node_modules/grpc/src/node/extension_binary/node-v64-linux-x64-glibc
+      mv ./node_modules/grpc/src/node/extension_binary/electron-v3.0-linux-x64-glibc ./node_modules/grpc/src/node/extension_binary/node-v64-linux-x64-glibc
+    displayName: Rebuild linux
+    env:
+      DISPLAY: ':99.0'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'), eq(variables['TYPE'], 'unit'))
+
+  - bash: |
+      set -ev
+      cd ./client
+      npm rebuild grpc --target=3.0.0 --runtime=electron --dist-url=https://atom.io/download/electron
+      rm -rf ./node_modules/grpc/src/node/extension_binary/node-v64-darwin-x64-unknown
+      mv ./node_modules/grpc/src/node/extension_binary/electron-v3.0-darwin-x64-unknown ./node_modules/grpc/src/node/extension_binary/node-v64-darwin-x64-unknown
+    displayName: Rebuild mac
+    env:
+      DISPLAY: ':99.0'
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Darwin'),  eq(variables['TYPE'], 'unit'))
+
+  - bash: |
+      set -ev
+      cd ./client
+      npm run package
+      npm test
+    env:
+      VERSION: '1.35.1'
+      DISPLAY: ':99.0'
+    displayName: Run unit tests
+    condition: and(succeeded(),  eq(variables['TYPE'], 'unit'))
+
+  - task: PublishTestResults@2
+    condition: and(succeededOrFailed(), eq(variables['TYPE'], 'unit'))
+    inputs:
+      testRunner: JUnit
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/client/unit-tests.xml'
+
+  - task: PublishCodeCoverageResults@1
+    inputs:
+      codeCoverageTool: Cobertura
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/client/coverage/*coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/client/coverage'
+    condition: eq(variables['TYPE'], 'unit')
+
+  - bash: |
+      set -ev
+      cd ./client
+      ./cucumber/hlfv1/start.sh
+    displayName: Setup Fabric
+    condition: and(succeeded(),  eq(variables['TYPE'], 'cucumber'), eq(variables['OTHER_FABRIC'], 'true'))
+
+  - bash: |
+      set -ev
+      cd ./client
+      npm run cucumber 2>&1 | tee
+    env:
+      DISPLAY: ':99.0'
+    displayName: Run cucumber tests
+    condition: and(succeeded(),  eq(variables['TYPE'], 'cucumber'))
+
+
+- job: deploy
+  dependsOn: tests
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - bash: |
+      echo ">> Yey this would have deployed"
+    condition: and(succeeded(), startsWith(variables['BUILD_SOURCEBRANCH'], 'refs/tags'))
+
+
+

@@ -102,6 +102,15 @@ export async function addEnvironment(): Promise<{} | void> {
             }
         }
 
+        // check if any nodes were added
+        const newEnvironment: FabricEnvironment = new FabricEnvironment(environmentName);
+        const newNodes: FabricNode[] = await newEnvironment.getNodes();
+        if (newNodes.length === 0) {
+            await fs.remove(environmentPath);
+
+            throw new Error('no nodes were added');
+        }
+
         const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentEntry.name = environmentName;
         await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);

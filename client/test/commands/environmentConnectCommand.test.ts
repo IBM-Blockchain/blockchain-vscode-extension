@@ -123,9 +123,11 @@ describe('EnvironmentConnectCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, true);
                 connectStub.should.have.been.called;
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
+                logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
             it('should do nothing if the user cancels choosing a environment', async () => {
@@ -224,8 +226,10 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 connectStub.should.have.been.calledOnce;
+                chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, true);
                 mockConnection.connect.should.have.been.calledOnce;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
+                logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
             });
 
             it('should connect to a managed runtime from the tree', async () => {

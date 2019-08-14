@@ -117,12 +117,12 @@ describe('InstallCommand', () => {
             blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
-            const smartContracts: SmartContractsTreeItem = allChildren[0] as SmartContractsTreeItem;
+            const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);
             const installedSmartContractsList: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(smartContractsChildren[0]);
             installCommandTreeItem = installedSmartContractsList[0] as InstallCommandTreeItem;
 
-            const nodesTreeItem: NodesTreeItem = allChildren[2] as NodesTreeItem;
+            const nodesTreeItem: NodesTreeItem = allChildren[3] as NodesTreeItem;
             const peers: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(nodesTreeItem);
             peerTreeItem = peers[0] as PeerTreeItem;
 

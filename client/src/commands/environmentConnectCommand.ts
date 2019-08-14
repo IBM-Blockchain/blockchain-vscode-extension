@@ -26,6 +26,7 @@ import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -36,7 +37,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
     try {
 
         if (!fabricEnvironmentRegistryEntry) {
-            const chosenEntry: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose a environment to connect with');
+            const chosenEntry: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose a environment to connect with', true);
             if (!chosenEntry) {
                 return;
             }
@@ -85,7 +86,14 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
 
         FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry);
 
-        outputAdapter.log(LogType.SUCCESS, `Connected to ${fabricEnvironmentRegistryEntry.name}`, `Connected to ${fabricEnvironmentRegistryEntry.name}`);
+        let environmentName: string;
+        if (fabricEnvironmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+            environmentName = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+        } else {
+            environmentName = fabricEnvironmentRegistryEntry.name;
+        }
+
+        outputAdapter.log(LogType.SUCCESS, `Connected to ${environmentName}`);
 
         let environmentData: string = 'managed environment';
         if (!fabricEnvironmentRegistryEntry.managedRuntime) {

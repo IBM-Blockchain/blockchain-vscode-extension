@@ -88,7 +88,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
 
-    public static async showFabricEnvironmentQuickPickBox(prompt: string): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
+    public static async showFabricEnvironmentQuickPickBox(prompt: string, showLocalFabric: boolean = false): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
             canPickMany: false,
@@ -97,8 +97,10 @@ export class UserInputUtil {
 
         const allEnvironments: Array<FabricEnvironmentRegistryEntry> = [];
 
-        const runtimeEnvironment: FabricEnvironmentRegistryEntry = await FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-        allEnvironments.push(runtimeEnvironment);
+        if (showLocalFabric) {
+            const runtimeEnvironment: FabricEnvironmentRegistryEntry = await FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+            allEnvironments.push(runtimeEnvironment);
+        }
 
         const environments: FabricEnvironmentRegistryEntry[] = await FabricEnvironmentRegistry.instance().getAll();
         allEnvironments.push(...environments);
@@ -648,7 +650,16 @@ export class UserInputUtil {
         }
 
         const quickPickItems: Array<IBlockchainQuickPickItem<{ name: string, contract: string }>> = [];
-        const transactionNamesMap: Map<string, string[]> = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        let transactionNamesMap: Map<string, string[]>;
+        await vscode.window.withProgress({
+            location: vscode.ProgressLocation.Notification,
+            title: 'IBM Blockchain Platform Extension',
+            cancellable: false
+        }, async (progress: vscode.Progress<{ message: string }>) => {
+            progress.report({ message: 'Getting transaction information' });
+            transactionNamesMap = await MetadataUtil.getTransactionNames(connection, chaincodeName, channelName);
+        });
+
         if (!transactionNamesMap) {
             const transactionName: string = await UserInputUtil.showInputBox('What function do you want to call?');
             if (!transactionName) {
