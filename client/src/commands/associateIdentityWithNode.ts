@@ -92,7 +92,11 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
         }
 
         if (!chosenWallet.data) {
-            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET) as FabricWalletRegistryEntry;
+            let addIdentity: boolean = true;
+            if (enroll) {
+                addIdentity = false;
+            }
+            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, addIdentity) as FabricWalletRegistryEntry;
             if (!walletRegistryEntry) {
                 return;
             }
@@ -154,8 +158,16 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
 
 async function enrollIdAndSecret(node: FabricNode, wallet: IFabricWallet): Promise<FabricNode> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    const fabricCertificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
-    const certs: { certificate: string, privateKey: string } = await fabricCertificateAuthority.enroll(node.api_url, node.enroll_id, node.enroll_secret);
+    let certs: { certificate: string, privateKey: string };
+    await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'IBM Blockchain Platform Extension',
+        cancellable: false
+    }, async (progress: vscode.Progress<{ message: string }>) => {
+        progress.report({ message: `Enrolling identity` });
+        const fabricCertificateAuthority: IFabricCertificateAuthority = FabricCertificateAuthorityFactory.createCertificateAuthority();
+        certs = await fabricCertificateAuthority.enroll(node.api_url, node.enroll_id, node.enroll_secret);
+    });
 
     // Ask for identity name
     const identityName: string = await UserInputUtil.showInputBox('Provide a name for the identity');
