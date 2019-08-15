@@ -146,6 +146,24 @@ describe('FabricDebugConfigurationProvider', () => {
             commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
         });
 
+        it('should create a new debug configuration if smart contract has a scoped name', async () => {
+            const scopedDebugConfig: TestFabricDebugConfigurationProvider = new TestFabricDebugConfigurationProvider();
+            scopedDebugConfig.chaincodeName = '@removeThis/mySmartContract';
+
+            const config: vscode.DebugConfiguration = await scopedDebugConfig.resolveDebugConfiguration(workspaceFolder, debugConfig);
+            should.equal(config, undefined);
+            startDebuggingStub.should.have.been.calledOnceWithExactly(sinon.match.any, {
+                type: 'fake',
+                request: 'launch',
+                env: {
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
+                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                },
+                args: ['127.0.0.1:54321']
+            });
+            commandStub.should.have.been.calledOnceWithExactly('setContext', 'blockchain-debug', true);
+        });
+
         it('should disconnect and connect to local fabric', async () => {
             const otherEnvironentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             otherEnvironentRegistry.name = 'myFabric';

@@ -92,10 +92,13 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
                     // User probably cancelled the prompt for the name.
                     return;
                 }
-
                 chaincodeName = nameAndVersion.name;
                 chaincodeVersion = nameAndVersion.version;
             }
+
+            const replaceRegex: RegExp = /@.*?\//;
+            chaincodeName = chaincodeName.replace(replaceRegex, '');
+
             // Determine what smart contracts are instantiated already
             // Assume Local Fabric has one peer
             const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();

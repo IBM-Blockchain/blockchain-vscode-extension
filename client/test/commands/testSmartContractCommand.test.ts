@@ -586,6 +586,22 @@ describe('testSmartContractCommand', () => {
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
+        it('should generate a test file for a smart contract that has a scoped name', async () => {
+            const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
+            const packageBuffer: Buffer = Buffer.from(`{"name": "@removeThis/wagonwheel"}`);
+            readFileStub.resolves(packageBuffer);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, `Installing package dependencies including: fabric-network@${FABRIC_NETWORK_VERSION}, fabric-client@${FABRIC_CLIENT_VERSION}`);
+            logSpy.getCall(3).should.have.been.calledWith(LogType.INFO, undefined, 'some npm install output');
+            logSpy.getCall(4).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
+            logSpy.should.not.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
+            sendTelemetryEventStub.should.have.been.called;
+        });
+
         it('should generate a test file for each smart contract defined in the metadata (from tree)', async () => {
             const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
