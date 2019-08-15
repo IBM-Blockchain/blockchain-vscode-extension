@@ -9,7 +9,7 @@ instrumentation:
         - "icon.png"
         - "*.txt"
         - "README.md"
-        - "integrationTest/*"
+        - "cucumber/*"
 
 check:
     global:

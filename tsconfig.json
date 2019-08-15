@@ -13,8 +13,7 @@
 	},
 	"exclude": [
 		"node_modules",
-		"server",
 		".vscode-test",
-		"integrationTest/tmp"
+		"cucumber/tmp"
 	]
 }

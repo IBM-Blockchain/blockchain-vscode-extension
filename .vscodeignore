@@ -13,10 +13,8 @@
 .vscode/**
 typings/**
 out/test/**
-out/integrationTest
 test/**
 src/**
-integrationTest/**
 out/cucumber
 cucumber/**
 **/*.map
@@ -24,7 +22,6 @@ cucumber/**
 .eslintignore
 tsconfig.json
 vsc-extension-quickstart.md
-.nyc_output/**
 .vscode-test/**
 coverage/**
 tslint.json
@@ -32,3 +29,8 @@ coverconfig.json
 .istanbul.yml
 media/**
 i18n/**
+.azure/**
+.idea/**
+azure-pipelines.xml
+azure-templates/**
+scripts/**

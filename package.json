@@ -1217,14 +1217,12 @@
         "pretest": "npm run compile && npm run lint && npm run licchk && npm run updatePackageJSON",
         "test": "node ./out/test/runTests.js",
         "posttest": "remap-istanbul -i ./coverage/coverage.json -o ./coverage/coverage-remap.json && istanbul check-coverage ./coverage/coverage-remap.json",
-        "systest": "npm run compile && node ./out/integrationTest/nodeTests/runIntegrationTests.js",
         "cucumber": "npm run compile && node ./out/cucumber/runCucumberTests.js",
         "licchk": "license-check-and-add",
         "tslint": "tslint --project tsconfig.json",
-        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts' 'integrationTest/nodeTests/integrationNode.test.ts'",
-        "updatePackageJSON": "node ../.azure/rewritePackageJson.js",
-        "productionFlag": "node ../.azure/rewritePackageJson.js publish",
-        "integrationTests": "./integrationTest/scripts/start-integration-tests.sh && npm run compile",
+        "lint": "npm run tslint 'src/**/*.ts' 'test/**/*.test.ts'",
+        "updatePackageJSON": "node ./.azure/rewritePackageJson.js",
+        "productionFlag": "node ./.azure/rewritePackageJson.js publish",
         "cucumberTests": "./cucumber/hlfv1/start.sh && npm run compile",
         "localize": "vscl out/src/**/*.js"
     },
@@ -1307,6 +1305,9 @@
         "exact_paths_method": "EXCLUDE",
         "exact_paths": [
             "node_modules",
+            ".idea",
+            ".git",
+            ".azure",
             "out",
             ".vscode-test",
             "coverage",
@@ -1319,11 +1320,10 @@
             "cucumber/data",
             "cucumber/tmp",
             "cucumber/hlfv1",
-            "integrationTest/data",
-            "integrationTest/tmp",
-            "integrationTest/nodeTests/data",
             "basic-network",
             "CHANGELOG.md",
+            "ISSUE_TEMPLATE.md",
+            "LICENSE",
             "templates/tsTestSmartContractTemplate.ejs",
             "templates/tsTestSmartContractUtilTemplate.ejs",
             "templates/jsTestSmartContractTemplate.ejs",
@@ -1368,7 +1368,7 @@
                 }
             },
             "md": {
-                "file": "../markdown-license.txt"
+                "file": "./markdown-license.txt"
             }
         }
     }
