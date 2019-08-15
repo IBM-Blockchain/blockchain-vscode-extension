@@ -132,7 +132,11 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
     for (packageJSONFound of packageJSONSearch) {
         const packageJSONBuffer: Buffer = await fs.readFile(packageJSONFound.path);
         const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
-        const workspaceProjectName: string = packageJSONObj.name;
+        let workspaceProjectName: string = packageJSONObj.name;
+
+        const replaceRegex: RegExp = /@.*?\//;
+        workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
+
         if (workspaceProjectName === chaincodeName) {
             // Smart contract is open in workspace
             functionalTestsDirectory = path.join(packageJSONFound.fsPath, '..', 'functionalTests');
