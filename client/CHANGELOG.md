@@ -1,5 +1,23 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.7: August 15th 2019
+
+* Added ‘Fabric Environments’ panel to support remote deploying and managing user-created networks [#1085](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1085),  [#1086](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1086),  [#1095](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1095),  [#1088](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1088),  [#1177](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1177),  [#1103](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1103),  [#1156](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1156),  [#1222](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1222),  [#1290](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1290) 
+> Check out the new tutorial ‘Adding an Environment to connect to IBM Cloud’ from the extension’s Tutorial Gallery.
+> For additional information on connecting to other instances of Hyperledger Fabric, [check the README.](https://github.com/IBM-Blockchain/blockchain-vscode-extension#connecting-to-another-instance-of-hyperledger-fabric)
+> To view the list of uncompleted features related to this epic, [click here!](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1084)
+ 
+* Discover version of Electron to automatically rebuild gRPC [#1134](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1134)
+* Added ‘Adding an Environment to connect to IBM Cloud’ and ‘Debug a Smart Contract’ tutorials to Tutorial Gallery [#1232](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1232)
+* Updated tutorial completion time [#1203](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1203)
+* Fixed debugging container bug [#1215](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1215)
+* Fixed disappearing blockchain icon when restarting debug [#929](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/929)
+* Fixed querying channels from no peers [#1098](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1098)
+* Bumped Fabric SDK version to use 1.4.5 snapshot [#1278](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1278)
+> This now means that you can use `.fabricignore` to ignore files/directories when packaging. [Check the README for more details](https://github.com/IBM-Blockchain/blockchain-vscode-extension#package-open-project)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-56.jpg)
+
 ## 1.0.6: August 1st 2019
 
 * Added Java smart contract support [#520](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/520) 

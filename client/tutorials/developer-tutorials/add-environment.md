@@ -102,7 +102,7 @@ Now we have created an environment we need to associate each node with an identi
 
 Congratulations you have associated an identity with the `Orderer` node. Now we need to Associate an identity with the `Peer` node
 
-1. Click `Peer Org2`.
+1. Click `Peer Org1`.
 
 2. You will then be asked to choose a wallet, select `ibp-wallet`.
 

@@ -16,7 +16,7 @@ before_install:
        fi
 
 install: |
-         ./.travis/install.sh
+         ./.azure/install.sh
 
 matrix:
   include:
