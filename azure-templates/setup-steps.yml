@@ -26,7 +26,6 @@ steps:
   - bash: |
       set -ev
       echo ">>> Compile vscode-test"
-      cd ./client
       npm install --no-optional
       npm install --ignore-scripts
       npm audit

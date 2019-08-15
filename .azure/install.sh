@@ -17,8 +17,6 @@
 set -ev
 set -o pipefail
 
-cd ./client
-
 npm --version
 
 node --version

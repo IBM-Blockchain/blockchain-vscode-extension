@@ -13,14 +13,12 @@
 steps:
   - bash: |
       set -ev
-      cd ./client
       ./cucumber/hlfv1/start.sh
     displayName: Setup Fabric
     condition: and(succeeded(), eq(variables['OTHER_FABRIC'], 'true'))
 
   - bash: |
       set -ev
-      cd ./client
       npm run cucumber 2>&1 | tee
     env:
       DISPLAY: ':99.0'

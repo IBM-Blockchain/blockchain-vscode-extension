@@ -13,7 +13,6 @@
 steps:
   - bash: |
       set -ev
-      cd ./client
       npm run package
       npm test
     env:

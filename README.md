@@ -6,7 +6,7 @@ The IBM Blockchain Platform extension helps developers to create, test and debug
 
 For a step-by-step guide on getting started with the extension's features, access our Beginner Tutorial via our integrated Home page. Alternatively, explore, clone and open the Hyperledger Fabric samples, all without leaving VS Code. For more comprehensive documentation, [follow this link](https://cloud.ibm.com/docs/services/blockchain/howto?topic=blockchain-develop-vscode)
 
-![IBP Extension Homepage](client/media/VSCodeImage.png)
+![IBP Extension Homepage](media/VSCodeImage.png)
 
 ## Installation
 
@@ -301,7 +301,7 @@ If you have find any problems or want to make suggestions for future features pl
 The extension uses telemetry reporting to track usage data and help improve future extension versions. Disabling VS Code telemetry reporting also disables the extension's telemetry reporting.
 For instructions on how to disable telemetry reporting, please visit the [Visual Studio Code FAQ](https://code.visualstudio.com/docs/supporting/FAQ#_how-to-disable-telemetry-reporting)
 
-<a name="license"></a>
+## License <a name="license"></a>
 The source code files are made available under the Apache License, Version 2.0 (Apache-2.0), located in the [LICENSE](LICENSE.txt) file.
 
 This software uses the IBM Plex Sans font licensed under the SIL Open Font License, Version 1.1.

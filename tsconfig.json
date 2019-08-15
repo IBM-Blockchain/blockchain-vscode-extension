@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"target": "es6",
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"rootDir": ".",
+		"outDir": "out",
+		"lib": [ "es2016" ],
+		"sourceMap": true,
+		"resolveJsonModule": true
+	},
+	"exclude": [
+		"node_modules",
+		".vscode-test",
+		"cucumber/tmp"
+	]
+}

@@ -9,18 +9,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-/out
-/node_modules
-*.vsix
-.vscode-test
-coverage
-.DS_Store
-!/test/data/badPackageDir/packages/.DS_Store
-/test/data/fabricProject
-/test/data/smartContractDir/
-/cucumber/cucumber-report.html
-/cucumber/cucumber-report.json
-/cucumber/hfc-key-store/
-/cucumber/tmp/
-/unit-tests.xml
-.DS_Store
+
+.vscode/**
+typings/**
+out/test/**
+test/**
+src/**
+out/cucumber
+cucumber/**
+**/*.map
+.gitignore
+.eslintignore
+tsconfig.json
+vsc-extension-quickstart.md
+.vscode-test/**
+coverage/**
+tslint.json
+coverconfig.json
+.istanbul.yml
+media/**
+i18n/**
+.azure/**
+.idea/**
+azure-pipelines.xml
+azure-templates/**
+scripts/**
