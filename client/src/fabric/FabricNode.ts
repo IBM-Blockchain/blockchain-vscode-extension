@@ -32,12 +32,12 @@ export class FabricNode {
         return new FabricNode({ short_name, name, type: FabricNodeType.PEER, api_url, pem, wallet, identity, msp_id });
     }
 
-    public static newOrderer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, wallet, identity, msp_id });
+    public static newOrderer(short_name: string, name: string, api_url: string, wallet: string, identity: string, msp_id: string, cluster_name: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, wallet, identity, msp_id, cluster_name });
     }
 
-    public static newSecureOrderer(short_name: string, name: string, api_url: string, pem: string, wallet: string, identity: string, msp_id: string): FabricNode {
-        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, pem, wallet, identity, msp_id });
+    public static newSecureOrderer(short_name: string, name: string, api_url: string, pem: string, wallet: string, identity: string, msp_id: string, cluster_name: string): FabricNode {
+        return new FabricNode({ short_name, name, type: FabricNodeType.ORDERER, api_url, pem, wallet, identity, msp_id, cluster_name });
     }
 
     public static newCouchDB(short_name: string, name: string, api_url: string): FabricNode {
@@ -92,6 +92,7 @@ export class FabricNode {
     public chaincode_url?: string;
     public enroll_secret?: string;
     public enroll_id?: string;
+    public cluster_name?: string;
 
     private constructor(fields: FabricNode) {
         Object.assign(this, fields);

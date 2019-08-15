@@ -17,7 +17,7 @@ import * as fs from 'fs-extra';
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { UserInputUtil } from '../commands/UserInputUtil';
-import { FabricNode } from './FabricNode';
+import { FabricNode, FabricNodeType } from './FabricNode';
 import { SettingConfigurations } from '../../SettingConfigurations';
 
 export class FabricEnvironment extends EventEmitter {
@@ -67,9 +67,30 @@ export class FabricEnvironment extends EventEmitter {
 
     public async updateNode(node: FabricNode): Promise<void> {
         const nodesPath: string = path.resolve(this.path, 'nodes');
-        const nodePath: string = path.resolve(nodesPath, `${node.name}.json`);
 
-        await fs.writeJson(nodePath, node);
+        const nodesToUpdate: FabricNode[] = [];
+
+        if (node.type === FabricNodeType.ORDERER) {
+            // need to also update all the nodes in the same cluster
+            let allNodes: FabricNode[] = await this.getNodes();
+            allNodes = allNodes.filter((_node: FabricNode) => {
+                return _node.type === FabricNodeType.ORDERER && _node.cluster_name && _node.cluster_name === node.cluster_name && _node.name !== node.name;
+            }).map((_node: FabricNode) => {
+                _node.wallet = node.wallet;
+                _node.identity = node.identity;
+                return _node;
+            });
+
+            nodesToUpdate.push(...allNodes);
+        }
+
+        // always needs to update itself
+        nodesToUpdate.push(node);
+
+        for (const _node of nodesToUpdate) {
+            const _nodePath: string = path.resolve(nodesPath, `${_node.name}.json`);
+            await fs.writeJson(_nodePath, _node);
+        }
     }
 
     public async requireSetup(): Promise<boolean> {

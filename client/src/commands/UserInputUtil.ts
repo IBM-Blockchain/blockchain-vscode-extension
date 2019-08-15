@@ -946,15 +946,21 @@ export class UserInputUtil {
 
     public static async showFabricNodeQuickPick(prompt: string, environmentName: string, filter: FabricNodeType[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
-        const nodes: FabricNode[] = await environment.getNodes();
-        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = nodes
-            .filter((node: FabricNode) => filter.indexOf(node.type) !== -1)
-            .map((node: FabricNode) => {
-                return {
-                    label: node.name,
-                    data: node
-                };
-            });
+        let nodes: FabricNode[] = await environment.getNodes();
+        nodes = nodes.filter((node: FabricNode) => filter.indexOf(node.type) !== -1);
+
+        const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = [];
+        for (const _node of nodes) {
+            if (_node.type === FabricNodeType.ORDERER && _node.cluster_name) {
+                const foundItem: IBlockchainQuickPickItem<FabricNode> = quickPickItems.find((item: IBlockchainQuickPickItem<FabricNode>) => item.data.cluster_name === _node.cluster_name);
+
+                if (!foundItem) {
+                    quickPickItems.push({ label: _node.cluster_name, data: _node });
+                }
+            } else {
+                quickPickItems.push({ label: _node.name, data: _node });
+            }
+        }
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
