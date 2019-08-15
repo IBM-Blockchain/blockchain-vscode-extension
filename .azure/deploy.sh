@@ -21,12 +21,6 @@ set -o pipefail
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 cd ${DIR}/client
 
-# check that this is the right node.js version
-if [ "${TRAVIS_NODE_VERSION}" != "" -a "${TRAVIS_NODE_VERSION}" != "8" ]; then
-  echo Not executing as not running primary node.js version
-  exit -1
-fi
-
 # Check that this is the main repository.
 if [[ "${TRAVIS_REPO_SLUG}" != IBM-Blockchain* ]]; then
   echo "Skipping deploy; wrong repository slug."
