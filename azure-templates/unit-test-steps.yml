@@ -13,7 +13,6 @@
 steps:
   - bash: |
       set -ev
-      cd ./client
       npm run package
       npm test
     env:
@@ -25,10 +24,10 @@ steps:
     condition: succeededOrFailed()
     inputs:
       testRunner: JUnit
-      testResultsFiles: '$(System.DefaultWorkingDirectory)/client/unit-tests.xml'
+      testResultsFiles: '$(System.DefaultWorkingDirectory)/unit-tests.xml'
 
   - task: PublishCodeCoverageResults@1
     inputs:
       codeCoverageTool: Cobertura
-      summaryFileLocation: '$(System.DefaultWorkingDirectory)/client/coverage/*coverage.xml'
-      reportDirectory: '$(System.DefaultWorkingDirectory)/client/coverage'
+      summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/*coverage.xml'
+      reportDirectory: '$(System.DefaultWorkingDirectory)/coverage'

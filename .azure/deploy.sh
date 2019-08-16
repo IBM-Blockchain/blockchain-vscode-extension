@@ -19,7 +19,7 @@ set -o pipefail
 
 # Grab the current root directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-cd ${DIR}/client
+cd ${DIR}
 
 # Check that this is the main repository.
 if [[ "${TRAVIS_REPO_SLUG}" != IBM-Blockchain* ]]; then
@@ -56,12 +56,12 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   npm install semver
 
   # Bump the version number.
-  node ./scripts/pkgbump.js
+  node ./pkgbump.js
 
   export NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
 
   # Change from HTTPS to SSH.
-  ../.azure/fix_github_https_repo.sh
+  .azure/fix_github_https_repo.sh
 
   # Add the version number changes and push them to Git.
   git add .
