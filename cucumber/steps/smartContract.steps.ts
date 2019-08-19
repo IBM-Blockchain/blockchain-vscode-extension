@@ -35,7 +35,6 @@ module.exports = function(): any {
             assetType = null;
         }
         this.contractAssetType = assetType;
-        this.namespace = `${this.contractAssetType}Contract`;
         this.contractName = name;
         this.contractVersion = version;
     });
