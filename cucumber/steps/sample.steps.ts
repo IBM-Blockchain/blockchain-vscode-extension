@@ -45,6 +45,8 @@ module.exports = function(): any {
             webview = new SampleView(null, repositoryName, namespace);
         }
         await this.sampleHelper.openContract(webview, namespace.toLowerCase(), language.toLowerCase(), contractName);
+        this.contractDirectory = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase());
+
         if (language === 'JavaScript') {
             const fileContents: any = await fs.readJson(path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase(), 'package.json'));
             fileContents.name = sampleName.toLowerCase();
@@ -57,11 +59,18 @@ module.exports = function(): any {
             const sampleDirectory: any = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase());
             await CommandUtil.sendCommandWithOutput('npm', ['install'], sampleDirectory, undefined, VSCodeBlockchainOutputAdapter.instance(), false);
 
+        } else if (language === 'Go') {
+            const srcFolder: string = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), 'src');
+            await fs.mkdir(srcFolder);
+            const oldPath: string = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase());
+            const newPath: string = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), 'src', sampleName.toLowerCase());
+            await fs.rename(oldPath, newPath);
+            this.contractDirectory = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), 'src', sampleName.toLowerCase());
+            process.env.GOPATH = path.join(pathToCheck, 'chaincode', namespace.toLowerCase());
         }
         this.contractName = sampleName.toLowerCase();
         this.namespace = namespace;
         this.contractVersion = '1.0.0';
         this.contractLanguage = language;
-        this.contractDirectory = path.join(pathToCheck, 'chaincode', namespace.toLowerCase(), language.toLowerCase());
     });
 };

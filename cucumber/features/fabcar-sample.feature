@@ -4,6 +4,7 @@ Feature: FabCar Sample
     Scenario Outline: Clone the FabCar sample and package, install, instantiate it
         Given I have cloned the repository 'hyperledger/fabric-samples' and I have opened the '<language>' '<sampleName>' contract called '<contractName>' with namespace '<namespace>'
         And the Local Fabric is running
+        And the 'Local Fabric Admin' identity
         And the 'Local Fabric' environment is connected
         And the contract has been packaged
         And I'm connected to the 'Local Fabric' gateway
