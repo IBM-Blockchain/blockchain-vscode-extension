@@ -15,19 +15,6 @@
                 "kind": "build",
                 "isDefault": true
             }
-        },
-        {
-            "type": "npm",
-            "script": "integrationTests",
-            "isBackground": false,
-            "presentation": {
-                "reveal": "always"
-            },
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": "$tsc-watch"
         }
     ]
 }

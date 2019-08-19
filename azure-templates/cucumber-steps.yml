@@ -19,7 +19,7 @@ steps:
 
   - bash: |
       set -ev
-      npm run cucumber 2>&1 | tee
+      npm run cucumber
     env:
       DISPLAY: ':99.0'
     displayName: Run cucumber tests

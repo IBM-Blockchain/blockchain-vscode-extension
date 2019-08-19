@@ -8,7 +8,7 @@ schedules:
 
 stages:
   - stage: unitTest
-    condition: ne(variables['BUILD_REASON'], 'Schedule')
+    condition: ne(variables['BUILD_REASON'], 'Scheduled')
     dependsOn: []
     jobs:
       - job: unit
@@ -35,7 +35,7 @@ stages:
           - template: azure-templates/unit-test-steps.yml
 
   - stage: cucumberTest
-    condition: ne(variables['BUILD_REASON'], 'Schedule')
+    condition: ne(variables['BUILD_REASON'], 'Scheduled')
     dependsOn: []
 
     jobs:
@@ -55,8 +55,80 @@ stages:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/cucumber-steps.yml
 
+  - stage: buildPackage
+    dependsOn:
+      - unitTest
+      - cucumberTest
+    jobs:
+      - job: buildPackage
+
+        pool:
+          vmImage: 'ubuntu-16.04'
+
+        steps:
+          - template: azure-templates/setup-steps.yml
+
+          - bash: |
+              set -ev
+              npm run package
+
+          - task: CopyFiles@2
+            inputs:
+              sourceFolder: '$(Build.SourcesDirectory)'
+              contents: '*.vsix'
+              targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              artifactName: vscode-package
+
+  - stage: deploy
+    condition: and(succeeded(), startsWith(variables['BUILD_SOURCEBRANCH'], 'refs/tags'))
+    dependsOn:
+      - unitTest
+      - cucumberTest
+      - buildPackage
+    jobs:
+      - job:
+        pool:
+          vmImage: 'ubuntu-16.04'
+        steps:
+          - bash: |
+              echo ">> Yey this would have deployed"
+
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: vscode-package
+              path: $(Build.SourcesDirectory)
+
+          - bash: |
+              set -ev
+              echo "node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}"
+            displayName: Publish extension
+
+          - bash: |
+              set -ev
+              npm install semver
+
+              # Bump the version number.
+              node ./.azure/pkgbump.js
+
+              export NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
+
+              # Change from HTTPS to SSH.
+              .azure/fix_github_https_repo.sh
+
+              # Add the version number changes and push them to Git.
+              git config user.name "${GH_USER_NAME}"
+              git config user.email "${GH_USER_EMAIL}"
+              git add .
+              git commit -m "Automatic version bump to ${NEW_VERSION}"
+              echo "git push origin master"
+            displayName: Version bump
+
   - stage: otherVersionsUnitTest
-    condition: eq(variables['BUILD_REASON'], 'Schedule')
+    condition: eq(variables['BUILD_REASON'], 'Scheduled')
     dependsOn: []
     jobs:
       - job: unit
@@ -95,7 +167,7 @@ stages:
           - template: azure-templates/unit-test-steps.yml
 
   - stage: otherVersionsCucumberTest
-    condition: eq(variables['BUILD_REASON'], 'Schedule')
+    condition: eq(variables['BUILD_REASON'], 'Scheduled')
     dependsOn: []
     jobs:
       - job: cucumber
@@ -122,20 +194,3 @@ stages:
           - template: azure-templates/setup-steps.yml
           - template: azure-templates/rebuild-steps.yml
           - template: azure-templates/unit-test-steps.yml
-
-  - stage: deploy
-    condition: and(succeeded(), startsWith(variables['BUILD_SOURCEBRANCH'], 'refs/tags'))
-    dependsOn:
-      - unitTest
-      - cucumberTest
-    jobs:
-      - job:
-        pool:
-          vmImage: 'ubuntu-16.04'
-        steps:
-        - bash: |
-            echo ">> Yey this would have deployed"
-
-
-
-
