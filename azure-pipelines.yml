@@ -6,9 +6,14 @@ schedules:
         - master
     always: true
 
+trigger:
+  tags:
+    include:
+      - '*'
+
 stages:
   - stage: unitTest
-    condition: ne(variables['BUILD_REASON'], 'Scheduled')
+    condition: ne(variables['Build.Reason'], 'Schedule')
     dependsOn: []
     jobs:
       - job: unit
@@ -35,7 +40,7 @@ stages:
           - template: azure-templates/unit-test-steps.yml
 
   - stage: cucumberTest
-    condition: ne(variables['BUILD_REASON'], 'Scheduled')
+    condition: ne(variables['Build.Reason'], 'Schedule')
     dependsOn: []
 
     jobs:
@@ -84,7 +89,7 @@ stages:
               artifactName: vscode-package
 
   - stage: deploy
-    condition: and(succeeded(), startsWith(variables['BUILD_SOURCEBRANCH'], 'refs/tags'))
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
     dependsOn:
       - unitTest
       - cucumberTest
@@ -128,7 +133,7 @@ stages:
             displayName: Version bump
 
   - stage: otherVersionsUnitTest
-    condition: eq(variables['BUILD_REASON'], 'Scheduled')
+    condition: eq(variables['Build.Reason'], 'Schedule')
     dependsOn: []
     jobs:
       - job: unit
@@ -167,7 +172,7 @@ stages:
           - template: azure-templates/unit-test-steps.yml
 
   - stage: otherVersionsCucumberTest
-    condition: eq(variables['BUILD_REASON'], 'Scheduled')
+    condition: eq(variables['Build.Reason'], 'Schedule')
     dependsOn: []
     jobs:
       - job: cucumber
