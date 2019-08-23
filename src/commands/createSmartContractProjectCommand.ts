@@ -55,8 +55,14 @@ export async function createSmartContractProject(): Promise<void> {
     let assetType: string;
     if (smartContractLanguageItem.type === LanguageType.CONTRACT) {
         assetType = await UserInputUtil.showInputBox('Name the type of asset managed by this smart contract', 'MyAsset');
+        const regexForAssetType: RegExp = /^[A-Z]+$/i;
+        const validAssetType: boolean = regexForAssetType.test(assetType);
         if (!assetType) {
             // User has cancelled the input box
+            return;
+        }
+        if (!validAssetType) {
+            outputAdapter.log(LogType.ERROR, `Invalid asset name, it should only contain lowercase and uppercase letters.`);
             return;
         }
     }
