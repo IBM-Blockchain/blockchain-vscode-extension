@@ -197,5 +197,4 @@ stages:
 
         steps:
           - template: azure-templates/setup-steps.yml
-          - template: azure-templates/rebuild-steps.yml
-          - template: azure-templates/unit-test-steps.yml
+          - template: azure-templates/cucumber-steps.yml
