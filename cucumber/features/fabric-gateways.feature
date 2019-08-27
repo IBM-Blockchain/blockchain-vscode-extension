@@ -26,7 +26,7 @@ Feature: Fabric Gateways
 
     @otherFabric
     Scenario: Create another gateway
-        When I create a gateway 'myGateway'
+        When I create a gateway 'myGateway' from a 'profile'
         Then there should be a tree item with a label 'myGateway' in the 'Fabric Gateways' panel
 
     @otherFabric
@@ -42,8 +42,19 @@ Feature: Fabric Gateways
         And there should be a tree item with a label 'Channels' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Channels'
 
+    @otherFabric
+    Scenario: Create a gateway from an environment
+        Given an environment 'myFabric' exists
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the environment is setup
+        When I create a gateway 'gatewayFromEnv' from an 'environment'
+        Then there should be a tree item with a label 'gatewayFromEnv' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Associated with wallet: myWallet'
+        When connecting to the 'myGateway' gateway
+        Then there should be a tree item with a label 'Connected via gateway: gatewayFromEnv' in the 'Fabric Gateways' panel
+        And the tree item should have a tooltip equal to 'Connected via gateway: gatewayFromEnv'
 
-     Scenario Outline: Generating tests for a contract (local fabric)
+    Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
         And the 'Local Fabric' environment is connected
         And the 'Local Fabric' wallet
@@ -67,20 +78,20 @@ Feature: Fabric Gateways
 
   @otherFabric
   Scenario Outline: Generating tests for a contract (other fabric)
-      Given the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
-      And an environment 'myFabric' exists
-      And the 'myFabric' environment is connected
-      And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
-      And the contract has been created
-      And the contract has been packaged
-      And the package has been installed
-      And the contract has been instantiated with the transaction '' and args '', not using private data
-      And the gateway 'myGateway' is created
-      And I'm connected to the 'myGateway' gateway without association
-      When I generate a <testLanguage> functional test for a <contractLanguage> contract
-      Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
-      And the tests should be runnable
-      Examples:
-      | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
-      | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
-      | JavaScriptContract | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+        Given the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And an environment 'myFabric' exists
+        And the 'myFabric' environment is connected
+        And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
+        And the contract has been created
+        And the contract has been packaged
+        And the package has been installed
+        And the contract has been instantiated with the transaction '' and args '', not using private data
+        And the gateway 'myGateway' is created
+        And I'm connected to the 'myGateway' gateway without association
+        When I generate a <testLanguage> functional test for a <contractLanguage> contract
+        Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
+        And the tests should be runnable
+        Examples:
+        | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
+        | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
+        | JavaScriptContract | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |

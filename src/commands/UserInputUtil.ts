@@ -73,10 +73,11 @@ export class UserInputUtil {
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
     static readonly ADD_JSON_ID_OPTION: string = 'Provide a JSON identity file';
-
     static readonly ADD_MORE_NODES: string = 'Add more (JSON) node definitions';
     static readonly DONE_ADDING_NODES: string = 'Done adding nodes';
     static readonly ADD_IDENTITY: string = '+ Add identity';
+    static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric Environment';
+    static readonly ADD_GATEWAY_FRPM_CCP: string = 'Create a gateway from a connection profile';
 
     public static async showQuickPick(prompt: string, items: string[]): Promise<string> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -84,6 +85,37 @@ export class UserInputUtil {
             canPickMany: false,
             placeHolder: prompt
         };
+
+        return vscode.window.showQuickPick(items, quickPickOptions);
+    }
+
+    public static async showOrgQuickPick(prompt: string, environmentName: string): Promise<IBlockchainQuickPickItem<FabricNode>> {
+        const quickPickOptions: vscode.QuickPickOptions = {
+            ignoreFocusOut: false,
+            canPickMany: false,
+            placeHolder: prompt
+        };
+
+        const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+        let nodes: FabricNode[] = await environment.getNodes();
+
+        nodes = nodes.filter((node: FabricNode) => node.type === FabricNodeType.PEER);
+
+        const items: Array<IBlockchainQuickPickItem<FabricNode>> = [];
+
+        for (const node of nodes) {
+            const found: boolean = items.some((item: IBlockchainQuickPickItem<FabricNode>) => item.data.msp_id === node.msp_id);
+
+            if (!found) {
+                items.push({ label: node.msp_id, data: node });
+            }
+        }
+
+        if (items.length === 0) {
+            throw new Error('No organisations found');
+        } else if (items.length === 1) {
+            return items[0];
+        }
 
         return vscode.window.showQuickPick(items, quickPickOptions);
     }
@@ -108,6 +140,12 @@ export class UserInputUtil {
         const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = allEnvironments.map((environment: FabricEnvironmentRegistryEntry) => {
             return { label: environment.name, data: environment };
         });
+
+        if (environmentsQuickPickItems.length === 1) {
+            return environmentsQuickPickItems[0];
+        } else if (environmentsQuickPickItems.length === 0) {
+            throw new Error('Error when choosing environment, no environments found to choose from.');
+        }
 
         return vscode.window.showQuickPick(environmentsQuickPickItems, quickPickOptions);
     }
@@ -944,10 +982,14 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, filter: FabricNodeType[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
+    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], orgFilter: string[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes();
-        nodes = nodes.filter((node: FabricNode) => filter.indexOf(node.type) !== -1);
+        nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
+
+        if (orgFilter && orgFilter.length > 0) {
+            nodes = nodes.filter((node: FabricNode) => orgFilter.indexOf(node.msp_id) !== -1);
+        }
 
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = [];
         for (const _node of nodes) {
@@ -967,6 +1009,12 @@ export class UserInputUtil {
             canPickMany: false,
             placeHolder: prompt
         };
+
+        if (quickPickItems.length === 1) {
+            return quickPickItems[0];
+        } else if (quickPickItems.length === 0) {
+            throw new Error('No nodes found to choose from');
+        }
 
         return vscode.window.showQuickPick<IBlockchainQuickPickItem<FabricNode>>(quickPickItems, quickPickOptions);
     }

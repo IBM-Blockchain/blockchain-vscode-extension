@@ -50,7 +50,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a node to associate an identity with', environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER]);
+            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a node to associate an identity with', environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], []);
             if (!chosenNode) {
                 return;
             }
