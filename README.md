@@ -161,8 +161,8 @@ Here is an example of a multi-node ordering service
          "cluster_name": "myCluster"
      },
      {
-          "name": "orderer.example.com",
-          "api_url": "grpc://localhost:17050",
+          "name": "orderer1.example.com",
+          "api_url": "grpc://localhost:17051",
           "type": "fabric-orderer",
           "msp_id": "OrdererMSP",
           "cluster_name": "myCluster"
@@ -170,7 +170,7 @@ Here is an example of a multi-node ordering service
 ]
 ```
 
-Here is an example of a peer with `TLS` enabled, please note the `pem` property value has been shortened.
+Here is an example of a peer with `TLS` enabled, please note the `pem` property value has been shortened. The `pem` property is the root `TLS` certificate of the peer's MSP. The property should be base64 encoded from a pem file. 
 
 ```
 {
