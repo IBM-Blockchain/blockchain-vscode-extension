@@ -40,7 +40,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
 
     try {
         // Ask for method to add wallet
-        const walletMethod: string = await UserInputUtil.showAddWalletOptionsQuickPick('Choose a method to add a wallet:');
+        const walletMethod: string = await UserInputUtil.showAddWalletOptionsQuickPick('Choose a method to add a wallet:', createIdentity);
         if (!walletMethod) {
             // User cancelled dialog box
             return;

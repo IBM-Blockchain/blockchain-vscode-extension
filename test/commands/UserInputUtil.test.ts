@@ -1706,10 +1706,23 @@ describe('UserInputUtil', () => {
 
         it('should show options to add wallet in the quick pick box', async () => {
             quickPickStub.resolves(UserInputUtil.WALLET_NEW_ID);
-            const result: string = await UserInputUtil.showAddWalletOptionsQuickPick('choose option to add wallet with');
+            const result: string = await UserInputUtil.showAddWalletOptionsQuickPick('choose option to add wallet with', true);
 
             result.should.equal(UserInputUtil.WALLET_NEW_ID);
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith([UserInputUtil.IMPORT_WALLET, UserInputUtil.WALLET_NEW_ID], {
+                matchOnDetail: true,
+                placeHolder: 'choose option to add wallet with',
+                ignoreFocusOut: true,
+                canPickMany: false,
+            });
+        });
+
+        it('should show options to add wallet in the quick pick box when not adding identity', async () => {
+            quickPickStub.resolves(UserInputUtil.WALLET);
+            const result: string = await UserInputUtil.showAddWalletOptionsQuickPick('choose option to add wallet with', false);
+
+            result.should.equal(UserInputUtil.WALLET);
+            quickPickStub.should.have.been.calledWith([UserInputUtil.IMPORT_WALLET, UserInputUtil.WALLET], {
                 matchOnDetail: true,
                 placeHolder: 'choose option to add wallet with',
                 ignoreFocusOut: true,

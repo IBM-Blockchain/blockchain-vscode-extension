@@ -33,7 +33,7 @@ import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 
-export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet): Promise<string> {
+export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWallet, mspid: string): Promise<string> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'addWalletIdentity');
 
@@ -77,16 +77,15 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         isLocalWallet = false;
     }
 
-    let mspID: string;
     if (isLocalWallet) {
         // using local_fabric_wallet
         const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
         const orgsArray: Array<string> = connection.getAllOrganizationNames();
         // only one mspID currently, if multiple we'll need to add a dropdown
-        mspID = orgsArray[0];
-    } else {
-        mspID = await UserInputUtil.showInputBox('Enter MSPID');
-        if (!mspID) {
+        mspid = orgsArray[0];
+    } else if (!mspid) {
+        mspid = await UserInputUtil.showInputBox('Enter MSPID');
+        if (!mspid) {
             // User cancelled entering mspid
             return;
         }
@@ -107,7 +106,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
 
         if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
             // User wants to add an identity by providing a certificate and private key
-            const certKey: {certificatePath: string, privateKeyPath: string} = await UserInputUtil.getCertKey();
+            const certKey: { certificatePath: string, privateKeyPath: string } = await UserInputUtil.getCertKey();
             if (!certKey) {
                 return;
             }
@@ -122,7 +121,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
                 canSelectMany: false,
                 openLabel: 'Select',
                 filters: {
-                    Identity : ['json']
+                    Identity: ['json']
                 }
             };
             // Get the json identity file path
@@ -184,7 +183,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
                 gatewayRegistryEntry = chosenEntry.data;
             }
 
-            const enrollIdSecret: {enrollmentID: string, enrollmentSecret: string} = await UserInputUtil.getEnrollIdSecret();
+            const enrollIdSecret: { enrollmentID: string, enrollmentSecret: string } = await UserInputUtil.getEnrollIdSecret();
             if (!enrollIdSecret) {
                 return;
             }
@@ -220,7 +219,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
                 caUrl = connectionProfile.certificateAuthorities[caKeys[0]].url;
             }
 
-            const enrollment: {certificate: string, privateKey: string} = await certificateAuthority.enroll(caUrl, enrollmentID, enrollmentSecret);
+            const enrollment: { certificate: string, privateKey: string } = await certificateAuthority.enroll(caUrl, enrollmentID, enrollmentSecret);
             certificate = enrollment.certificate;
             privateKey = enrollment.privateKey;
         }
@@ -232,7 +231,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         // Else certificate and privateKey have already been read in FabricCertificateAuthority.enroll
         // Or certificate and privateKey has been read from json file
 
-        await wallet.importIdentity(certificate, privateKey, identityName, mspID);
+        await wallet.importIdentity(certificate, privateKey, identityName, mspid);
 
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Unable to add identity to wallet: ${error.message}`, `Unable to add identity to wallet: ${error.toString()}`);
@@ -244,11 +243,11 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
 
     // Send telemetry event
     if (addIdentityMethod === UserInputUtil.ADD_CERT_KEY_OPTION) {
-        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'Certificate'});
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', { method: 'Certificate' });
     } else if (addIdentityMethod === UserInputUtil.ADD_JSON_ID_OPTION) {
-        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'json'});
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', { method: 'json' });
     } else {
-        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', {method: 'enrollmentID'});
+        Reporter.instance().sendTelemetryEvent('addWalletIdentityCommand', { method: 'enrollmentID' });
     }
 
     return identityName;
