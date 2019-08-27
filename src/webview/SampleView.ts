@@ -28,6 +28,7 @@ import { ExtensionUtil } from '../util/ExtensionUtil';
 import * as ejs from 'ejs';
 import { LogType } from '../logging/OutputAdapter';
 import { View } from './View';
+import { RepositoryRegistryEntry } from '../repositories/RepositoryRegistryEntry';
 
 export class SampleView extends View {
 
@@ -135,14 +136,41 @@ export class SampleView extends View {
     }
 
     private async getSamplePage(options: any): Promise<any> {
-
+        let validInternetConnection: boolean = true;
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         const templatePath: string = path.join(__dirname, '..', '..', '..', 'templates', 'SampleView.ejs');
 
         const converter: showdown.Converter = new showdown.Converter();
-        const response: any = await Axios.get(options.sample.readme);
-        const text: string = response.data;
-        const html: string = converter.makeHtml(text);
-        options.html = html;
+        try {
+            const response: any = await Axios.get(options.sample.readme);
+            const text: string = response.data;
+            const html: string = converter.makeHtml(text);
+            options.html = html;
+        } catch (error) {
+            validInternetConnection = false;
+        }
+
+        if (!validInternetConnection) {
+            const repositoryRegistry: RepositoryRegistry = RepositoryRegistry.instance();
+            const repoIsCloned: boolean = repositoryRegistry.exists(options.repositoryName);
+            if (repoIsCloned) {
+                const clonedRepo: RepositoryRegistryEntry = repositoryRegistry.get(options.repositoryName);
+                const repoPath: string = clonedRepo.path;
+                const readMeOnJSON: string = options.sample.readme;
+                const splitPath: string[] = readMeOnJSON.split(options.repositoryName);
+
+                const branchedPath: string = splitPath[1];
+                const endOfBranchName: number = branchedPath.indexOf('/', 1);
+                const slicedPath: string = branchedPath.slice(endOfBranchName + 1, branchedPath.length);
+
+                const readMe: string = await fs.readFile(path.join(repoPath, slicedPath), 'utf8');
+                const html: string = converter.makeHtml(readMe);
+                options.html = html;
+            } else {
+                options.html = 'No internet connection - unable to retrieve the README.';
+                outputAdapter.log(LogType.WARNING, 'Unable to retrieve README');
+            }
+        }
 
         return await new Promise((resolve: any, reject: any): any => {
             ejs.renderFile(templatePath, options, { async: true }, (error: any, data: string) => {
@@ -305,9 +333,10 @@ export class SampleView extends View {
 
         // Find out where sample repository is
         const repositoryRegistry: RepositoryRegistry = RepositoryRegistry.instance();
-        const repositoryData: any = repositoryRegistry.get(this.repoName);
-        if (!repositoryData) {
-            // If the repo isn't in the user settings
+        let repositoryData: RepositoryRegistryEntry;
+        try {
+            repositoryData = repositoryRegistry.get(this.repoName);
+        } catch (error) {
             outputAdapter.log(LogType.ERROR, `The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.`);
             return;
         }
