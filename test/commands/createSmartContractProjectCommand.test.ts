@@ -323,6 +323,15 @@ describe('CreateSmartContractProjectCommand', () => {
         browseStub.should.not.have.been.called;
     });
 
+    it('should throw an error if the user specifies an invalid asset type', async () => {
+        quickPickStub.onCall(0).resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
+        showInputBoxStub.onCall(0).resolves('@xyz/myAsset');
+        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
+        quickPickStub.should.have.been.calledOnce;
+        browseStub.should.not.have.been.called;
+        logSpy.should.have.been.calledWith(LogType.ERROR, 'Invalid asset name, it should only contain lowercase and uppercase letters.');
+    });
+
     it('should check if Mac (Darwin) devices have Xcode installed', async () => {
         mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
 
