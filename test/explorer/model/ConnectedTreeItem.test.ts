@@ -15,11 +15,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ConnectedTreeItem } from '../../../src/explorer/model/ConnectedTreeItem';
-import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { FabricGatewayRegistryEntry } from '../../../src/fabric/FabricGatewayRegistryEntry';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 
 chai.should();
 const should: Chai.Should = chai.should();
@@ -31,7 +31,7 @@ describe('ConnectedTreeItem', () => {
 
     class TestConnectedTreeItem extends ConnectedTreeItem {
         constructor(label: string) {
-            super(getBlockchainGatewayExplorerProvider(), label, gatewayRegistryEntry, vscode.TreeItemCollapsibleState.None);
+            super(ExtensionUtil.getBlockchainGatewayExplorerProvider(), label, gatewayRegistryEntry, vscode.TreeItemCollapsibleState.None);
         }
     }
 

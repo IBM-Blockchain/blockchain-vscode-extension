@@ -17,7 +17,6 @@ import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { TestUtil } from '../TestUtil';
-import * as myExtension from '../../src/extension';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
@@ -26,6 +25,7 @@ import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplo
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -97,7 +97,7 @@ describe('EditWalletCommand', () => {
         describe('called from tree by clicking or right-clicking and editing', () => {
 
             it('should open the user settings to edit a wallet', async () => {
-                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
                 const treeItem: WalletTreeItem = new WalletTreeItem(blockchainWalletExplorerProvider, 'myWallet', [], 0, {name: 'myWallet', walletPath: '/some/path', managedWallet: false});
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_WALLET, treeItem);

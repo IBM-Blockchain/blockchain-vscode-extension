@@ -13,10 +13,10 @@
 */
 
 import { AdminIdentityTreeItem } from '../../../src/explorer/model/AdminIdentityTreeItem';
-import { getBlockchainWalletExplorerProvider } from '../../../src/extension';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 
 chai.should();
 
@@ -24,7 +24,7 @@ describe('AdminIdentityTreeItem', () => {
 
     class TestAdminIdentityTreeItem extends AdminIdentityTreeItem {
         constructor(label: string, walletName: string, attributes?: any) {
-            super(getBlockchainWalletExplorerProvider(), label, walletName, attributes);
+            super(ExtensionUtil.getBlockchainWalletExplorerProvider(), label, walletName, attributes);
         }
     }
 

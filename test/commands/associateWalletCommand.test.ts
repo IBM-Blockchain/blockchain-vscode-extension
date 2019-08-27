@@ -17,7 +17,6 @@ import * as chai from 'chai';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as myExtension from '../../src/extension';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
@@ -34,6 +33,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -102,7 +102,7 @@ describe('AssociateWalletCommand', () => {
                 data: FabricWalletRegistry.instance().get('blueWallet')
             });
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
 
@@ -133,7 +133,7 @@ describe('AssociateWalletCommand', () => {
         it('should display an error message if no user added wallets exist', async () => {
             await FabricWalletRegistry.instance().clear();
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
 
@@ -148,7 +148,7 @@ describe('AssociateWalletCommand', () => {
         it('should test associating a wallet can be cancelled when asked to select a wallet', async () => {
             showWalletsQuickPickBoxStub.resolves();
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayDissociatedTreeItem = gateways[0] as GatewayDissociatedTreeItem;
 

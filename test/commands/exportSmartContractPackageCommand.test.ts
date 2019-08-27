@@ -18,7 +18,6 @@ import * as vscode from 'vscode';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as myExtension from '../../src/extension';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { TestUtil } from '../TestUtil';
@@ -32,6 +31,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -86,7 +86,7 @@ describe('exportSmartContractPackageCommand', () => {
     });
 
     it('should export a package to the file system using the tree menu item', async () => {
-        const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+        const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
         const _packages: BlockchainTreeItem[] = await blockchainPackageExplorerProvider.getChildren();
         const _package: PackageTreeItem = _packages[0] as PackageTreeItem;
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, _package);

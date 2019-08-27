@@ -20,7 +20,6 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
-import * as myExtension from '../../src/extension';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { GatewayDissociatedTreeItem } from '../../src/explorer/model/GatewayDissociatedTreeItem';
@@ -28,6 +27,7 @@ import { GatewayAssociatedTreeItem } from '../../src/explorer/model/GatewayAssoc
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -99,7 +99,7 @@ describe('EditGatewayCommand', () => {
         describe('called from tree by clicking or right-clicking and editing', () => {
 
             it('should open the user settings to edit an associated gateway', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const treeItem: GatewayAssociatedTreeItem = new GatewayAssociatedTreeItem(blockchainNetworkExplorerProvider, 'My Gateway', {name: 'myGateway', connectionProfilePath: 'path', associatedWallet: 'wallet', managedRuntime: false} as FabricGatewayRegistryEntry, 0);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);
@@ -108,7 +108,7 @@ describe('EditGatewayCommand', () => {
             });
 
             it('should open the user settings to edit an dissociated gateway', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const treeItem: GatewayDissociatedTreeItem = new GatewayDissociatedTreeItem(blockchainNetworkExplorerProvider, 'My Gateway', {name: 'myGateway', connectionProfilePath: 'path', associatedWallet: '', managedRuntime: false} as FabricGatewayRegistryEntry, 0);
 
                 await vscode.commands.executeCommand(ExtensionCommands.EDIT_GATEWAY, treeItem);

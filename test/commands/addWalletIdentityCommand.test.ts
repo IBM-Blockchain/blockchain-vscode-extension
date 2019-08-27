@@ -15,7 +15,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import * as myExtension from '../../src/extension';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -44,6 +43,7 @@ import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -736,7 +736,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
-                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[2] as WalletTreeItem;
@@ -782,7 +782,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
-                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
@@ -834,7 +834,7 @@ describe('AddWalletIdentityCommand', () => {
                 getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
                 enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
                 importIdentityStub.resolves();
-                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
 
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
@@ -873,7 +873,7 @@ describe('AddWalletIdentityCommand', () => {
                 mySandBox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
                 executeCommandStub.withArgs(ExtensionCommands.START_FABRIC).resolves();
 
-                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+                const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
                 const walletItems: Array<BlockchainTreeItem> = await blockchainWalletExplorerProvider.getChildren();
                 const walletItem: WalletTreeItem = walletItems[0] as LocalWalletTreeItem;
 

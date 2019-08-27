@@ -15,6 +15,7 @@
 
 import * as vscode from 'vscode';
 import { ExtensionUtil } from '../util/ExtensionUtil';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
 export class TemporaryCommandRegistry {
 
@@ -27,15 +28,19 @@ export class TemporaryCommandRegistry {
     // Used to save/re-execute commands used before the extension has activated (e.g. delayed by dependency downloading).
     private delayedCommandsToExecute: Set<string>;
     private tempCommands: vscode.Disposable[]; // Need to save this to unregister/dispose the temporary commands.
+    private delayExecution: boolean;
+    private alternativeCommand: string;
 
     private constructor() {
     }
 
-    public createTempCommands(): void {
+    public createTempCommands(delayExecution: boolean, alternativeCommand?: string): void {
         const commands: Array<any> = ExtensionUtil.getPackageJSON().actualActivationEvents.onCommand;
 
         this.tempCommands = [];
         this.delayedCommandsToExecute = new Set<string>();
+        this.delayExecution = delayExecution;
+        this.alternativeCommand = alternativeCommand; // Can be used to redirect a command to another
 
         // Add temp commands that invoke the real commands after download/install is complete (preventing an error message)
         commands.forEach((command: any) => {
@@ -44,7 +49,7 @@ export class TemporaryCommandRegistry {
     }
 
     public restoreCommands(): void {
-        this.tempCommands.forEach((command: any) => {
+        this.tempCommands.forEach((command: vscode.Disposable) => {
             command.dispose();
         });
         this.tempCommands = [];
@@ -59,8 +64,21 @@ export class TemporaryCommandRegistry {
     }
 
     private registerTempCommand(command: string): void {
-        this.tempCommands.push(vscode.commands.registerCommand(command, () => {
-            this.delayedCommandsToExecute.add(command);
-        }));
+
+        if (command !== ExtensionCommands.OPEN_PRE_REQ_PAGE) {
+            const disposableCommand: vscode.Disposable = vscode.commands.registerCommand(command, async () => {
+
+                if (this.delayExecution) {
+                    // Delay the command to run later
+                    this.delayedCommandsToExecute.add(command);
+                } else {
+                    // Command called will run this.alternativeCommand instead
+                    await vscode.commands.executeCommand(this.alternativeCommand);
+                }
+
+            });
+
+            this.tempCommands.push(disposableCommand);
+        }
     }
 }

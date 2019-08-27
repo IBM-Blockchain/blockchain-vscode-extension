@@ -28,7 +28,7 @@ import { PackageRegistry } from '../../src/packages/PackageRegistry';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 
-import * as myExtension from '../../src/extension';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -130,7 +130,7 @@ export class SmartContractHelper {
     }
 
     public async installSmartContract(name: string, version: string): Promise<void> {
-        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
         const installedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[0]); // Installed smart contracts
@@ -157,7 +157,7 @@ export class SmartContractHelper {
 
     public async instantiateSmartContract(name: string, version: string, transaction: string, args: string, privateData: boolean): Promise<void> {
         // Check if instantiated contract exists
-        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const smartContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[0]);
         const instantiatedContracts: any[] = await blockchainRuntimeExplorerProvider.getChildren(smartContracts[1]); // Installed smart contracts

@@ -88,6 +88,7 @@
             "walletExplorer.deleteIdentityEntry",
             "walletExplorer.exportWalletEntry",
             "extensionHome.open",
+            "preReq.open",
             "tutorialGallery.open"
         ]
     },
@@ -171,6 +172,11 @@
                     "default": 120,
                     "description": "Used to configure the client timeout value (seconds)",
                     "minimum": 45
+                },
+                "ibm-blockchain-platform.ext.bypassPreReqs": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Bypass the prerequisites check"
                 }
             }
         },
@@ -202,6 +208,11 @@
                     "light": "resources/icon_light.svg",
                     "dark": "resources/icon_dark.svg"
                 }
+            },
+            {
+                "command": "preReq.open",
+                "title": "View Prerequisites",
+                "category": "IBM Blockchain Platform"
             },
             {
                 "command": "tutorialGallery.open",
@@ -1339,6 +1350,7 @@
             "templates/HomeView.ejs",
             "templates/SampleView.ejs",
             "templates/TutorialGallery.ejs",
+            "templates/PreReqView.ejs",
             "tutorials"
         ],
         "file_type_method": "EXCLUDE",

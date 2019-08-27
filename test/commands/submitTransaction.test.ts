@@ -26,7 +26,6 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { TransactionTreeItem } from '../../src/explorer/model/TransactionTreeItem';
 import { Reporter } from '../../src/util/Reporter';
@@ -37,6 +36,7 @@ import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlo
 import { InstantiatedContractTreeItem } from '../../src/explorer/model/InstantiatedContractTreeItem';
 import { InstantiatedChaincodeTreeItem } from '../../src/explorer/model/InstantiatedChaincodeTreeItem';
 import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.should();
@@ -131,7 +131,7 @@ describe('SubmitTransactionCommand', () => {
             registryEntry.managedRuntime = false;
             registryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-            blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
 

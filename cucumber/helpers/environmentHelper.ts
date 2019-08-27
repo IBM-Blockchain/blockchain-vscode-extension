@@ -20,7 +20,6 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as myExtension from '../../src/extension';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
@@ -33,6 +32,7 @@ import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentReg
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { FabricNode } from '../../src/fabric/FabricNode';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -48,7 +48,7 @@ export class EnvironmentHelper {
     }
 
     public async createEnvironment(name: string): Promise<void> {
-        const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         // need to make sure its not showing the setup tree
         blockchainEnvironmentExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
         const treeItems: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();

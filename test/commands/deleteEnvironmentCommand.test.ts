@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
@@ -27,6 +26,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -97,7 +97,7 @@ describe('DeleteEnvironmentCommand', () => {
         });
 
         it('should test a environment can be deleted from tree', async () => {
-            const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 

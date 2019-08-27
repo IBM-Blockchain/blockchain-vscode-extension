@@ -22,9 +22,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { URL } from 'url';
-import { ExtensionUtil, ExtensionData, EXTENSION_DATA_KEY } from '../util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { GlobalState, ExtensionData } from '../util/GlobalState';
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
@@ -70,8 +70,7 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
 
-            const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-            const extensionData: ExtensionData = context.globalState.get<ExtensionData>(EXTENSION_DATA_KEY);
+            const extensionData: ExtensionData = GlobalState.get();
 
             // Stop debug if not got late enough version
             if (!extensionData.generatorVersion || semver.lt(extensionData.generatorVersion, '0.0.36')) {

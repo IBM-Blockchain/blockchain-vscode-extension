@@ -22,7 +22,6 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import * as myExtension from '../../src/extension';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
@@ -38,6 +37,7 @@ import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironme
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
@@ -124,7 +124,7 @@ describe('InstantiateCommand', () => {
             map.set('myChannel', ['peerOne']);
             fabricRuntimeMock.createChannelMap.resolves(map);
 
-            blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
             const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;

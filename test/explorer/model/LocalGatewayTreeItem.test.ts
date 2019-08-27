@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { LocalGatewayTreeItem } from '../../../src/explorer/model/LocalGatewayTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
@@ -68,7 +67,7 @@ describe('LocalGatewayTreeItem', () => {
         gateway.connectionProfilePath = 'myPath';
         gateway.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
-        provider = getBlockchainGatewayExplorerProvider();
+        provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         mockRuntime.on.callsFake((name: string, callback: any) => {

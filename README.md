@@ -17,13 +17,14 @@ Please visit the [Visual Studio Code Marketplace](https://marketplace.visualstud
 You will need the following installed in order to use the extension:
 - Windows 10, Linux, or Mac OS are currently the supported operating systems.
 - [VS Code version 1.32 or greater](https://code.visualstudio.com)
-- [Node v8.x or greater and npm v5.x or greater](https://nodejs.org/en/download/)
+- [Node v8.x or v10.x and npm v6.x or greater](https://nodejs.org/en/download/)
 - [Docker version v17.06.2-ce or greater](https://www.docker.com/get-docker)
 - [Docker Compose v1.14.0 or greater](https://docs.docker.com/compose/install/)
 - [Go version v1.12 or greater for developing Go contracts](https://golang.org/dl/)
-- [Java v8 for developing Java contracts](https://openjdk.java.net/install/)
+- [Java v8 for developing Java contracts](https://adoptopenjdk.net/?variant=openjdk8)
 
 If you are using Windows, you must also ensure the following:
+- You are using Windows 10 Pro or Enterprise and have the Anniversary Update 1607
 - Docker for Windows is configured to use Linux containers (this is the default)
 - You have installed the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
 - You have installed OpenSSL v1.0.2 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
@@ -316,6 +317,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Teardown Fabric Runtime | Teardown the Local Fabric runtime (hard reset) |
 | Upgrade Smart Contract | Upgrade an instantiated smart contract |
 | View Homepage | View the extensions homepage |
+| View Prerequisites | View the required and optional dependencies on the prerequisites page |
 
 ## Contact Us
 If you have find any problems or want to make suggestions for future features please create [issues and suggestions on Github](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues). For any questions please [create a question on Stack Overflow](https://stackoverflow.com/questions/tagged/ibp-vscode-extension).

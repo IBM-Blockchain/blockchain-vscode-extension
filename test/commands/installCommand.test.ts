@@ -22,7 +22,6 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import * as myExtension from '../../src/extension';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
@@ -36,6 +35,7 @@ import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentMana
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 const should: Chai.Should = chai.should();
@@ -114,7 +114,7 @@ describe('InstallCommand', () => {
 
             fabricRuntimeMock.getInstantiatedChaincode.resolves([]);
 
-            blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
 
             const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;

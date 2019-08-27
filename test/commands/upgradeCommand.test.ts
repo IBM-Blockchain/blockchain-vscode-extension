@@ -22,7 +22,6 @@ import { TestUtil } from '../TestUtil';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
-import * as myExtension from '../../src/extension';
 import { PackageRegistryEntry } from '../../src/packages/PackageRegistryEntry';
 import { Reporter } from '../../src/util/Reporter';
 import { SmartContractsTreeItem } from '../../src/explorer/runtimeOps/connectedTree/SmartContractsTreeItem';
@@ -38,6 +37,7 @@ import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { PackageRegistry } from '../../src/packages/PackageRegistry';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 
@@ -130,7 +130,7 @@ describe('UpgradeCommand', () => {
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
-            blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();
             const smartContracts: SmartContractsTreeItem = allChildren[1] as SmartContractsTreeItem;
             smartContractsChildren = await blockchainRuntimeExplorerProvider.getChildren(smartContracts);

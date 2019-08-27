@@ -25,13 +25,13 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
-import * as myExtension from '../../src/extension';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -233,7 +233,7 @@ describe('deleteIdentityCommand', () => {
 
         it('should delete an identity when called from the wallet tree', async () => {
             identityName = 'blueConga';
-            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
             const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, blueWalletEntry.name, []);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
@@ -252,7 +252,7 @@ describe('deleteIdentityCommand', () => {
             const testFabricWallet: FabricWallet = new FabricWallet('some/local/fabric/wallet/path');
             getWalletStub.returns(testFabricWallet);
 
-            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
             const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME, []);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);

@@ -5,7 +5,7 @@ Feature: Packaged Smart Contracts
         Given a <language> smart contract for <assetType> assets with the name <name> and version <version>
         And the contract has been created
         When I package the contract
-        Then a new package should be created with the name <name> and verison <version>
+        Then a new package should be created with the name <name> and version <version>
         And there should be a tree item with a label '<packagedName>' in the 'Smart Contracts' panel
         And the tree item should have a tooltip equal to '<packagedName>'
         Examples:

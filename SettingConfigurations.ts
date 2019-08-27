@@ -27,6 +27,7 @@ export class SettingConfigurations {
     // EXTENSION CONFIGURATIONS
     static readonly EXTENSION_DIRECTORY: string = 'ibm-blockchain-platform.ext.directory';
     static readonly EXTENSION_REPOSITORIES: string = 'ibm-blockchain-platform.ext.repositories';
+    static readonly EXTENSION_BYPASS_PREREQS: string = 'ibm-blockchain-platform.ext.bypassPreReqs';
 
     // HOME CONFIGURATIONS
     static readonly HOME_SHOW_ON_STARTUP: string = 'ibm-blockchain-platform.home.showOnStartup';

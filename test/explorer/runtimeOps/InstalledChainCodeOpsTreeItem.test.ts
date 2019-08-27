@@ -13,10 +13,10 @@
 */
 
 import { InstalledChainCodeOpsTreeItem } from '../../../src/explorer/runtimeOps/connectedTree/InstalledChainCodeOpsTreeItem';
-import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
+import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 
 chai.should();
 
@@ -24,7 +24,7 @@ describe('InstalledChainCodeOpsTreeItem', () => {
 
     class TestInstalledChainCodeOpsTreeItem extends InstalledChainCodeOpsTreeItem {
         constructor(name: string, version: string, peerName: string) {
-            super(getBlockchainGatewayExplorerProvider(), name, version, peerName);
+            super(ExtensionUtil.getBlockchainGatewayExplorerProvider(), name, version, peerName);
         }
     }
 

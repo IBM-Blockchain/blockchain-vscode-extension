@@ -17,7 +17,6 @@ import * as path from 'path';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as myExtension from '../../src/extension';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
 import { IdentityInfo } from 'fabric-network';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
@@ -43,6 +42,7 @@ import { LocalGatewayTreeItem } from '../../src/explorer/model/LocalGatewayTreeI
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -193,7 +193,7 @@ describe('GatewayConnectCommand', () => {
 
         describe('no wallet associated and non-local fabric', () => {
             it('should test a fabric gateway can be connected to from the command', async () => {
-                const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
@@ -214,7 +214,7 @@ describe('GatewayConnectCommand', () => {
                     data: FabricWalletRegistry.instance().get('myGatewayBWallet')
                 });
 
-                const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
@@ -279,12 +279,12 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should test that a fabric gateway with a single identity can be connected to from the tree', async () => {
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
                 const myConnectionItem: GatewayDissociatedTreeItem = allChildren[1] as GatewayDissociatedTreeItem;
 
-                const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
@@ -295,12 +295,12 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should test that a fabric gateway with multiple identities can be connected to from the tree', async () => {
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
                 const myConnectionItem: GatewayDissociatedTreeItem = allChildren[2] as GatewayDissociatedTreeItem;
 
-                const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
@@ -370,7 +370,7 @@ describe('GatewayConnectCommand', () => {
                     })
                 });
 
-                connectStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+                connectStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
             });
 
             it('should connect to a managed runtime using a quick pick', async () => {
@@ -397,7 +397,7 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should connect to a managed runtime from the tree', async () => {
-                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
                 const myConnectionItem: LocalGatewayTreeItem = allChildren[0] as LocalGatewayTreeItem;
 
@@ -449,7 +449,7 @@ describe('GatewayConnectCommand', () => {
 
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
 
-                connectStub = mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+                connectStub = mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
             });
 
             it('should connect to a non-local fabric using a quick pick', async () => {
@@ -478,7 +478,7 @@ describe('GatewayConnectCommand', () => {
 
             it('should connect to a non-local runtime from the tree', async () => {
                 getIdentitiesStub.resolves([identity.label]);
-                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainNetworkExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainNetworkExplorerProvider.getChildren();
                 const myConnectionItem: GatewayAssociatedTreeItem = allChildren[3] as GatewayAssociatedTreeItem;
 
@@ -504,7 +504,7 @@ describe('GatewayConnectCommand', () => {
 
         it('should send a connectCommand telemetry event if connecting to IBP', async () => {
             mockConnection.isIBPConnection.returns(true);
-            mySandBox.stub(myExtension.getBlockchainGatewayExplorerProvider(), 'connect');
+            mySandBox.stub(ExtensionUtil.getBlockchainGatewayExplorerProvider(), 'connect');
 
             await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 

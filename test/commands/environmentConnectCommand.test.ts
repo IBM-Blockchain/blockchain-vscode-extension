@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as myExtension from '../../src/extension';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
@@ -36,6 +35,7 @@ import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricEnvironmentTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -119,7 +119,7 @@ describe('EnvironmentConnectCommand', () => {
 
         describe('non-local fabric', () => {
             it('should test a fabric environment can be connected to from the command', async () => {
-                const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainEnvironmentExplorerProvider(), 'connect');
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
@@ -163,13 +163,13 @@ describe('EnvironmentConnectCommand', () => {
                 registryEntry.managedRuntime = false;
 
                 mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
-                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 blockchainEnvironmentExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
                 const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;
 
-                const connectStub: sinon.SinonStub = mySandBox.stub(myExtension.getBlockchainEnvironmentExplorerProvider(), 'connect');
+                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
@@ -219,7 +219,7 @@ describe('EnvironmentConnectCommand', () => {
                     data: localFabricRegistryEntry
                 });
 
-                connectStub = mySandBox.stub(myExtension.getBlockchainEnvironmentExplorerProvider(), 'connect');
+                connectStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
             });
 
             it('should connect to a managed runtime using a quick pick', async () => {
@@ -233,7 +233,7 @@ describe('EnvironmentConnectCommand', () => {
             });
 
             it('should connect to a managed runtime from the tree', async () => {
-                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
                 const myConnectionItem: RuntimeTreeItem = allChildren[0] as RuntimeTreeItem;
 
@@ -250,7 +250,7 @@ describe('EnvironmentConnectCommand', () => {
                 registryEntry.managedRuntime = true;
 
                 mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
-                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
                 const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;

@@ -25,12 +25,12 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
-import * as myExtension from '../../src/extension';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -240,7 +240,7 @@ describe('removeWalletCommand', () => {
     describe('called from the tree', () => {
 
         it('should remove a wallet when called from the wallet tree', async () => {
-            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
             const walletsTreeItems: WalletTreeItem[] = await blockchainWalletExplorerProvider.getChildren() as WalletTreeItem[];
             const purpleWalletTreeItem: WalletTreeItem = walletsTreeItems[1];
             warningStub.resolves('Yes');

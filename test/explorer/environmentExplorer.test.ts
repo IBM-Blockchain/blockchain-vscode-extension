@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 'use strict';
-import * as myExtension from '../../src/extension';
 import * as vscode from 'vscode';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -97,7 +96,7 @@ describe('environmentExplorer', () => {
                 registryEntryTwo.managedRuntime = false;
 
                 mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntryOne, registryEntryTwo]);
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(3);
@@ -116,7 +115,7 @@ describe('environmentExplorer', () => {
                 const error: Error = new Error('some error');
                 mySandBox.stub(RuntimeTreeItem, 'newRuntimeTreeItem').rejects(error);
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 await blockchainRuntimeExplorerProvider.getChildren();
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, `Error populating Fabric Environment Panel: ${error.message}`, `Error populating Fabric Environment Panel: ${error.toString()}`);
@@ -174,7 +173,7 @@ describe('environmentExplorer', () => {
                     arguments: []
                 };
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
 
                 blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
@@ -218,7 +217,7 @@ describe('environmentExplorer', () => {
                     arguments: []
                 };
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
 
                 blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
@@ -264,7 +263,7 @@ describe('environmentExplorer', () => {
                     arguments: []
                 };
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
 
                 blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
@@ -304,7 +303,7 @@ describe('environmentExplorer', () => {
                     arguments: []
                 };
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(blockchainRuntimeExplorerProvider, environmentRegistry.name, environmentRegistry, command);
 
                 blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = environmentTreeItem;
@@ -321,7 +320,7 @@ describe('environmentExplorer', () => {
             it('should error if gRPC cant connect to Fabric', async () => {
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.createChannelMap.throws(new Error('Cannot connect to Fabric: Received http2 header with status: 503'));
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 const smartcontractsChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allChildren[1]);
                 await blockchainRuntimeExplorerProvider.getChildren(smartcontractsChildren[1]);
@@ -333,7 +332,7 @@ describe('environmentExplorer', () => {
                 fabricConnection.getAllPeerNames.returns(['peerOne']);
                 fabricConnection.createChannelMap.throws(new Error('Error creating channel map: some error'));
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 await blockchainRuntimeExplorerProvider.getChildren(allChildren[2]);
 
@@ -343,7 +342,7 @@ describe('environmentExplorer', () => {
             it('should error if populating nodes view fails', async () => {
                 fabricConnection.getAllPeerNames.throws({ message: 'some error' });
 
-                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren();
                 await blockchainRuntimeExplorerProvider.getChildren(allChildren[3]);
 
@@ -410,7 +409,7 @@ describe('environmentExplorer', () => {
 
                 environmentStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
 
-                blockchainRuntimeExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+                blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const fabricRuntimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
                 mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricConnection as any) as FabricConnection);
                 mySandBox.stub(fabricRuntimeManager.getRuntime(), 'isRunning').resolves(true);
@@ -822,7 +821,7 @@ describe('environmentExplorer', () => {
 
         it('should test the tree is refreshed when the refresh command is run', async () => {
 
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -835,7 +834,7 @@ describe('environmentExplorer', () => {
 
             const mockTreeItem: sinon.SinonStubbedInstance<ChannelTreeItem> = sinon.createStubInstance(ChannelTreeItem);
 
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -847,7 +846,7 @@ describe('environmentExplorer', () => {
         it('should set fabricEnvironmentToSetup if a FabricEnvironmentTreeItem is passed in', async () => {
             const mockTreeItem: sinon.SinonStubbedInstance<FabricEnvironmentTreeItem> = sinon.createStubInstance(FabricEnvironmentTreeItem);
 
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -861,7 +860,7 @@ describe('environmentExplorer', () => {
         });
 
         it('should not set fabricEnvironmentToSetup if a FabriRuntimeTreeItem is passed in', async () => {
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             blockchainRuntimeExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
 
             const treeItem: RuntimeTreeItem = await RuntimeTreeItem.newRuntimeTreeItem(blockchainRuntimeExplorerProvider, FabricRuntimeUtil.LOCAL_FABRIC, registryEntry, {
@@ -879,7 +878,7 @@ describe('environmentExplorer', () => {
         });
 
         it('should refresh on connect event', async () => {
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const connectStub: sinon.SinonStub = mySandBox.stub(blockchainRuntimeExplorerProvider, 'connect').resolves();
 
@@ -889,7 +888,7 @@ describe('environmentExplorer', () => {
         });
 
         it('should refresh on disconnect event', async () => {
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const disconnectStub: sinon.SinonStub = mySandBox.stub(blockchainRuntimeExplorerProvider, 'disconnect').resolves();
 
@@ -911,7 +910,7 @@ describe('environmentExplorer', () => {
 
         it('should set the current client connection', async () => {
 
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -937,7 +936,7 @@ describe('environmentExplorer', () => {
         });
 
         it('should disconnect the runtime connection', async () => {
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainRuntimeExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -964,7 +963,7 @@ describe('environmentExplorer', () => {
 
         it('should get a tree item', async () => {
             mySandBox.stub(FabricRuntimeManager.instance().getRuntime(), 'isRunning').resolves(false);
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainRuntimeExplorerProvider.getChildren();
 
             const result: RuntimeTreeItem = blockchainRuntimeExplorerProvider.getTreeItem(allChildren[0]) as RuntimeTreeItem;
