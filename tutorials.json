@@ -31,13 +31,13 @@
         },
         {
           "title": "Create a cloud blockchain deployment",
-          "length": "60-90 mins",
+          "length": "50-60 mins",
           "description": "Sign up for the IBM Blockchain Platform service on IBM Cloud, and configure a simple environment ready to deploy your smart contracts to.",
           "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-setup.md"
         },
         {
           "title": "Deploying and transacting with IBM Cloud",
-          "length": "20-30 mins",
+          "length": "15-20 mins",
           "description": "Export smart contracts from VSCode, deploy them in your environment on IBM Cloud, then send transactions from your local machine by creating a gateway.",
           "file": "ibm-blockchain-platform-vscode-smart-contract/cloud-deploy.md"
         }
