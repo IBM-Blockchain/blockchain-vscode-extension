@@ -92,11 +92,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
         }
 
         if (!chosenWallet.data) {
-            let addIdentity: boolean = true;
-            if (enroll) {
-                addIdentity = false;
-            }
-            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, addIdentity) as FabricWalletRegistryEntry;
+            walletRegistryEntry = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET, false) as FabricWalletRegistryEntry;
             if (!walletRegistryEntry) {
                 return;
             }
@@ -129,7 +125,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
             }
 
             if (chosenIdentity === UserInputUtil.ADD_IDENTITY) {
-                chosenIdentity = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet) as string;
+                chosenIdentity = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet, node.msp_id) as string;
                 if (!chosenIdentity) {
                     return;
                 }

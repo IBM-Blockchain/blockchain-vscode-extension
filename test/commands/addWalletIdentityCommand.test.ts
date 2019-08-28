@@ -203,6 +203,47 @@ describe('AddWalletIdentityCommand', () => {
             sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', { method: 'enrollmentID' });
         });
 
+        it('should test an identity can be added with an enroll id and secret, when called from the command palette using a JSON file and mspid passed in', async () => {
+            showWalletsQuickPickStub.resolves({
+                label: 'externalWallet',
+                data: FabricWalletRegistry.instance().get('externalWallet')
+            });
+
+            fsReadFile.resolves(`{
+                "certificateAuthorities": {
+                    "ca0": {
+                        "url": "http://ca0url"
+                    }
+                }
+            }`);
+
+            inputBoxStub.onFirstCall().resolves('greyConga');
+
+            addIdentityMethodStub.resolves(UserInputUtil.ADD_ID_SECRET_OPTION);
+            showGatewayQuickPickBoxStub.resolves({
+                label: 'myGatewayA',
+                data: FabricGatewayRegistry.instance().get('myGatewayA')
+            });
+            getEnrollIdSecretStub.resolves({ enrollmentID: 'enrollID', enrollmentSecret: 'enrollSecret' });
+            enrollStub.resolves({ certificate: '---CERT---', privateKey: '---KEY---' });
+
+            const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, undefined, 'myMSPID') as string;
+            result.should.equal('greyConga');
+
+            inputBoxStub.should.have.been.calledOnce;
+
+            fsReadFile.should.have.been.calledOnce;
+            getEnrollIdSecretStub.should.have.been.calledOnce;
+            enrollStub.should.have.been.calledOnceWith('http://ca0url', 'enrollID', 'enrollSecret');
+            importIdentityStub.should.have.been.calledWith('---CERT---', '---KEY---', 'greyConga', 'myMSPID');
+            executeCommandStub.should.have.been.calledWith(ExtensionCommands.REFRESH_WALLETS);
+
+            logSpy.should.have.been.calledTwice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addWalletIdentity');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added identity', `Successfully added identity to wallet`);
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addWalletIdentityCommand', { method: 'enrollmentID' });
+        });
+
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file', async () => {
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',

@@ -211,7 +211,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
-                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, true);
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET, false);
 
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
@@ -225,7 +225,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 showIdentityQuickPickStub.resolves(UserInputUtil.ADD_IDENTITY);
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, peerNode]);
 
-                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY);
+                commandsStub.should.have.been.calledWith(ExtensionCommands.ADD_WALLET_IDENTITY, sinon.match.any, peerNode.msp_id);
 
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
