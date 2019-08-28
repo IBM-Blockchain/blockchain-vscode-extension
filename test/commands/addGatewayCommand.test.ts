@@ -26,6 +26,8 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricNode } from '../../src/fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -34,12 +36,14 @@ chai.use(sinonChai);
 describe('AddGatewayCommand', () => {
     const rootPath: string = path.dirname(__dirname);
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
-    let logSpy: sinon.SinonSpy;
+
     let showInputBoxStub: sinon.SinonStub;
+    let methodChooserStub: sinon.SinonStub;
     let browseStub: sinon.SinonStub;
     let copyConnectionProfileStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
     let sendTelemetryEventStub: sinon.SinonStub;
+    let logSpy: sinon.SinonSpy;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -50,20 +54,30 @@ describe('AddGatewayCommand', () => {
         await TestUtil.restoreGatewaysConfig();
     });
 
-    describe('addGateway', () => {
+    beforeEach(() => {
+        logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+        showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
+        executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+        sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
+
+        methodChooserStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.ADD_GATEWAY_FRPM_CCP);
+
+    });
+
+    afterEach(() => {
+        mySandBox.restore();
+    });
+
+    describe('addGateway with connection profile', () => {
 
         beforeEach(async () => {
             // reset the available gateways
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
 
-            logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-            showInputBoxStub = mySandBox.stub(vscode.window, 'showInputBox');
             browseStub = mySandBox.stub(UserInputUtil, 'browse');
             copyConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'copyConnectionProfile');
             copyConnectionProfileStub.onFirstCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
             copyConnectionProfileStub.onSecondCall().resolves(path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'));
-            executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-            sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
         });
 
         afterEach(async () => {
@@ -157,7 +171,7 @@ describe('AddGatewayCommand', () => {
         it('should handle errors when adding a gateway', async () => {
             showInputBoxStub.onFirstCall().resolves('myGateway');
             browseStub.onFirstCall().resolves(path.join(rootPath, '../../test/data/connectionOne/connection.json'));
-            mySandBox.stub(FabricGatewayRegistry.instance(), 'add').rejects({ message: 'already exists'});
+            mySandBox.stub(FabricGatewayRegistry.instance(), 'add').rejects({ message: 'already exists' });
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
@@ -196,6 +210,133 @@ describe('AddGatewayCommand', () => {
             logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
             logSpy.getCall(3).should.have.been.calledWith(LogType.ERROR, `Failed to add a new gateway: ${error.message}`, `Failed to add a new gateway: ${error.toString()}`);
             sendTelemetryEventStub.should.have.been.calledOnce;
+        });
+    });
+
+    describe('add gateway from environment', () => {
+
+        let showEnvironmentQuickPickStub: sinon.SinonStub;
+        let showOrgQuickPickStub: sinon.SinonStub;
+        let showFabricNodeQuickPickStub: sinon.SinonStub;
+        let generateConnectionProfileStub: sinon.SinonStub;
+        let peerNode: FabricNode;
+        let caNode: FabricNode;
+
+        beforeEach(async () => {
+
+            // reset the available gateways
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
+
+            methodChooserStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
+
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+            environmentRegistryEntry.name = 'myEnv';
+            showEnvironmentQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').resolves({ label: 'myEnv', data: environmentRegistryEntry });
+
+            peerNode = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
+            showOrgQuickPickStub = mySandBox.stub(UserInputUtil, 'showOrgQuickPick').resolves({ label: 'Org1MSP', data: peerNode });
+
+            caNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:7054', 'ca_name', 'local_fabric_wallet', 'admin', 'Org1MSP', 'admin', 'adminpw');
+            showFabricNodeQuickPickStub = mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').resolves({ label: 'ca.org1.example.com', data: caNode });
+
+            generateConnectionProfileStub = mySandBox.stub(FabricGatewayHelper, 'generateConnectionProfile').resolves(path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'));
+
+            showInputBoxStub.resolves('myGateway');
+        });
+
+        it('should create a gateway from an environment', async () => {
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways.length.should.equal(1);
+            gateways[0].should.deep.equal({
+                name: 'myGateway',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
+                associatedWallet: 'local_fabric_wallet'
+            });
+            executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
+            generateConnectionProfileStub.should.have.been.calledOnceWith('myGateway', peerNode, caNode);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.have.been.calledOnceWithExactly('addGatewayCommand');
+        });
+
+        it('should handle cancel of choosing method to add gateway', async () => {
+            methodChooserStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways.length.should.equal(0);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle cancel of choosing environment', async () => {
+            showEnvironmentQuickPickStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways.length.should.equal(0);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle cancel choosing org', async () => {
+            showOrgQuickPickStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways.length.should.equal(0);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle cancel choosing ca', async () => {
+            showFabricNodeQuickPickStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways.length.should.equal(0);
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.should.not.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.not.have.been.called;
+        });
+
+        it('should handle no ca found', async () => {
+            showFabricNodeQuickPickStub.rejects('some error');
+
+            await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
+
+            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+
+            gateways[0].should.deep.equal({
+                name: 'myGateway',
+                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
+                associatedWallet: 'local_fabric_wallet'
+            });
+
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'addGateway');
+            logSpy.should.have.been.calledWith(LogType.INFO, 'Could not find a certifcate authority to add to the connection profile');
+
+            logSpy.should.have.been.calledWith(LogType.SUCCESS, 'Successfully added a new gateway');
+            sendTelemetryEventStub.should.have.been.called;
         });
     });
 });

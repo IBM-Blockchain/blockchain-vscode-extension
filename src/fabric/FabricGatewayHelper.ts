@@ -19,9 +19,83 @@ import * as fs from 'fs-extra';
 import * as yaml from 'js-yaml';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricNode } from './FabricNode';
 
 export class FabricGatewayHelper {
     // Wanted to type with FabricGatewayRegistryEntry but it failed
+
+    public static async generateConnectionProfile(gatewayName: string, peerNode: FabricNode, caNode: FabricNode): Promise<string> {
+        const connectionProfile: any = {
+            name: gatewayName,
+            version: '1.0.0',
+            wallet: peerNode.wallet,
+            client: {
+                organization: peerNode.msp_id,
+                connection: {
+                    timeout: {
+                        peer: {
+                            endorser: '300'
+                        },
+                        orderer: '300'
+                    }
+                }
+            },
+            organizations: {},
+            peers: {},
+        };
+
+        connectionProfile.organizations[peerNode.msp_id] = {
+            mspid: peerNode.msp_id,
+            peers: [
+                peerNode.name
+            ]
+        };
+
+        connectionProfile.peers[peerNode.name] = {
+            url: peerNode.api_url
+        };
+
+        if (peerNode.pem) {
+            connectionProfile.peers[peerNode.name].tlsCACerts = {
+                pem: Buffer.from(peerNode.pem, 'base64').toString()
+            };
+        }
+
+        if (peerNode.ssl_target_name_override) {
+            connectionProfile.peers[peerNode.name].grpcOptions = {
+                ssl_target_name_override: peerNode.ssl_target_name_override
+            };
+        }
+
+        if (caNode) {
+            connectionProfile.certificateAuthorities = {};
+
+            connectionProfile.organizations[peerNode.msp_id].certificateAuthorities = [
+                caNode.name
+            ];
+
+            connectionProfile.certificateAuthorities[caNode.name] = {
+                url: caNode.api_url,
+                caName: caNode.ca_name
+            };
+
+            if (caNode.pem) {
+                connectionProfile.certificateAuthorities[caNode.name].tlsCACerts = {
+                    pem: Buffer.from(caNode.pem, 'base64').toString()
+                };
+            }
+        }
+
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const profileDirPath: string = path.join(homeExtDir, 'gateways', gatewayName);
+        await fs.ensureDir(profileDirPath);
+        const profileFilePath: string = path.join(profileDirPath, 'connection.json');
+
+        await fs.writeJSON(profileFilePath, connectionProfile);
+
+        return profileFilePath;
+    }
 
     public static async copyConnectionProfile(gatewayName: string, connectionProfilePath: string): Promise<string> {
         try {
@@ -107,8 +181,8 @@ export class FabricGatewayHelper {
                     throw new Error(`Issue copying ${gateway.connectionProfilePath} to ${newGatewayDir}: ${error.message}`);
                 }
                 // Only remove the gateway dir if the copy worked
-                await fs.remove( path.join(extDir, gateway.name) );
-                gateway.connectionProfilePath = path.join(newGatewayDir, path.basename(gateway.connectionProfilePath) );
+                await fs.remove(path.join(extDir, gateway.name));
+                gateway.connectionProfilePath = path.join(newGatewayDir, path.basename(gateway.connectionProfilePath));
 
             }
         }

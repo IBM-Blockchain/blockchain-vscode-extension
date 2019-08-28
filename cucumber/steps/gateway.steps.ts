@@ -56,18 +56,24 @@ module.exports = function(): any {
     });
 
     this.Given(/^the transaction '(.*?)' has been submitted with args '(.*?)' ?(?:and with the transient data )?('.*?')?$/, this.timeout, async (transaction: string, args: string, transientData: string) => {
-            // submit tx
-            await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
+        // submit tx
+        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, false);
     });
 
     /**
      * When
      */
 
-    this.When("I create a gateway '{string}'", this.timeout, async (gateway: string) => {
+    this.When("I create a gateway '{string}' from an? '{string}'", this.timeout, async (gateway: string, method: string) => {
         this.gateway = gateway;
 
-        await this.gatewayHelper.createGateway(gateway);
+        let fromEnvironment: boolean = false;
+        if (method === 'environment') {
+            fromEnvironment = true;
+
+        }
+
+        await this.gatewayHelper.createGateway(gateway, fromEnvironment, this.environment);
     });
 
     this.When(/connecting to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {

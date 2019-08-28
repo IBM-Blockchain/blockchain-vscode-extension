@@ -31,6 +31,11 @@ import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { WalletAndIdentityHelper } from './walletAndIdentityHelper';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
+import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
+import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -45,7 +50,7 @@ export class GatewayHelper {
         this.userInputUtilHelper = userInputUtilHelper;
     }
 
-    public async createGateway(name: string): Promise<void> {
+    public async createGateway(name: string, fromEnvironment: boolean, environmentName?: string): Promise<void> {
         const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
         const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
@@ -55,7 +60,30 @@ export class GatewayHelper {
 
         if (!treeItem) {
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the gateway').resolves(name);
-            this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(__dirname, '../../../cucumber/hlfv1/connection.json'));
+            if (!fromEnvironment) {
+                this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FRPM_CCP);
+                this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(__dirname, '../../../cucumber/hlfv1/connection.json'));
+            } else {
+                this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
+
+                const fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentRegistry.instance().get(environmentName);
+                this.userInputUtilHelper.showEnvironmentQuickPickStub.resolves({ label: environmentName, data: fabricEnvironmentRegistryEntry });
+
+                const environment: FabricEnvironment = new FabricEnvironment(environmentName);
+                const nodes: FabricNode[] = await environment.getNodes();
+
+                const peerNode: FabricNode = nodes.find((_node: FabricNode) => {
+                    return _node.type === FabricNodeType.PEER;
+                });
+
+                this.userInputUtilHelper.showOrgQuickPickStub.resolves({ label: peerNode.msp_id, data: peerNode });
+
+                const caNode: FabricNode = nodes.find((_node: FabricNode) => {
+                    return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;
+                });
+
+                this.userInputUtilHelper.showFabricNodeQuickPickStub({label: caNode.name, data: caNode});
+            }
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
         }
