@@ -84,6 +84,7 @@ export class EnvironmentHelper {
         this.userInputUtilHelper.showWalletsQuickPickStub.resolves({ label: walletName, data: walletReigstryEntry });
         this.userInputUtilHelper.showIdentitiesQuickPickStub.resolves(identityName);
         this.userInputUtilHelper.showQuickPickStub.resolves('Use ID and secret to enroll a new identity');
+        this.userInputUtilHelper.showQuickPickStub.withArgs('Do you want to associate the same identity with another node?').resolves('No');
         this.userInputUtilHelper.inputBoxStub.withArgs('Provide a name for the identity').resolves(identityName);
         this.userInputUtilHelper.inputBoxStub.withArgs('Enter MSPID').resolves('Org1MSP');
 

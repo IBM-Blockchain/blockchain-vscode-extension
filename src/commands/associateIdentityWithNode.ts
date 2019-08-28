@@ -35,6 +35,8 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
     outputAdapter.log(LogType.INFO, undefined, 'associate identity with node');
 
     try {
+        let walletName: string;
+        let identityName: string;
         if (!environmentRegistryEntry || !node) {
             // If called from command palette
             const environments: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
@@ -100,7 +102,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
             walletRegistryEntry = chosenWallet.data;
         }
 
-        node.wallet = walletRegistryEntry.name;
+        walletName = walletRegistryEntry.name;
 
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const wallet: IFabricWallet = walletGenerator.getNewWallet(walletRegistryEntry.walletPath);
@@ -110,6 +112,8 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
             if (!node) {
                 return;
             }
+
+            identityName = node.identity;
         } else {
             const identitiies: Array<string> = await wallet.getIdentityNames();
             let identityMessage: string = `Select the admin identity for ${node.msp_id}`;
@@ -131,9 +135,11 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
                 }
             }
 
-            node.identity = chosenIdentity;
+            identityName = chosenIdentity;
         }
 
+        node.wallet = walletName;
+        node.identity = identityName;
         const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
 
         await environment.updateNode(node);
@@ -144,9 +150,42 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
             title: '',
             arguments: [environmentRegistryEntry]
         });
-        vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, environmentTreeItem);
-        outputAdapter.log(LogType.SUCCESS, `Successfully associated node ${node.name} with wallet ${node.wallet} and identity ${node.identity}`);
 
+        vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, environmentTreeItem);
+        outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${node.identity} from wallet ${node.wallet} with node ${node.name}`);
+
+        let askAgain: boolean = true;
+        let otherNodes: FabricNode[] = [];
+        do {
+            otherNodes = await environment.getNodes(true);
+
+            if (otherNodes.length === 0) {
+                // shouldn't ask if no more nodes
+                break;
+            }
+
+            const items: string[] = otherNodes.map((_node: FabricNode) => {
+                return `Yes, ${_node.name}`;
+            });
+
+            items.push('No');
+            const nodeName: string = await UserInputUtil.showQuickPick('Do you want to associate the same identity with another node?', items);
+
+            if (!nodeName || nodeName === 'No') {
+                askAgain = false;
+            } else {
+                const foundNode: FabricNode = otherNodes.find((_node: FabricNode) => nodeName.endsWith(_node.name));
+
+                foundNode.wallet = walletName;
+                foundNode.identity = identityName;
+
+                await environment.updateNode(foundNode);
+
+                vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, environmentTreeItem);
+                outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${foundNode.identity} from wallet ${foundNode.wallet} with node ${foundNode.name}`);
+
+            }
+        } while (askAgain && otherNodes.length > 1);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Failed to associate identity with node ${error.message}`, `Failed to associate identity with node ${error.toString()}`);
     }
