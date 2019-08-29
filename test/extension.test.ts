@@ -38,6 +38,7 @@ import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { FabricWalletUtil } from '../src/fabric/FabricWalletUtil';
 import { dependencies } from '../package.json';
 import { FabricRuntime } from '../src/fabric/FabricRuntime';
+import { FabricDebugConfigurationProvider } from '../src/debug/FabricDebugConfigurationProvider';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -444,14 +445,16 @@ describe('Extension Tests', () => {
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
     });
 
-    it('should call command if one set', async () => {
+    it('should call instantiate if not instantiated', async () => {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+
+        mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves();
 
         const session: any = {
             some: 'thing',
             configuration: {
                 env: {
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1'
                 }
             }
         };
@@ -463,6 +466,52 @@ describe('Extension Tests', () => {
         executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
         executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
         executeCommand.should.have.been.calledWith(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+    });
+
+    it('should call upgrade if version different', async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+
+        mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({name: 'myContract', version: 'differnet'});
+
+        const session: any = {
+            some: 'thing',
+            configuration: {
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1'
+                }
+            }
+        };
+        mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+        const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        executeCommand.should.have.been.calledThrice;
+        executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+        executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommand.should.have.been.calledWith(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
+    });
+
+    it('should not call anything if version same', async () => {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
+
+        mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({name: 'myContract', version: '0.0.1'});
+
+        const session: any = {
+            some: 'thing',
+            configuration: {
+                env: {
+                    CORE_CHAINCODE_ID_NAME: 'myContract:0.0.1'
+                }
+            }
+        };
+        mySandBox.stub(vscode.debug, 'onDidChangeActiveDebugSession').yields(session as vscode.DebugSession);
+        const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
+        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        await myExtension.activate(context);
+        executeCommand.should.have.been.calledTwice;
+        executeCommand.should.have.been.calledWithExactly('setContext', 'blockchain-debug', true);
+        executeCommand.should.have.been.calledWithExactly(ExtensionCommands.REFRESH_GATEWAYS);
+        executeCommand.should.not.have.been.calledWith(ExtensionCommands.DEBUG_COMMAND_LIST);
     });
 
     it('should set blockchain-debug false when no debug session', async () => {
