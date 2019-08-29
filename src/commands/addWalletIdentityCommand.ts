@@ -207,6 +207,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
             // Get a list of CAs
             const caKeys: string[] = Object.keys(connectionProfile.certificateAuthorities);
             let caUrl: string;
+            let caName: string;
 
             if (caKeys.length > 1) {
                 const showMoreCAs: string = await UserInputUtil.showQuickPickCA(caKeys);
@@ -214,12 +215,14 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
                     return;
                 } else {
                     caUrl = connectionProfile.certificateAuthorities[showMoreCAs].url;
+                    caName = connectionProfile.certificateAuthorities[showMoreCAs].caName;
                 }
             } else {
                 caUrl = connectionProfile.certificateAuthorities[caKeys[0]].url;
+                caName = connectionProfile.certificateAuthorities[caKeys[0]].caName;
             }
 
-            const enrollment: { certificate: string, privateKey: string } = await certificateAuthority.enroll(caUrl, enrollmentID, enrollmentSecret);
+            const enrollment: { certificate: string, privateKey: string } = await certificateAuthority.enroll(caUrl, enrollmentID, enrollmentSecret, caName);
             certificate = enrollment.certificate;
             privateKey = enrollment.privateKey;
         }
