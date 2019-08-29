@@ -60,7 +60,7 @@ describe('AddGatewayCommand', () => {
         executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-        methodChooserStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.ADD_GATEWAY_FRPM_CCP);
+        methodChooserStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.ADD_GATEWAY_FROM_CCP);
 
     });
 

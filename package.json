@@ -58,6 +58,7 @@
             "gatewaysExplorer.evaluateTransactionEntry",
             "gatewaysExplorer.associateWallet",
             "gatewaysExplorer.dissociateWallet",
+            "gatewaysExplorer.exportConnectionProfileEntry",
             "aPackagesExplorer.createSmartContractProjectEntry",
             "aPackagesExplorer.packageSmartContractProjectEntry",
             "aPackagesExplorer.deleteSmartContractPackageEntry",
@@ -77,7 +78,6 @@
             "environmentExplorer.restartFabricRuntime",
             "environmentExplorer.teardownFabricRuntime",
             "environmentExplorer.openNewTerminal",
-            "environmentExplorer.exportConnectionProfileEntry",
             "environmentExplorer.upgradeSmartContractEntry",
             "environmentExplorer.createNewIdentityEntry",
             "walletExplorer.refreshEntry",
@@ -396,7 +396,7 @@
                 "category": "IBM Blockchain Platform"
             },
             {
-                "command": "environmentExplorer.exportConnectionProfileEntry",
+                "command": "gatewaysExplorer.exportConnectionProfileEntry",
                 "title": "Export Connection Profile",
                 "category": "IBM Blockchain Platform"
             },
@@ -591,6 +591,18 @@
                     "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
                 },
                 {
+                    "command": "gatewaysExplorer.exportConnectionProfileEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-associated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.exportConnectionProfileEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-gateway-dissociated-item"
+                },
+                {
+                    "command": "gatewaysExplorer.exportConnectionProfileEntry",
+                    "when": "view == gatewaysExplorer && viewItem == blockchain-local-gateway-item"
+                },
+                {
                     "command": "walletExplorer.addWalletIdentityEntry",
                     "when": "view == walletExplorer && viewItem == blockchain-wallet-item"
                 },
@@ -641,10 +653,6 @@
                 {
                     "command": "environmentExplorer.openNewTerminal",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected"
-                },
-                {
-                    "command": "environmentExplorer.exportConnectionProfileEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",

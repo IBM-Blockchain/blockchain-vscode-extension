@@ -31,7 +31,7 @@ export async function addGateway(): Promise<{} | void> {
 
         const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
 
-        const items: string[] = [UserInputUtil.ADD_GATEWAY_FRPM_CCP, UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT];
+        const items: string[] = [UserInputUtil.ADD_GATEWAY_FROM_CCP, UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT];
 
         const gatewayMethod: string = await UserInputUtil.showQuickPick('Choose a method to add a gateway', items);
 
@@ -50,7 +50,7 @@ export async function addGateway(): Promise<{} | void> {
         }
 
         let gatewayRegistryEntry: FabricGatewayRegistryEntry;
-        if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FRPM_CCP) {
+        if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_CCP) {
             gatewayRegistryEntry = await createGatewayFromCCP(gatewayName);
         } else {
             gatewayRegistryEntry = await createGatewayFromEnvironment(gatewayName);

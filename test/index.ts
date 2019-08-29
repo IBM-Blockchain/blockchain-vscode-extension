@@ -19,6 +19,7 @@ import * as glob from 'glob';
 import { VSCodeBlockchainOutputAdapter } from '../src/logging/VSCodeBlockchainOutputAdapter';
 
 // tslint:disable no-var-requires
+// tslint:disable no-console
 const istanbul: any = require('istanbul');
 const remapIstanbul: any = require('remap-istanbul');
 

@@ -16,28 +16,36 @@
 
 import * as vscode from 'vscode';
 import { Reporter } from '../util/Reporter';
-import { UserInputUtil } from './UserInputUtil';
-import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import * as path from 'path';
 import * as os from 'os';
 import * as fs from 'fs-extra';
 import { LogType } from '../logging/OutputAdapter';
+import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
-import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
-export async function exportConnectionProfile(): Promise<void> {
+export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'exportConnectionProfileCommand');
 
-    // Assume there's only one registry entry for now.
-    const runtimeGatewayRegistryEntries: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
-    const runtimeGatewayRegistryEntry: FabricGatewayRegistryEntry = runtimeGatewayRegistryEntries[0];
+    let gatewayEntry: FabricGatewayRegistryEntry;
+    if (!gatewayTreeItem) {
+        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to export a connection profile from', true, true);
+        if (!chosenGateway) {
+            return;
+        }
+
+        gatewayEntry = chosenGateway.data;
+
+    } else {
+        gatewayEntry = gatewayTreeItem.gateway;
+    }
 
     // Ask the user where they want to export it to
     // set the default path to be the first open workspace folder
     let defaultPath: string;
-    const fileName: string = `${FabricRuntimeUtil.LOCAL_FABRIC}_connection.json`;
+    const fileName: string = `${gatewayEntry.name}_connection.json`;
     const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
     if (workspaceFolders.length > 0) {
         defaultPath = path.join(workspaceFolders[0].uri.fsPath, fileName);
@@ -56,7 +64,7 @@ export async function exportConnectionProfile(): Promise<void> {
 
     // Copy the connection profile to the chosen location
     try {
-        await fs.copy(runtimeGatewayRegistryEntry.connectionProfilePath, chosenPathUri.fsPath);
+        await fs.copy(gatewayEntry.connectionProfilePath, chosenPathUri.fsPath);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
         return;

@@ -92,7 +92,8 @@ export class FabricGatewayHelper {
         await fs.ensureDir(profileDirPath);
         const profileFilePath: string = path.join(profileDirPath, 'connection.json');
 
-        await fs.writeJSON(profileFilePath, connectionProfile);
+        const connectionProfileString: string = JSON.stringify(connectionProfile, null, 4);
+        await fs.writeFile(profileFilePath, connectionProfileString);
 
         return profileFilePath;
     }

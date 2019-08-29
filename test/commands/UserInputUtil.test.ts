@@ -1779,7 +1779,7 @@ describe('UserInputUtil', () => {
             result.label.should.equal(walletEntryOne.name);
             result.data.should.deep.equal(walletEntryOne);
 
-            const items: any = [{ label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }, { label: '+ Create new wallet', data: undefined }];
+            const items: any = [{ label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }, { label: '+ Add new wallet', data: undefined }];
             quickPickStub.should.have.been.calledWith(items, {
                 ignoreFocusOut: false,
                 canPickMany: false,

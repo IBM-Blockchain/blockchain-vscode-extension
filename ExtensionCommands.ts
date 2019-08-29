@@ -38,7 +38,6 @@ export class ExtensionCommands {
     static readonly TEARDOWN_FABRIC: string = 'environmentExplorer.teardownFabricRuntime';
     static readonly UPGRADE_SMART_CONTRACT: string = 'environmentExplorer.upgradeSmartContractEntry';
     static readonly CREATE_NEW_IDENTITY: string = 'environmentExplorer.createNewIdentityEntry';
-    static readonly EXPORT_CONNECTION_PROFILE: string = 'environmentExplorer.exportConnectionProfileEntry';
 
     // GATEWAY VIEW
     static readonly ADD_GATEWAY: string = 'gatewaysExplorer.addGatewayEntry';
@@ -53,6 +52,7 @@ export class ExtensionCommands {
     static readonly TEST_ALL_SMART_CONTRACT: string = 'gatewaysExplorer.testAllSmartContractEntry';
     static readonly ASSOCIATE_WALLET: string = 'gatewaysExplorer.associateWallet';
     static readonly DISSOCIATE_WALLET: string = 'gatewaysExplorer.dissociateWallet';
+    static readonly EXPORT_CONNECTION_PROFILE: string = 'gatewaysExplorer.exportConnectionProfileEntry';
 
     // WALLET VIEW
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';

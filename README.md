@@ -231,6 +231,8 @@ To connect to our own Hyperledger Fabric instance, it must be running [Hyperledg
 
 Add your gateway by providing a name and connection profile via the `Add Gateway` command; it will be listed in the `Fabric Gateways` panel. Add a file system wallet to connect to your gateway with via the `Add Wallet` command.
 
+You can also create a gateway from a fabric environment. When you run the `Add Gateway` command there will be an option to create a gateway from a fabric environment, select this then choose the environment you want to create the gateway from.
+
 ### Connect to a gateway and discover its resources
 Connect by clicking on a gateway in the `Fabric Gateways` panel, and expand the navigation tree to explore its resources. Instantiated Smart Contracts are listed under the channel and from here you can generate functional-level test files on single or multiple smart contracts (Currently you cannot generate Java functional tests). Submit or evaluate individual transactions listed under the instantiated smart contracts, with the result displayed in the `Blockchain` output channel.
 
@@ -295,7 +297,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Edit Gateway | Edit connection profile for connecting to a blockchain gateway |
 | Edit Wallet | Edit wallet containing identities used for connecting to a blockchain gateway |
 | Evaluate Transaction | Evaluate a smart contract transaction |
-| Export Connection Profile | Export connection profile for the Local Fabric gateway |
+| Export Connection Profile | Export connection profile for a blockchain gateway |
 | Export Package | Export a smart contract package to use outside VS Code |
 | Export Wallet | Export a wallet to use outside VS Code |
 | Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |

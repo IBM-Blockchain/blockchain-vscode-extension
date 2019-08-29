@@ -16,6 +16,7 @@
 import * as vscode from 'vscode';
 import * as sinon from 'sinon';
 import * as path from 'path';
+import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -55,13 +56,13 @@ export class GatewayHelper {
         const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
         const treeItem: any = treeItems.find((item: any) => {
-            return item.label === name;
+            return item.name === name;
         });
 
         if (!treeItem) {
             this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for the gateway').resolves(name);
             if (!fromEnvironment) {
-                this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FRPM_CCP);
+                this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_CCP);
                 this.userInputUtilHelper.browseStub.withArgs('Enter a file path to a connection profile file').resolves(path.join(__dirname, '../../../cucumber/hlfv1/connection.json'));
             } else {
                 this.userInputUtilHelper.showQuickPickStub.resolves(UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT);
@@ -82,7 +83,7 @@ export class GatewayHelper {
                     return _node.type === FabricNodeType.CERTIFICATE_AUTHORITY;
                 });
 
-                this.userInputUtilHelper.showFabricNodeQuickPickStub({label: caNode.name, data: caNode});
+                this.userInputUtilHelper.showFabricNodeQuickPickStub({ label: caNode.name, data: caNode });
             }
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
@@ -176,5 +177,25 @@ export class GatewayHelper {
         } else {
             await vscode.commands.executeCommand(ExtensionCommands.SUBMIT_TRANSACTION);
         }
+    }
+
+    public async exportConnectionProfile(gatewayName: string): Promise<void> {
+        let gatewayEntry: FabricGatewayRegistryEntry;
+        if (gatewayName === 'Local Fabric') {
+            const entry: FabricGatewayRegistryEntry[] = await FabricRuntimeManager.instance().getGatewayRegistryEntries();
+            gatewayEntry = entry[0];
+        } else {
+            gatewayEntry = FabricGatewayRegistry.instance().get(gatewayName);
+        }
+
+        const profilePath: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'profiles');
+        await fs.ensureDir(profilePath);
+        const profileFile: string = path.join(profilePath, `${gatewayEntry.name}_connection.json`);
+        const profileUri: vscode.Uri = vscode.Uri.file(profileFile);
+        this.mySandBox.stub(vscode.window, 'showSaveDialog').resolves(profileUri);
+
+        this.userInputUtilHelper.showGatewayQuickPickStub.resolves({ label: gatewayEntry.name, data: gatewayEntry });
+
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
     }
 }

@@ -24,6 +24,15 @@ Feature: Fabric Gateways
         And there should be a tree item with a label 'Using ID: new_identity' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Using ID: new_identity'
 
+    Scenario: Export connection profile
+        Given the Local Fabric is running
+        And the 'Local Fabric' environment is connected
+        And the 'Local Fabric' wallet
+        And the identity 'new_identity' exists
+        And the gateway 'Local Fabric' is created
+        When I export the connection profile
+        Then a connection profile exists
+
     @otherFabric
     Scenario: Create another gateway
         When I create a gateway 'myGateway' from a 'profile'
@@ -54,6 +63,15 @@ Feature: Fabric Gateways
         Then there should be a tree item with a label 'Connected via gateway: gatewayFromEnv' in the 'Fabric Gateways' panel
         And the tree item should have a tooltip equal to 'Connected via gateway: gatewayFromEnv'
 
+    @otherFabric
+    Scenario: Export connection profile
+        Given an environment 'myFabric' exists
+        And the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
+        And the environment is setup
+        And the gateway 'myGateway' is created
+        When I export the connection profile
+        Then a connection profile exists
+
     Scenario Outline: Generating tests for a contract (local fabric)
         Given the Local Fabric is running
         And the 'Local Fabric' environment is connected
@@ -69,15 +87,15 @@ Feature: Fabric Gateways
         Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
         And the tests should be runnable
         Examples:
-        | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
-        | JavaScriptContract  | Conga     | JavaScript       | JavaScript   | js            | 0.0.1   |
-        | JavaScriptContract2 | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
-        | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
-        | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |
+            | contractName        | assetType | contractLanguage | testLanguage | fileExtension | version |
+            | JavaScriptContract  | Conga     | JavaScript       | JavaScript   | js            | 0.0.1   |
+            | JavaScriptContract2 | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+            | TypeScriptContract  | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
+            | TypeScriptContract2 | Conga     | TypeScript       | TypeScript   | ts            | 0.0.1   |
 
 
-  @otherFabric
-  Scenario Outline: Generating tests for a contract (other fabric)
+    @otherFabric
+    Scenario Outline: Generating tests for a contract (other fabric)
         Given the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And an environment 'myFabric' exists
         And the 'myFabric' environment is connected
@@ -92,6 +110,6 @@ Feature: Fabric Gateways
         Then a functional test file with the filename '<assetType>Contract-<contractName>@0.0.1.test.<fileExtension>' should exist and contain the correct contents
         And the tests should be runnable
         Examples:
-        | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
-        | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
-        | JavaScriptContract | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
+            | contractName       | assetType | contractLanguage | testLanguage | fileExtension | version |
+            | TypeScriptContract | Conga     | TypeScript       | JavaScript   | js            | 0.0.1   |
+            | JavaScriptContract | Conga     | JavaScript       | TypeScript   | ts            | 0.0.1   |
