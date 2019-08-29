@@ -1,5 +1,18 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.8: August 29th 2019
+
+* Create a gateway from a Fabric Environment [#1108](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1108)
+> When creating a gateway, you now have the option to create a gateway from a Fabric Environment.
+ 
+* Added validation for asset type when generating a smart contract [#1270](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1270)
+* Display orderers in service clusters [#1229](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1229)
+* Support for scoped contract names [#1138](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1138)
+* Updated README [#1319](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1319)
+* Updated tutorial times [#1291](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1291)
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-57.png)
+
 ## 1.0.7: August 15th 2019
 
 * Added ‘Fabric Environments’ panel to support remote deploying and managing user-created networks [#1085](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1085),  [#1086](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1086),  [#1095](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1095),  [#1088](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1088),  [#1177](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1177),  [#1103](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1103),  [#1156](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1156),  [#1222](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1222),  [#1290](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1290) 
