@@ -73,7 +73,8 @@ export class UserInputUtil {
     static readonly ADD_CERT_KEY_OPTION: string = 'Provide certificate and private key files';
     static readonly ADD_ID_SECRET_OPTION: string = 'Select a gateway and provide an enrollment ID and secret';
     static readonly ADD_LOCAL_ID_SECRET_OPTION: string = 'Provide an enrollment ID and secret';
-    static readonly ADD_JSON_ID_OPTION: string = 'Provide a JSON identity file';
+    static readonly ADD_JSON_ID_OPTION: string = 'Provide a JSON identity file from IBM Blockchain Platform';
+
     static readonly ADD_MORE_NODES: string = 'Add more (JSON) node definitions';
     static readonly DONE_ADDING_NODES: string = 'Done adding nodes';
     static readonly ADD_IDENTITY: string = '+ Add identity';

@@ -50,7 +50,7 @@ The identities that were exported need to be imported into VS Code. First we wil
 
 4. You will then be asked to provide the MSPID use `org1msp` if you followed the tutorial.
 
-5. You will then be asked for the method for adding an identity chose `Provide JSON identity file`.
+5. You will then be asked for the method for adding an identity chose `Provide JSON identity file from IBM Blockchain Platform`.
 
 6. Browse to the location of the admin file you exported previously and select the JSON file.
 
@@ -62,7 +62,7 @@ You will now have a new wallet called `ibp-wallet` containing the `Org1 Admin` i
 
 3. You will then be asked to provide an MSPID use `osmsp`.
 
-4. You will then be asked for the method for adding an identity chose `Provide JSON identity file`.
+4. You will then be asked for the method for adding an identity chose `Provide JSON identity file from IBM Blockchain Plaform`.
 
 6. Browse to the location of the admin file you exported previously and select the JSON file.
  
