@@ -28,6 +28,42 @@ import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegis
 
 export abstract class FabricDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 
+    public static async getInstantiatedChaincode(chaincodeName: string): Promise<{ name: string, version: string }> {
+        // Determine what smart contracts are instantiated already
+        // Assume Local Fabric has one peer
+        const connection: IFabricEnvironmentConnection = await this.getConnection();
+        const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
+        const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
+            return contract.name === chaincodeName;
+        });
+
+        return smartContractVersionName;
+    }
+    private static async getConnection(): Promise<IFabricEnvironmentConnection> {
+        // check we are connected to the local fabric
+        let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+        if (connection) {
+            let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+            if (!environmentRegistryEntry.managedRuntime) {
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+                environmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+                connection = await FabricEnvironmentManager.instance().getConnection();
+
+            }
+        } else {
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
+            await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
+            connection = await FabricEnvironmentManager.instance().getConnection();
+        }
+
+        if (!connection) {
+            throw new Error(`Could not create connection to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
+        }
+
+        return connection;
+    }
+
     private runtime: FabricRuntime;
 
     public async resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): Promise<vscode.DebugConfiguration> {
@@ -49,28 +85,6 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
 
             if (!isRunning) {
                 outputAdapter.log(LogType.ERROR, `Please ensure "${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}" is running before trying to debug a smart contract`);
-                return;
-            }
-
-            // check we are connected to the local fabric
-            let connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
-            if (connection) {
-                let environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-                if (!environmentRegistryEntry.managedRuntime) {
-                    await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-                    environmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-                    await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-                    connection = await FabricEnvironmentManager.instance().getConnection();
-
-                }
-            } else {
-                const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricRuntimeManager.instance().getEnvironmentRegistryEntry();
-                await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
-                connection = await FabricEnvironmentManager.instance().getConnection();
-            }
-
-            if (!connection) {
-                // something went wrong while connecting so return
                 return;
             }
 
@@ -99,30 +113,19 @@ export abstract class FabricDebugConfigurationProvider implements vscode.DebugCo
             const replaceRegex: RegExp = /@.*?\//;
             chaincodeName = chaincodeName.replace(replaceRegex, '');
 
-            // Determine what smart contracts are instantiated already
-            // Assume Local Fabric has one peer
-            const allInstantiatedContracts: { name: string, version: string }[] = await connection.getAllInstantiatedChaincodes();
-            const smartContractVersionName: { name: string, version: string } = allInstantiatedContracts.find((contract: { name: string, version: string }) => {
-                return contract.name === chaincodeName;
-            });
+            const smartContract: { name: string, version: string } = await FabricDebugConfigurationProvider.getInstantiatedChaincode(chaincodeName);
 
-            if (!smartContractVersionName) {
-                config.env.EXTENSION_COMMAND = ExtensionCommands.INSTANTIATE_SMART_CONTRACT;
-            } else {
-                const isContainerRunning: boolean = await this.runtime.isRunning([smartContractVersionName.name, smartContractVersionName.version]);
+            if (smartContract) {
+                const isContainerRunning: boolean = await this.runtime.isRunning([smartContract.name, smartContract.version]);
                 if (isContainerRunning) {
                     await vscode.window.withProgress({
                         location: vscode.ProgressLocation.Notification,
                         title: 'IBM Blockchain Platform Extension',
                         cancellable: false
                     }, async (progress: vscode.Progress<{ message: string }>) => {
-                        progress.report({message: 'Removing chaincode container'});
-                        await this.runtime.killChaincode([smartContractVersionName.name, smartContractVersionName.version]);
+                        progress.report({ message: 'Removing chaincode container' });
+                        await this.runtime.killChaincode([smartContract.name, smartContract.version]);
                     });
-                }
-
-                if (chaincodeVersion !== smartContractVersionName.version) {
-                    config.env.EXTENSION_COMMAND = ExtensionCommands.UPGRADE_SMART_CONTRACT;
                 }
             }
             config.env.CORE_CHAINCODE_ID_NAME = `${chaincodeName}:${chaincodeVersion}`;

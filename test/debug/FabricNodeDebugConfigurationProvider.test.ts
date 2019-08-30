@@ -32,7 +32,6 @@ import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
-import { ExtensionCommands } from '../../ExtensionCommands';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -157,8 +156,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
@@ -177,8 +175,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['--peer.address', 'localhost:12345', 'start']
             });
@@ -197,8 +194,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: path.join(path.sep, 'myPath', 'node_modules', '.bin', 'fabric-chaincode-node'),
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
@@ -217,8 +213,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: path.sep + 'myPath',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
@@ -236,8 +231,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['start', '--peer.address', '127.0.0.1:54321']
             });
@@ -255,8 +249,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['--myArgs', 'myValue', 'start', '--peer.address', '127.0.0.1:54321']
             });
@@ -274,8 +267,7 @@ describe('FabricNodeDebugConfigurationProvider', () => {
                 program: 'myProgram',
                 cwd: 'myCwd',
                 env: {
-                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`,
-                    EXTENSION_COMMAND: ExtensionCommands.INSTANTIATE_SMART_CONTRACT
+                    CORE_CHAINCODE_ID_NAME: `mySmartContract:0.0.1`
                 },
                 args: ['start', '--peer.address', 'localhost:12345']
             });
