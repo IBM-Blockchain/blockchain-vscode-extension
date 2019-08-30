@@ -24,10 +24,10 @@ export class FabricCertificateAuthority implements IFabricCertificateAuthority {
 
     private static _instance: FabricCertificateAuthority = new FabricCertificateAuthority();
 
-    public async enroll(caUrl: string, enrollmentID: string, enrollmentSecret: string): Promise<{certificate: string, privateKey: string}> {
+    public async enroll(caUrl: string, enrollmentID: string, enrollmentSecret: string, caName?: string): Promise<{certificate: string, privateKey: string}> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
         try {
-            const certificateAuthority: FabricCAServices = new FabricCAServices(caUrl);
+            const certificateAuthority: FabricCAServices = new FabricCAServices(caUrl, undefined, caName);
 
             const enrollment: any = await certificateAuthority.enroll({enrollmentID, enrollmentSecret});
             return { certificate: enrollment.certificate, privateKey: enrollment.key.toBytes()};
