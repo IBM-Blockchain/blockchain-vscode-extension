@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import { PeerTreeItem } from './runtimeOps/connectedTree/PeerTreeItem';
 import { ChannelTreeItem } from './model/ChannelTreeItem';
 import { BlockchainTreeItem } from './model/BlockchainTreeItem';
+import { ImportNodesTreeItem } from './runtimeOps/connectedTree/ImportNodesTreeItem';
 import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
 import { BlockchainExplorerProvider } from './BlockchainExplorerProvider';
 import { RuntimeTreeItem } from './runtimeOps/disconnectedTree/RuntimeTreeItem';
@@ -325,7 +326,17 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 } else {
                     tree.push(new OrdererTreeItem(this, node.name, node));
                 }
+            }
 
+            const environmentEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+
+            if (environmentEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
+
+                tree.push(new ImportNodesTreeItem(this, {
+                    command: ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT,
+                    title: '',
+                    arguments: [environmentEntry]
+                }));
             }
 
         } catch (error) {
