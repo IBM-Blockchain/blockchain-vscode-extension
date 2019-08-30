@@ -105,49 +105,55 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         transactions.set(chosenContract, tempTransactions.get(chosenContract));
     }
 
-    // Ask the user which language to write the tests in
-    const languagesToSuffixes: object = {
-        JavaScript: 'js',
-        TypeScript: 'ts'
-    };
-    const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
-    if (!testLanguageItem) {
-        return;
-    }
-    const testLanguage: string = testLanguageItem.label;
-    const testFileSuiffix: string = languagesToSuffixes[testLanguage];
-
-    // Only generate the test file(s) if the smart contract is open in the workspace
-    const workspaceFolders: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
-    if (workspaceFolders.length === 0) {
-        outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} is not open in workspace`);
-
+    // Choose the workspace directory.
+    let chosenPackageFolder: vscode.WorkspaceFolder;
+    try {
+        chosenPackageFolder = await UserInputUtil.chooseWorkspace( false );
+        if (!chosenPackageFolder) {
+            // User cancelled.
+            return;
+        }
+    } catch (err) {
+        outputAdapter.log(LogType.ERROR, err.message, err.toString());
         return;
     }
 
-    const packageJSONSearch: Array<vscode.Uri> =  await vscode.workspace.findFiles('package.json', '**/node_modules/**', workspaceFolders.length);
-    let packageJSONFound: vscode.Uri;
+    // Create automated tests if supported.
+    const contractLang: string = await UserInputUtil.getLanguage(chosenPackageFolder);
+    let testLang: string;
     let functionalTestsDirectory: string;
     let localSmartContractDirectory: string;
-    for (packageJSONFound of packageJSONSearch) {
-        const packageJSONBuffer: Buffer = await fs.readFile(packageJSONFound.path);
+    let testFileSuffix: string;
+    if (contractLang === 'golang' || contractLang === 'java') {
+        outputAdapter.log(LogType.ERROR, `Automated functional tests for a smart contract project written in ${contractLang} are currently not supported.`);
+        return;
+    } else {
+        // Node smart contract: package.json must exist, chaincode and project names must match.
+        const packageJsonFile: string = path.join(chosenPackageFolder.uri.fsPath, 'package.json');
+        const packageJSONBuffer: Buffer = await fs.readFile(packageJsonFile);
         const packageJSONObj: any = JSON.parse(packageJSONBuffer.toString('utf8'));
-        let workspaceProjectName: string = packageJSONObj.name;
-
         const replaceRegex: RegExp = /@.*?\//;
+        let workspaceProjectName: string = packageJSONObj.name;
         workspaceProjectName = workspaceProjectName.replace(replaceRegex, '');
-
         if (workspaceProjectName === chaincodeName) {
             // Smart contract is open in workspace
-            functionalTestsDirectory = path.join(packageJSONFound.fsPath, '..', 'functionalTests');
-            localSmartContractDirectory = path.join(packageJSONFound.fsPath, '..');
-            break;
+            functionalTestsDirectory = path.join(chosenPackageFolder.uri.fsPath, 'functionalTests');
+            localSmartContractDirectory = path.join(chosenPackageFolder.uri.fsPath, );
+            const languagesToSuffixes: object = {
+                JavaScript: 'js',
+                 TypeScript: 'ts'
+             };
+            const testLanguageItem: LanguageQuickPickItem = await UserInputUtil.showLanguagesQuickPick('Choose preferred test language', [], Object.keys(languagesToSuffixes));
+            if (!testLanguageItem) {
+                return;
+            }
+            testLang = testLanguageItem.label;
+            testFileSuffix = languagesToSuffixes[testLang];
+        } else {
+            // Unable to identify the correct project in workspace.
+            outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} does not correspond to the selected open project ${workspaceProjectName}.`);
+            return;
         }
-    }
-    if (!functionalTestsDirectory) {
-        outputAdapter.log(LogType.ERROR, `Smart contract project ${chaincodeName} is not open in workspace. Please ensure the ${chaincodeName} smart contract project folder is not nested within your workspace.`);
-
-        return;
     }
 
     const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
@@ -214,8 +220,8 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         };
 
         // Create data to write to file from template engine
-        const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractTemplate.ejs`);
-        const utilTemplate: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuiffix}TestSmartContractUtilTemplate.ejs`);
+        const template: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuffix}TestSmartContractTemplate.ejs`);
+        const utilTemplate: string = path.join(__dirname, '..', '..', '..', 'templates', `${testFileSuffix}TestSmartContractUtilTemplate.ejs`);
 
         let dataToWrite: string;
         let functionDataToWrite: string;
@@ -231,9 +237,9 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
         // Determine if test file already exists
         let testFile: string;
         if (contractName !== '') {
-            testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}.test.${testFileSuiffix}`);
+            testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}.test.${testFileSuffix}`);
         } else {
-            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuiffix}`);
+            testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}.test.${testFileSuffix}`);
         }
         const testFileExists: boolean = await fs.pathExists(testFile);
         let overwriteTestFile: string;
@@ -255,15 +261,15 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
             let i: number = 1;
             while (await fs.pathExists(testFile)) {
                 if (contractName !== '') {
-                    testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
+                    testFile = path.join(functionalTestsDirectory, `${contractName}-${chaincodeLabel}-copy${i}.test.${testFileSuffix}`);
                 } else {
-                    testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuiffix}`);
+                    testFile = path.join(functionalTestsDirectory, `${chaincodeLabel}-copy${i}.test.${testFileSuffix}`);
                 }
                 i++;
             }
         }
 
-        const testFunctionFile: string = path.join(functionalTestsDirectory, `${testFileSuiffix}-smart-contract-util.${testFileSuiffix}`);
+        const testFunctionFile: string = path.join(functionalTestsDirectory, `${testFileSuffix}-smart-contract-util.${testFileSuffix}`);
 
         // Create the test file
         try {
@@ -327,14 +333,14 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     // Run npm install in smart contract project
     try {
-        await installNodeModules(localSmartContractDirectory, testLanguage);
+        await installNodeModules(localSmartContractDirectory, testLang);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error installing node modules in smart contract project: ${error.message}`, `Error installing node modules in smart contract project: ${error.toString()}`);
         return;
     }
 
     // If TypeScript, update JavaScript Test Runner user settings and create tsconfig.json
-    if (testLanguage === 'TypeScript') {
+    if (testLang === 'TypeScript') {
         const runnerArgs: string = vscode.workspace.getConfiguration().get('javascript-test-runner.additionalArgs') as string;
         if (!runnerArgs || !runnerArgs.includes('-r ts-node/register')) {
             // If the user has removed JavaScript Test Runner since generating tests, this update will silently fail
@@ -379,7 +385,7 @@ export async function testSmartContract(allContracts: boolean, chaincode?: Insta
 
     outputAdapter.log(LogType.SUCCESS, 'Successfully generated tests');
 
-    Reporter.instance().sendTelemetryEvent('testSmartContractCommand', {testSmartContractLanguage: testLanguage});
+    Reporter.instance().sendTelemetryEvent('testSmartContractCommand', {testSmartContractLanguage: testLang});
 
 }
 

@@ -15,7 +15,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { UserInputUtil, IBlockchainQuickPickItem } from './UserInputUtil';
+import { UserInputUtil } from './UserInputUtil';
 import { Reporter } from '../util/Reporter';
 import { ChaincodeType } from 'fabric-client';
 import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
@@ -46,7 +46,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
 
         // Choose the workspace directory.
         if (!workspace) {
-            workspace = await chooseWorkspace();
+            workspace = await UserInputUtil.chooseWorkspace( true );
             if (!workspace) {
                 // User cancelled.
                 return;
@@ -59,7 +59,7 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
         checkForProjectErrors(workspace);
 
         // Determine the language.
-        language = await getLanguage(workspace);
+        language = await UserInputUtil.getLanguage(workspace) as ChaincodeType;
 
         // Determine the package name and version.
         if (language === 'golang') {
@@ -178,73 +178,6 @@ export async function packageSmartContract(workspace?: vscode.WorkspaceFolder, o
             return;
         }
     });
-}
-
-/**
- * Method to determine if there are multiple smart contracts within the active workspace. If so, it will provide a quick pick box
- * to have the developer choose which smart contract he wishes to package and get its path. If not, it will automatically get the path of the only smart contract project there is.
- * @returns Returns the path of the workspace to be used in packaging process.
- */
-async function chooseWorkspace(): Promise<vscode.WorkspaceFolder> {
-    let workspaceFolderOptions: Array<vscode.WorkspaceFolder>;
-    let workspaceFolder: vscode.WorkspaceFolder;
-    workspaceFolderOptions = UserInputUtil.getWorkspaceFolders();
-    if (workspaceFolderOptions.length === 0) {
-        const message: string = `Issue determining available smart contracts. Please open the smart contract you want to be packaged.`;
-        throw new Error(message);
-    }
-
-    if (workspaceFolderOptions.length > 1) {
-        const chosenFolder: IBlockchainQuickPickItem<vscode.WorkspaceFolder> = await UserInputUtil.showWorkspaceQuickPickBox('Choose a workspace folder to package');
-        if (!chosenFolder) {
-            return;
-        }
-        workspaceFolder = chosenFolder.data;
-    } else {
-        workspaceFolder = workspaceFolderOptions[0];
-    }
-
-    return workspaceFolder;
-}
-
-/**
- * Method to determine the language used in the development of the smart contract project, which will be used to determine the correct directories
- * to package the projects.
- * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
- * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory.
- */
-async function getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<ChaincodeType> {
-
-    // Is this a Node.js smart contract (JavaScript, TypeScript, etc)?
-    const packageJsonFile: string = path.join(workspaceDir.uri.fsPath, 'package.json');
-    const packageJsonFileExists: boolean = await fs.pathExists(packageJsonFile);
-    if (packageJsonFileExists) {
-        return 'node';
-    }
-
-    // Is this a Java smart contract (Java, Kotlin, etc)?
-    const gradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
-    const gradleFileExists: boolean = await fs.pathExists(gradleFile);
-    const mavenFile: string = path.join(workspaceDir.uri.fsPath, 'pom.xml');
-    const mavenFileExists: boolean = await fs.pathExists(mavenFile);
-    if (gradleFileExists || mavenFileExists) {
-        return 'java';
-    }
-
-    // Is this a Go smart contract?
-    const goFiles: vscode.Uri[] = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(workspaceDir, '**/*.go'),
-        null,
-        1
-    );
-    if (goFiles.length > 0) {
-        return 'golang';
-    }
-
-    // Its not java/node/go contract, so error
-    const message: string = `Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java. Please ensure your contract's root-level directory is open in the Explorer.`;
-    throw new Error(message);
-
 }
 
 /**

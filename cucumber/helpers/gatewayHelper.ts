@@ -196,6 +196,8 @@ export class GatewayHelper {
 
         this.userInputUtilHelper.showGatewayQuickPickStub.resolves({ label: gatewayEntry.name, data: gatewayEntry });
 
+        this.userInputUtilHelper.getWorkspaceFoldersStub.callThrough();
+
         await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE);
     }
 }

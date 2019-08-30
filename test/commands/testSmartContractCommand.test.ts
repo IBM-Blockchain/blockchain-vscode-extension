@@ -88,6 +88,8 @@ describe('testSmartContractCommand', () => {
     let transactionTwo: any;
     let transactionThree: any;
     let packageJSONPath: vscode.Uri;
+    let pathExistsStub: sinon.SinonStub;
+    let showWorkspaceQuickPickBoxStub: sinon.SinonStub;
     const tsConfigContents: any = {
         compilerOptions: {
             declaration: true,
@@ -297,17 +299,23 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(vscode.workspace, 'findFiles').resolves([packageJSONPath]);
             const smartContractNameBuffer: Buffer = Buffer.from(`{"name": "${smartContractName}"}`);
             readFileStub = mySandBox.stub(fs, 'readFile').resolves(smartContractNameBuffer);
-            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{ name: 'wagonwheeling' }]);
+            workspaceFoldersStub = mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([{ name: 'wagonwheeling', uri: vscode.Uri.file(testFileDir) }]);
             writeJsonStub = mySandBox.stub(fs, 'writeJson').resolves();
             // Other stubs
             sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand').resolves('some npm install output');
             showLanguageQuickPickStub = mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves({ label: 'JavaScript', type: LanguageType.CONTRACT });
             workspaceConfigurationUpdateStub = mySandBox.stub();
             workspaceConfigurationGetStub = mySandBox.stub();
+            // Stubs required for user selection of project to create automated tests for
+            pathExistsStub = mySandBox.stub(fs, 'pathExists');
+            pathExistsStub.resolves(false);
+            pathExistsStub.onFirstCall().resolves(true); // packageJSONPath.fsPath to find contract language
+            showWorkspaceQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+            showWorkspaceQuickPickBoxStub.withArgs('choose a folder').callThrough();
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves( { label: 'wagonwheel@0.0.1', data: { name: 'wagonwheeling', uri: vscode.Uri.file(testFileDir) }});
         });
 
         it('should generate a javascript test file for a selected instantiated smart contract', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', 'js-smart-contract-util.js');
@@ -363,7 +371,6 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.ts`);
             const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', 'ts-smart-contract-util.ts');
@@ -431,7 +438,6 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should ask the user for an instantiated smart contract to test if none selected', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
@@ -441,7 +447,6 @@ describe('testSmartContractCommand', () => {
 
         it('should connect if there is no connection', async () => {
             getConnectionStub.onCall(3).returns(null);
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
@@ -474,7 +479,6 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should handle getting empty metadata', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             fabricClientConnectionMock.getMetadata.resolves(
                 {
@@ -504,7 +508,6 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             fabricClientConnectionMock.getMetadata.resolves(
                 {
@@ -562,9 +565,12 @@ describe('testSmartContractCommand', () => {
         it('should show an error message if the user has no workspaces open', async () => {
             workspaceFoldersStub.returns([]);
 
-            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
+            const error: Error = new Error('Issue determining available smart contracts. Please open the smart contract you want to create functional tests for.');
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract ) ;
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message, error.toString());
+            logSpy.should.have.been.calledTwice;
         });
 
         it('should do nothing if user cancels selecting a test language', async () => {
@@ -572,17 +578,17 @@ describe('testSmartContractCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
             logSpy.should.have.been.calledOnceWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            workspaceFoldersStub.should.not.have.been.called;
+            mySandBox.stub(fs, 'ensureFile').should.not.have.been.called;
+            sendTelemetryEventStub.should.not.have.been.called;
         });
 
-        it('should show an error message if the smart contract project isnt open in the workspace', async () => {
+        it('should show an error message when chosing wrong typeScript open project', async () => {
             const incorrectBuffer: Buffer = Buffer.from(`{"name": "double_decker"}`);
             readFileStub.resolves(incorrectBuffer);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
-
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
-            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project ${smartContractName} is not open in workspace. Please ensure the ${smartContractName} smart contract project folder is not nested within your workspace.`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Smart contract project wagonwheel does not correspond to the selected open project double_decker.`);
             sendTelemetryEventStub.should.not.have.been.called;
         });
 
@@ -607,7 +613,6 @@ describe('testSmartContractCommand', () => {
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
             const secondTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-other-contract-${smartContractLabel}.test.js`);
             const secondTestUri: vscode.Uri = vscode.Uri.file(secondTestFilePath);
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
@@ -642,7 +647,6 @@ describe('testSmartContractCommand', () => {
         it('should generate a test file for just the contract tree item passed in', async () => {
             const firstTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
@@ -680,7 +684,6 @@ describe('testSmartContractCommand', () => {
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
             const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', 'js-smart-contract-util.js');
             const testFunctionUri: vscode.Uri = vscode.Uri.file(testFunctionFilePath);
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
@@ -714,7 +717,6 @@ describe('testSmartContractCommand', () => {
             const firstTestUri: vscode.Uri = vscode.Uri.file(firstTestFilePath);
             const secondTestFilePath: string = path.join(testFileDir, 'functionalTests', `my-other-contract-${smartContractLabel}.test.js`);
             const secondTestUri: vscode.Uri = vscode.Uri.file(secondTestFilePath);
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
@@ -754,9 +756,7 @@ describe('testSmartContractCommand', () => {
             const testUtilPath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `js-smart-contract-util.js`);
             const testUtilUri: vscode.Uri = vscode.Uri.file(testUtilPath);
 
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            pathExistsStub.resolves(false);
-            pathExistsStub.onCall(3).resolves(true);
+            pathExistsStub.onCall(4).resolves(true);
 
             fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
 
@@ -769,7 +769,6 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should handle cancel from choosing contract', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             fabricClientConnectionMock.getMetadata.resolves(moreFakeMetadata);
@@ -788,7 +787,6 @@ describe('testSmartContractCommand', () => {
             mySandBox.stub(ejs, 'renderFile').yields(error, null);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
-            mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error creating template data: ${error.message}`, `Error creating template data: ${error.toString()}`);
@@ -797,7 +795,7 @@ describe('testSmartContractCommand', () => {
         it('should not overwrite an existing test file if the user says no', async () => {
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
-            mySandBox.stub(fs, 'pathExists').resolves(true);
+            pathExistsStub.withArgs(testFilePath).resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.NO);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -810,7 +808,7 @@ describe('testSmartContractCommand', () => {
         it('should not overwrite an existing test file if the user cancels the overwrite quick pick box', async () => {
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
-            mySandBox.stub(fs, 'pathExists').resolves(true);
+            pathExistsStub.withArgs(testFilePath).resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(undefined);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -823,7 +821,7 @@ describe('testSmartContractCommand', () => {
         it('should overwrite an existing test file if the user says yes', async () => {
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
-            mySandBox.stub(fs, 'pathExists').resolves(true);
+            pathExistsStub.withArgs(testFilePath).resolves(true);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.YES);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
@@ -855,8 +853,9 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should overwrite the test util if the user chooses to overwrite the test file', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(true);
+            const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.YES);
+            pathExistsStub.withArgs(testFilePath).resolves(true);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
             showTestFileOverwriteQuickPickStub.should.have.been.called;
@@ -868,11 +867,9 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should not overwrite the test util if test util already exists and the user is not overwriting tests', async () => {
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
             const testFilePath: string = path.join(packageJSONPath.fsPath, '..', 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
 
-            pathExistsStub.onCall(0).resolves(false);
-            pathExistsStub.onCall(1).resolves(true);
+            pathExistsStub.onCall(2).resolves(true);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
 
@@ -902,9 +899,8 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should generate a copy of the test file if the user tells it to', async () => {
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            pathExistsStub.onCall(0).resolves(true);
             pathExistsStub.onCall(1).resolves(true);
+            pathExistsStub.onCall(2).resolves(true);
             pathExistsStub.callThrough();
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.GENERATE_NEW_TEST_FILE);
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}-copy1.test.js`);
@@ -946,9 +942,8 @@ describe('testSmartContractCommand', () => {
                     }
                 }
             );
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            pathExistsStub.onCall(0).resolves(true);
             pathExistsStub.onCall(1).resolves(true);
+            pathExistsStub.onCall(2).resolves(true);
             pathExistsStub.callThrough();
             const showTestFileOverwriteQuickPickStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showTestFileOverwriteQuickPick').resolves(UserInputUtil.GENERATE_NEW_TEST_FILE);
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `${smartContractLabel}-copy1.test.js`);
@@ -974,7 +969,6 @@ describe('testSmartContractCommand', () => {
 
         it('should show an error if it fails to create test file', async () => {
             const error: Error = new Error('some error');
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').rejects(error);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -989,9 +983,8 @@ describe('testSmartContractCommand', () => {
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const error: Error = new Error('some error');
             const ensureFileStub: sinon.SinonStub = mySandBox.stub(fs, 'ensureFile');
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
 
-            pathExistsStub.resolves(false);
+            pathExistsStub.onCall(2).resolves(false);
 
             ensureFileStub.onCall(0).resolves();
             ensureFileStub.onCall(1).rejects(error);
@@ -1008,7 +1001,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should handle errors writing data to the util file', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
+            pathExistsStub.onCall(3).resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
             const testUtilFilePath: string = path.join(testFileDir, 'functionalTests', `js-smart-contract-util.js`);
@@ -1027,7 +1020,7 @@ describe('testSmartContractCommand', () => {
         });
 
         it('should handle errors writing data to the test file', async () => {
-            mySandBox.stub(fs, 'pathExists').resolves(false);
+            pathExistsStub.onCall(3).resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             const testFilePath: string = path.join(testFileDir, 'functionalTests', `my-contract-${smartContractLabel}.test.js`);
@@ -1052,7 +1045,6 @@ describe('testSmartContractCommand', () => {
             fsRemoveStub.rejects(fsError);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
-            mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error creating test file: ${ensureError.message}`, `Error creating test file: ${ensureError.toString()}`);
@@ -1068,7 +1060,6 @@ describe('testSmartContractCommand', () => {
             const testFunctionFilePath: string = path.join(testFileDir, 'functionalTests', `js-smart-contract-util.js`);
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract as InstantiatedUnknownTreeItem);
-            mySandBox.stub(fs, 'pathExists').should.not.have.been.called;
 
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
             logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, `Writing to Smart Contract test file: ${testFilePath}`);
@@ -1103,7 +1094,6 @@ describe('testSmartContractCommand', () => {
             });
 
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -1127,7 +1117,6 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -1151,7 +1140,6 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-            mySandBox.stub(fs, 'pathExists').resolves(false);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             const error: Error = new Error('failed for some reason');
@@ -1177,10 +1165,7 @@ describe('testSmartContractCommand', () => {
                 update: workspaceConfigurationUpdateStub
             });
             showLanguageQuickPickStub.resolves({ label: 'TypeScript', type: LanguageType.CONTRACT });
-            const pathExistsStub: sinon.SinonStub = mySandBox.stub(fs, 'pathExists');
-            pathExistsStub.onFirstCall().resolves(false);
-            pathExistsStub.onSecondCall().resolves(false);
-            pathExistsStub.onThirdCall().resolves(true);
+            pathExistsStub.onCall(3).resolves(true);
             mySandBox.stub(fs, 'ensureFile').resolves();
 
             await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT, instantiatedSmartContract);
@@ -1193,5 +1178,41 @@ describe('testSmartContractCommand', () => {
             logSpy.getCall(4).should.have.been.calledWith(LogType.WARNING, 'Unable to create tsconfig.json file as it already exists');
             logSpy.getCall(5).should.have.been.calledWith(LogType.SUCCESS, 'Successfully generated tests');
         });
+
+        it('should handle error from unsupported contract language (java)', async () => {
+            const error: Error = new Error('Automated functional tests for a smart contract project written in java are currently not supported.');
+            const gradleFilePath: string = path.join(packageJSONPath.fsPath, '..', 'build.gradle');
+            pathExistsStub.withArgs(packageJSONPath.fsPath).resolves(false);
+            pathExistsStub.withArgs(gradleFilePath).resolves(true);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message);
+            logSpy.should.have.been.calledTwice;
+        });
+
+        it('should handle error from unsupported contract language (golang)', async () => {
+            const error: Error = new Error('Automated functional tests for a smart contract project written in golang are currently not supported.');
+            const gradleFilePath: string = path.join(packageJSONPath.fsPath, '..', 'build.gradle');
+            const goFilePath: string = path.join(packageJSONPath.fsPath, '..', '**/*.go');
+            pathExistsStub.withArgs(packageJSONPath.fsPath).resolves(false);
+            pathExistsStub.withArgs(gradleFilePath).resolves(false);
+            pathExistsStub.withArgs(goFilePath).resolves(goFilePath);
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, error.message);
+            logSpy.should.have.been.calledTwice;
+        });
+
+        it('should handle chosing package being cancelled', async () => {
+            showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `testSmartContractCommand`);
+            logSpy.should.have.been.calledOnce;
+
+        });
+
     });
 });
