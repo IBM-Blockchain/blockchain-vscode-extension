@@ -50,7 +50,7 @@ describe('FabricGatewayHelper', () => {
         let writeFileStub: sinon.SinonStub;
 
         beforeEach(() => {
-            writeFileStub = mySandBox.stub(fs, 'writeJSON').resolves();
+            writeFileStub = mySandBox.stub(fs, 'writeFile').resolves();
             mySandBox.stub(fs, 'ensureDir').resolves();
             const TLS_CA_CERTIFICATE: string = fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'test', 'data', 'yofn', 'admin-msp', 'cacerts', 'ca-org1-example-com-17054.pem')).toString('base64');
 
@@ -72,7 +72,8 @@ describe('FabricGatewayHelper', () => {
             connectionProfilePath.should.equal(profileFilePath);
 
             writeFileStub.should.have.been.calledOnce;
-            const connectionProfile: any = writeFileStub.getCall(0).args[1];
+            let connectionProfile: any = writeFileStub.getCall(0).args[1];
+            connectionProfile = JSON.parse(connectionProfile);
 
             connectionProfile.organizations[peerNode.msp_id].mspid.should.equal(peerNode.msp_id);
             connectionProfile.organizations[peerNode.msp_id].peers.should.deep.equal([peerNode.name]);
@@ -95,7 +96,8 @@ describe('FabricGatewayHelper', () => {
             connectionProfilePath.should.equal(profileFilePath);
 
             writeFileStub.should.have.been.calledOnce;
-            const connectionProfile: any = writeFileStub.getCall(0).args[1];
+            let connectionProfile: any = writeFileStub.getCall(0).args[1];
+            connectionProfile = JSON.parse(connectionProfile);
 
             connectionProfile.organizations[securePeerNode.msp_id].mspid.should.equal(securePeerNode.msp_id);
             connectionProfile.organizations[securePeerNode.msp_id].peers.should.deep.equal([securePeerNode.name]);
@@ -123,7 +125,8 @@ describe('FabricGatewayHelper', () => {
             connectionProfilePath.should.equal(profileFilePath);
 
             writeFileStub.should.have.been.calledOnce;
-            const connectionProfile: any = writeFileStub.getCall(0).args[1];
+            let connectionProfile: any = writeFileStub.getCall(0).args[1];
+            connectionProfile = JSON.parse(connectionProfile);
 
             connectionProfile.organizations[peerNode.msp_id].mspid.should.equal(peerNode.msp_id);
             connectionProfile.organizations[peerNode.msp_id].peers.should.deep.equal([peerNode.name]);

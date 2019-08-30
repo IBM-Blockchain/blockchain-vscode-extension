@@ -77,8 +77,8 @@ export class UserInputUtil {
     static readonly ADD_MORE_NODES: string = 'Add more (JSON) node definitions';
     static readonly DONE_ADDING_NODES: string = 'Done adding nodes';
     static readonly ADD_IDENTITY: string = '+ Add identity';
-    static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric Environment';
-    static readonly ADD_GATEWAY_FRPM_CCP: string = 'Create a gateway from a connection profile';
+    static readonly ADD_GATEWAY_FROM_ENVIRONMENT: string = 'Create a gateway from a Fabric environment';
+    static readonly ADD_GATEWAY_FROM_CCP: string = 'Create a gateway from a connection profile';
 
     public static async showQuickPick(prompt: string, items: string[]): Promise<string> {
         const quickPickOptions: vscode.QuickPickOptions = {
@@ -894,7 +894,7 @@ export class UserInputUtil {
 
         if (showCreateWallet) {
             walletQuickPickItems.push({
-                label: '+ Create new wallet',
+                label: '+ Add new wallet',
                 data: undefined
             });
         }

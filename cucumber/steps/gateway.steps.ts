@@ -108,6 +108,10 @@ module.exports = function(): any {
         await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, evaluateBoolean);
     });
 
+    this.When('I export the connection profile', this.timeout, async () => {
+        await this.gatewayHelper.exportConnectionProfile(this.gateway);
+    });
+
     /**
      * Then
      */
@@ -148,5 +152,19 @@ module.exports = function(): any {
             const testRunResult: string = await this.generatedTestsHelper.runSmartContractTests(this.contractName, this.testLanguage, this.contractAssetType);
             testRunResult.includes('1 passing').should.be.true;
         }
+    });
+
+    this.Then('a connection profile exists', this.timeout, async () => {
+        const profilePath: string = path.join(__dirname, '../../../cucumber/tmp/profiles');
+
+        let name: string = this.gateway;
+
+        if (name === 'Local Fabric') {
+            name = FabricRuntimeUtil.LOCAL_FABRIC;
+        }
+
+        const exists: boolean = await fs.pathExists(path.join(profilePath, `${name}_connection.json`));
+
+        exists.should.equal(true);
     });
 };

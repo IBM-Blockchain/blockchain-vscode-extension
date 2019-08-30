@@ -73,31 +73,16 @@ module.exports = function(): any {
                 const extDir: string = path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp');
 
                 const packageDir: string = path.join(extDir, 'packages');
-                let exists: boolean = await fs.pathExists(packageDir);
-
-                if (exists) {
-                    await fs.remove(packageDir);
-                }
-
                 const contractDir: string = path.join(extDir, 'contracts');
-                exists = await fs.pathExists(contractDir);
-
-                if (exists) {
-                    await fs.remove(contractDir);
-                }
-
                 const environmentsDir: string = path.join(extDir, 'environments');
-                exists = await fs.pathExists(environmentsDir);
-
-                if (exists) {
-                    await fs.remove(environmentsDir);
-                }
-
                 const walletsDir: string = path.join(extDir, 'wallets');
-                exists = await fs.pathExists(walletsDir);
+                const profileDir: string = path.join(extDir, 'profiles');
+                for (const dir of [packageDir, contractDir, environmentsDir, walletsDir, profileDir]) {
+                    const exists: boolean = await fs.pathExists(dir);
 
-                if (exists) {
-                    await fs.remove(walletsDir);
+                    if (exists) {
+                        await fs.remove(dir);
+                    }
                 }
 
                 await TestUtil.storeGatewaysConfig();
@@ -106,7 +91,6 @@ module.exports = function(): any {
                 await TestUtil.storeRepositoriesConfig();
                 await TestUtil.storeWalletsConfig();
                 await TestUtil.storeEnvironmentsConfig();
-
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
 
