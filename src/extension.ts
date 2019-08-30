@@ -105,6 +105,7 @@ import { FabricEnvironmentTreeItem } from './explorer/runtimeOps/disconnectedTre
 import { associateIdentityWithNode } from './commands/associateIdentityWithNode';
 import { FabricNode } from './fabric/FabricNode';
 import { RuntimeTreeItem } from './explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { FabricDebugConfigurationProvider } from './debug/FabricDebugConfigurationProvider';
 
 let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
 let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
@@ -349,8 +350,16 @@ export async function registerCommands(context: vscode.ExtensionContext): Promis
         // Listen for any changes to the debug state.
         if (e) {
             await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
-            if (e.configuration.env && e.configuration.env.EXTENSION_COMMAND) {
-                await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, e.configuration.env.EXTENSION_COMMAND);
+            if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
+                const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+                const smartContractVersion: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+                const instantiatedSmartContract: { name: string, version: string } = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
+
+                if (!instantiatedSmartContract) {
+                    await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+                } else if (smartContractVersion !== instantiatedSmartContract.version) {
+                    await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
+                }
             }
             // Show any new transactions added to a contract, after 'reload debug' is executed.
             await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
