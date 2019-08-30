@@ -100,6 +100,8 @@ Now we have created an environment we need to associate each node with an identi
 
 4. You will then be asked to choose an identity, select `Orderer Admin`
 
+5. You will then be asked if you want to associate the identity with other nodes, select `No`.
+
 Congratulations you have associated an identity with the `Orderer` node. Now we need to Associate an identity with the `Peer` node
 
 1. Click `Peer Org1`.
@@ -107,6 +109,8 @@ Congratulations you have associated an identity with the `Orderer` node. Now we 
 2. You will then be asked to choose a wallet, select `ibp-wallet`.
 
 4. You will then be asked to choose an identity, select `Org1 Admin`.
+
+5. You will then be asked if you want to associate the identity with other nodes, select `No`.
 
 The final node to setup is the certificate authority.
 
