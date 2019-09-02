@@ -129,7 +129,8 @@ async function runCucumberTest(): Promise<any> {
     const runtime: any = new Cucumber.Runtime({
         features: features,
         listeners: [jsonFormatter, prettyFormatter],
-        supportCodeLibrary: supportCodeLibrary
+        options: {strict: true},
+        supportCodeLibrary: supportCodeLibrary,
     });
     return runtime.start();
 }

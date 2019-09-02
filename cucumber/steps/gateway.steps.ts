@@ -64,7 +64,7 @@ module.exports = function(): any {
      * When
      */
 
-    this.When("I create a gateway '{string}' from an? '{string}'", this.timeout, async (gateway: string, method: string) => {
+    this.When(/I create a gateway '(.*)' from an? '(.*)'/, this.timeout, async (gateway: string, method: string) => {
         this.gateway = gateway;
 
         let fromEnvironment: boolean = false;
@@ -73,7 +73,7 @@ module.exports = function(): any {
 
         }
 
-        await this.gatewayHelper.createGateway(gateway, fromEnvironment, this.environment);
+        await this.gatewayHelper.createGateway(gateway, fromEnvironment, this.environmentName);
     });
 
     this.When(/connecting to the '(.*?)' gateway( without association)?/, this.timeout, async (gateway: string, withoutAssociation: string) => {
