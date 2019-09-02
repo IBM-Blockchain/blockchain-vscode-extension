@@ -39,6 +39,8 @@ You can check your installed versions by running the following commands from a t
 - `go version`
 - `java -version`
 
+Please note: the extension doesn't currently work with the VSCode Remote Development feature, we plan to make this work in the future, follow progress [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1357). 
+
 ## Smart Contract Development Lifecycle
 _Please note that all commands contributed by this extension are accessible via the VS Code Command Palette. The commands outlined below are available from burger menus located on the panel headers, or by right-clicking tree items, in the extension's side bar view._
 
