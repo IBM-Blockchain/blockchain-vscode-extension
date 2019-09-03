@@ -314,7 +314,7 @@ describe('View', () => {
                         title: 'Adding an Environment to connect to IBM Cloud',
                         length: '20-30 mins',
                         difficulty: 'simple',
-                        shortDescription: 'Add an environment to connect to a a cloud instance and deploy a smart contract',
+                        shortDescription: 'Add an environment to connect to a cloud instance and deploy a smart contract',
                         file: 'developer-tutorials/add-environment.md'
                     },
                     {
