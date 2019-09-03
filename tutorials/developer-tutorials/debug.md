@@ -1,4 +1,3 @@
-**Tutorial 1**
 ## **Debug a smart contract**
 `30-40 mins`
 
