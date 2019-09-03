@@ -29,7 +29,6 @@ import * as myExtension from '../../src/extension';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGeneratorFactory } from '../../src/fabric/FabricWalletGeneratorFactory';
 import { IdentityTreeItem } from '../../src/explorer/model/IdentityTreeItem';
-import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
@@ -47,11 +46,12 @@ describe('deleteIdentityCommand', () => {
     let showWalletsQuickPickStub: sinon.SinonStub;
     let showIdentitiesQuickPickStub: sinon.SinonStub;
     let purpleWallet: FabricWalletRegistryEntry;
-    let blueWallet: FabricWalletRegistryEntry;
+    let blueWalletEntry: FabricWalletRegistryEntry;
     let testWallet: FabricWallet;
     let walletIdentitiesStub: sinon.SinonStub;
     let executeCommandSpy: sinon.SinonSpy;
     let identityName: string;
+    let getWalletStub: sinon.SinonStub;
 
     before(async () => {
         await TestUtil.setupTests(mySandBox);
@@ -79,15 +79,15 @@ describe('deleteIdentityCommand', () => {
             name: 'purpleWallet',
             walletPath: '/some/path'
         });
-        blueWallet = new FabricWalletRegistryEntry({
+        blueWalletEntry = new FabricWalletRegistryEntry({
             name: 'blueWallet',
             walletPath: '/some/bluer/path'
         });
-        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWallet], vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [purpleWallet, blueWalletEntry], vscode.ConfigurationTarget.Global);
 
-        testWallet = new FabricWallet('some/path');
+        testWallet = new FabricWallet('/some/path');
         walletIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');
-        mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getNewWallet').returns(testWallet);
+        getWalletStub = mySandBox.stub(FabricWalletGeneratorFactory.createFabricWalletGenerator(), 'getWallet').returns(testWallet);
 
         executeCommandSpy = mySandBox.spy(vscode.commands, 'executeCommand');
     });
@@ -130,10 +130,9 @@ describe('deleteIdentityCommand', () => {
     });
 
     it('should show an error if it finds no identities in the chosen wallet', async () => {
-        identityName = 'greenConga';
         showWalletsQuickPickStub.resolves({
-            label: blueWallet.name,
-            data: blueWallet
+            label: purpleWallet.name,
+            data: purpleWallet
         });
         walletIdentitiesStub.resolves([]);
 
@@ -144,7 +143,7 @@ describe('deleteIdentityCommand', () => {
         fsRemoveStub.should.not.have.been.called;
         logSpy.should.have.been.calledTwice;
         logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `deleteIdentity`);
-        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities in wallet: ${blueWallet.walletPath}`, `No identities in wallet: ${blueWallet.walletPath}`);
+        logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `No identities in wallet: ${purpleWallet.walletPath}`, `No identities in wallet: ${purpleWallet.walletPath}`);
     });
 
     it('should show a different error if there are no non-admin identities in the local_fabric wallet', async () => {
@@ -191,8 +190,8 @@ describe('deleteIdentityCommand', () => {
 
     it('should handle the user cancelling, or saying no to, the warning box', async () => {
         showWalletsQuickPickStub.resolves({
-            label: blueWallet.name,
-            data: blueWallet
+            label: blueWalletEntry.name,
+            data: blueWalletEntry
         });
         walletIdentitiesStub.resolves(['biscuits', 'yellowConga']);
         showIdentitiesQuickPickStub.resolves('biscuits');
@@ -235,11 +234,11 @@ describe('deleteIdentityCommand', () => {
         it('should delete an identity when called from the wallet tree', async () => {
             identityName = 'blueConga';
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
-            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, blueWallet.name, []);
+            const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, blueWalletEntry.name, []);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_IDENTITY, treeItem);
 
-            fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(blueWallet.walletPath, identityName));
+            fsRemoveStub.should.have.been.calledOnceWithExactly(path.join(blueWalletEntry.walletPath, identityName));
             showWalletsQuickPickStub.should.not.have.been.called;
             showConfirmationWarningMessage.should.have.been.calledOnce;
             logSpy.should.have.been.calledTwice;
@@ -250,9 +249,8 @@ describe('deleteIdentityCommand', () => {
 
         it('should delete an identity and filter admin id from local wallet', async () => {
             identityName = 'bob';
-            const walletGenerator: FabricWalletGenerator = await FabricWalletGenerator.instance();
             const testFabricWallet: FabricWallet = new FabricWallet('some/local/fabric/wallet/path');
-            mySandBox.stub(walletGenerator, 'createLocalWallet').returns(testFabricWallet);
+            getWalletStub.returns(testFabricWallet);
 
             const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
             const treeItem: IdentityTreeItem = new IdentityTreeItem(blockchainWalletExplorerProvider, identityName, FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME, []);

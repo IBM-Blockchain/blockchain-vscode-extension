@@ -636,7 +636,7 @@
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
@@ -720,7 +720,7 @@
                 },
                 {
                     "command": "environmentExplorer.createNewIdentityEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected"
                 },
                 {
                     "command": "walletExplorer.editWalletEntry",

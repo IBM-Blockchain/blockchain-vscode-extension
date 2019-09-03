@@ -224,7 +224,7 @@ describe('FabricRuntimeManager', () => {
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockWalletGenerator);
             const mockWallet: sinon.SinonStubbedInstance<FabricWallet> = sinon.createStubInstance(FabricWallet);
             mockWallet.getWalletPath.returns('SOME_PATH');
-            mockWalletGenerator.createLocalWallet.resolves(mockWallet);
+            mockWalletGenerator.getWallet.resolves(mockWallet);
 
             const registryEntries: FabricWalletRegistryEntry[] = await instance.getWalletRegistryEntries();
             registryEntries.should.have.lengthOf(1);

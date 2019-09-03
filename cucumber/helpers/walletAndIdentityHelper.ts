@@ -60,7 +60,7 @@ export class WalletAndIdentityHelper {
         }
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletEntry.walletPath);
+        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry.name);
         const identityExists: boolean = await wallet.exists(identityName);
 
         if (!identityExists) {
@@ -85,7 +85,7 @@ export class WalletAndIdentityHelper {
         walletEntry.walletPath = WalletAndIdentityHelper.localWalletPath;
 
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletEntry.walletPath);
+        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletEntry.name);
         const identityExists: boolean = await wallet.exists(name);
 
         if (identityExists) {
@@ -110,7 +110,7 @@ export class WalletAndIdentityHelper {
 
     public async createIdentity(walletName: string, identityName: string, mspid: string, method: string): Promise<void> {
         this.setIdentityStubs(method, identityName, mspid);
-        const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(walletName);
+        const wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(walletName);
         await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, wallet);
     }
 

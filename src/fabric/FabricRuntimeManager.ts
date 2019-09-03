@@ -122,7 +122,7 @@ export class FabricRuntimeManager {
         const entries: FabricWalletRegistryEntry[] = [];
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         for (const walletName of walletNames) {
-            const wallet: IFabricWallet = await walletGenerator.createLocalWallet(walletName);
+            const wallet: IFabricWallet = await walletGenerator.getWallet(walletName);
             entries.push(new FabricWalletRegistryEntry({
                 name: walletName,
                 walletPath: wallet.getWalletPath(),

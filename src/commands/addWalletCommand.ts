@@ -37,6 +37,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
     let wallet: IFabricWallet;
     let identities: string[];
     const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
+    const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
     try {
         // Ask for method to add wallet
@@ -67,11 +68,17 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
                 throw new Error('A wallet with this name already exists.');
             }
 
+            // Add the wallet to the registry
+            fabricWalletRegistryEntry.name = walletName;
+            fabricWalletRegistryEntry.walletPath = walletPath;
+            await fabricWalletRegistry.add(fabricWalletRegistryEntry);
+
             // Check it contains identities
             const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-            wallet = fabricWalletGenerator.getNewWallet(walletPath);
+            wallet = await fabricWalletGenerator.getWallet(walletName);
             identities = await wallet.getIdentityNames();
             if (identities.length === 0) {
+                await fabricWalletRegistry.delete(walletName);
                 throw new Error(`No identities found in wallet: ${walletPath}`);
             }
 
@@ -89,7 +96,7 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
             }
 
             // Create a local file system wallet
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(walletName);
+            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(walletName);
             walletPath = wallet.getWalletPath();
 
             if (createIdentity) {
@@ -105,13 +112,12 @@ export async function addWallet(createIdentity: boolean = true): Promise<FabricW
                 }
             }
 
-        }
+            // Add the wallet to the registry
+            fabricWalletRegistryEntry.name = walletName;
+            fabricWalletRegistryEntry.walletPath = walletPath;
+            await fabricWalletRegistry.add(fabricWalletRegistryEntry);
 
-        // Add the wallet to the registry
-        const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
-        fabricWalletRegistryEntry.name = walletName;
-        fabricWalletRegistryEntry.walletPath = walletPath;
-        await fabricWalletRegistry.add(fabricWalletRegistryEntry);
+        }
 
         outputAdapter.log(LogType.SUCCESS, 'Successfully added a new wallet');
         return fabricWalletRegistryEntry;

@@ -1750,7 +1750,7 @@ describe('UserInputUtil', () => {
 
         it('should allow the user to select the in house wallet', async () => {
             const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
-            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet').resolves(testFabricWallet);
 
             const localWalletEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: FabricWalletUtil.LOCAL_WALLET,
@@ -1768,7 +1768,7 @@ describe('UserInputUtil', () => {
 
         it('should show wallets to select and show create wallet', async () => {
             const testFabricWallet: FabricWallet = new FabricWallet('some/local/path');
-            mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet').resolves(testFabricWallet);
+            mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet').resolves(testFabricWallet);
 
             quickPickStub.resolves({
                 label: walletEntryOne.name,

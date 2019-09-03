@@ -57,7 +57,7 @@ export async function addEnvironment(): Promise<{} | void> {
         const nodeUris: vscode.Uri[] = [];
         let addMore: boolean = true;
         do {
-            const selectedNodeUris: vscode.Uri[] = await UserInputUtil.browse('Select all the Fabric node files you want to import', quickPickItems, openDialogOptions, true) as vscode.Uri[];
+            const selectedNodeUris: vscode.Uri[] = await UserInputUtil.browse('Select all the Fabric node (JSON) files you want to import', quickPickItems, openDialogOptions, true) as vscode.Uri[];
 
             if (selectedNodeUris) {
                 nodeUris.push(...selectedNodeUris);
