@@ -51,6 +51,7 @@ export class UserInputUtilHelper {
     showEnvironmentQuickPickStub: sinon.SinonStub;
     showOrgQuickPickStub: sinon.SinonStub;
     showFabricNodeQuickPickStub: sinon.SinonStub;
+    showWorkspaceQuickPickBoxStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -68,7 +69,7 @@ export class UserInputUtilHelper {
         this.showChannelStub = this.mySandBox.stub(UserInputUtil, 'showChannelQuickPickBox').callThrough();
         this.showChaincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').callThrough();
         this.showYesNoQuickPick = this.mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').callThrough();
-        this.getWorkspaceFoldersStub = this.mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').callThrough();
+        this.getWorkspaceFoldersStub = this.mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
         this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
         this.showWalletsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').callThrough();
         this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').callThrough();
@@ -86,5 +87,6 @@ export class UserInputUtilHelper {
         this.showEnvironmentQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricEnvironmentQuickPickBox').callThrough();
         this.showOrgQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showOrgQuickPick').callThrough();
         this.showFabricNodeQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showFabricNodeQuickPick').callThrough();
+        this.showWorkspaceQuickPickBoxStub = this.mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox').callThrough();
     }
 }
