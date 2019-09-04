@@ -1,5 +1,22 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.9: September 5th 2019
+
+* Fixed creating a gateway from an environment when no MSPID has been set [#1369](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1369)
+* Added selecting a workspace when generating functional tests and error when attempting to generate tests for a Java contract [#1359](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1359)
+> This is part of the work required for our future feature of generating Java functional tests - [#520](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/520)  
+
+* Fixed connecting to an environment using an existing wallet [#1367](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1367)
+* Fixed debug tutorial typo [#1343](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1343)
+* Fixed environment tutorial typo [#1322](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1322)
+* Updated README to state VS Code Remote Development doesn't work - but we're working on the issue [#1357](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1357)
+* Updated adding an identity with a JSON identity file method label [#1116](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1116)
+* Added associating an identity with multiple nodes [#1089](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1089)
+* Fixed debug when doing a reload [#1230](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1230)
+* Moved exporting a connection profile to a gateway [#1040](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1040)
+* Fixed using the caName when adding an identity [#1345](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1345) - a massive thank you to @mazyblue for this external contribution! :tada: :tada: :tada:
+
+
 ## 1.0.8: August 29th 2019
 
 * Create a gateway from a Fabric Environment [#1108](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1108)
