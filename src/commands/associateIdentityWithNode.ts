@@ -105,7 +105,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
         walletName = walletRegistryEntry.name;
 
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = walletGenerator.getNewWallet(walletRegistryEntry.walletPath);
+        const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);
 
         if (enroll) {
             node = await enrollIdAndSecret(node, wallet);

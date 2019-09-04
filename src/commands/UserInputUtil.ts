@@ -873,7 +873,7 @@ export class UserInputUtil {
 
         if (showLocalWallet) {
             // Push local_fabric wallet
-            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
+            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
 
             const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 

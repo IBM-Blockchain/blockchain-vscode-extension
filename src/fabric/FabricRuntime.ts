@@ -94,7 +94,7 @@ export class FabricRuntime extends FabricEnvironment {
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
         const walletNames: string[] = await this.getWalletNames();
         for (const walletName of walletNames) {
-            const localWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(walletName);
+            const localWallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletName);
             const identities: FabricIdentity[] = await this.getIdentities(walletName);
             for (const identity of identities) {
                 await localWallet.importIdentity(

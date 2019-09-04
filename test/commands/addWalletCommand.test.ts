@@ -41,10 +41,9 @@ describe('AddWalletCommand', () => {
     let browseStub: sinon.SinonStub;
     let choseWalletAddMethod: sinon.SinonStub;
     let uri: vscode.Uri;
-    let getNewWallet: sinon.SinonStub;
+    let getWallet: sinon.SinonStub;
     let testWallet: FabricWallet;
     let getIdentitiesStub: sinon.SinonStub;
-    let createLocalWalletStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let fsRemoveStub: sinon.SinonStub;
 
@@ -67,10 +66,8 @@ describe('AddWalletCommand', () => {
         uri = vscode.Uri.file(tmp.dirSync().name);
         testWallet = new FabricWallet(uri.fsPath);
         getIdentitiesStub = mySandBox.stub(testWallet, 'getIdentityNames');
-        getNewWallet = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet');
-        getNewWallet.returns(testWallet);
-        createLocalWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'createLocalWallet');
-        createLocalWalletStub.resolves(testWallet);
+        getWallet = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
+        getWallet.returns(testWallet);
         fsRemoveStub = mySandBox.stub(fs, 'remove').resolves();
     });
 

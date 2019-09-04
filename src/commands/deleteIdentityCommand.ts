@@ -41,11 +41,11 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
         if (!chosenWallet) {
             return;
         }
-        walletPath = chosenWallet.data.walletPath;
 
         // Get identities in that wallet
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = walletGenerator.getNewWallet(walletPath);
+        const wallet: IFabricWallet = await walletGenerator.getWallet(chosenWallet.data.name);
+        walletPath = wallet.getWalletPath();
         let identityNames: string[] = await wallet.getIdentityNames();
 
         if (chosenWallet.label === FabricWalletUtil.LOCAL_WALLET) {
@@ -71,7 +71,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
     } else {
         // Called from the tree
         if (treeItem.walletName === FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME) {
-           const _wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
+           const _wallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
            walletPath = _wallet.getWalletPath();
 
         } else {

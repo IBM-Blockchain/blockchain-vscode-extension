@@ -77,7 +77,7 @@ describe('AddWalletIdentityCommand', () => {
         let getEnrollIdSecretStub: sinon.SinonStub;
         let enrollStub: sinon.SinonStub;
         let executeCommandStub: sinon.SinonStub;
-        let getNewWalletStub: sinon.SinonStub;
+        let getWalletStub: sinon.SinonStub;
         let showWalletsQuickPickStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let browseStub: sinon.SinonStub;
@@ -148,8 +148,8 @@ describe('AddWalletIdentityCommand', () => {
             executeCommandStub.callThrough();
 
             fabricWallet = new FabricWallet(walletPath);
-            getNewWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getNewWallet');
-            getNewWalletStub.returns(fabricWallet);
+            getWalletStub = mySandBox.stub(FabricWalletGenerator.instance(), 'getWallet');
+            getWalletStub.returns(fabricWallet);
             importIdentityStub = mySandBox.stub(fabricWallet, 'importIdentity');
             importIdentityStub.resolves();
             showWalletsQuickPickStub = mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox');
@@ -920,7 +920,7 @@ describe('AddWalletIdentityCommand', () => {
                 const result: string = await vscode.commands.executeCommand(ExtensionCommands.ADD_WALLET_IDENTITY, emptyWallet) as string;
                 result.should.equal('greenConga');
 
-                getNewWalletStub.should.not.have.been.called;
+                getWalletStub.should.not.have.been.called;
                 showWalletsQuickPickStub.should.not.have.been.called;
                 inputBoxStub.should.have.been.calledTwice;
                 fsReadFile.should.have.been.called;

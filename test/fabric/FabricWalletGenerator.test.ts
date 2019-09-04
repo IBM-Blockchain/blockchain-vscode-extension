@@ -20,6 +20,9 @@ import * as fs from 'fs-extra';
 import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricWalletGenerator } from '../../src/fabric/FabricWalletGenerator';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 
 chai.use(sinonChai);
 // tslint:disable no-unused-expression
@@ -32,7 +35,7 @@ describe('FabricWalletGenerator', () => {
     let pathExistsStub: sinon.SinonStub;
     let removeStub: sinon.SinonStub;
 
-    describe('createLocalWallet', () => {
+    describe('getWallet', () => {
 
         beforeEach(async () => {
             mySandBox = sinon.createSandbox();
@@ -40,6 +43,15 @@ describe('FabricWalletGenerator', () => {
             mySandBox.stub(UserInputUtil, 'getDirPath').returns(path.join(rootPath, '../../test/data/walletDir'));
             ensureDirStub = mySandBox.stub(fs, 'ensureDir').resolves();
             pathExistsStub = mySandBox.stub(fs, 'pathExists');
+
+            await FabricWalletRegistry.instance().clear();
+
+            const fabricWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+            fabricWalletRegistryEntry.managedWallet = false;
+            fabricWalletRegistryEntry.name = 'CongaWallet';
+            fabricWalletRegistryEntry.walletPath = path.join(rootPath, '../../test/data/walletDir/wallets/CongaWallet');
+
+            await FabricWalletRegistry.instance().add(fabricWalletRegistryEntry);
         });
 
         afterEach(async () => {
@@ -47,21 +59,27 @@ describe('FabricWalletGenerator', () => {
         });
 
         it('should create a local file system wallet', async () => {
+            await FabricWalletRegistry.instance().clear();
             pathExistsStub.resolves(false);
 
-            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaWallet');
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet('CongaWallet');
             wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/wallets/CongaWallet'));
-            ensureDirStub.should.have.been.calledOnce;
-
+            ensureDirStub.should.have.been.called;
         });
 
         it('should not overwrite an existing file system wallet', async () => {
             pathExistsStub.resolves(true);
 
-            const wallet: FabricWallet = await FabricWalletGenerator.instance().createLocalWallet('CongaWallet');
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet('CongaWallet');
             wallet.walletPath.should.equal(path.join(rootPath, '../../test/data/walletDir/wallets/CongaWallet'));
             ensureDirStub.should.not.have.been.called;
+        });
 
+        it('create the local fabric wallet', async () => {
+            const wallet: FabricWallet = await FabricWalletGenerator.instance().getWallet(FabricWalletUtil.LOCAL_WALLET);
+
+            wallet.walletPath.should.equal(path.join(rootPath, `../../test/data/walletDir/wallets/${FabricWalletUtil.LOCAL_WALLET}`));
+            ensureDirStub.should.have.been.called;
         });
     });
 
@@ -95,14 +113,5 @@ describe('FabricWalletGenerator', () => {
 
         });
 
-    });
-
-    describe('getNewWallet', () => {
-        it('should get a new wallet', () => {
-            const walletPath: string = path.join(rootPath, '../../test/data/walletDir/myWallet/wallet');
-            const wallet: FabricWallet = FabricWalletGenerator.instance().getNewWallet(walletPath);
-
-            wallet.walletPath.should.equal(walletPath);
-        });
     });
 });

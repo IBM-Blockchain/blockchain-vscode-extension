@@ -46,7 +46,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         if (walletItem instanceof WalletTreeItem) {
 
             walletRegistryEntry = walletItem.registryEntry;
-            wallet = fabricWalletGenerator.getNewWallet(walletRegistryEntry.walletPath);
+            wallet = await fabricWalletGenerator.getWallet(walletRegistryEntry.name);
 
         } else {
             // called from addWallet command - walletItem is IFabricWallet
@@ -60,7 +60,7 @@ export async function addWalletIdentity(walletItem: WalletTreeItem | IFabricWall
         if (!chosenWallet) {
             return;
         }
-        wallet = fabricWalletGenerator.getNewWallet(chosenWallet.data.walletPath);
+        wallet = await fabricWalletGenerator.getWallet(chosenWallet.data.name);
         walletRegistryEntry = chosenWallet.data;
     }
 

@@ -20,6 +20,9 @@ import { FabricWallet } from './FabricWallet';
 import { UserInputUtil } from '../commands/UserInputUtil';
 import { IFabricWalletGenerator } from './IFabricWalletGenerator';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { FabricWalletUtil } from './FabricWalletUtil';
+import { FabricWalletRegistryEntry } from './FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from './FabricWalletRegistry';
 
 export class FabricWalletGenerator implements IFabricWalletGenerator {
 
@@ -29,18 +32,15 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     private static _instance: FabricWalletGenerator = new FabricWalletGenerator();
 
-    public async createLocalWallet(walletName: string): Promise<FabricWallet> {
+    public async getWallet(walletName: string): Promise<FabricWallet> {
 
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const walletPath: string = path.join(homeExtDir, 'wallets', walletName);
-        const walletExists: boolean = await fs.pathExists(walletPath);
-
-        if (!walletExists) {
-            await fs.ensureDir(walletPath);
+        const walletExists: boolean = FabricWalletRegistry.instance().exists(walletName);
+        if (walletName === FabricWalletUtil.LOCAL_WALLET || !walletExists) {
+            return await this.createWallet(walletName);
+        } else {
+            const walletRegistryEntry: FabricWalletRegistryEntry = FabricWalletRegistry.instance().get(walletName);
+            return new FabricWallet(walletRegistryEntry.walletPath);
         }
-
-        return new FabricWallet(walletPath);
     }
 
     public async deleteLocalWallet(walletName: string): Promise<void> {
@@ -56,7 +56,14 @@ export class FabricWalletGenerator implements IFabricWalletGenerator {
 
     }
 
-    public getNewWallet(walletPath: string): FabricWallet {
+    private async createWallet(walletName: string): Promise<FabricWallet> {
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+        const walletPath: string = path.join(homeExtDir, 'wallets', walletName);
+        const walletExists: boolean = await fs.pathExists(walletPath);
+        if (!walletExists) {
+            await fs.ensureDir(walletPath);
+        }
         return new FabricWallet(walletPath);
     }
 }

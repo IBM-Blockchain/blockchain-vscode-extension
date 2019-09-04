@@ -80,7 +80,7 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
             if (walletRegistryEntry.walletPath) {
                 // get identityNames in the wallet
                 const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-                const wallet: IFabricWallet = walletGenerator.getNewWallet(walletRegistryEntry.walletPath);
+                const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);
                 const identityNames: string[] = await wallet.getIdentityNames();
 
                 const treeState: vscode.TreeItemCollapsibleState = identityNames.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None;
@@ -107,10 +107,8 @@ export class BlockchainWalletExplorerProvider implements BlockchainExplorerProvi
         const tree: Array<BlockchainTreeItem> = [];
 
         // Populate the tree with the identity names
-
-        const walletPath: string = walletTreeItem.registryEntry.walletPath;
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = fabricWalletGenerator.getNewWallet(walletPath);
+        const wallet: IFabricWallet = await fabricWalletGenerator.getWallet(walletTreeItem.registryEntry.name);
         const identities: any[] = await wallet.getIdentities();
 
         for (const identity of identities) {

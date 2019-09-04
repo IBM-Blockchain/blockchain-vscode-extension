@@ -58,16 +58,14 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     }
 
     let wallet: IFabricWallet;
-    let walletPath: string;
     let walletName: string;
-    let walletData: any;
+    let walletData: FabricWalletRegistryEntry;
 
     // If the user is trying to connect to the local_fabric, we should always use the local_fabric_wallet
     if (!gatewayRegistryEntry.associatedWallet && !gatewayRegistryEntry.managedRuntime) {
         // If there is no wallet associated with the gateway, we should ask for a wallet to connect with
         // First check there is at least one that isn't local_fabric_wallet
-        let wallets: Array<FabricWalletRegistryEntry> = [];
-        wallets = FabricWalletRegistry.instance().getAll();
+        const wallets: Array<FabricWalletRegistryEntry> = FabricWalletRegistry.instance().getAll();
         if (wallets.length === 0) {
             outputAdapter.log(LogType.ERROR, `You must first add a wallet with identities to connect to this gateway`);
             return;
@@ -79,14 +77,13 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
             return;
         }
         walletName = chosenWallet.data.name;
-        walletPath = chosenWallet.data.walletPath;
         walletData = chosenWallet.data;
     } else {
         walletName = gatewayRegistryEntry.associatedWallet;
 
         if (walletName === FabricWalletUtil.LOCAL_WALLET) {
             // We don't want to attempt to get it from the wallet registry
-            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
+            wallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
 
             const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
@@ -100,16 +97,13 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
             const fabricWalletRegistry: FabricWalletRegistry = FabricWalletRegistry.instance();
             walletData = fabricWalletRegistry.get(walletName);
         }
-
-        walletPath = walletData.walletPath;
-
     }
 
     if (!wallet) {
         // If we haven't already retrieved the wallet
         // Get the wallet
         const FabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        wallet = FabricWalletGenerator.getNewWallet(walletPath);
+        wallet = await FabricWalletGenerator.getWallet(walletName);
     }
 
     // Get the identities

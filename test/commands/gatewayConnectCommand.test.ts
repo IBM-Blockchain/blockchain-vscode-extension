@@ -77,20 +77,19 @@ describe('GatewayConnectCommand', () => {
         let connectionMultipleWallet: FabricWalletRegistryEntry;
         let connectionSingleWallet: FabricWalletRegistryEntry;
         let connectionAssociatedWallet: FabricWalletRegistryEntry;
+        let emptyWallet: FabricWalletRegistryEntry;
         let choseIdentityQuickPick: sinon.SinonStub;
         let choseGatewayQuickPick: sinon.SinonStub;
         let choseWalletQuickPick: sinon.SinonStub;
         let identity: IdentityInfo;
         let walletGenerator: FabricWalletGenerator;
         let sendTelemetryEventStub: sinon.SinonStub;
-        let getSettingsStub: sinon.SinonStub;
-        let getConfigurationStub: sinon.SinonStub;
-        let getAllWalletsStub: sinon.SinonStub;
-        let getWalletStub: sinon.SinonStub;
 
         const timeout: number = 120;
 
         beforeEach(async () => {
+
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_CLIENT_TIMEOUT, timeout,  vscode.ConfigurationTarget.Global);
 
             mockConnection = sinon.createStubInstance(FabricClientConnection);
             mockConnection.connect.resolves();
@@ -104,14 +103,14 @@ describe('GatewayConnectCommand', () => {
                 name: 'myGatewayA',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
                 managedRuntime: false,
-                associatedWallet: ''
+                associatedWallet: undefined
             });
 
             connectionMultiple = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
                 connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
                 managedRuntime: false,
-                associatedWallet: ''
+                associatedWallet: undefined
             });
 
             connectionAssociated = new FabricGatewayRegistryEntry({
@@ -141,13 +140,16 @@ describe('GatewayConnectCommand', () => {
                 walletPath: path.join(rootPath, '../../test/data/walletDir/wallet')
             });
 
-            getAllWalletsStub = mySandBox.stub(FabricWalletRegistry.instance(), 'getAll');
-            getAllWalletsStub.returns([connectionMultipleWallet, connectionSingleWallet, connectionAssociatedWallet]);
+            emptyWallet = new FabricWalletRegistryEntry({
+                name: 'emptyWallet',
+                walletPath: path.join(rootPath, '../../test/data/walletDir/emptyWallet')
+            });
 
-            getWalletStub = mySandBox.stub(FabricWalletRegistry.instance(), 'get');
-            getWalletStub.withArgs('myGatewayAWallet').returns(connectionSingleWallet);
-            getWalletStub.withArgs('myGatewayBWallet').returns(connectionMultipleWallet);
-            getWalletStub.withArgs('myGatewayCWallet').returns(connectionAssociatedWallet);
+            await FabricWalletRegistry.instance().clear();
+            await FabricWalletRegistry.instance().add(connectionSingleWallet);
+            await FabricWalletRegistry.instance().add(connectionMultipleWallet);
+            await FabricWalletRegistry.instance().add(connectionAssociatedWallet);
+            await FabricWalletRegistry.instance().add(emptyWallet);
 
             mockRuntime = sinon.createStubInstance(FabricRuntime);
             mockRuntime.getName.returns(FabricRuntimeUtil.LOCAL_FABRIC);
@@ -182,17 +184,6 @@ describe('GatewayConnectCommand', () => {
                 data: FabricWalletRegistry.instance().get('myGatewayAWallet')
             });
             sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
-
-            getSettingsStub = mySandBox.stub();
-            getSettingsStub.withArgs(SettingConfigurations.FABRIC_GATEWAYS).returns([connectionSingle, connectionMultiple, connectionAssociated]);
-            getSettingsStub.withArgs(SettingConfigurations.FABRIC_CLIENT_TIMEOUT).returns(timeout);
-
-            getConfigurationStub = mySandBox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: getSettingsStub,
-                update: mySandBox.stub().callThrough()
-            });
-
         });
 
         afterEach(async () => {
@@ -249,7 +240,7 @@ describe('GatewayConnectCommand', () => {
             it('should display an error if there are no wallets to connect with', async () => {
                 const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
 
-                getAllWalletsStub.returns([]);
+                await FabricWalletRegistry.instance().clear();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
@@ -320,19 +311,17 @@ describe('GatewayConnectCommand', () => {
             });
 
             it('should handle no identities found in wallet', async () => {
-                connectionSingleWallet.walletPath = path.join(rootPath, '../../test/data/walletDir/emptyWallet');
-                getAllWalletsStub.returns([connectionSingleWallet]);
 
                 // Populate the quick pick box with the updated wallet registry entry
                 choseWalletQuickPick.resolves({
-                    label: 'myGatewayAWallet',
-                    data: FabricWalletRegistry.instance().get('myGatewayAWallet')
+                    label: emptyWallet.name,
+                    data: FabricWalletRegistry.instance().get(emptyWallet.name)
                 });
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_GATEWAY);
 
                 mockConnection.connect.should.not.have.been.called;
-                logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + connectionSingleWallet.name);
+                logSpy.should.have.been.calledWith(LogType.ERROR, 'No identities found in wallet: ' + emptyWallet.name);
             });
 
             it('should handle error from connecting', async () => {
@@ -363,7 +352,7 @@ describe('GatewayConnectCommand', () => {
                 connection.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
                 connection.connectionProfilePath = path.join(rootPath, '../../basic-network/connection.json');
                 testFabricWallet = new FabricWallet('some/new/wallet/path');
-                mySandBox.stub(walletGenerator, 'createLocalWallet').returns(testFabricWallet);
+                mySandBox.stub(walletGenerator, 'getWallet').returns(testFabricWallet);
 
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
 
@@ -456,7 +445,7 @@ describe('GatewayConnectCommand', () => {
                 });
 
                 testFabricWallet = new FabricWallet('some/new/wallet/path');
-                mySandBox.stub(walletGenerator, 'getNewWallet').returns(testFabricWallet);
+                mySandBox.stub(walletGenerator, 'getWallet').returns(testFabricWallet);
 
                 getIdentitiesStub = mySandBox.stub(testFabricWallet, 'getIdentityNames').resolves([identity.label]);
 

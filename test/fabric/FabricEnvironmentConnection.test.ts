@@ -36,6 +36,8 @@ import { ConsoleOutputAdapter } from '../../src/logging/ConsoleOutputAdapter';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { FabricConnectionFactory } from '../../src/fabric/FabricConnectionFactory';
 import { IFabricEnvironmentConnection } from '../../src/fabric/IFabricEnvironmentConnection';
+import { FabricWalletRegistryEntry } from '../../src/fabric/FabricWalletRegistryEntry';
+import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -49,7 +51,6 @@ describe('FabricEnvironmentConnection', () => {
     let mySandBox: sinon.SinonSandbox;
     let mockRuntime: sinon.SinonStubbedInstance<FabricRuntime>;
     let mockLocalWallet: sinon.SinonStubbedInstance<IFabricWallet>;
-    let mockLocalWalletOps: sinon.SinonStubbedInstance<IFabricWallet>;
     let connection: IFabricEnvironmentConnection;
 
     beforeEach(async () => {
@@ -60,7 +61,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer0.org1.example.com',
                 'peer0.org1.example.com',
                 `grpc://localhost:7051`,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
@@ -68,7 +69,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer1.org1.example.com',
                 'peer1.org1.example.com',
                 `grpc://localhost:7051`,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
@@ -76,7 +77,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer2.org1.example.com',
                 'peer2.org1.example.com',
                 `grpc://localhost:7051`,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org1MSP'
             ),
@@ -85,7 +86,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer0.org2.example.com',
                 `grpcs://localhost:8051`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP'
             ),
@@ -127,7 +128,7 @@ describe('FabricEnvironmentConnection', () => {
                 'orderer.example.com',
                 'orderer.example.com',
                 `grpc://localhost:7050`,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP',
                 'myCluster'
@@ -137,7 +138,7 @@ describe('FabricEnvironmentConnection', () => {
                 'orderer2.example.com',
                 `grpcs://localhost:8050`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP',
                 'myCluster'
@@ -158,11 +159,8 @@ describe('FabricEnvironmentConnection', () => {
         mySandBox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
         mockLocalWallet = sinon.createStubInstance(FabricWallet);
         mockLocalWallet['setUserContext'] = sinon.stub();
-        mockLocalWalletOps = sinon.createStubInstance(FabricWallet);
-        mockLocalWalletOps['setUserContext'] = sinon.stub();
-        mockFabricWalletGenerator.createLocalWallet.rejects(new Error('no such wallet'));
-        mockFabricWalletGenerator.createLocalWallet.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(mockLocalWallet);
-        mockFabricWalletGenerator.createLocalWallet.withArgs(`${FabricWalletUtil.LOCAL_WALLET}-ops`).resolves(mockLocalWalletOps);
+        mockFabricWalletGenerator.getWallet.rejects(new Error('no such wallet'));
+        mockFabricWalletGenerator.getWallet.withArgs(FabricWalletUtil.LOCAL_WALLET).resolves(mockLocalWallet);
 
         connection = FabricConnectionFactory.createFabricEnvironmentConnection((mockRuntime as any) as FabricRuntime);
         await connection.connect();
@@ -215,7 +213,7 @@ describe('FabricEnvironmentConnection', () => {
                 'peer0.org2.example.com',
                 `grpcs://localhost:8051`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'Org2MSP'
             );
@@ -262,7 +260,7 @@ describe('FabricEnvironmentConnection', () => {
                 'orderer2.example.com',
                 `grpcs://localhost:8050`,
                 TLS_CA_CERTIFICATE,
-                `${FabricWalletUtil.LOCAL_WALLET}-ops`,
+                `${FabricWalletUtil.LOCAL_WALLET}`,
                 FabricRuntimeUtil.ADMIN_USER,
                 'OrdererMSP',
                 'myCluster'
@@ -346,14 +344,22 @@ describe('FabricEnvironmentConnection', () => {
         let mockPeer2: sinon.SinonStubbedInstance<Client.Peer>;
         let queryChannelsStub: sinon.SinonStub;
 
-        beforeEach(() => {
+        beforeEach(async () => {
+            await FabricWalletRegistry.instance().clear();
+            const walletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
+            walletRegistryEntry.name = FabricWalletUtil.LOCAL_WALLET;
+            walletRegistryEntry.managedWallet = true;
+            walletRegistryEntry.walletPath = path.join('myPath');
+
+            await FabricWalletRegistry.instance().add(walletRegistryEntry);
+
             mockPeer1 = mySandBox.createStubInstance(Client.Peer);
             mockPeer2 = mySandBox.createStubInstance(Client.Peer);
             connection['peers'].has('peer0.org1.example.com').should.be.true;
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['peers'].has('peer0.org2.example.com').should.be.true;
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
-            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels').resolves({channels: []});
+            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels').resolves({ channels: [] });
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
                 channels: [
                     { channel_id: 'channel1' },
@@ -449,7 +455,7 @@ describe('FabricEnvironmentConnection', () => {
             connection['peers'].set('peer0.org1.example.com', mockPeer1);
             connection['peers'].has('peer0.org2.example.com').should.be.true;
             connection['peers'].set('peer0.org2.example.com', mockPeer2);
-            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels').resolves({channels: []});
+            queryChannelsStub = mySandBox.stub(connection['client'], 'queryChannels').resolves({ channels: [] });
             queryChannelsStub.withArgs(sinon.match.same(mockPeer1)).resolves({
                 channels: [
                     { channel_id: 'channel1' },
@@ -1300,7 +1306,7 @@ describe('FabricEnvironmentConnection', () => {
                 role: 'client',
                 attrs: []
             },
-            sinon.match.any);
+                sinon.match.any);
         });
 
         it('should throw trying to register a new user using a certificate authority that does not exist ', async () => {
@@ -1309,16 +1315,16 @@ describe('FabricEnvironmentConnection', () => {
         });
 
         it('should be able to register a new user with attribtues', async () => {
-            const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE', [{name: 'hello', value: 'world', ecert: true}]);
+            const secret: string = await connection.register('ca.example.com', 'enrollThis', 'departmentE', [{ name: 'hello', value: 'world', ecert: true }]);
             secret.should.deep.equal('its a secret');
             mockLocalWallet['setUserContext'].should.have.been.calledOnceWithExactly(sinon.match.any, FabricRuntimeUtil.ADMIN_USER);
             mockFabricCA.register.should.have.been.calledOnceWith({
                 enrollmentID: 'enrollThis',
                 affiliation: 'departmentE',
                 role: 'client',
-                attrs: [{name: 'hello', value: 'world', ecert: true}]
+                attrs: [{ name: 'hello', value: 'world', ecert: true }]
             },
-            sinon.match.any);
+                sinon.match.any);
         });
 
     });
