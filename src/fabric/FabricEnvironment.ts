@@ -93,6 +93,14 @@ export class FabricEnvironment extends EventEmitter {
         }
     }
 
+    public async deleteNode(node: FabricNode): Promise<void> {
+        const nodesPath: string = path.resolve(this.path, 'nodes');
+
+        const nodePath: string = path.join(nodesPath, `${node.name}.json`);
+
+        await fs.remove(nodePath);
+    }
+
     public async requireSetup(): Promise<boolean> {
         const filteredNodes: FabricNode[] = await this.getNodes(true);
 

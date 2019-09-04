@@ -2082,7 +2082,7 @@ describe('UserInputUtil', () => {
 
         it('should allow the user to select a node', async () => {
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2097,7 +2097,7 @@ describe('UserInputUtil', () => {
 
         it('should allow the user to select a node with associated identity', async () => {
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
@@ -2113,14 +2113,23 @@ describe('UserInputUtil', () => {
         it('should not show quick pick if only one node', async () => {
             nodes = [peerNode];
             getNodesStub.resolves(nodes);
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER]);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER]) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(peerNode);
+            quickPickStub.should.not.have.been.called;
+        });
+
+        it('should not show quick pick if only one node can pick many', async () => {
+            nodes = [peerNode];
+            getNodesStub.resolves(nodes);
+            const chosenNodes: IBlockchainQuickPickItem<FabricNode>[] = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER], false, true) as IBlockchainQuickPickItem<FabricNode>[];
+            chosenNodes.length.should.equal(1);
+            chosenNodes[0].data.should.deep.equal(peerNode);
             quickPickStub.should.not.have.been.called;
         });
 
         it('should return undefined if the user cancels selecting a node', async () => {
             quickPickStub.resolves(undefined);
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
             should.equal(node, undefined);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2137,7 +2146,7 @@ describe('UserInputUtil', () => {
             ordererNode.cluster_name = 'myCluster';
             ordererNode1.cluster_name = 'myCluster';
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER]) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
@@ -2153,7 +2162,7 @@ describe('UserInputUtil', () => {
             ordererNode.cluster_name = 'myCluster';
             ordererNode1.cluster_name = 'myCluster';
             quickPickStub.resolves({ data: nodes[0] });
-            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true);
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true) as IBlockchainQuickPickItem<FabricNode>;
             node.data.should.equal(nodes[0]);
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },

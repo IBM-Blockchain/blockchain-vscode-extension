@@ -206,6 +206,20 @@ describe('FabricEnvironment', () => {
         });
     });
 
+    describe('#deleteNode', () => {
+        it('should delete the node', async () => {
+            const node: FabricNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', 'myWallet', 'myIdentity', 'osmsp', 'myCluster');
+
+            const deleteStub: sinon.SinonStub = sandbox.stub(fs, 'remove');
+
+            await environment.deleteNode(node);
+
+            const nodePath: string = path.join(environmentPath, 'nodes', `${node.name}.json`);
+
+            deleteStub.should.have.been.calledWith(nodePath);
+        });
+    });
+
     describe('#requireSetup', () => {
         it('should return true if set up required', async () => {
             const node: FabricNode = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', FabricWalletUtil.LOCAL_WALLET, 'admin', 'Org1MSP', 'yofn_ca.org1.example.com', 'admin', 'adminpw');

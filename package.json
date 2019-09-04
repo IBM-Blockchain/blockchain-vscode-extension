@@ -70,6 +70,7 @@
             "environmentExplorer.deleteEnvironmentEntry",
             "environmentExplorer.associateIdentityNodeEntry",
             "environmentExplorer.replaceAssociatedIdentityEntry",
+            "environmentExplorer.deleteNodeEntry",
             "environmentExplorer.connectEntry",
             "environmentExplorer.disconnectEntry",
             "environmentExplorer.installSmartContractEntry",
@@ -295,6 +296,11 @@
             {
                 "command": "environmentExplorer.replaceAssociatedIdentityEntry",
                 "title": "Replace Identity Associated with a node",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.deleteNodeEntry",
+                "title": "Delete Node",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -656,6 +662,18 @@
                 {
                     "command": "environmentExplorer.teardownFabricRuntime",
                     "when": "view == environmentExplorer && viewItem == blockchain-runtime-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item"
+                },
+                {
+                    "command": "environmentExplorer.deleteNodeEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
