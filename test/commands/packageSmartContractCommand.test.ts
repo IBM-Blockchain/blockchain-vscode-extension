@@ -1116,7 +1116,7 @@ describe('packageSmartContract', () => {
             folders.splice(1, folders.length - 1);
 
             workspaceFoldersStub.returns([]);
-            const error: Error = new Error('Issue determining available smart contracts. Please open the smart contract you want to be packaged.');
+            const error: Error = new Error('Issue determining available smart contracts. Please open the smart contract you want to package.');
 
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT);
 

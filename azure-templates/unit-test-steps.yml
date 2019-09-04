@@ -26,6 +26,7 @@ steps:
       testResultsFiles: '$(System.DefaultWorkingDirectory)/unit-tests.xml'
 
   - task: PublishCodeCoverageResults@1
+    condition: succeededOrFailed()
     inputs:
       codeCoverageTool: Cobertura
       summaryFileLocation: '$(System.DefaultWorkingDirectory)/coverage/*coverage.xml'

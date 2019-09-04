@@ -125,8 +125,6 @@ export class SmartContractHelper {
                 throw new Error(`I do not know how to handle language ${language}`);
             }
 
-            this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
-
             await vscode.commands.executeCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, workspaceFolder, undefined, version);
         }
     }

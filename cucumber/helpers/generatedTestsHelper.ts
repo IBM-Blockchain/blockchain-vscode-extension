@@ -63,6 +63,7 @@ export class GeneratedTestsHelper {
         const contractDirectory: string = this.smartContractHelper.getContractDirectory(name, language);
         const workspaceFolder: vscode.WorkspaceFolder = this.getWorkspaceFolder(name, contractDirectory);
         this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
+        this.userInputUtilHelper.showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({label: `${name}@${version}`, data: workspaceFolder});
 
         const packageJSONPath: string = path.join(contractDirectory, 'package.json');
         this.userInputUtilHelper.findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);

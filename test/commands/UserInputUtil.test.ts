@@ -2189,4 +2189,111 @@ describe('UserInputUtil', () => {
         });
     });
 
+    describe('getWorkspaceFolders', () => {
+
+        it(' getWorkspaceFolders should not show package chooser when only one folder to package', async () => {
+
+            const pathOne: string = path.join('some', 'path');
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const folders: Array<any> = [ { name: 'project_1', uri: uriOne } ];
+            const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to package').resolves( {data: folders[0]} );
+
+            const result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( true );
+            result.should.equal( folders[0] );
+            showWorkspaceQuickPickBoxStub.should.not.have.been.called;
+        });
+
+        it('getWorkspaceFolders should show package chooser when only one folder to create automated tests for', async () => {
+
+            const pathOne: string = path.join('some', 'path');
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const folders: Array<any> = [ { name: 'project_1', uri: uriOne } ];
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to create functional tests for').resolves( {data: folders[0]} );
+
+            const result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( false );
+            result.should.equal( folders[0] );
+            showWorkspaceQuickPickBoxStub.should.have.been.calledOnce;
+        });
+
+        it('getWorkspaceFolders should always show package chooser when two or more folders open', async () => {
+
+            const pathOne: string = path.join('some', 'path');
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const pathTwo: string = path.join('another', 'one');
+            const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
+            const folders: Array<any> = [
+                { name: 'project_1', uri: uriOne },
+                { name: 'biscuit-network', uri: uriTwo }
+            ];
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to package').resolves( {data: folders[0]} );
+            showWorkspaceQuickPickBoxStub.withArgs( 'Choose a workspace folder to create functional tests for').resolves( {data: folders[1]} );
+
+            let result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( true );
+            result.should.equal( folders[0] );
+            showWorkspaceQuickPickBoxStub.should.have.been.calledOnce;
+
+            result = await UserInputUtil.chooseWorkspace( false );
+            result.should.equal( folders[1] );
+            showWorkspaceQuickPickBoxStub.should.have.been.calledTwice;
+        });
+
+        it('getWorkspaceFolders should handle not choosing folder', async () => {
+
+            const pathOne: string = path.join('some', 'path');
+            const uriOne: vscode.Uri = vscode.Uri.file(pathOne);
+            const pathTwo: string = path.join('another', 'one');
+            const uriTwo: vscode.Uri = vscode.Uri.file(pathTwo);
+            const folders: Array<any> = [
+                { name: 'project_1', uri: uriOne },
+                { name: 'biscuit-network', uri: uriTwo }
+            ];
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( folders );
+            const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+            showWorkspaceQuickPickBoxStub.resolves();
+
+            let result: vscode.WorkspaceFolder = await UserInputUtil.chooseWorkspace( true );
+            showWorkspaceQuickPickBoxStub.should.have.been.calledOnce;
+            should.equal(result, undefined);
+
+            result = await UserInputUtil.chooseWorkspace( false );
+            showWorkspaceQuickPickBoxStub.should.have.been.calledTwice;
+            should.equal(result, undefined);
+        });
+
+        it('should handle error from get workspace folders', async () => {
+
+            mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns( [] );
+            const showWorkspaceQuickPickBoxStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'showWorkspaceQuickPickBox');
+            showWorkspaceQuickPickBoxStub.resolves();
+
+            const errorPackage: Error = new Error('Issue determining available smart contracts. Please open the smart contract you want to package.');
+            const errorTests: Error = new Error('Issue determining available smart contracts. Please open the smart contract you want to create functional tests for.');
+
+            let result: vscode.WorkspaceFolder;
+            let errorCount: number = 0;
+            try {
+                result = await UserInputUtil.chooseWorkspace( true );
+            } catch (err) {
+                should.equal(result, undefined);
+                should.equal(err.message, errorPackage.message);
+                errorCount++;
+            }
+
+            try {
+                result = await UserInputUtil.chooseWorkspace( false );
+            } catch (err) {
+                should.equal(result, undefined);
+                should.equal(err.message, errorTests.message);
+                errorCount++;
+            }
+            showWorkspaceQuickPickBoxStub.should.not.have.been;
+            should.equal(errorCount, 2);
+        });
+    });
 });
