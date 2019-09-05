@@ -100,7 +100,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
             }
         }
 
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox(walletMessage, false, true);
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox(walletMessage, false, false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
         if (!chosenWallet) {
             return;
         }

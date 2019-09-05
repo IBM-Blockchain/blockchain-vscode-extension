@@ -72,7 +72,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
         }
 
         // Choose a wallet to connect with
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', false);
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to connect with', false, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
         if (!chosenWallet) {
             return;
         }

@@ -868,7 +868,7 @@ export class UserInputUtil {
         }
     }
 
-    public static async showWalletsQuickPickBox(prompt: string, showLocalWallet?: boolean, showCreateWallet?: boolean): Promise<IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
+    public static async showWalletsQuickPickBox(prompt: string, canPickMany: boolean, showLocalWallet?: boolean, showCreateWallet?: boolean): Promise<Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> | IBlockchainQuickPickItem<FabricWalletRegistryEntry> | undefined> {
         const walletQuickPickItems: Array<IBlockchainQuickPickItem<FabricWalletRegistryEntry>> = [];
 
         if (showLocalWallet) {
@@ -903,7 +903,7 @@ export class UserInputUtil {
 
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
-            canPickMany: false,
+            canPickMany: canPickMany,
             placeHolder: prompt
         };
 

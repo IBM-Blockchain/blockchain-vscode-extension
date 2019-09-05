@@ -58,7 +58,7 @@ export async function associateWallet(gatewayTreeItem: GatewayDissociatedTreeIte
         outputAdapter.log(LogType.ERROR, `You must first add a wallet, to then associate with this gateway`);
         return;
     }
-    const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to associate with this gateway', false);
+    const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to associate with this gateway', false, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
     if (!chosenWallet) {
         return;
     }
