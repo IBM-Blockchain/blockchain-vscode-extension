@@ -31,6 +31,7 @@ import * as ejs from 'ejs';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { View } from '../../src/webview/View';
 import { Reporter } from '../../src/util/Reporter';
+import { RepositoryRegistryEntry } from '../../src/repositories/RepositoryRegistryEntry';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -48,6 +49,12 @@ describe('SampleView', () => {
     beforeEach(async () => {
         mySandBox = sinon.createSandbox();
         repositoryName = 'hyperledger/fabric-samples';
+
+        await RepositoryRegistry.instance().clear();
+        const repoEntry: RepositoryRegistryEntry = new RepositoryRegistryEntry();
+        repoEntry.path = '/some/path';
+        repoEntry.name = repositoryName;
+        await RepositoryRegistry.instance().add(repoEntry);
 
         context = {
             extensionPath: 'path'
@@ -216,6 +223,8 @@ describe('SampleView', () => {
 
             This is the readme`;
 
+            await RepositoryRegistry.instance().clear();
+
             const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({data: readme});
 
             mySandBox.stub(ejs, 'renderFile').callThrough();
@@ -231,6 +240,22 @@ describe('SampleView', () => {
             samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('contracts','FabCar Contract','Go')">Open Locally</button>`); // Disabled open button
             samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('applications','JavaScript Application')">Open Locally</button>`); // Disabled open button
             samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('applications','TypeScript Application')">Open Locally</button>`); // Disabled open button
+        });
+
+        it('should display everything excluding the readme when there is no internet connection and the repository has not been cloned', async () => {
+            const outputAdapterSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
+
+            await RepositoryRegistry.instance().clear();
+
+            const error: Error = new Error('error happened');
+            mySandBox.stub(Axios, 'get').rejects(error);
+            mySandBox.stub(ejs, 'renderFile').callThrough();
+
+            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+
+            const samplePageHtml: string = await sampleView.getHTMLString();
+            samplePageHtml.should.contain(`<div id='readme' class="showMore showMore-theme">No internet connection - unable to retrieve the README.</div>`);
+            outputAdapterSpy.should.have.been.calledWith(LogType.WARNING, 'Unable to retrieve README');
         });
 
         it('should throw error if not able to render file', async () => {
@@ -254,11 +279,6 @@ describe('SampleView', () => {
 
             const AxiosStub: sinon.SinonStub = mySandBox.stub(Axios, 'get').resolves({data: readme});
 
-            mySandBox.stub(RepositoryRegistry.instance(), 'get').returns({
-                name: 'hyperledger/fabric-samples',
-                path: '/some/path'
-            });
-
             const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
             const samplePageHtml: string = await sampleView.getHTMLString();
 
@@ -268,6 +288,28 @@ describe('SampleView', () => {
             samplePageHtml.should.contain(`<div class="repository-config-item">Cloned to: /some/path</div>`); // Cloned, so shows the location
             samplePageHtml.should.contain(`<div class="repository-config-item"><a href="#" onclick="cloneRepository(true)">Clone again</a></div>`); // Can clone again
             samplePageHtml.should.contain(`<h1 id="fabcarreadme">FabCar README</h1>`); // Comes from MD to HTML generation
+            samplePageHtml.should.contain(`<div class="cell">FabCar Contract</div>`); // Row in Contracts table
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('contracts','FabCar Contract','Go')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','JavaScript Application')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','TypeScript Application')">Open Locally</button>`); // Disabled open button
+        });
+
+        it('should get correct html when cloned and there is no internet connection', async () => {
+
+            const error: Error = new Error('error happened');
+            mySandBox.stub(Axios, 'get').rejects(error);
+            mySandBox.stub(ejs, 'renderFile').callThrough();
+
+            const readFileStub: sinon.SinonStub = mySandBox.stub(fs, 'readFile').resolves('README read here');
+
+            const sampleView: SampleView = new SampleView(context, 'hyperledger/fabric-samples', 'FabCar');
+            const samplePageHtml: string = await sampleView.getHTMLString();
+            readFileStub.should.have.been.calledOnce;
+
+            samplePageHtml.should.contain(`<h1 id="sample-title">FabCar Sample</h1>`);
+            samplePageHtml.should.contain(`<div class="repository-config-item">Cloned to: /some/path</div>`); // Cloned, so shows the location
+            samplePageHtml.should.contain(`<div class="repository-config-item"><a href="#" onclick="cloneRepository(true)">Clone again</a></div>`); // Can clone again
+            samplePageHtml.should.contain(`<p>README read here</p>`); // Comes from MD to HTML generation
             samplePageHtml.should.contain(`<div class="cell">FabCar Contract</div>`); // Row in Contracts table
             samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('contracts','FabCar Contract','Go')">Open Locally</button>`); // Disabled open button
             samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','JavaScript Application')">Open Locally</button>`); // Disabled open button
@@ -433,7 +475,6 @@ describe('SampleView', () => {
 
     describe('openFile', () => {
 
-        let repositoryRegistryGetStub: sinon.SinonStub;
         let onDidReceiveMessagePromises: any[] = [];
 
         before(async () => {
@@ -449,11 +490,6 @@ describe('SampleView', () => {
         });
 
         async function setupTest(fileType: string, fileName: string, language: string): Promise<void> {
-            repositoryRegistryGetStub = mySandBox.stub(RepositoryRegistry.instance(), 'get').returns({
-                name: repositoryName,
-                path: '/some/path'
-            });
-
             onDidReceiveMessagePromises.push(new Promise((resolve: any, reject: any): void => {
                 createWebviewPanelStub.onCall(0).returns({
                     webview: {
@@ -496,7 +532,6 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises);
 
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
@@ -508,7 +543,7 @@ describe('SampleView', () => {
 
         it(`should show error if the repository isn't in the user settings`, async () => {
             await setupTest('contracts', 'FabCar Contract', 'Go');
-            repositoryRegistryGetStub.returns(undefined);
+            await RepositoryRegistry.instance().clear();
             const logSpy: sinon.SinonSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             mySandBox.stub(UserInputUtil, 'delayWorkaround').resolves();
@@ -520,7 +555,6 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises);
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, 'The location of the cloned repository on the disk is unknown. Try re-cloning the sample repository.');
         });
 
@@ -535,7 +569,6 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises);
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             repositoryRegistryDeleteStub.should.have.been.calledOnceWithExactly(repositoryName);
             logSpy.should.have.been.calledOnceWithExactly(LogType.ERROR, `The location of the file(s) you're trying to open is unknown. The sample repository has either been deleted or moved. Try re-cloning the sample repository.`);
         });
@@ -556,7 +589,6 @@ describe('SampleView', () => {
             await Promise.all(onDidReceiveMessagePromises);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
@@ -584,7 +616,6 @@ describe('SampleView', () => {
             await Promise.all(onDidReceiveMessagePromises);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout release-1.4');
@@ -611,7 +642,6 @@ describe('SampleView', () => {
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith('Could not retrieve file(s) from repository: some other error');
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             openNewProjectStub.should.have.not.have.been.called;
@@ -639,7 +669,6 @@ describe('SampleView', () => {
             await Promise.all(onDidReceiveMessagePromises).should.be.rejectedWith(/Couldn't automatically checkout 'release-1.4' branch. Please checkout branch manually. Error: couldnt checkout for some reason/);
 
             sendCommandWithOutputAndProgress.should.not.have.been.called;
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.getCall(1).should.have.been.calledWithExactly('git checkout release-1.4');
@@ -663,7 +692,6 @@ describe('SampleView', () => {
 
             await Promise.all(onDidReceiveMessagePromises);
 
-            repositoryRegistryGetStub.should.have.been.calledWithExactly(repositoryName);
             pathExistsStub.should.have.been.calledOnceWithExactly('/some/path');
             shellCdStub.should.have.been.calledOnceWithExactly('/some/path');
             sendCommandStub.should.have.been.calledOnceWithExactly('git checkout -b release-1.4 origin/release-1.4');
