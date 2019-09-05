@@ -292,8 +292,9 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
     public async getWallet(nodeName: string): Promise<IFabricWallet> {
         const node: FabricNode = this.getNode(nodeName);
         const walletName: string = node.wallet;
+
         const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        return fabricWalletGenerator.createLocalWallet(walletName);
+        return fabricWalletGenerator.getWallet(walletName);
     }
 
     private async instantiateOrUpgradeChaincode(name: string, version: string, peerNames: Array<string>, channelName: string, fcn: string, args: Array<string>, collectionsConfig: string, upgrade: boolean): Promise<Buffer> {
@@ -439,11 +440,8 @@ export class FabricEnvironmentConnection implements IFabricEnvironmentConnection
 
     private async setNodeContext(nodeName: string): Promise<void> {
         const node: FabricNode = this.getNode(nodeName);
-        const walletName: string = node.wallet;
-        const identityName: string = node.identity;
-        const fabricWalletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const fabricWallet: IFabricWallet = await fabricWalletGenerator.createLocalWallet(walletName);
-        await fabricWallet['setUserContext'](this.client, identityName);
+        const fabricWallet: IFabricWallet = await this.getWallet(nodeName);
+        await fabricWallet['setUserContext'](this.client, node.identity);
     }
 
     private getPeer(peerName: string): Client.Peer {

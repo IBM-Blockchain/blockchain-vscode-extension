@@ -52,7 +52,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a node to associate an identity with', environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], []);
+            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a node to associate an identity with', environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER]);
             if (!chosenNode) {
                 return;
             }
@@ -105,7 +105,7 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
         walletName = walletRegistryEntry.name;
 
         const walletGenerator: IFabricWalletGenerator = FabricWalletGeneratorFactory.createFabricWalletGenerator();
-        const wallet: IFabricWallet = walletGenerator.getNewWallet(walletRegistryEntry.walletPath);
+        const wallet: IFabricWallet = await walletGenerator.getWallet(walletRegistryEntry.name);
 
         if (enroll) {
             node = await enrollIdAndSecret(node, wallet);

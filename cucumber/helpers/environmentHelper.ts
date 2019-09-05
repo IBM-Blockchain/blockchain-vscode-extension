@@ -64,7 +64,7 @@ export class EnvironmentHelper {
             const ordererUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/orderer.example.com.json'));
             const peerUri: vscode.Uri = vscode.Uri.file(path.join(__dirname, '../../../cucumber/hlfv1/nodes/peer0.org1.example.com.json'));
             const nodes: vscode.Uri[] = [caUri, ordererUri, peerUri];
-            this.userInputUtilHelper.browseStub.withArgs('Select all the Fabric node files you want to import').resolves(nodes);
+            this.userInputUtilHelper.browseStub.withArgs('Select all the Fabric node (JSON) files you want to import').resolves(nodes);
 
             this.userInputUtilHelper.addMoreNodesStub.resolves(UserInputUtil.DONE_ADDING_NODES);
 

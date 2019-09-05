@@ -183,9 +183,9 @@ describe('FabricRuntime', () => {
             const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
             const mockFabricWallet: sinon.SinonStubbedInstance<IFabricWallet> = sinon.createStubInstance(FabricWallet);
-            mockFabricWalletGenerator.createLocalWallet.returns(mockFabricWallet);
+            mockFabricWalletGenerator.getWallet.returns(mockFabricWallet);
             await runtime.importWalletsAndIdentities();
-            mockFabricWalletGenerator.createLocalWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
+            mockFabricWalletGenerator.getWallet.should.have.been.calledOnceWithExactly(FabricWalletUtil.LOCAL_WALLET);
             mockFabricWallet.importIdentity.should.have.been.calledOnceWithExactly(sinon.match.string, sinon.match.string, 'admin', 'Org1MSP');
         });
 

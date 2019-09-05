@@ -873,7 +873,7 @@ export class UserInputUtil {
 
         if (showLocalWallet) {
             // Push local_fabric wallet
-            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().createLocalWallet(FabricWalletUtil.LOCAL_WALLET);
+            const runtimeWallet: IFabricWallet = await FabricWalletGeneratorFactory.createFabricWalletGenerator().getWallet(FabricWalletUtil.LOCAL_WALLET);
 
             const runtimeWalletRegistryEntry: FabricWalletRegistryEntry = new FabricWalletRegistryEntry();
 
@@ -991,14 +991,10 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], orgFilter: string[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
+    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes();
         nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
-
-        if (orgFilter && orgFilter.length > 0) {
-            nodes = nodes.filter((node: FabricNode) => orgFilter.indexOf(node.msp_id) !== -1);
-        }
 
         const quickPickItems: IBlockchainQuickPickItem<FabricNode>[] = [];
         for (const _node of nodes) {
