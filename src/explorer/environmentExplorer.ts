@@ -131,14 +131,17 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
+                await vscode.commands.executeCommand('setContext', 'blockchain-local-runtime-connected', true);
             } else {
-                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
+                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
+                await vscode.commands.executeCommand('setContext', 'blockchain-local-runtime-connected', false);
             }
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             this.tree = await this.createConnectedTree(environmentRegistryEntry);
         } else {
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
+            await vscode.commands.executeCommand('setContext', 'blockchain-local-runtime-connected', false);
             this.tree = await this.createConnectionTree();
         }
 
