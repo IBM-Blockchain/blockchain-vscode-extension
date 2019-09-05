@@ -16,6 +16,7 @@ steps:
       npm test
     env:
       DISPLAY: ':99.0'
+      WITHOUTCOVERAGE: 'true'
     displayName: Run unit tests
     condition: succeeded()
 
