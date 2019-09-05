@@ -56,7 +56,7 @@ if [ "${TRAVIS_TAG}" != "" ]; then
   npm install semver
 
   # Bump the version number.
-  node ./azure/./pkgbump.js
+  node ./.azure/./pkgbump.js
 
   export NEW_VERSION=$(node -e "console.log(require('./package.json').version)")
 

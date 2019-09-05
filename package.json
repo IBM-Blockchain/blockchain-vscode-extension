@@ -12,7 +12,7 @@
     ],
     "homepage": "https://www.ibm.com/blockchain",
     "license": "Apache-2.0",
-    "version": "1.0.9",
+    "version": "1.0.10",
     "publisher": "IBMBlockchain",
     "icon": "resources/blockchain_marketplace.png",
     "galleryBanner": {
@@ -644,15 +644,15 @@
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
