@@ -109,6 +109,7 @@ describe('environmentExplorer', () => {
                 allChildren[2].tooltip.should.equal('myFabric2');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-local-runtime-connected', false);
             });
 
             it('should handle errors populating the tree with runtimeTreeItems', async () => {
@@ -453,9 +454,10 @@ describe('environmentExplorer', () => {
                 orgs.label.should.equal('Organizations');
 
                 executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-local-runtime-connected', true);
             });
 
-            it('should set context to false if not local runtime', async () => {
+            it('should set correct context if not local runtime', async () => {
                 const otherEnvironmentRegistry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
                 otherEnvironmentRegistry.name = 'myFabric';
                 otherEnvironmentRegistry.managedRuntime = false;
@@ -467,7 +469,8 @@ describe('environmentExplorer', () => {
                 const connectedTo: EnvironmentConnectedTreeItem = allChildren[0] as EnvironmentConnectedTreeItem;
                 connectedTo.label.should.equal(`Connected to environment: myFabric`);
 
-                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', false);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-runtime-connected', true);
+                executeCommandSpy.should.have.been.calledWith('setContext', 'blockchain-local-runtime-connected', false);
             });
 
             it('should create channels children correctly', async () => {

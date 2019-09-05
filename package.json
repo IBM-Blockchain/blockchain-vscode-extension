@@ -644,15 +644,15 @@
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
