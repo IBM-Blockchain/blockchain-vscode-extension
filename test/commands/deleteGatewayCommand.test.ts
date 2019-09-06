@@ -49,7 +49,7 @@ describe('DeleteGatewayCommand', () => {
 
     describe('deleteGateway', () => {
 
-        let quickPickStub: sinon.SinonStub;
+        let showGatewayQuickPickBoxStub: sinon.SinonStub;
         let gateways: Array<any>;
         let myGatewayA: any;
         let myGatewayB: any;
@@ -58,7 +58,7 @@ describe('DeleteGatewayCommand', () => {
 
         beforeEach(async () => {
             mySandBox.restore();
-            showConfirmationWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`This will remove the gateway. Do you want to continue?`).resolves(true);
+            showConfirmationWarningMessage = mySandBox.stub(UserInputUtil, 'showConfirmationWarningMessage').withArgs(`This will remove the gateway(s). Do you want to continue?`).resolves(true);
             logSpy = mySandBox.stub(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
             // reset the available gateways
@@ -80,10 +80,10 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
-            quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick').resolves({
+            showGatewayQuickPickBoxStub = mySandBox.stub(UserInputUtil, 'showGatewayQuickPickBox').resolves([{
                 label: 'myGatewayB',
                 data: FabricGatewayRegistry.instance().get('myGatewayB')
-            });
+            }]);
 
             mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([]);
         });
@@ -104,6 +104,25 @@ describe('DeleteGatewayCommand', () => {
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayB.name} gateway`);
         });
 
+        it('should test multiple gateways can be deleted from the command', async () => {
+
+            showGatewayQuickPickBoxStub.resolves([{
+                label: 'myGatewayA',
+                data: FabricGatewayRegistry.instance().get('myGatewayA')
+            }, {
+                label: 'myGatewayB',
+                data: FabricGatewayRegistry.instance().get('myGatewayB')
+            }]);
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
+
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways.length.should.equal(0);
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateway(s)`);
+        });
+
         it('should test a gateway can be deleted from tree', async () => {
             const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
@@ -121,7 +140,18 @@ describe('DeleteGatewayCommand', () => {
         });
 
         it('should test delete gateway can be cancelled', async () => {
-            quickPickStub.resolves();
+            showGatewayQuickPickBoxStub.resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
+
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways.length.should.equal(2);
+
+            logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, `deleteGateway`);
+        });
+
+        it('should handle the user not selecting a gateway to delete', async () => {
+            showGatewayQuickPickBoxStub.resolves([]);
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
@@ -136,7 +166,7 @@ describe('DeleteGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
 
-            quickPickStub.should.not.have.been.called;
+            showGatewayQuickPickBoxStub.should.not.have.been.called;
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`, `No gateways to delete. ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} cannot be deleted.`);
         });
@@ -162,10 +192,10 @@ describe('DeleteGatewayCommand', () => {
             gateways.push(myGatewayC);
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
-            quickPickStub.resolves({
+            showGatewayQuickPickBoxStub.resolves([{
                 label: 'myGatewayC',
                 data: FabricGatewayRegistry.instance().get('myGatewayC')
-            });
+            }]);
 
             const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').returns('fabric-vscode');
             const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
@@ -181,7 +211,44 @@ describe('DeleteGatewayCommand', () => {
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
             logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${myGatewayC.name} gateway`);
+        });
 
+        it('should delete multiple local gateway directories if the extension owns it', async () => {
+            const myGatewayC: any = {
+                name: 'myGatewayC',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json')
+            };
+
+            const myGatewayD: any = {
+                name: 'myGatewayD',
+                connectionProfilePath: path.join(rootPath, '../../test/data/connectionThree/connection.json')
+            };
+            gateways.push(myGatewayC);
+            gateways.push(myGatewayD);
+            await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
+
+            showGatewayQuickPickBoxStub.resolves([{
+                label: 'myGatewayC',
+                data: FabricGatewayRegistry.instance().get('myGatewayC')
+            }, {
+                label: 'myGatewayD',
+                data: FabricGatewayRegistry.instance().get('myGatewayD')
+            }]);
+
+            const getDirPathStub: sinon.SinonStub = mySandBox.stub(UserInputUtil, 'getDirPath').returns('fabric-vscode');
+            const fsRemoveStub: sinon.SinonStub = mySandBox.stub(fs, 'remove').resolves();
+
+            await vscode.commands.executeCommand(ExtensionCommands.DELETE_GATEWAY);
+            gateways = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            gateways.length.should.equal(2);
+            gateways[0].should.deep.equal(myGatewayA);
+            gateways[1].should.deep.equal(myGatewayB);
+
+            getDirPathStub.should.have.been.calledOnce;
+            fsRemoveStub.should.have.been.calledTwice;
+
+            logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateway(s)`);
         });
     });
 });

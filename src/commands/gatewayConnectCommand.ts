@@ -39,7 +39,7 @@ export async function gatewayConnect(gatewayRegistryEntry: FabricGatewayRegistry
     let runtimeData: string;
 
     if (!gatewayRegistryEntry) {
-        const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to connect with', true);
+        const chosenEntry: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway to connect with', false, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
         if (!chosenEntry) {
             return;
         }

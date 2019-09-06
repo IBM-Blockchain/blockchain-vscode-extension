@@ -27,7 +27,8 @@ import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `deleteGateway`);
-    let gatewayRegistryEntry: FabricGatewayRegistryEntry;
+    let gatewaysToDelete: FabricGatewayRegistryEntry[];
+
     if (!gatewayTreeItem) {
         // If called from command palette
         // Ask for gateway to delete
@@ -39,27 +40,38 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
             return;
         }
 
-        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to delete', false);
-        if (!chosenGateway) {
+        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry>[] = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway(s) that you want to delete', true, false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>[];
+        if (!chosenGateway || chosenGateway.length === 0) {
             return;
         }
+        gatewaysToDelete = chosenGateway.map((_gateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry>) => {
+            return _gateway.data;
+        });
 
-        gatewayRegistryEntry = chosenGateway.data;
     } else {
-        gatewayRegistryEntry = gatewayTreeItem.gateway;
+        gatewaysToDelete = [gatewayTreeItem.gateway];
     }
 
-    const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the gateway. Do you want to continue?`);
+    const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the gateway(s). Do you want to continue?`);
     if (!reallyDoIt) {
         return;
     }
 
     const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
     const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-    const gatewayPath: string = path.join(homeExtDir, 'gateways', gatewayRegistryEntry.name);
-    await fs.remove(gatewayPath);
 
-    await FabricGatewayRegistry.instance().delete(gatewayRegistryEntry.name);
-    outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${gatewayRegistryEntry.name} gateway`);
-    return;
+    for (const _gateway of gatewaysToDelete) {
+        const gatewayPath: string = path.join(homeExtDir, 'gateways', _gateway.name);
+        await fs.remove(gatewayPath);
+        await FabricGatewayRegistry.instance().delete(_gateway.name);
+    }
+
+    if (gatewaysToDelete.length > 1) {
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted gateway(s)`);
+        return;
+    } else {
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${gatewaysToDelete[0].name} gateway`);
+        return;
+    }
+
 }
