@@ -21,13 +21,14 @@ import * as vscode from 'vscode';
 import { FabricNode } from '../../../src/fabric/FabricNode';
 import { NodeTreeItem } from '../../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainExplorerProvider } from '../../../src/explorer/BlockchainExplorerProvider';
+import { FabricEnvironmentRegistryEntry } from '../../../src/fabric/FabricEnvironmentRegistryEntry';
 
 class TestTreeItem extends NodeTreeItem {
 
     contextValue: string = 'blockchain-peer-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly tooltip: string, node: FabricNode, public readonly command?: vscode.Command) {
-        super(provider, peerName, tooltip, node, command);
+    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly tooltip: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode, public readonly command?: vscode.Command) {
+        super(provider, peerName, tooltip, environmentRegistryEntry, node, command);
     }
 }
 
@@ -63,7 +64,7 @@ describe('NodeTreeItem', () => {
 
     describe('#constructor', () => {
         it('should have the right properties for a node without identity and wallet', async () => {
-            const treeItem: TestTreeItem = new TestTreeItem(provider, 'peer1.org1.example.com', 'peer1.org1.example.com', node);
+            const treeItem: TestTreeItem = new TestTreeItem(provider, 'peer1.org1.example.com', 'peer1.org1.example.com', new FabricEnvironmentRegistryEntry(), node);
 
             treeItem.label.should.equal('peer1.org1.example.com   ⚠');
             treeItem.tooltip.should.equal('peer1.org1.example.com');
@@ -73,7 +74,7 @@ describe('NodeTreeItem', () => {
             node.identity = 'admin';
             node.wallet = 'myWallet';
             const tooltip: string = `Name: ${node.name}\nMSPID: ${node.msp_id}\nAssociated Identity:\n${node.identity}`;
-            const treeItem: TestTreeItem = new TestTreeItem(provider, 'peer1.org1.example.com', tooltip, node);
+            const treeItem: TestTreeItem = new TestTreeItem(provider, 'peer1.org1.example.com', tooltip, new FabricEnvironmentRegistryEntry(), node);
 
             treeItem.label.should.equal('peer1.org1.example.com');
             treeItem.tooltip.should.equal(tooltip);

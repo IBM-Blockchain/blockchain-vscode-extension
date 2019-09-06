@@ -32,6 +32,10 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 import { FabricCertificateAuthority } from '../../src/fabric/FabricCertificateAuthority';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { NodeTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
+import { FabricEnvironmentTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -96,10 +100,10 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 walletPath: walletPath
             });
 
-            peerNode = FabricNode.newPeer('peer.org1.example.com', 'peer.org1.example.com', 'http://localhost:17051', undefined, undefined, 'Org1MSP');
-            caNodeWithoutCreds = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, undefined, undefined);
-            caNodeWithCreds = FabricNode.newCertificateAuthority('ca.org1.example.com', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, 'admin', 'adminpw');
-            ordererNode = FabricNode.newOrderer('order', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
+            peerNode = FabricNode.newPeer('peerNode', 'peer.org1.example.com', 'http://localhost:17051', undefined, undefined, 'Org1MSP');
+            caNodeWithoutCreds = FabricNode.newCertificateAuthority('caNodeWithoutCreds', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, undefined, undefined);
+            caNodeWithCreds = FabricNode.newCertificateAuthority('caNodeWithCreds', 'ca.org1.example.com', 'http://localhost:17054', 'ca.org1.example.com', undefined, undefined, undefined, 'admin', 'adminpw');
+            ordererNode = FabricNode.newOrderer('ordererNode', 'orderer.example.com', 'http://localhost:17056', undefined, undefined, 'osmsp', undefined);
 
             nodes.peerNode = peerNode;
             nodes.caNodeWithCreds = caNodeWithCreds;
@@ -147,7 +151,7 @@ describe('AssociateIdentityWithNodeCommand', () => {
 
             ['peerNode', 'ordererNode', 'caNodeWithCreds', 'caNodeWithoutCreds'].forEach((nodeString: string) => {
 
-                it(`should test a wallet can be associated with a node using the tree (${nodeString})`, async () => {
+                it(`should test a identity can be associated with a node using the tree (${nodeString})`, async () => {
                     const node: FabricNode = nodes[nodeString];
 
                     await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, ...[environmentRegistryEntry, node]);
@@ -320,6 +324,8 @@ describe('AssociateIdentityWithNodeCommand', () => {
             it('should test a wallet can be associated with a node using command', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
 
+                showFabricNodeQuickPickStub.should.have.been.calledWith('Choose a node to associate an identity with');
+
                 peerNode.identity = 'identityOne';
                 peerNode.wallet = 'blueWallet';
                 updateStub.should.have.been.calledOnceWith(peerNode);
@@ -478,6 +484,70 @@ describe('AssociateIdentityWithNodeCommand', () => {
                 logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
                 logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `An identity called identityOne already exists`);
                 logSpy.should.not.have.been.calledWith(LogType.SUCCESS);
+            });
+        });
+
+        describe('replace', () => {
+
+            let nodeTreeItems: NodeTreeItem[];
+
+            beforeEach(async () => {
+                const environmentExplorer: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
+                const treeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(environmentExplorer, 'myEnvironment', environmentRegistryEntry, undefined);
+                environmentExplorer['fabricEnvironmentToSetUp'] = treeItem;
+                getNodesStub.resolves([peerNode, ordererNode, caNodeWithCreds, caNodeWithoutCreds]);
+                nodeTreeItems = await environmentExplorer.getChildren() as NodeTreeItem[];
+            });
+
+            ['peerNode', 'ordererNode', 'caNodeWithCreds', 'caNodeWithoutCreds'].forEach((nodeString: string) => {
+                it(`should test a different identity can be associated with a node using the tree (${nodeString})`, async () => {
+                    const nodeTreeItem: NodeTreeItem = nodeTreeItems.find((_nodeTreeItem: NodeTreeItem) => {
+                        return _nodeTreeItem.node && _nodeTreeItem.node.short_name === nodeString;
+                    });
+
+                    await vscode.commands.executeCommand(ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY, nodeTreeItem);
+
+                    showWalletsQuickPickBoxStub.should.have.been.calledWith(`Which wallet is the admin identity in?`);
+
+                    if (nodeTreeItem.node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
+                        showIdentityQuickPickStub.should.have.been.calledWith(`Select the admin identity`);
+                    } else {
+                        showIdentityQuickPickStub.should.have.been.calledWith(`Select the admin identity for ${nodeTreeItem.node.msp_id}`);
+                    }
+
+                    nodeTreeItem.node.identity = 'identityOne';
+                    nodeTreeItem.node.wallet = 'blueWallet';
+                    updateStub.should.have.been.calledOnceWith(nodeTreeItem.node);
+
+                    logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                    logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${nodeTreeItem.node.identity} from wallet ${nodeTreeItem.node.wallet} with node ${nodeTreeItem.node.name}`);
+                });
+            });
+
+            it(`should test a different identity can be associated with a node using the command`, async () => {
+                await vscode.commands.executeCommand(ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY);
+
+                showFabricNodeQuickPickStub.should.have.been.calledWith('Choose a node to replace the identity');
+
+                showWalletsQuickPickBoxStub.should.have.been.calledWith(`Which wallet is the admin identity in?`);
+
+                showIdentityQuickPickStub.should.have.been.calledWith(`Select the admin identity for ${peerNode.msp_id}`);
+
+                peerNode.identity = 'identityOne';
+                peerNode.wallet = 'blueWallet';
+                updateStub.should.have.been.calledOnceWith(peerNode);
+
+                logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, 'associate identity with node');
+                logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully associated identity ${peerNode.identity} from wallet ${peerNode.wallet} with node ${peerNode.name}`);
+            });
+
+            it('should throw an error if no environments found', async () => {
+                await FabricEnvironmentRegistry.instance().clear();
+                await vscode.commands.executeCommand(ExtensionCommands.REPLACE_ASSOCIATED_IDENTITY);
+
+                updateStub.should.not.have.been.called;
+
+                logSpy.should.have.been.calledWith(LogType.ERROR, `No Environments found to use for replacing the identity associated with a node  ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
             });
         });
     });

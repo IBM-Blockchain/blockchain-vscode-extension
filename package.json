@@ -69,6 +69,7 @@
             "environmentExplorer.importNodesEntry",
             "environmentExplorer.deleteEnvironmentEntry",
             "environmentExplorer.associateIdentityNodeEntry",
+            "environmentExplorer.replaceAssociatedIdentityEntry",
             "environmentExplorer.connectEntry",
             "environmentExplorer.disconnectEntry",
             "environmentExplorer.installSmartContractEntry",
@@ -288,7 +289,12 @@
             },
             {
                 "command": "environmentExplorer.associateIdentityNodeEntry",
-                "title": "Associate identitiy with a node",
+                "title": "Associate Identitiy with a Node",
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+                "title": "Replace Identity Associated with a node",
                 "category": "IBM Blockchain Platform"
             },
             {
@@ -694,6 +700,18 @@
                 {
                     "command": "environmentExplorer.upgradeSmartContractEntry",
                     "when": "view == environmentExplorer && viewItem == blockchain-instantiated-chaincode-item"
+                },
+                {
+                    "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected && !blockchain-local-runtime-connected"
+                },
+                {
+                    "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected && !blockchain-local-runtime-connected"
+                },
+                {
+                    "command": "environmentExplorer.replaceAssociatedIdentityEntry",
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected && !blockchain-local-runtime-connected"
                 },
                 {
                     "command": "gatewaysExplorer.editGatewayEntry",

@@ -16,12 +16,13 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { FabricNode } from '../../../fabric/FabricNode';
 import { NodeTreeItem } from './NodeTreeItem';
+import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
 
 export class CertificateAuthorityTreeItem extends NodeTreeItem {
     contextValue: string = 'blockchain-runtime-certificate-authority-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly tooltip: string, public readonly node: FabricNode, public readonly command?: vscode.Command) {
-        super(provider, name, tooltip, node, command);
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly tooltip: string, environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly node: FabricNode, public readonly command?: vscode.Command) {
+        super(provider, name, tooltip, environmentRegistryEntry, node, command);
 
     }
 }

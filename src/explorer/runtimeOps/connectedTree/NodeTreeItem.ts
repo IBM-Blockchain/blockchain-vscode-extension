@@ -18,12 +18,13 @@ import { BlockchainTreeItem } from '../../model/BlockchainTreeItem';
 import { FabricNode } from '../../../fabric/FabricNode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import * as vscode from 'vscode';
+import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
 
 export abstract class NodeTreeItem extends BlockchainTreeItem {
 
     private orginalLabel: string;
 
-    constructor(provider: BlockchainExplorerProvider, label: string, public readonly tooltip: string, public readonly node: FabricNode, public readonly command?: vscode.Command) {
+    constructor(provider: BlockchainExplorerProvider, label: string, public readonly tooltip: string, public readonly environmentRegistryEntry: FabricEnvironmentRegistryEntry, public readonly node: FabricNode, public readonly command?: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
 
         this.orginalLabel = label;

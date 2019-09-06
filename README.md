@@ -186,7 +186,7 @@ Here is an example of a peer with `TLS` enabled, please note the `pem` property 
 ```
 
 ##### Associating identities with nodes
-After creating an environment the next step to enable a connection is to associate each node with an identity. To do this click on the name of the environment you just created in the `Fabric Environments` panel. You wil then see each of the nodes that need some setup. Click on each one to associate an identity with that node. The identity must be an admin identity for the node.
+After creating an environment, the next step before connecting is to associate an identity with each node. To do this, click the name of the environment you have just created in the Fabric Environments panel. To complete setup, click on each node from the list to associate an identity with them. The identity must be an admin identity for the node. To change the identity associated with a node when connected the environment, right-click on the node and select Replace identity associated with a node.
 
 ##### Importing more nodes
 You can import more nodes to an existing environment by connecting to the environment, expand `nodes` and then click on `+ Import nodes`. 
@@ -288,7 +288,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Add Identity To Wallet | Add an identity into a wallet to be used when connecting to a Hyperledger Fabric gateway |
 | Add Wallet | Add a wallet containing identities to be used when connecting to a gateway |
 | Associate A Wallet | Associate a wallet with a gateway to be used when connecting |
-| Associate An Identity With A Node | Associate an identity with a node to enable the extension to connect to that node |
+| Associate Identity with a Node | Associate an identity with a node to enable the extension to connect to that node |
 | Connect Via Gateway | Connect to a Hyperledger Fabric instance using a gateway |
 | Create New Project | Create a new smart contract project |
 | Create Identity (register and enroll) | Create, register and enroll a new identity from the Local Fabric runtime certificate authority |
@@ -314,6 +314,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Open New Terminal | Open a new terminal on a specified Fabric node (peer, orderer, and fabric-ca-client CLIs) |
 | Package Open Project | Create a new smart contract package from a project in the Explorer |
 | Remove Wallet | Remove a wallet from the Fabric Wallets view |
+| Replace Identity Associated with a Node | Replace which identity is associated with a node |
 | Restart Fabric Runtime | Restart the Local Fabric instance |
 | Start Fabric Runtime | Start the Local Fabric instance |
 | Stop Fabric Runtime | Stop the Local Fabric instance |

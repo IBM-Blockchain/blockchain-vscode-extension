@@ -991,7 +991,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(quickPickItems, quickPickOptions);
     }
 
-    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[]): Promise<IBlockchainQuickPickItem<FabricNode>> {
+    public static async showFabricNodeQuickPick(prompt: string, environmentName: string, nodeTypefilter: FabricNodeType[], showAsociatedIdentity: boolean = false): Promise<IBlockchainQuickPickItem<FabricNode>> {
         const environment: FabricEnvironment = new FabricEnvironment(environmentName);
         let nodes: FabricNode[] = await environment.getNodes();
         nodes = nodes.filter((node: FabricNode) => nodeTypefilter.indexOf(node.type) !== -1);
@@ -1002,10 +1002,19 @@ export class UserInputUtil {
                 const foundItem: IBlockchainQuickPickItem<FabricNode> = quickPickItems.find((item: IBlockchainQuickPickItem<FabricNode>) => item.data.cluster_name === _node.cluster_name);
 
                 if (!foundItem) {
-                    quickPickItems.push({ label: _node.cluster_name, data: _node });
+                    const quickPickItem: IBlockchainQuickPickItem<FabricNode> = { label: _node.cluster_name, data: _node };
+                    if (showAsociatedIdentity && _node.wallet && _node.identity) {
+                        quickPickItem.description = `Associated with identity: ${_node.identity} in wallet: ${_node.wallet}`;
+                    }
+
+                    quickPickItems.push(quickPickItem);
                 }
             } else {
-                quickPickItems.push({ label: _node.name, data: _node });
+                const quickPickItem: IBlockchainQuickPickItem<FabricNode> = { label: _node.name, data: _node };
+                if (showAsociatedIdentity && _node.wallet && _node.identity) {
+                    quickPickItem.description = `Associated with identity: ${_node.identity} in wallet: ${_node.wallet}`;
+                }
+                quickPickItems.push(quickPickItem);
             }
         }
 
@@ -1061,45 +1070,45 @@ export class UserInputUtil {
         return workspaceFolder;
     }
 
-/**
- * Method to determine the language used in the development of the smart contract project, which will be used to determine the correct directories
- * to package the projects, as well as aiding the language decision for automated functional tests.
- * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
- * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory, as well as aiding the language decision for automated functional tests.
- */
+    /**
+     * Method to determine the language used in the development of the smart contract project, which will be used to determine the correct directories
+     * to package the projects, as well as aiding the language decision for automated functional tests.
+     * @param workspaceDir {String} workspaceDir A string containing the path to the current active workspace (the workspace of the project the user is packaging).
+     * @returns {string} The language used in the development of this smart contract project. Used to package in the correct respective directory, as well as aiding the language decision for automated functional tests.
+     */
     public static async getLanguage(workspaceDir: vscode.WorkspaceFolder): Promise<string> {
 
-    // Is this a Node.js smart contract (JavaScript, TypeScript, etc)?
-    const packageJsonFile: string = path.join(workspaceDir.uri.fsPath, 'package.json');
-    const packageJsonFileExists: boolean = await fs.pathExists(packageJsonFile);
-    if (packageJsonFileExists) {
-        return 'node';
+        // Is this a Node.js smart contract (JavaScript, TypeScript, etc)?
+        const packageJsonFile: string = path.join(workspaceDir.uri.fsPath, 'package.json');
+        const packageJsonFileExists: boolean = await fs.pathExists(packageJsonFile);
+        if (packageJsonFileExists) {
+            return 'node';
+        }
+
+        // Is this a Java smart contract (Java, Kotlin, etc)?
+        const gradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
+        const gradleFileExists: boolean = await fs.pathExists(gradleFile);
+        const mavenFile: string = path.join(workspaceDir.uri.fsPath, 'pom.xml');
+        const mavenFileExists: boolean = await fs.pathExists(mavenFile);
+        if (gradleFileExists || mavenFileExists) {
+            return 'java';
+        }
+
+        // Is this a Go smart contract?
+        const goFiles: vscode.Uri[] = await vscode.workspace.findFiles(
+            new vscode.RelativePattern(workspaceDir, '**/*.go'),
+            null,
+            1
+        );
+        if (goFiles.length > 0) {
+            return 'golang';
+        }
+
+        // Its not java/node/go contract, so error
+        const message: string = `Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java. Please ensure your contract's root-level directory is open in the Explorer.`;
+        throw new Error(message);
+
     }
-
-    // Is this a Java smart contract (Java, Kotlin, etc)?
-    const gradleFile: string = path.join(workspaceDir.uri.fsPath, 'build.gradle');
-    const gradleFileExists: boolean = await fs.pathExists(gradleFile);
-    const mavenFile: string = path.join(workspaceDir.uri.fsPath, 'pom.xml');
-    const mavenFileExists: boolean = await fs.pathExists(mavenFile);
-    if (gradleFileExists || mavenFileExists) {
-        return 'java';
-    }
-
-    // Is this a Go smart contract?
-    const goFiles: vscode.Uri[] = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(workspaceDir, '**/*.go'),
-        null,
-        1
-    );
-    if (goFiles.length > 0) {
-        return 'golang';
-    }
-
-    // Its not java/node/go contract, so error
-    const message: string = `Failed to determine workspace language type, supported languages are JavaScript, TypeScript, Go and Java. Please ensure your contract's root-level directory is open in the Explorer.`;
-    throw new Error(message);
-
-}
 
     private static async checkForUnsavedFiles(): Promise<void> {
         const unsavedFiles: vscode.TextDocument = vscode.workspace.textDocuments.find((document: vscode.TextDocument) => {
