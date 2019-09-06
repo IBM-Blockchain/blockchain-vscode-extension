@@ -23,11 +23,11 @@ import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentC
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricDebugConfigurationProvider } from '../../src/debug/FabricDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { ExtensionCommands } from '../../ExtensionCommands';
+import { GlobalState } from '../../src/util/GlobalState';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -118,12 +118,8 @@ describe('FabricDebugConfigurationProvider', () => {
             startDebuggingStub = mySandbox.stub(vscode.debug, 'startDebugging');
             logSpy = mySandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
-            generatorVersionStub = mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
-                globalState: {
-                    get: mySandbox.stub().returns({
-                        generatorVersion: '0.0.36'
-                    })
-                }
+            generatorVersionStub = mySandbox.stub(GlobalState, 'get').returns({
+                generatorVersion: '0.0.36'
             });
         });
 

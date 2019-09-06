@@ -21,8 +21,8 @@ import * as semver from 'semver';
 import Axios from 'axios';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
 import { CommandUtil } from '../util/CommandUtil';
-import { TemporaryCommandRegistry } from './TemporaryCommandRegistry';
 import { LogType } from '../logging/OutputAdapter';
+import { GlobalState, ExtensionData } from '../util/GlobalState';
 
 export class DependencyManager {
 
@@ -66,8 +66,6 @@ export class DependencyManager {
     public async installNativeDependencies(): Promise<void> {
         const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
 
-        const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
-        tempCommandRegistry.createTempCommands();
         this.loadDependencies();
         await this.installNativeDependenciesInternal();
 
@@ -77,8 +75,333 @@ export class DependencyManager {
         outputAdapter.log(LogType.INFO, undefined, 'Clearing extension cache');
         await this.clearExtensionCache();
 
-        outputAdapter.log(LogType.INFO, undefined, 'Restoring command registry');
-        await tempCommandRegistry.restoreCommands();
+    }
+
+    public isValidDependency(dependency: any): boolean {
+        const name: string = dependency.name;
+        if (name === 'Node.js' || name === 'Java OpenJDK 8' || name === 'npm' || name === 'Docker' || name === 'Docker Compose' || name === 'Go') {
+            if (dependency.version) {
+                return semver.satisfies(dependency.version, dependency.requiredVersion);
+            } else {
+                return false;
+            }
+        } else if (name === 'OpenSSL') {
+            if (dependency.version) {
+                return dependency.version === dependency.requiredVersion;
+            } else {
+                return false;
+            }
+        } else if (name === 'C++ Build Tools' || name === 'Xcode' || name === 'Go Extension' || name === 'Java Language Support Extension' || name === 'Java Debugger Extension') {
+            if (dependency.version) {
+                return true;
+            } else {
+                return false;
+            }
+        } else if (name === 'Docker for Windows' || name === 'System Requirements') {
+            return dependency.complete;
+        }
+    }
+
+    public async hasPreReqsInstalled(dependencies?: any, optionalInstalled: boolean = false): Promise<boolean> {
+        if (!dependencies) {
+            dependencies = await this.getPreReqVersions();
+        }
+
+        if (!this.isValidDependency(dependencies.node)) {
+            return false;
+        }
+
+        if (!this.isValidDependency(dependencies.npm)) {
+            return false;
+        }
+
+        if (!this.isValidDependency(dependencies.docker)) {
+            return false;
+        }
+
+        if (!this.isValidDependency(dependencies.dockerCompose)) {
+            return false;
+        }
+
+        if (!this.isValidDependency(dependencies.systemRequirements)) {
+            return false;
+        }
+
+        if (process.platform === 'win32') {
+            // Windows
+
+            if (!this.isValidDependency(dependencies.openssl)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.buildTools)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.dockerForWindows)) {
+                return false;
+            }
+
+        }
+
+        if (process.platform === 'darwin') {
+            // Mac
+            if (!this.isValidDependency(dependencies.xcode)) {
+                return false;
+            }
+        }
+
+        // Optional installs
+        if (optionalInstalled) {
+            if (!this.isValidDependency(dependencies.go)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.goExtension)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.java)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.javaLanguageExtension)) {
+                return false;
+            }
+
+            if (!this.isValidDependency(dependencies.javaDebuggerExtension)) {
+                return false;
+            }
+
+        }
+
+        return true;
+    }
+
+    public async getPreReqVersions(): Promise<any> {
+
+        // Only want to attempt to get extension context when activated.
+        // We store whether the user has confirmed that they have met the System Requirements, so need to access the global state
+
+        const extensionData: ExtensionData = GlobalState.get();
+
+        // The order that we add dependencies to this object matters, as the webview will create the panels in the same order.
+        // So we want to handle the optional dependencies last
+
+        const dependencies: any = {
+            node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts.' },
+            npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies.' },
+            docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: '>=17.6.2', requiredLabel: '', tooltip: 'Used to download Hyperledger Fabric images and manage containers for the Local Fabric.' },
+            dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '', tooltip: 'Used for managing and operating the individual Local Fabric components.' }
+        };
+
+        // Node
+        try {
+            const nodeResult: string = await CommandUtil.sendCommand('node -v'); // Format: vX.Y.Z
+            if (this.isCommandFound(nodeResult)) {
+                const nodeVersion: string = nodeResult.substr(1);
+                const nodeValid: string =  semver.valid(nodeVersion); // Returns version
+                if (nodeValid) {
+                    dependencies.node.version = nodeVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore
+        }
+
+        // npm
+        try {
+            const npmResult: string = await CommandUtil.sendCommand('npm -v'); // Format: X.Y.Z
+            if (this.isCommandFound(npmResult)) {
+                const npmVersion: string =  semver.valid(npmResult); // Returns version
+                if (npmVersion) {
+                    dependencies.npm.version = npmVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore
+        }
+
+        // Docker
+        try {
+            const dockerResult: string = await CommandUtil.sendCommand('docker -v'); // Format: Docker version X.Y.Z-ce, build e68fc7a
+            if (this.isCommandFound(dockerResult)) {
+                const dockerMatchedVersion: string =  dockerResult.match(/version (.*),/)[1]; // Format: X.Y.Z-ce "version 18.06.1-ce,"
+                const dockerCleaned: string = semver.clean(dockerMatchedVersion, { loose: true });
+                const dockerVersionCoerced: semver.SemVer = semver.coerce(dockerCleaned); // Format: X.Y.Z
+                const dockerVersion: string = semver.valid(dockerVersionCoerced); // Returns version
+                if (dockerVersion) {
+                    dependencies.docker.version = dockerVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore
+        }
+
+        // docker-compose
+
+        try {
+            const composeResult: string = await CommandUtil.sendCommand('docker-compose -v'); // Format: docker-compose version 1.22.0, build f46880f
+            if (this.isCommandFound(composeResult)) {
+                const composeMatchedVersion: string =  composeResult.match(/version (.*),/)[1]; // Format: X.Y.Z
+                const composeCleaned: string = semver.clean(composeMatchedVersion, { loose: true });
+                const composeVersionCoerced: semver.SemVer = semver.coerce(composeCleaned); // Format: X.Y.Z
+                const composeVersion: string = semver.valid(composeVersionCoerced); // Returns version
+                if (composeVersion) {
+                    dependencies.dockerCompose.version = composeVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore
+        }
+
+        if (process.platform === 'win32') {
+            // Windows
+
+            dependencies.openssl = {name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: '>=1.0.2', requiredLabel: undefined};
+            dependencies.buildTools = {name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined};
+            dependencies.dockerForWindows = {name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
+
+            try {
+                const opensslResult: string = await CommandUtil.sendCommand('openssl version -v'); // Format: OpenSSL 1.0.2k  26 Jan 2017
+                if (this.isCommandFound(opensslResult)) {
+                    const opensslMatchedVersion: string = opensslResult.match(/OpenSSL (\S*)/)[1]; // Format: 1.0.2k
+                    const opensslVersionCoerced: semver.SemVer = semver.coerce(opensslMatchedVersion); // Format: X.Y.Z
+                    const opensslVersion: string = semver.valid(opensslVersionCoerced); // Returns version
+                    if (opensslVersion) {
+                        dependencies.openssl.version = opensslVersion;
+                    }
+                }
+            } catch (error) {
+                // Ignore
+            }
+
+            try {
+                const buildToolsResult: string = await CommandUtil.sendCommand('npm ls -g windows-build-tools');
+                if (this.isCommandFound(buildToolsResult)) {
+                    const buildToolsMatchedVersion: string = buildToolsResult.match(/windows-build-tools@(\S*)/)[1]; // Format: X.Y.Z
+                    const buildToolsVersion: string = semver.valid(buildToolsMatchedVersion); // Returns version
+                    if (buildToolsVersion) {
+                        dependencies.buildTools.version = buildToolsVersion;
+                    }
+                }
+            } catch (error) {
+                // Ignore
+            }
+
+            if (!extensionData.dockerForWindows) {
+                dependencies.dockerForWindows.complete = false;
+            } else {
+                dependencies.dockerForWindows.complete = true;
+            }
+
+        }
+
+        if (process.platform === 'darwin') {
+            // Mac
+
+            dependencies['xcode'] = {name: 'Xcode', required: true, version: undefined, url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined, tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies.'};
+            try {
+                const xcodeInstalled: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
+                if (this.isCommandFound(xcodeInstalled)) {
+                    const xcodeResult: string = await CommandUtil.sendCommand('xcode-select -v'); // Get path of active developer directory
+                    const xcodeVersion: string = xcodeResult.match(/xcode-select version (\S*)./)[1]; // Format: XYZ
+                    dependencies.xcode.version = xcodeVersion;
+
+                }
+            } catch (error) {
+                // Ignore
+            }
+        }
+
+        dependencies.systemRequirements = {name: 'System Requirements', id: 'systemRequirements', complete: undefined, checkbox: true, required: true, text: 'In order to support the local runtime, please confirm your system has at least 4GB of RAM' };
+
+        if (!extensionData.systemRequirements) {
+            dependencies.systemRequirements.complete = false;
+        } else {
+            dependencies.systemRequirements.complete = true;
+        }
+
+        // We want to display the optional dependencies last
+
+        // Go
+        dependencies.go = {name: 'Go', required: false, version: undefined, url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '', tooltip: 'Required for developing Go smart contracts.' };
+        try {
+            const goResult: string = await CommandUtil.sendCommand('go version'); // Format: go version go1.12.5 darwin/amd64
+            if (this.isCommandFound(goResult)) {
+                const goMatchedVersion: string =  goResult.match(/go version go(.*) /)[1]; // Format: X.Y.Z
+                const goVersion: string = semver.valid(goMatchedVersion); // Returns version
+                if (goVersion) {
+                    dependencies.go.version = goVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        // Go Extension
+        dependencies.goExtension = {name: 'Go Extension', required: false, version: undefined, url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '', tooltip: 'Provides language support for Go.' };
+        try {
+            const goExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('ms-vscode.Go');
+            if (goExtensionResult) {
+                const version: string = goExtensionResult.packageJSON.version;
+                dependencies.goExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        // Java
+        dependencies.java = {name: 'Java OpenJDK 8', required: false, version: undefined, url: 'https://adoptopenjdk.net/?variant=openjdk8', requiredVersion: '1.8.x', requiredLabel: 'only', tooltip: 'Required for developing Java smart contracts.' };
+        try {
+            // For some reason, the response is going to stderr, so we have to redirect it to stdout.
+            const javaResult: string = await CommandUtil.sendCommand('java -version 2>&1'); // Format: openjdk|java version "1.8.0_212"
+            if (this.isCommandFound(javaResult)) {
+                const javaMatchedVersion: string =  javaResult.match(/(openjdk|java) version "(.*)"/)[2]; // Format: X.Y.Z_A
+                const javaVersionCoerced: semver.SemVer = semver.coerce(javaMatchedVersion); // Format: X.Y.Z
+                const javaVersion: string = semver.valid(javaVersionCoerced); // Returns version
+                if (javaVersion) {
+                    dependencies.java.version = javaVersion;
+                }
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        // Java Language Support Extension
+        dependencies.javaLanguageExtension = {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '', tooltip: 'Provides language support for Java.' };
+        try {
+            const javaLanguageExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('redhat.java');
+            if (javaLanguageExtensionResult) {
+                const version: string = javaLanguageExtensionResult.packageJSON.version;
+                dependencies.javaLanguageExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        // Java Debugger Extension
+        dependencies.javaDebuggerExtension = {name: 'Java Debugger Extension', required: false, version: undefined, url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '', tooltip: 'Used for debugging Java smart contracts.' };
+        try {
+            const javaDebuggerExtensionResult: vscode.Extension<any> = vscode.extensions.getExtension('vscjava.vscode-java-debug');
+            if (javaDebuggerExtensionResult) {
+                const version: string = javaDebuggerExtensionResult.packageJSON.version;
+                dependencies.javaDebuggerExtension.version = version;
+            }
+        } catch (error) {
+            // Ignore the error
+        }
+
+        return dependencies;
+
+    }
+
+    private isCommandFound(output: string): boolean {
+        if (output.toLowerCase().includes('not found') || output.toLowerCase().includes('not recognized') || output.toLowerCase().includes('no such file or directory') || output.toLowerCase().includes('unable to get active developer directory')) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     private getPackageJsonPath(): string {

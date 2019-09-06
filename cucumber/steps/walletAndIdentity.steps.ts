@@ -16,11 +16,11 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as myExtension from '../../src/extension';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -53,7 +53,7 @@ module.exports = function(): any {
     });
 
     this.Given(/the wallet '(.*?)' with identity '(.*?)' and mspid '(.*?)' exists/, this.timeout, async (wallet: string, identity: string, mspid: string) => {
-        const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+        const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
         let treeItems: BlockchainTreeItem[] = await blockchainWalletExplorerProvider.getChildren();
         const walletIndex: number = treeItems.findIndex((item: any) => {
             return item.label === wallet;

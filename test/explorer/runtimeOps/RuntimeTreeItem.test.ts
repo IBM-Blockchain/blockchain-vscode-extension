@@ -14,7 +14,6 @@
 
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import { getBlockchainEnvironmentExplorerProvider } from '../../../src/extension';
 import { RuntimeTreeItem } from '../../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricRuntimeManager } from '../../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime, FabricRuntimeState } from '../../../src/fabric/FabricRuntime';
@@ -63,7 +62,7 @@ describe('RuntimeTreeItem', () => {
         environmentRegistryEntry.managedRuntime = true;
         environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
-        provider = getBlockchainEnvironmentExplorerProvider();
+        provider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const runtimeManager: FabricRuntimeManager = FabricRuntimeManager.instance();
         mockRuntime = sinon.createStubInstance(FabricRuntime);
         mockRuntime.on.callsFake((name: string, callback: any) => {

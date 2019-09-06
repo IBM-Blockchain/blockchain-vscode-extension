@@ -12,29 +12,102 @@
  * limitations under the License.
 */
 'use strict';
-import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
-import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as os from 'os';
-
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { ExtensionCommands } from '../../ExtensionCommands';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { addGateway } from '../commands/addGatewayCommand';
+import { addWallet } from '../commands/addWalletCommand';
+import { addWalletIdentity } from '../commands/addWalletIdentityCommand';
+import { associateWallet } from '../commands/associateWalletCommand';
+import { createNewIdentity } from '../commands/createNewIdentityCommand';
+import { createSmartContractProject } from '../commands/createSmartContractProjectCommand';
+import { debugCommandList } from '../commands/debugCommandListCommand';
+import { deleteGateway } from '../commands/deleteGatewayCommand';
+import { deleteIdentity } from '../commands/deleteIdentityCommand';
+import { deleteSmartContractPackage } from '../commands/deleteSmartContractPackageCommand';
+import { dissociateWallet } from '../commands/dissociateWalletCommand';
+import { editGatewayCommand } from '../commands/editGatewayCommand';
+import { editWalletCommand } from '../commands/editWalletCommand';
+import { exportConnectionProfile } from '../commands/exportConnectionProfileCommand';
+import { exportSmartContractPackage } from '../commands/exportSmartContractPackageCommand';
+import { exportWallet } from '../commands/exportWalletCommand';
+import { importSmartContractPackageCommand } from '../commands/importSmartContractPackageCommand';
+import { installSmartContract } from '../commands/installCommand';
+import { instantiateSmartContract } from '../commands/instantiateCommand';
+import { openNewTerminal } from '../commands/openNewTerminal';
+import { packageSmartContract } from '../commands/packageSmartContractCommand';
+import { removeWallet } from '../commands/removeWalletCommand';
+import { restartFabricRuntime } from '../commands/restartFabricRuntime';
+import { startFabricRuntime } from '../commands/startFabricRuntime';
+import { stopFabricRuntime } from '../commands/stopFabricRuntime';
+import { submitTransaction } from '../commands/submitTransaction';
+import { teardownFabricRuntime } from '../commands/teardownFabricRuntime';
+import { testSmartContract } from '../commands/testSmartContractCommand';
+import { upgradeSmartContract } from '../commands/upgradeCommand';
+import { FabricGoDebugConfigurationProvider } from '../debug/FabricGoDebugConfigurationProvider';
+import { FabricJavaDebugConfigurationProvider } from '../debug/FabricJavaDebugConfigurationProvider';
+import { FabricNodeDebugConfigurationProvider } from '../debug/FabricNodeDebugConfigurationProvider';
+import { BlockchainGatewayExplorerProvider } from '../explorer/gatewayExplorer';
+import { BlockchainTreeItem } from '../explorer/model/BlockchainTreeItem';
+import { ChannelTreeItem } from '../explorer/model/ChannelTreeItem';
+import { ContractTreeItem } from '../explorer/model/ContractTreeItem';
+import { GatewayAssociatedTreeItem } from '../explorer/model/GatewayAssociatedTreeItem';
+import { GatewayDissociatedTreeItem } from '../explorer/model/GatewayDissociatedTreeItem';
+import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
+import { IdentityTreeItem } from '../explorer/model/IdentityTreeItem';
+import { InstantiatedContractTreeItem } from '../explorer/model/InstantiatedContractTreeItem';
+import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
+import { PackageTreeItem } from '../explorer/model/PackageTreeItem';
+import { TransactionTreeItem } from '../explorer/model/TransactionTreeItem';
+import { BlockchainPackageExplorerProvider } from '../explorer/packageExplorer';
+import { CertificateAuthorityTreeItem } from '../explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
+import { NodeTreeItem } from '../explorer/runtimeOps/connectedTree/NodeTreeItem';
+import { PeerTreeItem } from '../explorer/runtimeOps/connectedTree/PeerTreeItem';
+import { BlockchainWalletExplorerProvider } from '../explorer/walletExplorer';
+import { WalletTreeItem } from '../explorer/wallets/WalletTreeItem';
+import { FabricConnectionManager } from '../fabric/FabricConnectionManager';
+import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeManager } from '../fabric/FabricRuntimeManager';
+import { IFabricWallet } from '../fabric/IFabricWallet';
+import { LogType } from '../logging/OutputAdapter';
+import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
+import { PackageRegistryEntry } from '../packages/PackageRegistryEntry';
+import { HomeView } from '../webview/HomeView';
+import { SampleView } from '../webview/SampleView';
+import { TutorialGalleryView } from '../webview/TutorialGalleryView';
+import { TutorialView } from '../webview/TutorialView';
+import { Reporter } from './Reporter';
+import { PreReqView } from '../webview/PreReqView';
+import { BlockchainEnvironmentExplorerProvider } from '../explorer/environmentExplorer';
+import { gatewayConnect } from '../commands/gatewayConnectCommand';
+import { RuntimeTreeItem } from '../explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
+import { addEnvironment } from '../commands/addEnvironmentCommand';
+import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { deleteEnvironment } from '../commands/deleteEnvironment';
+import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
+import { FabricNode } from '../fabric/FabricNode';
+import { associateIdentityWithNode } from '../commands/associateIdentityWithNode';
+import { fabricEnvironmentConnect } from '../commands/environmentConnectCommand';
+import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { DependencyManager } from '../dependencies/DependencyManager';
+import { GlobalState, ExtensionData } from './GlobalState';
+import { TemporaryCommandRegistry } from '../dependencies/TemporaryCommandRegistry';
+import { version as currentExtensionVersion, dependencies } from '../../package.json';
+import { FabricWalletUtil } from '../fabric/FabricWalletUtil';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
+import { FabricRuntime } from '../fabric/FabricRuntime';
+import { UserInputUtil } from '../commands/UserInputUtil';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
+import { FabricDebugConfigurationProvider } from '../debug/FabricDebugConfigurationProvider';
 
-export class ExtensionData {
-    public activationCount: number;
-    public version: string;
-    public migrationCheck: number;
-    public generatorVersion: string;
-}
-
-export const EXTENSION_DATA_KEY: string = 'ibm-blockchain-platform-extension-data';
-
-export const DEFAULT_EXTENSION_DATA: ExtensionData = {
-    activationCount: 0,
-    version: null,
-    migrationCheck: 0,
-    generatorVersion: null // Used to check if the generator needs updating
-};
+let blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider;
+let blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider;
+let blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider;
+let blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider;
 
 export const FABRIC_CLIENT_VERSION: string = '1.4.4';
 export const FABRIC_NETWORK_VERSION: string = '1.4.4';
@@ -58,14 +131,6 @@ export class ExtensionUtil {
 
     public static getExtensionPath(): string {
         return this.getExtension().extensionPath;
-    }
-
-    public static getExtensionContext(): vscode.ExtensionContext {
-        return this.extensionContext;
-    }
-
-    public static setExtensionContext(context: vscode.ExtensionContext): void {
-        this.extensionContext = context;
     }
 
     public static async getContractNameAndVersion(folder: vscode.WorkspaceFolder): Promise<{ name: string, version: string }> {
@@ -160,7 +225,274 @@ export class ExtensionUtil {
         return isIBMer;
     }
 
-    private static extensionContext: vscode.ExtensionContext;
+    /*
+    * Should only be called outside this file in tests
+    */
+    public static async registerCommands(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
+        blockchainGatewayExplorerProvider = new BlockchainGatewayExplorerProvider();
+        blockchainPackageExplorerProvider = new BlockchainPackageExplorerProvider();
+        blockchainEnvironmentExplorerProvider = new BlockchainEnvironmentExplorerProvider();
+        blockchainWalletExplorerProvider = new BlockchainWalletExplorerProvider();
+
+        this.disposeExtension(context);
+
+        const goDebugProvider: FabricGoDebugConfigurationProvider = new FabricGoDebugConfigurationProvider();
+        const javaDebugProvider: FabricJavaDebugConfigurationProvider = new FabricJavaDebugConfigurationProvider();
+        const nodeDebugProvider: FabricNodeDebugConfigurationProvider = new FabricNodeDebugConfigurationProvider();
+        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:go', goDebugProvider));
+        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:java', javaDebugProvider));
+        context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('fabric:node', nodeDebugProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('environmentExplorer', blockchainEnvironmentExplorerProvider));
+
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('gatewaysExplorer', blockchainGatewayExplorerProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('aPackagesExplorer', blockchainPackageExplorerProvider));
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('walletExplorer', blockchainWalletExplorerProvider));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_GATEWAYS, (element: BlockchainTreeItem) => blockchainGatewayExplorerProvider.refresh(element)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT_TO_GATEWAY, (gateway: FabricGatewayRegistryEntry, identityName: string) => gatewayConnect(gateway, identityName)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_GATEWAY, () => FabricConnectionManager.instance().disconnect()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_GATEWAY, () => addGateway()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_GATEWAY, (gateway: GatewayTreeItem) => deleteGateway(gateway)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET_IDENTITY, (walletItem: WalletTreeItem | IFabricWallet, mspid: string) => addWalletIdentity(walletItem, mspid)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT, createSmartContractProject));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.PACKAGE_SMART_CONTRACT, (workspace?: vscode.WorkspaceFolder, overrideName?: string, overrideVersion?: string) => packageSmartContract(workspace, overrideName, overrideVersion)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_PACKAGES, () => blockchainPackageExplorerProvider.refresh()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, (element: BlockchainTreeItem) => blockchainEnvironmentExplorerProvider.refresh(element)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.START_FABRIC, () => startFabricRuntime()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.STOP_FABRIC, () => stopFabricRuntime()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.RESTART_FABRIC, () => restartFabricRuntime()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEARDOWN_FABRIC, (treeItem: RuntimeTreeItem, force: boolean = false) => teardownFabricRuntime(treeItem, force)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_NEW_TERMINAL, (nodeItem: NodeTreeItem) => openNewTerminal(nodeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE, (gatewayItem: GatewayTreeItem) => exportConnectionProfile(gatewayItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_SMART_CONTRACT, (project: PackageTreeItem) => deleteSmartContractPackage(project)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_SMART_CONTRACT, (project: PackageTreeItem) => exportSmartContractPackage(project)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.IMPORT_SMART_CONTRACT, () => importSmartContractPackageCommand()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_ENVIRONMENT, () => addEnvironment()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_ENVIRONMENT, (environmentTreeItem: FabricEnvironmentTreeItem) => deleteEnvironment(environmentTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_IDENTITY_NODE, (environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode) => associateIdentityWithNode(environmentRegistryEntry, node)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, (fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry) => fabricEnvironmentConnect(fabricEnvironmentRegistryEntry)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT, () => FabricEnvironmentManager.instance().disconnect()));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTALL_SMART_CONTRACT, (peerTreeItem?: PeerTreeItem, peerNames?: Set<string>, chosenPackge?: PackageRegistryEntry) => installSmartContract(peerTreeItem, peerNames, chosenPackge)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.INSTANTIATE_SMART_CONTRACT, (channelTreeItem?: ChannelTreeItem, channelName?: string, peerNames?: Array<string>) => instantiateSmartContract(channelTreeItem, channelName, peerNames)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_GATEWAY, (treeItem: GatewayTreeItem) => editGatewayCommand(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_ALL_SMART_CONTRACT, (chaincode: InstantiatedContractTreeItem) => testSmartContract(true, chaincode)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.TEST_SMART_CONTRACT, (treeItem: ContractTreeItem | InstantiatedTreeItem) => testSmartContract(false, treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.SUBMIT_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string) => submitTransaction(false, transactionTreeItem, channelName, smartContract)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EVALUATE_TRANSACTION, (transactionTreeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string) => submitTransaction(true, transactionTreeItem, channelName, smartContract)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.UPGRADE_SMART_CONTRACT, (instantiatedChainCodeTreeItem?: InstantiatedTreeItem, channelName?: string, peerNames?: Array<string>) => upgradeSmartContract(instantiatedChainCodeTreeItem, channelName, peerNames)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.CREATE_NEW_IDENTITY, (certificateAuthorityTreeItem?: CertificateAuthorityTreeItem) => createNewIdentity(certificateAuthorityTreeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REFRESH_WALLETS, (element: BlockchainTreeItem) => blockchainWalletExplorerProvider.refresh(element)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ADD_WALLET, (createIdentity: boolean) => addWallet(createIdentity)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DEBUG_COMMAND_LIST, (commandName?: string) => debugCommandList(commandName)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EDIT_WALLET, (treeItem: WalletTreeItem) => editWalletCommand(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.REMOVE_WALLET, (treeItem: WalletTreeItem) => removeWallet(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DELETE_IDENTITY, (treeItem: IdentityTreeItem) => deleteIdentity(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.ASSOCIATE_WALLET, (treeItem: GatewayDissociatedTreeItem) => associateWallet(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.DISSOCIATE_WALLET, (treeItem: GatewayAssociatedTreeItem) => dissociateWallet(treeItem)));
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.EXPORT_WALLET, (treeItem?: WalletTreeItem) => exportWallet(treeItem)));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_HOME_PAGE, async () => {
+            const homeView: HomeView = new HomeView(context);
+            await homeView.openView(true);
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_SAMPLE_PAGE, async (repoName: string, sampleName: string) => {
+            const sampleView: SampleView = new SampleView(context, repoName, sampleName);
+            await sampleView.openView(false);
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_GALLERY, async () => {
+            const tutorialGalleryView: TutorialGalleryView = new TutorialGalleryView(context);
+            await tutorialGalleryView.openView(false);
+        }));
+
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_TUTORIAL_PAGE, async (repoName: string, tutorialName: string) => {
+            const tutorialView: TutorialView = new TutorialView(repoName, tutorialName);
+            await tutorialView.openView();
+        }));
+
+        context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e: any) => {
+
+            if (e.affectsConfiguration(SettingConfigurations.FABRIC_GATEWAYS) || e.affectsConfiguration(SettingConfigurations.FABRIC_RUNTIME) || e.affectsConfiguration(SettingConfigurations.FABRIC_WALLETS) || e.affectsConfiguration(SettingConfigurations.FABRIC_ENVIRONMENTS)) {
+                try {
+                    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+                    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS);
+                    await vscode.commands.executeCommand(ExtensionCommands.REFRESH_WALLETS);
+                } catch (error) {
+                    // ignore error this only happens in tests
+                }
+            }
+        }));
+
+        vscode.debug.onDidChangeActiveDebugSession(async (e: vscode.DebugSession) => {
+            // Listen for any changes to the debug state.
+            if (e) {
+                await vscode.commands.executeCommand('setContext', 'blockchain-debug', true);
+                if (e.configuration.env && e.configuration.env.CORE_CHAINCODE_ID_NAME) {
+                    const smartContractName: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[0];
+                    const smartContractVersion: string = e.configuration.env.CORE_CHAINCODE_ID_NAME.split(':')[1];
+                    const instantiatedSmartContract: { name: string, version: string } = await FabricDebugConfigurationProvider.getInstantiatedChaincode(smartContractName);
+
+                    if (!instantiatedSmartContract) {
+                        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.INSTANTIATE_SMART_CONTRACT);
+                    } else if (smartContractVersion !== instantiatedSmartContract.version) {
+                        await vscode.commands.executeCommand(ExtensionCommands.DEBUG_COMMAND_LIST, ExtensionCommands.UPGRADE_SMART_CONTRACT);
+                    }
+                }
+                // Show any new transactions added to a contract, after 'reload debug' is executed.
+                await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+            } else {
+                // debug has stopped so set the context to false
+                await vscode.commands.executeCommand('setContext', 'blockchain-debug', false);
+            }
+        });
+
+        context = await this.registerOpenPreReqsCommand(context);
+
+        const packageJson: any = ExtensionUtil.getPackageJSON();
+
+        if (packageJson.production === true) {
+            context.subscriptions.push(Reporter.instance());
+        }
+
+        return context;
+    }
+
+    public static async setupLocalRuntime(version: string): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+        outputAdapter.log(LogType.INFO, undefined, 'Migrating local runtime manager');
+        await FabricRuntimeManager.instance().migrate(version);
+
+        outputAdapter.log(LogType.INFO, undefined, 'Initializing local runtime manager');
+        await FabricRuntimeManager.instance().initialize();
+    }
+
+    public static async setupCommands(): Promise<void> {
+        const dependencyManager: DependencyManager = DependencyManager.instance();
+        const hasNativeDependenciesInstalled: boolean = await dependencyManager.hasNativeDependenciesInstalled();
+        if (!hasNativeDependenciesInstalled) {
+            await dependencyManager.installNativeDependencies();
+        }
+
+        const extensionData: ExtensionData = GlobalState.get();
+        await ExtensionUtil.setupLocalRuntime(extensionData.version);
+
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+        const tempCommandRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
+        outputAdapter.log(LogType.INFO, undefined, 'Restoring command registry');
+        tempCommandRegistry.restoreCommands();
+
+        outputAdapter.log(LogType.INFO, undefined, 'Registering commands');
+        const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+        await ExtensionUtil.registerCommands(context);
+
+        outputAdapter.log(LogType.INFO, undefined, 'Execute stored commands in the registry');
+        await tempCommandRegistry.executeStoredCommands();
+    }
+
+    public static async completeActivation(extensionUpdated?: boolean): Promise<void> {
+        const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
+
+        const extensionData: ExtensionData = GlobalState.get();
+
+        if (extensionUpdated === undefined) {
+            extensionUpdated = currentExtensionVersion !== extensionData.version;
+        }
+
+        // Only popup if the extension has been updated.
+        if (extensionUpdated) {
+            outputAdapter.log(LogType.INFO, 'IBM Blockchain Platform Extension activated');
+        } else {
+            outputAdapter.log(LogType.INFO, null, 'IBM Blockchain Platform Extension activated');
+        }
+
+        // Detects if the user wants to have the Home page appear the first time they click on the extension's icon
+        // Only do this if the extension has been updated.
+        const showPage: boolean = vscode.workspace.getConfiguration().get(SettingConfigurations.HOME_SHOW_ON_STARTUP);
+        if (extensionUpdated && showPage) {
+            // Open the Home page
+            await vscode.commands.executeCommand(ExtensionCommands.OPEN_HOME_PAGE);
+        }
+
+        // Remove managedWallet boolean from wallets in user settings
+        // Ensure wallets are stored correctly
+        outputAdapter.log(LogType.INFO, undefined, 'Tidying wallet and gateway settings');
+        await FabricWalletUtil.tidyWalletSettings();
+        // Ensure gateways are stored correctly
+        await FabricGatewayHelper.migrateGateways();
+
+        // Check if there is a newer version of the generator available
+        // This needs to be done as a seperate call to make sure the dependencies have been installed
+        const generatorVersion: string = dependencies['generator-fabric'];
+        if (generatorVersion !== extensionData.generatorVersion) {
+            // If the latest generator version is not equal to the previous used version
+
+            const runtime: FabricRuntime = FabricRuntimeManager.instance().getRuntime();
+            const generated: boolean = await runtime.isGenerated();
+            if (generated) {
+                // We know the user has a generated Fabric using an older version, so we should give the user the option to teardown either now or later
+                const response: boolean = await UserInputUtil.showConfirmationWarningMessage(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`);
+                if (!response) {
+                    // Assume they will teardown later
+                    return;
+                } else {
+                    const isRunning: boolean = await runtime.isRunning();
+
+                    // Teardown and remove generated Fabric
+                    await vscode.commands.executeCommand(ExtensionCommands.TEARDOWN_FABRIC, undefined, true);
+
+                    if (isRunning) {
+                        // Start the Fabric again
+                        await vscode.commands.executeCommand(ExtensionCommands.START_FABRIC);
+                    }
+                }
+            }
+            // If they don't have a Fabric generated, we can update the version immediately
+
+            // Update the generator version
+            extensionData.generatorVersion = generatorVersion;
+            await GlobalState.update(extensionData);
+
+        }
+    }
+
+    /*
+ * Needed for testing
+ */
+    public static getBlockchainGatewayExplorerProvider(): BlockchainGatewayExplorerProvider {
+        return blockchainGatewayExplorerProvider;
+    }
+
+    public static getBlockchainEnvironmentExplorerProvider(): BlockchainEnvironmentExplorerProvider {
+        return blockchainEnvironmentExplorerProvider;
+    }
+
+    public static getBlockchainPackageExplorerProvider(): BlockchainPackageExplorerProvider {
+        return blockchainPackageExplorerProvider;
+    }
+
+    public static getBlockchainWalletExplorerProvider(): BlockchainWalletExplorerProvider {
+        return blockchainWalletExplorerProvider;
+    }
+
+    public static disposeExtension(context: vscode.ExtensionContext): void {
+        // remove old subscriptions
+        context.subscriptions.forEach((item: vscode.Disposable) => {
+            if (item) {
+                item.dispose();
+            }
+        });
+        context.subscriptions.splice(0, context.subscriptions.length);
+    }
+
+    public static async registerOpenPreReqsCommand(context: vscode.ExtensionContext): Promise<vscode.ExtensionContext> {
+        context.subscriptions.push(vscode.commands.registerCommand(ExtensionCommands.OPEN_PRE_REQ_PAGE, async () => {
+            const preReqView: PreReqView = new PreReqView(context);
+            await preReqView.openView(true);
+        }));
+
+        return context;
+    }
 
     private static getExtension(): vscode.Extension<any> {
         return vscode.extensions.getExtension('IBMBlockchain.ibm-blockchain-platform');

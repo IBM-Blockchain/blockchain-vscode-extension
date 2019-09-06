@@ -16,7 +16,6 @@ import * as vscode from 'vscode';
 import * as nls from 'vscode-nls';
 import { Reporter } from '../util/Reporter';
 import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutputAdapter';
-import { CommandUtil } from '../util/CommandUtil';
 import * as path from 'path';
 import { UserInputUtil, LanguageQuickPickItem, LanguageType } from './UserInputUtil';
 import { ExtensionUtil } from '../util/ExtensionUtil';
@@ -29,15 +28,6 @@ const localize: nls.LocalizeFunc = nls.loadMessageBundle();
 export async function createSmartContractProject(): Promise<void> {
     // Create and show output channel
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-
-    // If the user is on a Mac (Darwin)
-    if (process.platform === 'darwin') {
-        // Check to see if Xcode is installed (and assume gcc and other dependencies have been installed)
-        const isInstalled: boolean = await isXcodeInstalled();
-        if (!isInstalled) {
-            return;
-        }
-    }
 
     const chaincodeLanguageOptions: string[] = getChaincodeLanguageOptions();
     const smartContractLanguageOptions: string[] = getSmartContractLanguageOptions();
@@ -141,21 +131,4 @@ function getChaincodeLanguageOptions(): string[] {
 
 function getSmartContractLanguageOptions(): string[] {
      return GeneratorFabricPackageJSON.contractLanguages;
-}
-
-async function isXcodeInstalled(): Promise<any> {
-    const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
-    try {
-        const output: string = await CommandUtil.sendCommand('xcode-select -p'); // Get path of active developer directory
-        if (!output || output.includes('unable to get active developer directory')) {
-            outputAdapter.log(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-            return false;
-        } else {
-            return true;
-        }
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-        return false;
-    }
-
 }

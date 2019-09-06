@@ -14,7 +14,10 @@
 'use strict';
 
 import TelemetryReporter from 'vscode-extension-telemetry';
+
+import { version } from '../../package.json';
 import { ExtensionUtil } from './ExtensionUtil';
+
 export class Reporter {
 
     public static instance(): Reporter {
@@ -43,7 +46,8 @@ export class Reporter {
     }
 
     private getVersion(): string {
-        const packageJson: any = ExtensionUtil.getPackageJSON();
-        return packageJson.version;
+        // We get this directly, as we were hitting an error when trying to call `ExtensionUtil.getPackageJSON()` before the tests even started.
+        // We think this error had to do with the order in which some dependencies were being imported somewhere.
+        return version;
     }
 }

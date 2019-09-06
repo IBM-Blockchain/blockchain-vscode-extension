@@ -19,13 +19,13 @@ import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { WalletTreeItem } from '../../src/explorer/wallets/WalletTreeItem';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
-import * as myExtension from '../../src/extension';
 import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { Reporter } from '../../src/util/Reporter';
 import { LogType } from '../../src/logging/OutputAdapter';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 describe('exportWalletCommand', () => {
@@ -52,7 +52,7 @@ describe('exportWalletCommand', () => {
     });
 
     beforeEach(async () => {
-        const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+        const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
         walletTreeItem = new WalletTreeItem(blockchainWalletExplorerProvider, 'myWallet', [], 0, {name: 'myWallet', walletPath: '/some/path', managedWallet: false});
         workspaceFolder = {
             name: 'myFolder',

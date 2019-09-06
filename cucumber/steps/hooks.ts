@@ -60,6 +60,10 @@ module.exports = function(): any {
                 this.fabricEnvironmentHelper = new EnvironmentHelper(this.mySandbox, this.userInputUtilHelper);
 
                 VSCodeBlockchainOutputAdapter.instance().setConsole(true);
+
+                await TestUtil.storeBypassPreReqs();
+                await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
+
                 await ExtensionUtil.activateExtension();
 
                 try {
@@ -93,7 +97,6 @@ module.exports = function(): any {
                 await TestUtil.storeEnvironmentsConfig();
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, extDir, vscode.ConfigurationTarget.Global);
-
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_REPOSITORIES, [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_WALLETS, [], vscode.ConfigurationTarget.Global);
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [], vscode.ConfigurationTarget.Global);
@@ -106,8 +109,10 @@ module.exports = function(): any {
     });
 
     // TODO: We want an After hook which clears the call count on all of our stubs after each scenario - then we can getCalls/ check call counts
+    // VS Code user setting restores can be found in 'index.ts' after we start the cucumber tests
     this.After(this.timeout, async () => {
         await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_GATEWAY);
         await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+
     });
 };

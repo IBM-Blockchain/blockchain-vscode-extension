@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 
-import { getBlockchainGatewayExplorerProvider } from '../../../src/extension';
 import { BlockchainGatewayExplorerProvider } from '../../../src/explorer/gatewayExplorer';
 import { ExtensionUtil } from '../../../src/util/ExtensionUtil';
 import { TestUtil } from '../../TestUtil';
@@ -55,7 +54,7 @@ describe('NodeTreeItem', () => {
 
         node = FabricNode.newPeer('peer1', 'peer1.org1.example.com', 'http://peer.sample.org', undefined, undefined, undefined);
 
-        provider = getBlockchainGatewayExplorerProvider();
+        provider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
     });
 
     afterEach(async () => {

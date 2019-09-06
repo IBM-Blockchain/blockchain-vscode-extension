@@ -18,7 +18,6 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as myExtension from '../../src/extension';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
@@ -30,6 +29,7 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.should();
 chai.use(sinonChai);
@@ -105,7 +105,7 @@ describe('DeleteGatewayCommand', () => {
         });
 
         it('should test a gateway can be deleted from tree', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 

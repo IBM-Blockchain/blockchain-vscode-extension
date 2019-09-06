@@ -12,7 +12,6 @@
  * limitations under the License.
 */
 'use strict';
-import * as myExtension from '../../src/extension';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as chai from 'chai';
@@ -98,7 +97,7 @@ describe('gatewayExplorer', () => {
         });
 
         it('should register for connected events from the connection manager', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
             const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
@@ -108,7 +107,7 @@ describe('gatewayExplorer', () => {
         });
 
         it('should display errors from connected events', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').rejects(new Error('wow such error'));
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
             const mockConnection: sinon.SinonStubbedInstance<FabricClientConnection> = sinon.createStubInstance(FabricClientConnection);
@@ -121,7 +120,7 @@ describe('gatewayExplorer', () => {
         });
 
         it('should register for disconnected events from the connection manager', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').resolves();
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
@@ -130,7 +129,7 @@ describe('gatewayExplorer', () => {
         });
 
         it('should display errors from disconnected events', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'connect').resolves();
             mySandBox.stub(blockchainGatewayExplorerProvider, 'disconnect').rejects(new Error('wow such error'));
             const connectionManager: FabricConnectionManager = FabricConnectionManager.instance();
@@ -189,7 +188,7 @@ describe('gatewayExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
 
                 allChildren.length.should.equal(5);
@@ -219,7 +218,7 @@ describe('gatewayExplorer', () => {
 
                 await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, gateways, vscode.ConfigurationTarget.Global);
 
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
                 // @ts-ignore
                 mySandBox.stub(blockchainGatewayExplorerProvider, 'createConnectionTree').rejects({ message: 'some error' });
@@ -240,14 +239,14 @@ describe('gatewayExplorer', () => {
 
                 mySandBox.stub(LocalGatewayTreeItem, 'newLocalGatewayTreeItem').rejects({ message: 'some error' });
 
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 await blockchainGatewayExplorerProvider.getChildren();
 
                 logSpy.should.have.been.calledWith(LogType.ERROR, 'Error populating Blockchain Explorer View: some error');
             });
 
             it('should display the managed runtime', async () => {
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const allChildren: BlockchainTreeItem[] = await blockchainGatewayExplorerProvider.getChildren();
                 await new Promise((resolve: any): any => {
                     setTimeout(resolve, 0);
@@ -285,7 +284,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 getConnectionStub.onCall(1).throws({ message: 'cannot connect' });
 
                 const disconnnectStub: sinon.SinonStub = mySandBox.stub(fabricConnectionManager, 'disconnect').returns(undefined);
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 await blockchainGatewayExplorerProvider.getChildren();
 
                 disconnnectStub.should.have.been.calledOnce;
@@ -306,7 +305,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
                 const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider, 'disconnect');
 
@@ -333,7 +332,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
-                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
                 const disconnectSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider, 'disconnect');
 
@@ -430,7 +429,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 fabricConnection.getMetadata.withArgs('legacy-network', 'channelTwo').resolves(null);
 
-                blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+                blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
                 const fabricConnectionManager: FabricConnectionManager = FabricConnectionManager.instance();
                 mySandBox.stub(fabricConnectionManager, 'getConnection').returns((fabricConnection as any) as FabricConnection);
 
@@ -487,7 +486,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
                 registryEntry.managedRuntime = true;
                 registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 getGatewayRegistryEntryStub.returns(registryEntry);
-                allChildren = await myExtension.getBlockchainGatewayExplorerProvider().getChildren();
+                allChildren = await ExtensionUtil.getBlockchainGatewayExplorerProvider().getChildren();
 
                 allChildren.length.should.equal(3);
 
@@ -911,7 +910,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
         it('should test the tree is refreshed when the refresh command is run', async () => {
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -924,7 +923,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
             const mockTreeItem: sinon.SinonStubbedInstance<GatewayTreeItem> = sinon.createStubInstance(GatewayTreeItem);
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -946,7 +945,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
         it('should set the current client connection', async () => {
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -972,7 +971,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
         });
 
         it('should disconnect the client connection', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
 
             const onDidChangeTreeDataSpy: sinon.SinonSpy = mySandBox.spy(blockchainGatewayExplorerProvider['_onDidChangeTreeData'], 'fire');
 
@@ -1005,7 +1004,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
             await vscode.workspace.getConfiguration().update(SettingConfigurations.FABRIC_GATEWAYS, [myGateway], vscode.ConfigurationTarget.Global);
 
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             const allChildren: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
             const result: GatewayTreeItem = blockchainGatewayExplorerProvider.getTreeItem(allChildren[1]) as GatewayTreeItem;

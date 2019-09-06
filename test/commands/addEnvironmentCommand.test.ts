@@ -51,6 +51,7 @@ describe('AddEnvironmentCommand', () => {
     });
 
     after(async () => {
+        await TestUtil.restoreBypassPreReqs();
         await TestUtil.restoreGatewaysConfig();
     });
 

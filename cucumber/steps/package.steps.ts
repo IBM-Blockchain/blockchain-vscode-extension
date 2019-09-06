@@ -45,7 +45,7 @@ module.exports = function(): any {
      * Then
      */
 
-    this.Then('a new package should be created with the name {string} and verison {string}', this.timeout, async (packageName: string, packageVersion: string) => {
+    this.Then('a new package should be created with the name {string} and version {string}', this.timeout, async (packageName: string, packageVersion: string) => {
         const _package: PackageRegistryEntry = await PackageRegistry.instance().get(packageName, packageVersion);
         _package.should.exist;
     });

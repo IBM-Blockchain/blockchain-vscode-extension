@@ -25,7 +25,6 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
-import * as myExtension from '../../src/extension';
 import { NodesTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodesTreeItem';
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { Reporter } from '../../src/util/Reporter';
@@ -35,6 +34,7 @@ import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironme
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -96,7 +96,7 @@ describe('createNewIdentityCommand', () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-        const runtimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const runtimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren();
         const nodesTreeItem: NodesTreeItem = allChildren[3] as NodesTreeItem;
         const nodes: BlockchainTreeItem[] = await runtimeExplorerProvider.getChildren(nodesTreeItem);

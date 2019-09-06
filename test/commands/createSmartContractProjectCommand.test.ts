@@ -36,7 +36,6 @@ chai.use(sinonChai);
 describe('CreateSmartContractProjectCommand', () => {
     // suite variables
     const mySandBox: sinon.SinonSandbox = sinon.createSandbox();
-    let sendCommandStub: sinon.SinonStub;
     let logSpy: sinon.SinonSpy;
     let quickPickStub: sinon.SinonStub;
     let showInputBoxStub: sinon.SinonStub;
@@ -52,8 +51,6 @@ describe('CreateSmartContractProjectCommand', () => {
     });
 
     beforeEach(async () => {
-        sendCommandStub = mySandBox.stub(CommandUtil, 'sendCommand');
-        sendCommandStub.withArgs('xcode-select -p').resolves('path');
         mySandBox.stub(CommandUtil, 'sendCommandWithOutputAndProgress');
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
         quickPickStub = mySandBox.stub(vscode.window, 'showQuickPick');
@@ -330,84 +327,6 @@ describe('CreateSmartContractProjectCommand', () => {
         quickPickStub.should.have.been.calledOnce;
         browseStub.should.not.have.been.called;
         logSpy.should.have.been.calledWith(LogType.ERROR, 'Invalid asset name, it should only contain lowercase and uppercase letters.');
-    });
-
-    it('should check if Mac (Darwin) devices have Xcode installed', async () => {
-        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
-
-        mySandBox.stub(process, 'platform').value('darwin');
-
-        quickPickStub.onCall(0).resolves('JavaScript');
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        executeCommandStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-
-        sendCommandStub.should.have.been.calledWith('xcode-select -p');
-        logSpy.should.not.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-    });
-
-    it('should error if Xcode check returns undefined', async () => {
-        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
-
-        mySandBox.stub(process, 'platform').value('darwin');
-
-        sendCommandStub.withArgs('xcode-select -p').resolves('');
-        quickPickStub.onCall(0).resolves('JavaScript');
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        executeCommandStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-
-        sendCommandStub.should.have.been.calledWith('xcode-select -p');
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-    });
-
-    it('should error if Xcode check returns an error message', async () => {
-        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
-
-        mySandBox.stub(process, 'platform').value('darwin');
-
-        sendCommandStub.withArgs('xcode-select -p').resolves('xcode-select: error: unable to get active developer directory, use `sudo xcode-select --switch path/to/Xcode.app` to set one (or see `man xcode-select`)');
-        quickPickStub.onCall(0).resolves('JavaScript');
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        executeCommandStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-
-        sendCommandStub.should.have.been.calledWith('xcode-select -p');
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-    });
-
-    it('should error if Xcode check throws error', async () => {
-        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
-
-        mySandBox.stub(process, 'platform').value('darwin');
-        const error: Error = new Error('xcode-select: error: unable to get active developer directory, use `sudo xcode-select --switch path/to/Xcode.app` to set one (or see `man xcode-select`');
-        sendCommandStub.withArgs('xcode-select -p').throws(error);
-        quickPickStub.onCall(0).resolves('JavaScript');
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        executeCommandStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-
-        sendCommandStub.should.have.been.calledWith('xcode-select -p');
-        logSpy.should.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
-    });
-
-    it('should ignore Xcode check if system isn\'t Mac (Darwin)', async () => {
-        mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').resolves();
-
-        mySandBox.stub(process, 'platform').value('win32');
-
-        quickPickStub.onCall(0).resolves('JavaScript');
-
-        await vscode.commands.executeCommand(ExtensionCommands.CREATE_SMART_CONTRACT_PROJECT);
-        executeCommandStub.should.have.been.calledOnce;
-        executeCommandStub.should.have.not.been.calledWith('vscode.openFolder');
-
-        sendCommandStub.should.not.have.been.calledWith('xcode-select -p');
-        logSpy.should.not.have.been.calledWith(LogType.ERROR, 'Xcode and the Command Line Tools are required to install smart contract dependencies');
     });
 
 }); // end of createFabricCommand tests

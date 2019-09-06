@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { TestUtil } from '../TestUtil';
 import * as chai from 'chai';
@@ -55,7 +54,7 @@ describe('openNewTerminal', () => {
 
     beforeEach(async () => {
         await ExtensionUtil.activateExtension();
-        const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         node = FabricNode.newPeer('peer0.org1.example.com', 'peer0.org1.example.com', 'grpc://localhost:7051', 'local_fabric_wallet', 'admin', 'Org1MSP');
         node.container_name = 'fabricvscodelocalfabric_peer0.org1.example.com';
 

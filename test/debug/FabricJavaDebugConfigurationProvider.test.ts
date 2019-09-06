@@ -28,10 +28,10 @@ import { UserInputUtil } from '../../src/commands/UserInputUtil';
 import { FabricJavaDebugConfigurationProvider } from '../../src/debug/FabricJavaDebugConfigurationProvider';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { Reporter } from '../../src/util/Reporter';
-import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { GlobalState } from '../../src/util/GlobalState';
 
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
@@ -135,7 +135,7 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             sendTelemetryEventStub = mySandbox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
-            mySandbox.stub(ExtensionUtil, 'getExtensionContext').returns({
+            mySandbox.stub(GlobalState, 'getExtensionContext').returns({
                 globalState: {
                     get: mySandbox.stub().returns({
                         generatorVersion: '0.0.36'

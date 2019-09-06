@@ -147,6 +147,9 @@ export async function run(testsRoot: string, clb: (error: any, failures?: number
         await TestUtil.restoreExtensionDirectoryConfig();
         await TestUtil.restoreRepositoriesConfig();
         await TestUtil.restoreWalletsConfig();
+        await TestUtil.restoreEnvironmentsConfig();
+        await TestUtil.restoreBypassPreReqs();
+
         await fs.remove(path.join(__dirname, '..', '..', '..', 'cucumber', 'tmp', 'contracts'));
 
         await fs.ensureFileSync(path.join(__dirname, '..', '..', 'cucumber', 'cucumber-report.json'));

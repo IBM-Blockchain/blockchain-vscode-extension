@@ -18,7 +18,6 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
-import * as myExtension from '../../src/extension';
 import { TestUtil } from '../TestUtil';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
@@ -35,6 +34,7 @@ import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable no-unused-expression
 const should: Chai.Should = chai.should();
@@ -96,7 +96,7 @@ describe('DissociateWalletCommand', () => {
         });
 
         it('should test a wallet can be dissociated from a gateway using the tree', async () => {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             const gateways: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
             const gatewayTreeItem: GatewayAssociatedTreeItem = gateways[0] as GatewayAssociatedTreeItem;
 

@@ -25,7 +25,6 @@ import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManage
 import { UserInputUtil, LanguageType } from '../../src/commands/UserInputUtil';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
-import * as myExtension from '../../src/extension';
 import { ChannelTreeItem } from '../../src/explorer/model/ChannelTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricClientConnection } from '../../src/fabric/FabricClientConnection';
@@ -37,7 +36,7 @@ import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchai
 import { LogType } from '../../src/logging/OutputAdapter';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { ContractTreeItem } from '../../src/explorer/model/ContractTreeItem';
-import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION } from '../../src/util/ExtensionUtil';
+import { FABRIC_CLIENT_VERSION, FABRIC_NETWORK_VERSION, ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { InstantiatedUnknownTreeItem } from '../../src/explorer/model/InstantiatedUnknownTreeItem';
 
 const should: Chai.Should = chai.should();
@@ -265,7 +264,7 @@ describe('testSmartContractCommand', () => {
                 data: { name: 'wagonwheel', channel: 'myEnglishChannel', version: '0.0.1' }
             });
             // Explorer provider stuff
-            blockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            blockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             allChildren = await blockchainGatewayExplorerProvider.getChildren();
             const channelChildren: Array<ChannelTreeItem> = await blockchainGatewayExplorerProvider.getChildren(allChildren[2]) as Array<ChannelTreeItem>;
             chaincodes = channelChildren[0].chaincodes;

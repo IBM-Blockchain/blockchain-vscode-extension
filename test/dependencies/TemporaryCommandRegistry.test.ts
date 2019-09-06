@@ -24,7 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 
 chai.should();
 chai.use(sinonChai);
-
+const should: Chai.Should = chai.should();
 // tslint:disable no-unused-expression
 describe('TemporaryCommandRegistry Tests', () => {
 
@@ -44,20 +44,68 @@ describe('TemporaryCommandRegistry Tests', () => {
         mySandBox.restore();
     });
 
-    it('should delay execution of commands until after commands have been restored', async () => {
-        const commandSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
+    it('should delay execution of commands', async () => {
+
+        const numberOfCommands: number = ExtensionUtil.getPackageJSON().actualActivationEvents.onCommand.length;
+
+        const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand');
+        registerCommandStub.returns(new vscode.Disposable((): void => { return; }));
+        registerCommandStub.yields(undefined); // Somehow this works alongside the return
         const tempRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
 
-        const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
+        tempRegistry.createTempCommands(true);
 
-        tempRegistry.createTempCommands();
-
-        await vscode.commands.executeCommand(ExtensionCommands.REFRESH_GATEWAYS);
+        tempRegistry['delayExecution'].should.equal(true);
+        should.not.exist(tempRegistry['alternativeCommand']);
+        registerCommandStub.callCount.should.equal(numberOfCommands - 1);
+        tempRegistry['tempCommands'].length.should.deep.equal(numberOfCommands - 1); // Should register all but the 'Open PreReq' command
 
         tempRegistry.restoreCommands();
-        await myExtension.registerCommands(context);
+
+        registerCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+        tempRegistry['delayedCommandsToExecute'].size.should.equal(numberOfCommands - 1);
+        tempRegistry['tempCommands'].should.deep.equal([]);
+
+        const executeStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+
+        await tempRegistry.executeStoredCommands();
+        executeStub.callCount.should.equal(numberOfCommands - 1);
+        tempRegistry['delayedCommandsToExecute'].size.should.equal(0);
+
+    });
+
+    it('should not delay execution of commands', async () => {
+        const numberOfCommands: number = ExtensionUtil.getPackageJSON().actualActivationEvents.onCommand.length;
+
+        const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand');
+        registerCommandStub.returns(new vscode.Disposable((): void => { return; }));
+        registerCommandStub.yields(undefined); // Somehow this works alongside the return
+        const tempRegistry: TemporaryCommandRegistry = TemporaryCommandRegistry.instance();
+
+        const executeStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand').resolves();
+
+        tempRegistry.createTempCommands(false, 'some.otherCommand');
+
+        tempRegistry['delayExecution'].should.equal(false);
+        tempRegistry['alternativeCommand'].should.equal('some.otherCommand');
+        registerCommandStub.callCount.should.equal(numberOfCommands - 1);
+        tempRegistry['tempCommands'].length.should.deep.equal(numberOfCommands - 1); // Should register all but the 'Open PreReq' command
+        executeStub.callCount.should.equal(numberOfCommands - 1);
+        executeStub.should.have.been.calledWith('some.otherCommand');
+
+        executeStub.reset();
+        tempRegistry.restoreCommands();
+
+        registerCommandStub.should.not.have.been.calledWith(ExtensionCommands.OPEN_PRE_REQ_PAGE);
+        tempRegistry['delayedCommandsToExecute'].size.should.equal(0);
+        tempRegistry['tempCommands'].should.deep.equal([]);
+
+        executeStub.callCount.should.equal(0);
+
+        executeStub.reset();
         await tempRegistry.executeStoredCommands();
 
-        commandSpy.should.have.been.calledTwice;
+        executeStub.callCount.should.equal(0);
+        tempRegistry['delayedCommandsToExecute'].size.should.equal(0);
     });
 });

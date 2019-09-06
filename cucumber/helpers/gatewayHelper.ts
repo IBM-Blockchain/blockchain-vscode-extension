@@ -20,7 +20,6 @@ import * as fs from 'fs-extra';
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as myExtension from '../../src/extension';
 import { UserInputUtilHelper } from './userInputUtilHelper';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
@@ -37,6 +36,7 @@ import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironme
 import { FabricEnvironmentRegistry } from '../../src/fabric/FabricEnvironmentRegistry';
 import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 import { FabricNode, FabricNodeType } from '../../src/fabric/FabricNode';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -52,7 +52,7 @@ export class GatewayHelper {
     }
 
     public async createGateway(name: string, fromEnvironment: boolean, environmentName?: string): Promise<void> {
-        const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+        const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
         const treeItem: any = treeItems.find((item: any) => {

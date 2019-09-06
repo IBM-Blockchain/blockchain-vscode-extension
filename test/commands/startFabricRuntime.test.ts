@@ -13,7 +13,6 @@
 */
 
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
@@ -67,7 +66,7 @@ describe('startFabricRuntime', () => {
         sandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(mockRuntime);
         blockchainLogsOutputSpy = sandbox.spy(VSCodeBlockchainOutputAdapter.instance(), 'show');
 
-        const provider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const provider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const children: BlockchainTreeItem[] = await provider.getChildren();
         runtimeTreeItem = children.find((child: BlockchainTreeItem) => child instanceof RuntimeTreeItem) as RuntimeTreeItem;
         commandStub = sandbox.stub(vscode.commands, 'executeCommand').callThrough();

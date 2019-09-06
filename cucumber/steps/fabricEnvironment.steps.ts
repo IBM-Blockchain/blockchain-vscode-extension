@@ -17,12 +17,12 @@ import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import { FabricRuntimeManager } from '../../src/fabric/FabricRuntimeManager';
 import { FabricRuntime } from '../../src/fabric/FabricRuntime';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { NodeTreeItem } from '../../src/explorer/runtimeOps/connectedTree/NodeTreeItem';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -120,7 +120,7 @@ module.exports = function(): any {
     });
 
     this.When("I open the terminal for node '{string}'", this.timeout, async (nodeType: string) => {
-        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+        const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
         const allTreeItems: any[] = await blockchainRuntimeExplorerProvider.getChildren();
         const nodeItems: NodeTreeItem[] = await blockchainRuntimeExplorerProvider.getChildren(allTreeItems[3]) as Array<NodeTreeItem>;
 

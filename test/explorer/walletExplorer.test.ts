@@ -15,7 +15,6 @@
 // tslint:disable no-var-requires
 const { Certificate } = require('@fidm/x509');
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -41,6 +40,7 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricCertificate } from '../../src/fabric/FabricCertificate';
 import { IFabricWallet } from '../../src/fabric/IFabricWallet';
 import { FabricWalletRegistry } from '../../src/fabric/FabricWalletRegistry';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.should();
@@ -69,7 +69,7 @@ describe('walletExplorer', () => {
 
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-        blockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+        blockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
         runtimeWalletEntry = new FabricWalletRegistryEntry({
             name: FabricWalletUtil.LOCAL_WALLET,
             walletPath: '/some/local/path',

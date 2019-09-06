@@ -16,11 +16,11 @@
 import * as chai from 'chai';
 import * as sinonChai from 'sinon-chai';
 import * as chaiAsPromised from 'chai-as-promised';
-import * as myExtension from '../../src/extension';
 import { BlockchainWalletExplorerProvider } from '../../src/explorer/walletExplorer';
 import { BlockchainGatewayExplorerProvider } from '../../src/explorer/gatewayExplorer';
 import { BlockchainEnvironmentExplorerProvider } from '../../src/explorer/environmentExplorer';
 import { BlockchainPackageExplorerProvider } from '../../src/explorer/packageExplorer';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 // tslint:disable:no-unused-expression
 
@@ -38,10 +38,10 @@ module.exports = function(): any {
     this.Then(/^there (should|shouldn't) be an? (environment connected |installed smart contract |instantiated smart contract |Channels |Node |Organizations |identity )?tree item with a label '(.*?)' in the '(Smart Contracts|Fabric Environments|Fabric Gateways|Fabric Wallets)' panel( for item)?( .*)?$/, this.timeout, async (shouldOrshouldnt: string, child: string, label: string, panel: string, thing2: string, thing: string) => {
         let treeItems: any[];
         if (panel === 'Smart Contracts') {
-            const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+            const blockchainPackageExplorerProvider: BlockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
             treeItems = await blockchainPackageExplorerProvider.getChildren();
         } else if (panel === 'Fabric Environments') {
-            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = myExtension.getBlockchainEnvironmentExplorerProvider();
+            const blockchainRuntimeExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             if (!child) {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             } else if (child.includes('environment connected')) {
@@ -69,10 +69,10 @@ module.exports = function(): any {
                 treeItems = await blockchainRuntimeExplorerProvider.getChildren();
             }
         } else if (panel === 'Fabric Gateways') {
-            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+            const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
             treeItems = await blockchainGatewayExplorerProvider.getChildren();
         } else if (panel === 'Fabric Wallets') {
-            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = myExtension.getBlockchainWalletExplorerProvider();
+            const blockchainWalletExplorerProvider: BlockchainWalletExplorerProvider = ExtensionUtil.getBlockchainWalletExplorerProvider();
             treeItems = await blockchainWalletExplorerProvider.getChildren();
             if (child && child.includes('identity') && thing && thing2) {
                 const walletIndex: number = treeItems.findIndex((item: any) => {

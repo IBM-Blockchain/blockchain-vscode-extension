@@ -12,26 +12,28 @@
  * limitations under the License.
 */
 'use strict';
+// tslint:disable: no-console
 
 import { ExtensionUtil } from '../src/util/ExtensionUtil';
-import * as myExtension from '../src/extension';
 import * as vscode from 'vscode';
 import * as fs from 'fs-extra';
 import { SettingConfigurations } from '../SettingConfigurations';
 import { SinonSandbox, SinonStub } from 'sinon';
 import { UserInputUtil } from '../src/commands/UserInputUtil';
 import { FabricRuntimeUtil } from '../src/fabric/FabricRuntimeUtil';
+import { GlobalState, ExtensionData } from '../src/util/GlobalState';
 
 export class TestUtil {
     static async setupTests(sandbox: SinonSandbox): Promise<void> {
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, true, vscode.ConfigurationTarget.Global);
 
         if (!ExtensionUtil.isActive()) {
             const showConfirmationWarningMessage: SinonStub = sandbox.stub(UserInputUtil, 'showConfirmationWarningMessage');
             showConfirmationWarningMessage.withArgs(`The ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} configuration is out of date and must be torn down before updating. Do you want to teardown your ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME} now?`).resolves(false);
             await ExtensionUtil.activateExtension();
         } else {
-            const context: vscode.ExtensionContext = ExtensionUtil.getExtensionContext();
-            await myExtension.registerCommands(context);
+            const context: vscode.ExtensionContext = GlobalState.getExtensionContext();
+            await ExtensionUtil.registerCommands(context);
         }
     }
     static async storeExtensionDirectoryConfig(): Promise<void> {
@@ -94,6 +96,23 @@ export class TestUtil {
         await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, this.HOME_STARTUP, vscode.ConfigurationTarget.Global);
     }
 
+    static async storeBypassPreReqs(): Promise<void> {
+        this.BYPASS_PREREQS = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_BYPASS_PREREQS);
+        console.log('Storing bypass prereqs:', this.BYPASS_PREREQS);
+    }
+    static async restoreBypassPreReqs(): Promise<void> {
+        console.log('Restoring bypass prereqs to settings:', this.BYPASS_PREREQS);
+        await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_BYPASS_PREREQS, this.BYPASS_PREREQS, vscode.ConfigurationTarget.Global);
+    }
+
+    static async storeGlobalState(): Promise<void> {
+        this.GLOBAL_STATE = GlobalState.get();
+    }
+
+    static async restoreGlobalState(): Promise<void> {
+        await GlobalState.update(this.GLOBAL_STATE);
+    }
+
     static async deleteTestFiles(deletePath: string): Promise<void> {
         try {
             await fs.remove(deletePath);
@@ -111,4 +130,6 @@ export class TestUtil {
     private static USER_WALLETS_CONFIG: any;
     private static USER_REPOSITORIES: any;
     private static HOME_STARTUP: any;
+    private static BYPASS_PREREQS: any;
+    private static GLOBAL_STATE: ExtensionData;
 }

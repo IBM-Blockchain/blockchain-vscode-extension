@@ -14,7 +14,6 @@
 'use strict';
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as myExtension from '../../src/extension';
 import * as chai from 'chai';
 import * as sinon from 'sinon';
 import * as sinonChai from 'sinon-chai';
@@ -25,6 +24,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 
 chai.use(sinonChai);
 chai.should();
@@ -53,7 +53,7 @@ describe('packageExplorer', () => {
 
     beforeEach(async () => {
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
-        blockchainPackageExplorerProvider = myExtension.getBlockchainPackageExplorerProvider();
+        blockchainPackageExplorerProvider = ExtensionUtil.getBlockchainPackageExplorerProvider();
         await vscode.workspace.getConfiguration().update(SettingConfigurations.EXTENSION_DIRECTORY, testDir, true);
     });
 

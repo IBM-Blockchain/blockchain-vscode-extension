@@ -16,7 +16,6 @@
 import * as path from 'path';
 import * as sinon from 'sinon';
 import * as vscode from 'vscode';
-import * as myExtension from '../../src/extension';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { BlockchainTreeItem } from '../../src/explorer/model/BlockchainTreeItem';
@@ -72,7 +71,7 @@ describe('exportConnectionProfileCommand', () => {
         await gatewayRegistry.clear();
         await gatewayRegistry.add(gatewayRegistryEntry);
 
-        const provider: BlockchainGatewayExplorerProvider = myExtension.getBlockchainGatewayExplorerProvider();
+        const provider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
         const allChildren: BlockchainTreeItem[] = await provider.getChildren();
 
         gatewayTreeItem = allChildren[1] as GatewayTreeItem;

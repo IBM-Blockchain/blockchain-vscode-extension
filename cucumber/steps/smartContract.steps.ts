@@ -65,7 +65,7 @@ module.exports = function(): any {
             // Actually write to the package.json
             const fileContents: Buffer = await fs.readFile(path.join(contractDirectory, 'package.json'));
             const packageObject: any = JSON.parse(fileContents.toString());
-            packageObject.verison = version;
+            packageObject.version = version;
             const packageJsonString: string = JSON.stringify(packageObject, null, 4);
             return fs.writeFile(path.join(contractDirectory, 'package.json'), packageJsonString, 'utf8');
         }
