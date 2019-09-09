@@ -190,12 +190,15 @@ describe('environmentExplorer', () => {
                 children[2].label.should.equal('peer1.org1.example.com   ⚠');
                 children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
+                children[2].tooltip.should.equal(peerNode.name);
                 children[3].label.should.equal('orderer.example.com   ⚠');
                 children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[3].tooltip.should.equal(ordererNode.name);
                 children[4].label.should.equal('ca1.org1.example.com   ⚠');
                 children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[4].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+                children[4].tooltip.should.equal(caNode.name);
             });
 
             it('should display setup tree if not setup with orderer cluster name', async () => {
@@ -234,12 +237,15 @@ describe('environmentExplorer', () => {
                 children[2].label.should.equal('peer1.org1.example.com   ⚠');
                 children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
+                children[2].tooltip.should.equal(peerNode.name);
                 children[3].label.should.equal('Ordering Service   ⚠');
                 children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[3].tooltip.should.equal(ordererNode.cluster_name);
                 children[4].label.should.equal('ca1.org1.example.com   ⚠');
                 children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[4].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+                children[4].tooltip.should.equal(caNode.name);
             });
 
             it('should display setup tree with multiple ordering services', async () => {
@@ -280,15 +286,19 @@ describe('environmentExplorer', () => {
                 children[2].label.should.equal('peer1.org1.example.com   ⚠');
                 children[2].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[2].command.arguments.should.deep.equal([environmentRegistry, peerNode]);
+                children[2].tooltip.should.equal(peerNode.name);
                 children[3].label.should.equal('Ordering Service   ⚠');
                 children[3].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[3].command.arguments.should.deep.equal([environmentRegistry, ordererNode]);
+                children[3].tooltip.should.equal(ordererNode.cluster_name);
                 children[4].label.should.equal('Another Ordering Service   ⚠');
                 children[4].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[4].command.arguments.should.deep.equal([environmentRegistry, ordererNode2]);
+                children[4].tooltip.should.equal(ordererNode2.cluster_name);
                 children[5].label.should.equal('ca1.org1.example.com   ⚠');
                 children[5].command.command.should.equal(ExtensionCommands.ASSOCIATE_IDENTITY_NODE);
                 children[5].command.arguments.should.deep.equal([environmentRegistry, caNode]);
+                children[5].tooltip.should.equal(caNode.name);
             });
 
             it('should connect if all setup', async () => {
@@ -509,30 +519,40 @@ describe('environmentExplorer', () => {
                 peerOne.contextValue.should.equal('blockchain-peer-item');
                 peerOne.label.should.equal('peerOne');
                 peerOne.node.api_url.should.equal('grpc://localhost:7051');
+                let tooltip: string = `Name: ${peerOne.node.name}\nMSPID: ${peerOne.node.msp_id}\nAssociated Identity:\n${peerOne.node.identity}`;
+                peerOne.tooltip.should.equal(tooltip);
 
                 const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
                 peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
                 peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+                tooltip = `Name: ${peerTwo.node.name}\nMSPID: ${peerTwo.node.msp_id}\nAssociated Identity:\n${peerTwo.node.identity}`;
+                peerTwo.tooltip.should.equal(tooltip);
 
                 const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
                 ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
                 ca.label.should.equal('ca-name');
                 ca.node.api_url.should.equal('http://localhost:7054');
+                tooltip = `Name: ${ca.node.name}\nAssociated Identity:\n${ca.node.identity}`;
+                ca.tooltip.should.equal(tooltip);
 
                 const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
                 orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer.label.should.equal('orderer1');
                 orderer.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer.node.name}\nMSPID: ${orderer.node.msp_id}\nAssociated Identity:\n${orderer.node.identity}`;
+                orderer.tooltip.should.equal(tooltip);
 
                 const orderer2: OrdererTreeItem = items[4] as OrdererTreeItem;
                 orderer2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer2.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer2.label.should.equal('orderer2');
                 orderer2.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer2.node.name}\nMSPID: ${orderer2.node.msp_id}\nAssociated Identity:\n${orderer2.node.identity}`;
+                orderer2.tooltip.should.equal(tooltip);
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
@@ -561,30 +581,40 @@ describe('environmentExplorer', () => {
                 peerOne.contextValue.should.equal('blockchain-peer-item');
                 peerOne.label.should.equal('peerOne');
                 peerOne.node.api_url.should.equal('grpc://localhost:7051');
+                let tooltip: string = `Name: ${peerOne.node.name}\nMSPID: ${peerOne.node.msp_id}\nAssociated Identity:\n${peerOne.node.identity}`;
+                peerOne.tooltip.should.equal(tooltip);
 
                 const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
                 peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
                 peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+                tooltip = `Name: ${peerTwo.node.name}\nMSPID: ${peerTwo.node.msp_id}\nAssociated Identity:\n${peerTwo.node.identity}`;
+                peerTwo.tooltip.should.equal(tooltip);
 
                 const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
                 ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
                 ca.label.should.equal('ca-name');
                 ca.node.api_url.should.equal('http://localhost:7054');
+                tooltip = `Name: ${ca.node.name}\nAssociated Identity:\n${ca.node.identity}`;
+                ca.tooltip.should.equal(tooltip);
 
                 const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
                 orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer.label.should.equal('orderer1');
                 orderer.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer.node.name}\nMSPID: ${orderer.node.msp_id}\nAssociated Identity:\n${orderer.node.identity}`;
+                orderer.tooltip.should.equal(tooltip);
 
                 const orderer2: OrdererTreeItem = items[4] as OrdererTreeItem;
                 orderer2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer2.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer2.label.should.equal('orderer2');
                 orderer2.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer2.node.name}\nMSPID: ${orderer2.node.msp_id}\nAssociated Identity:\n${orderer2.node.identity}`;
+                orderer2.tooltip.should.equal(tooltip);
 
                 const importNodes: ImportNodesTreeItem = items[5] as ImportNodesTreeItem;
                 importNodes.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
@@ -612,24 +642,32 @@ describe('environmentExplorer', () => {
                 peerOne.contextValue.should.equal('blockchain-peer-item');
                 peerOne.label.should.equal('peerOne');
                 peerOne.node.api_url.should.equal('grpc://localhost:7051');
+                let tooltip: string = `Name: ${peerOne.node.name}\nMSPID: ${peerOne.node.msp_id}\nAssociated Identity:\n${peerOne.node.identity}`;
+                peerOne.tooltip.should.equal(tooltip);
 
                 const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
                 peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
                 peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+                tooltip = `Name: ${peerTwo.node.name}\nMSPID: ${peerTwo.node.msp_id}\nAssociated Identity:\n${peerTwo.node.identity}`;
+                peerTwo.tooltip.should.equal(tooltip);
 
                 const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
                 ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
                 ca.label.should.equal('ca-name');
                 ca.node.api_url.should.equal('http://localhost:7054');
+                tooltip = `Name: ${ca.node.name}\nAssociated Identity:\n${ca.node.identity}`;
+                ca.tooltip.should.equal(tooltip);
 
                 const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
                 orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer.label.should.equal('my ordering service');
                 orderer.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer.node.cluster_name}\nMSPID: ${orderer.node.msp_id}\nAssociated Identity:\n${orderer.node.identity}`;
+                orderer.tooltip.should.equal(tooltip);
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
@@ -655,30 +693,40 @@ describe('environmentExplorer', () => {
                 peerOne.contextValue.should.equal('blockchain-peer-item');
                 peerOne.label.should.equal('peerOne');
                 peerOne.node.api_url.should.equal('grpc://localhost:7051');
+                let tooltip: string = `Name: ${peerOne.node.name}\nMSPID: ${peerOne.node.msp_id}\nAssociated Identity:\n${peerOne.node.identity}`;
+                peerOne.tooltip.should.equal(tooltip);
 
                 const peerTwo: PeerTreeItem = items[1] as PeerTreeItem;
                 peerTwo.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 peerTwo.contextValue.should.equal('blockchain-peer-item');
                 peerTwo.label.should.equal('peerTwo');
                 peerTwo.node.api_url.should.equal('grpc://localhost:8051');
+                tooltip = `Name: ${peerTwo.node.name}\nMSPID: ${peerTwo.node.msp_id}\nAssociated Identity:\n${peerTwo.node.identity}`;
+                peerTwo.tooltip.should.equal(tooltip);
 
                 const ca: CertificateAuthorityTreeItem = items[2] as CertificateAuthorityTreeItem;
                 ca.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 ca.contextValue.should.equal('blockchain-runtime-certificate-authority-item');
                 ca.label.should.equal('ca-name');
                 ca.node.api_url.should.equal('http://localhost:7054');
+                tooltip = `Name: ${ca.node.name}\nAssociated Identity:\n${ca.node.identity}`;
+                ca.tooltip.should.equal(tooltip);
 
                 const orderer: OrdererTreeItem = items[3] as OrdererTreeItem;
                 orderer.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer.label.should.equal('my ordering service');
                 orderer.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer.node.cluster_name}\nMSPID: ${orderer.node.msp_id}\nAssociated Identity:\n${orderer.node.identity}`;
+                orderer.tooltip.should.equal(tooltip);
 
                 const orderer2: OrdererTreeItem = items[4] as OrdererTreeItem;
                 orderer2.collapsibleState.should.equal(vscode.TreeItemCollapsibleState.None);
                 orderer2.contextValue.should.equal('blockchain-runtime-orderer-item');
                 orderer2.label.should.equal('my other ordering service');
                 orderer2.node.api_url.should.equal('grpc://localhost:7050');
+                tooltip = `Name: ${orderer2.node.cluster_name}\nMSPID: ${orderer2.node.msp_id}\nAssociated Identity:\n${orderer2.node.identity}`;
+                orderer2.tooltip.should.equal(tooltip);
 
                 logSpy.should.not.have.been.calledWith(LogType.ERROR);
             });
