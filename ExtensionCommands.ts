@@ -24,6 +24,7 @@ export class ExtensionCommands {
 
     // ENVIRONMENT VIEW
     static readonly ADD_ENVIRONMENT: string = 'environmentExplorer.addEnvironmentEntry';
+    static readonly IMPORT_NODES_TO_ENVIRONMENT: string = 'environmentExplorer.importNodesEntry';
     static readonly DELETE_ENVIRONMENT: string = 'environmentExplorer.deleteEnvironmentEntry';
     static readonly ASSOCIATE_IDENTITY_NODE: string = 'environmentExplorer.associateIdentityNodeEntry';
     static readonly CONNECT_TO_ENVIRONMENT: string = 'environmentExplorer.connectEntry';

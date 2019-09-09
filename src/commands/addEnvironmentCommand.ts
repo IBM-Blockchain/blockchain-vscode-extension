@@ -20,13 +20,9 @@ import { LogType } from '../logging/OutputAdapter';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
-import * as fs from 'fs-extra';
-import * as path from 'path';
-import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricNode } from '../fabric/FabricNode';
-import { FabricEnvironment } from '../fabric/FabricEnvironment';
+import { ExtensionCommands } from '../../ExtensionCommands';
 
-export async function addEnvironment(): Promise<{} | void> {
+export async function addEnvironment(): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     try {
         outputAdapter.log(LogType.INFO, undefined, 'Add environment');
@@ -43,76 +39,11 @@ export async function addEnvironment(): Promise<{} | void> {
             throw new Error('An environment with this name already exists.');
         }
 
-        const quickPickItems: string[] = [UserInputUtil.BROWSE_LABEL];
-        const openDialogOptions: vscode.OpenDialogOptions = {
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: true,
-            openLabel: 'Select',
-            filters: {
-                'Node Files': ['json']
-            }
-        };
-
-        const nodeUris: vscode.Uri[] = [];
-        let addMore: boolean = true;
-        do {
-            const selectedNodeUris: vscode.Uri[] = await UserInputUtil.browse('Select all the Fabric node (JSON) files you want to import', quickPickItems, openDialogOptions, true) as vscode.Uri[];
-
-            if (selectedNodeUris) {
-                nodeUris.push(...selectedNodeUris);
-            }
-
-            if (!nodeUris || nodeUris.length === 0) {
-                return;
-            }
-
-            const addMoreString: string = await UserInputUtil.addMoreNodes(`${nodeUris.length} JSON file(s) added successfully`);
-            if (addMoreString === UserInputUtil.ADD_MORE_NODES) {
-                addMore = true;
-            } else if (addMoreString === UserInputUtil.DONE_ADDING_NODES) {
-                addMore = false;
-            } else {
-                // cancelled so exit
-                return;
-            }
-        } while (addMore);
-
-        const dirPath: string = await vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY) as string;
-        const homeExtDir: string = UserInputUtil.getDirPath(dirPath);
-        const environmentPath: string = path.join(homeExtDir, 'environments', environmentName, 'nodes');
-
-        await fs.ensureDir(environmentPath);
-        let addedAllNodes: boolean = true;
-        for (const nodeUri of nodeUris) {
-            try {
-                let nodes: FabricNode | Array<FabricNode> = await fs.readJson(nodeUri.fsPath);
-                if (!Array.isArray(nodes)) {
-                    nodes = [nodes];
-                }
-
-                const environment: FabricEnvironment = new FabricEnvironment(environmentName);
-                for (const node of nodes) {
-                    await FabricNode.validateNode(node);
-                    await environment.updateNode(node);
-                }
-            } catch (error) {
-                addedAllNodes = false;
-                outputAdapter.log(LogType.ERROR, `Error importing node file ${nodeUri.fsPath}: ${error.message}`, `Error importing node file ${nodeUri.fsPath}: ${error.toString()}`);
-            }
-        }
-
-        // check if any nodes were added
-        const newEnvironment: FabricEnvironment = new FabricEnvironment(environmentName);
-        const newNodes: FabricNode[] = await newEnvironment.getNodes();
-        if (newNodes.length === 0) {
-            await fs.remove(environmentPath);
-
-            throw new Error('no nodes were added');
-        }
-
         const fabricEnvironmentEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
         fabricEnvironmentEntry.name = environmentName;
+
+        const addedAllNodes: boolean = await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, fabricEnvironmentEntry, true) as boolean;
+
         await fabricEnvironmentRegistry.add(fabricEnvironmentEntry);
 
         if (addedAllNodes) {

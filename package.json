@@ -66,6 +66,7 @@
             "aPackagesExplorer.importSmartContractPackageEntry",
             "aPackagesExplorer.refreshEntry",
             "environmentExplorer.addEnvironmentEntry",
+            "environmentExplorer.importNodesEntry",
             "environmentExplorer.deleteEnvironmentEntry",
             "environmentExplorer.associateIdentityNodeEntry",
             "environmentExplorer.connectEntry",
@@ -273,6 +274,11 @@
                     "light": "resources/light/add_light.svg",
                     "dark": "resources/dark/add.svg"
                 },
+                "category": "IBM Blockchain Platform"
+            },
+            {
+                "command": "environmentExplorer.importNodesEntry",
+                "title": "Import nodes into environment",
                 "category": "IBM Blockchain Platform"
             },
             {

@@ -188,6 +188,9 @@ Here is an example of a peer with `TLS` enabled, please note the `pem` property 
 ##### Associating identities with nodes
 After creating an environment the next step to enable a connection is to associate each node with an identity. To do this click on the name of the environment you just created in the `Fabric Environments` panel. You wil then see each of the nodes that need some setup. Click on each one to associate an identity with that node. The identity must be an admin identity for the node.
 
+##### Importing more nodes
+You can import more nodes to an existing environment by connecting to the environment, expand `nodes` and then click on `+ Import nodes`. 
+
 ### Install and Instantiate smart contract packages
 Deploying a smart contract package is a two step process: install the package on a peer and instantiate it on a channel. Run the `Install Smart Contract` command, followed by the `Instantiate Smart Contract` command to deploy your smart contract package on the `Local Fabric` runtime. The deployed smart contracts are listed in the `Fabric Environments` panel.
 
@@ -305,6 +308,7 @@ The IBM Blockchain Platform extension provides an explorer and commands accessib
 | Export Wallet | Export a wallet to use outside VS Code |
 | Generate Smart Contract Tests | Create functional level test files for single or multiple contracts |
 | Import a Package | Import a smart contract package |
+| Import nodes into environment | Import more nodes into an environment |
 | Install Smart Contract | Install a smart contract package onto a Local Fabric runtime peer |
 | Instantiate Smart Contract | Instantiate an installed smart contract package onto a channel |
 | Open New Terminal | Open a new terminal on a specified Fabric node (peer, orderer, and fabric-ca-client CLIs) |
