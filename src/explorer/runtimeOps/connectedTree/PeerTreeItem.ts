@@ -16,12 +16,13 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../../BlockchainExplorerProvider';
 import { NodeTreeItem } from './NodeTreeItem';
 import { FabricNode } from '../../../fabric/FabricNode';
+import { FabricEnvironmentRegistryEntry } from '../../../fabric/FabricEnvironmentRegistryEntry';
 
 export class PeerTreeItem extends NodeTreeItem {
 
     contextValue: string = 'blockchain-peer-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly tooltip: string, node: FabricNode, public readonly command?: vscode.Command) {
-        super(provider, peerName, tooltip, node, command);
+    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly tooltip: string, environmentRegsitryEntry: FabricEnvironmentRegistryEntry, node: FabricNode, public readonly command?: vscode.Command) {
+        super(provider, peerName, tooltip, environmentRegsitryEntry, node, command);
     }
 }

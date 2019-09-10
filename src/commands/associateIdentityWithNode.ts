@@ -30,7 +30,7 @@ import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthori
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
 import { FabricWalletGeneratorFactory } from '../fabric/FabricWalletGeneratorFactory';
 
-export async function associateIdentityWithNode(environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode): Promise<any> {
+export async function associateIdentityWithNode(replace: boolean = false, environmentRegistryEntry: FabricEnvironmentRegistryEntry, node: FabricNode): Promise<any> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, 'associate identity with node');
 
@@ -41,7 +41,11 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
             // If called from command palette
             const environments: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
             if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `Add an environment to associate identities with nodes. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
+                if (!replace) {
+                    outputAdapter.log(LogType.ERROR, `Add an environment to associate identities with nodes. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
+                } else {
+                    outputAdapter.log(LogType.ERROR, `No Environments found to use for replacing the identity associated with a node  ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be editted.`);
+                }
                 return;
             }
 
@@ -52,7 +56,13 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
 
             environmentRegistryEntry = chosenEnvironment.data;
 
-            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a node to associate an identity with', environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER]);
+            let chooseNodeMessage: string = 'Choose a node to associate an identity with';
+
+            if (replace) {
+                chooseNodeMessage = 'Choose a node to replace the identity';
+            }
+
+            const chosenNode: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick(chooseNodeMessage, environmentRegistryEntry.name, [FabricNodeType.CERTIFICATE_AUTHORITY, FabricNodeType.ORDERER, FabricNodeType.PEER], true);
             if (!chosenNode) {
                 return;
             }
@@ -63,7 +73,9 @@ export async function associateIdentityWithNode(environmentRegistryEntry: Fabric
         let walletRegistryEntry: FabricWalletRegistryEntry;
         let walletMessage: string;
 
-        if (node.type === FabricNodeType.PEER) {
+        if (replace) {
+            walletMessage = 'Which wallet is the admin identity in?';
+        } else if (node.type === FabricNodeType.PEER) {
             walletMessage = `An admin identity for "${node.msp_id}" is required to perform installs. Which wallet is it in?`;
         } else if (node.type === FabricNodeType.ORDERER) {
             walletMessage = `An admin identity for "${node.msp_id}" is required to perform instantiates. Which wallet is it in?`;

@@ -2038,6 +2038,21 @@ describe('UserInputUtil', () => {
                 });
         });
 
+        it('should allow the user to select a node with associated identity', async () => {
+            quickPickStub.resolves({ data: nodes[0] });
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true);
+            node.data.should.equal(nodes[0]);
+            quickPickStub.should.have.been.calledOnceWithExactly([
+                { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
+                { label: 'orderer.example.com', data: nodes[2], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[2].wallet}` },
+                { label: 'orderer1.example.com', data: nodes[3], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[3].wallet}` },
+            ], {
+                    ignoreFocusOut: false,
+                    canPickMany: false,
+                    placeHolder: 'Gimme a node'
+                });
+        });
+
         it('should not show quick pick if only one node', async () => {
             nodes = [peerNode];
             getNodesStub.resolves(nodes);
@@ -2070,6 +2085,22 @@ describe('UserInputUtil', () => {
             quickPickStub.should.have.been.calledOnceWithExactly([
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'myCluster', data: nodes[2] }
+            ], {
+                    ignoreFocusOut: false,
+                    canPickMany: false,
+                    placeHolder: 'Gimme a node'
+                });
+        });
+
+        it('should show cluster name with associated identity', async () => {
+            ordererNode.cluster_name = 'myCluster';
+            ordererNode1.cluster_name = 'myCluster';
+            quickPickStub.resolves({ data: nodes[0] });
+            const node: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Gimme a node', FabricRuntimeUtil.LOCAL_FABRIC, [FabricNodeType.PEER, FabricNodeType.ORDERER], true);
+            node.data.should.equal(nodes[0]);
+            quickPickStub.should.have.been.calledOnceWithExactly([
+                { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
+                { label: 'myCluster', data: nodes[2], description: `Associated with identity: ${nodes[2].identity} in wallet: ${nodes[2].wallet}` }
             ], {
                     ignoreFocusOut: false,
                     canPickMany: false,

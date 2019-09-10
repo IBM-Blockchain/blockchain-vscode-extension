@@ -173,12 +173,12 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             };
 
             if (node.type === FabricNodeType.PEER) {
-                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, node.name, node.name, node, command);
+                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, node.name, node.name, environmentTreeItem.environmentRegistryEntry, node, command);
                 tree.push(peerTreeItem);
             }
 
             if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
-                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, node.name, node.name, node, command);
+                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, node.name, node.name, environmentTreeItem.environmentRegistryEntry, node, command);
                 tree.push(certificateAuthorityTreeItem);
             }
 
@@ -186,10 +186,10 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 if (node.cluster_name) {
                     const foundTreeItem: BlockchainTreeItem = tree.find((treeItem: OrdererTreeItem) => treeItem.node && treeItem.node.type === FabricNodeType.ORDERER && node.cluster_name === treeItem.node.cluster_name);
                     if (!foundTreeItem) {
-                        tree.push(new OrdererTreeItem(this, node.cluster_name, node.cluster_name, node, command));
+                        tree.push(new OrdererTreeItem(this, node.cluster_name, node.cluster_name, environmentTreeItem.environmentRegistryEntry, node, command));
                     }
                 } else {
-                    tree.push(new OrdererTreeItem(this, node.name, node.name, node, command));
+                    tree.push(new OrdererTreeItem(this, node.name, node.name, environmentTreeItem.environmentRegistryEntry, node, command));
                 }
             }
         }
@@ -297,13 +297,14 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
         const tree: Array<BlockchainTreeItem> = [];
 
         try {
-            const connection: IFabricEnvironmentConnection = await FabricEnvironmentManager.instance().getConnection();
+            const connection: IFabricEnvironmentConnection = FabricEnvironmentManager.instance().getConnection();
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             const peerNames: Array<string> = connection.getAllPeerNames();
 
             for (const peerName of peerNames) {
                 const node: FabricNode = connection.getNode(peerName);
                 const tooltip: string = `Name: ${node.name}\nMSPID: ${node.msp_id}\nAssociated Identity:\n${node.identity}`;
-                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, peerName, tooltip, node);
+                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, peerName, tooltip, environmentRegistryEntry, node);
                 tree.push(peerTreeItem);
             }
 
@@ -312,7 +313,7 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
             for (const certificateAuthorityName of certificateAuthorityNames) {
                 const node: FabricNode = connection.getNode(certificateAuthorityName);
                 const tooltip: string = `Name: ${node.name}\nAssociated Identity:\n${node.identity}`;
-                const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName, tooltip, node);
+                const caTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, certificateAuthorityName, tooltip, environmentRegistryEntry, node);
                 tree.push(caTreeItem);
             }
 
@@ -324,11 +325,11 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                     const foundTreeItem: BlockchainTreeItem = tree.find((treeItem: OrdererTreeItem) => node.type === FabricNodeType.ORDERER && node.cluster_name === treeItem.node.cluster_name);
                     if (!foundTreeItem) {
                         const tooltip: string = `Name: ${node.cluster_name}\nMSPID: ${node.msp_id}\nAssociated Identity:\n${node.identity}`;
-                        tree.push(new OrdererTreeItem(this, node.cluster_name, tooltip, node));
+                        tree.push(new OrdererTreeItem(this, node.cluster_name, tooltip, environmentRegistryEntry, node));
                     }
                 } else {
                     const tooltip: string = `Name: ${node.name}\nMSPID: ${node.msp_id}\nAssociated Identity:\n${node.identity}`;
-                    tree.push(new OrdererTreeItem(this, node.name, tooltip, node));
+                    tree.push(new OrdererTreeItem(this, node.name, tooltip, environmentRegistryEntry, node));
                 }
             }
 

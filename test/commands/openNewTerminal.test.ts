@@ -63,7 +63,7 @@ describe('openNewTerminal', () => {
         fabricEnvironmentRegistryEntry.managedRuntime = true;
 
         const tooltip: string = `Name: ${node.name} \n MSPID: ${node.msp_id} \n Associated Identity: \n ${node.identity}`;
-        nodeItem = new TestNodeTreeItem(provider, node.name, tooltip, node);
+        nodeItem = new TestNodeTreeItem(provider, node.name, tooltip, fabricEnvironmentRegistryEntry, node);
         mockTerminal = {
             show: sinon.stub()
         };
