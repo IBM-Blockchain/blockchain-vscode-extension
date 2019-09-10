@@ -20,8 +20,8 @@ import { NodeTreeItem } from './NodeTreeItem';
 export class OrdererTreeItem extends NodeTreeItem {
     contextValue: string = 'blockchain-runtime-orderer-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly node: FabricNode, public readonly command?: vscode.Command) {
-        super(provider, name, node, command);
+    constructor(provider: BlockchainExplorerProvider, public readonly name: string, public readonly tooltip: string, public readonly node: FabricNode, public readonly command?: vscode.Command) {
+        super(provider, name, tooltip, node, command);
 
     }
 }

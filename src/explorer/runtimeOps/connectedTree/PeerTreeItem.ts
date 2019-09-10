@@ -21,7 +21,7 @@ export class PeerTreeItem extends NodeTreeItem {
 
     contextValue: string = 'blockchain-peer-item';
 
-    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, node: FabricNode, public readonly command?: vscode.Command) {
-        super(provider, peerName, node, command);
+    constructor(provider: BlockchainExplorerProvider, public readonly peerName: string, public readonly tooltip: string, node: FabricNode, public readonly command?: vscode.Command) {
+        super(provider, peerName, tooltip, node, command);
     }
 }

@@ -23,7 +23,7 @@ export abstract class NodeTreeItem extends BlockchainTreeItem {
 
     private orginalLabel: string;
 
-    constructor(provider: BlockchainExplorerProvider, label: string, public readonly node: FabricNode, public readonly command?: vscode.Command) {
+    constructor(provider: BlockchainExplorerProvider, label: string, public readonly tooltip: string, public readonly node: FabricNode, public readonly command?: vscode.Command) {
         super(provider, label, vscode.TreeItemCollapsibleState.None);
 
         this.orginalLabel = label;

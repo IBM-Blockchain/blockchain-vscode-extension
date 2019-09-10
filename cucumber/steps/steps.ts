@@ -99,7 +99,7 @@ module.exports = function(): any {
         }
     });
 
-    this.Then("the tree item should have a tooltip equal to '{string}'", this.timeout, async (tooltipValue: string) => {
+    this.Then(/the tree item should have a tooltip equal to '(.*)'/, this.timeout, async (tooltipValue: string) => {
         tooltipValue = tooltipValue.replace(/\\n/g, `\n`); // Add line breaks
         this.treeItem.tooltip.should.equal(tooltipValue);
     });
