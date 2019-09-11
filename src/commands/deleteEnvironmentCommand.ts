@@ -23,60 +23,55 @@ import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
 import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { ExtensionCommands } from '../../ExtensionCommands';
 
-export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
+export async function deleteEnvironment(environmentTreeItem: FabricEnvironmentTreeItem, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `delete environment`);
+    let environmentsToDelete: FabricEnvironmentRegistryEntry[];
 
-    try {
-        let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
-        if (!environment) {
-            // If called from command palette
-            // Ask for environment to delete
-            // First check there is at least one that isn't local_fabric
-            const environments: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
-            if (environments.length === 0) {
-                outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
-                return;
-            }
-
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment that you want to delete');
-            if (!chosenEnvironment) {
-                return;
-            }
-
-            environmentRegistryEntry = chosenEnvironment.data;
-        } else {
-            if (environment instanceof FabricEnvironmentTreeItem) {
-                environmentRegistryEntry = environment.environmentRegistryEntry;
-            } else {
-                environmentRegistryEntry = environment;
-            }
+    if (!environmentTreeItem) {
+        // If called from command palette
+        // Ask for environment to delete
+        // First check there is at least one that isn't local_fabric
+        const environments: Array<FabricEnvironmentRegistryEntry> = FabricEnvironmentRegistry.instance().getAll();
+        if (environments.length === 0) {
+            outputAdapter.log(LogType.ERROR, `No environments to delete. ${FabricRuntimeUtil.LOCAL_FABRIC} cannot be deleted.`);
+            return;
         }
 
-        if (!force) {
-            const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the environment. Do you want to continue?`);
-            if (!reallyDoIt) {
-                return;
-            }
+        const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment(s) that you want to delete', true) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+        if (!chosenEnvironment || chosenEnvironment.length === 0) {
+            return;
         }
 
-        const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        environmentsToDelete = chosenEnvironment.map((_environment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>) => {
+            return _environment.data;
+        });
 
-        if (connectedRegistry && connectedRegistry.name === environmentRegistryEntry.name) {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-        }
+    } else {
+        environmentsToDelete = [environmentTreeItem.environmentRegistryEntry];
+    }
 
-        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
-        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name);
+    const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the environment(s). Do you want to continue?`);
+    if (!reallyDoIt) {
+        return;
+    }
+
+    const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+    const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+
+    for (const _environment of environmentsToDelete) {
+        const environmentPath: string = path.join(homeExtDir, 'environments', _environment.name);
         await fs.remove(environmentPath);
 
-        await FabricEnvironmentRegistry.instance().delete(environmentRegistryEntry.name);
-        outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${environmentRegistryEntry.name} environment`);
-    } catch (error) {
-        outputAdapter.log(LogType.ERROR, `Error deleting environment: ${error.message}`, `Error deleting environment: ${error.toString()}`);
+        await FabricEnvironmentRegistry.instance().delete(_environment.name);
+    }
+
+    if (environmentsToDelete.length > 1) {
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted environments`);
+        return;
+    } else {
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${environmentsToDelete[0].name} environment`);
+        return;
     }
 }
