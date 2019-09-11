@@ -38,7 +38,7 @@ export async function editWalletCommand(treeItem: WalletTreeItem): Promise<void>
             return;
         }
 
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet that you want to edit', false);
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet that you want to edit', false, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
         if (!chosenWallet) {
             return;
         }

@@ -37,7 +37,7 @@ export async function deleteIdentity(treeItem: IdentityTreeItem): Promise<void> 
     let identityName: string;
     if (!treeItem) {
         // Called from command palette
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet containing the identity that you want to delete', true);
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose the wallet containing the identity that you want to delete', false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
         if (!chosenWallet) {
             return;
         }

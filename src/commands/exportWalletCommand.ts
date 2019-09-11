@@ -33,7 +33,7 @@ export async function exportWallet(walletTreeItem?: WalletTreeItem): Promise<voi
 
     if (!walletTreeItem) {
         // called from command palette - ask for wallet to export
-        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to export', true);
+        const chosenWallet: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet to export', false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
         if (!chosenWallet) {
             // User cancelled dialog box
             return;

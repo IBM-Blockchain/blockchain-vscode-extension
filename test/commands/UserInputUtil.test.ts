@@ -1737,13 +1737,35 @@ describe('UserInputUtil', () => {
                 label: walletEntryOne.name,
                 data: walletEntryOne
             });
-            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false);
+            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
 
             result.label.should.equal(walletEntryOne.name);
             result.data.should.deep.equal(walletEntryOne);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
+                placeHolder: 'Choose a wallet'
+            });
+        });
+
+        it('should show multiple wallets to select', async () => {
+            quickPickStub.resolves([
+                {
+                label: walletEntryOne.name,
+                data: walletEntryOne
+            }, {
+                label: walletEntryTwo.name,
+                data: walletEntryTwo
+            }]);
+            const results: IBlockchainQuickPickItem<FabricWalletRegistryEntry>[] = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', true, false) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>[];
+
+            results[0].label.should.equal(walletEntryOne.name);
+            results[0].data.should.deep.equal(walletEntryOne);
+            results[1].label.should.equal(walletEntryTwo.name);
+            results[1].data.should.deep.equal(walletEntryTwo);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: true,
                 placeHolder: 'Choose a wallet'
             });
         });
@@ -1759,7 +1781,7 @@ describe('UserInputUtil', () => {
             });
 
             quickPickStub.resolves();
-            await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', true);
+            await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, true);
             quickPickStub.should.have.been.calledWith([
                 { label: localWalletEntry.name, data: localWalletEntry },
                 { label: walletEntryOne.name, data: walletEntryOne },
@@ -1774,7 +1796,7 @@ describe('UserInputUtil', () => {
                 label: walletEntryOne.name,
                 data: walletEntryOne
             });
-            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, true);
+            const result: IBlockchainQuickPickItem<FabricWalletRegistryEntry> = await UserInputUtil.showWalletsQuickPickBox('Choose a wallet', false, false, true) as IBlockchainQuickPickItem<FabricWalletRegistryEntry>;
 
             result.label.should.equal(walletEntryOne.name);
             result.data.should.deep.equal(walletEntryOne);
