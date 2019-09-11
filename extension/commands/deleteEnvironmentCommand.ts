@@ -29,9 +29,9 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 export async function deleteEnvironment(environment: FabricEnvironmentTreeItem | FabricEnvironmentRegistryEntry, force: boolean = false): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
     outputAdapter.log(LogType.INFO, undefined, `delete environment`);
+    let environmentsToDelete: FabricEnvironmentRegistryEntry[];
 
     try {
-        let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
         if (!environment) {
             // If called from command palette
             // Ask for environment to delete
@@ -42,40 +42,52 @@ export async function deleteEnvironment(environment: FabricEnvironmentTreeItem |
                 return;
             }
 
-            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment that you want to delete');
-            if (!chosenEnvironment) {
+            const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[] = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose the environment(s) that you want to delete', true, false) as IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>[];
+            if (!chosenEnvironment || chosenEnvironment.length === 0) {
                 return;
             }
 
-            environmentRegistryEntry = chosenEnvironment.data;
+            environmentsToDelete = chosenEnvironment.map((_environment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>) => {
+                return _environment.data;
+            });
+
         } else {
+
             if (environment instanceof FabricEnvironmentTreeItem) {
-                environmentRegistryEntry = environment.environmentRegistryEntry;
+                environmentsToDelete = [environment.environmentRegistryEntry];
             } else {
-                environmentRegistryEntry = environment;
+                environmentsToDelete = [environment];
             }
         }
 
         if (!force) {
-            const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the environment. Do you want to continue?`);
+            const reallyDoIt: boolean = await UserInputUtil.showConfirmationWarningMessage(`This will remove the environment(s). Do you want to continue?`);
             if (!reallyDoIt) {
                 return;
             }
         }
 
-        const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
-
-        if (connectedRegistry && connectedRegistry.name === environmentRegistryEntry.name) {
-            await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
-        }
-
         const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
         const homeExtDir: string = UserInputUtil.getDirPath(extDir);
-        const environmentPath: string = path.join(homeExtDir, 'environments', environmentRegistryEntry.name);
-        await fs.remove(environmentPath);
 
-        await FabricEnvironmentRegistry.instance().delete(environmentRegistryEntry.name);
-        outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${environmentRegistryEntry.name} environment`);
+        const connectedRegistry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+        for (const _environment of environmentsToDelete) {
+            if (connectedRegistry && connectedRegistry.name === _environment.name) {
+                await vscode.commands.executeCommand(ExtensionCommands.DISCONNECT_ENVIRONMENT);
+            }
+            const environmentPath: string = path.join(homeExtDir, 'environments', _environment.name);
+            await fs.remove(environmentPath);
+
+            await FabricEnvironmentRegistry.instance().delete(_environment.name);
+        }
+
+        if (environmentsToDelete.length > 1) {
+            outputAdapter.log(LogType.SUCCESS, `Successfully deleted environments`);
+            return;
+        } else {
+            outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${environmentsToDelete[0].name} environment`);
+            return;
+        }
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Error deleting environment: ${error.message}`, `Error deleting environment: ${error.toString()}`);
     }
