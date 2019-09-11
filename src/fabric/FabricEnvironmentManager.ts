@@ -16,6 +16,12 @@ import { EventEmitter } from 'events';
 import { IFabricEnvironmentConnection } from './IFabricEnvironmentConnection';
 import { FabricEnvironmentRegistryEntry } from './FabricEnvironmentRegistryEntry';
 
+export enum ConnectedState {
+    CONNECTED,
+    SETUP,
+    DISCONNECTED
+}
+
 export class FabricEnvironmentManager extends EventEmitter {
 
     public static instance(): FabricEnvironmentManager {
@@ -25,6 +31,7 @@ export class FabricEnvironmentManager extends EventEmitter {
     private static _instance: FabricEnvironmentManager = new FabricEnvironmentManager();
     private connection: IFabricEnvironmentConnection;
     private environmentRegistryEntry: FabricEnvironmentRegistryEntry;
+    private state: ConnectedState = ConnectedState.DISCONNECTED;
 
     private constructor() {
         super();
@@ -38,10 +45,15 @@ export class FabricEnvironmentManager extends EventEmitter {
         return this.environmentRegistryEntry;
     }
 
-    public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry): void {
+    public getState(): ConnectedState {
+        return this.state;
+    }
+
+    public connect(connection: IFabricEnvironmentConnection, environmentRegistryEntry: FabricEnvironmentRegistryEntry, state: ConnectedState): void {
         this.connection = connection;
         this.environmentRegistryEntry = environmentRegistryEntry;
-        this.emit('connected', connection);
+        this.state = state;
+        this.emit('connected');
     }
 
     public disconnect(): void {
@@ -53,6 +65,8 @@ export class FabricEnvironmentManager extends EventEmitter {
         if (this.environmentRegistryEntry) {
             this.environmentRegistryEntry = null;
         }
+
+        this.state = ConnectedState.DISCONNECTED;
 
         this.emit('disconnected');
     }
