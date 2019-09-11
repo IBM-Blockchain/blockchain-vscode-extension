@@ -292,13 +292,35 @@ describe('UserInputUtil', () => {
     describe('showGatewayQuickPickBox', () => {
         it('should show connections in the quickpick box', async () => {
             quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
-            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway');
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
 
             result.label.should.equal('myGatewayA');
             result.data.should.deep.equal(gatewayEntryOne);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
                 ignoreFocusOut: false,
                 canPickMany: false,
+                placeHolder: 'Choose a gateway'
+            });
+        });
+
+        it('should show multiple connections in the quickpick box', async () => {
+            quickPickStub.resolves([
+                {
+                label: gatewayEntryOne.name,
+                data: gatewayEntryOne
+            }, {
+                label: gatewayEntryTwo.name,
+                data: gatewayEntryTwo
+            }]);
+            const results: IBlockchainQuickPickItem<FabricGatewayRegistryEntry>[] = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>[];
+
+            results[0].label.should.equal('myGatewayA');
+            results[0].data.should.deep.equal(gatewayEntryOne);
+            results[1].label.should.equal('myGatewayB');
+            results[1].data.should.deep.equal(gatewayEntryTwo);
+            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+                ignoreFocusOut: false,
+                canPickMany: true,
                 placeHolder: 'Choose a gateway'
             });
         });
@@ -313,14 +335,14 @@ describe('UserInputUtil', () => {
             managedRuntime.connectionProfilePath = 'connection.json';
 
             quickPickStub.resolves();
-            await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', true);
+            await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
             quickPickStub.should.have.been.calledWith([{ label: managedRuntime.name, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
         });
 
         it('should show any gateways with an associated wallet (associated gateway)', async () => {
             mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
             quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
-            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
             quickPickStub.should.have.been.calledWith([{ label: gatewayEntryOne.name, data: gatewayEntryOne }], {
                 ignoreFocusOut: false,
                 canPickMany: false,
@@ -333,7 +355,7 @@ describe('UserInputUtil', () => {
         it('should show any gateways with an associated wallet (dissociated gateway)', async () => {
             mySandBox.stub(gatewayRegistry, 'getAll').returns([gatewayEntryOne, gatewayEntryTwo]);
             quickPickStub.resolves({ label: gatewayEntryTwo.name, data: gatewayEntryTwo });
-            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false);
+            const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false, false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
             quickPickStub.should.have.been.calledWith([{ label: gatewayEntryTwo.name, data: gatewayEntryTwo }], {
                 ignoreFocusOut: false,
                 canPickMany: false,

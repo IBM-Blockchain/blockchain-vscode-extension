@@ -38,7 +38,7 @@ export async function editGatewayCommand(treeItem: GatewayTreeItem): Promise<voi
             return;
         }
 
-        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to edit', false);
+        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose the gateway that you want to edit', false, false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
         if (!chosenGateway) {
             return;
         }

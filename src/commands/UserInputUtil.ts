@@ -153,10 +153,10 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(environmentsQuickPickItems, quickPickOptions);
     }
 
-    public static async showGatewayQuickPickBox(prompt: string, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
+    public static async showGatewayQuickPickBox(prompt: string, canPickMany: boolean, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<Array <IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> | IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: false,
-            canPickMany: false,
+            canPickMany: canPickMany,
             placeHolder: prompt
         };
 

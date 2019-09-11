@@ -39,7 +39,7 @@ export async function dissociateWallet(associatedGatewayTreeItem: GatewayAssocia
             return;
         }
 
-        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Pick a gateway to dissociate a wallet for', false, true);
+        const chosenGateway: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Pick a gateway to dissociate a wallet for', false, false, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
         if (!chosenGateway) {
             return;
         }
