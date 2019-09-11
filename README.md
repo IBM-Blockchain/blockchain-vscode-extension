@@ -40,6 +40,10 @@ You can check your installed versions by running the following commands from a t
 - `go version`
 - `java -version`
 
+**If installing Node and npm using a manager such as 'nvm' or 'nodenv', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.**
+
+To open the Prerequisites page again, run the following in the command palette: `View Prerequisites`
+
 Please note: the extension doesn't currently work with the VSCode Remote Development feature, we plan to make this work in the future, follow progress [here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1357). 
 
 ## Smart Contract Development Lifecycle

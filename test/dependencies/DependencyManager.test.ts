@@ -1604,7 +1604,7 @@ describe('DependencyManager Tests', () => {
         it('should not get version of Go if unexpected format is returned', async () => {
             mySandBox.stub(process, 'platform').value('some_other_platform');
 
-            sendCommandStub.withArgs('go version').resolves('go version go-version-1.2.3 x64');
+            sendCommandStub.withArgs('go version').resolves('go version go-version-one.two.three x64');
 
             const result: any = await dependencyManager.getPreReqVersions();
             should.not.exist(result.go.version);
