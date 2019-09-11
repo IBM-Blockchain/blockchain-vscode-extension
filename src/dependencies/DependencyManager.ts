@@ -189,8 +189,8 @@ export class DependencyManager {
         // So we want to handle the optional dependencies last
 
         const dependencies: any = {
-            node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts.' },
-            npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies.' },
+            node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
+            npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
             docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: '>=17.6.2', requiredLabel: '', tooltip: 'Used to download Hyperledger Fabric images and manage containers for the Local Fabric.' },
             dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '', tooltip: 'Used for managing and operating the individual Local Fabric components.' }
         };
@@ -329,8 +329,9 @@ export class DependencyManager {
         try {
             const goResult: string = await CommandUtil.sendCommand('go version'); // Format: go version go1.12.5 darwin/amd64
             if (this.isCommandFound(goResult)) {
-                const goMatchedVersion: string =  goResult.match(/go version go(.*) /)[1]; // Format: X.Y.Z
-                const goVersion: string = semver.valid(goMatchedVersion); // Returns version
+                const goMatchedVersion: string =  goResult.match(/go version go(.*) /)[1]; // Format: X.Y.Z or X.Y
+                const goVersionCoerced: semver.SemVer = semver.coerce(goMatchedVersion); // Format: X.Y.Z
+                const goVersion: string = semver.valid(goVersionCoerced); // Returns version
                 if (goVersion) {
                     dependencies.go.version = goVersion;
                 }
