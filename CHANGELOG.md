@@ -1,5 +1,22 @@
 # IBM Blockchain Platform Extension Change Log
 
+## 1.0.10: September 12th 2019
+
+* Prerequisites page [#967](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/967)
+> When using the extension for the first time, the Prerequisites page will display a list of the required and optional dependencies. This page is also shown any time the extension cannot detect the required dependencies.
+>This page makes it easier to download dependencies, as well as find out which dependencies the extension can detect.
+> If for some reason the extension cannot detect a dependency after installing and clicking `Check again` on the page, please [raise an issue here](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues), and click the `Skip prerequisite check` at the bottom of the page. This will bypass the dependency checking functionality.  
+
+* Render sample page without an internet connection [#1212](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1212)
+* Import nodes to an existing environment [#1331](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1331)
+* Added information about nodes to tooltips [#1093](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1093)
+* Change identity associated with node [#1092](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1092)
+* Remove multiple wallets from command palette [#1065](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1065)
+* Remove multiple gateways from command palette [#1066](https://github.com/IBM-Blockchain/blockchain-vscode-extension/issues/1066)
+
+
+![conga comic](https://congacomic.github.io/assets/img/blockheight-58.png)
+
 ## 1.0.9: September 5th 2019
 
 * Fixed creating a gateway from an environment when no MSPID has been set [#1369](https://github.com/IBM-Blockchain/blockchain-vscode-extension/pull/1369)
