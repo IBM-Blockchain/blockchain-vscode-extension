@@ -659,7 +659,7 @@
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected"
                 },
                 {
                     "command": "environmentExplorer.installSmartContractEntry",
@@ -667,15 +667,15 @@
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-environment-connected && blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.openNewTerminal",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected && blockchain-local-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-environment-connected && blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.instantiateSmartContractEntry",
@@ -703,15 +703,15 @@
                 },
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-runtime-connected && !blockchain-local-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-orderer-item && blockchain-environment-connected && !blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-runtime-connected && !blockchain-local-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-runtime-certificate-authority-item && blockchain-environment-connected && !blockchain-runtime-connected"
                 },
                 {
                     "command": "environmentExplorer.replaceAssociatedIdentityEntry",
-                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-runtime-connected && !blockchain-local-runtime-connected"
+                    "when": "view == environmentExplorer && viewItem == blockchain-peer-item && blockchain-environment-connected && !blockchain-runtime-connected"
                 },
                 {
                     "command": "gatewaysExplorer.editGatewayEntry",

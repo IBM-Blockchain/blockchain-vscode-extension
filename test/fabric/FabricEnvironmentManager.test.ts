@@ -12,7 +12,7 @@
  * limitations under the License.
 */
 
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
 
 import * as chai from 'chai';
 import * as sinon from 'sinon';
@@ -21,6 +21,7 @@ import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentC
 
 const should: Chai.Should = chai.should();
 
+// tslint:disable: no-unused-expression
 describe('FabricEnvironmentManager', () => {
 
     const environmentManager: FabricEnvironmentManager = FabricEnvironmentManager.instance();
@@ -61,20 +62,45 @@ describe('FabricEnvironmentManager', () => {
         it('should store the connection and emit an event', () => {
             const listenerStub: sinon.SinonStub = sinon.stub();
             environmentManager.once('connected', listenerStub);
-            environmentManager.connect((mockEnvironmentConnection as any) as FabricEnvironmentConnection, registryEntry);
+            environmentManager.connect((mockEnvironmentConnection as any) as FabricEnvironmentConnection, registryEntry, ConnectedState.CONNECTED);
             environmentManager.getConnection().should.equal(mockEnvironmentConnection);
             environmentManager.getEnvironmentRegistryEntry().should.equal(registryEntry);
-            listenerStub.should.have.been.calledOnceWithExactly(mockEnvironmentConnection);
+            environmentManager.getState().should.equal(ConnectedState.CONNECTED);
+            listenerStub.should.have.been.calledOnceWithExactly();
         });
     });
 
     describe('#disconnect', () => {
         it('should clear the connection and emit an event', () => {
             const listenerStub: sinon.SinonStub = sinon.stub();
+            environmentManager['connection'] = mockEnvironmentConnection;
+            environmentManager['environmentRegistryEntry'] = registryEntry;
+            environmentManager['state'] = ConnectedState.CONNECTED;
             environmentManager.once('disconnected', listenerStub);
             environmentManager.disconnect();
             should.equal(environmentManager.getConnection(), null);
+            should.equal(environmentManager.getEnvironmentRegistryEntry(), null);
+            environmentManager.getState().should.equal(ConnectedState.DISCONNECTED);
+            mockEnvironmentConnection.disconnect.should.have.been.called;
             listenerStub.should.have.been.calledOnceWithExactly();
+        });
+
+        it('should handle no connectionn and emit an event', () => {
+            const listenerStub: sinon.SinonStub = sinon.stub();
+            environmentManager.once('disconnected', listenerStub);
+            environmentManager.disconnect();
+            should.equal(environmentManager.getConnection(), null);
+            should.equal(environmentManager.getEnvironmentRegistryEntry(), null);
+            environmentManager.getState().should.equal(ConnectedState.DISCONNECTED);
+            listenerStub.should.have.been.calledOnceWithExactly();
+        });
+    });
+
+    describe('#getState', () => {
+        it('should get that state', () => {
+            environmentManager['state'] = ConnectedState.CONNECTED;
+            const result: ConnectedState = environmentManager.getState();
+            result.should.equal(ConnectedState.CONNECTED);
         });
     });
 });

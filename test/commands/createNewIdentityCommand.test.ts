@@ -29,7 +29,7 @@ import { NodesTreeItem } from '../../src/explorer/runtimeOps/connectedTree/Nodes
 import { CertificateAuthorityTreeItem } from '../../src/explorer/runtimeOps/connectedTree/CertificateAuthorityTreeItem';
 import { Reporter } from '../../src/util/Reporter';
 import { FabricNode } from '../../src/fabric/FabricNode';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
@@ -89,7 +89,7 @@ describe('createNewIdentityCommand', () => {
         environmentRegistryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
         mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistryEntry);
-
+        mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
         executeCommandStub = mySandBox.stub(vscode.commands, 'executeCommand');
         executeCommandStub.withArgs(ExtensionCommands.CONNECT_TO_ENVIRONMENT).resolves();
         executeCommandStub.callThrough();

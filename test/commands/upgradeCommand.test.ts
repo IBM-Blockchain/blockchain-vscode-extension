@@ -31,7 +31,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
@@ -129,6 +129,7 @@ describe('UpgradeCommand', () => {
             environmentRegistry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
 
             registryStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getEnvironmentRegistryEntry').returns(environmentRegistry);
+            mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
 
             blockchainRuntimeExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
             allChildren = await blockchainRuntimeExplorerProvider.getChildren();

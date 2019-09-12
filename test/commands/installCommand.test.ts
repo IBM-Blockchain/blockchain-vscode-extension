@@ -31,7 +31,7 @@ import { PeerTreeItem } from '../../src/explorer/runtimeOps/connectedTree/PeerTr
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../../src/logging/VSCodeBlockchainDockerOutputAdapter';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import { FabricRuntimeUtil } from '../../src/fabric/FabricRuntimeUtil';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
@@ -83,7 +83,7 @@ describe('InstallCommand', () => {
             fabricRuntimeMock.getNode.withArgs('peerOne').resolves({ wallet: 'myWallet' });
 
             getRuntimeConnectionStub = mySandBox.stub(FabricEnvironmentManager.instance(), 'getConnection').returns((fabricRuntimeMock as any));
-
+            mySandBox.stub(FabricEnvironmentManager.instance(), 'getState').returns(ConnectedState.CONNECTED);
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
             environmentRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
             environmentRegistryEntry.managedRuntime = true;

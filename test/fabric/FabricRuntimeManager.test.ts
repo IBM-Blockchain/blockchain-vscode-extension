@@ -34,7 +34,7 @@ import { CommandUtil } from '../../src/util/CommandUtil';
 import { version } from '../../package.json';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { SettingConfigurations } from '../../SettingConfigurations';
-import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
 import * as fs from 'fs-extra';
 import * as path from 'path';
@@ -170,7 +170,7 @@ describe('FabricRuntimeManager', () => {
             registryEntry.name = 'myFabric';
             registryEntry.managedRuntime = true;
             registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry);
+            FabricEnvironmentManager.instance().connect(mockConnection, registryEntry, ConnectedState.CONNECTED);
 
             mockRuntime.startLogs.should.not.have.been.called;
         });
