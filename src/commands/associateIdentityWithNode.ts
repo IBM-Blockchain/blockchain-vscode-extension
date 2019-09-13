@@ -24,7 +24,6 @@ import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { IFabricWallet } from '../fabric/IFabricWallet';
 import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
-import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
 import { FabricCertificateAuthorityFactory } from '../fabric/FabricCertificateAuthorityFactory';
 import { IFabricCertificateAuthority } from '../fabric/IFabricCertificateAuthority';
 import { IFabricWalletGenerator } from '../fabric/IFabricWalletGenerator';
@@ -156,14 +155,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
         await environment.updateNode(node);
 
-        // This is weird but need to refresh with the tree item to keep the setup open
-        const environmentTreeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(undefined, environmentRegistryEntry.name, environmentRegistryEntry, {
-            command: ExtensionCommands.CONNECT_TO_ENVIRONMENT,
-            title: '',
-            arguments: [environmentRegistryEntry]
-        });
-
-        vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, environmentTreeItem);
+        vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
         outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${node.identity} from wallet ${node.wallet} with node ${node.name}`);
 
         let askAgain: boolean = true;
@@ -193,7 +185,7 @@ export async function associateIdentityWithNode(replace: boolean = false, enviro
 
                 await environment.updateNode(foundNode);
 
-                vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, environmentTreeItem);
+                vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT, environmentRegistryEntry);
                 outputAdapter.log(LogType.SUCCESS, `Successfully associated identity ${foundNode.identity} from wallet ${foundNode.wallet} with node ${foundNode.name}`);
 
             }

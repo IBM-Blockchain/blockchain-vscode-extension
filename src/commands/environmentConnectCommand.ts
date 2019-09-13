@@ -24,8 +24,7 @@ import * as vscode from 'vscode';
 import { ExtensionCommands } from '../../ExtensionCommands';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
-import { FabricEnvironmentTreeItem } from '../explorer/runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
+import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<void> {
@@ -35,7 +34,6 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
     let fabricEnvironment: FabricEnvironment;
 
     try {
-
         if (!fabricEnvironmentRegistryEntry) {
             const chosenEntry: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose a environment to connect with', true);
             if (!chosenEntry) {
@@ -64,11 +62,9 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
         // need to check if the environment is setup
         const requireSetup: boolean = await fabricEnvironment.requireSetup();
 
-        if (requireSetup && !fabricEnvironmentRegistryEntry.managedRuntime) {
-            const treeItem: FabricEnvironmentTreeItem = new FabricEnvironmentTreeItem(undefined, fabricEnvironmentRegistryEntry.name, fabricEnvironmentRegistryEntry, undefined);
-            await vscode.commands.executeCommand(ExtensionCommands.REFRESH_ENVIRONMENTS, treeItem);
+        if (requireSetup && fabricEnvironmentRegistryEntry.name !== FabricRuntimeUtil.LOCAL_FABRIC) {
+            await FabricEnvironmentManager.instance().connect(undefined, fabricEnvironmentRegistryEntry, ConnectedState.SETUP);
             VSCodeBlockchainOutputAdapter.instance().log(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
-
             return;
         }
 
@@ -84,7 +80,7 @@ export async function fabricEnvironmentConnect(fabricEnvironmentRegistryEntry: F
             return;
         }
 
-        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry);
+        FabricEnvironmentManager.instance().connect(connection, fabricEnvironmentRegistryEntry, ConnectedState.CONNECTED);
 
         let environmentName: string;
         if (fabricEnvironmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {

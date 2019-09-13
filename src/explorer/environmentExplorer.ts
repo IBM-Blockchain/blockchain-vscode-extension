@@ -42,7 +42,7 @@ import { OrdererTreeItem } from './runtimeOps/connectedTree/OrdererTreeItem';
 import { IFabricEnvironmentConnection } from '../fabric/IFabricEnvironmentConnection';
 import { FabricNode, FabricNodeType } from '../fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegistryEntry';
-import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
+import { FabricEnvironmentManager, ConnectedState } from '../fabric/FabricEnvironmentManager';
 import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
 import { FabricEnvironmentTreeItem } from './runtimeOps/disconnectedTree/FabricEnvironmentTreeItem';
@@ -58,8 +58,6 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     // tslint:disable-next-line member-ordering
     private _onDidChangeTreeData: vscode.EventEmitter<any | undefined> = new vscode.EventEmitter<any | undefined>();
 
-    private fabricEnvironmentToSetUp: FabricEnvironmentTreeItem;
-
     // tslint:disable-next-line member-ordering
     readonly onDidChangeTreeData: vscode.Event<any | undefined> = this._onDidChangeTreeData.event;
 
@@ -74,17 +72,10 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
     }
 
     async refresh(element?: BlockchainTreeItem): Promise<void> {
-        if (element && element instanceof FabricEnvironmentTreeItem && !(element instanceof RuntimeTreeItem)) {
-            this.fabricEnvironmentToSetUp = element;
-            // need to do this or won't call get children
-            element = undefined;
-        }
         this._onDidChangeTreeData.fire(element);
     }
 
     async connect(): Promise<void> {
-        // This controls which menu buttons appear
-        await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
         await this.refresh();
     }
 
@@ -119,66 +110,59 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 this.tree = await this.createInstalledTree(element as InstalledTreeItem);
             }
 
-            return this.tree;
-        } else if (this.fabricEnvironmentToSetUp) {
+        } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.SETUP) {
             // need to do identity setup
-            // set back to empty so next time won't go in here
-            const tempTreeItem: FabricEnvironmentTreeItem = this.fabricEnvironmentToSetUp;
-            this.fabricEnvironmentToSetUp = undefined;
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', true);
-            this.tree = await this.setupIdentities(tempTreeItem as FabricEnvironmentTreeItem);
-            return this.tree;
-        } else if (FabricEnvironmentManager.instance().getConnection()) {
+            const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
+
+            this.tree = await this.setupIdentities(environmentRegistryEntry);
+        } else if (FabricEnvironmentManager.instance().getState() === ConnectedState.CONNECTED) {
             const environmentRegistryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (environmentRegistryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
                 await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
-                await vscode.commands.executeCommand('setContext', 'blockchain-local-runtime-connected', true);
             } else {
-                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', true);
-                await vscode.commands.executeCommand('setContext', 'blockchain-local-runtime-connected', false);
+                await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', true);
+                await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
             }
+
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             this.tree = await this.createConnectedTree(environmentRegistryEntry);
         } else {
             await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
             await vscode.commands.executeCommand('setContext', 'blockchain-runtime-connected', false);
-            await vscode.commands.executeCommand('setContext', 'blockchain-local-runtime-connected', false);
+            await vscode.commands.executeCommand('setContext', 'blockchain-environment-connected', false);
+
             this.tree = await this.createConnectionTree();
         }
 
         return this.tree;
     }
 
-    private async setupIdentities(environmentTreeItem: FabricEnvironmentTreeItem): Promise<BlockchainTreeItem[]> {
+    private async setupIdentities(environmentRegistryEntry: FabricEnvironmentRegistryEntry): Promise<BlockchainTreeItem[]> {
         const tree: BlockchainTreeItem[] = [];
 
-        const environment: FabricEnvironment = new FabricEnvironment(environmentTreeItem.label);
+        const environment: FabricEnvironment = new FabricEnvironment(environmentRegistryEntry.name);
 
         const nodes: FabricNode[] = await environment.getNodes(true);
 
-        if (nodes.length === 0) {
-            await vscode.commands.executeCommand('setContext', 'blockchain-environment-setup', false);
-            await vscode.commands.executeCommand(environmentTreeItem.command.command, ...environmentTreeItem.command.arguments);
-            return tree;
-        }
-
-        tree.push(new SetupTreeItem(this, `Setting up: ${environmentTreeItem.label}`));
+        tree.push(new SetupTreeItem(this, `Setting up: ${environmentRegistryEntry.name}`));
         tree.push(new SetupTreeItem(this, ('(Click each node to perform setup)')));
 
         for (const node of nodes) {
             const command: vscode.Command = {
                 command: ExtensionCommands.ASSOCIATE_IDENTITY_NODE,
                 title: '',
-                arguments: [environmentTreeItem.environmentRegistryEntry, node]
+                arguments: [environmentRegistryEntry, node]
             };
 
             if (node.type === FabricNodeType.PEER) {
-                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, node.name, node.name, environmentTreeItem.environmentRegistryEntry, node, command);
+                const peerTreeItem: PeerTreeItem = new PeerTreeItem(this, node.name, node.name, environmentRegistryEntry, node, command);
                 tree.push(peerTreeItem);
             }
 
             if (node.type === FabricNodeType.CERTIFICATE_AUTHORITY) {
-                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, node.name, node.name, environmentTreeItem.environmentRegistryEntry, node, command);
+                const certificateAuthorityTreeItem: CertificateAuthorityTreeItem = new CertificateAuthorityTreeItem(this, node.name, node.name, environmentRegistryEntry, node, command);
                 tree.push(certificateAuthorityTreeItem);
             }
 
@@ -186,10 +170,10 @@ export class BlockchainEnvironmentExplorerProvider implements BlockchainExplorer
                 if (node.cluster_name) {
                     const foundTreeItem: BlockchainTreeItem = tree.find((treeItem: OrdererTreeItem) => treeItem.node && treeItem.node.type === FabricNodeType.ORDERER && node.cluster_name === treeItem.node.cluster_name);
                     if (!foundTreeItem) {
-                        tree.push(new OrdererTreeItem(this, node.cluster_name, node.cluster_name, environmentTreeItem.environmentRegistryEntry, node, command));
+                        tree.push(new OrdererTreeItem(this, node.cluster_name, node.cluster_name, environmentRegistryEntry, node, command));
                     }
                 } else {
-                    tree.push(new OrdererTreeItem(this, node.name, node.name, environmentTreeItem.environmentRegistryEntry, node, command));
+                    tree.push(new OrdererTreeItem(this, node.name, node.name, environmentRegistryEntry, node, command));
                 }
             }
         }

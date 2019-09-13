@@ -36,6 +36,7 @@ import { FabricEnvironmentTreeItem } from '../../src/explorer/runtimeOps/disconn
 import { RuntimeTreeItem } from '../../src/explorer/runtimeOps/disconnectedTree/RuntimeTreeItem';
 import { FabricEnvironment } from '../../src/fabric/FabricEnvironment';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricEnvironmentManager, ConnectedState } from '../../src/fabric/FabricEnvironmentManager';
 
 chai.use(sinonChai);
 // tslint:disable-next-line no-var-requires
@@ -70,7 +71,13 @@ describe('EnvironmentConnectCommand', () => {
         let sendTelemetryEventStub: sinon.SinonStub;
         let requireSetupStub: sinon.SinonStub;
 
+        let connectExplorerStub: sinon.SinonStub;
+        let connectManagerSpy: sinon.SinonSpy;
+
         beforeEach(async () => {
+
+            connectExplorerStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
+            connectManagerSpy = mySandBox.spy(FabricEnvironmentManager.instance(), 'connect');
 
             mockConnection = sinon.createStubInstance(FabricEnvironmentConnection);
             mockConnection.connect.resolves();
@@ -118,62 +125,58 @@ describe('EnvironmentConnectCommand', () => {
         });
 
         describe('non-local fabric', () => {
-            it('should test a fabric environment can be connected to from the command', async () => {
-                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
 
+            let environmentRegistryEntry: FabricEnvironmentRegistryEntry;
+
+            beforeEach(async () => {
+                environmentRegistryEntry = new FabricEnvironmentRegistryEntry();
+                environmentRegistryEntry.name = 'myFabric';
+                environmentRegistryEntry.managedRuntime = false;
+
+                await FabricEnvironmentRegistry.instance().clear();
+                await FabricEnvironmentRegistry.instance().add(environmentRegistryEntry);
+            });
+
+            it('should test a fabric environment can be connected to from the command', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, true);
-                connectStub.should.have.been.called;
+                connectExplorerStub.should.have.been.called;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTED);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.calledWith(LogType.SUCCESS, 'Connected to myFabric');
             });
 
             it('should do nothing if the user cancels choosing a environment', async () => {
-                const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-
                 chooseEnvironmentQuickPick.resolves();
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
-                refreshSpy.callCount.should.equal(1);
-                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
                 mockConnection.connect.should.not.have.been.called;
             });
 
             it('should do nothing if environment requires setup', async () => {
-                const refreshSpy: sinon.SinonSpy = mySandBox.spy(vscode.commands, 'executeCommand');
-
                 requireSetupStub.resolves(true);
 
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
-                refreshSpy.callCount.should.equal(2);
-                refreshSpy.getCall(0).should.have.been.calledWith(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
-                refreshSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS, sinon.match.instanceOf(FabricEnvironmentTreeItem));
+                connectManagerSpy.should.have.been.calledWith(undefined, environmentRegistryEntry, ConnectedState.SETUP);
                 logSpy.should.have.been.calledWith(LogType.IMPORTANT, 'You must complete setup for this environment to enable install, instantiate and register identity operations on the nodes. Click each node in the list to perform the required setup steps');
 
                 mockConnection.connect.should.not.have.been.called;
             });
 
             it('should test that a fabric environment can be connected to from the tree', async () => {
-                const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                registryEntry.name = 'myFabric';
-                registryEntry.managedRuntime = false;
-
-                mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
-                blockchainEnvironmentExplorerProvider['fabricEnvironmentToSetUp'] = undefined;
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
                 const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;
 
-                const connectStub: sinon.SinonStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
-
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnce;
+                connectExplorerStub.should.have.been.calledOnce;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, environmentRegistryEntry, ConnectedState.CONNECTED);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'user environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -186,6 +189,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 mockRuntime.isRunning.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `${error.message}`, `${error.toString()}`);
@@ -202,6 +206,7 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
                 mockRuntime.isRunning.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.called;
                 logSpy.should.have.been.calledTwice;
                 logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, `connecting to fabric environment`);
                 logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error connecting to environment myFabric: ${error.message}`, `Error connecting to environment myFabric: ${error.toString()}`);
@@ -211,23 +216,20 @@ describe('EnvironmentConnectCommand', () => {
         });
 
         describe('local fabric', () => {
-            let connectStub: sinon.SinonStub;
-
             beforeEach(async () => {
                 chooseEnvironmentQuickPick.resolves({
                     label: FabricRuntimeUtil.LOCAL_FABRIC,
                     data: localFabricRegistryEntry
                 });
-
-                connectStub = mySandBox.stub(ExtensionUtil.getBlockchainEnvironmentExplorerProvider(), 'connect');
             });
 
             it('should connect to a managed runtime using a quick pick', async () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
 
-                connectStub.should.have.been.calledOnce;
+                connectExplorerStub.should.have.been.calledOnce;
                 chooseEnvironmentQuickPick.should.have.been.calledWith(sinon.match.string, true);
                 mockConnection.connect.should.have.been.calledOnce;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
                 logSpy.calledWith(LogType.SUCCESS, `Connected to ${FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME}`);
             });
@@ -239,27 +241,24 @@ describe('EnvironmentConnectCommand', () => {
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnce;
+                connectExplorerStub.should.have.been.calledOnce;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
 
             it('should carry on connecting even if setup required', async () => {
-                const registryEntry: FabricEnvironmentRegistryEntry = new FabricEnvironmentRegistryEntry();
-                registryEntry.name = 'myFabric';
-                registryEntry.managedRuntime = true;
-
-                mySandBox.stub(FabricEnvironmentRegistry.instance(), 'getAll').returns([registryEntry]);
                 const blockchainEnvironmentExplorerProvider: BlockchainEnvironmentExplorerProvider = ExtensionUtil.getBlockchainEnvironmentExplorerProvider();
                 const allChildren: Array<BlockchainTreeItem> = await blockchainEnvironmentExplorerProvider.getChildren();
 
-                const myConnectionItem: FabricEnvironmentTreeItem = allChildren[1] as FabricEnvironmentTreeItem;
+                const myConnectionItem: FabricEnvironmentTreeItem = allChildren[0] as FabricEnvironmentTreeItem;
 
                 requireSetupStub.resolves(true);
 
                 await vscode.commands.executeCommand(myConnectionItem.command.command, ...myConnectionItem.command.arguments);
 
-                connectStub.should.have.been.calledOnce;
+                connectExplorerStub.should.have.been.calledOnce;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -275,7 +274,8 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
-                connectStub.should.have.been.calledOnce;
+                connectExplorerStub.should.have.been.calledOnce;
+                connectManagerSpy.should.have.been.calledWith(mockConnection, localFabricRegistryEntry, ConnectedState.CONNECTED);
                 mockConnection.connect.should.have.been.called;
                 sendTelemetryEventStub.should.have.been.calledOnceWithExactly('fabricEnvironmentConnectCommand', { environmentData: 'managed environment', connectEnvironmentIBM: sinon.match.string });
             });
@@ -290,7 +290,8 @@ describe('EnvironmentConnectCommand', () => {
                 await vscode.commands.executeCommand(ExtensionCommands.CONNECT_TO_ENVIRONMENT);
                 executeCommandStub.should.have.been.calledWith(ExtensionCommands.START_FABRIC);
 
-                connectStub.should.not.have.been.called;
+                connectExplorerStub.should.not.have.been.called;
+                connectManagerSpy.should.not.have.been.calledWith;
                 mockConnection.connect.should.not.have.been.called;
                 sendTelemetryEventStub.should.not.have.been.called;
             });

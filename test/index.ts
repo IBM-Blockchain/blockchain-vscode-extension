@@ -68,6 +68,7 @@ export async function run(testsRoot: string, cb: (error: any, failures?: number)
             const coverOptions: ITestRunnerOptions = _readCoverOptions();
             if (coverOptions && coverOptions.enabled) {
                 // Setup coverage pre-test, including post-test hook to report
+                // tslint:disable-next-line: no-use-before-declare
                 const coverageRunner: CoverageRunner = new CoverageRunner(coverOptions, testsRoot);
                 coverageRunner.setupCoverage();
             }
