@@ -270,7 +270,7 @@ export class SampleView extends View {
             }
 
         } else if (fileType === 'applications') {
-            const download: any = this.getApplication(sample, fileName);
+            const download: any = this.getApplication(sample, fileName, language);
             samplePath = download.remote.path;
             branch = download.remote.branch;
             language = download.language;
@@ -320,10 +320,10 @@ export class SampleView extends View {
     }
 
     // Get application from sample
-    private getApplication(sample: any, applicationName: string): any {
+    private getApplication(sample: any, applicationName: string, applicationLanguage: string): any {
         const applications: any[] = sample.category.applications;
         const application: any = applications.find((app: any) => {
-            return app.name === applicationName;
+            return app.name === applicationName && app.language === applicationLanguage;
         });
         return application;
     }
