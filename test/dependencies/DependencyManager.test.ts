@@ -28,6 +28,7 @@ import { LogType } from '../../src/logging/OutputAdapter';
 import Axios from 'axios';
 import { TestUtil } from '../TestUtil';
 import { GlobalState, ExtensionData, DEFAULT_EXTENSION_DATA } from '../../src/util/GlobalState.js';
+import { Dependencies } from '../../src/dependencies/Dependencies';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -365,7 +366,7 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '12',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 }
             };
 
@@ -384,7 +385,7 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
@@ -407,12 +408,12 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '4.0.0',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 }
             };
 
@@ -431,12 +432,12 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
@@ -459,17 +460,17 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
                     version: '16.0.0',
-                    requiredVersion: '>=17.6.2'
+                    requiredVersion: Dependencies.DOCKER_REQUIRED
                 }
             };
 
@@ -488,17 +489,17 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: '>=17.6.2'
+                    requiredVersion: Dependencies.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
@@ -521,22 +522,22 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: '>=17.6.2'
+                    requiredVersion: Dependencies.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.1.2',
-                    requiredVersion: '>=1.14.0'
+                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                 }
             };
 
@@ -555,22 +556,22 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: '>=17.6.2'
+                    requiredVersion: Dependencies.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.21.1',
-                    requiredVersion: '>=1.14.0'
+                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
                     name: 'System Requirements',
@@ -595,22 +596,22 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: '>=17.6.2'
+                    requiredVersion: Dependencies.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.21.1',
-                    requiredVersion: '>=1.14.0'
+                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
                     name: 'System Requirements',
@@ -635,22 +636,22 @@ describe('DependencyManager Tests', () => {
                 node: {
                     name: 'Node.js',
                     version: '8.12.0',
-                    requiredVersion: '8.x || 10.x'
+                    requiredVersion: Dependencies.NODEJS_REQUIRED
                 },
                 npm: {
                     name: 'npm',
                     version: '6.4.1',
-                    requiredVersion: '>=6.0.0'
+                    requiredVersion: Dependencies.NPM_REQUIRED
                 },
                 docker: {
                     name: 'Docker',
                     version: '18.1.2',
-                    requiredVersion: '>=17.6.2'
+                    requiredVersion: Dependencies.DOCKER_REQUIRED
                 },
                 dockerCompose: {
                     name: 'Docker Compose',
                     version: '1.21.1',
-                    requiredVersion: '>=1.14.0'
+                    requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                 },
                 systemRequirements: {
                     name: 'System Requirements',
@@ -674,22 +675,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -718,21 +719,21 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -741,7 +742,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.6',
-                        requiredVersion: '1.0.2'
+                        requiredVersion: Dependencies.OPENSSL_REQUIRED
                     }
                 };
 
@@ -762,22 +763,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -786,7 +787,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.2',
-                        requiredVersion: '1.0.2'
+                        requiredVersion: Dependencies.OPENSSL_REQUIRED
                     },
                     buildTools: {
                         name: 'C++ Build Tools',
@@ -811,22 +812,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -835,7 +836,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.2',
-                        requiredVersion: '1.0.2'
+                        requiredVersion: Dependencies.OPENSSL_REQUIRED
                     },
                     buildTools: {
                         name: 'C++ Build Tools',
@@ -864,22 +865,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -888,7 +889,7 @@ describe('DependencyManager Tests', () => {
                     openssl: {
                         name: 'OpenSSL',
                         version: '1.0.2',
-                        requiredVersion: '1.0.2'
+                        requiredVersion: Dependencies.OPENSSL_REQUIRED
                     },
                     buildTools: {
                         name: 'C++ Build Tools',
@@ -919,22 +920,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -963,22 +964,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1010,22 +1011,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1054,22 +1055,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1078,7 +1079,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '1.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     }
                 };
 
@@ -1099,22 +1100,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1123,7 +1124,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1148,22 +1149,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1172,7 +1173,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1202,22 +1203,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1226,7 +1227,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1235,7 +1236,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.7.1',
-                        requiredVersion: '1.8.x'
+                        requiredVersion: Dependencies.JAVA_REQUIRED
                     }
                 };
 
@@ -1256,22 +1257,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1280,7 +1281,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1289,7 +1290,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: '1.8.x'
+                        requiredVersion: Dependencies.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',
@@ -1314,22 +1315,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1338,7 +1339,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1347,7 +1348,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: '1.8.x'
+                        requiredVersion: Dependencies.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',
@@ -1376,22 +1377,22 @@ describe('DependencyManager Tests', () => {
                     node: {
                         name: 'Node.js',
                         version: '8.12.0',
-                        requiredVersion: '8.x || 10.x'
+                        requiredVersion: Dependencies.NODEJS_REQUIRED
                     },
                     npm: {
                         name: 'npm',
                         version: '6.4.1',
-                        requiredVersion: '>=6.0.0'
+                        requiredVersion: Dependencies.NPM_REQUIRED
                     },
                     docker: {
                         name: 'Docker',
                         version: '18.1.2',
-                        requiredVersion: '>=17.6.2'
+                        requiredVersion: Dependencies.DOCKER_REQUIRED
                     },
                     dockerCompose: {
                         name: 'Docker Compose',
                         version: '1.21.1',
-                        requiredVersion: '>=1.14.0'
+                        requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED
                     },
                     systemRequirements: {
                         name: 'System Requirements',
@@ -1400,7 +1401,7 @@ describe('DependencyManager Tests', () => {
                     go: {
                         name: 'Go',
                         version: '2.0.0',
-                        requiredVersion: '>=1.12.0'
+                        requiredVersion: Dependencies.GO_REQUIRED
                     },
                     goExtension: {
                         name: 'Go Extension',
@@ -1409,7 +1410,7 @@ describe('DependencyManager Tests', () => {
                     java: {
                         name: 'Java OpenJDK 8',
                         version: '1.8.0',
-                        requiredVersion: '1.8.x'
+                        requiredVersion: Dependencies.JAVA_REQUIRED
                     },
                     javaLanguageExtension: {
                         name: 'Java Language Support Extension',

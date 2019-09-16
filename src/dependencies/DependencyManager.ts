@@ -23,6 +23,7 @@ import { VSCodeBlockchainOutputAdapter } from '../logging/VSCodeBlockchainOutput
 import { CommandUtil } from '../util/CommandUtil';
 import { LogType } from '../logging/OutputAdapter';
 import { GlobalState, ExtensionData } from '../util/GlobalState';
+import { Dependencies } from './Dependencies';
 
 export class DependencyManager {
 
@@ -77,15 +78,9 @@ export class DependencyManager {
 
     public isValidDependency(dependency: any): boolean {
         const name: string = dependency.name;
-        if (name === 'Node.js' || name === 'Java OpenJDK 8' || name === 'npm' || name === 'Docker' || name === 'Docker Compose' || name === 'Go') {
+        if (name === 'Node.js' || name === 'Java OpenJDK 8' || name === 'npm' || name === 'Docker' || name === 'Docker Compose' || name === 'Go' || name === 'OpenSSL') {
             if (dependency.version) {
                 return semver.satisfies(dependency.version, dependency.requiredVersion);
-            } else {
-                return false;
-            }
-        } else if (name === 'OpenSSL') {
-            if (dependency.version) {
-                return dependency.version === dependency.requiredVersion;
             } else {
                 return false;
             }
@@ -187,10 +182,10 @@ export class DependencyManager {
         // So we want to handle the optional dependencies last
 
         const dependencies: any = {
-            node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
-            npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
-            docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: '>=17.6.2', requiredLabel: '', tooltip: 'Used to download Hyperledger Fabric images and manage containers for the Local Fabric.' },
-            dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '', tooltip: 'Used for managing and operating the individual Local Fabric components.' }
+            node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing JavaScript and TypeScript smart contracts. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
+            npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '', tooltip: 'Required for installing JavaScript and TypeScript smart contract dependencies. If installing Node and npm using a manager such as \'nvm\' or \'nodenv\', you will need to set the default/global version and restart VS Code for the version to be detected by the Prerequisites page.' },
+            docker: {name: 'Docker', required: true, version: undefined, url: 'https://docs.docker.com/install/#supported-platforms', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '', tooltip: 'Used to download Hyperledger Fabric images and manage containers for the Local Fabric.' },
+            dockerCompose: {name: 'Docker Compose', required: true, version: undefined, url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '', tooltip: 'Used for managing and operating the individual Local Fabric components.' }
         };
 
         // Node
@@ -256,7 +251,7 @@ export class DependencyManager {
         if (process.platform === 'win32') {
             // Windows
 
-            dependencies.openssl = {name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: '>=1.0.2', requiredLabel: undefined};
+            dependencies.openssl = {name: 'OpenSSL', required: true, version: undefined, url: 'http://slproweb.com/products/Win32OpenSSL.html', requiredVersion: Dependencies.OPENSSL_REQUIRED, requiredLabel: 'for Node 8.x and Node 10.x respectively'};
             dependencies.buildTools = {name: 'C++ Build Tools', required: true, version: undefined, url: 'https://github.com/felixrieseberg/windows-build-tools#windows-build-tools', requiredVersion: undefined, requiredLabel: undefined};
             dependencies.dockerForWindows = {name: 'Docker for Windows', id: 'dockerForWindows', complete: undefined, checkbox: true, required: true, text: 'Docker for Windows must be configured to use Linux containers (this is the default)' };
 
@@ -323,7 +318,7 @@ export class DependencyManager {
         // We want to display the optional dependencies last
 
         // Go
-        dependencies.go = {name: 'Go', required: false, version: undefined, url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '', tooltip: 'Required for developing Go smart contracts.' };
+        dependencies.go = {name: 'Go', required: false, version: undefined, url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '', tooltip: 'Required for developing Go smart contracts.' };
         try {
             const goResult: string = await CommandUtil.sendCommand('go version'); // Format: go version go1.12.5 darwin/amd64
             if (this.isCommandFound(goResult)) {
@@ -351,7 +346,7 @@ export class DependencyManager {
         }
 
         // Java
-        dependencies.java = {name: 'Java OpenJDK 8', required: false, version: undefined, url: 'https://adoptopenjdk.net/?variant=openjdk8', requiredVersion: '1.8.x', requiredLabel: 'only', tooltip: 'Required for developing Java smart contracts.' };
+        dependencies.java = {name: 'Java OpenJDK 8', required: false, version: undefined, url: 'https://adoptopenjdk.net/?variant=openjdk8', requiredVersion: Dependencies.JAVA_REQUIRED, requiredLabel: 'only', tooltip: 'Required for developing Java smart contracts.' };
         try {
             // For some reason, the response is going to stderr, so we have to redirect it to stdout.
             const javaResult: string = await CommandUtil.sendCommand('java -version 2>&1'); // Format: openjdk|java version "1.8.0_212"

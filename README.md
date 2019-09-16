@@ -27,7 +27,7 @@ If you are using Windows, you must also ensure the following:
 - You are using Windows 10 Pro or Enterprise and have the Anniversary Update 1607
 - Docker for Windows is configured to use Linux containers (this is the default)
 - You have installed the C++ Build Tools for Windows from [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools#windows-build-tools)
-- You have installed OpenSSL v1.0.2 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
+- You have installed OpenSSL v1.0.2 if using Node 8, or v1.1.1 if using Node 10 from [Win32 OpenSSL](http://slproweb.com/products/Win32OpenSSL.html)
   - Install the normal version, not the version marked as "light"
   - Install the Win32 version into `C:\OpenSSL-Win32` on 32-bit systems
   - Install the Win64 version into `C:\OpenSSL-Win64` on 64-bit systems

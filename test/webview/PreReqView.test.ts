@@ -31,7 +31,7 @@ import { GlobalState, DEFAULT_EXTENSION_DATA, ExtensionData } from '../../src/ut
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { VSCodeBlockchainOutputAdapter } from '../../src/logging/VSCodeBlockchainOutputAdapter';
 import { LogType } from '../../src/logging/OutputAdapter';
-
+import { Dependencies } from '../../src/dependencies/Dependencies';
 const should: Chai.Should = chai.should();
 chai.use(sinonChai);
 
@@ -97,12 +97,12 @@ describe('PreReqView', () => {
 
         it('should show message that all prerequisites have been installed', async () => {
             const getPreReqVersionsStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'getPreReqVersions').resolves({
-                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -121,12 +121,12 @@ describe('PreReqView', () => {
             html.should.contain(`<div id="check-finish-button" class="finish" onclick="finish();">Let's Blockchain!</div>`); // The button should indicate that the dependencies have been installed
             html.should.contain('<span class="prereqs-number">(0)</span>'); // No missing (required) dependencies
 
-            html.should.contain(`"node":{"name":"Node.js","required":true,"version":"8.12.0","url":"https://nodejs.org/en/download/","requiredVersion":"8.x || 10.x","requiredLabel":"only"}`);
-            html.should.contain(`"npm":{"name":"npm","required":true,"version":"6.4.1","url":"https://nodejs.org/en/download/","requiredVersion":">=6.0.0","requiredLabel":""}`);
-            html.should.contain(`"docker":{"name":"Docker","required":true,"version":"17.7.0","url":"https://www.docker.com/get-started","requiredVersion":">=17.6.2","requiredLabel":""}`);
-            html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":">=1.14.0","requiredLabel":""}`);
+            html.should.contain(`"node":{"name":"Node.js","required":true,"version":"8.12.0","url":"https://nodejs.org/en/download/","requiredVersion":"${Dependencies.NODEJS_REQUIRED}","requiredLabel":"only"}`);
+            html.should.contain(`"npm":{"name":"npm","required":true,"version":"6.4.1","url":"https://nodejs.org/en/download/","requiredVersion":"${Dependencies.NPM_REQUIRED}","requiredLabel":""}`);
+            html.should.contain(`"docker":{"name":"Docker","required":true,"version":"17.7.0","url":"https://www.docker.com/get-started","requiredVersion":"${Dependencies.DOCKER_REQUIRED}","requiredLabel":""}`);
+            html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
-            html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":">=1.12.0","requiredLabel":""}`);
+            html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
@@ -136,12 +136,12 @@ describe('PreReqView', () => {
 
         it(`shouldn't show message that prerequisites have been installed`, async () => {
             const getPreReqVersionsStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'getPreReqVersions').resolves({
-                node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: undefined, url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: undefined, url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -161,11 +161,11 @@ describe('PreReqView', () => {
             html.should.contain('<span class="prereqs-number">(2)</span>'); // Missing (required) dependencies
 
             html.should.not.contain(`"node":{"name":"Node.js","required":true,"version"`);
-            html.should.contain(`"npm":{"name":"npm","required":true,"version":"6.4.1","url":"https://nodejs.org/en/download/","requiredVersion":">=6.0.0","requiredLabel":""}`);
+            html.should.contain(`"npm":{"name":"npm","required":true,"version":"6.4.1","url":"https://nodejs.org/en/download/","requiredVersion":"${Dependencies.NPM_REQUIRED}","requiredLabel":""}`);
             html.should.not.contain(`"docker":{"name":"Docker","required":true,"version"`);
-            html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":">=1.14.0","requiredLabel":""}`);
+            html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
-            html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":">=1.12.0","requiredLabel":""}`);
+            html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
             html.should.not.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version"`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
@@ -181,12 +181,12 @@ describe('PreReqView', () => {
             const preReqView: PreReqView = new PreReqView(context);
 
             const dependencies: any = {
-                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -201,12 +201,12 @@ describe('PreReqView', () => {
             html.should.contain(`<div id="check-finish-button" class="finish" onclick="finish();">Let's Blockchain!</div>`); // The button should indicate that the dependencies have been installed
             html.should.contain('<span class="prereqs-number">(0)</span>'); // No missing (required) dependencies
 
-            html.should.contain(`"node":{"name":"Node.js","required":true,"version":"8.12.0","url":"https://nodejs.org/en/download/","requiredVersion":"8.x || 10.x","requiredLabel":"only"}`);
-            html.should.contain(`"npm":{"name":"npm","required":true,"version":"6.4.1","url":"https://nodejs.org/en/download/","requiredVersion":">=6.0.0","requiredLabel":""}`);
-            html.should.contain(`"docker":{"name":"Docker","required":true,"version":"17.7.0","url":"https://www.docker.com/get-started","requiredVersion":">=17.6.2","requiredLabel":""}`);
-            html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":">=1.14.0","requiredLabel":""}`);
+            html.should.contain(`"node":{"name":"Node.js","required":true,"version":"8.12.0","url":"https://nodejs.org/en/download/","requiredVersion":"${Dependencies.NODEJS_REQUIRED}","requiredLabel":"only"}`);
+            html.should.contain(`"npm":{"name":"npm","required":true,"version":"6.4.1","url":"https://nodejs.org/en/download/","requiredVersion":"${Dependencies.NPM_REQUIRED}","requiredLabel":""}`);
+            html.should.contain(`"docker":{"name":"Docker","required":true,"version":"17.7.0","url":"https://www.docker.com/get-started","requiredVersion":"${Dependencies.DOCKER_REQUIRED}","requiredLabel":""}`);
+            html.should.contain(`"dockerCompose":{"name":"Docker Compose","required":true,"version":"1.15.0","url":"https://docs.docker.com/compose/install/","requiredVersion":"${Dependencies.DOCKER_COMPOSE_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"xcode":{"name":"Xcode","required":true,"version":"123","url":"https://apps.apple.com/gb/app/xcode/id497799835"}`);
-            html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":">=1.12.0","requiredLabel":""}`);
+            html.should.contain(`"go":{"name":"Go","required":false,"version":"1.13.0","url":"https://golang.org/dl/","requiredVersion":"${Dependencies.GO_REQUIRED}","requiredLabel":""}`);
             html.should.contain(`"goExtension":{"name":"Go Extension","required":false,"version":"1.0.0","url":"vscode:extension/ms-vscode.Go","requiredVersion":"","requiredLabel":""}`);
             html.should.contain(`"javaLanguageExtension":{"name":"Java Language Support Extension","required":false,"version":"1.0.0","url":"vscode:extension/redhat.java","requiredLabel":""}`);
             html.should.contain(`"javaDebuggerExtension":{"name":"Java Debugger Extension","required":false,"version":"1.0.0","url":"vscode:extension/vscjava.vscode-java-debug","requiredLabel":""}`);
@@ -217,12 +217,12 @@ describe('PreReqView', () => {
         it('should handle error rendering the webview', async () => {
 
             const getPreReqVersionsStub: sinon.SinonStub = mySandBox.stub(DependencyManager.instance(), 'getPreReqVersions').resolves({
-                node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: undefined, url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: undefined, url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: undefined, url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -517,12 +517,12 @@ describe('PreReqView', () => {
         it(`should handle 'check' message where Docker for Windows has been confirmed`, async () => {
 
             const mockDependencies: any = {
-                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -593,12 +593,12 @@ describe('PreReqView', () => {
         it(`should handle 'check' message where System Requirements has been confirmed`, async () => {
 
             const mockDependencies: any = {
-                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: '', requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -668,12 +668,12 @@ describe('PreReqView', () => {
         it(`should handle 'skip' message where dependencies are missing`, async () => {
 
             const mockDependencies: any = {
-                node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: undefined, url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: undefined, requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
@@ -742,12 +742,12 @@ describe('PreReqView', () => {
         it(`should handle 'skip' message where all dependencies are installed`, async () => {
 
             const mockDependencies: any = {
-                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: '8.x || 10.x', requiredLabel: 'only' },
-                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: '>=6.0.0', requiredLabel: '' },
-                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: '>=17.6.2', requiredLabel: '' },
-                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: '>=1.14.0', requiredLabel: '' },
+                node: {name: 'Node.js', required: true, version: '8.12.0', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NODEJS_REQUIRED, requiredLabel: 'only' },
+                npm: {name: 'npm', required: true, version: '6.4.1', url: 'https://nodejs.org/en/download/', requiredVersion: Dependencies.NPM_REQUIRED, requiredLabel: '' },
+                docker: {name: 'Docker', required: true, version: '17.7.0', url: 'https://www.docker.com/get-started', requiredVersion: Dependencies.DOCKER_REQUIRED, requiredLabel: '' },
+                dockerCompose: {name: 'Docker Compose', required: true, version: '1.15.0', url: 'https://docs.docker.com/compose/install/', requiredVersion: Dependencies.DOCKER_COMPOSE_REQUIRED, requiredLabel: '' },
                 xcode: {name: 'Xcode', required: true, version: '123', url: 'https://apps.apple.com/gb/app/xcode/id497799835', requiredVersion: undefined, requiredLabel: undefined},
-                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: '>=1.12.0', requiredLabel: '' },
+                go: {name: 'Go', required: false, version: '1.13.0', url: 'https://golang.org/dl/', requiredVersion: Dependencies.GO_REQUIRED, requiredLabel: '' },
                 goExtension: {name: 'Go Extension', required: false, version: '1.0.0', url: 'vscode:extension/ms-vscode.Go', requiredVersion: undefined, requiredLabel: '' },
                 javaLanguageExtension: {name: 'Java Language Support Extension', required: false, version: '1.0.0', url: 'vscode:extension/redhat.java', requiredVersion: undefined, requiredLabel: '' },
                 javaDebuggerExtension: {name: 'Java Debugger Extension', required: false, version: '1.0.0', url: 'vscode:extension/vscjava.vscode-java-debug', requiredVersion: undefined, requiredLabel: '' },
