@@ -219,7 +219,7 @@ describe('UserInputUtil', () => {
             result.data.name.should.equal(environmentRegistry.name);
 
             quickPickStub.should.have.been.calledWith([{ label: environmentRegistry.name, data: environmentRegistry }, {label: environmentRegistry2.name, data: environmentRegistry2}], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
             });
@@ -243,7 +243,7 @@ describe('UserInputUtil', () => {
             result.data.name.should.equal(environmentRegistry.name);
 
             quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry }, { label: environmentRegistry.name, data: environmentRegistry }], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
             });
@@ -282,7 +282,7 @@ describe('UserInputUtil', () => {
             result.should.equal(UserInputUtil.ADD_MORE_NODES);
 
             quickPickStub.should.have.been.calledWith([UserInputUtil.ADD_MORE_NODES, UserInputUtil.DONE_ADDING_NODES], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'do you want to add more nodes?'
             });
@@ -297,7 +297,7 @@ describe('UserInputUtil', () => {
             result.label.should.equal('myGatewayA');
             result.data.should.deep.equal(gatewayEntryOne);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a gateway'
             });
@@ -319,7 +319,7 @@ describe('UserInputUtil', () => {
             results[1].label.should.equal('myGatewayB');
             results[1].data.should.deep.equal(gatewayEntryTwo);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: true,
                 placeHolder: 'Choose a gateway'
             });
@@ -344,7 +344,7 @@ describe('UserInputUtil', () => {
             quickPickStub.resolves({ label: gatewayEntryOne.name, data: gatewayEntryOne });
             const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false, true) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
             quickPickStub.should.have.been.calledWith([{ label: gatewayEntryOne.name, data: gatewayEntryOne }], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a gateway'
             });
@@ -357,7 +357,7 @@ describe('UserInputUtil', () => {
             quickPickStub.resolves({ label: gatewayEntryTwo.name, data: gatewayEntryTwo });
             const result: IBlockchainQuickPickItem<FabricGatewayRegistryEntry> = await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, false, false) as IBlockchainQuickPickItem<FabricGatewayRegistryEntry>;
             quickPickStub.should.have.been.calledWith([{ label: gatewayEntryTwo.name, data: gatewayEntryTwo }], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a gateway'
             });
@@ -519,7 +519,7 @@ describe('UserInputUtil', () => {
             quickPickStub.resolves(['myPeerOne']);
             const result: string[] = await UserInputUtil.showPeersQuickPickBox('Choose a peer');
             quickPickStub.should.have.been.calledWith(['myPeerOne', 'myPeerTwo'], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: true,
                 placeHolder: 'Choose a peer'
             });
@@ -558,7 +558,7 @@ describe('UserInputUtil', () => {
             const result: IBlockchainQuickPickItem<PackageRegistryEntry> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', false) as IBlockchainQuickPickItem<PackageRegistryEntry>;
             result.should.deep.equal({ label: 'smartContractPackageBlue', data: newPackage });
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose the smart contract package that you want to delete'
             });
@@ -577,7 +577,7 @@ describe('UserInputUtil', () => {
             const result: Array<IBlockchainQuickPickItem<PackageRegistryEntry>> = await UserInputUtil.showSmartContractPackagesQuickPickBox('Choose the smart contract package that you want to delete', true) as Array<IBlockchainQuickPickItem<PackageRegistryEntry>>;
             result.should.deep.equal([{ label: 'smartContractPackageBlue', data: newPackage }]);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: true,
                 placeHolder: 'Choose the smart contract package that you want to delete'
             });
@@ -653,7 +653,7 @@ describe('UserInputUtil', () => {
             result.should.deep.equal({ label: 'channelOne', data: ['myPeerOne', 'myPeerTwo'] });
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a channel'
             });
@@ -1141,7 +1141,7 @@ describe('UserInputUtil', () => {
 
             result.should.deep.equal('ca.example.cake.com');
             quickPickStub.should.have.been.calledWith(['ca.example.cake.com', 'ca1.example.cake.com'], {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Please choose a CA'
             });
@@ -1424,7 +1424,7 @@ describe('UserInputUtil', () => {
             result.should.equal(UserInputUtil.YES);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Would you like a twix?'
             });
@@ -1436,7 +1436,7 @@ describe('UserInputUtil', () => {
             result.should.equal(UserInputUtil.NO);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Is it lunchtime yet?'
             });
@@ -1448,7 +1448,7 @@ describe('UserInputUtil', () => {
             result.should.equal(UserInputUtil.GENERATE_NEW_TEST_FILE);
 
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'What should I do next?'
             });
@@ -1565,7 +1565,7 @@ describe('UserInputUtil', () => {
             ];
 
             quickPickStub.should.have.been.calledWith(quickPickArray, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose a transaction'
             });
@@ -1764,7 +1764,7 @@ describe('UserInputUtil', () => {
             result.label.should.equal(walletEntryOne.name);
             result.data.should.deep.equal(walletEntryOne);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a wallet'
             });
@@ -1786,7 +1786,7 @@ describe('UserInputUtil', () => {
             results[1].label.should.equal(walletEntryTwo.name);
             results[1].data.should.deep.equal(walletEntryTwo);
             quickPickStub.should.have.been.calledWith(sinon.match.any, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: true,
                 placeHolder: 'Choose a wallet'
             });
@@ -1825,7 +1825,7 @@ describe('UserInputUtil', () => {
 
             const items: any = [{ label: walletEntryOne.name, data: walletEntryOne }, { label: walletEntryTwo.name, data: walletEntryTwo }, { label: '+ Add new wallet', data: undefined }];
             quickPickStub.should.have.been.calledWith(items, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'Choose a wallet'
             });
@@ -2076,7 +2076,7 @@ describe('UserInputUtil', () => {
                 { label: 'orderer.example.com', data: nodes[2] },
                 { label: 'orderer1.example.com', data: nodes[3] }
             ], {
-                    ignoreFocusOut: false,
+                    ignoreFocusOut: true,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });
@@ -2091,7 +2091,7 @@ describe('UserInputUtil', () => {
                 { label: 'orderer.example.com', data: nodes[2], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[2].wallet}` },
                 { label: 'orderer1.example.com', data: nodes[3], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[3].wallet}` },
             ], {
-                    ignoreFocusOut: false,
+                    ignoreFocusOut: true,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });
@@ -2114,7 +2114,7 @@ describe('UserInputUtil', () => {
                 { label: 'orderer.example.com', data: nodes[2] },
                 { label: 'orderer1.example.com', data: nodes[3] }
             ], {
-                    ignoreFocusOut: false,
+                    ignoreFocusOut: true,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });
@@ -2130,7 +2130,7 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0] },
                 { label: 'myCluster', data: nodes[2] }
             ], {
-                    ignoreFocusOut: false,
+                    ignoreFocusOut: true,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });
@@ -2146,7 +2146,7 @@ describe('UserInputUtil', () => {
                 { label: 'peer0.org1.example.com', data: nodes[0], description: `Associated with identity: ${nodes[0].identity} in wallet: ${nodes[0].wallet}` },
                 { label: 'myCluster', data: nodes[2], description: `Associated with identity: ${nodes[2].identity} in wallet: ${nodes[2].wallet}` }
             ], {
-                    ignoreFocusOut: false,
+                    ignoreFocusOut: true,
                     canPickMany: false,
                     placeHolder: 'Gimme a node'
                 });

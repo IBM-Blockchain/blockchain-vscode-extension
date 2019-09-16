@@ -84,7 +84,7 @@ export class UserInputUtil {
 
     public static async showQuickPick(prompt: string, items: string[]): Promise<string> {
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -94,7 +94,7 @@ export class UserInputUtil {
 
     public static async showOrgQuickPick(prompt: string, environmentName: string): Promise<IBlockchainQuickPickItem<FabricNode>> {
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -125,7 +125,7 @@ export class UserInputUtil {
 
     public static async showFabricEnvironmentQuickPickBox(prompt: string, showLocalFabric: boolean = false): Promise<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -155,7 +155,7 @@ export class UserInputUtil {
 
     public static async showGatewayQuickPickBox(prompt: string, canPickMany: boolean, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<Array <IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> | IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: canPickMany,
             placeHolder: prompt
         };
@@ -203,7 +203,7 @@ export class UserInputUtil {
 
     public static async addMoreNodes(prompt: string): Promise<string> {
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -310,7 +310,7 @@ export class UserInputUtil {
 
         if (peerNames.length > 1) {
             return vscode.window.showQuickPick(peerNames, {
-                ignoreFocusOut: false,
+                ignoreFocusOut: true,
                 canPickMany: true,
                 placeHolder: prompt
             });
@@ -395,7 +395,7 @@ export class UserInputUtil {
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -418,7 +418,7 @@ export class UserInputUtil {
         });
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -438,7 +438,7 @@ export class UserInputUtil {
         });
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: canPickMany,
             placeHolder: prompt
         };
@@ -662,7 +662,7 @@ export class UserInputUtil {
     public static async showTestFileOverwriteQuickPick(prompt: string): Promise<string | undefined> {
         const options: Array<string> = [this.YES, this.NO, this.GENERATE_NEW_TEST_FILE];
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -673,7 +673,7 @@ export class UserInputUtil {
 
     public static async showContractQuickPick(prompt: string, contracts: Array<string>): Promise<string> {
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -721,7 +721,7 @@ export class UserInputUtil {
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -768,7 +768,7 @@ export class UserInputUtil {
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -856,7 +856,7 @@ export class UserInputUtil {
         const caNames: string[] = connection.getAllCertificateAuthorityNames();
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -902,7 +902,7 @@ export class UserInputUtil {
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: canPickMany,
             placeHolder: prompt
         };
@@ -983,7 +983,7 @@ export class UserInputUtil {
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
@@ -1019,7 +1019,7 @@ export class UserInputUtil {
         }
 
         const quickPickOptions: vscode.QuickPickOptions = {
-            ignoreFocusOut: false,
+            ignoreFocusOut: true,
             canPickMany: false,
             placeHolder: prompt
         };
