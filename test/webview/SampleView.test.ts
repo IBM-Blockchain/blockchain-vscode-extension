@@ -238,8 +238,8 @@ describe('SampleView', () => {
             samplePageHtml.should.contain(`<h1 id="fabcarreadme">FabCar README</h1>`); // Comes from MD to HTML generation
             samplePageHtml.should.contain(`<div class="cell">FabCar Contract</div>`); // Row in Contracts table
             samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('contracts','FabCar Contract','Go')">Open Locally</button>`); // Disabled open button
-            samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('applications','JavaScript Application')">Open Locally</button>`); // Disabled open button
-            samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('applications','TypeScript Application')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('applications','JavaScript Application','JavaScript')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button disabled class="open-button" onclick="openFile('applications','TypeScript Application','TypeScript')">Open Locally</button>`); // Disabled open button
         });
 
         it('should display everything excluding the readme when there is no internet connection and the repository has not been cloned', async () => {
@@ -290,8 +290,8 @@ describe('SampleView', () => {
             samplePageHtml.should.contain(`<h1 id="fabcarreadme">FabCar README</h1>`); // Comes from MD to HTML generation
             samplePageHtml.should.contain(`<div class="cell">FabCar Contract</div>`); // Row in Contracts table
             samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('contracts','FabCar Contract','Go')">Open Locally</button>`); // Disabled open button
-            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','JavaScript Application')">Open Locally</button>`); // Disabled open button
-            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','TypeScript Application')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','JavaScript Application','JavaScript')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','TypeScript Application','TypeScript')">Open Locally</button>`); // Disabled open button
         });
 
         it('should get correct html when cloned and there is no internet connection', async () => {
@@ -312,8 +312,8 @@ describe('SampleView', () => {
             samplePageHtml.should.contain(`<p>README read here</p>`); // Comes from MD to HTML generation
             samplePageHtml.should.contain(`<div class="cell">FabCar Contract</div>`); // Row in Contracts table
             samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('contracts','FabCar Contract','Go')">Open Locally</button>`); // Disabled open button
-            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','JavaScript Application')">Open Locally</button>`); // Disabled open button
-            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','TypeScript Application')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','JavaScript Application','JavaScript')">Open Locally</button>`); // Disabled open button
+            samplePageHtml.should.contain(`<button class="open-button" onclick="openFile('applications','TypeScript Application','TypeScript')">Open Locally</button>`); // Disabled open button
         });
     });
 
