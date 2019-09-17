@@ -463,9 +463,9 @@
 
 
                         <% if (repositoryConfig) { %>
-                            <button class="open-button" onclick="openFile('applications','<%= application.name %>')">Open Locally</button>
+                            <button class="open-button" onclick="openFile('applications','<%= application.name %>','<%= application.language %>')">Open Locally</button>
                         <% } else { %>
-                            <button disabled class="open-button" onclick="openFile('applications','<%= application.name %>')">Open Locally</button>
+                            <button disabled class="open-button" onclick="openFile('applications','<%= application.name %>','<%= application.language %>')">Open Locally</button>
                         <% } %>
 
                         </div>
