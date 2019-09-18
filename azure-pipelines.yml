@@ -99,9 +99,6 @@ stages:
         pool:
           vmImage: 'ubuntu-16.04'
         steps:
-          - bash: |
-              echo ">> Yey this would have deployed"
-
           - task: DownloadPipelineArtifact@2
             inputs:
               artifact: vscode-package
@@ -109,8 +106,9 @@ stages:
 
           - bash: |
               set -ev
-              echo "node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}"
+              node ./node_modules/vsce/out/vsce publish -p ${VSCETOKEN}
             displayName: Publish extension
+            condition: succeeded()
 
           - bash: |
               set -ev
@@ -129,8 +127,9 @@ stages:
               git config user.email "${GH_USER_EMAIL}"
               git add .
               git commit -m "Automatic version bump to ${NEW_VERSION}"
-              echo "git push origin master"
+              git push origin master
             displayName: Version bump
+            condition: succeeded()
 
   - stage: otherVersionsUnitTest
     condition: eq(variables['Build.Reason'], 'Schedule')
