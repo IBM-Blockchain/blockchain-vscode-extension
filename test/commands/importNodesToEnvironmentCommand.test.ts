@@ -287,6 +287,19 @@ describe('ImportNodesToEnvironmentCommand', () => {
             logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
         });
 
+        it('should return an error if adding nodes is cancelled when creating a new environment', async () => {
+            browseStub.onFirstCall().resolves();
+
+            const error: Error = new Error('no node files were provided');
+
+            await vscode.commands.executeCommand(ExtensionCommands.IMPORT_NODES_TO_ENVIRONMENT, undefined, true).should.eventually.be.rejectedWith(error.message);
+
+            browseStub.should.have.been.calledOnce;
+            updateNodeStub.should.not.have.been.called;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Import nodes to environment');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.ERROR, `Error importing node files: ${error.message}`, `Error importing node files: ${error.toString()}`);
+        });
+
         it('should handle errors when importing nodes', async () => {
             const uri: vscode.Uri = vscode.Uri.file(path.join('myPathOne'));
             browseStub.onFirstCall().resolves([uri]);
