@@ -85,7 +85,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             deleteStub.should.have.been.calledOnceWithExactly(_package);
             logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
-            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted package(s)`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${_package.name} package`);
         });
 
         it(`should test multiple 'smart contract packages' can be deleted from the command`, async () => {
@@ -113,7 +113,7 @@ describe('DeleteSmartContractPackageCommand', () => {
             deleteStub.should.have.been.calledWithExactly(dataOne);
             deleteStub.should.have.been.calledWithExactly(dataTwo);
             logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
-            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted package(s)`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted packages`);
         });
 
         it("should test a 'smart contract package' can be deleted from tree", async () => {
@@ -130,7 +130,7 @@ describe('DeleteSmartContractPackageCommand', () => {
 
             deleteStub.should.have.been.calledOnceWithExactly(packageToDelete.packageEntry);
             logStub.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteSmartContractPackage`);
-            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted package(s)`);
+            logStub.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted ${_package.name} package`);
         });
 
         it(`should test deleting smart contract package can be cancelled`, async () => {

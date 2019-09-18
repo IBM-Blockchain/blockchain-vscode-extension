@@ -120,7 +120,7 @@ describe('DeleteGatewayCommand', () => {
             gateways.length.should.equal(0);
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateway(s)`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateways`);
         });
 
         it('should test a gateway can be deleted from tree', async () => {
@@ -248,7 +248,7 @@ describe('DeleteGatewayCommand', () => {
             fsRemoveStub.should.have.been.calledTwice;
 
             logSpy.getCall(0).should.have.been.calledWithExactly(LogType.INFO, undefined, `deleteGateway`);
-            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateway(s)`);
+            logSpy.getCall(1).should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully deleted gateways`);
         });
     });
 });

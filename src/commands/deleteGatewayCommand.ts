@@ -67,7 +67,7 @@ export async function deleteGateway(gatewayTreeItem: GatewayTreeItem): Promise<v
     }
 
     if (gatewaysToDelete.length > 1) {
-        outputAdapter.log(LogType.SUCCESS, `Successfully deleted gateway(s)`);
+        outputAdapter.log(LogType.SUCCESS, `Successfully deleted gateways`);
         return;
     } else {
         outputAdapter.log(LogType.SUCCESS, `Successfully deleted ${gatewaysToDelete[0].name} gateway`);
