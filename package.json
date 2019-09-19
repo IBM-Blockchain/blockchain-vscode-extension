@@ -1326,7 +1326,7 @@
         "@types/glob": "5.0.35",
         "@types/jest": "^23.3.13",
         "@types/mocha": "5.2.5",
-        "@types/node": "12.7.8",
+        "@types/node": "10.14.5",
         "@types/react": "^16.3.14",
         "@types/react-dom": "^16.0.5",
         "@types/rimraf": "^2.0.2",
@@ -1365,7 +1365,7 @@
         "ts-node": "7.0.0",
         "tslint": "5.11.0",
         "tslint-loader": "3.6.0",
-        "typescript": "^3.6.3",
+        "typescript": "3.6.3",
         "vsce": "1.65.0",
         "vscode-nls-dev": "3.2.5",
         "vscode-test": "1.2.0"
@@ -1403,9 +1403,9 @@
         "yeoman-environment": "^2.3.3"
     },
     "optionalDependencies": {
-        "fabric-ca-client": "^1.4.5-snapshot.61",
-        "fabric-client": "^1.4.5-snapshot.57",
-        "fabric-network": "^1.4.5-snapshot.64"
+        "fabric-ca-client": "1.4.5-snapshot.69",
+        "fabric-client": "1.4.5-snapshot.65",
+        "fabric-network": "1.4.5-snapshot.64"
     },
     "nativeDependencies": [
         "grpc"

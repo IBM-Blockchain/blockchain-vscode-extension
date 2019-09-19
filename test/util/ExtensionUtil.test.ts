@@ -639,7 +639,7 @@ describe('ExtensionUtil Tests', () => {
         it('should call upgrade if version different', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
-            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({name: 'myContract', version: 'differnet'});
+            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({ name: 'myContract', version: 'differnet' });
 
             const session: any = {
                 some: 'thing',
@@ -649,6 +649,7 @@ describe('ExtensionUtil Tests', () => {
                     }
                 }
             };
+
             const executeCommand: sinon.SinonStub = mySandBox.stub(vscode.commands, 'executeCommand');
             const ctx: vscode.ExtensionContext = GlobalState.getExtensionContext();
 
@@ -679,7 +680,7 @@ describe('ExtensionUtil Tests', () => {
         it('should not call anything if version same', async () => {
             await vscode.workspace.getConfiguration().update(SettingConfigurations.HOME_SHOW_ON_STARTUP, false, vscode.ConfigurationTarget.Global);
 
-            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({name: 'myContract', version: '0.0.1'});
+            mySandBox.stub(FabricDebugConfigurationProvider, 'getInstantiatedChaincode').resolves({ name: 'myContract', version: '0.0.1' });
 
             const session: any = {
                 some: 'thing',
@@ -763,7 +764,7 @@ describe('ExtensionUtil Tests', () => {
             const preReqViewStub: sinon.SinonStub = mySandBox.stub(PreReqView.prototype, 'openView');
             preReqViewStub.resolves();
 
-            const ctx: vscode.ExtensionContext = {subscriptions: []} as vscode.ExtensionContext;
+            const ctx: vscode.ExtensionContext = { subscriptions: [] } as vscode.ExtensionContext;
             const registerCommandStub: sinon.SinonStub = mySandBox.stub(vscode.commands, 'registerCommand').withArgs(ExtensionCommands.OPEN_PRE_REQ_PAGE).yields({} as vscode.Command);
 
             const context: vscode.ExtensionContext = await ExtensionUtil.registerOpenPreReqsCommand(ctx);
@@ -811,7 +812,7 @@ describe('ExtensionUtil Tests', () => {
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
+            getExtensionContextStub.returns({ hello: 'world' });
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
 
@@ -829,7 +830,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
         });
 
@@ -843,7 +844,7 @@ describe('ExtensionUtil Tests', () => {
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
+            getExtensionContextStub.returns({ hello: 'world' });
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
 
@@ -861,7 +862,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
         });
 
@@ -875,7 +876,7 @@ describe('ExtensionUtil Tests', () => {
             });
             setupLocalRuntimeStub.resolves();
             restoreCommandsStub.resolves();
-            getExtensionContextStub.returns({hello: 'world'});
+            getExtensionContextStub.returns({ hello: 'world' });
             registerCommandsStub.resolves();
             executeStoredCommandsStub.resolves();
 
@@ -893,7 +894,7 @@ describe('ExtensionUtil Tests', () => {
 
             restoreCommandsStub.should.have.been.calledOnce;
             getExtensionContextStub.should.have.been.calledOnce;
-            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            registerCommandsStub.should.have.been.calledOnceWithExactly({ hello: 'world' });
             executeStoredCommandsStub.should.have.been.calledOnce;
         });
     });
