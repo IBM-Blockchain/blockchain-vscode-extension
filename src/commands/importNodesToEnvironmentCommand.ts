@@ -60,7 +60,11 @@ export async function importNodesToEnvironment(environmentRegistryEntry: FabricE
             }
 
             if (!nodeUris || nodeUris.length === 0) {
-                return;
+                if (fromAddEnvironment) {
+                    throw new Error('no node files were provided');
+                } else {
+                    return;
+                }
             }
 
             const addMoreString: string = await UserInputUtil.addMoreNodes(`${nodeUris.length} JSON file(s) added successfully`);
