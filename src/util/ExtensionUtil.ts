@@ -378,6 +378,10 @@ export class ExtensionUtil {
     public static async setupCommands(): Promise<void> {
         const dependencyManager: DependencyManager = DependencyManager.instance();
         const hasNativeDependenciesInstalled: boolean = await dependencyManager.hasNativeDependenciesInstalled();
+        const packageJSON: any = await ExtensionUtil.getPackageJSON();
+        if (hasNativeDependenciesInstalled && packageJSON.activationEvents.length === 1) {
+            await dependencyManager.rewritePackageJson();
+        }
         if (!hasNativeDependenciesInstalled) {
             await dependencyManager.installNativeDependencies();
         }

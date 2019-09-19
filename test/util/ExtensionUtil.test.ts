@@ -735,6 +735,8 @@ describe('ExtensionUtil Tests', () => {
     describe('setupCommands', () => {
         let hasNativeDependenciesInstalledStub: sinon.SinonStub;
         let installNativeDependenciesStub: sinon.SinonStub;
+        let getPackageJsonStub: sinon.SinonStub;
+        let rewritePackageJsonStub: sinon.SinonStub;
         let globalStateStub: sinon.SinonStub;
         let setupLocalRuntimeStub: sinon.SinonStub;
         let restoreCommandsStub: sinon.SinonStub;
@@ -746,6 +748,8 @@ describe('ExtensionUtil Tests', () => {
         beforeEach(() => {
             hasNativeDependenciesInstalledStub = mySandBox.stub(DependencyManager.instance(), 'hasNativeDependenciesInstalled');
             installNativeDependenciesStub = mySandBox.stub(DependencyManager.instance(), 'installNativeDependencies');
+            getPackageJsonStub = mySandBox.stub(ExtensionUtil, 'getPackageJSON');
+            rewritePackageJsonStub = mySandBox.stub(DependencyManager.instance(), 'rewritePackageJson');
             globalStateStub = mySandBox.stub(GlobalState, 'get');
             setupLocalRuntimeStub = mySandBox.stub(ExtensionUtil, 'setupLocalRuntime');
             restoreCommandsStub = mySandBox.stub(TemporaryCommandRegistry.instance(), 'restoreCommands');
@@ -758,6 +762,8 @@ describe('ExtensionUtil Tests', () => {
         it('should install native dependencies if not installed', async () => {
             hasNativeDependenciesInstalledStub.returns(false);
             installNativeDependenciesStub.resolves();
+            getPackageJsonStub.returns({ activationEvents: ['*'] });
+            rewritePackageJsonStub.resolves();
             globalStateStub.returns({
                 version: '1.0.0'
             });
@@ -788,6 +794,40 @@ describe('ExtensionUtil Tests', () => {
         it(`shouldn't install native dependencies if they are already installed`, async () => {
             hasNativeDependenciesInstalledStub.returns(true);
             installNativeDependenciesStub.resolves();
+            getPackageJsonStub.returns({ activationEvents: ['activationEvent1', 'activationEvent2'] });
+            rewritePackageJsonStub.resolves();
+            globalStateStub.returns({
+                version: '1.0.0'
+            });
+            setupLocalRuntimeStub.resolves();
+            restoreCommandsStub.resolves();
+            getExtensionContextStub.returns({hello: 'world'});
+            registerCommandsStub.resolves();
+            executeStoredCommandsStub.resolves();
+
+            await ExtensionUtil.setupCommands();
+
+            hasNativeDependenciesInstalledStub.should.have.been.calledOnce;
+            installNativeDependenciesStub.should.not.have.been.called;
+            globalStateStub.should.have.been.calledOnce;
+            setupLocalRuntimeStub.should.have.been.calledOnceWithExactly('1.0.0');
+
+            logSpy.should.have.been.calledThrice;
+            logSpy.getCall(0).should.have.been.calledWith(LogType.INFO, undefined, 'Restoring command registry');
+            logSpy.getCall(1).should.have.been.calledWith(LogType.INFO, undefined, 'Registering commands');
+            logSpy.getCall(2).should.have.been.calledWith(LogType.INFO, undefined, 'Execute stored commands in the registry');
+
+            restoreCommandsStub.should.have.been.calledOnce;
+            getExtensionContextStub.should.have.been.calledOnce;
+            registerCommandsStub.should.have.been.calledOnceWithExactly({hello: 'world'});
+            executeStoredCommandsStub.should.have.been.calledOnce;
+        });
+
+        it(`should rewrite the package.json file if ther native dependencies are installed but there are no activation events`, async () => {
+            hasNativeDependenciesInstalledStub.returns(true);
+            installNativeDependenciesStub.resolves();
+            getPackageJsonStub.returns({ activationEvents: ['*'] });
+            rewritePackageJsonStub.resolves();
             globalStateStub.returns({
                 version: '1.0.0'
             });
