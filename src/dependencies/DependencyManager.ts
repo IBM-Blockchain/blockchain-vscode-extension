@@ -54,13 +54,11 @@ export class DependencyManager {
 
         try {
             await this.requireNativeDependencies();
+            return true; // Dependency has been required
         } catch (error) {
             outputAdapter.log(LogType.INFO, undefined, `Error requiring dependency: ${error.message}`);
             return false; // Dependency cannot be required
         }
-
-        const packageJSON: any = await this.getRawPackageJson();
-        return packageJSON.activationEvents.length > 1;
     }
 
     public async installNativeDependencies(): Promise<void> {
@@ -397,6 +395,27 @@ export class DependencyManager {
 
     }
 
+    public async rewritePackageJson(): Promise<void> {
+        // Replace activationEvents with the events that the extension should be activated for subsequent sessions.
+        const packageJson: any = await this.getRawPackageJson();
+
+        packageJson.activationEvents = [];
+
+        packageJson.actualActivationEvents.onView.forEach((event: string) => {
+            packageJson.activationEvents.push('onView:' + event);
+        });
+
+        packageJson.actualActivationEvents.onCommand.forEach((event: string) => {
+            packageJson.activationEvents.push('onCommand:' + event);
+        });
+
+        packageJson.actualActivationEvents.other.forEach((event: string) => {
+            packageJson.activationEvents.push(event);
+        });
+
+        return this.writePackageJson(packageJson);
+    }
+
     private isCommandFound(output: string): boolean {
         if (output.toLowerCase().includes('not found') || output.toLowerCase().includes('not recognized') || output.toLowerCase().includes('no such file or directory') || output.toLowerCase().includes('unable to get active developer directory')) {
             return false;
@@ -533,27 +552,6 @@ export class DependencyManager {
         const packageJsonString: string = JSON.stringify(packageJson, null, 4);
 
         return fs.writeFile(this.getPackageJsonPath(), packageJsonString, 'utf8');
-    }
-
-    private async rewritePackageJson(): Promise<void> {
-        // Replace activationEvents with the events that the extension should be activated for subsequent sessions.
-        const packageJson: any = await this.getRawPackageJson();
-
-        packageJson.activationEvents = [];
-
-        packageJson.actualActivationEvents.onView.forEach((event: string) => {
-            packageJson.activationEvents.push('onView:' + event);
-        });
-
-        packageJson.actualActivationEvents.onCommand.forEach((event: string) => {
-            packageJson.activationEvents.push('onCommand:' + event);
-        });
-
-        packageJson.actualActivationEvents.other.forEach((event: string) => {
-            packageJson.activationEvents.push(event);
-        });
-
-        return this.writePackageJson(packageJson);
     }
 
     private async clearExtensionCache(): Promise<void> {
