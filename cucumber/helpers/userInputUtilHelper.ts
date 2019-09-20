@@ -52,6 +52,7 @@ export class UserInputUtilHelper {
     showOrgQuickPickStub: sinon.SinonStub;
     showFabricNodeQuickPickStub: sinon.SinonStub;
     showWorkspaceQuickPickBoxStub: sinon.SinonStub;
+    showSaveDialogStub: sinon.SinonStub;
 
     constructor(sandbox: sinon.SinonSandbox) {
         this.mySandBox = sandbox;
@@ -59,6 +60,7 @@ export class UserInputUtilHelper {
         // TODO move this somewhere more sensible when have other helpers
         this.logSpy = this.mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
+        this.showSaveDialogStub = this.mySandBox.stub(vscode.window, 'showSaveDialog').callThrough();
         this.showLanguagesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showLanguagesQuickPick').callThrough();
         this.inputBoxStub = this.mySandBox.stub(UserInputUtil, 'showInputBox').callThrough();
         this.browseStub = this.mySandBox.stub(UserInputUtil, 'browse').callThrough();
@@ -70,7 +72,7 @@ export class UserInputUtilHelper {
         this.showChaincodeAndVersionStub = this.mySandBox.stub(UserInputUtil, 'showChaincodeAndVersionQuickPick').callThrough();
         this.showYesNoQuickPick = this.mySandBox.stub(UserInputUtil, 'showQuickPickYesNo').callThrough();
         this.getWorkspaceFoldersStub = this.mySandBox.stub(UserInputUtil, 'getWorkspaceFolders');
-        this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles');
+        this.findFilesStub = this.mySandBox.stub(vscode.workspace, 'findFiles').callThrough();
         this.showWalletsQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showWalletsQuickPickBox').callThrough();
         this.showIdentitiesQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showIdentitiesQuickPickBox').callThrough();
         this.showCertificateAuthorityQuickPickStub = this.mySandBox.stub(UserInputUtil, 'showCertificateAuthorityQuickPickBox').callThrough();
