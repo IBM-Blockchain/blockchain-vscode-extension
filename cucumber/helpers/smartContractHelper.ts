@@ -106,7 +106,6 @@ export class SmartContractHelper {
         if (!_package) {
             let workspaceFolder: vscode.WorkspaceFolder;
 
-            let workspaceFiles: vscode.Uri[];
             if (language === 'JavaScript') {
                 workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
             } else if (language === 'TypeScript') {
@@ -119,8 +118,6 @@ export class SmartContractHelper {
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter a name for your Go package').resolves(name);
                 this.userInputUtilHelper.inputBoxStub.withArgs('Enter a version for your Go package').resolves(version);
                 workspaceFolder = { index: 0, name: name, uri: vscode.Uri.file(directory) };
-                workspaceFiles = [vscode.Uri.file('chaincode.go')];
-                this.userInputUtilHelper.findFilesStub.withArgs(new vscode.RelativePattern(workspaceFolder, '**/*.go'), null, 1).resolves(workspaceFiles);
             } else {
                 throw new Error(`I do not know how to handle language ${language}`);
             }
