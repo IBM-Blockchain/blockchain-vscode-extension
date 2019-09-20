@@ -125,8 +125,6 @@ describe('DebugCommandListCommand', () => {
     it('should connect to local_fabric before running the submit or evaluate commands', async () => {
         const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
         registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-        registryEntry.connectionProfilePath = '/some/path';
-        registryEntry.managedRuntime =  true;
         registryEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         connectionManagerGetConnectionStub.onCall(0).returns(undefined);
         connectionManagerGetConnectionStub.onCall(1).returns(runtimeStub);

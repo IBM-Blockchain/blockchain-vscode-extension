@@ -28,6 +28,7 @@ import { Reporter } from '../../src/util/Reporter';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricNode } from '../../src/fabric/FabricNode';
 import { FabricEnvironmentRegistryEntry } from '../../src/fabric/FabricEnvironmentRegistryEntry';
+import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegistryEntry';
 
 // tslint:disable no-unused-expression
 chai.should();
@@ -61,7 +62,6 @@ describe('AddGatewayCommand', () => {
         sendTelemetryEventStub = mySandBox.stub(Reporter.instance(), 'sendTelemetryEvent');
 
         methodChooserStub = mySandBox.stub(UserInputUtil, 'showQuickPick').resolves(UserInputUtil.ADD_GATEWAY_FROM_CCP);
-
     });
 
     afterEach(() => {
@@ -90,12 +90,11 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 associatedWallet: ''
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -119,18 +118,16 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(2);
             gateways[0].should.deep.equal({
                 name: 'myGatewayOne',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 associatedWallet: ''
             });
 
             gateways[1].should.deep.equal({
                 name: 'myGatewayTwo',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayTwo', 'connection.json'),
                 associatedWallet: ''
             });
 
@@ -149,7 +146,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -162,7 +159,7 @@ describe('AddGatewayCommand', () => {
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
             browseStub.should.have.been.calledOnce;
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'addGateway');
             sendTelemetryEventStub.should.not.have.been.called;
@@ -175,7 +172,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(0);
             logSpy.should.have.been.calledTwice;
@@ -194,12 +191,11 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGatewayOne',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 associatedWallet: ''
             });
 
@@ -248,12 +244,11 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(1);
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 associatedWallet: 'local_fabric_wallet'
             });
             executeCommandSpy.should.have.been.calledWith(ExtensionCommands.REFRESH_GATEWAYS);
@@ -268,7 +263,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(0);
 
@@ -282,7 +277,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(0);
 
@@ -296,7 +291,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(0);
 
@@ -310,7 +305,7 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways.length.should.equal(0);
 
@@ -324,11 +319,10 @@ describe('AddGatewayCommand', () => {
 
             await vscode.commands.executeCommand(ExtensionCommands.ADD_GATEWAY);
 
-            const gateways: Array<any> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
+            const gateways: Array<FabricGatewayRegistryEntry> = vscode.workspace.getConfiguration().get(SettingConfigurations.FABRIC_GATEWAYS);
 
             gateways[0].should.deep.equal({
                 name: 'myGateway',
-                connectionProfilePath: path.join('blockchain', 'extension', 'directory', 'gatewayOne', 'connection.json'),
                 associatedWallet: 'local_fabric_wallet'
             });
 

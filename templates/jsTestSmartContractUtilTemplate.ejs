@@ -8,23 +8,13 @@
 
 const fs = require('fs-extra');
 const yaml = require('js-yaml');
-<%_ if (connectionProfileHome || walletHome) {-%>
-const os = require('os');
-const path = require('path');
-<%_ }-%>
 const URL = require('url');
 
 class SmartContractUtil {
 
     static async getConnectionProfile() {
-        <%_ if (connectionProfileHome || walletHome) {-%>
-        const homedir = os.homedir();
-        <%_ }-%>
-        <%_ if (connectionProfileHome) { _%>
-        const connectionProfilePath = <%-connectionProfilePath%>;
-        <%_ } else { _%>
         const connectionProfilePath = '<%-connectionProfilePath%>';
-        <%_ } _%>
+
         const connectionProfileContents = await fs.readFile(connectionProfilePath, 'utf8');
         if (connectionProfilePath.endsWith('.json')) {
             return JSON.parse(connectionProfileContents);

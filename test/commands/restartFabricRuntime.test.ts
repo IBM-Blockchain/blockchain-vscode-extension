@@ -76,11 +76,14 @@ describe('restartFabricRuntime', () => {
 
     it('should disconnect from gateway if connected and then restart a Fabric runtime', async () => {
         const gatewayRegistryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
-        gatewayRegistryEntry.name = FabricRuntimeUtil.name;
-        gatewayRegistryEntry.managedRuntime = true;
+        gatewayRegistryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+
         sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+
         const restartStub: sinon.SinonStub = sandbox.stub(runtime, 'restart').resolves();
+
         await vscode.commands.executeCommand(ExtensionCommands.RESTART_FABRIC);
+
         restartStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         logSpy.should.have.been.calledOnceWithExactly(LogType.INFO, undefined, 'restartFabricRuntime');
         executeCommandSpy.should.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);

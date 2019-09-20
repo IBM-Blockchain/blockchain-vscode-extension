@@ -17,6 +17,7 @@ import * as vscode from 'vscode';
 import { BlockchainExplorerProvider } from '../BlockchainExplorerProvider';
 import { FabricGatewayRegistryEntry } from '../../fabric/FabricGatewayRegistryEntry';
 import * as path from 'path';
+import { FabricRuntimeUtil } from '../../fabric/FabricRuntimeUtil';
 
 export class ConnectedTreeItem extends BlockchainTreeItem {
     contextValue: string = 'blockchain-connected-item';
@@ -29,7 +30,7 @@ export class ConnectedTreeItem extends BlockchainTreeItem {
     constructor(provider: BlockchainExplorerProvider, public readonly label: string, public readonly connection: FabricGatewayRegistryEntry, public readonly collapsibleState: vscode.TreeItemCollapsibleState) {
         super(provider, label, collapsibleState);
 
-        if (connection.managedRuntime) {
+        if (connection.name === FabricRuntimeUtil.LOCAL_FABRIC) {
             this.contextValue = 'blockchain-connected-runtime-item';
         }
 

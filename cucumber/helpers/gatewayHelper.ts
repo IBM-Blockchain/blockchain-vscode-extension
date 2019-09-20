@@ -56,7 +56,7 @@ export class GatewayHelper {
         const treeItems: Array<BlockchainTreeItem> = await blockchainGatewayExplorerProvider.getChildren();
 
         const treeItem: any = treeItems.find((item: any) => {
-            return item.name === name;
+            return item.gateway && item.gateway.name === name;
         });
 
         if (!treeItem) {
@@ -132,7 +132,6 @@ export class GatewayHelper {
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
-            gatewayEntry.managedRuntime = true;
             gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         }
 

@@ -44,6 +44,7 @@ import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironmentConnection } from '../../src/fabric/FabricEnvironmentConnection';
 import { FabricEnvironmentManager } from '../../src/fabric/FabricEnvironmentManager';
 import { ExtensionUtil } from '../../src/util/ExtensionUtil';
+import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
 
 // tslint:disable no-unused-expression
 chai.use(sinonChai);
@@ -81,6 +82,7 @@ describe('AddWalletIdentityCommand', () => {
         let showWalletsQuickPickStub: sinon.SinonStub;
         let sendTelemetryEventStub: sinon.SinonStub;
         let browseStub: sinon.SinonStub;
+        let connectionProfilePathStub: sinon.SinonStub;
 
         beforeEach(async () => {
 
@@ -90,22 +92,16 @@ describe('AddWalletIdentityCommand', () => {
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayA',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 
             const connectionTwo: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayB',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.json'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 
             const connectionThree: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGatewayC',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionTwo/connection.yml'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 
@@ -113,6 +109,8 @@ describe('AddWalletIdentityCommand', () => {
             await FabricGatewayRegistry.instance().add(connectionOne);
             await FabricGatewayRegistry.instance().add(connectionTwo);
             await FabricGatewayRegistry.instance().add(connectionThree);
+
+            connectionProfilePathStub = mySandBox.stub(FabricGatewayHelper, 'getConnectionProfilePath').resolves(path.join('myPath', 'connection.json'));
 
             const connectionOneWallet: FabricWalletRegistryEntry = new FabricWalletRegistryEntry({
                 name: 'blueWallet',
@@ -204,6 +202,7 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a JSON file and mspid passed in', async () => {
+            connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')
@@ -245,6 +244,7 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file', async () => {
+            connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')
@@ -283,6 +283,7 @@ describe('AddWalletIdentityCommand', () => {
         });
 
         it('should test an identity can be added with an enroll id and secret, when called from the command palette using a yaml file with caName', async () => {
+            connectionProfilePathStub.resolves(path.join('myPath', 'connection.yml'));
             showWalletsQuickPickStub.resolves({
                 label: 'externalWallet',
                 data: FabricWalletRegistry.instance().get('externalWallet')

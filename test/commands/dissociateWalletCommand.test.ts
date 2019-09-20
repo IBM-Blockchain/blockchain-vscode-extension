@@ -69,8 +69,6 @@ describe('DissociateWalletCommand', () => {
 
             const gatewayOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: 'blueWallet'
             });
 
@@ -104,8 +102,6 @@ describe('DissociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 
@@ -143,8 +139,6 @@ describe('DissociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 
@@ -165,8 +159,6 @@ describe('DissociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 

@@ -43,7 +43,6 @@ export class GeneratedTestsHelper {
         } catch (error) {
             gatewayEntry = new FabricGatewayRegistryEntry();
             gatewayEntry.name = gatewayName;
-            gatewayEntry.managedRuntime = true;
             gatewayEntry.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
         }
 
@@ -63,33 +62,12 @@ export class GeneratedTestsHelper {
         const contractDirectory: string = this.smartContractHelper.getContractDirectory(name, language);
         const workspaceFolder: vscode.WorkspaceFolder = this.getWorkspaceFolder(name, contractDirectory);
         this.userInputUtilHelper.getWorkspaceFoldersStub.returns([workspaceFolder]);
-        this.userInputUtilHelper.showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({label: `${name}@${version}`, data: workspaceFolder});
+        this.userInputUtilHelper.showWorkspaceQuickPickBoxStub.withArgs('Choose a workspace folder to create functional tests for').resolves({ label: `${name}@${version}`, data: workspaceFolder });
 
         const packageJSONPath: string = path.join(contractDirectory, 'package.json');
         this.userInputUtilHelper.findFilesStub.resolves([vscode.Uri.file(packageJSONPath)]);
 
-        let getConfigurationStub: sinon.SinonStub;
-        const workspaceConfigurationGetStub: sinon.SinonStub = this.mySandBox.stub();
-        const workspaceConfigurationUpdateStub: sinon.SinonStub = this.mySandBox.stub();
-
-        if (language === 'TypeScript') {
-            // Stub out the update of JavaScript Test Runner user settings
-            workspaceConfigurationGetStub.callThrough();
-            workspaceConfigurationUpdateStub.callThrough();
-            workspaceConfigurationGetStub.withArgs('javascript-test-runner.additionalArgs').returns('');
-            workspaceConfigurationUpdateStub.withArgs('javascript-test-runner.additionalArgs', '-r ts-node/register', vscode.ConfigurationTarget.Global).resolves();
-            getConfigurationStub = this.mySandBox.stub(vscode.workspace, 'getConfiguration');
-            getConfigurationStub.returns({
-                get: workspaceConfigurationGetStub,
-                update: workspaceConfigurationUpdateStub
-            });
-        }
-
         await vscode.commands.executeCommand(ExtensionCommands.TEST_SMART_CONTRACT);
-
-        if (language === 'TypeScript') {
-            getConfigurationStub.restore();
-        }
     }
 
     public async runSmartContractTests(name: string, testLanguage: string, contractAssetType: string): Promise<string> {

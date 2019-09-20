@@ -40,6 +40,42 @@ describe('FabricGatewayHelper', () => {
         mySandBox.restore();
     });
 
+    describe('getConnectionProfilePath', () => {
+        it('should get the connection profile path', async () => {
+            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.json']);
+
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
+
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath('myGateway');
+
+            result.should.equal(path.join(profileDirPath, 'connection.json'));
+        });
+
+        it('should get the connection profile path yml file', async () => {
+            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json', 'connection.yml']);
+
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
+
+            const result: string = await FabricGatewayHelper.getConnectionProfilePath('myGateway');
+
+            result.should.equal(path.join(profileDirPath, 'connection.yml'));
+        });
+
+        it('should throw an error if no files found', async () => {
+            mySandBox.stub(fs, 'readdir').resolves(['.', '..', '.bob.json']);
+
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'myGateway');
+
+            await FabricGatewayHelper.getConnectionProfilePath('myGateway').should.eventually.be.rejectedWith(`Failed to find a connection profile file in folder ${profileDirPath}`);
+        });
+    });
+
     describe('generateConnectionProfile', () => {
 
         let peerNode: FabricNode;
@@ -401,7 +437,6 @@ describe('FabricGatewayHelper', () => {
                 [gatewayA,
                     {
                         name: 'gatewayB',
-                        connectionProfilePath: 'fabric-dir/gateways/gatewayB/anotherFile.json',
                         associatedWallet: ''
                     }
                 ], vscode.ConfigurationTarget.Global);
