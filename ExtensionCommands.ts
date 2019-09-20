@@ -56,6 +56,7 @@ export class ExtensionCommands {
     static readonly ASSOCIATE_WALLET: string = 'gatewaysExplorer.associateWallet';
     static readonly DISSOCIATE_WALLET: string = 'gatewaysExplorer.dissociateWallet';
     static readonly EXPORT_CONNECTION_PROFILE: string = 'gatewaysExplorer.exportConnectionProfileEntry';
+    static readonly EXPORT_CONNECTION_PROFILE_CONNECTED: string = 'gatewaysExplorer.exportConnectionProfileConnectedEntry';
 
     // WALLET VIEW
     static readonly REFRESH_WALLETS: string = 'walletExplorer.refreshEntry';

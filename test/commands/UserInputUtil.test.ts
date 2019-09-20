@@ -322,7 +322,7 @@ describe('UserInputUtil', () => {
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
-            quickPickStub.should.have.been.calledWith([{ label: managedRuntime.name, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: managedRuntime }, { label: gatewayEntryOne.name, data: gatewayEntryOne }]);
         });
 
         it('should show any gateways with an associated wallet (associated gateway)', async () => {

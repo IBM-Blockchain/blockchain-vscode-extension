@@ -59,6 +59,7 @@
             "gatewaysExplorer.associateWallet",
             "gatewaysExplorer.dissociateWallet",
             "gatewaysExplorer.exportConnectionProfileEntry",
+            "gatewaysExplorer.exportConnectionProfileConnectedEntry",
             "aPackagesExplorer.createSmartContractProjectEntry",
             "aPackagesExplorer.packageSmartContractProjectEntry",
             "aPackagesExplorer.deleteSmartContractPackageEntry",
@@ -430,6 +431,11 @@
                 "category": "IBM Blockchain Platform"
             },
             {
+                "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+                "title": "Export Connection Profile",
+                "category": "IBM Blockchain Platform"
+            },
+            {
                 "command": "environmentExplorer.createNewIdentityEntry",
                 "title": "Create Identity (register and enroll)",
                 "category": "IBM Blockchain Platform"
@@ -526,6 +532,10 @@
                 {
                     "command": "debug.commandList",
                     "when": "false"
+                },
+                {
+                    "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+                    "when": "false"
                 }
             ],
             "view/title": [
@@ -543,6 +553,10 @@
                     "command": "gatewaysExplorer.refreshEntry",
                     "when": "view == gatewaysExplorer",
                     "group": "navigation"
+                },
+                {
+                    "command": "gatewaysExplorer.exportConnectionProfileConnectedEntry",
+                    "when": "view == gatewaysExplorer && blockchain-gateway-connected"
                 },
                 {
                     "command": "environmentExplorer.addEnvironmentEntry",

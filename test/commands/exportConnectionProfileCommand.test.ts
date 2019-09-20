@@ -31,6 +31,7 @@ import { FabricGatewayRegistryEntry } from '../../src/fabric/FabricGatewayRegist
 import { FabricGatewayRegistry } from '../../src/fabric/FabricGatewayRegistry';
 import { GatewayTreeItem } from '../../src/explorer/model/GatewayTreeItem';
 import { FabricGatewayHelper } from '../../src/fabric/FabricGatewayHelper';
+import { FabricConnectionManager } from '../../src/fabric/FabricConnectionManager';
 
 // tslint:disable no-unused-expression
 describe('exportConnectionProfileCommand', () => {
@@ -140,4 +141,13 @@ describe('exportConnectionProfileCommand', () => {
         logSpy.getCall(1).should.have.been.calledWithExactly(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
         sendTelemetryEventStub.should.not.have.been.called;
     });
+
+    it('should handle exporting the connection profile of a connected gateway', async () => {
+        sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistryEntry);
+        await vscode.commands.executeCommand(ExtensionCommands.EXPORT_CONNECTION_PROFILE_CONNECTED);
+        copyStub.should.have.been.calledOnceWithExactly(connectionProfilePath, fakeTargetPath);
+        logSpy.should.have.been.calledWithExactly(LogType.SUCCESS, `Successfully exported connection profile to ${fakeTargetPath}`);
+        sendTelemetryEventStub.should.have.been.calledOnceWithExactly('exportConnectionProfileCommand');
+    });
+
 });
