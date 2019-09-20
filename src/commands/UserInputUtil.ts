@@ -216,7 +216,7 @@ export class UserInputUtil {
         const workspaceFolderOptions: vscode.WorkspaceFolder[] = UserInputUtil.getWorkspaceFolders();
 
         const workspaceQuickPickItems: Array<IBlockchainQuickPickItem<vscode.WorkspaceFolder>> = workspaceFolderOptions.map((workspaceFolderOption: vscode.WorkspaceFolder) => {
-            return { label: workspaceFolderOption.name, data: workspaceFolderOption };
+            return { label: workspaceFolderOption.name, data: workspaceFolderOption, description: workspaceFolderOption.uri.fsPath};
         });
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
