@@ -1,6 +1,6 @@
 # IBM Blockchain Platform Extension for VS Code
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Build Status](https://dev.azure.com/IBPComposer/IBM-Blockchain-VSCode-Extension/_apis/build/status/IBM-Blockchain.blockchain-vscode-extension?branchName=master)](https://dev.azure.com/IBPComposer/IBM-Blockchain-VSCode-Extension/_build/latest?definitionId=2&branchName=master)
+[![Version](https://vsmarketplacebadge.apphb.com/version/IBMBlockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform) [![Installs](https://vsmarketplacebadge.apphb.com/installs/IBMBLockchain.ibm-blockchain-platform.svg)](https://marketplace.visualstudio.com/items?itemName=IBMBlockchain.ibm-blockchain-platform)
 
 The IBM Blockchain Platform extension helps developers to create, test and debug smart contracts, connect to Hyperledger Fabric environments, and build applications that transact on your blockchain network.
 
@@ -188,6 +188,19 @@ Here is an example of a peer with `TLS` enabled, please note the `pem` property 
     "pem": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNJVENDQWNpZ0F3"
  }
 ```
+
+If you already have a wallet in the extension with the identity you want to use for a node, you can set the `wallet` and `identity` properties. Setting both the properties would skip the setup step for that node. For example if you had the wallet `myWallet` with identity `myIdentity` you could do the following:
+```
+{
+    "name": "peer0.org1.example.com",
+    "api_url": "grpc://localhost:17051",
+    "type": "fabric-peer",
+    "msp_id": "Org1MSP",
+    "wallet": "myWallet",
+    "identity": "myIdentity"
+}
+```
+
 
 ##### Associating identities with nodes
 After creating an environment, the next step before connecting is to associate an identity with each node. To do this, click the name of the environment you have just created in the Fabric Environments panel. To complete setup, click on each node from the list to associate an identity with them. The identity must be an admin identity for the node. To change the identity associated with a node when connected the environment, right-click on the node and select Replace identity associated with a node.
