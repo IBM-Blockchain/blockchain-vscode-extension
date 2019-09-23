@@ -191,7 +191,7 @@ export class GatewayHelper {
         await fs.ensureDir(profilePath);
         const profileFile: string = path.join(profilePath, `${gatewayEntry.name}_connection.json`);
         const profileUri: vscode.Uri = vscode.Uri.file(profileFile);
-        this.mySandBox.stub(vscode.window, 'showSaveDialog').resolves(profileUri);
+        this.userInputUtilHelper.showSaveDialogStub.withArgs(sinon.match.any).resolves(profileUri);
 
         this.userInputUtilHelper.showGatewayQuickPickStub.resolves({ label: gatewayEntry.name, data: gatewayEntry });
 

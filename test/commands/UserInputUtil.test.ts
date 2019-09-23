@@ -848,18 +848,20 @@ describe('UserInputUtil', () => {
     });
 
     describe('showWorkspaceQuickPickBox', () => {
-        it('should show the workspace folders', async () => {
+        it('should show the workspace folders and their path as a description', async () => {
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
                 {
                     name: 'myPath1',
                     uri: {
-                        path: 'path1'
+                        path: 'path1',
+                        fsPath: 'pathHere'
                     }
                 },
                 {
                     name: 'myPath2',
                     uri: {
-                        path: 'path2'
+                        path: 'path2',
+                        fsPath: 'pathHere'
                     }
                 }]);
 
@@ -867,7 +869,8 @@ describe('UserInputUtil', () => {
                 label: 'myPath1', data: {
                     name: 'myPath1',
                     uri: {
-                        path: 'path1'
+                        path: 'path1',
+                        fsPath: 'pathHere'
                     }
                 }
             });
@@ -877,12 +880,29 @@ describe('UserInputUtil', () => {
                 label: 'myPath1', data: {
                     name: 'myPath1',
                     uri: {
-                        path: 'path1'
+                        path: 'path1',
+                        fsPath: 'pathHere'
                     }
                 }
             });
 
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith([{
+                label: 'myPath1', data: {
+                    name: 'myPath1',
+                    uri: {
+                        path: 'path1',
+                        fsPath: 'pathHere'
+                    }
+                }, description: 'pathHere'
+            }, {
+                label: 'myPath2', data: {
+                    name: 'myPath2',
+                    uri: {
+                        path: 'path2',
+                        fsPath: 'pathHere'
+                    }
+                }, description: 'pathHere'
+            }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 matchOnDetail: true,
@@ -896,7 +916,8 @@ describe('UserInputUtil', () => {
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value([{
                 name: 'myPath1',
                 uri: {
-                    path: 'path1'
+                    path: 'path1',
+                    fsPath: 'pathHere'
                 }
             }]);
             const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
@@ -904,7 +925,8 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([{
                 name: 'myPath1',
                 uri: {
-                    path: 'path1'
+                    path: 'path1',
+                    fsPath: 'pathHere'
                 }
             }]);
         });
