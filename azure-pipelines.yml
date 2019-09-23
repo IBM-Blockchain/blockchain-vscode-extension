@@ -151,18 +151,6 @@ stages:
               MODULES: '69'
               ELECTRON: '4.1'
               TARGET: '4.1.5'
-            old_linux:
-              imageName: 'ubuntu-16.04'
-              VERSION: '1.32.3'
-              MODULES: '64'
-              ELECTRON: '3.0'
-              TARGET: '3.0.0'
-            old_mac:
-              imageName: 'macos-10.14'
-              VERSION: '1.32.3'
-              MODULES: '64'
-              ELECTRON: '3.0'
-              TARGET: '3.0.0'
         pool:
           vmImage: $(imageName)
 
@@ -187,11 +175,11 @@ stages:
               VERSION: 'insiders'
             old_cucumber:
               imageName: 'ubuntu-16.04'
-              VERSION: '1.32.3'
+              VERSION: '1.38.1'
             old_cucumber_other:
               imageName: 'ubuntu-16.04'
               OTHER_FABRIC: 'true'
-              VERSION: '1.32.3'
+              VERSION: '1.38.1'
         pool:
           vmImage: $(imageName)
 
