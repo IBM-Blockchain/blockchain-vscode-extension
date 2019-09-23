@@ -23,8 +23,8 @@ export class FabricClientConnection extends FabricConnection implements IFabricC
 
     private description: boolean;
 
-    constructor(connectionData: { connectionProfilePath: string, walletPath: string }, outputAdapter?: OutputAdapter) {
-        super(connectionData.connectionProfilePath, outputAdapter);
+    constructor(connectionProfilePath: string, outputAdapter?: OutputAdapter) {
+        super(connectionProfilePath, outputAdapter);
     }
 
     async connect(wallet: FabricWallet, identityName: string, timeout: number): Promise<void> {

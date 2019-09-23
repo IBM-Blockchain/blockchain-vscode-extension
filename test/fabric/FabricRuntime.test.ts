@@ -35,6 +35,8 @@ import { FabricWallet } from '../../src/fabric/FabricWallet';
 import { FabricIdentity } from '../../src/fabric/FabricIdentity';
 import { FabricWalletUtil } from '../../src/fabric/FabricWalletUtil';
 import { SettingConfigurations } from '../../SettingConfigurations';
+import { UserInputUtil } from '../../src/commands/UserInputUtil';
+import { FabricGateway } from '../../src/fabric/FabricGateway';
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -126,7 +128,6 @@ describe('FabricRuntime', () => {
     });
 
     describe('#getState', () => {
-
         it('should return starting if the runtime is starting', () => {
             (runtime as any).state = FabricRuntimeState.STARTING;
             runtime.getState().should.equal(FabricRuntimeState.STARTING);
@@ -154,7 +155,6 @@ describe('FabricRuntime', () => {
     });
 
     describe('#create', () => {
-
         it('should create a new network', async () => {
             const removeStub: sinon.SinonStub = sandbox.stub(fs, 'remove');
             const ensureDirStub: sinon.SinonStub = sandbox.stub(fs, 'ensureDir');
@@ -178,7 +178,6 @@ describe('FabricRuntime', () => {
     });
 
     describe('#importWalletsAndIdentities', () => {
-
         it('should create all wallets and import all identities', async () => {
             const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
@@ -191,8 +190,25 @@ describe('FabricRuntime', () => {
 
     });
 
-    describe('#deleteWalletsAndIdentities', () => {
+    describe('#importGateways', () => {
+        it('should create all gateways', async () => {
+            const ensureStub: sinon.SinonStub = sandbox.stub(fs, 'ensureDir').resolves();
+            const copyStub: sinon.SinonStub = sandbox.stub(fs, 'copy');
 
+            const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+            const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', 'yofn');
+
+            await runtime.importGateways();
+            ensureStub.should.have.been.calledWith(profileDirPath);
+
+            const gateways: FabricGateway[] = await runtime.getGateways();
+            const profilePath: string = path.join(profileDirPath, path.basename(gateways[0].path));
+            copyStub.should.have.been.calledWith(gateways[0].path, profilePath);
+        });
+    });
+
+    describe('#deleteWalletsAndIdentities', () => {
         it('should delete all known identities that exist', async () => {
             const mockFabricWalletGenerator: sinon.SinonStubbedInstance<IFabricWalletGenerator> = sinon.createStubInstance(FabricWalletGenerator);
             sandbox.stub(FabricWalletGeneratorFactory, 'createFabricWalletGenerator').returns(mockFabricWalletGenerator);
@@ -210,6 +226,7 @@ describe('FabricRuntime', () => {
 
             let createStub: sinon.SinonStub;
             let importWalletsAndIdentitiesStub: sinon.SinonStub;
+            let importGatewaysStub: sinon.SinonStub;
             let isRunningStub: sinon.SinonStub;
             let setStateSpy: sinon.SinonSpy;
             let stopLogsStub: sinon.SinonStub;
@@ -219,6 +236,7 @@ describe('FabricRuntime', () => {
             beforeEach(() => {
                 createStub = sandbox.stub(runtime, 'create');
                 importWalletsAndIdentitiesStub = sandbox.stub(runtime, 'importWalletsAndIdentities');
+                importGatewaysStub = sandbox.stub(runtime, 'importGateways');
                 isRunningStub = sandbox.stub(runtime, 'isRunning').resolves(false);
                 setStateSpy = sandbox.spy(runtime, 'setState');
                 stopLogsStub = sandbox.stub(runtime, 'stopLogs');
@@ -585,6 +603,7 @@ describe('FabricRuntime', () => {
                     await runtime.teardown();
                     createStub.should.have.been.calledOnce;
                     importWalletsAndIdentitiesStub.should.have.been.calledOnce;
+                    importGatewaysStub.should.have.been.calledOnce;
                 });
             }
         });

@@ -61,9 +61,7 @@ describe('stopFabricRuntime', () => {
         runtime = runtimeManager.getRuntime();
 
         gatewayRegistyEntry = new FabricGatewayRegistryEntry();
-        gatewayRegistyEntry.managedRuntime = false;
-        gatewayRegistyEntry.connectionProfilePath = 'myPath';
-        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
+        gatewayRegistyEntry.name = 'myGateway';
 
         getRegistryEntryStub = sandbox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(gatewayRegistyEntry);
 
@@ -79,6 +77,7 @@ describe('stopFabricRuntime', () => {
 
     it('should stop a Fabric runtime and refresh the view', async () => {
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);
+
         stopStub.should.have.been.called.calledOnceWithExactly(VSCodeBlockchainOutputAdapter.instance());
         executeCommandSpy.getCall(1).should.have.been.calledWith(ExtensionCommands.REFRESH_ENVIRONMENTS);
         executeCommandSpy.should.not.have.been.calledWith(ExtensionCommands.DISCONNECT_GATEWAY);
@@ -86,7 +85,7 @@ describe('stopFabricRuntime', () => {
     });
 
     it('should stop a Fabric runtime, disconnect from gateway and refresh the view', async () => {
-        gatewayRegistyEntry.managedRuntime = true;
+        gatewayRegistyEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
         getRegistryEntryStub.returns(gatewayRegistyEntry);
 
         await vscode.commands.executeCommand(ExtensionCommands.STOP_FABRIC);

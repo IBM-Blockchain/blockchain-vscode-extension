@@ -24,6 +24,7 @@ import * as fs from 'fs-extra';
 import { LogType } from '../logging/OutputAdapter';
 import { GatewayTreeItem } from '../explorer/model/GatewayTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricGatewayHelper } from '../fabric/FabricGatewayHelper';
 
 export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -64,7 +65,8 @@ export async function exportConnectionProfile(gatewayTreeItem: GatewayTreeItem):
 
     // Copy the connection profile to the chosen location
     try {
-        await fs.copy(gatewayEntry.connectionProfilePath, chosenPathUri.fsPath);
+        const connectionProfilePath: string = await FabricGatewayHelper.getConnectionProfilePath(gatewayEntry.name);
+        await fs.copy(connectionProfilePath, chosenPathUri.fsPath);
     } catch (error) {
         outputAdapter.log(LogType.ERROR, `Issue exporting connection profile: ${error.message}`, `Issue exporting connection profile: ${error.toString()}`);
         return;

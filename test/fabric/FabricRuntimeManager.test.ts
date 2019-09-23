@@ -125,6 +125,7 @@ describe('FabricRuntimeManager', () => {
             });
             mockRuntime.updateUserSettings.should.not.have.been.called;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
+            mockRuntime.importGateways.should.have.been.calledOnce;
         });
 
         it('should generate new configuration and import all wallets/identities', async () => {
@@ -141,6 +142,7 @@ describe('FabricRuntimeManager', () => {
             });
             mockRuntime.updateUserSettings.should.have.been.calledOnce;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
+            mockRuntime.importGateways.should.have.been.calledOnce;
         });
 
         it('create the runtime if it is not already created', async () => {
@@ -158,6 +160,7 @@ describe('FabricRuntimeManager', () => {
             });
             mockRuntime.updateUserSettings.should.have.been.calledOnce;
             mockRuntime.importWalletsAndIdentities.should.have.been.calledOnce;
+            mockRuntime.importGateways.should.have.been.calledOnce;
             mockRuntime.create.should.have.been.calledOnce;
         });
 
@@ -196,9 +199,7 @@ describe('FabricRuntimeManager', () => {
             const registryEntries: FabricGatewayRegistryEntry[] = await instance.getGatewayRegistryEntries();
             registryEntries.should.have.lengthOf(1);
             registryEntries[0].name.should.equal(FabricRuntimeUtil.LOCAL_FABRIC);
-            registryEntries[0].managedRuntime.should.be.true;
             registryEntries[0].associatedWallet.should.equal(FabricWalletUtil.LOCAL_WALLET);
-            registryEntries[0].connectionProfilePath.should.equal('SOME_PATH');
         });
     });
 

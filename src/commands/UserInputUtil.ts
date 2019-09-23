@@ -39,6 +39,7 @@ import { FabricEnvironmentRegistryEntry } from '../fabric/FabricEnvironmentRegis
 import { FabricEnvironmentManager } from '../fabric/FabricEnvironmentManager';
 import { FabricEnvironment } from '../fabric/FabricEnvironment';
 import { FabricEnvironmentRegistry } from '../fabric/FabricEnvironmentRegistry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export interface IBlockchainQuickPickItem<T = undefined> extends vscode.QuickPickItem {
     data: T;
@@ -141,7 +142,12 @@ export class UserInputUtil {
         allEnvironments.push(...environments);
 
         const environmentsQuickPickItems: Array<IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>> = allEnvironments.map((environment: FabricEnvironmentRegistryEntry) => {
-            return { label: environment.name, data: environment };
+            let label: string = environment.name;
+            if (environment.name === FabricRuntimeUtil.LOCAL_FABRIC) {
+                label = FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME;
+            }
+
+            return { label: label, data: environment };
         });
 
         if (environmentsQuickPickItems.length === 1) {
@@ -153,7 +159,7 @@ export class UserInputUtil {
         return vscode.window.showQuickPick(environmentsQuickPickItems, quickPickOptions);
     }
 
-    public static async showGatewayQuickPickBox(prompt: string, canPickMany: boolean, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<Array <IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> | IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
+    public static async showGatewayQuickPickBox(prompt: string, canPickMany: boolean, showManagedRuntime?: boolean, showAssociatedGateways?: boolean): Promise<Array<IBlockchainQuickPickItem<FabricGatewayRegistryEntry>> | IBlockchainQuickPickItem<FabricGatewayRegistryEntry> | undefined> {
         const quickPickOptions: vscode.QuickPickOptions = {
             ignoreFocusOut: true,
             canPickMany: canPickMany,

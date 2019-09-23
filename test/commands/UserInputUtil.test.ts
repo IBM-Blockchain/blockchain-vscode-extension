@@ -125,20 +125,15 @@ describe('UserInputUtil', () => {
     });
 
     beforeEach(async () => {
-
-        const rootPath: string = path.dirname(__dirname);
-
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
-        gatewayEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
         gatewayEntryOne.associatedWallet = 'blueWallet';
         identities = [FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com'];
 
         gatewayEntryTwo = new FabricGatewayRegistryEntry();
         gatewayEntryTwo.name = 'myGatewayB';
-        gatewayEntryTwo.connectionProfilePath = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
         gatewayEntryTwo.associatedWallet = '';
 
         await gatewayRegistry.clear();
@@ -187,8 +182,6 @@ describe('UserInputUtil', () => {
         mySandBox.stub(fabricRuntimeManager, 'getGatewayRegistryEntries').resolves([
             new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'connection.json',
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET
             })
         ]);
@@ -242,7 +235,7 @@ describe('UserInputUtil', () => {
 
             result.data.name.should.equal(environmentRegistry.name);
 
-            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry }, { label: environmentRegistry.name, data: environmentRegistry }], {
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localFabricEntry }, { label: environmentRegistry.name, data: environmentRegistry }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
@@ -330,9 +323,7 @@ describe('UserInputUtil', () => {
 
             const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            managedRuntime.managedRuntime = true;
             managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            managedRuntime.connectionProfilePath = 'connection.json';
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);

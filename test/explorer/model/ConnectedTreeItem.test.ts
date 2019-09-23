@@ -42,8 +42,6 @@ describe('ConnectedTreeItem', () => {
         sandbox = sinon.createSandbox();
         gatewayRegistryEntry = new FabricGatewayRegistryEntry();
         gatewayRegistryEntry.name = 'testGateway';
-        gatewayRegistryEntry.connectionProfilePath = 'testPath';
-        gatewayRegistryEntry.managedRuntime = true;
     });
 
     afterEach(() => {

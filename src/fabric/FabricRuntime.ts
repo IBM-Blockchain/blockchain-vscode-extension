@@ -30,6 +30,7 @@ import { FabricWalletGeneratorFactory } from './FabricWalletGeneratorFactory';
 import { IFabricWallet } from './IFabricWallet';
 import { SettingConfigurations } from '../../SettingConfigurations';
 import { FabricEnvironment } from './FabricEnvironment';
+import { UserInputUtil } from '../commands/UserInputUtil';
 
 export enum FabricRuntimeState {
     STARTING = 'starting',
@@ -107,6 +108,19 @@ export class FabricRuntime extends FabricEnvironment {
         }
     }
 
+    public async importGateways(): Promise<void> {
+        const extDir: string = vscode.workspace.getConfiguration().get(SettingConfigurations.EXTENSION_DIRECTORY);
+        const homeExtDir: string = UserInputUtil.getDirPath(extDir);
+
+        const fabricGateways: FabricGateway[] = await this.getGateways();
+        for (const gateway of fabricGateways) {
+            const profileDirPath: string = path.join(homeExtDir, 'gateways', gateway.name);
+            const profilePath: string = path.join(profileDirPath, path.basename(gateway.path));
+            await fs.ensureDir(profileDirPath);
+            await fs.copy(gateway.path, profilePath);
+        }
+    }
+
     public async deleteWalletsAndIdentities(): Promise<void> {
 
         // Ensure that all known identities in all known wallets are deleted.
@@ -172,6 +186,7 @@ export class FabricRuntime extends FabricEnvironment {
             await this.teardownInner(outputAdapter);
             await this.create();
             await this.importWalletsAndIdentities();
+            await this.importGateways();
         } finally {
             this.setBusy(false);
             const running: boolean = await this.isRunning();

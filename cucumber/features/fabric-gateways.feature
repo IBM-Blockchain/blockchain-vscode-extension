@@ -98,6 +98,7 @@ Feature: Fabric Gateways
     Scenario Outline: Generating tests for a contract (other fabric)
         Given the wallet 'myWallet' with identity 'conga' and mspid 'Org1MSP' exists
         And an environment 'myFabric' exists
+        And the environment is setup
         And the 'myFabric' environment is connected
         And a <contractLanguage> smart contract for <assetType> assets with the name <contractName> and version <version>
         And the contract has been created
