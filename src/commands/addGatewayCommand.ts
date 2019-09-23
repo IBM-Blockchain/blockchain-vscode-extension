@@ -39,9 +39,23 @@ export async function addGateway(): Promise<{} | void> {
             return;
         }
 
-        const gatewayName: string = await UserInputUtil.showInputBox('Enter a name for the gateway');
-        if (!gatewayName) {
-            return;
+        let chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry>;
+        let gatewayName: string;
+
+        if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_ENVIRONMENT) {
+            chosenEnvironment = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false);
+            if (!chosenEnvironment) {
+                return;
+            }
+            gatewayName = await UserInputUtil.showInputBox('Enter a name for the gateway', chosenEnvironment.label + '_gw');
+            if (!gatewayName) {
+                return;
+            }
+        } else {
+            gatewayName = await UserInputUtil.showInputBox('Enter a name for the gateway');
+            if (!gatewayName) {
+                return;
+            }
         }
 
         if (fabricGatewayRegistry.exists(gatewayName) || gatewayName === FabricRuntimeUtil.LOCAL_FABRIC) {
@@ -53,7 +67,7 @@ export async function addGateway(): Promise<{} | void> {
         if (gatewayMethod === UserInputUtil.ADD_GATEWAY_FROM_CCP) {
             gatewayRegistryEntry = await createGatewayFromCCP(gatewayName);
         } else {
-            gatewayRegistryEntry = await createGatewayFromEnvironment(gatewayName);
+            gatewayRegistryEntry = await createGatewayFromEnvironment(gatewayName, chosenEnvironment.data.name);
         }
 
         if (!gatewayRegistryEntry) {
@@ -68,14 +82,9 @@ export async function addGateway(): Promise<{} | void> {
     }
 }
 
-async function createGatewayFromEnvironment(gatewayName: string): Promise<FabricGatewayRegistryEntry> {
+async function createGatewayFromEnvironment(gatewayName: string, environmentName: string): Promise<FabricGatewayRegistryEntry> {
 
-    const chosenEnvironment: IBlockchainQuickPickItem<FabricEnvironmentRegistryEntry> = await UserInputUtil.showFabricEnvironmentQuickPickBox('Choose an environment to create a gateway from', false);
-    if (!chosenEnvironment) {
-        return;
-    }
-
-    const chosenOrg: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('Choose an organisation to create the gateway for', chosenEnvironment.data.name);
+    const chosenOrg: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showOrgQuickPick('Choose an organisation to create the gateway for', environmentName);
 
     if (!chosenOrg) {
         return;
@@ -84,7 +93,7 @@ async function createGatewayFromEnvironment(gatewayName: string): Promise<Fabric
     let caNode: FabricNode;
 
     try {
-        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a certificate authority for the gateway connection', chosenEnvironment.data.name, [FabricNodeType.CERTIFICATE_AUTHORITY]);
+        const chosenCA: IBlockchainQuickPickItem<FabricNode> = await UserInputUtil.showFabricNodeQuickPick('Choose a certificate authority for the gateway connection', environmentName, [FabricNodeType.CERTIFICATE_AUTHORITY]);
 
         if (!chosenCA) {
             return;
@@ -100,7 +109,7 @@ async function createGatewayFromEnvironment(gatewayName: string): Promise<Fabric
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     fabricGatewayEntry.name = gatewayName;
     fabricGatewayEntry.associatedWallet = peerNode.wallet;
-    fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
+    await FabricGatewayHelper.generateConnectionProfile(gatewayName, peerNode, caNode);
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();
     await fabricGatewayRegistry.add(fabricGatewayEntry);
@@ -127,8 +136,9 @@ async function createGatewayFromCCP(gatewayName: string): Promise<FabricGatewayR
 
     const fabricGatewayEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
     // Copy the user given connection profile to the gateway directory (in the blockchain extension directory)
+    await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
+
     fabricGatewayEntry.name = gatewayName;
-    fabricGatewayEntry.connectionProfilePath = await FabricGatewayHelper.copyConnectionProfile(gatewayName, connectionProfilePath);
     fabricGatewayEntry.associatedWallet = '';
 
     const fabricGatewayRegistry: FabricGatewayRegistry = FabricGatewayRegistry.instance();

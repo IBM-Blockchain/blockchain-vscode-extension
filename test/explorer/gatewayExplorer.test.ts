@@ -77,8 +77,6 @@ describe('gatewayExplorer', () => {
         mySandBox.stub(FabricRuntimeManager.instance(), 'getGatewayRegistryEntries').resolves([
             new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'connection.json',
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET
             })
         ]);
@@ -254,8 +252,6 @@ describe('gatewayExplorer', () => {
 
                 const gateway: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 gateway.name = FabricRuntimeUtil.LOCAL_FABRIC;
-                gateway.managedRuntime = true;
-                gateway.connectionProfilePath = 'connection.json';
                 gateway.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
                 const myCommand: vscode.Command = {
                     command: ExtensionCommands.CONNECT_TO_GATEWAY,
@@ -301,8 +297,6 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
-                registryEntry.connectionProfilePath = 'myPath';
-                registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
@@ -327,9 +321,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 const registryEntry: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
-                registryEntry.connectionProfilePath = 'myPath';
                 registryEntry.associatedWallet = 'some_wallet';
-                registryEntry.managedRuntime = false;
                 mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
 
                 const blockchainGatewayExplorerProvider: BlockchainGatewayExplorerProvider = ExtensionUtil.getBlockchainGatewayExplorerProvider();
@@ -435,9 +427,7 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
 
                 registryEntry = new FabricGatewayRegistryEntry();
                 registryEntry.name = 'myGateway';
-                registryEntry.connectionProfilePath = 'myPath';
                 registryEntry.associatedWallet = 'some_wallet';
-                registryEntry.managedRuntime = false;
                 getGatewayRegistryEntryStub = mySandBox.stub(FabricConnectionManager.instance(), 'getGatewayRegistryEntry').returns(registryEntry);
                 allChildren = await blockchainGatewayExplorerProvider.getChildren();
             });
@@ -483,7 +473,6 @@ ${FabricWalletUtil.LOCAL_WALLET_DISPLAY_NAME}`);
             });
 
             it('should update connected to context value if managed runtime', async () => {
-                registryEntry.managedRuntime = true;
                 registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
                 getGatewayRegistryEntryStub.returns(registryEntry);
                 allChildren = await ExtensionUtil.getBlockchainGatewayExplorerProvider().getChildren();

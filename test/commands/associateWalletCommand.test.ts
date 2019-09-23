@@ -68,8 +68,6 @@ describe('AssociateWalletCommand', () => {
 
             const connectionOne: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: ''
             });
 
@@ -110,8 +108,6 @@ describe('AssociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: 'blueWallet'
             });
 
@@ -175,8 +171,6 @@ describe('AssociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: 'blueWallet'
             });
 
@@ -214,8 +208,6 @@ describe('AssociateWalletCommand', () => {
 
             fabricGatewayRegistryUpdateStub.should.have.been.calledOnceWithExactly({
                 name: 'myGateway',
-                connectionProfilePath: path.join(rootPath, '../../test/data/connectionOne/connection.json'),
-                managedRuntime: false,
                 associatedWallet: 'blueWallet'
             });
 

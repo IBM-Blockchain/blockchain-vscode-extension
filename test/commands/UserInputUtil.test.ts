@@ -125,20 +125,15 @@ describe('UserInputUtil', () => {
     });
 
     beforeEach(async () => {
-
-        const rootPath: string = path.dirname(__dirname);
-
         logSpy = mySandBox.spy(VSCodeBlockchainOutputAdapter.instance(), 'log');
 
         gatewayEntryOne = new FabricGatewayRegistryEntry();
         gatewayEntryOne.name = 'myGatewayA';
-        gatewayEntryOne.connectionProfilePath = path.join(rootPath, '../../test/data/connectionOne/connection.json');
         gatewayEntryOne.associatedWallet = 'blueWallet';
         identities = [FabricRuntimeUtil.ADMIN_USER, 'Test@org1.example.com'];
 
         gatewayEntryTwo = new FabricGatewayRegistryEntry();
         gatewayEntryTwo.name = 'myGatewayB';
-        gatewayEntryTwo.connectionProfilePath = path.join(rootPath, '../../test/data/connectionTwo/connection.json');
         gatewayEntryTwo.associatedWallet = '';
 
         await gatewayRegistry.clear();
@@ -187,8 +182,6 @@ describe('UserInputUtil', () => {
         mySandBox.stub(fabricRuntimeManager, 'getGatewayRegistryEntries').resolves([
             new FabricGatewayRegistryEntry({
                 name: FabricRuntimeUtil.LOCAL_FABRIC,
-                managedRuntime: true,
-                connectionProfilePath: 'connection.json',
                 associatedWallet: FabricWalletUtil.LOCAL_WALLET
             })
         ]);
@@ -242,7 +235,7 @@ describe('UserInputUtil', () => {
 
             result.data.name.should.equal(environmentRegistry.name);
 
-            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC, data: localFabricEntry }, { label: environmentRegistry.name, data: environmentRegistry }], {
+            quickPickStub.should.have.been.calledWith([{ label: FabricRuntimeUtil.LOCAL_FABRIC_DISPLAY_NAME, data: localFabricEntry }, { label: environmentRegistry.name, data: environmentRegistry }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 placeHolder: 'choose an environment'
@@ -330,9 +323,7 @@ describe('UserInputUtil', () => {
 
             const managedRuntime: FabricGatewayRegistryEntry = new FabricGatewayRegistryEntry();
             managedRuntime.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            managedRuntime.managedRuntime = true;
             managedRuntime.associatedWallet = FabricWalletUtil.LOCAL_WALLET;
-            managedRuntime.connectionProfilePath = 'connection.json';
 
             quickPickStub.resolves();
             await UserInputUtil.showGatewayQuickPickBox('Choose a gateway', false, true);
@@ -857,18 +848,20 @@ describe('UserInputUtil', () => {
     });
 
     describe('showWorkspaceQuickPickBox', () => {
-        it('should show the workspace folders', async () => {
+        it('should show the workspace folders and their path as a description', async () => {
             mySandBox.stub(UserInputUtil, 'getWorkspaceFolders').returns([
                 {
                     name: 'myPath1',
                     uri: {
-                        path: 'path1'
+                        path: 'path1',
+                        fsPath: 'pathHere'
                     }
                 },
                 {
                     name: 'myPath2',
                     uri: {
-                        path: 'path2'
+                        path: 'path2',
+                        fsPath: 'pathHere'
                     }
                 }]);
 
@@ -876,7 +869,8 @@ describe('UserInputUtil', () => {
                 label: 'myPath1', data: {
                     name: 'myPath1',
                     uri: {
-                        path: 'path1'
+                        path: 'path1',
+                        fsPath: 'pathHere'
                     }
                 }
             });
@@ -886,12 +880,29 @@ describe('UserInputUtil', () => {
                 label: 'myPath1', data: {
                     name: 'myPath1',
                     uri: {
-                        path: 'path1'
+                        path: 'path1',
+                        fsPath: 'pathHere'
                     }
                 }
             });
 
-            quickPickStub.should.have.been.calledWith(sinon.match.any, {
+            quickPickStub.should.have.been.calledWith([{
+                label: 'myPath1', data: {
+                    name: 'myPath1',
+                    uri: {
+                        path: 'path1',
+                        fsPath: 'pathHere'
+                    }
+                }, description: 'pathHere'
+            }, {
+                label: 'myPath2', data: {
+                    name: 'myPath2',
+                    uri: {
+                        path: 'path2',
+                        fsPath: 'pathHere'
+                    }
+                }, description: 'pathHere'
+            }], {
                 ignoreFocusOut: true,
                 canPickMany: false,
                 matchOnDetail: true,
@@ -905,7 +916,8 @@ describe('UserInputUtil', () => {
             mySandBox.stub(vscode.workspace, 'workspaceFolders').value([{
                 name: 'myPath1',
                 uri: {
-                    path: 'path1'
+                    path: 'path1',
+                    fsPath: 'pathHere'
                 }
             }]);
             const result: Array<vscode.WorkspaceFolder> = UserInputUtil.getWorkspaceFolders();
@@ -913,7 +925,8 @@ describe('UserInputUtil', () => {
             result.should.deep.equal([{
                 name: 'myPath1',
                 uri: {
-                    path: 'path1'
+                    path: 'path1',
+                    fsPath: 'pathHere'
                 }
             }]);
         });

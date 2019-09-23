@@ -23,6 +23,7 @@ import { ExtensionCommands } from '../../ExtensionCommands';
 import { VSCodeBlockchainDockerOutputAdapter } from '../logging/VSCodeBlockchainDockerOutputAdapter';
 import { InstantiatedTreeItem } from '../explorer/model/InstantiatedTreeItem';
 import { FabricGatewayRegistryEntry } from '../fabric/FabricGatewayRegistryEntry';
+import { FabricRuntimeUtil } from '../fabric/FabricRuntimeUtil';
 
 export async function submitTransaction(evaluate: boolean, treeItem?: InstantiatedTreeItem | TransactionTreeItem, channelName?: string, smartContract?: string): Promise<void> {
     const outputAdapter: VSCodeBlockchainOutputAdapter = VSCodeBlockchainOutputAdapter.instance();
@@ -130,7 +131,7 @@ export async function submitTransaction(evaluate: boolean, treeItem?: Instantiat
             outputAdapter.log(LogType.INFO, undefined, `${actioning} transaction ${transactionName} with args ${args}`);
 
             const gatewayRegistyrEntry: FabricGatewayRegistryEntry = FabricConnectionManager.instance().getGatewayRegistryEntry();
-            if (gatewayRegistyrEntry.managedRuntime) {
+            if (gatewayRegistyrEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
                 VSCodeBlockchainDockerOutputAdapter.instance().show();
             }
 

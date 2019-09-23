@@ -105,7 +105,7 @@ module.exports = function(): any {
         } else if (submitEvaluate === 'evaluate') {
             evaluateBoolean = true;
         }
-        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, `${this.contractAssetType}Contract`, transientData, evaluateBoolean);
+        await this.gatewayHelper.submitTransaction(this.contractName, this.contractVersion, this.contractLanguage, transaction, args, this.gateway, this.namespace, transientData, evaluateBoolean);
     });
 
     this.When('I export the connection profile', this.timeout, async () => {

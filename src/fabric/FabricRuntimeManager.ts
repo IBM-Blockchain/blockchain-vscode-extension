@@ -83,6 +83,9 @@ export class FabricRuntimeManager {
         // Import all of the wallets and identities as well.
         await this.runtime.importWalletsAndIdentities();
 
+        // Import all of the gateways
+        await this.runtime.importGateways();
+
         FabricEnvironmentManager.instance().on('connected', async () => {
             const registryEntry: FabricEnvironmentRegistryEntry = FabricEnvironmentManager.instance().getEnvironmentRegistryEntry();
             if (registryEntry.name === FabricRuntimeUtil.LOCAL_FABRIC) {
@@ -101,8 +104,6 @@ export class FabricRuntimeManager {
         const gateways: FabricGateway[] = await runtime.getGateways();
         return gateways.map((gateway: FabricGateway) => new FabricGatewayRegistryEntry({
             name: gateway.name,
-            managedRuntime: true,
-            connectionProfilePath: gateway.path,
             associatedWallet: FabricWalletUtil.LOCAL_WALLET
         }));
     }

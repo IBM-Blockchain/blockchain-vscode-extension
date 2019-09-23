@@ -79,8 +79,6 @@ describe('FabricJavaDebugConfigurationProvider', () => {
 
             registryEntry = new FabricGatewayRegistryEntry();
             registryEntry.name = FabricRuntimeUtil.LOCAL_FABRIC;
-            registryEntry.connectionProfilePath = 'myPath';
-            registryEntry.managedRuntime = true;
 
             mySandbox.stub(FabricRuntimeManager.instance(), 'getRuntime').returns(runtimeStub);
             mySandbox.stub(FabricGatewayRegistry.instance(), 'get').returns(registryEntry);
